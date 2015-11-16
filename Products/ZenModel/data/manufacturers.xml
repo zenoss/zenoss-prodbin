@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:02:05.406989
+    Zenoss RelationshipManager export completed on 2015-11-16 15:36:08.205454
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:02:05.406989" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-11-16 15:36:08.205454" zenoss_server="ad1022be5448" >
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
 <object id='ATI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -143,6 +143,14 @@ False
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='Apache' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="string" id="zip" mode="w" >
+</property>
+<property type="lines" id="regexes" mode="w" >
+()
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ApacheMonitor'/>
 </object>
 <object id='Apple' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -564,6 +572,40 @@ ServerWorks Inc. OSB4 PCI to ISA Bridge
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+</tomanycont>
+</object>
+<object id='Check Point' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="string" id="zip" mode="w" >
+</property>
+<property type="lines" id="regexes" mode="w" >
+()
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CheckPointMonitor'/>
+<tomanycont id='products'>
+<object id='Gaia (2.6)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Gaia (2.6)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Gaia (2.6)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CheckPointMonitor'/>
+</object>
+<object id='SecurePlatform (NGX R65)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+SecurePlatform (NGX R65)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['SecurePlatform (NGX R65)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CheckPointMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -5161,6 +5203,48 @@ False
 False
 </property>
 </object>
+<object id='ACE 4710 Application Control Engine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ACE 4710 Application Control Engine
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.824']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ACE20 Service Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ACE20 Service Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1291']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ACE20-MOD-K9
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ACE30 Service Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ACE30 Service Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1231']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ACE30-MOD-K9
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='AGSplus' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
 AGSplus
@@ -5351,6 +5435,153 @@ AS5800
 False
 </property>
 </object>
+<object id='ASA 1000V Adaptive Security Appliance' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+ASA 1000V Adaptive Security Appliance
+</property>
+<property type="string" id="name" mode="w" >
+ASA 1000V Adaptive Security Appliance
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1614']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASA 1000V
+</property>
+<property type="string" id="description" mode="w" >
+ASA 1000V Adaptive Security Appliance
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASA 5555-X Adaptive Security Appliance' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASA 5555-X Adaptive Security Appliance
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1410']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASA 5585 SSP-10-SC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASA 5585 SSP-10-SC
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1198']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASA5585-S10
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASA 5585 SSP-60-SC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASA 5585 SSP-60-SC
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1201']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASA5585-S60
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASA Services Module (WS-SVC-ASA-SM1)' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASA Services Module (WS-SVC-ASA-SM1)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1275']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASR 1001' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASR 1001
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1165']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASR 1004' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASR 1004
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.924']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASR1004
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASR 1004 Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASR 1004 Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.924']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASR1004
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASR 9006 Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASR 9006 Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1018']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASR-9006
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ASR 9010 Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ASR 9010 Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1017']
+</property>
+<property type="string" id="partNumber" mode="w" >
+ASR-9010
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='AccessProEC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
 AccessProEC
@@ -5373,6 +5604,18 @@ AccessProRC
 False
 </property>
 </object>
+<object id='Adaptive Security Appliance 8.4(3)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Adaptive Security Appliance 8.4(3)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Adaptive Security Appliance 8.4(3)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='AirAp350IOS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
 Cisco Wireless LAN Access Point 350 series on IOS platform with 1 10/100TX port, 1 IEEE 802.11 radio port
@@ -5389,6 +5632,30 @@ Cisco Wireless LAN Access Point 350 series on IOS platform with 1 10/100TX port,
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Application Control Software (ACSW)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Application Control Software (ACSW)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Application Control Software (ACSW)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Application Engine' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Application Engine
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='As5350XM' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -5899,6 +6166,27 @@ Cisco Content Switching Module (CSM) which load balancing internet traffic based
 False
 </property>
 </object>
+<object id='CSR 1000V Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Cloud Services Router 1000V
+</property>
+<property type="string" id="name" mode="w" >
+CSR 1000V Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1537', 'CSR1000V']
+</property>
+<property type="string" id="partNumber" mode="w" >
+CSR 1000V
+</property>
+<property type="string" id="description" mode="w" >
+Cloud Services Router 1000V
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='CVA122' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
 Cisco CVA122 Cable Voice Adapter (Residential Cable Modem with two Voice Ports)
@@ -6011,6 +6299,36 @@ False
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Catalyst 6500 VSS 1440' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Catalyst 6500 VSS 1440
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.896']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Catalyst 6509 Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+Catalyst 6000 Plus with 9 slots
+</property>
+<property type="string" id="name" mode="w" >
+Catalyst 6509 Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.283']
+</property>
+<property type="string" id="description" mode="w" >
+Catalyst 6000 Plus with 9 slots
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='Catalyst3500' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -6214,6 +6532,30 @@ Cisco Inc._VPN
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Cisco Nexus 1010 VSA (N1K-C1010)' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Cisco Nexus 1010 VSA (N1K-C1010)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.907']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Cisco Nexus 3064 Switch (N3K-C3064PQ-10GX)' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Cisco Nexus 3064 Switch (N3K-C3064PQ-10GX)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1105']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='CiscoSecure ACS v3.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -6557,6 +6899,21 @@ Cisco File Engine Model FE-7326-K9
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Firewall Services Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Firewall Services Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.674']
+</property>
+<property type="string" id="partNumber" mode="w" >
+SVC-FWM1
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='GSS' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -7108,6 +7465,30 @@ IOS 12.1_6_EA2a
 False
 </property>
 </object>
+<object id='IOS 12.2(33)SXI4a' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+IOS 12.2(33)SXI4a
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['IOS 12.2(33)SXI4a']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='IOS 12.2(33)SXI5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+IOS 12.2(33)SXI5
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['IOS 12.2(33)SXI5']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='IOS 12.2_18_SXD1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
 IOS 12.2_18_SXD1
@@ -7195,6 +7576,30 @@ IOS 12.4(4)T3
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='IOS 15.2(1)S1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+IOS 15.2(1)S1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['IOS 15.2(1)S1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='IOS XR 4.1.2_Default' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+IOS XR 4.1.2[Default]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['IOS XR 4.1.2[Default]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='IPS4240' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -7330,6 +7735,21 @@ Cisco Media Convergence Server 7825 (IBM)
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='MDS 9509' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+MDS 9509
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.376']
+</property>
+<property type="string" id="partNumber" mode="w" >
+DS-C9509
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='ME6340ACA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -7614,6 +8034,18 @@ MicroWebServer2
 False
 </property>
 </object>
+<object id='N5K-C5020P-BF' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+N5K-C5020P-BF
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.719']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='NMCUE' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
 NMCUE
@@ -7642,6 +8074,90 @@ Cisco Unity Express network module with enhanced capacity (NM-CUE-EC)
 False
 </property>
 </object>
+<object id='NX-OS m9500 5.0(7)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS m9500 5.0(7)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS m9500 5.0(7)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS n5000 5.0(2)N2(1)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS n5000 5.0(2)N2(1)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS n5000 5.0(2)N2(1)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS n5000 5.1(3)N1(1a)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS n5000 5.1(3)N1(1a)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS n5000 5.1(3)N1(1a)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS n7000 5.1(3)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS n7000 5.1(3)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS n7000 5.1(3)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS n7000 5.2(3a)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS n7000 5.2(3a)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS n7000 5.2(3a)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS nexus 4.2(1)SV1(4a)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS nexus 4.2(1)SV1(4a)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS nexus 4.2(1)SV1(4a)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='NX-OS nexus 4.2(1)VSG1(3.1)' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NX-OS nexus 4.2(1)VSG1(3.1)
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NX-OS nexus 4.2(1)VSG1(3.1)']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='NetworkRegistrar' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
 Cisco Network Registrar (CNR) is a full-featured DNS/DHCP system that provides scalable naming and addressing services for enterprise and service provider networks.
@@ -7658,6 +8174,102 @@ Cisco Network Registrar (CNR) is a full-featured DNS/DHCP system that provides s
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Nexus 1000V Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 1000V Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.840']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 6001 Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 6001 Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1308']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 6004 Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 6004 Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1237']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 7000 10-Slot Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 7000 10-Slot Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.612']
+</property>
+<property type="string" id="partNumber" mode="w" >
+N7K-C7010
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 7000 18-Slot Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 7000 18-Slot Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.777']
+</property>
+<property type="string" id="partNumber" mode="w" >
+N7K-C7018
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 7004 4-Slot Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 7004 4-Slot Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1147']
+</property>
+<property type="string" id="partNumber" mode="w" >
+N7K-C7004
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='Nexus 9508 Switch' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Nexus 9508 Switch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1467']
+</property>
+<property type="string" id="partNumber" mode="w" >
+N9K-C9508
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='NmNam' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -8916,6 +9528,21 @@ The Standby Global Site Selector Manager (GSSM) serves as the backup to the Prim
 False
 </property>
 </object>
+<object id='TelePresence 1000 Primary Codec G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+TelePresence 1000 Primary Codec G2
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.1.1003']
+</property>
+<property type="string" id="partNumber" mode="w" >
+CTS-CODEC-PRI-G2
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
 <object id='TerminalServer' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
 TerminalServer
@@ -9294,6 +9921,21 @@ Cisco VLAN Policy Server 1110 manages VLAN-based policies to control user access
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='Virtual Security Gateway' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Virtual Security Gateway
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.9.12.3.1.3.1646']
+</property>
+<property type="string" id="partNumber" mode="w" >
+VSG
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 <object id='WLSE1030' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property id='zendoc' type='string'>
@@ -10143,6 +10785,7 @@ http://www.dell.com/
 <property type="lines" id="regexes" mode="w" >
 ('^Dell Inc\\.$',)
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 <tomanycont id='products'>
 <object id='Dell Inc. PERC 4e_Di RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10154,6 +10797,7 @@ Dell Inc. PERC 4e_Di RAID Controller
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell Inc. PERC 4e_Si RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10165,6 +10809,7 @@ Dell Inc. PERC 4e_Si RAID Controller
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell Inc. Remote Access Controller _Integrated' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10176,6 +10821,7 @@ Dell Inc. Remote Access Controller _Integrated
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell Inc. Remote Access Controller _PCI' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10187,6 +10833,7 @@ Dell Inc. Remote Access Controller _PCI
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell Inc. http___www.dell.com ERA' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10198,6 +10845,7 @@ Dell Inc. http___www.dell.com ERA
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell Inc. http___www.dell.com PERC 3_Di' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10209,6 +10857,7 @@ Dell Inc. http___www.dell.com PERC 3_Di
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell OpenManage' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10220,6 +10869,7 @@ Dell OpenManage
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell OpenManage Array Manager' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10231,6 +10881,7 @@ Dell OpenManage Array Manager
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='Dell OpenManage Server Administrator' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10242,6 +10893,7 @@ Dell OpenManage Server Administrator
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PERC 4_im' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10253,6 +10905,7 @@ PERC 4_im
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PERC 4e Integrated RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10264,6 +10917,7 @@ PERC 4e Integrated RAID Controller
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PERC 4e_DC RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10275,6 +10929,7 @@ PERC 4e_DC RAID Controller
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 1850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10286,6 +10941,7 @@ PowerEdge 1850
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 1855' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10297,6 +10953,31 @@ PowerEdge 1855
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
+</object>
+<object id='PowerEdge 1950' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+PowerEdge 1950
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['PowerEdge 1950']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
+</object>
+<object id='PowerEdge 2550' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+PowerEdge 2550
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['PowerEdge 2550']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 2550                  ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10308,6 +10989,18 @@ PowerEdge 2550
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+<object id='PowerEdge 2650' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+PowerEdge 2650
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['PowerEdge 2650']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 2650             ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10330,6 +11023,7 @@ PowerEdge 2850
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 430' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10341,6 +11035,7 @@ PowerEdge 430
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 6850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10352,6 +11047,7 @@ PowerEdge 6850
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='PowerEdge 850' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10363,6 +11059,7 @@ PowerEdge 850
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='bonding-2.6.1dell-1dkms' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10374,6 +11071,7 @@ bonding-2.6.1dell-1dkms
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 <object id='sr_mod-Dell_RHEL4a-3dkms' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10385,6 +11083,7 @@ sr_mod-Dell_RHEL4a-3dkms
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DellMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -11456,7 +12155,20 @@ http://www.hp.com
 <property type="lines" id="regexes" mode="w" >
 ('Hewlett\\-Packard',)
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 <tomanycont id='products'>
+<object id='BL20P' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+BL20P
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['BL20P']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
 <object id='Compaq Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
 Compaq Management Agents
@@ -11467,6 +12179,7 @@ Compaq Management Agents
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='Compaq Remote Monitor Service' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11478,6 +12191,7 @@ Compaq Remote Monitor Service
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='Compaq Survey Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11489,6 +12203,7 @@ Compaq Survey Utility
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='Compaq Version Control Agent 1.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11500,6 +12215,7 @@ Compaq Version Control Agent 1.0
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Array Configuration Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11511,6 +12227,19 @@ HP Array Configuration Utility
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP Array Configuration Utility CLI' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP Array Configuration Utility CLI
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP Array Configuration Utility CLI']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Array Configurtion Utility CLI' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11522,6 +12251,7 @@ HP Array Configurtion Utility CLI
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Array Diagnostic Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11533,6 +12263,19 @@ HP Array Diagnostic Utility
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP BL' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP BL
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP BL']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Insight Diagnostics Online Edition for Windows' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11544,6 +12287,7 @@ HP Insight Diagnostics Online Edition for Windows
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Insight Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11555,6 +12299,7 @@ HP Insight Management Agents
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Lights-Out Online Configuration Utility' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11566,6 +12311,7 @@ HP Lights-Out Online Configuration Utility
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP MULTI-ENVIRONMENT' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11577,6 +12323,19 @@ HP MULTI-ENVIRONMENT
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP MULTI-ENVIRONMENT,SN_CNBJ190297,FN_F7401V6,SVCID_16336,PID_HP' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP MULTI-ENVIRONMENT,SN:CNBJ190297,FN:F7401V6,SVCID:16336,PID:HP
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP MULTI-ENVIRONMENT,SN:CNBJ190297,FN:F7401V6,SVCID:16336,PID:HP']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11588,6 +12347,7 @@ HP Management Agents
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Performance Management Pack Data Migration Tool_remove only' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11599,6 +12359,7 @@ HP Performance Management Pack Data Migration Tool_remove only
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Performance Management Pack _remove only' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11610,6 +12371,19 @@ HP Performance Management Pack _remove only
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP ProLiant IPMI WMI Provider' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP ProLiant IPMI WMI Provider
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP ProLiant IPMI WMI Provider']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP ProLiant Integrated Management Log Viewer' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11621,6 +12395,7 @@ HP ProLiant Integrated Management Log Viewer
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP ProLiant Legacy Port Configuration Component' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11632,6 +12407,19 @@ HP ProLiant Legacy Port Configuration Component
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP ProLiant Rack Infrastructure Interface Service' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP ProLiant Rack Infrastructure Interface Service
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP ProLiant Rack Infrastructure Interface Service']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP ProLiant Remote Monitor Service' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11643,6 +12431,43 @@ HP ProLiant Remote Monitor Service
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP ProLiant Smart Array Device Manager Extension' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP ProLiant Smart Array Device Manager Extension
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP ProLiant Smart Array Device Manager Extension']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP Protect Your Data' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP Protect Your Data
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP Protect Your Data']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP Smart Array SAS_SATA Event Notification Service' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP Smart Array SAS/SATA Event Notification Service
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP Smart Array SAS/SATA Event Notification Service']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Software Update' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11654,6 +12479,7 @@ HP Software Update
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP System Management Homepage' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11665,6 +12491,7 @@ HP System Management Homepage
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Systems Insight Manager Data Migration Tool for Insight Mana' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11676,6 +12503,7 @@ HP Systems Insight Manager Data Migration Tool for Insight Mana
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Systems Insight Manager _remove only' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11687,6 +12515,19 @@ HP Systems Insight Manager _remove only
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='HP Version Control Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+HP Version Control Agent
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['HP Version Control Agent']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Version Control Agent 2.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11698,6 +12539,7 @@ HP Version Control Agent 2.0
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Version Control Agent 2.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11709,6 +12551,7 @@ HP Version Control Agent 2.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Version Control Repository Manager 2.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11720,6 +12563,7 @@ HP Version Control Repository Manager 2.0
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='HP Web Jetadmin' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11731,6 +12575,7 @@ HP Web Jetadmin
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant 1600' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11742,6 +12587,7 @@ ProLiant 1600
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant 3000' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11753,6 +12599,7 @@ ProLiant 3000
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant 800' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11764,6 +12611,67 @@ ProLiant 800
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant BL p-Class C-GbE2 Interconnect Switch A' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.11.2.3.7.11.33.1.1.1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.11.2.3.7.11.33.1.1.1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant BL20p G3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant BL20p G3
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant BL20p G3']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant BL25p G1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant BL25p G1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant BL25p G1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant BL30p G1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant BL30p G1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant BL30p G1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant DL320 G5 ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant DL320 G5
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant DL320 G5 ']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL360' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11775,6 +12683,7 @@ ProLiant DL360
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL360 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11786,6 +12695,7 @@ ProLiant DL360 G2
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL360 G3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11797,6 +12707,7 @@ ProLiant DL360 G3
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL360 G4' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11808,6 +12719,31 @@ ProLiant DL360 G4
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant DL360 G5' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant DL360 G5
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant DL360 G5']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant DL365 G1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant DL365 G1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant DL365 G1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL380 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11819,6 +12755,7 @@ ProLiant DL380 G2
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL380 G3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11830,6 +12767,7 @@ ProLiant DL380 G3
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL380 G4' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11841,6 +12779,19 @@ ProLiant DL380 G4
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant DL385 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant DL385 G2
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant DL385 G2']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL580' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11852,6 +12803,7 @@ ProLiant DL580
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant DL580 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11863,6 +12815,19 @@ ProLiant DL580 G2
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
+</object>
+<object id='ProLiant DL580 G3' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+ProLiant DL580 G3
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['ProLiant DL580 G3']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant ML330 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11874,6 +12839,7 @@ ProLiant ML330 G2
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 <object id='ProLiant ML370 G2' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11885,6 +12851,7 @@ ProLiant ML370 G2
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HPMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -12382,6 +13349,2827 @@ intel-icc8-libs-8.1-0
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+</object>
+</tomanycont>
+</object>
+<object id='Juniper' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="string" id="url" mode="w" >
+http://www.juniper.net/
+</property>
+<property type="string" id="zip" mode="w" >
+</property>
+<property type="lines" id="regexes" mode="w" >
+[]
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+<tomanycont id='products'>
+<object id='ASP - Integrated (Layer-2-3) PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.86
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.86']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Adaptive Services II PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.93
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.93']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Chassis Temperature Sensor' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.4.1.1.4.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.4.1.1.4.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Compact Flash' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.12.3.3.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.12.3.3.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DELLJSRX1400 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDELLJSRX1400
+</property>
+<property type="string" id="name" mode="w" >
+DELLJSRX1400 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.79']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDELLJSRX1400
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DELLJSRX3400 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDELLJSRX3400
+</property>
+<property type="string" id="name" mode="w" >
+DELLJSRX3400 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.78']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDELLJSRX3400
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DELLJSRX3600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDELLJSRX3600
+</property>
+<property type="string" id="name" mode="w" >
+DELLJSRX3600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.77']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDELLJSRX3600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DELLJSRX5600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDELLJSRX5600
+</property>
+<property type="string" id="name" mode="w" >
+DELLJSRX5600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.81']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDELLJSRX5600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DELLJSRX5800 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDELLJSRX5800
+</property>
+<property type="string" id="name" mode="w" >
+DELLJSRX5800 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.80']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDELLJSRX5800
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='DellJFX3500 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisDellJFX3500
+</property>
+<property type="string" id="name" mode="w" >
+DellJFX3500 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.75']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisDellJFX3500
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Dual DS2 PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.19
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.19']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Dual FastEthernet (FIC PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.87
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.87']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Dual SONET OC3 PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.18
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.18']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX2200 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX2200
+</property>
+<property type="string" id="name" mode="w" >
+EX2200 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.43']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX2200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX2200 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleEX2200
+</property>
+<property type="string" id="name" mode="w" >
+EX2200 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.43']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleEX2200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX3200 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX3200
+</property>
+<property type="string" id="name" mode="w" >
+EX3200 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.30']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX3200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX3200 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleEX3200
+</property>
+<property type="string" id="name" mode="w" >
+EX3200 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.30']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleEX3200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX4200 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX4200
+</property>
+<property type="string" id="name" mode="w" >
+EX4200 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.31']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX4200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX4200 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleEX4200
+</property>
+<property type="string" id="name" mode="w" >
+EX4200 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.31']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleEX4200
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX4500 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX4500
+</property>
+<property type="string" id="name" mode="w" >
+EX4500 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.44']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX4500
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX4500 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleEX4500
+</property>
+<property type="string" id="name" mode="w" >
+EX4500 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.44']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleEX4500
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX8208 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX8208
+</property>
+<property type="string" id="name" mode="w" >
+EX8208 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.32']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX8208
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EX8216 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEX8216
+</property>
+<property type="string" id="name" mode="w" >
+EX8216 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.33']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEX8216
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EXXRE Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisEXXRE
+</property>
+<property type="string" id="name" mode="w" >
+EXXRE Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.59']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisEXXRE
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='EXXRE Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleEXXRE
+</property>
+<property type="string" id="name" mode="w" >
+EXXRE Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.59']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleEXXRE
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='FXChassis Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisFXChassis
+</property>
+<property type="string" id="name" mode="w" >
+FXChassis Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.45']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisFXChassis
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Generic Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleGeneric
+</property>
+<property type="string" id="name" mode="w" >
+Generic Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.12']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleGeneric
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM0719J45E Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM0719J45E
+</property>
+<property type="string" id="name" mode="w" >
+IBM0719J45E Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.71']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM0719J45E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM0719J45E Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleIBM0719J45E
+</property>
+<property type="string" id="name" mode="w" >
+IBM0719J45E Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.71']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleIBM0719J45E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM427348EJ48E Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM427348EJ48E
+</property>
+<property type="string" id="name" mode="w" >
+IBM427348EJ48E Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.54']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM427348EJ48E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM427348EJ48E Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleIBM427348EJ48E
+</property>
+<property type="string" id="name" mode="w" >
+IBM427348EJ48E Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.54']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleIBM427348EJ48E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274E08J08E Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274E08J08E
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274E08J08E Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.55']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274E08J08E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274E16J16E Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274E16J16E
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274E16J16E Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.56']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274E16J16E
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274M02J02M Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274M02J02M
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274M02J02M Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.46']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274M02J02M
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274M06J06M Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274M06J06M
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274M06J06M Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.47']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274M06J06M
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274M11J11M Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274M11J11M
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274M11J11M Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.48']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274M11J11M
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274S34J34S Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274S34J34S
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274S34J34S Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.53']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274S34J34S
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274S36J36S Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274S36J36S
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274S36J36S Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.52']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274S36J36S
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274S56J56S Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274S56J56S
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274S56J56S Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.51']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274S56J56S
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBM4274S58J58S Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBM4274S58J58S
+</property>
+<property type="string" id="name" mode="w" >
+IBM4274S58J58S Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.50']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBM4274S58J58S
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBMJ08F Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBMJ08F
+</property>
+<property type="string" id="name" mode="w" >
+IBMJ08F Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.72']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBMJ08F
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IBMJ52F Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIBMJ52F
+</property>
+<property type="string" id="name" mode="w" >
+IBMJ52F Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.73']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIBMJ52F
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IRM Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisIRM
+</property>
+<property type="string" id="name" mode="w" >
+IRM Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.16']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisIRM
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='IRM Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleIRM
+</property>
+<property type="string" id="name" mode="w" >
+IRM Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.16']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleIRM
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2300 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ2300
+</property>
+<property type="string" id="name" mode="w" >
+J2300 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.13']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ2300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2300 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ2300
+</property>
+<property type="string" id="name" mode="w" >
+J2300 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.13']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ2300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2320 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ2320
+</property>
+<property type="string" id="name" mode="w" >
+J2320 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.23']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ2320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2320 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ2320
+</property>
+<property type="string" id="name" mode="w" >
+J2320 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.23']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ2320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2350 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ2350
+</property>
+<property type="string" id="name" mode="w" >
+J2350 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.24']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ2350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J2350 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ2350
+</property>
+<property type="string" id="name" mode="w" >
+J2350 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.24']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ2350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4300 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ4300
+</property>
+<property type="string" id="name" mode="w" >
+J4300 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.14']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ4300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4300 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ4300
+</property>
+<property type="string" id="name" mode="w" >
+J4300 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.14']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ4300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4320 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ4320
+</property>
+<property type="string" id="name" mode="w" >
+J4320 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.22']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ4320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4320 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ4320
+</property>
+<property type="string" id="name" mode="w" >
+J4320 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.22']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ4320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4350 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ4350
+</property>
+<property type="string" id="name" mode="w" >
+J4350 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.19']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ4350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J4350 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ4350
+</property>
+<property type="string" id="name" mode="w" >
+J4350 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.19']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ4350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ6300
+</property>
+<property type="string" id="name" mode="w" >
+J6300 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.15']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ6300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Fan Slot' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.15.3.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.15.3.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Flexible PIC Concentrator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.15.1.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.15.1.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Internet Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Juniper j6300 Internet Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Juniper j6300 Internet Router']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Midplane' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.1.15.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.1.15.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ6300
+</property>
+<property type="string" id="name" mode="w" >
+J6300 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.15']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ6300
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6300 Routing Engine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.15.2.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.15.2.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6350 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJ6350
+</property>
+<property type="string" id="name" mode="w" >
+J6350 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.20']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJ6350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='J6350 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJ6350
+</property>
+<property type="string" id="name" mode="w" >
+J6350 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.20']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJ6350
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JCS Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisJCS
+</property>
+<property type="string" id="name" mode="w" >
+JCS Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.38']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisJCS
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JCS Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleJCS
+</property>
+<property type="string" id="name" mode="w" >
+JCS Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.38']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleJCS
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JSeries Dual Ethernet PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.97
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.97']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS 8.0R2.8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS 8.0R2.8
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS 8.0R2.8']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS 8.1R2.4
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS 8.1R2.4']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Base OS Software Suite 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Base OS Software Suite [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Base OS Software Suite [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Crypto Software Suite 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Crypto Software Suite [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Crypto Software Suite [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Kernel Software Suite 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Kernel Software Suite [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Kernel Software Suite [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Online Documentation 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Online Documentation [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Online Documentation [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Packet Forwarding Engine Support (M7i_M10i) 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Packet Forwarding Engine Support (M7i/M10i) [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Packet Forwarding Engine Support (M7i/M10i) [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Routing Software Suite 8.1R2.4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Routing Software Suite [8.1R2.4]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Routing Software Suite [8.1R2.4]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='JUNOS Software Release 8.0R2.8' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+JUNOS Software Release [8.0R2.8]
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['JUNOS Software Release [8.0R2.8]']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='LN1000V Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisLN1000V
+</property>
+<property type="string" id="name" mode="w" >
+LN1000V Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.42']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisLN1000V
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='LN2600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisLN2600
+</property>
+<property type="string" id="name" mode="w" >
+LN2600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.95']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisLN2600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM10
+</property>
+<property type="string" id="name" mode="w" >
+M10 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.4']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM10
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM10
+</property>
+<property type="string" id="name" mode="w" >
+M10 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.4']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM10
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM10i
+</property>
+<property type="string" id="name" mode="w" >
+M10i Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.11']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM10i
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Compact Forwarding Engine Board' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.2.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.2.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Fan' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.5.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.5.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Flexible PIC Concentrator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.1.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.1.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i High-Availability Chassis Manager' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.6.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.6.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Internet Backbone Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Juniper m10i Internet Backbone Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Juniper m10i Internet Backbone Router']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Midplane' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.1.11.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.1.11.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM10i
+</property>
+<property type="string" id="name" mode="w" >
+M10i Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM10i
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Power Supply' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.4.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.4.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M10i Routing Engine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.11.3.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.11.3.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M120 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM120
+</property>
+<property type="string" id="name" mode="w" >
+M120 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.18']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM120
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M120 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM120
+</property>
+<property type="string" id="name" mode="w" >
+M120 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.18']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM120
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M160 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM160
+</property>
+<property type="string" id="name" mode="w" >
+M160 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.3']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM160
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M160 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM160
+</property>
+<property type="string" id="name" mode="w" >
+M160 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.3']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM160
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M20 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM20
+</property>
+<property type="string" id="name" mode="w" >
+M20 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.2']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM20
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M20 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM20
+</property>
+<property type="string" id="name" mode="w" >
+M20 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.2']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM20
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M20 Submodule' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxSubmoduleM20
+</property>
+<property type="string" id="name" mode="w" >
+M20 Submodule
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.2']
+</property>
+<property type="string" id="description" mode="w" >
+jnxSubmoduleM20
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M320 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM320
+</property>
+<property type="string" id="name" mode="w" >
+M320 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.9']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M320 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM320
+</property>
+<property type="string" id="name" mode="w" >
+M320 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.9']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M40 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM40
+</property>
+<property type="string" id="name" mode="w" >
+M40 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.1']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM40
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M40 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM40
+</property>
+<property type="string" id="name" mode="w" >
+M40 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.1']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM40
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M40 Submodule' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxSubmoduleM40
+</property>
+<property type="string" id="name" mode="w" >
+M40 Submodule
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.1']
+</property>
+<property type="string" id="description" mode="w" >
+jnxSubmoduleM40
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M40e Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM40e
+</property>
+<property type="string" id="name" mode="w" >
+M40e Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.8']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM40e
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M40e Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM40e
+</property>
+<property type="string" id="name" mode="w" >
+M40e Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.8']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM40e
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M5 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM5
+</property>
+<property type="string" id="name" mode="w" >
+M5 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.5']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM5
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M5 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM5
+</property>
+<property type="string" id="name" mode="w" >
+M5 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.5']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM5
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisM7i
+</property>
+<property type="string" id="name" mode="w" >
+M7i Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.10']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisM7i
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Compact Forwarding Engine Board' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.10.2.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10.2.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Fan' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.10.5.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10.5.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Flexible PIC Concentrator' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.10.1.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10.1.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Internet Backbone Router' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Juniper m7i Internet Backbone Router
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Juniper m7i Internet Backbone Router']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Midplane' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.1.10.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.1.10.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleM7i
+</property>
+<property type="string" id="name" mode="w" >
+M7i Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleM7i
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Power Supply' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.10.4.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10.4.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='M7i Routing Engine' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.10.3.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.10.3.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MAG6610 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMAG6610
+</property>
+<property type="string" id="name" mode="w" >
+MAG6610 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.68']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMAG6610
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MAG6611 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMAG6611
+</property>
+<property type="string" id="name" mode="w" >
+MAG6611 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.67']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMAG6611
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MX240 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMX240
+</property>
+<property type="string" id="name" mode="w" >
+MX240 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.29']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMX240
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MX480 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMX480
+</property>
+<property type="string" id="name" mode="w" >
+MX480 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.25']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMX480
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MX80 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMX80
+</property>
+<property type="string" id="name" mode="w" >
+MX80 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.57']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMX80
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MX80 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleMX80
+</property>
+<property type="string" id="name" mode="w" >
+MX80 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.57']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleMX80
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='MX960 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisMX960
+</property>
+<property type="string" id="name" mode="w" >
+MX960 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.21']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisMX960
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='PCMCIA Card' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.12.3.1.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.12.3.1.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='PTX5000 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisPTX5000
+</property>
+<property type="string" id="name" mode="w" >
+PTX5000 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.69']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisPTX5000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='PTX5000 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModulePTX5000
+</property>
+<property type="string" id="name" mode="w" >
+PTX5000 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.69']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModulePTX5000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='PTX9000 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisPTX9000
+</property>
+<property type="string" id="name" mode="w" >
+PTX9000 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.70']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisPTX9000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='PTX9000 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModulePTX9000
+</property>
+<property type="string" id="name" mode="w" >
+PTX9000 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.70']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModulePTX9000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFX3000 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFX3000
+</property>
+<property type="string" id="name" mode="w" >
+QFX3000 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.84']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFX3000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFX5000 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFX5000
+</property>
+<property type="string" id="name" mode="w" >
+QFX5000 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.85']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFX5000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFXInterconnect Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFXInterconnect
+</property>
+<property type="string" id="name" mode="w" >
+QFXInterconnect Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.60']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFXInterconnect
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFXJVRE Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFXJVRE
+</property>
+<property type="string" id="name" mode="w" >
+QFXJVRE Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.62']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFXJVRE
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFXMInterconnect Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFXMInterconnect
+</property>
+<property type="string" id="name" mode="w" >
+QFXMInterconnect Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.91']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFXMInterconnect
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFXNode Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFXNode
+</property>
+<property type="string" id="name" mode="w" >
+QFXNode Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.61']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFXNode
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='QFXSwitch Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisQFXSwitch
+</property>
+<property type="string" id="name" mode="w" >
+QFXSwitch Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.82']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisQFXSwitch
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Quad Ethernet PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.63
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.63']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SONET OC12 PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.71
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.71']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX100 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX100
+</property>
+<property type="string" id="name" mode="w" >
+SRX100 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.41']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX100
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX100 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX100
+</property>
+<property type="string" id="name" mode="w" >
+SRX100 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.41']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX100
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX1400 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX1400
+</property>
+<property type="string" id="name" mode="w" >
+SRX1400 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.49']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX1400
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX210 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX210
+</property>
+<property type="string" id="name" mode="w" >
+SRX210 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.36']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX210
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX210 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX210
+</property>
+<property type="string" id="name" mode="w" >
+SRX210 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.36']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX210
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX220 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX220
+</property>
+<property type="string" id="name" mode="w" >
+SRX220 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.58']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX220
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX220 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX220
+</property>
+<property type="string" id="name" mode="w" >
+SRX220 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.58']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX220
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX240 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX240
+</property>
+<property type="string" id="name" mode="w" >
+SRX240 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.39']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX240
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX240 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX240
+</property>
+<property type="string" id="name" mode="w" >
+SRX240 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.39']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX240
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX3400 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX3400
+</property>
+<property type="string" id="name" mode="w" >
+SRX3400 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.35']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX3400
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX3600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX3600
+</property>
+<property type="string" id="name" mode="w" >
+SRX3600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.34']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX3600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX550 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX550
+</property>
+<property type="string" id="name" mode="w" >
+SRX550 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.86']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX550
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX550 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX550
+</property>
+<property type="string" id="name" mode="w" >
+SRX550 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.86']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX550
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX5600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX5600
+</property>
+<property type="string" id="name" mode="w" >
+SRX5600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.28']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX5600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX5800 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX5800
+</property>
+<property type="string" id="name" mode="w" >
+SRX5800 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.26']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX5800
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX650 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisSRX650
+</property>
+<property type="string" id="name" mode="w" >
+SRX650 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.40']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisSRX650
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='SRX650 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleSRX650
+</property>
+<property type="string" id="name" mode="w" >
+SRX650 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.40']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleSRX650
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Single GigabitEthernet (SFP) PIC' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.3.12.1.89
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.3.12.1.89']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T1600 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisT1600
+</property>
+<property type="string" id="name" mode="w" >
+T1600 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.27']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisT1600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T1600 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleT1600
+</property>
+<property type="string" id="name" mode="w" >
+T1600 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.27']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleT1600
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T320 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisT320
+</property>
+<property type="string" id="name" mode="w" >
+T320 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.7']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisT320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T320 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleT320
+</property>
+<property type="string" id="name" mode="w" >
+T320 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.7']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleT320
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T4000 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisT4000
+</property>
+<property type="string" id="name" mode="w" >
+T4000 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.83']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisT4000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T4000 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleT4000
+</property>
+<property type="string" id="name" mode="w" >
+T4000 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.83']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleT4000
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T640 Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisT640
+</property>
+<property type="string" id="name" mode="w" >
+T640 Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.6']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisT640
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='T640 Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleT640
+</property>
+<property type="string" id="name" mode="w" >
+T640 Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.6']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleT640
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='TX Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisTX
+</property>
+<property type="string" id="name" mode="w" >
+TX Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.17']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisTX
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='TX Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleTX
+</property>
+<property type="string" id="name" mode="w" >
+TX Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.17']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleTX
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='TXP Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisTXP
+</property>
+<property type="string" id="name" mode="w" >
+TXP Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.37']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisTXP
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='TXP Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleTXP
+</property>
+<property type="string" id="name" mode="w" >
+TXP Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.37']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleTXP
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='USB Hub' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2636.1.1.3.2.12.3.2.0
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.12.3.2.0']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Vseries Chassis' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxChassisVseries
+</property>
+<property type="string" id="name" mode="w" >
+Vseries Chassis
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.2.1.94']
+</property>
+<property type="string" id="description" mode="w" >
+jnxChassisVseries
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
+</object>
+<object id='Vseries Module' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property id='zendoc' type='string'>
+jnxModuleVseries
+</property>
+<property type="string" id="name" mode="w" >
+Vseries Module
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2636.1.1.3.2.94']
+</property>
+<property type="string" id="description" mode="w" >
+jnxModuleVseries
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.JuniperMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -16765,6 +20553,7 @@ http://www.mysql.com
 <property type="lines" id="regexes" mode="w" >
 ()
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 <tomanycont id='products'>
 <object id='MyODBC-2.50.39-19' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16776,6 +20565,7 @@ MyODBC-2.50.39-19
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='MyODBC-2.50.39-19.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16787,6 +20577,19 @@ MyODBC-2.50.39-19.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
+</object>
+<object id='MySQL-client-standard-5.0.24a-0.rhel4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+MySQL-client-standard-5.0.24a-0.rhel4
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['MySQL-client-standard-5.0.24a-0.rhel4']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='MySQL-python-0.9.2-4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16798,6 +20601,31 @@ MySQL-python-0.9.2-4
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
+</object>
+<object id='MySQL-server-standard-5.0.24a-0.rhel4' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+MySQL-server-standard-5.0.24a-0.rhel4
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['MySQL-server-standard-5.0.24a-0.rhel4']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
+</object>
+<object id='mysql' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+mysql
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['mysql']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-3.23.58-16.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16809,6 +20637,7 @@ mysql-3.23.58-16.FC3.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-bench-3.23.58-16.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16820,6 +20649,7 @@ mysql-bench-3.23.58-16.FC3.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-debuginfo-3.23.58-16.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16831,6 +20661,7 @@ mysql-debuginfo-3.23.58-16.FC3.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-devel-3.23.58-13' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16842,6 +20673,7 @@ mysql-devel-3.23.58-13
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-devel-3.23.58-16.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16853,6 +20685,7 @@ mysql-devel-3.23.58-16.FC3.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mysql-server-3.23.58-16.FC3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -16864,6 +20697,7 @@ mysql-server-3.23.58-16.FC3.1
 <property type="boolean" id="isOS" mode="w" >
 False
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -16890,6 +20724,200 @@ False
 </object>
 </tomanycont>
 </object>
+<object id='NetApp' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="string" id="url" mode="w" >
+http://www.netapp.com/
+</property>
+<property type="string" id="supportNumber" mode="w" >
+408-822-6000
+</property>
+<property type="string" id="address1" mode="w" >
+495 East Java Drive
+</property>
+<property type="string" id="city" mode="w" >
+Sunnyvale
+</property>
+<property type="string" id="state" mode="w" >
+CA
+</property>
+<property type="string" id="zip" mode="w" >
+94089
+</property>
+<property type="lines" id="regexes" mode="w" >
+()
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+<tomanycont id='products'>
+<object id='Filer' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='Filer F85' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer F85
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Filer F85']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='Filer FAS2020' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer FAS2020
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Filer FAS2020']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='Filer FAS270' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer FAS270
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Filer FAS270']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='Filer FAS3020' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer FAS3020
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Filer FAS3020']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='Filer FAS3240' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Filer FAS3240
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 6.5.2R1P10' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 6.5.2R1P10
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NetApp Release 6.5.2R1P10']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 7.0.6' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 7.0.6
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NetApp Release 7.0.6']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 7.2.2' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 7.2.2
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NetApp Release 7.2.2']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 7.2.4L1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 7.2.4L1
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['NetApp Release 7.2.4L1']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 7.3.6P5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 7.3.6P5
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 8.1.1X34 7-Mode' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 8.1.1X34 7-Mode
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='NetApp Release 8.1.1X34 Cluster-Mode' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+NetApp Release 8.1.1X34 Cluster-Mode
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='SIMBOX' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+SIMBOX
+</property>
+<property type="lines" id="productKeys" mode="w" >
+[]
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+</tomanycont>
+</object>
 <object id='Nortel' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.nortel.com/
@@ -16899,6 +20927,21 @@ http://www.nortel.com/
 <property type="lines" id="regexes" mode="w" >
 ('^Nortel Networks$',)
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NortelMonitor'/>
+<tomanycont id='products'>
+<object id='Passport 8606' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+.1.3.6.1.4.1.2272.31
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['.1.3.6.1.4.1.2272.31']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NortelMonitor'/>
+</object>
+</tomanycont>
 </object>
 <object id='Novell' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -20031,6 +24074,17 @@ GConf2-2.8.1-1
 False
 </property>
 </object>
+<object id='GenuineIntel Intel(R) Xeon(R) CPU E5-2630 0 _ 2.30GHz' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+GenuineIntel Intel(R) Xeon(R) CPU E5-2630 0 _ 2.30GHz
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['GenuineIntel Intel(R) Xeon(R) CPU E5-2630 0 _ 2.30GHz']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+</object>
 <object id='GenuineIntel_ Intel_R_ Pentium_R_ D CPU 3.00GHz' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
 GenuineIntel: Intel(R) Pentium(R) D CPU 3.00GHz
@@ -20086,6 +24140,17 @@ Lexmark Z600 Series
 False
 </property>
 </object>
+<object id='Linux' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
+<property type="string" id="name" mode="w" >
+Linux
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Linux']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+False
+</property>
+</object>
 <object id='Linux 2.6.16.26-0.1.x86.i686.cmov' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
 Linux 2.6.16.26-0.1.x86.i686.cmov
@@ -20095,6 +24160,17 @@ Linux 2.6.16.26-0.1.x86.i686.cmov
 </property>
 <property type="boolean" id="isOS" mode="w" >
 False
+</property>
+</object>
+<object id='Linux 3.13.0-67-generic' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Linux 3.13.0-67-generic
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Linux 3.13.0-67-generic']
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
 </property>
 </object>
 <object id='MAKEDEV-3.15.2-3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
