@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:02:15.370063
+    Zenoss RelationshipManager export completed on 2015-11-16 19:06:03.694496
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:02:15.370063" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-11-16 19:06:03.694496" zenoss_server="7a1b5986eaf8" >
 <object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
@@ -22,6 +22,7 @@ False
 <property visible="True" type="int" id="zFailSeverity" >
 4
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vCloud'/>
 <tomanycont id='osProcessClasses'>
 <object id='Zope' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
@@ -173,6 +174,33 @@ This daemon provides a stable interface to ZODB, via services that are requested
 5
 </property>
 </object>
+<object id='zenjmx' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Provides monitoring for remote JMX agents.
+</property>
+<property type="string" id="name" mode="w" >
+zenjmx
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenjmx.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Provides monitoring for remote JMX agents.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenJMX'/>
+</object>
 <object id='zenjobs' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
 An 'at'-style scheduler for running long-running commands.
@@ -198,6 +226,33 @@ An 'at'-style scheduler for running long-running commands.
 <property type="int" id="sequence" mode="w" >
 6
 </property>
+</object>
+<object id='zenjserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Provides capability to render 'Dynamic View' pages within the UI
+</property>
+<property type="string" id="name" mode="w" >
+zenjserver
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenjserver.py.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Provides capability to render 'Dynamic View' pages within the UI
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DynamicView'/>
 </object>
 <object id='zenmail' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
@@ -230,6 +285,33 @@ Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 <property type="int" id="sequence" mode="w" >
 7
 </property>
+</object>
+<object id='zenmailtx' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Provides monitoring for round-trip email delivery.
+</property>
+<property type="string" id="name" mode="w" >
+zenmailtx
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenmailtx.py.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Provides monitoring for round-trip email delivery.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenMailTx'/>
 </object>
 <object id='zenmodeler' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
@@ -361,6 +443,27 @@ SNMP based daemon that gathers process information, and based on what has been m
 12
 </property>
 </object>
+<object id='zenpython' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property type="string" id="name" mode="w" >
+zenpython
+</property>
+<property type="string" id="regex" mode="w" >
+zenpython
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.PythonCollector'/>
+</object>
 <object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
 <property id='zendoc' type='string'>
 A daemon that opens a TCP connection to the remote service to determine if it is available.
@@ -450,6 +553,87 @@ Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss 
 <property type="int" id="sequence" mode="w" >
 15
 </property>
+</object>
+<object id='zenucsevents' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Gather events from Cisco UCS systems and convert them to Zenoss events.
+</property>
+<property type="string" id="name" mode="w" >
+zenucsevents
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenucsevents.py.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Forward Cisco UCS events to Zenoss.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='zenvcloud' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Provides vCloud monitoring via the Cloud Director API.
+</property>
+<property type="string" id="name" mode="w" >
+zenvcloud
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenvcloud.py.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Provides vCloud monitoring via the Cloud Director API.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vCloud'/>
+</object>
+<object id='zenwebtx' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<property id='zendoc' type='string'>
+Provides Web site monitoring with synthetic web transactions.
+</property>
+<property type="string" id="name" mode="w" >
+zenwebtx
+</property>
+<property type="string" id="regex" mode="w" >
+.*zenwebtx.py.*
+</property>
+<property type="string" id="excludeRegex" mode="w" >
+\b(vim|tail|grep|tar|cat|bash)\b
+</property>
+<property type="boolean" id="ignoreParametersWhenModeling" mode="w" >
+False
+</property>
+<property type="boolean" id="ignoreParameters" mode="w" >
+False
+</property>
+<property type="text" id="description" mode="w" >
+Provides Web site monitoring with synthetic web transactions.
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenWebTx'/>
 </object>
 </tomanycont>
 </object>

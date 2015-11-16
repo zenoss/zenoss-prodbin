@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:02:12.247719
+    Zenoss RelationshipManager export completed on 2015-11-16 19:05:56.974630
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:02:12.247719" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-11-16 19:05:56.974630" zenoss_server="7a1b5986eaf8" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -3581,7 +3581,7 @@ PerformanceConf
 <property type="lines" id="sub_meta_types" mode="w" >
 ()
 </property>
-<object id='localhost' module='Products.ZenModel.PerformanceConf' class='PerformanceConf'>
+<object id='localhost' module='ZenPacks.zenoss.DistributedCollector.DistributedPerformanceConf' class='DistributedPerformanceConf'>
 <property type="int" id="eventlogCycleInterval" mode="w" >
 60
 </property>
@@ -3594,10 +3594,10 @@ PerformanceConf
 <property type="int" id="winCycleInterval" mode="w" >
 60
 </property>
-<property mode="w" type="int" description="Number of data objects to retrieve in a single WMI query" id="wmibatchSize" >
+<property id="wmibatchSize" type="int" mode="w" description="Number of data objects to retrieve in a single WMI query" >
 10
 </property>
-<property mode="w" type="int" description="Number of milliseconds to wait for WMI query to respond" id="wmiqueryTimeout" >
+<property id="wmiqueryTimeout" type="int" mode="w" description="Number of milliseconds to wait for WMI query to respond" >
 100
 </property>
 <property type="int" id="configCycleInterval" mode="w" >
@@ -3627,12 +3627,249 @@ PerformanceConf
 <property type="lines" id="discoveryNetworks" mode="w" >
 ()
 </property>
+<property description="Whether or not this monitor object is backed by Control Center services" type="int" id="ccBacked" mode="w" >
+1
+</property>
+<property type="string" id="poolId" mode="w" >
+default
+</property>
+<property type="string" id="iprealm" mode="w" >
+default
+</property>
 <property visible="True" type="string" id="renderurl" >
 /zport/RenderServer
 </property>
 <property visible="True" type="lines" id="defaultRRDCreateCommand" >
 ('RRA:AVERAGE:0.5:1:600', 'RRA:AVERAGE:0.5:6:600', 'RRA:AVERAGE:0.5:24:600', 'RRA:AVERAGE:0.5:288:600', 'RRA:MAX:0.5:6:600', 'RRA:MAX:0.5:24:600', 'RRA:MAX:0.5:288:600')
 </property>
+<toone id='hub' objid='/zport/dmd/Monitors/Hub/localhost'/>
+</object>
+</object>
+<object id='Hub' module='ZenPacks.zenoss.DistributedCollector.HubMonitorClass' class='HubMonitorClass'>
+<property type="string" id="sub_class" mode="w" >
+HubConf
+</property>
+<property type="lines" id="sub_meta_types" mode="w" >
+()
+</property>
+<tomanycont id='rrdTemplates'>
+<object id='HubConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='zenhub' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="int" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='workListLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='graphDefs'>
+<object id='Hub Worker List' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+500
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
+<property type="int" id="miny" mode="w" >
+-1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
+</property>
+<property type="int" id="maxy" mode="w" >
+-1
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<tomanycont id='graphPoints'>
+<object id='workListLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenhub_workListLength
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='rrdTemplates'>
+<object id='HubConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+<tomanycont id='datasources'>
+<object id='zenhub' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="int" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='workListLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<tomanycont id='graphDefs'>
+<object id='Hub Worker List' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<property type="int" id="height" mode="w" >
+500
+</property>
+<property type="int" id="width" mode="w" >
+500
+</property>
+<property type="boolean" id="log" mode="w" >
+False
+</property>
+<property type="boolean" id="base" mode="w" >
+False
+</property>
+<property type="boolean" id="autoscale" mode="w" >
+None
+</property>
+<property type="int" id="miny" mode="w" >
+-1
+</property>
+<property type="int" id="ceiling" mode="w" >
+None
+</property>
+<property type="int" id="maxy" mode="w" >
+-1
+</property>
+<property type="boolean" id="hasSummary" mode="w" >
+True
+</property>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<tomanycont id='graphPoints'>
+<object id='workListLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+0
+</property>
+<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
+LINE
+</property>
+<property type="long" id="lineWidth" mode="w" >
+1
+</property>
+<property type="boolean" id="stacked" mode="w" >
+False
+</property>
+<property type="string" id="format" mode="w" >
+%5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+<property type="long" id="limit" mode="w" >
+-1
+</property>
+<property type="string" id="dpName" mode="w" >
+zenhub_workListLength
+</property>
+<property type="string" id="cFunc" mode="w" >
+AVERAGE
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
+<object id='localhost' module='ZenPacks.zenoss.DistributedCollector.HubConf' class='HubConf'>
+<property type="string" id="sub_class" mode="w" >
+MonitorClass
+</property>
+<property type="lines" id="sub_meta_types" mode="w" >
+()
+</property>
+<property type="string" id="id" >
+localhost
+</property>
+<property mode="w" type="int" description="Whether or not this monitor object is backed by Control Center services" id="ccBacked" >
+1
+</property>
+<property type="string" id="poolId" mode="w" >
+default
+</property>
+<tomany id='collectors'>
+<link objid='/zport/dmd/Monitors/Performance/localhost'/>
+</tomany>
+<tomany id='collectors'>
+<link objid='/zport/dmd/Monitors/Performance/localhost'/>
+</tomany>
 </object>
 </object>
 </object>

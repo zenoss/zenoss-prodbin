@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:01:51.428757
+    Zenoss RelationshipManager export completed on 2015-11-16 19:05:24.837455
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:01:51.428757" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-11-16 19:05:24.837455" zenoss_server="7a1b5986eaf8" >
 <object id='/zport/dmd/Services' module='Products.ZenModel.ServiceOrganizer' class='ServiceOrganizer'>
 <property visible="True" type="boolean" id="zMonitor" >
 False
@@ -21,6 +21,50 @@ False
 </property>
 <object id='IpService' module='Products.ZenModel.ServiceOrganizer' class='ServiceOrganizer'>
 <tomanycont id='serviceclasses'>
+<object id='tcp6_00022' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+tcp6_00022
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('tcp6_00022',)
+</property>
+<property type="int" id="port" mode="w" >
+22
+</property>
+</object>
+<object id='tcp6_00080' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+tcp6_00080
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('tcp6_00080',)
+</property>
+<property type="int" id="port" mode="w" >
+80
+</property>
+</object>
+<object id='tcp6_00111' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+tcp6_00111
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('tcp6_00111',)
+</property>
+<property type="int" id="port" mode="w" >
+111
+</property>
+</object>
+<object id='tcp6_00443' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+tcp6_00443
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('tcp6_00443',)
+</property>
+<property type="int" id="port" mode="w" >
+443
+</property>
+</object>
 <object id='tcp_00953' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
 <property type="string" id="name" mode="w" >
 tcp_00953
@@ -30,6 +74,61 @@ tcp_00953
 </property>
 <property type="int" id="port" mode="w" >
 953
+</property>
+</object>
+<object id='udp6_00111' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+udp6_00111
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('udp6_00111',)
+</property>
+<property type="int" id="port" mode="w" >
+111
+</property>
+</object>
+<object id='udp6_00897' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+udp6_00897
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('udp6_00897',)
+</property>
+<property type="int" id="port" mode="w" >
+897
+</property>
+</object>
+<object id='udp6_01012' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+udp6_01012
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('udp6_01012',)
+</property>
+<property type="int" id="port" mode="w" >
+1012
+</property>
+</object>
+<object id='udp_00897' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+udp_00897
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('udp_00897',)
+</property>
+<property type="int" id="port" mode="w" >
+897
+</property>
+</object>
+<object id='udp_01012' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
+<property type="string" id="name" mode="w" >
+udp_01012
+</property>
+<property type="lines" id="serviceKeys" mode="w" >
+('udp_01012',)
+</property>
+<property type="int" id="port" mode="w" >
+1012
 </property>
 </object>
 <object id='udp_01022' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
@@ -39570,6 +39669,7 @@ MySQL
 <property type="int" id="port" mode="w" >
 3306
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='mzap' module='Products.ZenModel.IpServiceClass' class='IpServiceClass'>
 <property id='zendoc' type='string'>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:02:01.927960
+    Zenoss RelationshipManager export completed on 2015-11-16 19:05:38.532663
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:02:01.927960" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2015-11-16 19:05:38.532663" zenoss_server="7a1b5986eaf8" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -29,6 +29,595 @@ status
 4
 </property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='IISSiteStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+import re
+
+@transact
+def change_properties(currentstate):
+    if getattr(component, 'status') != currentstate:
+        setattr(component, 'status', currentstate)
+
+msg = evt.summary
+summaryObj = re.match(r'IIS Service (.*) is in (.*) state(.*)', msg)
+
+change_properties(summaryObj.group(2))
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+IISSiteStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+IIS Service W3SVC_1 is in Stopped state
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.Microsoft.Windows'/>
+</object>
+<object id='WindowsServiceLog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+import re
+
+@transact
+def change_properties(currentstate):
+    if getattr(component, 'state') != currentstate:
+            setattr(component, 'state', currentstate)
+
+msg = evt.summary
+summaryObj = re.match(r'Service (.*): (.*) has changed to (.*) state(.*)', msg)
+
+change_properties(summaryObj.group(3))
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+WindowsServiceLog
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+Service Alert: ALG has changed to Stopped state
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.Microsoft.Windows'/>
+</object>
+<object id='ceSensorExtThresholdNotification_presence' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = 'fault on %s' % evt.entPhysicalDescr
+
+if device:
+    from ZenPacks.zenoss.CiscoMonitor.utils import schedule_remodel
+    schedule_remodel(dmd, device)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ceSensorExtThresholdNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="rule" mode="w" >
+'presence' in getattr(evt, 'entPhysicalDescr', '').lower()
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ceSensorExtThresholdNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcFRUInserted' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process_cefcFRUInserted(evt, device)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcFRUInserted
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcFRUInserted
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcFRUPowerOperStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcFRUPowerOperStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: on (fan failed)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcFRURemoved' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process_cefcFRURemoved(evt, device)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcFRURemoved
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcFRURemoved
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcFanTrayOperStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcFanTrayOperStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcModuleOperStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcModuleOperStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: failed
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcPowerRedundancyMode' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcPowerRedundancyMode
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: non-redundant
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcPowerRedundancyOperMode' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcPowerRedundancyOperMode
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: non-redundant
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcPowerStatusChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process_cefcPowerStatusChange(evt, device)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcPowerStatusChange
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcPowerStatusChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cieLinkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cieLinkDown
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cieLinkDown
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cieLinkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cieLinkUp
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+cieLinkUp
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonFanState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonFanState
+</property>
+<property type="int" id="sequence" mode="w" >
+11
+</property>
+<property type="string" id="example" mode="w" >
+current status: warning
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonTemperatureState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonTemperatureState
+</property>
+<property type="int" id="sequence" mode="w" >
+11
+</property>
+<property type="string" id="example" mode="w" >
+current status: warning
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonVoltageState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonVoltageState
+</property>
+<property type="int" id="sequence" mode="w" >
+11
+</property>
+<property type="string" id="example" mode="w" >
+current status: warning
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cisco_vrf_status' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cisco_vrf_status
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cvVrfOperStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cvVrfOperStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cvnVethIfAdditionalState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cvnVethIfAdditionalState
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: error-disabled
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='entSensorStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+entSensorStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: non-operational
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='entStateOper' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+entStateOper
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: testing
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='fltEquipmentFanModuleMissing' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+# Change the severity from warning to critical.
+if evt.severity &gt; 0:
+    evt.severity = 5
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|F0377
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+Fan module 1-2 in chassis 1 presence: missing
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='fltMgmtEntityDegraded' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+# Remove "sys_mgmt-entity-X" from component so this event affects the USC-M instead.
+evt.component = ''
+
+# Change the severity from error to warning.
+if evt.severity &gt; 0:
+    evt.severity = 3
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|F0293
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+Fabric Interconnect B, HA Cluster interconnect link failure
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ifOperStatus' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ifOperStatus
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+linkDown
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap linkDown
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+linkUp
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap linkUp
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='nxapiCommandFailure' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+nxapiCommandFailure
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+error running show environment via NX-API
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='nxapiCommandSuccess' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+nxapiCommandSuccess
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+successfully ran show environment via NX-API
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='nxapiStateClear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+nxapiStateClear
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+state is up
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='nxapiStateCritical' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+nxapiStateCritical
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+state is down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+snmp_linkDown
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+snmp_linkDown
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+snmp_linkUp
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap snmp_linkUp
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ucs-cimc-configResolveClass' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs-cimc-configResolveClass
+</property>
+<property type="int" id="sequence" mode="w" >
+1000
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ucs-cimc-defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+1000
+</property>
+<property type="string" id="rule" mode="w" >
+(getattr(evt, 'eventClassKey', '') or '').startswith('ucs-cimc|')
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ucs-cimc-status' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs-cimc-status
+</property>
+<property type="int" id="sequence" mode="w" >
+1000
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='vsanOperState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vsanOperState
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: down
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpVlanState' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.status_handler(device, component, evt)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpVlanState
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+current status: suspended
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+</tomanycont>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/Status/Wmi/Conn']
@@ -113,8 +702,256 @@ if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperSt
 <object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenWebTx'/>
 </object>
 <object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='DNS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.DnsMonitor'/>
+</object>
+<object id='Ftp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.FtpMonitor'/>
+</object>
+<object id='HTTP' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.HttpMonitor'/>
+</object>
+<object id='LDAP' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.LDAPMonitor'/>
+</object>
+<object id='Ntp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NtpMonitor'/>
+</object>
+<object id='JMX' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenJMX'/>
+<object id='Connection' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenJMX'/>
+</object>
+</object>
+<object id='LDOM' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+<object id='vCPU' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+</object>
+<object id='Zone' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+if any([value in evt.message for value in ("Command not found", "No data returned")]):
+            evt.summary = "The system may not be configured for zones, as it does not have 'zonestat' utility."
+            evt.message = "The system may not be configured for zones, as it does not have 'zonestat' utility. Therefore Zones will not be monitored."
+            if any([value in device.getOSProductName() for value in ("8", "9")]):
+                evt.severity = 2
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='SQL' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenSQLTx'/>
+</object>
+<object id='CiscoTPPeripheral' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+import re
+match = re.match(r'threshold of peripheralError \w+: current value (\d+)', evt.message)
+if match:
+    stateCode = int(match.group(1))
+    message = 'no error state found'
+    if stateCode == 0:
+        evt.severity = 0
+    elif stateCode == 1:
+        message = 'non-specific error state found'
+    elif stateCode == 2:
+        message = 'cabling issue detected'
+    elif stateCode == 3:
+        message = 'power issue detected'
+    elif stateCode == 4:
+        message = 'management system configuration issue'
+    elif stateCode == 5:
+        message = 'telepresence system error'
+    elif stateCode == 6:
+        message = 'device error detected'
+    elif stateCode == 7:
+        message = 'link issue detected'
+    evt.message = evt.summary = message
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vCloud' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vCloud'/>
+</object>
+<object id='HA' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CheckPointMonitor'/>
+</object>
+<object id='VPN' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CheckPointMonitor'/>
+</object>
+<object id='Blade' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+<tomanycont id='instances'>
+<object id='ComputeBladeCmosReset_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195203
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:BEGIN]: Soft-reset server 1/1(FSM:sam:dme:ComputeBladeCmosReset)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeCmosReset_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195429
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:END]: Soft-reset server 1/1(FSM:sam:dme:ComputeBladeCmosReset)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeDecommission_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195166
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:BEGIN]: Decommission server 4/2(FSM:sam:dme:ComputeBladeDecommission)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeDecommission_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195433
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:END]: Decommission server 4/5(FSM:sam:dme:ComputeBladeDecommission)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeHardReset_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195178
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeHardReset_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195439
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeHardShutdown_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195170
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeHardShutdown_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195437
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladePowercycle_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195174
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:BEGIN]: Power-cycle server 1/1(FSM:sam:dme:ComputeBladePowercycle)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladePowercycle_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195443
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:END]: Power-cycle server 1/1(FSM:sam:dme:ComputeBladePowercycle)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeSoftShutdown_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195168
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeSoftShutdown_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195447
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='ComputeBladeTurnup_END' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4195453
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:END]: Power-on server 1/1(FSM:sam:dme:ComputeBladeTurnup)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+</tomanycont>
+</object>
+<object id='Chassis' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+<tomanycont id='instances'>
+<object id='EquipmentChassisRemoveChassis_BEGIN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+ucs|E4194984
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+[FSM:BEGIN]: chassis 4 removal(FSM:sam:dme:EquipmentChassisRemoveChassis)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+</tomanycont>
+</object>
+<object id='Winrm' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.Microsoft.Windows'/>
 </object>
 </object>
 <object id='Capacity' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -2349,6 +3186,12 @@ LaunchMediSpan.vbs: Medi-Span update completed.
 </object>
 </tomanycont>
 </object>
+<object id='Apache' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ApacheMonitor'/>
+</object>
+<object id='MySQL' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
+</object>
 </object>
 <object id='Net' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
@@ -2651,55 +3494,6 @@ HP Gb Server Adapter:  Network Link Down
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
-</property>
-</object>
-<object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="text" id="transform" mode="w" >
-if_index_str = getattr(evt.details, "ifIndex", None)
-if if_index_str is not None and device is not None:
-    if_index = int(if_index_str)
-    for interface in device.os.interfaces():
-        if interface.ifindex == if_index:
-            evt.component = interface.id
-            break
-</property>
-<property type="string" id="eventClassKey" mode="w" >
-snmp_linkDown
-</property>
-<property type="int" id="sequence" mode="w" >
-1
-</property>
-<property type="string" id="example" mode="w" >
-snmp trap snmp_linkDown
-</property>
-<property type="text" id="explanation" mode="w" >
-has key for ifIndex for all traps.
-</property>
-</object>
-<object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
-<property type="text" id="transform" mode="w" >
-if_index_str = getattr(evt.details, "ifIndex", None)
-if if_index_str is not None and device is not None:
-    if_index = int(if_index_str)
-    for interface in device.os.interfaces():
-        if interface.ifindex == if_index:
-            evt.component = interface.id
-            break
-</property>
-<property type="string" id="eventClassKey" mode="w" >
-snmp_linkUp
-</property>
-<property type="int" id="sequence" mode="w" >
-1
-</property>
-<property type="string" id="example" mode="w" >
-snmp trap snmp_linkUp
-</property>
-<property type="text" id="explanation" mode="w" >
-has key for ifIndex for all traps.
-</property>
-<property visible="True" type="int" id="zEventSeverity" >
-0
 </property>
 </object>
 </tomanycont>
@@ -4896,6 +5690,7 @@ unable to qualify my own domain name (MisysReports) -- using short name
 </tomanycont>
 </object>
 <object id='DB' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 <tomanycont id='instances'>
 <object id='MSSQLSERVER_17052' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4910,12 +5705,14 @@ Error: 0, Severity: 19, State: 0 language_exec: Process 54 generated an access v
 <property type="text" id="explanation" mode="w" >
 Fatal DB Error
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 </tomanycont>
 <object id='Filemaker' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 <tomanycont id='instances'>
 <object id='FileMaker Server 7_190' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4933,6 +5730,7 @@ history
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='FileMaker Server 7_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4947,6 +5745,7 @@ Client "CLIENTNAME" closing a connection.
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='FileMaker Server 7_601' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4961,6 +5760,7 @@ Client "CLIENTNAME" opening database "DATABASENAME" as "USERNAME".
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 <object id='FileMaker Server 7_98' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4975,6 +5775,7 @@ Client "CLIENTNAME" closing database "DATABASENAME" as "USERNAME".
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.MySqlMonitor'/>
 </object>
 </tomanycont>
 </object>
@@ -5094,6 +5895,15 @@ Killing Fiber Channel Bus
 </object>
 </tomanycont>
 </object>
+<object id='NetApp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property id='zendoc' type='string'>
+NetApp specific events
+</property>
+<property type="string" id="description" mode="w" >
+NetApp specific events
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
 </object>
 <object id='OS' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
@@ -5209,31 +6019,30 @@ By Default map all FileMaker events to Archive and set severity = 2
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="text" id="transform" mode="w" >
-if device and evt.eventKey:
-    for f in device.os.filesystems():
-        if f.name() != evt.component and f.id != evt.component: continue
-
-        # Extract the used blocks from the event's message
-        import re
-        m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
-        if not m: continue
-
+if device and component and evt.eventKey:
+    f = component
+    # Extract the used blocks from the event's message
+    import re
+    m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
+    if m:
+		
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
-        totalBytes = totalBlocks * f.blockSize
+        totalBytes = totalBlocks * getattr(f, 'blockSize', 1)
         usedBytes = None
 
         currentValue = float(m.groups()[0])
         if 'usedBlocks' in evt.eventKey:
-            usedBytes = currentValue * f.blockSize
+            usedBytes = currentValue * getattr(f, 'blockSize', 1)
         elif 'FreeMegabytes' in evt.eventKey:
             usedBytes = totalBytes - (currentValue * 1048576)
+        elif 'disk_availBlocks' in evt.eventKey:
+            usedBytes = totalBytes - (currentValue * getattr(f, 'blockSize', 1))
         else:
-            continue
-
+            pass
+    if usedBytes is not None:
         try:
             # Calculate the used percent and amount free.
-            usedBlocks = float(m.groups()[0])
             p = (usedBytes / totalBytes) * 100
             from Products.ZenUtils.Utils import convToUnits
             free = convToUnits(totalBytes - usedBytes)
@@ -5243,11 +6052,33 @@ if device and evt.eventKey:
         except ZeroDivisionError, e:
             # Total size hasn't been calculated
             pass
-
-        break
 </property>
+<object id='NetApp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+if dev:
+    try:
+        fs = dev.findFS(evt.component)
+        backStore = fs.getBackingStore()
+        if hasattr(backStore, 'luns') and backStore.luns():
+            evt._action = 'drop'
+    except (SystemExit, KeyboardInterrupt), ex: raise
+    except:
+        log.info("The transform /Perf/Filesystem/NetApp was unable to map NetApp device %s component %s to object",
+                dev.titleOrId(), evt.component)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='SQL' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenSQLTx'/>
+</object>
+<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.ZenWebTx'/>
+</object>
+<object id='QoS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
 </object>
 </object>
 <object id='Environ' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5409,16 +6240,1037 @@ the nodes to the network.
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
+<tomanycont id='instances'>
+<object id='cHsrpStateChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cHsrpStateChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cHsrpStateChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ccmCLIRunningConfigChanged' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ccmCLIRunningConfigChanged
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ccmCLIRunningConfigChanged
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcFanTrayStatusChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcFanTrayStatusChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcFanTrayStatusChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcModuleStatusChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcModuleStatusChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcModuleStatusChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcPowerSupplyOutputChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcPowerSupplyOutputChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcPowerSupplyOutputChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cefcUnrecognizedFRU' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cefcUnrecognizedFRU
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cefcUnrecognizedFRU
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cesRealServerStateChangeRev1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cesRealServerStateChangeRev1
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cesRealServerStateChangeRev1
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cflIfStatusChangeNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cflIfStatusChangeNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cflIfStatusChangeNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonFanNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonFanNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonFanNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonFanStatusChangeNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonFanStatusChangeNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonFanStatusChangeNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonRedundantSupplyNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonRedundantSupplyNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonRedundantSupplyNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonShutdownNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonShutdownNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonShutdownNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonSuppStatusChangeNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonSuppStatusChangeNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonSuppStatusChangeNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonTempStatusChangeNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonTempStatusChangeNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonTempStatusChangeNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoEnvMonTemperatureNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoEnvMonTemperatureNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoEnvMonTemperatureNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoSlbExtMIBConform' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoSlbExtMIBConform
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoSlbExtMIBConform
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoSlbVServerStateChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoSlbVServerStateChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoSlbVServerStateChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ciscoSystemClockChanged' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ciscoSystemClockChanged
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ciscoSystemClockChanged
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='clemHighThresholdExceeded' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+clemHighThresholdExceeded
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap clemHighThresholdExceeded
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='clemLowThresholdExceeded' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+clemLowThresholdExceeded
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap clemLowThresholdExceeded
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='clmLicenseExpiryNotify' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+clmLicenseExpiryNotify
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap clmLicenseExpiryNotify
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='clmLicenseExpiryWarningNotify' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+clmLicenseExpiryWarningNotify
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap clmLicenseExpiryWarningNotify
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cltcTunnelDropThresholdExceeded' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cltcTunnelDropThresholdExceeded
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cltcTunnelDropThresholdExceeded
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cltcTunnelShutdownThresholdExceeded' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cltcTunnelShutdownThresholdExceeded
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cltcTunnelShutdownThresholdExceeded
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cmasModuleAutoShutdown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cmasModuleAutoShutdown
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cmasModuleAutoShutdown
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cmnMacChangedNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cmnMacChangedNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cmnMacChangedNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cmnMacMoveNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cmnMacMoveNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cmnMacMoveNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cmnMacThresholdExceedNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cmnMacThresholdExceedNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cmnMacThresholdExceedNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cpmCPUFallingThreshold' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cpmCPUFallingThreshold
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cpmCPUFallingThreshold
+</property>
+<property visible="True" type="string" id="zEventAction" >
+status
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cpmCPURisingThreshold' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+cpmCPURisingThreshold
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap cpmCPURisingThreshold
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='csilLoggingFailNotif' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+csilLoggingFailNotif
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap csilLoggingFailNotif
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='entConfigChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+entConfigChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap entConfigChange
+</property>
+<property visible="True" type="string" id="zEventAction" >
+status
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='entSensorThresholdNotification' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+entSensorThresholdNotification
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap entSensorThresholdNotification
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='fallingAlarm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+fallingAlarm
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap fallingAlarm
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='hcFallingAlarm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+hcFallingAlarm
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap hcFallingAlarm
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='hcRisingAlarm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+hcRisingAlarm
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap hcRisingAlarm
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='ldomStateChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomStateChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomStateChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVCpuChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVCpuChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVCpuChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVccChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVccChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVccChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVconsChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVconsChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVconsChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVdiskChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVdiskChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVdiskChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVdsChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVdsChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVdsChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVmemChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVmemChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVmemChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVnetChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVnetChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVnetChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='ldomVswChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomVswChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomVswChange
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+-1
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='risingAlarm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+risingAlarm
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap risingAlarm
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='stpxInconsistencyUpdate' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+stpxInconsistencyUpdate
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap stpxInconsistencyUpdate
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='stpxLoopInconsistencyUpdate' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+stpxLoopInconsistencyUpdate
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap stpxLoopInconsistencyUpdate
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='stpxRootInconsistencyUpdate' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+stpxRootInconsistencyUpdate
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap stpxRootInconsistencyUpdate
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='topologyChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+topologyChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap topologyChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vlanTrunkPortDynamicStatusChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vlanTrunkPortDynamicStatusChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vlanTrunkPortDynamicStatusChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vmVmpsChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vmVmpsChange
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vmVmpsChange
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpConfigDigestError' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpConfigDigestError
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpConfigDigestError
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpConfigRevNumberError' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpConfigRevNumberError
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpConfigRevNumberError
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpLocalModeChanged' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpLocalModeChanged
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpLocalModeChanged
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpServerDisabled' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpServerDisabled
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpServerDisabled
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpVersionInUseChanged' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpVersionInUseChanged
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpVersionInUseChanged
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpVersionOneDeviceDetected' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpVersionOneDeviceDetected
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpVersionOneDeviceDetected
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+</tomanycont>
 <object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='ldomCreate' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomCreate
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomCreate
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+<object id='newRoot' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+newRoot
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap newRoot
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='vtpVlanCreated' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.CiscoMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+vtpVlanCreated
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap vtpVlanCreated
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+</tomanycont>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='ldomDestroy' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+from ZenPacks.zenoss.SolarisMonitor import transforms
+transforms.process(evt, device, dmd, txnCommit)
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+ldomDestroy
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="example" mode="w" >
+snmp trap ldomDestroy
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.SolarisMonitor'/>
+</object>
+</tomanycont>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='UCS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+if component is not None:
+    if hasattr(component, 'operState') and evt.operState != component.operState:
+        @transact
+        def updateDb():
+            component.operState = evt.operState
+        updateDb()
+</property>
+<property visible="True" type="string" id="zEventAction" >
+status
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
 </object>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5427,6 +7279,38 @@ history
 </object>
 </object>
 <object id='Cmd' module='Products.ZenEvents.EventClass' class='EventClass'>
+<tomanycont id='instances'>
+<object id='cisco_ace_poll_failure' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+cisco_ace_poll_failure
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="example" mode="w" >
+connection timed out
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoMonitor'/>
+</object>
+<object id='cmd_failure_netapp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+cmd_failure_netapp
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+<object id='cmd_parse_error' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+cmd_parse_error
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.NetAppMonitor'/>
+</object>
+</tomanycont>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Ok' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5436,6 +7320,503 @@ history
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='BIG-IP' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+<tomanycont id='instances'>
+<object id='gtmd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+6
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='mcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+mcpd
+</property>
+<property type="int" id="sequence" mode="w" >
+2
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='monitor_instance_down' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 2)[-1].strip()
+evt.eventKey = evt.summary.split()[3] + "-" + evt.summary.split()[8]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+3
+</property>
+<property type="string" id="regex" mode="w" >
+Monitor instance [^ ]+ [^ ]+ UP --&gt; DOWN from [^ ]+
+</property>
+<property type="string" id="example" mode="w" >
+011ae0f2:1: Monitor instance bigip 204.11.50.138:80 UP --&gt; DOWN from 204.11.51.61 (DOWN)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='monitor_instance_up' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 2)[-1].strip()
+evt.eventKey = evt.summary.split()[3] + "-" + evt.summary.split()[8]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Monitor instance [^ ]+ [^ ]+ DOWN --&gt; UP from [^ ]+
+</property>
+<property type="string" id="example" mode="w" >
+011ae0f2:1: Monitor instance bigip 204.11.50.138:80 DOWN --&gt; UP from 204.11.51.61 (UP)
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='pool_member_down' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 2)[-1].strip()
+evt.eventKey = summary.split()[2]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+mcpd
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+Pool member [^ ]+ monitor status down
+</property>
+<property type="string" id="example" mode="w" >
+01070638:5: Pool member 172.16.3.20:80 monitor status down.
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='pool_member_up' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 2)[-1].strip()
+evt.eventKey = summary.split()[2]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+mcpd
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+Pool member [^ ]+ monitor status up
+</property>
+<property type="string" id="example" mode="w" >
+01070727:5: Pool member 172.16.3.20:80 monitor status up.
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='state_change_down' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 3)[-1].strip()
+evt.eventKey = evt.summary.split()[1] + "-" + evt.summary.split()[4].rstrip(")")
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+5
+</property>
+<property type="string" id="regex" mode="w" >
+state change [a-z]+ --&gt; [a-z]+
+</property>
+<property type="string" id="example" mode="w" >
+011a6006:1: SNMP_TRAP: VS dynamic.boingboing.net (ip:port=204.11.50.138:80) (Server gtm1.tor) state change green --&gt; red (VS dynamic.boingboing.net: No nodes up)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='state_change_up' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 3)[-1].strip()
+evt.eventKey = evt.summary.split()[1] + "-" + evt.summary.split()[4].rstrip(")")
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+2
+</property>
+<property type="string" id="regex" mode="w" >
+state change [a-z]+ --&gt; green
+</property>
+<property type="string" id="example" mode="w" >
+011a6005:1: SNMP_TRAP: VS dynamic.boingboing.net (ip:port=204.11.50.138:80) (Server gtm1.tor) state change red --&gt; green
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='sync_group_joined' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 3)[-1].strip()
+evt.eventKey = evt.summary.split()[3].strip("()") + "-" + evt.summary.split()[-1]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+1
+</property>
+<property type="string" id="regex" mode="w" >
+\([^ ]+\) joined sync group .+
+</property>
+<property type="string" id="example" mode="w" >
+011a5008:1: SNMP_TRAP: BIG-IP GTM gtm1.tor (204.11.51.61) joined sync group fmpub
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='sync_group_left' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.summary.split(":", 3)[-1].strip()
+evt.eventKey = evt.summary.split()[3].strip("()") + "-" + evt.summary.split()[-1]
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+gtmd
+</property>
+<property type="int" id="sequence" mode="w" >
+4
+</property>
+<property type="string" id="regex" mode="w" >
+\([^ ]+\) left sync group .+
+</property>
+<property type="string" id="example" mode="w" >
+011a5009:1: SNMP_TRAP: BIG-IP GTM gtm1.tor (204.11.51.61) left sync group fmpub
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+<object id='tmm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+tmm
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.BigIpMonitor'/>
+</object>
+</tomanycont>
+</object>
+<object id='vSphere' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+<tomanycont id='instances'>
+<object id='vSphere Default Mapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.eventClass = '/vSphere'
+
+if getattr(evt, 'eventClassKey', ''):
+    if evt.eventClassKey.startswith("esx.problem") or evt.eventClassKey.startswith("esx.clear"):
+        base = ".".join(evt.eventClassKey.split(".")[2:])
+
+        # Group known esx.failure / esx.clear event pairs together into single events.
+        for prefix in (
+            'net.connectivity', 'net.dvport.connectivity', 'net.dvport.redundancy',
+            'net.redundancy', 'net.vmnic.linkstate', 'scsi.device.io.latency',
+            'scsi.device.state', 'scsi.device.state.permanentloss',
+            'storage.connectivity', 'storage.redundancy',):
+            if base.startswith(prefix):
+                evt.eventKey = "esx." + prefix
+                if evt.eventClassKey.startswith("esx.clear"):
+                    evt.severity = 0
+                break
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="rule" mode="w" >
+getattr(evt, 'agent', '') == 'zenvsphere'
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.AlarmEmailFailedEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.AlarmEmailFailedEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+100
+</property>
+<property type="text" id="explanation" mode="w" >
+Lower severity to Info
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.AlarmScriptFailedEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.AlarmScriptFailedEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+101
+</property>
+<property type="text" id="explanation" mode="w" >
+Lower severity to Info
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.AlarmSnmpFailedEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.AlarmSnmpFailedEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+102
+</property>
+<property type="text" id="explanation" mode="w" >
+Lower severity to Info
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.AlreadyAuthenticatedSessionEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.AlreadyAuthenticatedSessionEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+103
+</property>
+<property type="text" id="explanation" mode="w" >
+Send directly to history.
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.BadUsernameSessionEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.BadUsernameSessionEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+104
+</property>
+<property type="text" id="explanation" mode="w" >
+Lower severity to info and send directly to history.
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.NoAccessUserEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.NoAccessUserEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+105
+</property>
+<property type="text" id="explanation" mode="w" >
+Lower severity to info and send directly to history.
+</property>
+<property visible="True" type="int" id="zEventSeverity" >
+2
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.ServerStartedSessionEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.ServerStartedSessionEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+106
+</property>
+<property type="text" id="explanation" mode="w" >
+Send directly to history.
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.SessionTerminatedEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.SessionTerminatedEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+107
+</property>
+<property type="text" id="explanation" mode="w" >
+Send directly to history.
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.UserLoginSessionEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.UserLoginSessionEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+108
+</property>
+<property type="text" id="explanation" mode="w" >
+Send directly to history.
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+<object id='vim.event.UserLogoutSessionEvent' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+vim.event.UserLogoutSessionEvent
+</property>
+<property type="int" id="sequence" mode="w" >
+109
+</property>
+<property type="text" id="explanation" mode="w" >
+Send directly to history.
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.vSphere'/>
+</object>
+</tomanycont>
+</object>
+<object id='CiscoUCS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w" >
+# Translate UCS event event components when they come from syslogs and have not
+# been pre-normalized by zenucsevents.
+if '/' in evt.component:
+    from Products.ZenUtils.Utils import prepId
+    evt.component = prepId(evt.component)
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+<tomanycont id='instances'>
+<object id='LOCAL0-3-SYSTEM_MSG' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+SEVERITY_MAP = {
+    'critical': 5,
+    'major': 4,
+    'minor': 3,
+    'cleared': 0,
+    }
+
+# Map UCS severity to Zenoss severity. Default to Informational.
+evt.severity = SEVERITY_MAP.get(evt.ucs_severity, 2)
+
+# Combine UCS faultCode and reason for the eventKey. This makes deduplication
+# and auto-clearing work appropriately.
+evt.eventKey = '|'.join([evt.ucs_faultCode, evt.ucs_reason])
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+%LOCAL0-3-SYSTEM_MSG
+</property>
+<property type="int" id="sequence" mode="w" >
+7
+</property>
+<property type="string" id="regex" mode="w" >
+\[(?P&lt;ucs_faultCode&gt;\S+)\]\[(?P&lt;ucs_severity&gt;\S+)\]\[(?P&lt;ucs_reason&gt;\S+)\]\[(?P&lt;component&gt;\S+)\] (?P&lt;summary&gt;.*)
+</property>
+<property type="string" id="example" mode="w" >
+[F0374][major][equipment-inoperable][sys/switch-A/psu-1] Power supply 1 in fabric interconnect A operability: inoperable - svc_sam_dme[3274]
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+<object id='LOCAL0-3-SYSTEM_MSG_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+SEVERITY_MAP = {
+    'critical': 5,
+    'major': 4,
+    'minor': 3,
+    'cleared': 0,
+    }
+
+# Map UCS severity to Zenoss severity. Default to Informational.
+evt.severity = SEVERITY_MAP.get(evt.ucs_severity, 2)
+
+# Combine UCS faultCode and reason for the eventKey. This makes deduplication
+# and auto-clearing work appropriately.
+evt.eventKey = '|'.join([evt.ucs_faultCode, evt.ucs_reason])
+</property>
+<property type="string" id="eventClassKey" mode="w" >
+LOCAL0-3-SYSTEM_MSG
+</property>
+<property type="int" id="sequence" mode="w" >
+10
+</property>
+<property type="string" id="regex" mode="w" >
+\[(?P&lt;ucs_faultCode&gt;\S+)\]\[(?P&lt;ucs_severity&gt;\S+)\]\[(?P&lt;ucs_reason&gt;\S+)\]\[(?P&lt;component&gt;\S+)\] (?P&lt;summary&gt;.*)
+</property>
+<property type="string" id="example" mode="w" >
+[F0374][major][equipment-inoperable][sys/switch-A/psu-1] Power supply 1 in fabric interconnect A operability: inoperable - svc_sam_dme[3274]
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+</tomanycont>
+<object id='Event' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+<tomanycont id='instances'>
+<object id='UCS Events Default' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+8
+</property>
+<property type="string" id="rule" mode="w" >
+(getattr(evt, 'eventClassKey', '') or '').startswith('ucs|E')
+</property>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+</tomanycont>
+</object>
+<object id='Fault' module='Products.ZenEvents.EventClass' class='EventClass'>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+<tomanycont id='instances'>
+<object id='UCS Faults Default' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+defaultmapping
+</property>
+<property type="int" id="sequence" mode="w" >
+9
+</property>
+<property type="string" id="rule" mode="w" >
+(getattr(evt, 'eventClassKey', '') or '').startswith('ucs|F')
+</property>
+<toone id='pack' objid='/zport/dmd/ZenPackManager/packs/ZenPacks.zenoss.CiscoUCS'/>
+</object>
+</tomanycont>
 </object>
 </object>
 </object>
