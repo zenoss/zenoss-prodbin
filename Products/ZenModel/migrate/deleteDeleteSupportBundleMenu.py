@@ -12,7 +12,7 @@ import Migrate
 
 
 class DeleteDeleteSupportBundleMenu(Migrate.Step):
-    version = Migrate.Version(5, 1, 70)
+    version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
         # no-op if menu doesn't exist
