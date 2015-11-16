@@ -87,7 +87,7 @@ if device and component and evt.eventKey:
 
 
 class FixPerfFilesystemTransform_2(Migrate.Step):
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(5, 1, 1)
 
     def cutover(self, dmd):
         if dmd.Events.Perf.Filesystem.transform == OLD_VERSION:
