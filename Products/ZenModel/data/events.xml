@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-09-23 22:02:01.927960
+    Zenoss RelationshipManager export completed on 2015-11-16 20:27:24.003247
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2015-09-23 22:02:01.927960" zenoss_server="c5524692ebe5" >
+<objects version="[Zenoss, version 5.1.1]" export_date="2015-11-16 20:27:24.003247" zenoss_server="fb77f17f26a1" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -5209,30 +5209,31 @@ By Default map all FileMaker events to Archive and set severity = 2
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="text" id="transform" mode="w" >
-if device and component and evt.eventKey:
-    f = component
+if device and evt.eventKey:
+    for f in device.os.filesystems():
+        if f.name() != evt.component and f.id != evt.component: continue
 
-    # Extract the used blocks from the event's message
-    import re
-    m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
-    if m:
+        # Extract the used blocks from the event's message
+        import re
+        m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
+        if not m: continue
 
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
-        totalBytes = totalBlocks * getattr(f, 'blockSize', 1)
+        totalBytes = totalBlocks * f.blockSize
         usedBytes = None
 
         currentValue = float(m.groups()[0])
         if 'usedBlocks' in evt.eventKey:
-            usedBytes = currentValue * getattr(f, 'blockSize', 1)
+            usedBytes = currentValue * f.blockSize
         elif 'FreeMegabytes' in evt.eventKey:
             usedBytes = totalBytes - (currentValue * 1048576)
-        elif 'disk_availBlocks' in evt.eventKey:
-            usedBytes = totalBytes - (currentValue * getattr(f, 'blockSize', 1))
+        else:
+            continue
 
-    if usedBytes is not None:
         try:
             # Calculate the used percent and amount free.
+            usedBlocks = float(m.groups()[0])
             p = (usedBytes / totalBytes) * 100
             from Products.ZenUtils.Utils import convToUnits
             free = convToUnits(totalBytes - usedBytes)
@@ -5242,6 +5243,8 @@ if device and component and evt.eventKey:
         except ZeroDivisionError, e:
             # Total size hasn't been calculated
             pass
+
+        break
 </property>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
