@@ -233,7 +233,7 @@ class MibOrganizer(Organizer, ZenPackable):
         atomicWrite(savedMIBPath, mibs, raiseException=True, createDir=True)
 
         # create the job
-        mypath = self.absolute_url_path_path().replace('/zport/dmd/Mibs', '')
+        mypath = self.absolute_url_path().replace('/zport/dmd/Mibs', '')
         if not mypath:
             mypath = '/'
         commandArgs = [binPath('zenmib'), 'run', savedMIBPath,
