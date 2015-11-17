@@ -40,7 +40,7 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     s = context._getOb(id)
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main') 
     return s
     

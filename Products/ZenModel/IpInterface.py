@@ -55,7 +55,7 @@ def manage_addIpInterface(context, newId, userCreated, REQUEST = None):
     d.interfaceName = newId
     if userCreated: d.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main')
 
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())

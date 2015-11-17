@@ -49,7 +49,7 @@ def manage_addZDeviceLoader(context, id="", REQUEST = None):
     context._setObject(id, d)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main')
 
 class BaseDeviceLoader(object):
@@ -545,7 +545,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     def loaderFooter(self, devObj, response):
         """add navigation links to the end of the loader output"""
         if not devObj: return
-        devurl = devObj.absolute_url()
+        devurl = devObj.absolute_url_path()
         response.write("""<tr class="tableheader"><td colspan="4">
             Navigate to device <a href=%s>%s</a></td></tr>"""
             % (devurl, devObj.getId()))

@@ -53,7 +53,7 @@ def manage_addZenTableManager(context, id="", REQUEST = None):
     ztm.initTableManagerSkins()
 
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url()
+        REQUEST.RESPONSE.redirect(context.absolute_url_path()
                                      +'/manage_main')
 
 class ZenTableManager(SimpleItem, PropertyManager):

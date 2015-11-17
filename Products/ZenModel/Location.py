@@ -37,7 +37,7 @@ def manage_addLocation(context, id, description = "",
     loc.description = description
     loc.address = address
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() +'/manage_main')
 
 
 addLocation = DTMLFile('dtml/addLocation',globals())

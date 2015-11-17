@@ -28,7 +28,7 @@ def manage_addHardDisk(context, id, title = None, REQUEST = None):
     hd = context._getOb(id)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main') 
 
 addHardDisk = DTMLFile('dtml/addHardDisk',globals())

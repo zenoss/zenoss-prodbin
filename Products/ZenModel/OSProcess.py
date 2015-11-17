@@ -42,7 +42,7 @@ def manage_addOSProcess(context, newClassName, example, userCreated, REQUEST=Non
         p = context._getOb(id)
         if userCreated: p.setUserCreateFlag()
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+            REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
         return p
     else:
         msg = "Invalid example. Process Class '%s' would not capture it" % pc.name

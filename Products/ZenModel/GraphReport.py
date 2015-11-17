@@ -29,7 +29,7 @@ def manage_addGraphReport(context, id, REQUEST = None):
     context._setObject(gr.id, gr)
     if REQUEST is not None:
         audit('UI.Report.Add', gr.id, reportType=getDisplayType(gr), organizer=context)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 class GraphReport(BaseReport):

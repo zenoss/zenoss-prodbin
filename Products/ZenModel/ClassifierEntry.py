@@ -45,7 +45,7 @@ def manage_addClassifierEntry(context, id=None, title=None,
     ce = context._getOb(id)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main')
 
 

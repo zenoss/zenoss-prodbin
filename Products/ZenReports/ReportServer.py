@@ -119,7 +119,7 @@ def manage_addReportServer(context, id, REQUEST=None):
     rs = ReportServer(id)
     context._setObject(id, rs)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 InitializeClass(ReportServer)

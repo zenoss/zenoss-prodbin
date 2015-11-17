@@ -46,7 +46,7 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
         ed.createCatalog()
         ed.buildZProperties()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable):
     """

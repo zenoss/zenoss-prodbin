@@ -57,7 +57,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
         net.createCatalog()
         #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
@@ -143,7 +143,7 @@ class IpNetwork(DeviceOrganizer):
         """
         net = self.createNet(newPath)
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(net.absolute_url())
+            REQUEST['RESPONSE'].redirect(net.absolute_url_path())
 
     def checkValidId(self, id, prep_id = False):
         """Checks a valid id
@@ -610,7 +610,7 @@ class IpNetwork(DeviceOrganizer):
         """add navigation links to the end of the loader output"""
         response.write("""<tr class="tableheader"><td colspan="4">
             Navigate to network <a href=%s>%s</a></td></tr>"""
-            % (self.absolute_url(), self.id))
+            % (self.absolute_url_path(), self.id))
         response.write("</table></body></html>")
 
     security.declareProtected('View', 'getXMLEdges')

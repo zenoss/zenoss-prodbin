@@ -42,7 +42,7 @@ def manage_addManufacturerRoot(context, REQUEST=None):
     context._setObject(m.getId(), m)
     m = context._getOb(m.dmdRootName)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 #addManufacturerRoot = DTMLFile('dtml/addManufacturerRoot',globals())

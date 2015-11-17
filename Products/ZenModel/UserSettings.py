@@ -58,7 +58,7 @@ def manage_addUserSettingsManager(context, REQUEST=None):
     ufm = UserSettingsManager(UserSettingsId)
     context._setObject(ufm.getId(), ufm)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
@@ -574,7 +574,7 @@ def manage_addUserSettings(context, id, title = None, REQUEST = None):
     dc = UserSettings(id, title)
     context._setObject(id, dc)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 addUserSettings = DTMLFile('dtml/addUserSettings',globals())

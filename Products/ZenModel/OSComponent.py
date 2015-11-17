@@ -52,7 +52,7 @@ class OSComponent(DeviceComponent, ManagedEntity):
         """
         url = None
         if REQUEST is not None:
-            url = self.device().os.absolute_url()
+            url = self.device().os.absolute_url_path()
         self.getPrimaryParent()._delObject(self.id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
@@ -64,7 +64,7 @@ class OSComponent(DeviceComponent, ManagedEntity):
         """
         url = None
         if REQUEST is not None:
-            url = self.device().os.absolute_url()
+            url = self.device().os.absolute_url_path()
         self.getPrimaryParent()._updateObject(self, datamap)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)

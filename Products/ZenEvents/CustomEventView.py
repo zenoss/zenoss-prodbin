@@ -25,7 +25,7 @@ def manage_addCustomEventView(context, id, REQUEST=None):
     ed = CustomEventView(id)
     context._setObject(id, ed)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main') 
 
 addCustomEventView = DTMLFile('dtml/addCustomEventView',globals())
 

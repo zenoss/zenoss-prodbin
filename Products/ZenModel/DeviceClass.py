@@ -55,7 +55,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
     dc = DeviceClass(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
@@ -427,7 +427,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             user = dev.getProperty('zWinUser','')
             passwd = dev.getProperty( 'zWinPassword', '')
             sev = dev.getProperty( 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url()))
+            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url_path()))
         return starttime, devinfo
 
 

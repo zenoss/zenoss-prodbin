@@ -64,7 +64,7 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     # Use the factory to create the monitor.
     component.createObject(PerformanceConf.meta_type, context, id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
 
@@ -228,7 +228,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             dev = dev.primaryAq()
             if not dev.pastSnmpMaxFailures() and dev.monitorDevice():
-                devlist.append(dev.getPrimaryUrlPath(full=True))
+                devlist.append(dev.getPrimaryUrlPath())
         return devlist
 
     security.declareProtected('View', 'performanceDataSources')

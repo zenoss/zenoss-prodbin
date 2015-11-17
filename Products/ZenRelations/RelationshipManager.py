@@ -47,7 +47,7 @@ def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
     rm =  RelationshipManager(id)
     context._setObject(id, rm)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
                                      
 
 addRelationshipManager = DTMLFile('dtml/addRelationshipManager',globals())

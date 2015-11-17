@@ -69,7 +69,7 @@ def manage_addZenossInfo(context, id='About', REQUEST=None):
     about = ZenossInfo(id)
     context._setObject(id, about)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url_path() + '/manage_main')
 
 
 class ZenossInfo(ZenModelItem, SimpleItem):
