@@ -38,7 +38,7 @@ def manage_addMySqlEventManager(context, id=None, evthost="localhost",
         evtmgr.statusTable = "history"
     evtmgr.installIntoPortal()
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):

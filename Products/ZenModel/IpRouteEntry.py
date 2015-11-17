@@ -51,7 +51,7 @@ def manage_addIpRouteEntry(context, dest, routemask, nexthopid, interface,
     d.routemask = routemask
     
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main') 
 
 addIpRouteEntry = DTMLFile('dtml/addIpRouteEntry',globals())

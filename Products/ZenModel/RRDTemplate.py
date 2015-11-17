@@ -88,7 +88,7 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
     tt = RRDTemplate(id)
     context._setObject(tt.id, tt)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())

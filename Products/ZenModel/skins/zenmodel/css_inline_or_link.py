@@ -32,7 +32,7 @@ if hasattr(context, 'stylesheet_properties'):
             s_content = s_obj(None, _, do_inline_css=1)
             stylesheet_code = '<style type="text/css">\n<!--\n %s\n -->\n</style>' % s_content
         else:
-            server_url = context.absolute_url()
+            server_url = context.absolute_url_path()
             #took use of portal_url out because its in CMFDefault
             #s_url = '%s/%s' % (context.portal_url(), sheet)
             s_url = '%s/%s' % (server_url, sheet)

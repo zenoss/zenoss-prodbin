@@ -104,7 +104,7 @@ class EventsExporter(BrowserView):
         reporterComponent = """\t<ReporterComponent>
 \t\t<url>%s</url>
 \t</ReporterComponent>
-""" % escape(zem.absolute_url())
+""" % escape(zem.absolute_url_path())
 
 
         for fields, evt in self._query(archive, **params):

@@ -128,7 +128,7 @@ class TestIpInterface(ZenModelBaseTest):
 
     def testGetParentInfo(self):
         self.assert_(self.iface.getParentDeviceName()==self.dev.getDeviceName())
-        self.assert_(self.iface.getParentDeviceUrl() == self.dev.absolute_url())
+        self.assert_(self.iface.getParentDeviceUrl() == self.dev.absolute_url_path())
 
 
     def testClearIps(self):

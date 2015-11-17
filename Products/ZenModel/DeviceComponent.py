@@ -71,7 +71,7 @@ class DeviceComponent(Lockable):
         """
         url = ""
         dev = self.device()
-        if dev: url = dev.absolute_url()
+        if dev: url = dev.absolute_url_path()
         return url
 
     security.declareProtected(ZEN_VIEW, 'name')
@@ -224,7 +224,7 @@ class DeviceComponent(Lockable):
         """
         url = None
         if REQUEST is not None:
-            url = self.device().absolute_url()
+            url = self.device().absolute_url_path()
         self.getPrimaryParent()._delObject(self.id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)

@@ -56,7 +56,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
     context._setObject(id, dr)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())

@@ -31,7 +31,7 @@ def manage_addDeviceReport(context, id, title = None, REQUEST = None):
             'Report Created',
             'Device report %s was created.' % id
         )
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        return REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 

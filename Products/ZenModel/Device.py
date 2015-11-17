@@ -186,7 +186,7 @@ def manage_addDevice(context, id, REQUEST=None):
         # TODO: test this audits correctly. How is this called?
         #uid = context._getOb(serv.id).getPrimaryId()
         audit('UI.Device.Add', serv, deviceClass=context)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 addDevice = DTMLFile('dtml/addDevice',globals())
 
@@ -1813,7 +1813,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if REQUEST:
             if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
-            REQUEST['RESPONSE'].redirect(parent.absolute_url() +
+            REQUEST['RESPONSE'].redirect(parent.absolute_url_path() +
                                             "/deviceOrganizerStatus"
                                             '?message=Device deleted')
 

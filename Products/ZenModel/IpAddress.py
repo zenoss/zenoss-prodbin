@@ -44,7 +44,7 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     ip = IpAddress(id, netmask)
     context._setObject(ip.id, ip)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main')
 
 
@@ -211,7 +211,7 @@ class IpAddress(ManagedEntity, Layer3Linkable):
     security.declareProtected('View', 'getNetworkUrl')
     def getNetworkUrl(self):
         if self.network():
-            return self.network().absolute_url()
+            return self.network().absolute_url_path()
         return ""
 
     security.declareProtected('View', 'getDeviceUrl')

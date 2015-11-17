@@ -36,7 +36,7 @@ def manage_addToManyRelationship(context, id, REQUEST=None):
     rel =  ToManyRelationship(id)
     context._setObject(rel.id, rel)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
     return rel.id
 
 

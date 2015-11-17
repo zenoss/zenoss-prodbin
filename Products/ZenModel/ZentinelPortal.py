@@ -393,4 +393,4 @@ def manage_addZentinelPortal(obj, id="zport", title='Zentinel Portal',
                                email_from_address, email_from_name,
                                validate_email)
     if RESPONSE is not None:
-        RESPONSE.redirect(obj.absolute_url()+'/manage_main')
+        RESPONSE.redirect(obj.absolute_url_path()+'/manage_main')

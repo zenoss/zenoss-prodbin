@@ -36,7 +36,7 @@ def manage_addZenPackManager(context, newId='', REQUEST=None):
     context._setObject(newId, zpm)
     zpm = context._getOb(newId)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url_path() + '/manage_main')
 
 
 class ZenPackManager(ZenModelRM):

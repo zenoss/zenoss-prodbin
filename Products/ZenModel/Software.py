@@ -34,7 +34,7 @@ def manage_addSoftware(context, id, title = None, REQUEST = None):
     d = Software(id, title)
     context._setObject(id, d)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 addSoftware = DTMLFile('dtml/addSoftware',globals())

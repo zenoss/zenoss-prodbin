@@ -38,7 +38,7 @@ def manage_addToOneRelationship(context, id, REQUEST = None):
     r =  ToOneRelationship(id)
     context._setObject(id, r)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 

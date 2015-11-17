@@ -201,7 +201,7 @@ def login(self):
 
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (
-                    self.absolute_url(), urllib.quote(came_from))
+                    self.absolute_url_path(), urllib.quote(came_from))
     else:
         # get rid of host part of URL (prevents open redirect attacks)
         clean_url = ['', ''] + list(urlparse.urlsplit(came_from))[2:]
@@ -345,7 +345,7 @@ def termsCheck(self):
     response = request['RESPONSE']
 
     acceptStatus = request.form.get('terms') or ''
-    url = request.form.get('came_from') or self.absolute_url()
+    url = request.form.get('came_from') or self.absolute_url_path()
 
     if acceptStatus != 'Accept':
         self.resetCredentials(request, response)

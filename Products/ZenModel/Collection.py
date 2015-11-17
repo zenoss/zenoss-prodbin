@@ -31,7 +31,7 @@ def manage_addCollection(context, id, REQUEST = None):
     c = Collection(id)
     context._setObject(id, c)
     if REQUEST is not None:
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main')
+        return REQUEST['RESPONSE'].redirect(context.absolute_url_path() +'/manage_main')
 
 addCollection = DTMLFile('dtml/addCollection',globals())
 

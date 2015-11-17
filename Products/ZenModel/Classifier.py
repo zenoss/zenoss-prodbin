@@ -31,7 +31,7 @@ def manage_addClassifier(context, title = None, REQUEST = None):
     ce = Classifier('ZenClassifier', title)
     context._setObject(ce.id, ce)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
                                      
 
 
