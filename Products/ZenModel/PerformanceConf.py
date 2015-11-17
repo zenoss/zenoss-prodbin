@@ -228,7 +228,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             dev = dev.primaryAq()
             if not dev.pastSnmpMaxFailures() and dev.monitorDevice():
-                devlist.append(dev.getPrimaryUrlPath(full=True))
+                devlist.append(dev.getPrimaryUrlPath())
         return devlist
 
     security.declareProtected('View', 'performanceDataSources')
