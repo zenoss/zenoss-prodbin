@@ -35,7 +35,7 @@ class RunZminionViaSupervisord(Migrate.Step):
             log_path = "/opt/zenoss/log/zminion.log"
             if log_path not in logfiles:
                 zminion.startup = 'su - zenoss -c "/bin/supervisord -n -c /opt/zenoss/etc/zminion/supervisord.conf"'
-                zminion.logConfigs.append(sm.LogConfig(path=log_path, type_="zminion"))
+                zminion.logConfigs.append(sm.LogConfig(path=log_path, logType="zminion"))
 
         # Commit our changes.
         ctx.commit()
