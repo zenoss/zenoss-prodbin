@@ -301,6 +301,9 @@ class ZenPropertyManager(object, PropertyManager):
         if not self.valid_property_id(id):
             raise BadRequest, 'Id %s is invalid or duplicate' % id
 
+        if not type:
+            raise BadRequest('Type of %r value is invalid' % value)
+
         def setprops(**pschema):
             self._properties=self._properties+(pschema,)
             if setter: pschema['setter'] = setter
