@@ -38,6 +38,7 @@ from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 from ManagedEntity import ManagedEntity
 
 from AccessControl import ClassSecurityInfo
+from AccessControl.Permissions import access_contents_information
 from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
@@ -2231,5 +2232,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def getMacAddresses(self):
         return list(self.macaddresses or [])
+
+    security.declareProtected(access_contents_information, 'propertyItems')
+    def propertyItems(self):
+        """Return a list of (id, property) tuples. If property id related
+           to password, it will mask property value with '***'
+        """
+        result = []
+        for prop in self._properties:
+            prop_id = prop['id']
+            if prop['type'] == 'password':
+                prop_value = "***"
+            else:
+                prop_value = getattr(self, prop_id)
+
+            result.append((prop_id, prop_value))
+
+        return result
+
 
 InitializeClass(Device)
