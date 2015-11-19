@@ -238,6 +238,7 @@ def findZenossProducts(include_zenpacks):
         'ZenEvents',
         'ZenHub',
         'ZenModel',
+        'ZenModel.migrate',
         'ZenRRD',
         'ZenRelations',
         'ZenReports',
