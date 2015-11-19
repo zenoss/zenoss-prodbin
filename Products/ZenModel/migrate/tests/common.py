@@ -88,7 +88,7 @@ class ServiceMigrationTestCase(object):
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
         with mock.patch(sm_context, new=lambda: context):
-            step = getattr(migration, self.migration_class_name)().cutover(None)
+            getattr(migration, self.migration_class_name)().cutover(None)
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath = compare(actual, expected)
@@ -97,7 +97,7 @@ class ServiceMigrationTestCase(object):
             for p in rpath:
                 e, a = e[p], a[p]
             fpath = '.'.join([str(p) for p in rpath])
-            self.fail("Migration failed: Expected %s at %s, got %s instead."
+            self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
                       % (e, rpath, a))
 
 
