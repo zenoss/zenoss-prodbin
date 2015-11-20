@@ -138,28 +138,9 @@ def onTreeSpanningComponentBeforeDelete(ob, event):
         if device:
             oldpaths = devicePathsFromComponent(component)
             catalog.unindex_object_from_paths(device, oldpaths)
+            # @TODO This wont work until we implement atomic updates
+            getUtility(IModelCatalog).unindex_object_from_paths(device, oldpaths)
 
-@adapter(ITreeSpanningComponent, IObjectRemovedEvent)
-def onTreeSpanningComponentAfterDelete(ob, event):
-    component = ob
-    try:
-        catalog = ob.getPhysicalRoot().zport.global_catalog
-    except (KeyError, AttributeError):
-        # Migrate script hasn't run yet; ignore indexing
-        return
-    device = component.device()
-    if not device:
-        # OS relation has been broken or doesn't exist yet; get by path
-        path = component.getPrimaryPath()
-        try:
-            devpath = path[:path.index('devices')+2]
-            device = component.unrestrictedTraverse(devpath)
-        except ValueError:
-            # We've done our best. Give up.
-            return
-    if device:
-        newpaths = devicePathsFromComponent(component)
-        getUtility(IModelCatalog).index_object_under_paths(device, newpaths)
 
 @adapter(ITreeSpanningComponent, IObjectMovedEvent)
 def onTreeSpanningComponentAfterAddOrMove(ob, event):
