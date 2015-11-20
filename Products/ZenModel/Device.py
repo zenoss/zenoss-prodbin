@@ -295,6 +295,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security = ClassSecurityInfo()
 
+    security.declarePrivate("propertyItems")
+
     def __init__(self, id, buildRelations=True):
         ManagedEntity.__init__(self, id, buildRelations=buildRelations)
         osObj = OperatingSystem()
