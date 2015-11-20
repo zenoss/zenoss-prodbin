@@ -72,7 +72,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         loadPlugins(self.dmd)
         self.pid = os.getpid()
         self.services = {}
-        factory = ReconnectingPBClientFactory(pingPerspective=self.options.pingPerspective)
+        factory = ReconnectingPBClientFactory(pingPerspective=self.options.ping_perspective)
         self.log.debug("Connecting to %s:%d",
                        self.options.hubhost,
                        self.options.hubport)
@@ -264,7 +264,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                help="Maximum number of remote calls before restarting worker",
                                default=200)
         self.parser.add_option('--ping-perspective',
-                               dest='pingPerspective',
+                               dest='ping_perspective',
                                help="Enable or disable ping perspective",
                                default=True,
                                action='store_true')
