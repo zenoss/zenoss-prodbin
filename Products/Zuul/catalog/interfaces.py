@@ -80,3 +80,12 @@ class IGlobalCatalogFactory(Interface):
         @param portal_object: The portal object on which to remove the global catalog.
         @type portal_object: zport
         """
+
+
+class IModelCatalog(Interface):
+    """ Marker Interface to register an utility for the model catalog """
+
+
+class IModelCatalogTool(Interface):
+    """ Marker interface for the model catalog search tool """
+
