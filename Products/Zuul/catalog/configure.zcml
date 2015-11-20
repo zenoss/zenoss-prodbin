@@ -94,7 +94,6 @@
     <subscriber handler=".events.onTreeSpanningComponentBeforeDelete"/>
     <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
-    <subscriber handler=".events.onTreeSpanningComponentAfterDelete"/>
 
     <utility factory="Products.Zuul.catalog.global_catalog.GlobalCatalogFactory"
         provides="Products.Zuul.catalog.interfaces.IGlobalCatalogFactory"
