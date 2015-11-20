@@ -26,12 +26,6 @@
         />
 
     <utility
-        factory=".actions.PageAction"
-        provides=".interfaces.IAction"
-        name="page"
-        />
-
-    <utility
         factory=".actions.CommandAction"
         provides=".interfaces.IAction"
         name="command"
