@@ -10,12 +10,14 @@
 
 from zope.event import notify
 from zope.interface import implements
-from zope.component import adapter
+from zope.component import adapter, getUtility
 from zope.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
 from zope.container.interfaces import IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
+
+from Products.Zuul.catalog.interfaces import IModelCatalog
 
 
 class IndexingEvent(object):
@@ -46,6 +48,7 @@ def onIndexingEvent(ob, event):
         return
     catalog.catalog_object(evob, idxs=idxs,
                            update_metadata=event.update_metadata)
+    getUtility(IModelCatalog).catalog_object(ob)
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
@@ -67,6 +70,7 @@ def onObjectRemoved(ob, event):
         if catalog.getrid(uid) is None:
             return
         catalog.uncatalog_object(uid)
+        getUtility(IModelCatalog).uncatalog_object(ob)
 
 
 @adapter(IGloballyIndexed, IObjectAddedEvent)
@@ -135,6 +139,27 @@ def onTreeSpanningComponentBeforeDelete(ob, event):
             oldpaths = devicePathsFromComponent(component)
             catalog.unindex_object_from_paths(device, oldpaths)
 
+@adapter(ITreeSpanningComponent, IObjectRemovedEvent)
+def onTreeSpanningComponentAfterDelete(ob, event):
+    component = ob
+    try:
+        catalog = ob.getPhysicalRoot().zport.global_catalog
+    except (KeyError, AttributeError):
+        # Migrate script hasn't run yet; ignore indexing
+        return
+    device = component.device()
+    if not device:
+        # OS relation has been broken or doesn't exist yet; get by path
+        path = component.getPrimaryPath()
+        try:
+            devpath = path[:path.index('devices')+2]
+            device = component.unrestrictedTraverse(devpath)
+        except ValueError:
+            # We've done our best. Give up.
+            return
+    if device:
+        newpaths = devicePathsFromComponent(component)
+        getUtility(IModelCatalog).index_object_under_paths(device, newpaths)
 
 @adapter(ITreeSpanningComponent, IObjectMovedEvent)
 def onTreeSpanningComponentAfterAddOrMove(ob, event):
@@ -158,3 +183,4 @@ def onTreeSpanningComponentAfterAddOrMove(ob, event):
         if device:
             newpaths = devicePathsFromComponent(component)
             catalog.index_object_under_paths(device, newpaths)
+            getUtility(IModelCatalog).index_object_under_paths(device, newpaths)

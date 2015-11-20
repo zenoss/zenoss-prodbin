@@ -43,6 +43,7 @@ from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
 from Products.Zuul.catalog.global_catalog import catalog_caching
 from Products.Zuul.catalog.global_catalog import initializeGlobalCatalog
+from Products.Zuul.catalog.interfaces import IModelCatalog
 
 log = logging.getLogger("zen.Catalog")
 
@@ -386,6 +387,7 @@ def catalog_the_things(worker_id, inbox, trash, buffer_size, permissions_only, p
                 # We intentionally don't do legacy indexing:
                 # if hasattr(obj, 'index_object'): obj.index_object()
                 catalog.catalog_object(obj)
+                getUtility(IModelCatalog).catalog_object(obj)  # TEMP to be able to index model catalog
         except (AttributeError, ClientDisconnected, DisconnectedError):
             raise
         except Exception:
@@ -490,6 +492,7 @@ def convert_into_document(worker_id, inbox, outbox, buffer_size, permissions_onl
                     # We intentionally don't do legacy indexing:
                     # if hasattr(obj, 'index_object'): obj.index_object()
                     catalog.catalog_object(obj)
+                    getUtility(IModelCatalog).catalog_object(obj)  # TEMP to be able to index model catalog
                 if documentIds:
                     uid = uids.pop()
                     documentId = documentIds[0]
