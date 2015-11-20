@@ -39,6 +39,7 @@ from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger('zen.Zuul')
 
@@ -156,7 +157,10 @@ class TreeFacade(ZuulFacade):
 
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
-        cat = ICatalogTool(self._getObject(uid))
+
+        #cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid)) # Lets use solr instead
+
         reverse = bool(dir == 'DESC')
         qs = []
         query = None
