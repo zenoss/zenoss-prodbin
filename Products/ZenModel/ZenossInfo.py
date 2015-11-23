@@ -21,22 +21,24 @@ import shutil
 import traceback
 import logging
 import commands
-log = logging.getLogger("zen.ZenossInfo")
 
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
-from Products.ZenUtils import Time
 from Products.ZenUtils.mysql import MySQLdb
+from Products.ZenUtils.FunctionCache import FunctionCache
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.Version import *
+from Products.ZenUtils.Version import (Version, VersionNotSupported,
+                                       getVersionTupleFromString)
 from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+
+log = logging.getLogger("zen.ZenossInfo")
 
 
 def versionmeta(name, href, optional=False):
@@ -279,6 +281,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
 
+    @FunctionCache('getZenossRevision')
     def getZenossRevision(self):
         """
         Determine the Zenoss version number
