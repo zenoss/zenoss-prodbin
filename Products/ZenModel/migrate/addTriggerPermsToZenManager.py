@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGER_ROLE, MANAGE_TRIGGER
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGER_ROLE, MANAGE_TRIGGER, UPDATE_TRIGGER
 
 __doc__ = '''
 This migration script adds the Manage Trigger permission to the ZenManager role.
@@ -35,6 +35,7 @@ class AddTriggerPermToZenManager(Migrate.Step):
     def cutover(self, dmd):
         zport = dmd.zport
         self.addPermissions(zport, MANAGE_TRIGGER, [ZEN_MANAGER_ROLE], 1)
+        self.addPermissions(zport, UPDATE_TRIGGER, [ZEN_MANAGER_ROLE], 1)
 
 
 AddTriggerPermToZenManager()
