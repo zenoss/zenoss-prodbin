@@ -21,22 +21,23 @@ import shutil
 import traceback
 import logging
 import commands
-log = logging.getLogger("zen.ZenossInfo")
 
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
-from Products.ZenUtils import Time
 from Products.ZenUtils.mysql import MySQLdb
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.Version import *
+from Products.ZenUtils.Version import (Version, VersionNotSupported,
+                                       getVersionTupleFromString)
 from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+
+log = logging.getLogger("zen.ZenossInfo")
 
 
 def versionmeta(name, href, optional=False):
@@ -147,8 +148,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     @versionmeta("Zenoss", "http://www.zenoss.com")
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
-        return Version.parse("Zenoss %s %s" %
-                    (VERSION, self.getZenossRevision()))
+        return Version.parse("Zenoss %s" % VERSION)
     security.declarePublic('getZenossVersion')
 
     def getZenossVersionShort(self):
@@ -278,21 +278,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         name = 'Zope'
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
-
-    def getZenossRevision(self):
-        """
-        Determine the Zenoss version number
-
-        @return: version number or ''
-        @rtype: string
-        """
-        try:
-            products = zenPath("Products")
-            cmd = "svn info '%s' 2>/dev/null | awk '/Revision/ {print $2}'" % products
-            fd = os.popen(cmd)
-            return fd.readlines()[0].strip()
-        except:
-            return ''
 
     @versionmeta("NetSnmp", "http://net-snmp.sourceforge.net", optional=True)
     def getNetSnmpVersion(self):
