@@ -30,6 +30,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenUtils.mysql import MySQLdb
+from Products.ZenUtils.FunctionCache import FunctionCache
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.Version import (Version, VersionNotSupported,
                                        getVersionTupleFromString)
@@ -280,6 +281,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
 
+    @FunctionCache('getZenossRevision')
     def getZenossRevision(self):
         """
         Determine the Zenoss version number
