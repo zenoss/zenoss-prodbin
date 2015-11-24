@@ -42,7 +42,6 @@ import logging
 log = logging.getLogger("zen.TelnetClient")
 
 import CollectorClient
-from Exceptions import *
 
 from Products.ZenUtils.Utils import unused
 
