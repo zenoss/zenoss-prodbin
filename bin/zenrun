@@ -15,6 +15,7 @@
 #    255 - BADPARAM     Bad params
 #    254 - NOTFOUND     Script not found
 #    253 - INVALID      Invalid script
+#    252 - NOCOMMIT     NOCOMMIT environment variable was set
 #
 # Each script follows a specific design template.
 #
@@ -45,7 +46,7 @@ fi
 
 DESIRED_USER=${DESIRED_USER:-"zenoss"}
 if [[ "$(whoami)" != "$DESIRED_USER" ]]; then
-    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER $0 $*"
+    exec su - "$DESIRED_USER" -c "DESIRED_USER=$DESIRED_USER NOCOMMIT=$NOCOMMIT $0 $*"
 fi
 
 RUNPATH=${RUNPATH:-$(dirname $0)/zenrun.d}
@@ -53,10 +54,14 @@ PROGRAM=$1
 shift
 
 # Load the program
+RC=nil
 if [[ -r $RUNPATH/$PROGRAM ]]; then
     source $RUNPATH/$PROGRAM
 elif [[ -r $PROGRAM ]]; then
     source $PROGRAM
+elif which $PROGRAM > /dev/null ; then
+    $PROGRAM "$@"
+    RC="$?"
 else
     echo -e "Program not found: $PROGRAM" >&2
     exit 254
@@ -65,7 +70,9 @@ fi
 # Look up the command and run
 declare -f __DEFAULT__ &> /dev/null
 defaultExists=$?
-if [[ $defaultExists=0 && -z "$1" ]]; then
+if [[ $RC != nil ]]; then
+    : # Already have return code; do nothing
+elif [[ $defaultExists=0 && -z "$1" ]]; then
     __DEFAULT__
     RC="$?"
 elif declare -f -- "$1" &> /dev/null; then
@@ -77,6 +84,11 @@ elif [[ $defaultExists=0 ]]; then
 else
     echo -e "Missing __DEFAULT__ declaration in $PROGRAM" >&2
     exit 253
+fi
+
+if ${NOCOMMIT:-false} ; then
+    echo Command definition deliberately disables container commit.
+    exit 252
 fi
 
 exit "$RC"
