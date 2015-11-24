@@ -28,22 +28,21 @@ from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
 from Commandable import Commandable
-import socket
 import os
 import sys
 import string
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import zenPath, binPath
-from Products.ZenUtils.Utils import extractPostContent
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
-from Products.ZenEvents.Exceptions import *
+from Products.ZenEvents.Exceptions import (
+    MySQLConnectionError, pythonThresholdException, rpnThresholdException)
 
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
@@ -446,7 +445,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     self.REQUEST.errorValue,
                     self.REQUEST.errorTrace,
                     self.REQUEST.errorUrl,
-                    self.About.getZenossRevision(),
                     self.About.getZenossVersionShort(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
@@ -458,7 +456,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                                 self.REQUEST.errorValue,
                                 self.REQUEST.errorTrace,
                                 self.REQUEST.errorUrl,
-                                self.About.getZenossRevision(),
                                 self.About.getZenossVersionShort(),
                                 True,
                                 self.REQUEST.contactName,
