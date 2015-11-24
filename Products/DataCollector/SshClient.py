@@ -22,7 +22,7 @@ import logging
 log = logging.getLogger("zen.SshClient")
 import socket
 
-import Globals
+import Globals  # noqa
 
 from twisted.conch.ssh import transport, userauth, connection
 from twisted.conch.ssh import common, channel
@@ -821,7 +821,6 @@ def main():
     Each command must be enclosed in quotes (") to be interpreted
     properly as a complete unit.
     """
-    from itertools import chain
     import pprint
 
     logging.basicConfig()

@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-import Globals
+import Globals  # noqa
 import os.path
 
 from Products.DataCollector.Plugins import PluginLoader, CoreImporter

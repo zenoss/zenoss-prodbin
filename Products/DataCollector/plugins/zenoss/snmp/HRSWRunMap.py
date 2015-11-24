@@ -25,7 +25,6 @@ Uses the HOST-RESOURCES-MIB OIDs.
 # ----------------------------------------------------------------------------
 # DataCollector/plugins/zenoss/snmp/HRSWRunMap      70      0   100%
 
-import re
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin
 from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
 from Products.ZenModel.OSProcessMatcher import buildObjectMapData

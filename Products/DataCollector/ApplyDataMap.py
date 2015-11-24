@@ -22,7 +22,6 @@ from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable

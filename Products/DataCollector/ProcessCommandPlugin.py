@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-from pprint import pformat
-
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 from Products.ZenModel.OSProcessMatcher import buildObjectMapData
 

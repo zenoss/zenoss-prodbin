@@ -13,8 +13,6 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from types import ModuleType
-
 
 from Products.ZenUtils.ZenDocTest import ZenDocTestRunner
 from Products.ZenUtils.ZenDocTest import TestSuiteWithHooks

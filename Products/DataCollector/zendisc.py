@@ -16,7 +16,7 @@ Scan networks and routes looking for devices to add to the ZODB
 # ensure that the proper WmiReactor is installed before anyone else grabs
 # a reference to the wrong reactor.
 try:
-    import pysamba.twisted.reactor
+    import pysamba.twisted.reactor  # noqa
 except ImportError:
     pass
 
@@ -26,10 +26,10 @@ import logging
 
 from optparse import SUPPRESS_HELP
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.names.error import DNSNameError
 
-import Globals
+import Globals  # noqa
 
 from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenEvents.Event import Info

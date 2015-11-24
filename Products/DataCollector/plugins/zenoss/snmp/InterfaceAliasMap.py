@@ -15,7 +15,6 @@ __doc__ = """InterfaceAliasMap
     the same device have the same ifDescr.
 """
 
-from copy import deepcopy
 from Products.DataCollector.plugins.zenoss.snmp.InterfaceMap \
     import InterfaceMap
 from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
