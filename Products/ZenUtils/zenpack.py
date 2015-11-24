@@ -228,7 +228,10 @@ class ZenPackCmd(ZenScriptBase):
         if self.options.installPackName:
             # Process each install filter utility - order does not matter
             for name, util in getUtilitiesFor(IZenPackInstallFilter):
-                if not util.installable(self.options.installPackName):
+                # Get normalized pack name to compare.  Split on path separator
+                # in case absolute path was given
+                packName = EGG_NAME(self.options.installPackName.rsplit('/', 1)[-1]).group('name')
+                if not util.installable(packName):
                     self.stop('Filter %s does not allow %s to be installed' \
                               % (name, self.options.installPackName))
             if self.options.skipSameVersion and self._sameVersion():
