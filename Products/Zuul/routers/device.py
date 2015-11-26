@@ -317,7 +317,7 @@ class DeviceRouter(TreeRouter):
         @rtype: DirectResponse
         """
         facade = self._getFacade()
-        if not Zuul.checkPermission('Manage DMD', self.context):
+        if not Zuul.checkPermission('Manage Device', self.context):
             raise Exception('You do not have permission to save changes.')
         the_uid = data['uid']  # gets deleted
         process = facade.getInfo(the_uid)
