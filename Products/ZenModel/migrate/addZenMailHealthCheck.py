@@ -21,7 +21,7 @@ sm.require("1.0.0")
 class AddZenMailHealthCheck(Migrate.Step):
     """Add `service_ready` healthcheck to zenmail service"""
 
-    version = Migrate.Version(5,1,70)
+    version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
 
