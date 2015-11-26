@@ -115,12 +115,14 @@ class MessageProcessor(object):
         if fromIp:
             event.ipAddress = fromIp
 
-        payloads = message.get_payload()
         payload = 'This is the default message'
-        while isinstance(payloads, list):
-            payloads = payloads[0].get_payload()
-        if isinstance(payloads, basestring):
-            payload = payloads
+        if message.is_multipart():
+            for msg in message.get_payload():
+                if msg.get_content_maintype() == 'text' or msg.get_content_type() == 'message/rfc822':
+                    payload = msg.get_payload(decode=True)
+                    break
+        else:
+            payload = message.get_payload(decode=True)
 
         body = payload
         event.summary = subject
