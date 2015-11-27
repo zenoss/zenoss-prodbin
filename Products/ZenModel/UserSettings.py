@@ -761,6 +761,8 @@ class UserSettings(ZenModelRM):
                 'Unable to send password reset email: %s' % errorMsg,
                 priority=messaging.WARNING
             )
+            audit('UI.User.ResetPassword', username=self.id,
+                  errorMsg='Unable to send password reset email: %s' % errorMsg)
         return self.callZenScreen(self.REQUEST)
 
 
@@ -1156,6 +1158,8 @@ class UserSettings(ZenModelRM):
                 msg = 'Test email sent to %s' % ', '.join(destAddresses)
             else:
                 msg = 'Test failed: %s' % errorMsg
+                audit('UI.User.EmailTest', username=self.id,
+                      errorMsg=msg)
         else:
             msg = 'Test email not sent, user has no email address.'
         if REQUEST:
