@@ -69,7 +69,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
         self._doingGetPerspective = False
         self._scheduledConnectTimeout = None
         self._connectTimeout = connectTimeout
-        # should the perspective be pinged. Perspective must have a ping method. Deprecated => Always False.
+        # should the perspective be pinged. Perspective must have a ping method.
         self._shouldPingPerspective = pingPerspective
         # how often to ping
         self._pingInterval = pingInterval
