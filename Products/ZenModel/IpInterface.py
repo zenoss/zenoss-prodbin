@@ -41,6 +41,7 @@ from Products.ZenModel.Linkable import Layer2Linkable
 from Products.ZenModel.ZenossSecurity import *
 from Products.Zuul.catalog.events import IndexingEvent
 
+from Products.Zuul.catalog.indexable import IpInterfaceIndexable
 
 _IPADDRESS_CACHE_ATTR = "_v_ipaddresses"
 
@@ -61,7 +62,7 @@ def manage_addIpInterface(context, newId, userCreated, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(OSComponent, Layer2Linkable):
+class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
     """
     IpInterface object
     """
