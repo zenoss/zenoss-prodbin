@@ -102,3 +102,7 @@ As these are unittest TestCases, they can be discovered and run via `python -m u
 Any additional `test_*` functions added to the class will also be discovered and run by unittest.
 
 The service migration tests have also been added to zendev, so they can be invoked with `zendev test --zenoss-devimg unit Products.ZenModel.migrate`.
+
+## Running a migration manually
+
+Instructions for running a migration manually are available on the engineering site [here](https://sites.google.com/a/zenoss.com/engineering/home/faq/work-with-rm/howtorunzenmigrate).
