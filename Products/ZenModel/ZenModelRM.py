@@ -33,7 +33,9 @@ from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenModel.ZenossSecurity import *
 
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
+from Products.Zuul.catalog.indexable import BaseIndexable
+
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseIndexable):
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,

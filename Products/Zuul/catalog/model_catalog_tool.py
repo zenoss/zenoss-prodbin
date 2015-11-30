@@ -87,12 +87,12 @@ class ModelCatalogTool(object):
         if not isinstance(types, (tuple, list)):
             types = (types,)
         types_query_list = [ Eq('objectImplements', dottedname(t)) for t in types ]
-        if len(types_query_list) > 1:
-            types_query = Or(*types_query_list)
-        else:
-            types_query = types_query_list[0]
+        if types_query_list:
+            if len(types_query_list) > 1:
+                types_query = Or(*types_query_list)
+            else:
+                types_query = types_query_list[0]
 
-        if types_query:
             partial_queries.append(types_query)
 
         # Build query for paths
@@ -113,15 +113,12 @@ class ModelCatalogTool(object):
             partial_queries.append(paths_query)
 
         # filter based on permissions
-        if filterPermissions:
+        if filterPermissions and allowedRolesAndGroups(self.context):
             permissions_query = In('allowedRolesAndUsers', allowedRolesAndGroups(self.context))
-
-        if permissions_query:
             partial_queries.append(permissions_query)
 
         # Put together all queries
         search_query = And(*partial_queries)
-
         return (search_query, not_indexed_user_filters)
 
 
@@ -193,11 +190,6 @@ class ModelCatalogTool(object):
             path = '/'.join(path.getPhysicalPath())
         elif isinstance(path, tuple):
             path = '/'.join(path)
-
-        if "dmd" in path:
-            splitted = path.split('/')
-            pos = splitted.index("dmd")
-            path = '/'.join(splitted[pos+1:])
 
         query = Eq(UID, path)
         search_results = self._search_model_catalog(query)
@@ -278,7 +270,8 @@ class ModelCatalogBrain(Implicit):
         @param result: modelindex.zenoss.modelindex.search.SearchResult
         """
         self._result = result
-        #self.dmd = context.dmd
+        for idx in result.idxs:
+            setattr(self, idx, getattr(result, idx, None))
 
     def has_key(self, key):
         return self.__contains__(key)

@@ -26,9 +26,9 @@ from Lockable import Lockable
 from EventView import EventView
 from Products.ZenUtils.Utils import getAllConfmonObjects
 from Products.Zuul.catalog.interfaces import IPathReporter
+from Products.Zuul.catalog.indexable import ComponentIndexable
 
-
-class DeviceComponent(Lockable):
+class DeviceComponent(Lockable, ComponentIndexable):
     """
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
