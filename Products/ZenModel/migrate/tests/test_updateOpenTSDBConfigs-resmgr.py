@@ -7,7 +7,7 @@ import Globals
 import common
 
 
-class Test_UpdateOpenTSDBConfigs(unittest.TestCase, common.ServiceMigrationTestCase):
+class Test_UpdateOpenTSDBConfigsResmgr(unittest.TestCase, common.ServiceMigrationTestCase):
     """
     Test that open tsdb config for reader and writer has had host set to 127.0.0.1.
     """
