@@ -19,7 +19,7 @@ sm.require("1.0.0")
 class UpdateOpenTSDBConfigs(Migrate.Step):
     "Change zk_quorum host from localhost to 127.0.0.1."
 
-    version = Migrate.Version(5,0,70)
+    version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
 
@@ -28,11 +28,13 @@ class UpdateOpenTSDBConfigs(Migrate.Step):
         except sm.ServiceMigrationError:
             log.info("Couldn't generate service context, skipping.")
             return
-
-        reader = filter(lambda s: "opentsdb/reader" in ctx.getServicePath(s), ctx.services)[0]
-        writer = filter(lambda s: "opentsdb/writer" in ctx.getServicePath(s), ctx.services)[0]
-
-        tsdbs = [reader, writer]
+            
+        if "Zenoss.core" in [s.name for s in ctx.services]:
+            tsdbs = filter(lambda s: s.name == "opentsdb", ctx.services)
+        else:
+            reader = filter(lambda s: "opentsdb/reader" in ctx.getServicePath(s), ctx.services)[0]
+            writer = filter(lambda s: "opentsdb/writer" in ctx.getServicePath(s), ctx.services)[0]
+            tsdbs = [reader, writer]
 
         for tsdb in tsdbs:
 
