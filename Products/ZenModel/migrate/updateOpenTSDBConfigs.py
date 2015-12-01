@@ -28,16 +28,11 @@ class UpdateOpenTSDBConfigs(Migrate.Step):
         except sm.ServiceMigrationError:
             log.info("Couldn't generate service context, skipping.")
             return
-            
-        if "Zenoss.core" in [s.name for s in ctx.services]:
-            tsdbs = filter(lambda s: s.name == "opentsdb", ctx.services)
-        else:
-            reader = filter(lambda s: "opentsdb/reader" in ctx.getServicePath(s), ctx.services)[0]
-            writer = filter(lambda s: "opentsdb/writer" in ctx.getServicePath(s), ctx.services)[0]
-            tsdbs = [reader, writer]
+
+        tsdbs = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
+        tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.configFiles], tsdbs)
 
         for tsdb in tsdbs:
-
             cf = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.configFiles)[0]
             lines = cf.content.split('\n')
             for i, line in enumerate(lines):
