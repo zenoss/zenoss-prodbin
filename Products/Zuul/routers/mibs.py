@@ -84,6 +84,11 @@ class MibRouter(TreeRouter):
         @return:  B{Properties}:
            - tree: ([dictionary]) Object representing the new tree
         """
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         # GAH!  JS passes back a keyword of 'type'
         nodeType = type
         if nodeType not in ['organizer', 'MIB']:
@@ -117,6 +122,11 @@ class MibRouter(TreeRouter):
         @return:  B{Properties}:
            - jobId: (string) ID of the add MIB job
         """
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         facade = self._getFacade()
         jobrecord = facade.addMibPackage(package, organizer)
         if jobrecord:
@@ -137,6 +147,11 @@ class MibRouter(TreeRouter):
         @return:  B{Properties}:
            - tree: ([dictionary]) Object representing the new tree
         """
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         represented = self.context.dmd.restrictedTraverse(uid)
         organizer = represented.getParentNode()
         if represented.meta_type == 'MibOrganizer':
@@ -164,6 +179,11 @@ class MibRouter(TreeRouter):
         @return:  B{Properties}:
            - data: (dictionary) Object representing the new parent organizer
         """
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         parent = self.api.moveMibs(uids, target)
         parent = IInfo(parent)
         for uid in uids:
@@ -202,6 +222,11 @@ class MibRouter(TreeRouter):
         @return:  B{Properties}
             - data: (dictionary) Object representing a MIB's new properties
         """
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         uid = data['uid']
         del data['uid']
         facade = self._getFacade()
@@ -210,16 +235,31 @@ class MibRouter(TreeRouter):
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
     def addOidMapping(self, uid, id, oid, nodetype='node'):
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         self.api.addOidMapping(uid, id, oid, nodetype)
         audit('UI.Mib.AddOidMapping', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
     def addTrap(self, uid, id, oid, nodetype='notification'):
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         self.api.addTrap(uid, id, oid, nodetype)
         audit('UI.Mib.AddTrap', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
     def deleteOidMapping(self, uid):
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         if uid.find('/nodes/') == -1:
             return DirectResponse.fail('"%s" does not appear to refer to an OID Mapping' % uid)
         mibUid, mappingId = uid.split('/nodes/')
@@ -228,6 +268,11 @@ class MibRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def deleteTrap(self, uid):
+
+        # Make sure they have permission
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         if uid.find('/notifications/') == -1:
             return DirectResponse.fail('"%s" does not appear to refer to a trap' % uid)
         mibUid, trapId = uid.split('/notifications/')

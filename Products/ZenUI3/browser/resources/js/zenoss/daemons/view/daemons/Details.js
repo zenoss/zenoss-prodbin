@@ -11,6 +11,7 @@
     Ext.define('Daemons.view.daemons.Details' ,{
         extend: 'Ext.Panel',
         alias: 'widget.daemonsdetails',
+        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         dockedItems:[{
             xtype: 'toolbar',
             dock: 'top',
