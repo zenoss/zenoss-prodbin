@@ -57,6 +57,10 @@ class JobsRouter(DirectRouter):
                 log.debug("Unable to abort job: %s No such job found.", id_)
 
     def deleteJobs(self, jobids):
+        # Make sure they have permission to delete.
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
         deletedJobs = []
         for id_ in jobids:
             try:
