@@ -39,8 +39,16 @@ def fakeContextFromFile(jsonfile):
 
         def servicedef(self):
             return [service.serialize(s) for s in self.services]
-                    
+
     return FakeServiceContext()
+
+class FakeDmd:
+
+    def __init__(self):
+        None
+
+    def getProductName(self):
+        return "Resource Manager"
 
 
 def compare(this, that, path=None):
@@ -88,7 +96,7 @@ class ServiceMigrationTestCase(object):
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
         with mock.patch(sm_context, new=lambda: context):
-            getattr(migration, self.migration_class_name)().cutover(None)
+            getattr(migration, self.migration_class_name)().cutover(FakeDmd())
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath = compare(actual, expected)
