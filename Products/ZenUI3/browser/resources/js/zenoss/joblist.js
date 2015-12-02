@@ -26,6 +26,7 @@ function renderDate(utcseconds) {
 
 Ext.getCmp('center_panel').add({
     layout: 'border',
+    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     items: [{
         id: 'jobs',
         region: 'center',

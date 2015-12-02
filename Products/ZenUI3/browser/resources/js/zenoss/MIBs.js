@@ -548,10 +548,10 @@ treesm = new Zenoss.TreeSelectionModel({
                 if (newnode.data.uid === '/zport/dmd/Mibs') {
                     isRoot = true;
                 }
-                Ext.getCmp('add-organizer-button').setDisabled(newnode.data.leaf);
-                Ext.getCmp('edit-mib-action').setDisabled(!newnode.data.leaf);
+                Ext.getCmp('add-organizer-button').setDisabled(newnode.data.leaf || Zenoss.Security.doesNotHavePermission('Manage DMD'));
+                Ext.getCmp('edit-mib-action').setDisabled(!newnode.data.leaf || Zenoss.Security.doesNotHavePermission('Manage DMD'));
                 // do not allow them to delete the root node
-                Ext.getCmp('delete-button').setDisabled(isRoot);
+                Ext.getCmp('delete-button').setDisabled(isRoot || Zenoss.Security.doesNotHavePermission('Manage DMD'));
 
                 // add to history
                 Ext.History.add('mibtree' + Ext.History.DELIMITER + newnode.data.uid);
@@ -585,6 +585,7 @@ mib_tree = new Zenoss.MibTreePanel({
 
 
 Ext.getCmp('center_panel').add({
+    hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     id: 'center_panel_container',
     layout: 'border',
     defaults: {
@@ -876,7 +877,7 @@ footerBar.add([{
     xtype: 'button',
     iconCls: 'customize',
     id: 'mibs-configure-menu',
-    disabled: false,
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
     menu: {
         items: [{
             xtype: 'menuitem',
