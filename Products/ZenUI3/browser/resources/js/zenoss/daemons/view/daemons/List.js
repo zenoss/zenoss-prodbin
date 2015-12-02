@@ -49,6 +49,7 @@
         useArrows: true,
         animate: false,
         rootVisible: false,
+        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         viewConfig: {
             plugins: {
                 ptype:'treeviewdragdrop',

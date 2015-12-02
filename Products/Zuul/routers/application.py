@@ -84,6 +84,10 @@ class ApplicationRouter(TreeRouter):
         @rtype: DirectResposne
         @return: DirectReponse of success if no errors are encountered
         """
+
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to start a daemon", sticky=False)
+
         facade = self._getFacade()
         for uid in uids:
             facade.start(uid)
@@ -100,6 +104,10 @@ class ApplicationRouter(TreeRouter):
         @rtype: DirectResposne
         @return: DirectReponse of success if no errors are encountered
         """
+
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to stop a daemon", sticky=False)
+
         facade = self._getFacade()
         for uid in uids:
             facade.stop(uid)
@@ -116,6 +124,10 @@ class ApplicationRouter(TreeRouter):
         @rtype: DirectResposne
         @return: DirectReponse of success if no errors are encountered
         """
+
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to restart a daemon", sticky=False)
+
         facade = self._getFacade()
         for uid in uids:
             facade.restart(uid)
@@ -135,6 +147,10 @@ class ApplicationRouter(TreeRouter):
         @rtype: DirectResposne
         @return: DirectReponse of success if no errors are encountered
         """
+
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to set autostart", sticky=False)
+
         facade = self._getFacade()
         applications = facade.query()
         for app in applications:
@@ -187,6 +203,10 @@ class ApplicationRouter(TreeRouter):
         The filename parameter serves as the "id" of each configFile
         passed in.
         """
+
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to set update config files", sticky=False)
+
         facade = self._getFacade()
         deployedApp = facade.get(id)
         newConfigs = []
