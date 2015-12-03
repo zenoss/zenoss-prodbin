@@ -13,6 +13,7 @@ import atexit
 import logging
 import os
 import re
+import subprocess
 from subprocess import Popen, PIPE
 import sys
 
