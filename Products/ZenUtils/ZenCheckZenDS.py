@@ -1,26 +1,32 @@
 #!/opt/zenoss/bin/python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import os
-import sys
-from config import ConfigFile
-from optparse import OptionParser
-from subprocess import Popen, PIPE
-import re
+import argparse
+import atexit
 import logging
-import Globals
+import os
+import re
+from subprocess import Popen, PIPE
+import sys
+
+import Globals  # noqa
+from Products.ZenUtils.config import ConfigFile
+from Products.ZenUtils.configlog import ZenRotatingFileHandler
 from Products.ZenUtils.Utils import zenPath
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("zen.zencheckzendb")
+LOG = logging.getLogger("zen.zencheckzends")
+LOG.addHandler(ZenRotatingFileHandler("zencheckzends.log",
+                                      maxBytes=10 * 1024 * 1024,
+                                      backupCount=3))
+
 
 class Main(object):
 
@@ -122,7 +128,7 @@ class Main(object):
                          QUOTE(v_db)));
               END IF;
             UNTIL done END REPEAT;
-            
+
             SET @query = CONCAT('
               CREATE OR REPLACE VIEW
               long_transactions
@@ -193,7 +199,7 @@ class Main(object):
         DELIMITER ;
         DROP EVENT IF EXISTS kill_long_running_txns;
         """
-        
+
         stdout, stderr = self._zendb('mysql', check_sql)
         try:
             if int(stdout) > 0:
@@ -223,7 +229,7 @@ class Main(object):
         for database in databases:
             sql = "truncate {0}.{1}".format(database, 'connection_info')
             stdout, stderr = self._zendb(database, sql)
-    
+
     def kill(self):
         sql = "call mysql.KillTransactions(%d,'KILL');" % (self.options.minutes * 60,)
         stdout, stderr = self._zendb('mysql', sql)
@@ -290,43 +296,61 @@ class Main(object):
           s.kill()
 
 
-if __name__=="__main__":
-    
-    usage = "Usage: %prog [install|install-silent|check|kill|truncate]"
-    epilog = "Checks for (or kills) long-running database transactions."
-    parser = OptionParser(usage=usage, epilog=epilog)
-    parser.add_option("-m", "--minutes",
-        dest="minutes", default=360, type="int",
-        help='minutes before a transaction is considered "long-running"')
-    parser.add_option("-d", "--database",
-        dest="databases", default=[], action="append",
-        help='which database to use. ("-d foo -d bar" for multiple databases)')
-    parser.add_option("-u", "--username",
-        dest="username", default=None,
-        help='username of admin user for database server (probably "root")')
-    parser.add_option("--hostname",
-        dest="hostname", default=None,
-        help='hostname of database server')
-    parser.add_option("-p", "--port",
-        dest="port", default=None,
-        help='port that database server listens on')
-    (options, args) = parser.parse_args()
+def _get_lock(process_name):
 
-    if len(args) != 1:
-        parser.print_usage()
+    # Should we find a better place for lock?
+    lock_name = "%s.lock" % process_name
+    lock_path = os.path.join('/tmp', lock_name)
+
+    if os.path.isfile(lock_path):
+        LOG.error("'%s' lock already exists - exiting" % (process_name))
+        return False
+    else:
+        file(lock_path, "w+").close()
+        atexit.register(os.remove, lock_path)
+        LOG.debug("Acquired '%s' execution lock" % (process_name))
+        return True
+
+
+if __name__ == "__main__":
+
+    if not _get_lock('zencheckzends'):
         sys.exit(1)
 
-    action = args[0]
+    epilog = "Checks for (or kills) long-running database transactions."
+    parser = argparse.ArgumentParser(epilog=epilog)
+    parser.add_argument("action", type=str,
+        choices=["install", "install-silent", "check", "kill", "truncate"],
+        help="user action to operate with long-running database transactions.")
+    parser.add_argument("-m", "--minutes",
+        dest="minutes", default=360, type=int,
+        help='minutes before a transaction is considered "long-running"')
+    parser.add_argument("-d", "--database",
+        dest="databases", default=[], action="append",
+        help='which database to use. ("-d foo -d bar" for multiple databases)')
+    parser.add_argument("-u", "--username",
+        dest="username", default=None,
+        help='username of admin user for database server (probably "root")')
+    parser.add_argument("--hostname",
+        dest="hostname", default=None,
+        help='hostname of database server')
+    parser.add_argument("-p", "--port",
+        dest="port", default=None,
+        help='port that database server listens on')
+    args = parser.parse_args()
+
+    action = args.action
     if action == 'install':
-        Main(options).install()
+        Main(options=args).install()
     elif action == 'install-silent':
-        Main(options).install(silent=True)
+        Main(options=args).install(silent=True)
     elif action == 'check':
-        Main(options).check()
+        Main(options=args).check()
     elif action == 'kill':
-        Main(options).kill()
+        Main(options=args).kill()
     elif action == 'truncate':
-        Main(options).truncate()
+        Main(options=args).truncate()
     else:
+        # Something DEFINELY went wrong
         parser.print_usage()
         sys.exit(1)
