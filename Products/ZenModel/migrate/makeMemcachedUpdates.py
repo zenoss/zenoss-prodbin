@@ -55,8 +55,8 @@ OPTIONS=""
             permissions = "0664",
             content = esm_content,
         )
-        if '/etc/sysconfig/memcached' not in [cf.name for cf in memcached.configFiles]:
-            memcached.configFiles.append(e_s_memcached)
+        if '/etc/sysconfig/memcached' not in [cf.name for cf in memcached.originalConfigs]:
+            memcached.originalConfigs.append(e_s_memcached)
             commit = True
 
         if commit:
