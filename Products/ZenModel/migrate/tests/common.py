@@ -108,8 +108,12 @@ class ServiceMigrationTestCase(object):
         module_name = 'Products.ZenModel.migrate.%s' % self.migration_module_name
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
+        if hasattr(self, 'dmd'):
+            dmd = self.dmd
+        else:
+            dmd = FakeDmd()
         with mock.patch(sm_context, new=lambda: context):
-            getattr(migration, self.migration_class_name)().cutover(FakeDmd())
+            getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath = compare(actual, expected)
