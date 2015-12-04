@@ -13,21 +13,22 @@
      **/
     Ext.apply(Ext.form.VTypes, {
         password: function(val, field) {
+            // If the password field has initialPassField (2nd box), do a comparison.
             if (field.initialPassField) {
                 var pwd = Ext.getCmp(field.initialPassField);
-                var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}")
                 if (val != pwd.getValue()){
                     Ext.form.VTypes["passwordText"] = _t("The passwords you've typed don't match.");
                     return false;
                 }
-                if (!val.match(pattern)){
-                    Ext.form.VTypes["passwordText"] = _t("That must contain 8 or more characters" +
-                                                    " that are of at least one number, and one uppercase and lowercase letter.");
-                    return false;
-                }
-                return true;
             }
-
+            // Validate the validity of the password field (either of them)
+            var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}")
+            if (!val.match(pattern)){
+                Ext.form.VTypes["passwordText"] = _t("That must contain 8 or more characters" +
+                                                 " that are of at least one number, and one uppercase and lowercase letter.");
+                return false;
+            }
+            return true;
         }
 
     });
@@ -84,6 +85,7 @@
                     },{
                         fieldLabel: _t('Admin password'),
                         inputType: 'password',
+                        vtype: 'password',
                         name: 'admin-password1',
                         id: 'admin-password1',
                         allowBlank: false
@@ -126,6 +128,7 @@
                     },{
                         fieldLabel: _t('Password'),
                         inputType: 'password',
+                        vtype: 'password',
                         name: 'password1',
                         id: 'password1',
                         allowBlank: false
