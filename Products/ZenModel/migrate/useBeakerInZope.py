@@ -50,7 +50,7 @@ class UseBeakerInZope(Migrate.Step):
         commit = False
         zopes_and_zauths = filter(lambda s: s.name in ["zope", "zauth"], ctx.services)
         for z in zopes_and_zauths:
-            for configfile in filter(lambda f: f.name == '/opt/zenoss/etc/zope.conf', z.configFiles):
+            for configfile in filter(lambda f: f.name == '/opt/zenoss/etc/zope.conf', z.originalConfigs):
                 if '<product-config beaker>' in configfile.content:
                     continue
                 commit = True
