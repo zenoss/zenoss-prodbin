@@ -46,8 +46,16 @@ def fakeContextFromFile(jsonfile):
             It's only here for testing purposes.
             """
             return sorted([service.serialize(s) for s in self.services], key=lambda s: s['Name'])
-                    
+
     return FakeServiceContext()
+
+class FakeDmd:
+
+    def __init__(self):
+        None
+
+    def getProductName(self):
+        return "Resource Manager"
 
 
 def compare(this, that, path=None):
@@ -100,8 +108,12 @@ class ServiceMigrationTestCase(object):
         module_name = 'Products.ZenModel.migrate.%s' % self.migration_module_name
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
+        if hasattr(self, 'dmd'):
+            dmd = self.dmd
+        else:
+            dmd = FakeDmd()
         with mock.patch(sm_context, new=lambda: context):
-            getattr(migration, self.migration_class_name)().cutover(None)
+            getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath = compare(actual, expected)
