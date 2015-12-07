@@ -107,7 +107,17 @@
         // in case of drop down lists
         if (Ext.isArray(data.options) && data.options.length > 0 && type === 'string') {
             // make it a combo and the options is the store
-            editConfig.store = data.options;
+            editConfig.store = data.options.map(function(value){
+                var valueField = value,
+                    displayField = value;
+
+                // if the value is an empty string, indicate
+                // with a special string
+                if(value === ""){
+                    displayField = "- None -";
+                }
+                return [valueField, displayField];
+            });
             Ext.apply( editConfig, zpropertyConfigs['options']);
         } else {
             // Try the specific property id, next the type and finally default to string
