@@ -38,6 +38,39 @@ def checkOid(oid):
     return oid
 
 
+class SnmpCommand(object):
+    '''
+    Builds the command for SNMP.i  v3 has additional arguments
+    while v1/v2 just use the string template.
+    '''
+    def __init__(self, snmpinfo):
+        self.snmpinfo = snmpinfo
+
+    def getCommand(self):
+        command = snmptemplate % self.snmpinfo
+
+        if self.snmpinfo['zSnmpVer'] != 'v3':
+            return (command, command)
+
+        # v3 always requires the username
+        command += (" -u%(zSnmpSecurityName)s" % self.snmpinfo)
+        display = command
+
+        if self.snmpinfo['zSnmpPrivType'] and self.snmpinfo['zSnmpAuthType']:
+            display += (" -l authPriv -a %(zSnmpAuthType)s " % self.snmpinfo) + "-A ${zSnmpAuthPassword} " + \
+                ("-x %(zSnmpPrivType)s " % self.snmpinfo) + "-X ${zSnmpPrivPassword}"
+            command += (" -l authPriv -a %(zSnmpAuthType)s -A %(zSnmpAuthPassword)s "
+                "-x %(zSnmpPrivType)s -X %(zSnmpPrivPassword)s" % self.snmpinfo)
+        elif self.snmpinfo['zSnmpAuthType']:
+            display += (" -l authNoPriv -a %(zSnmpAuthType)s " % self.snmpinfo) + "-A ${zSnmpAuthPassword}"
+            command += (" -l authNoPriv -a %(zSnmpAuthType)s -A %(zSnmpAuthPassword)s" % self.snmpinfo)
+        else:
+            display += " -l noAuthNoPriv"
+            command += " -l noAuthNoPriv"
+
+        return (command, display)
+
+
 class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
 
     __pychecker__='no-override'
@@ -171,8 +204,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
-            command = snmptemplate % snmpinfo
-            displayCommand = command
+            command, displayCommand = SnmpCommand(snmpinfo).getCommand()
         else:
             errorLog(
                 'Test Failed',
