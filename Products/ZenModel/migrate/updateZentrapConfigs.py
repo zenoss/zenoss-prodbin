@@ -42,11 +42,11 @@ class UpdateZentrapConfigs(Migrate.Step):
         for zentrap in zentraps:
 
             # First update zentrap.conf.
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.configFiles)[0]
+            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.originalConfigs)[0]
             cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.conf"), 'r').read()
 
             # Now add zentrap.filter.conf.
-            zentrap.configFiles.append(cfFilter)
+            zentrap.originalConfigs.append(cfFilter)
 
         # Commit our changes.
         ctx.commit()

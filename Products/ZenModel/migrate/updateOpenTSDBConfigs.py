@@ -30,10 +30,10 @@ class UpdateOpenTSDBConfigs(Migrate.Step):
             return
 
         tsdbs = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
-        tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.configFiles], tsdbs)
+        tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], tsdbs)
 
         for tsdb in tsdbs:
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.configFiles)[0]
+            cf = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.originalConfigs)[0]
             lines = cf.content.split('\n')
             for i, line in enumerate(lines):
                 if line.startswith("tsd.storage.hbase.zk_quorum"):
