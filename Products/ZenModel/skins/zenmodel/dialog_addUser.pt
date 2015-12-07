@@ -2,13 +2,13 @@
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
-<span id="new_id_label">Username:&nbsp;</span>
-<input id="new_id" name="userid">
-<input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url_path">
-<br/><br/>
-Email:&nbsp;<input id="add_user_email" name="email">
-<br/><br/>
+    <label for="userid" class="add-user-label" id="new_id_label">Username:&nbsp;</label>
+    <input id="new_id" name="userid">
+    <input type="hidden" style="line-height:15px;" id="checkValidIdPath" tal:attributes="value here/absolute_url_path">
+    <br/><br/>
+    <label for="email" class="add-user-label">Email:&nbsp;</label>
+    <input style="line-height:15px;" id="add_user_email" name="email">
+    <br/><br/>
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;

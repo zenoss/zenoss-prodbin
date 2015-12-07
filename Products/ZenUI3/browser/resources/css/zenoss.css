@@ -2056,3 +2056,10 @@ span.syntax-text  {
 .compatibilityModeAlert .x-window-header-body{
   background: #000000;
 }
+
+.add-user-label{
+  line-height:20px;
+  width:75px;
+  float:left;
+  text-align:right; 
+}
