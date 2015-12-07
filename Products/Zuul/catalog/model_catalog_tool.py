@@ -40,7 +40,7 @@ class ModelCatalogTool(object):
 
     def __init__(self, context):
         self.context = context
-        self.model_catalog = getUtility(IModelCatalog)
+        self.model_catalog = getUtility(IModelCatalog).get_client(context)
 
     def is_model_catalog_enabled(self):
         return self.model_catalog.searcher is not None
@@ -282,7 +282,7 @@ class ModelCatalogBrain(Implicit):
     def getPath(self):
         """ Get the physical path for this record """
         uid = str(self._result.uid)
-        if not uid.startswith('/zport/dmd/'):
+        if not uid.startswith('/zport/dmd'):
             uid = '/zport/dmd/' + uid
         return uid
 
