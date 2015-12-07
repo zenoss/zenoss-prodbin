@@ -33,7 +33,7 @@ class AddZenMailHealthCheck(Migrate.Step):
 
         service_ready_healthcheck = HealthCheck(
             name="service_ready",
-            interval="10.0",
+            interval=10.0,
             script="echo 'QUIT' | nc -w 10 -C 127.0.0.1 50025 | grep -q '^220 '")
 
         zenmail_service = filter(lambda s: s.name == "zenmail", ctx.services)[0]
