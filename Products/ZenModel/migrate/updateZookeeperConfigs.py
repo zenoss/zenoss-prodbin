@@ -8,7 +8,6 @@
 ##############################################################################
 
 import os
-import re
 import logging
 log = logging.getLogger("zen.migrate")
 
@@ -17,8 +16,8 @@ import servicemigration as sm
 sm.require("1.0.0")
 
 
-class UpdateZopeThreadsCount(Migrate.Step):
-    "Revert Zope threads count to default value"
+class UpdateZookeeperConfigs(Migrate.Step):
+    "Alter zookeeper.cfg."
 
     version = Migrate.Version(5,0,70)
 
@@ -30,20 +29,21 @@ class UpdateZopeThreadsCount(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        zope_services = filter(lambda s: s.name == "Zope", ctx.services)
+        zookeepers = filter(lambda s: s.name == "ZooKeeper", ctx.services)
 
-        for zope_service in zope_services:
+        for zookeeper in zookeepers:
 
-            # Update zope.conf.
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zope.conf", zope_service.originalConfigs)[0]
+            # Update zookeeper.cfg.
+            cf = filter(lambda f: f.name == "/etc/zookeeper.cfg", zookeeper.originalConfigs)[0]
+            if cf.content.find("autopurge.snapRetainCount") < 0:
+                cf.content += "\nautopurge.snapRetainCount=3"
 
-            cf.content = re.sub(
-                r'^(\s*zserver-threads\s+1)\s*$',
-                r'\n# Reverted to default value by ZenMigrate\n# \1\n',
-                cf.content, 0, re.MULTILINE)
+            if cf.content.find("autopurge.purgeInterval") < 0:
+                cf.content += "\nautopurge.purgeInterval=1"
+
 
         # Commit our changes.
         ctx.commit()
 
 
-UpdateZopeThreadsCount()
+UpdateZookeeperConfigs()
