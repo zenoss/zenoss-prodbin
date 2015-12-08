@@ -31,18 +31,27 @@ class RemoveEmptyGraphData(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
+        commit = False
         zenmodelers = filter(lambda s: s.name == "zenmodeler", ctx.services)
         remove_metrics = ["dataPoints", "eventCount", "missedRuns", "taskCount"]
         remove_graphs = ["dataPoints", "events", "missedRuns", "tasks"]
         for zenmodeler in zenmodelers:
             for mc in zenmodeler.monitoringProfile.metricConfigs:
+                old_mcs = len(mc.metrics)
                 mc.metrics = [m for m in mc.metrics if m.ID not in remove_metrics]
+                if len(mc.metrics) < old_mcs:
+                    commit = True
 
             gcs = zenmodeler.monitoringProfile.graphConfigs
+            old_gcs = len(gcs)
             gcs = [gc for gc in gcs if gc.graphID not in remove_graphs]
+            if len(gcs) < old_gcs:
+                zenmodeler.monitoringProfile.graphConfigs = gcs
+                commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 RemoveEmptyGraphData()

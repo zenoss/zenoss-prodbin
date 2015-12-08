@@ -32,12 +32,15 @@ class TemplatizeCollectorEndpoints(Migrate.Step):
 
         # Make sure all public Endpoints use a templated name that will prefix
         # the endpoint with the name of the parent collector
+        commit = False
         for svc in services:
             publicEndpoints = filter(lambda endpoint: endpoint.purpose == "export", svc.endpoints)
             for endpoint in publicEndpoints:
                 if not endpoint.application.startswith("{{(parent .).Name}}_"):
                     endpoint.application = "{{(parent .).Name}}_" + endpoint.application
+                    commit = True
 
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 TemplatizeCollectorEndpoints()

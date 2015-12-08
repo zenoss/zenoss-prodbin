@@ -31,19 +31,23 @@ class UpdateZookeeperConfigs(Migrate.Step):
 
         zookeepers = filter(lambda s: s.name == "ZooKeeper", ctx.services)
 
+        commit = False
         for zookeeper in zookeepers:
 
             # Update zookeeper.cfg.
             cf = filter(lambda f: f.name == "/etc/zookeeper.cfg", zookeeper.originalConfigs)[0]
             if cf.content.find("autopurge.snapRetainCount") < 0:
                 cf.content += "\nautopurge.snapRetainCount=3"
+                commit = True
 
             if cf.content.find("autopurge.purgeInterval") < 0:
                 cf.content += "\nautopurge.purgeInterval=1"
+                commit = True
 
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 UpdateZookeeperConfigs()

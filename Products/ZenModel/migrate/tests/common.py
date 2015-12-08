@@ -18,8 +18,10 @@ def fakeContextFromFile(jsonfile):
             for datum in json.loads(open(jsonfile, 'r').read()):
                 self.services.append(service.deserialize(datum))
             self.version = self.services[0]._Service__data["Version"]
+            self.commit_called = 0
 
         def commit(self, filename=None):
+            self.commit_called += 1
             addedServices = []
             modifiedServices = []
             for svc in self.services:
@@ -104,6 +106,7 @@ class ServiceMigrationTestCase(object):
         pass
 
     def _test_cutover(self, svcdef_before, svcdef_after):
+        self.commit_called = 0
         context = fakeContextFromFile(svcdef_before)
         module_name = 'Products.ZenModel.migrate.%s' % self.migration_module_name
         sm_context = '%s.sm.ServiceContext' % module_name
@@ -126,10 +129,13 @@ class ServiceMigrationTestCase(object):
             fpath = '.'.join([str(p) for p in rpath])
             self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
                       % (e, rpath, a))
+        self.commit_called = context.commit_called
 
 
     def test_cutover_correctness(self):
         self._test_cutover(self.initial_servicedef, self.expected_servicedef)
+        #self.assertEqual(self.commit_called, 1, "Commit should have been called.")
 
     def test_cutover_idempotence(self):
         self._test_cutover(self.expected_servicedef, self.expected_servicedef)
+        #self.assertEqual(self.commit_called, 0, "Commit should not have been called.")

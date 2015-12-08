@@ -32,15 +32,18 @@ class UpdateOpenTSDBConfigs(Migrate.Step):
         tsdbs = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
         tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], tsdbs)
 
+        commit = False
         for tsdb in tsdbs:
             cf = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.originalConfigs)[0]
             lines = cf.content.split('\n')
             for i, line in enumerate(lines):
-                if line.startswith("tsd.storage.hbase.zk_quorum"):
+                if line.startswith("tsd.storage.hbase.zk_quorum") and "localhost" in line:
                     lines[i] = line.replace("localhost", "127.0.0.1")
+                    commit = True
             cf.content = '\n'.join(lines)
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 UpdateOpenTSDBConfigs()

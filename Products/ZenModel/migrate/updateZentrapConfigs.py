@@ -39,17 +39,26 @@ class UpdateZentrapConfigs(Migrate.Step):
             content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.filter.conf"), 'r').read()
         )
 
+        commit = False
+        new_config = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.conf"), 'r').read()
         for zentrap in zentraps:
 
             # First update zentrap.conf.
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.originalConfigs)[0]
-            cf.content = open(os.path.join(os.path.dirname(__file__), "config-files", "zentrap.conf"), 'r').read()
+            zentrap_confs = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.conf", zentrap.originalConfigs)
+            for config in zentrap_confs:
+                if config.content != new_config:
+                    config.content = new_config
+                    commit = True
 
             # Now add zentrap.filter.conf.
-            zentrap.originalConfigs.append(cfFilter)
+            zentrap_filter_confs = filter(lambda f: f.name == "/opt/zenoss/etc/zentrap.filter.conf", zentrap.originalConfigs)
+            if not zentrap_filter_confs:
+                zentrap.originalConfigs.append(cfFilter)
+                commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 UpdateZentrapConfigs()

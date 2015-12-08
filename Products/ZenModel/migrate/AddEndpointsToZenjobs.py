@@ -52,6 +52,7 @@ class AddEndpointsToZenjobs(Migrate.Step):
         services = filter(lambda s: s.name == "zenjobs", ctx.services)
 
         # Add the zep endpoint import if it does not exist
+        commit = False
         if not services:
             log.info("Found no 'zenjobs' services to migrate")
             # short circuit
@@ -62,7 +63,9 @@ class AddEndpointsToZenjobs(Migrate.Step):
                 service.endpoints.append(
                     endpoint_map[endpoint_key]
                 )
+                commit = True
 
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 AddEndpointsToZenjobs()

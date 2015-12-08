@@ -30,23 +30,31 @@ class ConvertRunsToCommands(Migrate.Step):
             return
 
         # Update the zope service commands.
-        zopes = filter(lambda s: s.name == "Zope", ctx.services)
+        commit = False
+        zopes = filter(lambda s: s.name in ("zope", "Zope"), ctx.services)
         if len(zopes) == 1:
             temp = commandListDict(zopes[0].commands)
             temp.update(zopeCommands)
+            if not zopes[0].commands:
+                commit = True
             zopes[0].commands = commandDictList(temp)
         mariadbModels = filter(lambda s: s.name == "mariadb-model", ctx.services)
         if len(mariadbModels) == 1:
             temp = commandListDict(mariadbModels[0].commands)
             temp.update(mariadbModelCommands)
+            if not mariadbModels[0].commands:
+                commit = True
             mariadbModels[0].commands = commandDictList(temp)
         mariadbs = filter(lambda s: s.name == "mariadb", ctx.services)
         if len(mariadbs) == 1:
             temp = commandListDict(mariadbs[0].commands)
             temp.update(mariadbCommands)
+            if not mariadbs[0].commands:
+                commit = True
             mariadbs[0].commands = commandDictList(temp)
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 ConvertRunsToCommands()

@@ -45,10 +45,15 @@ class FixZopeHealthCheck(Migrate.Step):
             return
 
         # Update all of the 'ready' healthchecks
+        commit = False
         readyHealthChecks = filter(lambda healthCheck: healthCheck.name == "ready", service.healthChecks)
         for readyCheck in readyHealthChecks:
-            readyCheck.script = "curl --output /dev/null --silent --write-out \"%{http_code}\" http://localhost:8080/robots.txt | grep 200 >/dev/null"
+            new_script = "curl --output /dev/null --silent --write-out \"%{http_code}\" http://localhost:8080/robots.txt | grep 200 >/dev/null"
+            if readyCheck.script != new_script:
+                readyCheck.script = new_script
+                commit = True
 
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 FixZopeHealthCheck()

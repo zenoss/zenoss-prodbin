@@ -28,12 +28,15 @@ class DualLogChange(Migrate.Step):
             return
 
         # Alter their startup command and instanceLimits.
+        commit = False
         for svc in ctx.services:
             if svc.startup and svc.startup.find('--duallog') >= 0:
                 svc.startup = svc.startup.replace('--duallog', '--logfileonly')
+                commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 DualLogChange()
