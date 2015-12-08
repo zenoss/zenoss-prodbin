@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -74,8 +74,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     """
     implements(IGloballyIdentifiable)
     meta_type = 'GraphDefinition'
-   
-    height = 100
+
+    height = 500
     width = 500
     units = ""
     log = False
@@ -89,7 +89,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     autoscale = None
     ceiling = None
     description = ""
-        
+
     _properties = (
         {'id':'height', 'type':'int', 'mode':'w'},
         {'id':'width', 'type':'int', 'mode':'w'},
@@ -108,11 +108,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         )
 
     _relations =  (
-        ("rrdTemplate", 
+        ("rrdTemplate",
             ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphDefs")),
         ('report',
             ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReport', 'graphDefs')),
-        ('graphPoints', 
+        ('graphPoints',
             ToManyCont(ToOne, 'Products.ZenModel.GraphPoint', 'graphDef')),
         # Remove this relationship after version 2.1
         ('reportClass',
@@ -121,11 +121,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-    { 
+    factory_type_information = (
+    {
         'immediate_view' : 'editGraphDefinition',
         'actions'        :
-        ( 
+        (
             { 'id'            : 'edit'
             , 'name'          : 'Graph Definition'
             , 'action'        : 'editGraphDefinition'
@@ -160,11 +160,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             except ValueError:
                 return sys.maxint
         return sorted(gps, key=graphPointKey)
-        
+
     def getDescription(self):
         description = self.description
         descriptionLines = description.split("\n")
-        # for zenpacks parse the comments out of the custom         
+        # for zenpacks parse the comments out of the custom
         if self.custom and not description:
             lines = self.custom.split("\n")
             for line in lines:
@@ -174,7 +174,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                     if not comment in descriptionLines:
                         description = description + ", " + comment
         return description
-    
+
     def getThresholdGraphPoints(self):
         """ Get ordered list of threshold graph points
         """
@@ -185,10 +185,10 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def isThresholdGraphed(self, threshId):
         """ Return true if there is a thresholdgraphpoint with threshId=threshid
         """
-        return any(gp.threshId == threshId 
+        return any(gp.threshId == threshId
                         for gp in self.getThresholdGraphPoints())
-        
-        
+
+
     def isDataPointGraphed(self, dpName):
         """ Return true if there is at least one graphpoint with a dsName
         equal to dpName.
@@ -209,7 +209,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             crumbs = super(GraphDefinition, self).breadCrumbs(terminator)
             return crumbspath(self.rrdTemplate(), crumbs, -2)
         return ZenModelRM.breadCrumbs(self, terminator)
-        
+
 
     def checkValidId(self, id, prep_id = False):
         """Checks a valid id
@@ -230,8 +230,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
     def getGraphPointDescriptions(self):
         return [gi.getDescription() for gi in self.graphPoints()]
-        
-        
+
+
     def getGraphPointsNames(self):
         """ Return list of graph point ids
         """
@@ -248,15 +248,15 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         names = []
         for gp in self.getGraphPoints():
             if hasattr(aq_base(gp), 'isBroken') and gp.isBroken():
-                names.append('%s(<span style="color: red">missing</span>)' % 
+                names.append('%s(<span style="color: red">missing</span>)' %
                                                                     gp.id)
             else:
                 names.append(gp.id)
         return ', '.join(names)
-        
-        
+
+
     def getGraphPointOptions(self):
-        """ Used by dialog_addGraphPoint to construct the list of 
+        """ Used by dialog_addGraphPoint to construct the list of
         available graphpoint types.
         """
         return (('DefGraphPoint', 'DEF'),
@@ -271,7 +271,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 ('AreaGraphPoint', 'AREA'),
                 ('TickGraphPoint', 'TICK'),
                 ('ShiftGraphPoint', 'SHIFT'))
-        
+
 
     def createGraphPoint(self, cls, newId):
         """ Create the graphpoint with the given id or something similar
@@ -303,14 +303,14 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         if gp.sequence == -1:
             self.manage_resequenceGraphPoints()
         return gp
-        
+
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addCustomGraphPoint')
     def manage_addCustomGraphPoint(self, new_id, flavor, REQUEST=None):
         """ Create a new graphpoint of the given class and id
         """
         exec 'import %s' % flavor
-        cls = eval('%s.%s' % (flavor, flavor)) 
+        cls = eval('%s.%s' % (flavor, flavor))
         gp = self.createGraphPoint(cls, new_id)
         if REQUEST:
             audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType=flavor, graphPoint=gp.id)
@@ -437,7 +437,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """ Return a list of (value, name) tuples for the list of datapoints
         which the user selects from to create new graphpoints.
         """
-        return [(dp.name(), dp.name()) 
+        return [(dp.name(), dp.name())
                     for dp in self.rrdTemplate.getRRDDataPoints()]
 
 
@@ -445,14 +445,14 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """ Return a list of (value, name) tuples for the list of thresholds
         which the user selects from to create new graphpoints.
         """
-        return [(t.id, t.id) for t in self.rrdTemplate.thresholds()] 
+        return [(t.id, t.id) for t in self.rrdTemplate.thresholds()]
 
 
     ## Graphing Support
 
 
     def getGraphCmds(self, context, rrdDir, multiid=-1, upToPoint=None,
-            includeSetup=True, includeThresholds=True, 
+            includeSetup=True, includeThresholds=True,
             prefix='', cmds=None, idxOffset=0):
         """build the graph opts for a single rrdfile"""
         from Products.ZenUtils.ZenTales import talesEval
@@ -479,7 +479,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                     if upToPoint is None or gp.sequence < upToPoint]
         for index, gp in enumerate(gpList):
             try:
-                cmds = gp.getGraphCmds(cmds, context, rrdDir, 
+                cmds = gp.getGraphCmds(cmds, context, rrdDir,
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
             except (KeyError, NameError), e:
@@ -515,7 +515,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 result.append(name)
         return result
 
-        
+
     def getFakeGraphCmds(self, upToPoint=None):
         """ Used to display the graph commands (or a reasonable likeness)
         to the user
@@ -591,7 +591,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                     rhs = dp.format.split(".")[1][0]
                     return int(lhs) - int(rhs)
                 except (IndexError, ValueError, TypeError):
-                    # unable to parse the format just continue 
+                    # unable to parse the format just continue
                     # or use the default
                     pass
         return 3
