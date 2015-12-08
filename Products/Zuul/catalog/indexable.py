@@ -16,6 +16,11 @@ from zope.interface import ro
 
 
 """
+    @TODO:
+        Review how and where we index IpAddresses and macs since currently we are indexing
+        them in several places (Device, IpInterface, IpAddress)
+
+
     Set of abstract classes designed to add indexable attributes to zenoss objects. 
     Most methods start with idx_ to avoid conflicts with pre existing attributes/methods
 
@@ -103,7 +108,10 @@ from zope.interface import ro
             |   idx_ipAddressId          |   ipAddressId           |                 |         |         |
             |   idx_networkId            |   networkId             |                 |         |         |
             |   idx_deviceId             |   deviceId              |                 |         |         |
+            |   idx_ipAddressAsInt       |   ipAddressAsInt        |                 |         |         |
+            |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
             ----------------------------------------------------------------------------------------------
+
 
         ###########
 
@@ -121,7 +129,7 @@ from zope.interface import ro
             ----------------------------------------------------------------------------------------------
 """
 
-class BaseIndexable(object):
+class BaseIndexable(object):    # ZenModelRM inherits from this class
     '''
     @indexed(StringFieldType(stored=True), attr_query_name="indexable"):
     def idx_base_indexable(self):
@@ -203,7 +211,7 @@ class BaseIndexable(object):
         return allowedRolesAndUsers(self)
 
 
-class DeviceIndexable(object):
+class DeviceIndexable(object):   # Device inherits from this class
     
     def _idx_get_ip(self):
         if hasattr(self, 'getManageIp') and self.getManageIp():
@@ -283,7 +291,7 @@ class DeviceIndexable(object):
         return self.getIconPath()
 
 
-class ComponentIndexable(object):
+class ComponentIndexable(object):     # DeviceComponent inherits from this class
 
     @indexed(bool, attr_query_name="monitored")
     def idx_monitored(self):
@@ -334,7 +342,7 @@ class ComponentIndexable(object):
         return self.getIconPath()
 
 
-class IpInterfaceIndexable(ComponentIndexable):
+class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this class
     
     @indexed(StringFieldType(stored=True), attr_query_name="interfaceId")
     def idx_interfaceId(self):
@@ -404,7 +412,7 @@ class IpInterfaceIndexable(ComponentIndexable):
         return self.macaddress
 
 
-class IpAddressIndexable():
+class IpAddressIndexable():  # IpAddress inherits from this class
 
     """ Layer 3 catalog indexes """
 
@@ -430,6 +438,14 @@ class IpAddressIndexable():
         if self.device():
             device_id = self.device().idx_uid()
         return device_id
+
+    @indexed(LongFieldType(stored=True), attr_query_name="ipAddressAsInt")
+    def idx_ipAddressAsInt(self):
+        return int(self.ipAddressAsInt())
+
+    @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
+    def idx_ipAddressAsText(self):
+        return self.getIpAddress()
 
 
 """ @TODO : Do we need to define this
