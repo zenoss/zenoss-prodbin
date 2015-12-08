@@ -10,6 +10,9 @@
 
 from Products.CMFCore.utils import getToolByName
 
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+
 class Linkable:
     """ A mixin allowing an object to be the 
         endpoint of a Link object.
@@ -22,6 +25,7 @@ class Linkable:
             return None
 
     def index_links(self):
+        notify(IndexingEvent(self))  # For model catalog
         cat = self._getLinkCatalog()
         if cat is not None:
             cat.catalog_object(self, self.getPrimaryId())
