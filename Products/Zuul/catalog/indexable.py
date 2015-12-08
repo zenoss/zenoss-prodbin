@@ -412,7 +412,7 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         return self.macaddress
 
 
-class IpAddressIndexable():  # IpAddress inherits from this class
+class IpAddressIndexable(object):  # IpAddress inherits from this class
 
     """ Layer 3 catalog indexes """
 
