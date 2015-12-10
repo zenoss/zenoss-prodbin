@@ -230,7 +230,10 @@ class ZenPackCmd(ZenScriptBase):
             for name, util in getUtilitiesFor(IZenPackInstallFilter):
                 # Get normalized pack name to compare.  Split on path separator
                 # in case absolute path was given
-                packName = EGG_NAME(self.options.installPackName.rsplit('/', 1)[-1]).group('name')
+                egg_name = EGG_NAME(os.path.basename(os.path.normpath(self.options.installPackName)))
+                if not egg_name:
+                    self.stop('Could not determine egg name from "%s"' % self.options.installPackName)
+                packName = egg_name.group('name')
                 if not util.installable(packName):
                     self.stop('Filter %s does not allow %s to be installed' \
                               % (name, self.options.installPackName))
