@@ -283,8 +283,15 @@ class MaintenanceWindow(ZenModelRM):
             self.stopProductionState = stopProductionState
             self.skip = skip
             now = time.time()
-            if self.started and self.nextEvent(now) < now:
-                self.end()
+            if self.started:
+                if ((t + duration * 60) < now) or (t > now) or (not self.enabled):
+                    # We're running. If we should have already ended OR the start was 
+                    # moved into the future OR the MW is now disabled, end().
+                    self.end()
+            elif (t < now) and ((t + duration * 60) > now) and (self.enabled):
+                # We aren't running, but we've scheduled the MW to be going on right now.
+                self.begin()
+
             if REQUEST:
                 flare = 'Maintenance window changes were saved.'
                 if self.enabled:
