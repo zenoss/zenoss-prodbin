@@ -186,7 +186,8 @@ COLUMN_CONFIG = {
         sortable=True,
         filter={
             'xtype':'datefield',
-            'format':'Y-m-d H:i:s'
+            'format':'Y-m-d H:i:s',
+            'invalidText' : "{0} is not a valid date - it must be in the format yyyy/mm/dd hh:mm:ss"
         },
         width=135,
         renderer='Zenoss.date.renderDateColumn()'        
@@ -197,7 +198,8 @@ COLUMN_CONFIG = {
         sortable=True,
         filter={
             'xtype':'datefield',
-            'format':'Y-m-d H:i:s'
+            'format':'Y-m-d H:i:s',
+            'invalidText' : "{0} is not a valid date - it must be in the format yyyy/mm/dd hh:mm:ss"
         },
         width=135,
         renderer='Zenoss.date.renderDateColumn()'        
