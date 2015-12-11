@@ -140,10 +140,10 @@
                 name: 'hosts',
                 allowBlank: false,
                 fieldLabel:  _t('Enter multiple similar devices, separated by a comma, using either hostname or IP Address'),
-                width: 300
+                width: "100%"
             } ,collectorField = {
                 xtype: 'combo',
-                width: 300,
+                width: "100%",
                 // only show if we have multiple collectors
                 hidden: Zenoss.env.COLLECTORS.length === 1,
                 // if visible give it a good tabindex
@@ -166,15 +166,18 @@
             }, fields = [hostField], i;
 
             var isSnmp = Ext.Array.some(connectionInfo, function(item) {
-                return item.category == 'SNMP';
+                return item.category === 'SNMP';
             });
             // convert the zproperty information into a field
             for (i=0; i < connectionInfo.length; i++ ) {
-                var item =  Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
-                property = connectionInfo[i],
-                id=property.id;
+                var item = Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
+                    property = connectionInfo[i],
+                    id = property.id;
+
                 item.name = id;
                 item.fieldLabel = property.label;
+                item.width = "100%";
+
                 if (!property.label) {
                     item.fieldLabel = Zenoss.zproperties.inferZPropertyLabel(id);
                 }
@@ -201,7 +204,6 @@
             fields.push({
                 xtype: 'button',
                 formBind: true,
-                anchor: '25%',
                 disabled: true,
                 text: _t('Add'),
                 handler: Ext.bind(this.onClickAddButton, this)
@@ -231,7 +233,7 @@
                 hosts = values.hosts,
                 deviceClass = values.deviceclass,
                 collector = values.collector,
-                zProperties = this.getZProperties(values), key,
+                zProperties = this.getZProperties(values),
                 combo = this.getForm().query('combo[itemId="deviceType"]')[0],
                 grid = this.getGrid();
             // allow either commas to separate or new lines or both

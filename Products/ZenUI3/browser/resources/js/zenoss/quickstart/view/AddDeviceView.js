@@ -181,23 +181,24 @@
         alias: 'widget.wizardadddeviceview',
         stepTitle:  _t('Add Infrastructure'),
         stepId: 'add-device',
-        stepHeight: 630,
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                layout: 'border',
+                layout: "vbox",
                 items:[{
                     xtype: 'form',
-                    height: 400,
+                    region: 'center',
                     layout: 'hbox',
+                    width: "100%",
+                    defaults: {
+                        height: 220,
+                        flex: 1,
+                        cls: "wizardColumn",
+                        overflowY: "auto"
+                    },
+                    defaultType: "fieldset",
                     items: [{
-                        width: 175,
-                        xtype: 'fieldset',
-                        height: 275,
                         autoScroll: true,
-                        style: {
-                            borderRight: '1px solid #CACACA !important'
-                        },
                         title: _t('Category'),
                         items:[{
                             xtype: 'radiogroup',
@@ -208,58 +209,44 @@
                             items: []
                         }]
                     }, {
-                        xtype: 'fieldset',
-                        width: 250,
-                        height: 275,
                         title: _t('Type'),
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
+                        layout: "anchor",
                         items: [{
                             xtype: 'combo',
                             name: 'deviceclass',
                             itemId: 'deviceType',
                             queryMode: 'local',
                             queryParam: false,
-                            width: 220,
                             emptyText:  _t('Select one...'),
                             editable: true,
                             store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {}),
                             valueField: 'value',
-                            displayField: 'shortdescription'
+                            displayField: 'shortdescription',
+                            anchor: "100%"
                         }]
                     },{
-                        xtype: 'fieldset',
-                        width: 250,
                         itemId: 'credentials',
                         title: _t('Connection Information'),
+                        flex: 1.5,
                         style: {
-                            paddingLeft: "15px"
+                            borderRight: "0 !important"
                         },
-                        layout: 'anchor',
-                        autoHeight: true,
-                        autoScroll: true,
-                        minHeight: 300,
                         defaults: {
+                            width: "100%",
                             labelAlign: 'top',
-                            anchor: "90%"
                         }
                     }]
                 }, {
                     region: 'south',
-                    xtype: 'fieldset',
                     title: _t('Devices'),
-                    width: 860,
-                    height: 190,
+                    xtype: "fieldset",
+                    width: "100%",
                     items: [{
                         xtype: 'deviceaddgrid',
                         autoScroll: true,
                         height: 150,
                         emptyText: _t('Add infrastructure using the above form'),
-                        // the width is so that the right edge of the
-                        // grid lines up with the Authentication form
-                        width: 860
+                        emptyCls: "empty-grid-text"
                     }]
 
                 }]
