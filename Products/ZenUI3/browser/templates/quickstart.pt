@@ -23,7 +23,7 @@
             html {background-color:#eae9dc}
         </style>
 
-        
+
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
 
@@ -47,19 +47,19 @@
           <input type="hidden" id="login_password" name="__ac_password"/>
         </form>
 
-        <div id="content-wrapper">
+        <div id="content-wrapper" class="quickstart" style="overflow: auto;">
           <script
               tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/quickstart/app.js')"
               >
           </script>
-           <div id="center_panel">
+           <div id="center_panel" style="min-width: 900px;" >
            </div>
         </div>
         <div id="footer">&copy; 2005-2015 Zenoss, Inc.</div>
 
 
     </div>
-    
+
     </body>
 </html>
 </tal:block>

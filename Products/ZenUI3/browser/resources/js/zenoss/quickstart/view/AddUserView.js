@@ -16,16 +16,15 @@
             // If the password field has initialPassField (2nd box), do a comparison.
             if (field.initialPassField) {
                 var pwd = Ext.getCmp(field.initialPassField);
-                if (val != pwd.getValue()){
+                if (val !== pwd.getValue()){
                     Ext.form.VTypes["passwordText"] = _t("The passwords you've typed don't match.");
                     return false;
                 }
             }
             // Validate the validity of the password field (either of them)
-            var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}")
+            var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}");
             if (!val.match(pattern)){
-                Ext.form.VTypes["passwordText"] = _t("That must contain 8 or more characters" +
-                                                 " that are of at least one number, and one uppercase and lowercase letter.");
+                Ext.form.VTypes["passwordText"] = _t("Password does not meet password rules");
                 return false;
             }
             return true;
@@ -47,18 +46,18 @@
             Ext.applyIf(config, {
                 labelWidth: 100,
                 frame: false,
-                stepHeight: 400,
                 border: false,
-                bodyStyle: 'padding:5px 5px 0',
                 layout: {
                     type: 'hbox'
                 },
                 defaults: {
                     layout: 'anchor',
                     frame: false,
-                    width: 450,
+                    width: "50%",
                     border: false,
-                    style: 'padding 25px'
+                    style: {
+                        padding: "25px"
+                    }
                 },
                 items: [{
                     xtype: 'fieldset',
@@ -67,7 +66,8 @@
                     defaultType: 'textfield',
                     defaults: {
                         anchor: '95%',
-                        labelAlign: 'top'
+                        labelAlign: 'top',
+                        padding: "0 0 7px 0"
                     },
                     title: _t("Set admin password"),
                     items: [{
@@ -75,13 +75,19 @@
                         frame: false,
                         border: false,
                         cls: 'helptext',
-                        html: _t("The admin account has extended privileges,"+
-                            " similar to Linux's <"+"span class='noem'>root<"+
-                            "/span> or Windows' <" + "span class='noem'>"+
-                            "Administrator<"+"/span>. "+
-                            "Its use should be limited to administrative"+
-                            " tasks.<"+"br/><"+"br/>Enter and "+
-                            "confirm a password for the admin account.")
+                        html: _t("\
+                            The admin account has extended privileges,\
+                            similar to Linux's <span class='noem'>root</span>\
+                            or Windows' <span class='noem'>Administrator</span>.\
+                            Its use should be limited to administrative tasks.\
+                            <br><br>\
+                            <strong>Password Must:</strong><br>\
+                            <ul class='list'>\
+                                <li>Contain 8 or more characters</li>\
+                                <li>Contain at least one number</li>\
+                                <li>Contain at least one upper and lower case character</li>\
+                            </ul>\
+                        ")
                     },{
                         fieldLabel: _t('Admin password'),
                         inputType: 'password',
@@ -90,7 +96,7 @@
                         id: 'admin-password1',
                         allowBlank: false
                     },{
-                        fieldLabel: _t('Retype password'),
+                        fieldLabel: _t('Confirm password'),
                         inputType: 'password',
                         vtype: 'password',
                         name: 'admin-password2',
@@ -105,7 +111,7 @@
                     defaults: {
                         anchor: '95%',
                         labelAlign: 'top',
-                        padding: "0px 0px 5px 0px"
+                        padding: "0 0 7px 0"
                     },
                     id: 'userfieldset',
                     defaultType: 'textfield',
