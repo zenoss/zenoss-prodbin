@@ -52,7 +52,7 @@
                         width: "100%",
                         defaults: {
                             flex: 1,
-                            style: { margin: "0 20px 20px 0" }
+                            style: { margin: "0 10px 20px 0" }
                         },
                         items: [{
                             xtype: 'wizardstep',

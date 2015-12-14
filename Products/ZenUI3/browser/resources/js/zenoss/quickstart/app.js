@@ -122,7 +122,7 @@
                         }, {
                             xtype: 'button',
                             itemId: 'getStartedButton',
-                            cls: "btn",
+                            cls: "btn big",
                             disabledCls: "disabled",
                             text: _t('Get Started »'),
                             handler: function() {

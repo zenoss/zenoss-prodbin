@@ -192,7 +192,6 @@
                     width: "100%",
                     defaults: {
                         height: 220,
-                        flex: 1,
                         cls: "wizardColumn",
                         overflowY: "auto"
                     },
@@ -200,6 +199,7 @@
                     items: [{
                         autoScroll: true,
                         title: _t('Category'),
+                        flex: 0.7,
                         items:[{
                             xtype: 'radiogroup',
                             itemId: 'category',
@@ -210,19 +210,27 @@
                         }]
                     }, {
                         title: _t('Type'),
+                        flex: 1,
                         layout: "anchor",
                         items: [{
-                            xtype: 'combo',
-                            name: 'deviceclass',
+                            xtype: "grid",
                             itemId: 'deviceType',
-                            queryMode: 'local',
-                            queryParam: false,
+                            anchor: "100%",
+                            cls: "device-type-grid",
+                            header: false,
+                            hideHeaders: true,
+                            columns: [
+                                {
+                                    dataIndex: "value",
+                                    flex: 1,
+                                    // use shortdescription as display field
+                                    renderer: function(value, metaData, record){
+                                        return record.get("shortdescription");
+                                    }
+                                }
+                            ],
                             emptyText:  _t('Select one...'),
-                            editable: true,
-                            store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {}),
-                            valueField: 'value',
-                            displayField: 'shortdescription',
-                            anchor: "100%"
+                            store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {})
                         }]
                     },{
                         itemId: 'credentials',
@@ -252,6 +260,8 @@
                 }]
             });
             this.callParent([config]);
+
+            this.query("grid[itemId='deviceType']")[0].getView().stripeRows = false;
         }
 
     });

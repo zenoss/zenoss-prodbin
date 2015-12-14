@@ -39,12 +39,15 @@
                         this.setDeviceTypes(val.category);
                     }
                 },
-                'combo[itemId="deviceType"]': {
-                    change: function(combo, val) {
+                'grid[itemId="deviceType"]': {
+                    select: function(select, record, index){
+                        var val = record.get("value");
                         if (!val) {
-                            this.getCredentials(combo.getStore().getAt(0).get('value'));
+                            // select the first item
+                            this.getCredentials(select.getStore().getAt(0).get('value'));
+                        } else {
+                            this.getCredentials(val);
                         }
-                        this.getCredentials(val);
                     }
                 },
                 'fieldset[itemId="credentials"]': {
@@ -95,16 +98,16 @@
             }, this);
         },
         setDeviceTypes: function(uid) {
-            var combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                store = combo.getStore();
+            var grid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                store = grid.getStore();
 
-            // reload the combo store and select the first one when done loading
+            // reload the grid store and select the first one when done loading
             store.load({
                 params: {
                     uid: uid
                 },
                 callback: function() {
-                    combo.setValue(store.getAt(0));
+                    grid.selModel.doSelect(store.getAt(0));
                 }
             });
         },
@@ -231,14 +234,15 @@
         onClickAddButton: function() {
             var values = this.getForm().getForm().getFieldValues(),
                 hosts = values.hosts,
-                deviceClass = values.deviceclass,
                 collector = values.collector,
                 zProperties = this.getZProperties(values),
-                combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                grid = this.getGrid();
+                typeGrid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                grid = this.getGrid(),
+                deviceClass = typeGrid.selModel.getSelection()[0].get("value");
+
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            var displayDeviceClass = combo.getStore().getAt(combo.getStore().findExact('value', deviceClass)).get('shortdescription');
+            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
                 if (Ext.isEmpty(host)) {
@@ -260,7 +264,7 @@
         },
         getZProperties: function(values) {
             var zProperties = {};
-            for (key in values) {
+            for (var key in values) {
                 if (key.startswith('z')) {
                     zProperties[key] = values[key];
                 }
