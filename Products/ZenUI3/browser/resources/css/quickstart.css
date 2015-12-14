@@ -148,9 +148,8 @@ table.step-content {
 .wizardStep {
     height: 175px;
     padding: 20px;
-    background-color: #99bce8;
+    background-color: #D4E2E5;
     color: #444;
-    border-radius: 4px;
     position: relative;
     font-family: helvetica,arial,sans-serif;
     font-weight: bolder;
@@ -240,6 +239,23 @@ table.step-content {
 }
 .quickstart .btn.minor:hover {
     background-color: #EEE;
+}
+
+.quickstart .btn.big {
+    padding: 10px 12px
+}
+.quickstart .btn.big .x-btn-inner {
+    font-size: 1.4em;
+}
+
+.quickstart .device-type-grid .x-grid-cell {
+    font-size: 1em;
+}
+.quickstart .device-type-grid .x-grid-row-selected .x-grid-cell-inner{
+    font-weight: bold;
+}
+.quickstart .device-type-grid .x-grid-row-selected:hover .x-grid-cell-inner{
+    color: white !important;
 }
 
 img.stepbox {
