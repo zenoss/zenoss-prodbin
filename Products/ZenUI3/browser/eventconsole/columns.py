@@ -188,7 +188,7 @@ COLUMN_CONFIG = {
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
         },
-        width=120,
+        width=135,
         renderer='Zenoss.date.renderDateColumn()'        
     ),
 
@@ -199,7 +199,7 @@ COLUMN_CONFIG = {
             'xtype':'datefield',
             'format':'Y-m-d H:i:s'
         },
-        width=120,
+        width=135,
         renderer='Zenoss.date.renderDateColumn()'        
     ),
 
