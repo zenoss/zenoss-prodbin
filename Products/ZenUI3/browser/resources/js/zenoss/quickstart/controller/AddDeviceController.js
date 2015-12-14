@@ -39,12 +39,15 @@
                         this.setDeviceTypes(val.category);
                     }
                 },
-                'combo[itemId="deviceType"]': {
-                    change: function(combo, val) {
+                'grid[itemId="deviceType"]': {
+                    select: function(select, record, index){
+                        var val = record.get("value");
                         if (!val) {
-                            this.getCredentials(combo.getStore().getAt(0).get('value'));
+                            // select the first item
+                            this.getCredentials(select.getStore().getAt(0).get('value'));
+                        } else {
+                            this.getCredentials(val);
                         }
-                        this.getCredentials(val);
                     }
                 },
                 'fieldset[itemId="credentials"]': {
@@ -95,16 +98,16 @@
             }, this);
         },
         setDeviceTypes: function(uid) {
-            var combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                store = combo.getStore();
+            var grid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                store = grid.getStore();
 
-            // reload the combo store and select the first one when done loading
+            // reload the grid store and select the first one when done loading
             store.load({
                 params: {
                     uid: uid
                 },
                 callback: function() {
-                    combo.setValue(store.getAt(0));
+                    grid.selModel.doSelect(store.getAt(0));
                 }
             });
         },
@@ -140,10 +143,10 @@
                 name: 'hosts',
                 allowBlank: false,
                 fieldLabel:  _t('Enter multiple similar devices, separated by a comma, using either hostname or IP Address'),
-                width: 300
+                width: "100%"
             } ,collectorField = {
                 xtype: 'combo',
-                width: 300,
+                width: "100%",
                 // only show if we have multiple collectors
                 hidden: Zenoss.env.COLLECTORS.length === 1,
                 // if visible give it a good tabindex
@@ -166,15 +169,18 @@
             }, fields = [hostField], i;
 
             var isSnmp = Ext.Array.some(connectionInfo, function(item) {
-                return item.category == 'SNMP';
+                return item.category === 'SNMP';
             });
             // convert the zproperty information into a field
             for (i=0; i < connectionInfo.length; i++ ) {
-                var item =  Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
-                property = connectionInfo[i],
-                id=property.id;
+                var item = Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
+                    property = connectionInfo[i],
+                    id = property.id;
+
                 item.name = id;
                 item.fieldLabel = property.label;
+                item.width = "100%";
+
                 if (!property.label) {
                     item.fieldLabel = Zenoss.zproperties.inferZPropertyLabel(id);
                 }
@@ -201,7 +207,6 @@
             fields.push({
                 xtype: 'button',
                 formBind: true,
-                anchor: '25%',
                 disabled: true,
                 text: _t('Add'),
                 handler: Ext.bind(this.onClickAddButton, this)
@@ -229,14 +234,15 @@
         onClickAddButton: function() {
             var values = this.getForm().getForm().getFieldValues(),
                 hosts = values.hosts,
-                deviceClass = values.deviceclass,
                 collector = values.collector,
-                zProperties = this.getZProperties(values), key,
-                combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                grid = this.getGrid();
+                zProperties = this.getZProperties(values),
+                typeGrid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                grid = this.getGrid(),
+                deviceClass = typeGrid.selModel.getSelection()[0].get("value");
+
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            var displayDeviceClass = combo.getStore().getAt(combo.getStore().findExact('value', deviceClass)).get('shortdescription');
+            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
                 if (Ext.isEmpty(host)) {
@@ -258,7 +264,7 @@
         },
         getZProperties: function(values) {
             var zProperties = {};
-            for (key in values) {
+            for (var key in values) {
                 if (key.startswith('z')) {
                     zProperties[key] = values[key];
                 }

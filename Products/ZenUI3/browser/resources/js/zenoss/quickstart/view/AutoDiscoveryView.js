@@ -187,12 +187,10 @@
         alias: 'widget.wizardautodiscoveryview',
         stepTitle: _t('Network Discovery'),
         stepId: 'discover-network',
-        stepHeight: 630,
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                layout: 'border',
-                width: 600,
+                layout: "vbox",
                 items:[{
                     region: 'north',
                     height: 30,
@@ -202,28 +200,30 @@
                     xtype: 'form',
                     region: 'center',
                     layout: 'hbox',
+                    width: "100%",
+                    defaults: {
+                        height: 175,
+                        flex: 1,
+                        cls: "wizardColumn",
+                        overflowY: "auto"
+                    },
+                    defaultType: "fieldset",
                     items: [{
-                        width: 200,
-                        xtype: 'fieldset',
-                        height: 225,
-                        style: {
-                            borderRight: '1px solid #CACACA !important'
-                        },
                         title: _t('Networks/Range'),
+                        defaults: {
+                            width: "100%"
+                        },
                         items:[{
                             xtype: 'textarea',
                             name: 'ip_ranges',
                             vtype: 'ipRange',
-                            labelWidth: 175,
                             fieldLabel: _t("Enter one or more networks (such " + "as 10.0.0.0/24) or " + "IP ranges " + "(such as 10.0.0.1-50)"),
                             tabIndex: 2,
                             labelAlign: 'top',
                             id: 'wizard_ip_ranges',
                             allowBlank: false,
-                            width: 175
                         }, {
                             xtype: 'combo',
-                            width: 100,
                             // only show if we have multiple collectors
                             hidden: Zenoss.env.COLLECTORS.length === 1,
                             // if visible give it a good tabindex
@@ -252,19 +252,10 @@
                             text: _t('Discover')
                         }]
                     }, {
-                        xtype: 'fieldset',
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
-                        width: 200,
-                        height: 225,
                         title: _t('SNMP'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '90%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textarea',
@@ -272,24 +263,14 @@
                             inputAttrTpl: Ext.String.format(" data-qtip='{0}' ", _t("Zenoss will try each of these community strings in turn when connecting to the device.")),
                             tabIndex: 2,
                             allowBlank: false,
-                            labelWidth: 120,
                             fieldLabel: _t('Community Strings'),
                             name: 'zSnmpCommunities'
                         }]
                     },{
-                        xtype: 'fieldset',
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
-                        width: 200,
-                        height: 225,
                         title: _t('SSH Authentication'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '90%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textfield',
@@ -304,18 +285,14 @@
                             name: 'zCommandPassword'
                         }]
                     },{
-                        xtype: 'fieldset',
                         style: {
-                            paddingLeft: "15px"
+                            border: "none !important",
+                            paddingRight: 0
                         },
-                        width: 250,
-                        height: 225,
                         title: _t('Windows Authentication'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '80%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textfield',
@@ -334,18 +311,15 @@
                 }, {
                     region: 'south',
                     xtype: 'fieldset',
+                    width: "100%",
                     title: _t('Discoveries'),
-                    height: 240,
                     items: [{
                         xtype: 'discoverygrid',
-                        height: 180,
+                        height: 150,
                         autoScroll: true,
-                        emptyText: _t('Add network  discoveries using the above form'),
-                        // the width is so that the right edge of the
-                        // grid lines up with the Authentication form
-                        width: 860
+                        emptyText: _t('Add network discoveries using the above form'),
+                        emptyCls: "empty-grid-text"
                     }]
-
                 }]
             });
             this.callParent([config]);
