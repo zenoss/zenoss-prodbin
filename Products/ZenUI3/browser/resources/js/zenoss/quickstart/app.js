@@ -57,11 +57,11 @@
         launch: function() {
             Zenoss.quickstart.Wizard.events.fireEvent('beforeapplaunch', this);
             var panel = Ext.create('Ext.Panel', {
-                layout: 'border',
+                layout: 'anchor',
+                anchor: "100% 100%",
                 renderTo: 'center_panel',
-                height: 400,
                 style: {
-                    padding: "40px 0px 0px 100px"
+                    padding: "40px"
                 },
                 items: [{
                     region: 'north',
@@ -72,7 +72,7 @@
                         height: 28
                     },{
                         html: '<hr />',
-                        width: 870,
+                        width: "100%",
                         height: 25
                     }],
                     height: 70
@@ -86,30 +86,45 @@
                         itemId: 'toolbar',
                         baseCls: 'no-grey',
                         cls: 'no-grey',
-                        hidden: true,
                         xtype: 'toolbar',
                         items: [{
                             xtype: 'button',
                             hidden: true,
                             itemId: 'doneButton',
+                            cls: "btn",
+                            disabledCls: "disabled",
                             text: _t('Done'),
                             handler: function() {
                                 window.globalApp.doneAddingDevices();
                             }
                         }, {
                             xtype: 'button',
+                            hidden: true,
                             itemId: 'previousButton',
-                            text: _t('Previous'),
+                            cls: "btn minor",
+                            disabledCls: "disabled",
+                            text: _t('« Previous'),
                             handler: function() {
                                 window.globalApp.fireEvent('previousstep');
                             }
                         }, {
-                            xtype: 'tbspacer',
-                            width: 763
+                            xtype: 'tbfill'
                         }, {
                             xtype: 'button',
+                            hidden: true,
                             itemId: 'nextButton',
-                            text: _t('Next'),
+                            cls: "btn",
+                            disabledCls: "disabled",
+                            text: _t('Next »'),
+                            handler: function() {
+                                window.globalApp.fireEvent('nextstep');
+                            }
+                        }, {
+                            xtype: 'button',
+                            itemId: 'getStartedButton',
+                            cls: "btn big",
+                            disabledCls: "disabled",
+                            text: _t('Get Started »'),
                             handler: function() {
                                 window.globalApp.fireEvent('nextstep');
                             }
@@ -117,13 +132,20 @@
                             xtype: 'button',
                             hidden: true,
                             itemId: 'finishButton',
-                            text: _t('Finish'),
+                            cls: "btn",
+                            disabledCls: "disabled",
+                            text: _t('✔ Finish'),
                             handler: function() {
                                 window.globalApp.fireEvent('finish');
                             }
                         }]
                     }]
                 }]
+            });
+
+            // resize panel on window resize
+            Ext.EventManager.onWindowResize(function(){
+                panel.doComponentLayout();
             });
             // set shortcuts for wizard controls
             this.mainPanel = panel;
@@ -132,6 +154,7 @@
             this.previous = this.cardPanel.query('button[itemId="previousButton"]')[0];
             this.next = this.cardPanel.query('button[itemId="nextButton"]')[0];
             this.done = this.cardPanel.query('button[itemId="doneButton"]')[0];
+            this.getStarted = this.cardPanel.query('button[itemId="getStartedButton"]')[0];
             this.finish = this.cardPanel.query('button[itemId="finishButton"]')[0];
             this.toolbar = this.cardPanel.getDockedItems()[0];
 
@@ -184,16 +207,6 @@
             if (this.params.came_from) {
                 var title = document.title.split(":")[0];
                 document.title = title + ": " + cardTitle;
-            }
-        },
-        /**
-         * Hide the toolbar for the initial page.
-         **/
-        setToolbar: function() {
-            if (this.currentStep > 0) {
-                this.toolbar.show();
-            } else {
-                this.toolbar.hide();
             }
         },
         /**
@@ -250,33 +263,38 @@
         updateWizard: function() {
             var stepCount = this.cardPanel.items.getCount() - 1,
                 params = this.params;
-            this.setHeight();
             this.setTitle();
-            this.setToolbar();
             this.updateHistory();
 
             // we can redirected here to add devices after the user has finished the wizard
+            // TODO - more sensible state handling for buttons
             if (params && params.came_from) {
                 this.done.show();
                 this.next.hide();
                 this.previous.hide();
+                this.getStarted.hide();
+                this.finish.hide();
+            }else if (this.currentStep === 0) {
+                // they are on the first step
+                this.done.hide();
+                this.next.hide();
+                this.previous.hide();
+                this.getStarted.show();
                 this.finish.hide();
             }else if (this.currentStep === stepCount) {
                 // they are on the last step
+                this.done.hide();
                 this.next.hide();
+                this.previous.show();
+                this.getStarted.hide();
                 this.finish.show();
             } else {
                 // they have more steps to go
+                this.done.hide();
                 this.next.show();
+                this.previous.show();
+                this.getStarted.hide();
                 this.finish.hide();
-            }
-        },
-        setHeight: function() {
-            var item = this.cardPanel.layout.getActiveItem();
-            if (item.stepHeight) {
-                this.mainPanel.setHeight(item.stepHeight);
-            } else {
-                this.mainPanel.setHeight(600);
             }
         },
         formValidityChange: function(isValid) {

@@ -24,7 +24,9 @@ strong { font-weight: bold; }
     background: #dfe8f6 url('/zport/img/ext_rowindicator.gif') right center no-repeat;
 }
 #center_panel {
-
+    border: 1px solid #777;
+    background-color: white;
+    margin: 20px;
 }
 #header-extra {
     float: right;
@@ -53,15 +55,12 @@ h2 {
 }
 
 #content-wrapper {
-    padding: 1em;
-    border: 1px solid black;
-    background-color: white;
-    margin: 1em 1em 0 1em;
+    max-width: 1000px;
+    margin: auto;
 }
 
 #content {
     text-align: left;
-    margin-top: 1.5em;
     margin: 0 auto;
 }
 
@@ -147,38 +146,123 @@ table.step-content {
     margin-left: -85px;
 }
 .wizardStep {
-    background-image: url("/++resource++zenui/img/bluesquare.png");
-    background-repeat:no-repeat;
-    height:250px;
-    width: 250px;
+    height: 175px;
+    padding: 20px;
+    background-color: #D4E2E5;
+    color: #444;
+    position: relative;
     font-family: helvetica,arial,sans-serif;
     font-weight: bolder;
 }
 .wizardStepHeader {
     font-size: 25px;
-    left: 30px;
-    position: relative;
-    top: 30px;
+    margin: 5px 0 35px 0;
 }
 
 .wizardIcon {
-    float: right;
-    margin: -30px 73px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
 }
 .wizardStepTitle {
     font-size: 18px;
-    position: relative;
-    top: 65px;
-    left: 30px;
+    margin-bottom: 5px;
 }
 .wizardStepDescription {
-    position: relative;
-    font-weight: lighter;
-    top: 95px;
-    left: 30px;
-    width: 180px;
-    text-align: left;
+    max-width: 200px;
 }
+
+.wizardColumn {
+    border-right: solid 1px #CACACA !important;
+    padding-right: 10px;
+}
+
+.quickstart .empty-grid-text {
+    padding-top: 10px;
+    text-align: center;
+    font-size: 1.4em;
+    color: #AAA;
+    font-style: italic;
+}
+
+
+/* CSS reset button style */
+.quickstart .btn {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    color: inherit;
+    /* cursor: default; */
+    font: inherit;
+    line-height: normal;
+    overflow: visible;
+    padding: 0;
+    -webkit-user-select: none; /* for button */
+       -moz-user-select: none;
+        -ms-user-select: none;
+}
+.quickstart .btn::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/* base button style */
+.quickstart .btn {
+    padding: 7px 12px;
+    cursor: pointer;
+    background-color: #BBB;
+}
+.quickstart .btn .x-btn-inner {
+    font-size: 1.1em;
+    color: #444;
+}
+.quickstart .btn:hover {
+    background-color: #AAA;
+}
+.quickstart .btn:hover .x-btn-inner {
+    font-size: 1.1em;
+    color: #222;
+}
+
+/* diabled button */
+.quickstart .btn.disabled .x-btn-inner {
+    color: #777 !important;
+}
+
+
+/* minor button */
+.quickstart .btn.minor {
+    background-color: transparent;
+    border: solid #CCC 1px;
+}
+.quickstart .btn.minor .x-btn-inner {
+}
+.quickstart .btn.minor:hover {
+    background-color: #EEE;
+}
+
+.quickstart .btn.big {
+    padding: 10px 12px
+}
+.quickstart .btn.big .x-btn-inner {
+    font-size: 1.4em;
+}
+
+.quickstart .device-type-grid .x-grid-cell {
+    font-size: 1em;
+}
+.quickstart .device-type-grid .x-grid-row-selected .x-grid-cell-inner{
+    font-weight: bold;
+}
+.quickstart .device-type-grid .x-grid-row-selected:hover .x-grid-cell-inner{
+    color: white !important;
+}
+
 img.stepbox {
    margin-bottom: 30px;
+}
+
+.list li {
+    margin-left: 15px;
+    list-style-type: disc;
 }
