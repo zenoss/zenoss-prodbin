@@ -1464,7 +1464,7 @@
             if (params === false) {
                 params = {
                     evids: [],
-                    excludeIds: []
+                    excludeIds: {}
                 };
                 Ext.apply(params, this.getUpdateParameters());
             }
