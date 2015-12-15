@@ -161,6 +161,7 @@ class Schedule:
                     maintenance_devices=devices,
                     device=self.monitor,
                     prodState=prodState,
+                    monitor=self.monitor
                 ))
                 mw.execute(next,
                            batchSize=self.options.maintenceWindowBatchSize,
