@@ -1100,11 +1100,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                help='How often to ping zenhub')
 
-        self.parser.add_option('--ping-perspective',
+        self.parser.add_option('--disable-ping-perspective',
                                dest='pingPerspective',
                                help="Enable or disable ping perspective",
                                default=True,
-                               action='store_true')
+                               action='store_false')
 
         self.parser.add_option('--disable-event-deduplication',
                                dest='deduplicate_events',
