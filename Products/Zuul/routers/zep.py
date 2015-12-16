@@ -1054,7 +1054,8 @@ class EventsRouter(DirectRouter):
         """
         msg, url = self.zep.createEventMapping(evrows, evclass)
         if url:
-            msg += " | "+url.split('/dmd/')[1]
+            msg += " | " + url.split('/dmd/')[1]
+        audit('UI.Event.Classify', evrows, message=msg, event_class=evclass)
         return DirectResponse(msg, success=bool(url))
 
     @require(ZEN_MANAGE_EVENTS)
