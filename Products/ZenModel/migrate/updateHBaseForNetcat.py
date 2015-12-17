@@ -20,7 +20,7 @@ class UpdateHBaseForNetcat(Migrate.Step):
     due to the hbase image changing from an ubuntu base to a centos base,
     which means BSD netcat to GNU netcat """
 
-    version = Migrate.Version(5,1,70)
+    version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
         try:
