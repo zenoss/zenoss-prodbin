@@ -62,14 +62,21 @@ class _FilterParser(object):
         numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
 
         # Sets config variables
-        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor' ]
+        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor',
+                                  'agent', 'eventClassKey', 'eventGroup', 'eventKey', 'dedupid', 'evid' ]
         self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
                                         'component': 'element_sub_title',
                                         'eventClass': 'event_class',
                                         'ownerid': 'current_user_name',
                                         'summary': 'event_summary',
                                         'message' :'message',
-                                        'monitor': 'monitor' }
+                                        'monitor': 'monitor',
+                                        'agent': 'agent',
+                                        'eventClassKey': 'event_class_key',
+                                        'eventGroup': 'event_group',
+                                        'eventKey': 'event_key',
+                                        'dedupid': 'fingerprint',
+                                        'evid': 'uuid' }
         self.PARSEABLE_DETAILS = detail_list
         self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
         for detail in self.PARSEABLE_DETAILS:
