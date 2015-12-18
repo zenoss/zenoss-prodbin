@@ -30,14 +30,18 @@ class EnableCommitOnUpgrade(Migrate.Step):
             return
 
         # Update the zope service commands.
+        commit = False
         zopes = filter(lambda s: s.name == "Zope", ctx.services)
         if len(zopes) != 1:
             log.info("Found %i services named 'Zope'; skipping." % len(zopes))
             return
         upgrades = filter(lambda c: c.name == "upgrade", zopes[0].commands)
         for command in upgrades:
-            command.commitOnSuccess = True
-        ctx.commit()
+            if not command.commitOnSuccess:
+                command.commitOnSuccess = True
+                commit = True
+        if commit:
+            ctx.commit()
 
 
 EnableCommitOnUpgrade()

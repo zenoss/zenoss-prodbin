@@ -38,11 +38,14 @@ class AddZenMailHealthCheck(Migrate.Step):
 
         zenmail_service = filter(lambda s: s.name == "zenmail", ctx.services)[0]
 
+        commit = False
         if not filter(lambda c: c.name == 'service_ready', zenmail_service.healthChecks):
             zenmail_service.healthChecks.append(service_ready_healthcheck)
+            commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 AddZenMailHealthCheck()

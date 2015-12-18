@@ -28,6 +28,7 @@ class RunZminionViaSupervisord(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
+        commit = False
         zminion_services = filter(lambda s: s.name == 'zminion', ctx.services)
         for zminion in zminion_services:
             zminion.logConfigs = zminion.logConfigs or []
@@ -36,9 +37,11 @@ class RunZminionViaSupervisord(Migrate.Step):
             if log_path not in logfiles:
                 zminion.startup = 'su - zenoss -c "/bin/supervisord -n -c /opt/zenoss/etc/zminion/supervisord.conf"'
                 zminion.logConfigs.append(sm.LogConfig(path=log_path, logType="zminion"))
+                commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 RunZminionViaSupervisord()

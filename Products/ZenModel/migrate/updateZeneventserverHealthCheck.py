@@ -27,11 +27,17 @@ class UpdateZeneventserverHealthCheck(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        zep = filter(lambda s: s.name == "zeneventserver", ctx.services)[0]
+        commit = False
+        zep = filter(lambda s: s.name == "zeneventserver", ctx.services)
+        if zep:
+            answering = filter(lambda hc: hc.name == "answering", zep[0].healthChecks)
+            if answering:
+                new_hb = "curl -f -s http://localhost:8084/zeneventserver/api/1.0/heartbeats/"
+                if answering[0].script != new_hb:
+                    answering[0].script = new_hb
+                    commit = True
 
-        answering = filter(lambda hc: hc.name == "answering", zep.healthChecks)[0]
-        answering.script = "curl -f -s http://localhost:8084/zeneventserver/api/1.0/heartbeats/"
-
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 UpdateZeneventserverHealthCheck()

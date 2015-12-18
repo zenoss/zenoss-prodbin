@@ -37,8 +37,10 @@ class MakeMemcachedUpdates(Migrate.Step):
         commit = False
         answering = filter(lambda hc: hc.name == 'answering', memcached.healthChecks)
         if answering:
-            answering[0].script = "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
-            commit = True
+            new_script = "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
+            if answering[0].script != new_script:
+                answering[0].script = new_script
+                commit = True
 
         # Create /etc/sysconfig/memcached if it doesn't exist
         esm_content = """\

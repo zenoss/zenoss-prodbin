@@ -31,19 +31,22 @@ class UpdateZopeThreadsCount(Migrate.Step):
             return
 
         zope_services = filter(lambda s: s.name == "Zope", ctx.services)
-
+        commit = False
         for zope_service in zope_services:
 
             # Update zope.conf.
             cf = filter(lambda f: f.name == "/opt/zenoss/etc/zope.conf", zope_service.originalConfigs)[0]
-
+            old_cf = cf.content
             cf.content = re.sub(
                 r'^(\s*zserver-threads\s+1)\s*$',
                 r'\n# Reverted to default value by ZenMigrate\n# \1\n',
                 cf.content, 0, re.MULTILINE)
+            if cf.content != old_cf:
+                commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 UpdateZopeThreadsCount()

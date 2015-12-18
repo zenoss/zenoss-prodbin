@@ -41,6 +41,7 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
         )
 
         # Add the endpoint to each daemon.
+        commit = False
         for daemon in collectorDaemons:
 
             # Make sure we're not already importing zproxy.
@@ -49,8 +50,10 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
                 continue
 
             daemon.endpoints.append(endpoint)
+            commit = True
 
         # Commit our changes.
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 CollectorDaemonsImportZproxy()
