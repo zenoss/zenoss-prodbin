@@ -33,6 +33,12 @@ class ITreeSpanningComponent(Interface):
         Return the device associated with this component.
         """
 
+    def get_indexable_peers():
+        """
+        return the other tree object/objects that need to be indexed when this
+         spanning component is updated
+        """
+
         
 class IDeviceOrganizer(Interface):
     """

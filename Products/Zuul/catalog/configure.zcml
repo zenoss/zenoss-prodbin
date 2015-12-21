@@ -48,6 +48,12 @@
         />
 
     <adapter
+        factory = ".paths.IpAddressPathReporter"
+        for = "Products.ZenModel.IpAddress.IpAddress"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
         factory = ".paths.ProcessPathReporter"
         for = "Products.ZenModel.OSProcess.OSProcess"
         provides = ".interfaces.IPathReporter"

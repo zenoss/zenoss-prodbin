@@ -42,6 +42,20 @@ class IIndexed(Interface):
         pass
 
 
+class IObjectEventsSubscriber(Interface):
+    """
+    Interface for objects that need to hook to zope object events
+    """
+    def before_object_deleted_handler():
+        pass
+
+    def after_object_added_or_moved_handler():
+        pass
+
+    def object_added_handler():
+        pass
+
+
 class IDataRoot(Interface):
     """
     Marker interface for the DMD, so it can be looked up as a global utility.
