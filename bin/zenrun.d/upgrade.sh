@@ -23,12 +23,7 @@ doUpgrade() {
     port=$(${zengc} -p zodb-port)
     user=$(${zengc} -p zodb-user)
     userpass=$(${zengc} -p zodb-password)
-    dbname=$(${zengc} -p zodb-db)
-    /opt/zenoss/bin/zeneventserver-create-db \
-        --dbtype $dbtype --dbhost $host --dbport $port \
-        --dbuser $user --dbpass "${userpass}" \
-        --dbname $dbname \
-        --update_schema_only || return "$?"
+    # TODO: zodb upgrade path
     /opt/zenoss/bin/zeneventserver-create-db \
         --dbtype $dbtype --dbhost $host --dbport $port \
         --dbuser $user --dbpass "${userpass}" \
