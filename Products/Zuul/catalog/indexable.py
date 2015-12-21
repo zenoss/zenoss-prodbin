@@ -420,7 +420,7 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     def idx_interfaceId(self):
         interface_id = None
         if self.interfaceId():
-            interface_id = self.interfaceId()
+            interface_id = self.interface().interfaceId()
         return interface_id
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressId")
@@ -438,6 +438,8 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
         if self.device():
             device_id = self.device().idx_uid()
         return device_id
+
+    """ ipSearch catalog indexes """
 
     @indexed(LongFieldType(stored=True), attr_query_name="ipAddressAsInt")
     def idx_ipAddressAsInt(self):

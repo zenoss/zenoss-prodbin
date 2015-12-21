@@ -96,20 +96,19 @@ class ModelCatalogTool(object):
             partial_queries.append(types_query)
 
         # Build query for paths
-        if not paths:
-            paths = ('/'.join(self.context.getPhysicalPath()) + '*', )
-        elif isinstance(paths, basestring):
-            paths = (paths,)
+        if paths is not False:   # When paths is False we dont add any path condition
+            if not paths:
+                paths = ('/'.join(self.context.getPhysicalPath()) + '*', )
+            elif isinstance(paths, basestring):
+                paths = (paths,)
 
-        """  OLD CODE. Why this instead of In?  What do we need depth for?
-        q = {'query':paths}
-        if depth is not None:
-            q['depth'] = depth
-        paths_query = Generic('path', q)
-        """
-        paths_query = In('path', paths)
-
-        if paths_query:
+            """  OLD CODE. Why this instead of In?  What do we need depth for?
+            q = {'query':paths}
+            if depth is not None:
+                q['depth'] = depth
+            paths_query = Generic('path', q)
+            """
+            paths_query = In('path', paths)
             partial_queries.append(paths_query)
 
         # filter based on permissions
@@ -122,7 +121,7 @@ class ModelCatalogTool(object):
         return (search_query, not_indexed_user_filters)
 
 
-    def _search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False):
+    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False):
         """
         @returns: SearchResults
         """
@@ -143,6 +142,7 @@ class ModelCatalogTool(object):
                 brains.append(brain)
             count = catalog_results.total_count
 
+        """   @TODO  Should we check for user permissions here in case user calls this method ??  """
         return SearchResults(iter(brains), total=count, hash_=str(count))
 
 
@@ -172,7 +172,7 @@ class ModelCatalogTool(object):
         # @TODO get all results if areBrains == False
         #
         
-        catalog_results = self._search_model_catalog(query, start=start, limit=limit, order_by=orderby, reverse=reverse)
+        catalog_results = self.search_model_catalog(query, start=start, limit=limit, order_by=orderby, reverse=reverse)
 
         # @TODO take care of unindexed filters
         return catalog_results
@@ -192,7 +192,7 @@ class ModelCatalogTool(object):
             path = '/'.join(path)
 
         query = Eq(UID, path)
-        search_results = self._search_model_catalog(query)
+        search_results = self.search_model_catalog(query)
 
         brain = None
         if search_results.total > 0:
@@ -234,7 +234,7 @@ class ModelCatalogTool(object):
         if not path.endswith('*'):
             path = path + '*'
         query, _ = self._build_query(types=types, paths=(path,), filterPermissions=filterPermissions)
-        search_results = self._search_model_catalog(query)
+        search_results = self.search_model_catalog(query)
 
         """ #  OLD CODEEE had some caching stuff
         # Check for a cache

@@ -200,14 +200,6 @@ class ModelCatalog(object):
         catalog_client = self.get_client(obj)
         catalog_client.uncatalog_object(obj)
 
-    def unindex_object_from_paths(self, obj, paths):
-        # Remove paths from obj's paths
-        self.catalog_object(obj)  # @TODO this is very inefficient. REVISIT
-
-    def index_object_under_paths(self, obj, paths):
-        # Add paths to obj's paths
-        self.catalog_object(obj)  # @TODO this is very inefficient. REVISIT
-
 
 def register_model_catalog():
     """

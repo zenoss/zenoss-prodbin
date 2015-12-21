@@ -110,58 +110,47 @@ def onOrganizerBeforeDelete(ob, event):
         # from the indexes
         for device in ob.devices.objectValuesGen():
             notify(IndexingEvent(device, idxs=['path']))
-        
+
+
+#-------------------------------------------------------------
+#    Methods to deal with tree spanning components.
+#    When a tree spanning component is updated, we need
+#    to make sure that the object the component is linked
+#    to in the other tree is updated if needed
+#-------------------------------------------------------------
+
+
+class ObjectsAffectedBySpanningComponent(object):
+
+    def __init__(self, component):
+        self.component = component
+        self.peers = self._set_component_peers(component)
+
+    def _set_component_peers(self, component):
+        peers = []
+        if hasattr(component, "get_indexable_peers"):
+            peers = component.get_indexable_peers()
+            if not hasattr(peers, '__iter__'):
+                peers = [ peers ]
+        return peers
+
+    def index_affected_objects(self):
+        for peer in self.peers:
+            notify(IndexingEvent(peer))
+
 
 @adapter(ITreeSpanningComponent, IObjectWillBeMovedEvent)
 def onTreeSpanningComponentBeforeDelete(ob, event):
-    """
-    When a component that links a device to another tree is going to
-    be removed, update the device's paths.
-    """
+    """ Before tree spanning component is deleted """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        component = ob
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        device = component.device()
-        if not device:
-            # OS relation has already been broken; get by path
-            path = component.getPrimaryPath()
-            try:
-                devpath = path[:path.index('devices')+2]
-                device = component.unrestrictedTraverse(devpath)
-            except ValueError:
-                # We've done our best. Give up.
-                return
-        if device:
-            oldpaths = devicePathsFromComponent(component)
-            catalog.unindex_object_from_paths(device, oldpaths)
-            # @TODO This wont work until we implement atomic updates
-            getUtility(IModelCatalog).unindex_object_from_paths(device, oldpaths)
+        ppath = "/".join(ob.getPrimaryPath())
+        affected_objects = ObjectsAffectedBySpanningComponent(ob)
+        affected_objects.index_affected_objects()
 
 
 @adapter(ITreeSpanningComponent, IObjectMovedEvent)
 def onTreeSpanningComponentAfterAddOrMove(ob, event):
+    """ When tree spanning component is added or moved """
     if not IObjectRemovedEvent.providedBy(event):
-        component = ob
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        device = component.device()
-        if not device:
-            # OS relation has been broken or doesn't exist yet; get by path
-            path = component.getPrimaryPath()
-            try:
-                devpath = path[:path.index('devices')+2]
-                device = component.unrestrictedTraverse(devpath)
-            except ValueError:
-                # We've done our best. Give up.
-                return
-        if device:
-            newpaths = devicePathsFromComponent(component)
-            catalog.index_object_under_paths(device, newpaths)
-            getUtility(IModelCatalog).index_object_under_paths(device, newpaths)
+        affected_objects = ObjectsAffectedBySpanningComponent(ob)
+        affected_objects.index_affected_objects()
