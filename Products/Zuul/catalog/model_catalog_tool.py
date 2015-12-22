@@ -5,7 +5,7 @@ import logging
 from Acquisition import aq_parent, Implicit
 from interfaces import IModelCatalog, IModelCatalogTool
 from .model_catalog import ModelCatalogUnavailableError
-from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp
+from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 from Products.ZCatalog.interfaces import ICatalogBrain
 from Products.Zuul.catalog.interfaces import IModelCatalog
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups
@@ -67,6 +67,16 @@ class ModelCatalogTool(object):
         partial_queries = []
 
         if query:
+            # if query is a dict, we convert it to AdvancedQuery
+            # @TODO We should make the default query something other than AdvancedQuery
+            subqueries = []
+            if isinstance(query, dict):
+                for attr, value in query.iteritems():
+                    if isinstance(value, str) and '*' in value:
+                        subqueries.append(MatchGlob(attr, value))
+                    else:
+                        subqueries.append(Eq(attr, value))
+                query = And(*subqueries)
             partial_queries.append(query)
 
         # Build query from filters passed by user
