@@ -1,287 +1,290 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
-<form method=post tal:attributes="action string:${here/absolute_url_path}" name="editUserForm"  id="editUserForm" autocomplete="off">
+
 <script type="text/javascript">
-function ConfirmEmailTest() {
-    return confirm(
-        "Make sure you have saved any changes to this form." +
-        "  This will send a test email to this address." +
-        "  Do you wish to continue?");
-}
 
-function ConfirmPagerTest() {
-    return confirm(
-        "Make sure you have saved any changes to this form." +
-        "  This will send a test message to this pager number." +
-        "  Do you wish to continue?");
-}
-
-function resetPassword(){
-    if (confirm("Are you sure you want to reset this user's password?")) {
-        /*  added a hidden input to act as the 'real' submit button
-            next to the visible submit button. This 'real' submit button
-            gets us around the use of the popup confirm submit button conflict.
-            We simulate a click on this hidden 'real' submit button below
-        */
-        var pwdButton = Ext.getDom("passwordResetButton");
-        pwdButton.value="Please wait...";
-        pwdButton.onclick = null;
-        Ext.getDom("resetInitiator").click();
+    function ConfirmEmailTest() {
+        return confirm(
+            "Make sure you have saved any changes to this form." +
+            "  This will send a test email to this address." +
+            "  Do you wish to continue?");
     }
-}
 
-
-function clearBrowserState(event){
-    if(confirm("Are you sure you want to reset your preferences to their default values?")){
-        Zenoss.remote.MessagingRouter.clearBrowserState();
+    function ConfirmPagerTest() {
+        return confirm(
+            "Make sure you have saved any changes to this form." +
+            "  This will send a test message to this pager number." +
+            "  Do you wish to continue?");
     }
-}
 
-setTimeout(function () {
-        document.getElementById('user_settings_new_password_input').autocomplete = 'off';
-        document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off';
-    }, 1);
+    function resetPassword() {
+        if (confirm("Are you sure you want to reset this user's password?")) {
+            /*  added a hidden input to act as the 'real' submit button
+                next to the visible submit button. This 'real' submit button
+                gets us around the use of the popup confirm submit button conflict.
+                We simulate a click on this hidden 'real' submit button below
+            */
+            var pwdButton = Ext.getDom("passwordResetButton");
+            pwdButton.value="Please wait...";
+            pwdButton.onclick = null;
+            Ext.getDom("resetInitiator").click();
+        }
+    }
+
+    function clearBrowserState(event) {
+        if(confirm("Are you sure you want to reset your preferences to their default values?")){
+            Zenoss.remote.MessagingRouter.clearBrowserState();
+        }
+    }
+
+    setTimeout(function () {
+            document.getElementById('user_settings_new_password_input').autocomplete = 'off';
+            document.getElementById('user_settings_confirmpassword_input').autocomplete = 'off';
+        }, 1);
 
 </script>
 
+<tal:block tal:define="message request/message | string:State at time:;
+    tabletitle string:${message} ${here/getCurrentUserNowString}">
 
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
+<!--====Optional titlebar slots=============
 
-        <tal:block tal:define="message request/message | string:State at time:;
-            tabletitle string:${message} ${here/getCurrentUserNowString}">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="filterslot">
+    </tal:block>
 
-        <!--====Optional titlebar slots=============
+    <tal:block metal:fill-slot="menuslot">
+    </tal:block>
 
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
+    ==========================================-->
 
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
+<tal:block metal:fill-slot="zentablecontents">
 
-            ==========================================-->
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
-    <tr>
-    <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
-      <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
-        <div style="background:#ddd;width:374px;height:40px;">
-            <div style="float:left;width:226px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
-                Automatically generate a new password and send it to the email listed below.
-            </div>
-            <div style="float:left;padding:2px 0 0 8px;">
-              <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
-              <input type="button" value="Reset Password"
-                     tabindex="-1"
-                     style="height:30px;width:136px;text-align:center;"
-                     onclick="resetPassword()"
-                     class="tableheader"
-                     id="passwordResetButton" />
-
-            </div>
-        </div>
-      </form>
-    </td>
-    </tr>
-    <tr tal:condition="here/isLoggedInUser">
-    <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
-        <div style="font-size:14px;">
-            USER PREFERENCES        </div>
-    </td>
-    </tr>
-    <tr tal:condition="here/isLoggedInUser">
-    <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
-        <div style="background:#ddd;width:374px;height:50px;">
-            <div style="float:left;width:226px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
-                Reset all preferences such as grid columns and filters to their default values.
-            </div>
-            <div style="float:left;padding:2px 0 0 8px;">
-            <button id="user_settings_reset_prefs_submit" style="height:30px;width:136px;text-align:center;"
-                   onclick="clearBrowserState(event)"
-                   class="tableheader">
-               Reset Preferences
-            </button>
-            </div>
-        </div>
-    </td>
-    </tr>
-
-
+    <!-- BEGIN TABLE CONTENTS -->
 
     <tr>
-    <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
-        <div style="font-size:14px;">
-            USER SETTINGS        </div>
-    </td>
-    </tr>
-
-
-    <tr tal:condition="here/isManager">
-      <td class="tableheader" align="left">Roles</td>
-      <td class="tablevalues">
-        <select id="user_roles_combo" class="tablevalues" name="roles:list" multiple
-            tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
-            <option tal:repeat="r allroles" tal:content="r"
-                    tal:attributes="value r; selected python:r in curroles"/>
-        </select>
-      </td>
-    </tr>
-    <tr tal:condition="here/isManager">
-      <td class="tableheader" align="left">Groups</td>
-      <td class="tablevalues">
-        <select id="user_groups_combo" class="tablevalues" name="groups:list" multiple
-            tal:define="allgroups here/getAllGroupSettingsNames;
-                currgroups here/getUserGroupSettingsNames">
-            <option tal:repeat="r allgroups" tal:content="r"
-                    tal:attributes="value r; selected python:r in currgroups"/>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Email</td>
-      <td class="tablevalues">
-        <input id="user_settings_email_input" class="tablevalues" type="text" name="email" size="40"
-            tal:attributes="value here/email" />
-        <tal:block tal:condition="here/email">
-        &nbsp;&nbsp;
-        <a class="tablevalues" onclick="return ConfirmEmailTest()"
-        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}&redirect=True">test</a>
-        </tal:block>
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Pager</td>
-      <td class="tablevalues">
-        <input id="user_settings_pager_input" class="tablevalues" type="text" name="pager" size="40"
-            tal:attributes="value here/pager" />
-        <tal:block tal:condition="here/pager">
-        &nbsp;&nbsp;
-        <a class="tablevalues" onclick="return ConfirmPagerTest()"
-        tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}&redirect=True">test</a>
-        </tal:block>
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Default Page Size</td>
-      <td class="tablevalues">
-        <input id="user_settings_pagesize_input" class="tablevalues" type="text" name="defaultPageSize"
-            tal:attributes="value here/defaultPageSize" />
-      </td>
-    </tr>
-    <tr tal:condition="here/isManager">
-      <td class="tableheader" align="left">Default Admin Role</td>
-      <td class="tablevalues">
-        <select id="user_settings_admin_role_combo" class="tablevalues" name="defaultAdminRole"
-            tal:define="roles here/getAllRoles">
-            <option tal:repeat="role roles" tal:content="role"
-                tal:attributes="selected python:here.defaultAdminRole==role"/>
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Network Map Start Object</td>
-      <td class="tablevalues">
-        <input id="user_settings_networkmap_input" class="tablevalues" type="text" name="netMapStartObject"
-            tal:attributes="value here/netMapStartObject" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Time Zone</td>
-      <td class="tablevalues">
-        <select id="user_settings_timezone" name="timezone"></select>
-        <script tal:content='string:
-             Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
-         '></script>
-        <script>
-          // build a select list with the current timezone selected.
-          // Zenoss.data.timeZones comes from moment-timezone-data.js and
-          // Zenoss.USER_TIMEZONE comes from the server
-          Ext.onReady(function() {
-              var select = Ext.get('user_settings_timezone').dom, zones = Zenoss.date.timeZones.zones, zone, i=0;
-              for (zone in zones) {
-                  select.options[i] = new Option(zone, zone);
-                  if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
-                      select.options[i].selected = true;
-                  }
-              i++;
-              }
-         });
-        </script>
-      </td>
-    </tr>
-
-    <tr>
-        <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
-        </td>
-        <td style="height:1px;border-bottom:dashed 1px #ccc;" colspan=3>
-        </td>
-    </tr>
-
-    <tr>
-      <td class="tableheader" align="left">Set New Password</td>
-      <td class="tablevalues">
-        <input id="user_settings_new_password_input" class="tablevalues" type="password" name="password"
-            title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
-            autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
-       </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Confirm New Password</td>
-      <td class="tablevalues">
-        <input id="user_settings_confirmpassword_input" class="tablevalues" type="password" name="sndpassword"
-            title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
-            autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
-       </td>
-    </tr>
-
-
-    <tr>
-        <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
-            <strong>Current Password for  <tal:block tal:content="request/AUTHENTICATED_USER"/></strong>
-        </td>
-        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
-            <div style="float:left;">
-            <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
-                autocomplete="off"/>
-            </div>
-                <div style="padding:0 0 0 8px;float:left;">
-                <input class="tableheader" type="submit" value=" Save Settings "
-                    disabled=true
-                    id="formsave"
-                    style="height:30px;width:144px;text-align:center;color:#888"
-                    name="manage_editUserSettings:method" />
+        <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+            <form id="resetPasswordForm" method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
+                <div style="background:#ddd;width:374px;height:40px;">
+                    <div style="float:left;width:226px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+                        Automatically generate a new password and send it to the email listed below.
+                    </div>
+                    <div style="float:left;padding:2px 0 0 8px;">
+                    <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
+                    <input type="button" value="Reset Password"
+                        tabindex="-1"
+                        style="height:30px;width:136px;text-align:center;"
+                        onclick="resetPassword()"
+                        class="tableheader"
+                        id="passwordResetButton" />
+                    </div>
                 </div>
+            </form>
         </td>
     </tr>
 
+    <tr>
+    </tr>
 
+    <tr tal:condition="here/isLoggedInUser">
+        <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+            <div style="font-size:14px;">
+                USER PREFERENCES
+            </div>
+        </td>
+    </tr>
+    <tr tal:condition="here/isLoggedInUser">
+        <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+            <div style="background:#ddd;width:374px;height:50px;">
+                <div style="float:left;width:226px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
+                    Reset all preferences such as grid columns and filters to their default values.
+                </div>
+                <div style="float:left;padding:2px 0 0 8px;">
+                    <button id="user_settings_reset_prefs_submit" style="height:30px;width:136px;text-align:center;"
+                        onclick="clearBrowserState(event)"
+                        class="tableheader">
+                        Reset Preferences
+                    </button>
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <form method=post tal:attributes="action string:${here/absolute_url_path}" name="editUserForm"  id="editUserForm" autocomplete="off">
+
+        <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
+
+        <tr>
+          <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+            <div style="font-size:14px;">
+                USER SETTINGS
+            </div>
+          </td>
+        </tr>
+
+        <tr tal:condition="here/isManager">
+          <td class="tableheader" align="left">Roles</td>
+          <td class="tablevalues">
+            <select id="user_roles_combo" class="tablevalues" name="roles:list" multiple
+                tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
+                <option tal:repeat="r allroles" tal:content="r"
+                        tal:attributes="value r; selected python:r in curroles"/>
+            </select>
+          </td>
+        </tr>
+        <tr tal:condition="here/isManager">
+          <td class="tableheader" align="left">Groups</td>
+          <td class="tablevalues">
+            <select id="user_groups_combo" class="tablevalues" name="groups:list" multiple
+                tal:define="allgroups here/getAllGroupSettingsNames;
+                    currgroups here/getUserGroupSettingsNames">
+                <option tal:repeat="r allgroups" tal:content="r"
+                        tal:attributes="value r; selected python:r in currgroups"/>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Email</td>
+          <td class="tablevalues">
+            <input id="user_settings_email_input" class="tablevalues" type="text" name="email" size="40"
+                tal:attributes="value here/email" />
+            <tal:block tal:condition="here/email">
+            &nbsp;&nbsp;
+            <a class="tablevalues" onclick="return ConfirmEmailTest()"
+            tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}&redirect=True">test</a>
+            </tal:block>
+          </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Pager</td>
+          <td class="tablevalues">
+            <input id="user_settings_pager_input" class="tablevalues" type="text" name="pager" size="40"
+                tal:attributes="value here/pager" />
+            <tal:block tal:condition="here/pager">
+            &nbsp;&nbsp;
+            <a class="tablevalues" onclick="return ConfirmPagerTest()"
+            tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}&redirect=True">test</a>
+            </tal:block>
+          </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Default Page Size</td>
+          <td class="tablevalues">
+            <input id="user_settings_pagesize_input" class="tablevalues" type="text" name="defaultPageSize"
+                tal:attributes="value here/defaultPageSize" />
+          </td>
+        </tr>
+        <tr tal:condition="here/isManager">
+          <td class="tableheader" align="left">Default Admin Role</td>
+          <td class="tablevalues">
+            <select id="user_settings_admin_role_combo" class="tablevalues" name="defaultAdminRole"
+                tal:define="roles here/getAllRoles">
+                <option tal:repeat="role roles" tal:content="role"
+                    tal:attributes="selected python:here.defaultAdminRole==role"/>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Network Map Start Object</td>
+          <td class="tablevalues">
+            <input id="user_settings_networkmap_input" class="tablevalues" type="text" name="netMapStartObject"
+                tal:attributes="value here/netMapStartObject" />
+          </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Time Zone</td>
+          <td class="tablevalues">
+            <select id="user_settings_timezone" name="timezone"></select>
+            <script tal:content='string:
+                 Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
+             '></script>
+            <script>
+              // build a select list with the current timezone selected.
+              // Zenoss.data.timeZones comes from moment-timezone-data.js and
+              // Zenoss.USER_TIMEZONE comes from the server
+              Ext.onReady(function() {
+                  var select = Ext.get('user_settings_timezone').dom, zones = Zenoss.date.timeZones.zones, zone, i=0;
+                  for (zone in zones) {
+                      select.options[i] = new Option(zone, zone);
+                      if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
+                          select.options[i].selected = true;
+                      }
+                  i++;
+                  }
+             });
+            </script>
+          </td>
+        </tr>
+
+        <tr>
+            <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
+            </td>
+            <td style="height:1px;border-bottom:dashed 1px #ccc;" colspan=3>
+            </td>
+        </tr>
+
+        <tr>
+          <td class="tableheader" align="left">Set New Password</td>
+          <td class="tablevalues">
+            <input id="user_settings_new_password_input" class="tablevalues" type="password" name="password"
+                title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
+                autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
+           </td>
+        </tr>
+        <tr>
+          <td class="tableheader" align="left">Confirm New Password</td>
+          <td class="tablevalues">
+            <input id="user_settings_confirmpassword_input" class="tablevalues" type="password" name="sndpassword"
+                title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
+                autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
+           </td>
+        </tr>
+
+
+        <tr>
+            <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
+                <strong>Current Password for  <tal:block tal:content="request/AUTHENTICATED_USER"/></strong>
+            </td>
+            <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
+                <div style="float:left;">
+                <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
+                    autocomplete="off"/>
+                </div>
+                    <div style="padding:0 0 0 8px;float:left;">
+                    <input class="tableheader" type="submit" value=" Save Settings "
+                        disabled=true
+                        id="formsave"
+                        style="height:30px;width:144px;text-align:center;color:#888"
+                        name="manage_editUserSettings:method" />
+                    </div>
+            </td>
+        </tr>
 
         <!-- END TABLE CONTENTS -->
 
-        </tal:block>
-        </tal:block>
-        </tal:block>
+        <script>
 
+            var saveInputs = ['pwconfirm', 'user_settings_email_input', 'user_settings_pagesize_input'];
+            Ext.each(saveInputs, function(input) {
+                connect(input, 'onkeyup', function() {
+                    if($(input).value) {
+                        $('formsave').disabled = false;
+                        setStyle('formsave', {'color':'#000'});
+                    } else {
+                        $('formsave').disabled = true;
+                        setStyle('formsave', {'color':'#888'});
+                    }
+                });
+            });
 
+        </script>
 
-<script>
+    </form>
 
-    var saveInputs = ['pwconfirm', 'user_settings_email_input', 'user_settings_pagesize_input'];
-    Ext.each(saveInputs, function(input) {
-        connect(input, 'onkeyup', function() {
-            if($(input).value) {
-                $('formsave').disabled = false;
-                setStyle('formsave', {'color':'#000'});
-            } else {
-                $('formsave').disabled = true;
-                setStyle('formsave', {'color':'#888'});
-            }
-        });
-    });
+</tal:block>
+</tal:block>
+</tal:block>
 
-</script>
-</form>
 </tal:block>
 </tal:block>
