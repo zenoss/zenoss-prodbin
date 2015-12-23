@@ -11,18 +11,13 @@ from zope.component import adapter
 from zope.container.interfaces import IObjectAddedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 
-from Products.ZenModel.IpInterface import IpInterface, beforeDeleteIpInterface
-
 
 def unindexBeforeDelete(ob, event):
     """
     Multisubscriber for IIndexed + IObjectWillBeMovedEvent
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        if isinstance(ob, IpInterface):
-            beforeDeleteIpInterface(ob, event)
-        else:
-            ob.unindex_object()
+        ob.unindex_object()
 
 def indexAfterAddOrMove(ob, event):
     """

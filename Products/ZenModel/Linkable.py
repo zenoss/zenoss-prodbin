@@ -25,15 +25,12 @@ class Linkable:
             return None
 
     def index_links(self):
-        notify(IndexingEvent(self))  # For model catalog
-        cat = self._getLinkCatalog()
-        if cat is not None:
-            cat.catalog_object(self, self.getPrimaryId())
+        # DEPRECATED. THIS FILE WILL BE REMOVED
+        pass
 
     def unindex_links(self):
-        cat = self._getLinkCatalog()
-        if cat is not None:
-            cat.uncatalog_object(self.getPrimaryId())
+        # DEPRECATED. THIS FILE WILL BE REMOVED
+        pass
 
 
 class Layer2Linkable(Linkable):

@@ -191,6 +191,10 @@ class ApplyDataMap(object):
 
         if changed:
             device.setLastChange()
+            # This is for IpInterfaces so the device get its paths updated.
+            # Should we think of doing this differently?
+            #
+            notify(IndexingEvent(device))
 
         log.debug(
             "_applyDataMap for Device %s will modify %d objects for %s",
@@ -386,7 +390,7 @@ class ApplyDataMap(object):
         if changed:
             if getattr(aq_base(obj), "index_object", False):
                 log.debug("indexing object %s", obj.id)
-                obj.index_object()
+                obj.index_object()  # @TODO REMOVE THIS ONCE ALL CATALOGS ARE MIGRATED TO SOLR
             notify(IndexingEvent(obj))
         else:
             obj._p_deactivate()

@@ -36,12 +36,14 @@ from Products.ZenUtils.IpUtil import *
 from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
 from Products.ZenModel.Exceptions import *
-from Products.ZenModel.Linkable import Layer2Linkable
 
 from Products.ZenModel.ZenossSecurity import *
 from Products.Zuul.catalog.events import IndexingEvent
 
 from Products.Zuul.catalog.indexable import IpInterfaceIndexable
+from Products.ZenModel.interfaces import IObjectEventsSubscriber
+from zope.interface import implements
+
 
 _IPADDRESS_CACHE_ATTR = "_v_ipaddresses"
 
@@ -62,10 +64,11 @@ def manage_addIpInterface(context, newId, userCreated, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
+class IpInterface(OSComponent, IpInterfaceIndexable):
     """
     IpInterface object
     """
+    implements(IObjectEventsSubscriber)
 
     portal_type = meta_type = 'IpInterface'
 
@@ -178,7 +181,7 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         else:
             setattr(self,id,value)
             if id == 'macaddress':
-                self.index_object()
+                notify(IndexingEvent(self))
 
     #------------------------------------------
     #--    ITreeSpanningComponent methods   --
@@ -188,42 +191,44 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         return self.ipaddresses()
 
     #------------------------------------------
+    #--    IObjectEventsSubscriber methods   --
 
-    def index_object(self, idxs=None):
-        """
-        Override the default so that links are indexed.
-        """
-        super(IpInterface, self).index_object(idxs)
-        self.index_links()
-        # index our ip addresses if necessary
-        for ip in self.ipaddresses():
-            ip.index_object()
+    def after_object_added_or_moved_handler(self):
         self._invalidate_ipaddress_cache()
-
         device = self.device()
         if self.macaddress and device:
-            if (device.getMacAddressCache().add(self.macaddress)): 
-                notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
+            if (device.getMacAddressCache().add(self.macaddress) ):
+                notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))  # @TODO Should we remove the macs from the device?
 
-    def unindex_object(self):
-        """
-        Override the default so that links are unindexed.
-        """
-        self.unindex_links()
-        super(IpInterface, self).unindex_object()
-        # index our ip addresses if necessary
-        for ip in self.ipaddresses():
-            ip.index_object()
-
+    def before_object_deleted_handler(self):
         device = self.device()
-
         if device:
             macs = device.getMacAddressCache()
             try: 
                 macs.remove(self.macaddress)
-                notify(IndexingEvent(self.device(), idxs=('macAddresses',), update_metadata=False))
+                notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
             except KeyError:
                 pass
+
+    def object_added_handler(self):
+        if self.macaddress:
+            device = self.device()
+            if device:
+                device.getMacAddressCache().add(self.macaddress)
+
+    #------------------------------------------
+
+    def index_object(self, idxs=None):
+        """
+        DEPRECATED  -  Override the default so that links are indexed.
+        """
+        super(IpInterface, self).index_object(idxs)
+
+    def unindex_object(self):
+        """
+        DEPRECATED  -  Override the default so that links are unindexed.
+        """
+        super(IpInterface, self).unindex_object()
             
     def manage_deleteComponent(self, REQUEST=None):
         """
@@ -235,7 +240,6 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         super(IpInterface, self).manage_deleteComponent(REQUEST)
         for ip in ips:
             self.dmd.getDmdRoot("ZenLinkManager").remove_device_network_from_cache(device.getId(), ip.network().getPrimaryUrlPath())
-            ip.primaryAq().index_object()
         if device:
             notify(IndexingEvent(device, idxs=["path"])) # We need to delete the iface path from the device
 
@@ -294,7 +298,7 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         else:
             ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
-        ipobj.index_object()
+        notify(IndexingEvent(ipobj))
         os = self.os()
         notify(ObjectMovedEvent(self, os, self.id, os, self.id))
         self.dmd.getDmdRoot("ZenLinkManager").add_device_network_to_cache(self.device().getId(), ipobj.network().getPrimaryUrlPath())
@@ -360,7 +364,7 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         for ip in ipids:
             ipobj = self.ipaddresses._getOb(ip)
             self.removeRelation('ipaddresses', ipobj)
-            ipobj.index_object()
+            notify(IndexingEvent(ipobj))
         for ip in localips:
             self._ipAddresses.remove(ip)
 
@@ -372,7 +376,7 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
                 self.ipaddresses.removeRelation(ipobj)
-                ipobj.index_object()
+                notify(IndexingEvent(ipobj))
                 return
 
 
@@ -648,7 +652,3 @@ class IpInterface(OSComponent, Layer2Linkable, IpInterfaceIndexable):
 
 InitializeClass(IpInterface)
 
-def beforeDeleteIpInterface(ob, event):
-    if (event.object==ob or event.object==ob.device() or
-        getattr(event.object, "_operation", -1) < 1):
-        ob.unindex_object()
