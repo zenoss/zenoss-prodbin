@@ -45,6 +45,32 @@ class ModelCatalogTool(object):
     def is_model_catalog_enabled(self):
         return self.model_catalog.searcher is not None
 
+
+    def _parse_user_query(self, query):
+        """
+        # if query is a dict, we convert it to AdvancedQuery
+        # @TODO We should make the default query something other than AdvancedQuery
+        """
+        def _parse_basic_query(attr, value):
+            if isinstance(value, str) and '*' in value:
+                return MatchGlob(attr, value)
+            else:
+                return Eq(attr, value)
+
+        if isinstance(query, dict):
+            subqueries = []
+            for attr, value in query.iteritems():
+                if isinstance(value, (list, set, tuple)):
+                    # If value is a list or similar, we build an OR
+                    or_queries = []
+                    for or_query in value:
+                        or_queries.append( _parse_basic_query(attr, or_query) )
+                    subqueries.append( Or(*or_queries) )
+                else:
+                    subqueries.append(_parse_basic_query(attr, value))
+            query = And(*subqueries)
+        return query
+
     def _build_query(self, types=(), paths=(), depth=None, query=None, filterPermissions=True, globFilters=None):
         """
         Build and AdvancedQuery query
@@ -67,6 +93,7 @@ class ModelCatalogTool(object):
         partial_queries = []
 
         if query:
+            """
             # if query is a dict, we convert it to AdvancedQuery
             # @TODO We should make the default query something other than AdvancedQuery
             subqueries = []
@@ -78,6 +105,8 @@ class ModelCatalogTool(object):
                         subqueries.append(Eq(attr, value))
                 query = And(*subqueries)
             partial_queries.append(query)
+            """
+            partial_queries.append(self._parse_user_query(query))
 
         # Build query from filters passed by user
         if globFilters:
