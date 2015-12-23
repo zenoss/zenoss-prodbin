@@ -760,8 +760,9 @@ registerDirectory("skins", globals())
             exportDir = needDir(zenPath('export'))
             eggPath = self.eggPath()
             os.chdir(eggPath)
-            if os.path.isdir(os.path.join(eggPath, 'dist')):
-                os.system('rm -rf dist/*')
+            for tmp_dir in ['build', 'dist']:
+                if os.path.isdir(os.path.join(eggPath, tmp_dir)):
+                    os.system('rm -rf {}/*'.format(tmp_dir))
             p = subprocess.Popen('python setup.py bdist_egg',
                             stderr=sys.stderr,
                             shell=True,
