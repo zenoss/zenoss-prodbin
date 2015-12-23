@@ -46,6 +46,11 @@ from Products.ZenUtils.Utils import unused, zenPath
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
+
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
     """make a IpNetwork"""
     net = IpNetwork(id, netmask=netmask, version=version)
@@ -54,7 +59,6 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
         net = context._getOb(net.id)
         net.dmdRootName = id
         net.buildZProperties()
-        net.createCatalog()
         #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
@@ -75,7 +79,7 @@ class IpNetwork(DeviceOrganizer):
     buildLinks = True
 
     # Index name for IP addresses
-    default_catalog = 'ipSearch'
+    default_catalog = ''
 
     portal_type = meta_type = 'IpNetwork'
 
@@ -272,7 +276,7 @@ class IpNetwork(DeviceOrganizer):
         """
 
         # If we can find the IP in the catalog, use it. This is fast.
-        brains = self.ipSearch(id=ip)
+        brains = self._search_ip_in_catalog(ip)
         path = self.getPrimaryUrlPath()
         for brain in brains:
             bp = brain.getPath()
@@ -281,6 +285,7 @@ class IpNetwork(DeviceOrganizer):
                     return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
                 except KeyError:
                     pass
+
 
         # Otherwise we have to traverse the entire network hierarchy.
         for net in self.children():
@@ -482,15 +487,27 @@ class IpNetwork(DeviceOrganizer):
         return DeviceOrganizer.getSubDevices(self, filter, "ipaddresses")
 
 
+    def _search_ip_in_catalog(self, ip):
+        """ Return list of brains that match ip """
+        cat = IModelCatalogTool(self.getNetworkRoot())
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.IpAddress.IpAddress"
+        query["id"] = ipwrap(ip)
+        search_result = cat.search(query=query)
+        return [ brain for brain in search_result.results ]
+
+
     def findIp(self, ip):
         """Find an ipAddress.
         """
-        searchCatalog = self.getNetworkRoot().ipSearch
-        ret = searchCatalog(dict(id=ipwrap(ip)))
-        if not ret: return None
-        if len(ret) > 1:
-            raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
-        return ret[0].getObject()
+        brains = self._search_ip_in_catalog(ip)
+        ip_obj = None
+        if len(brains) > 0:
+            if len(brains) == 1:
+                ip_obj = brains[0].getObject()
+            else:
+                raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
+        return ip_obj
 
 
     def buildZProperties(self):
@@ -511,27 +528,9 @@ class IpNetwork(DeviceOrganizer):
 
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
-        zcat = self._getCatalog()
-        zcat.manage_catalogClear()
         for net in self.getSubNetworks():
             for ip in net.ipaddresses():
-                ip.index_object()
-
-
-    def createCatalog(self):
-        """make the catalog for device searching"""
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-        # XXX convert to ManagableIndex
-        manage_addZCatalog(self, self.default_catalog,
-                            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
-
-        zcat._catalog.addIndex('ipAddressAsInt',  makeCaseSensitiveFieldIndex('ipAddressAsInt'))
-        zcat._catalog.addIndex('path', makeMultiPathIndex('path'))
-
+                notify(IndexingEvent(ip))
 
     def discoverNetwork(self, REQUEST=None):
         """
