@@ -30,8 +30,6 @@ from Products import Zuul
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.jsonutils import json
 from Products.Zuul.utils import allowedRolesAndUsers
-from Products.ZenModel.interfaces import IIndexed
-from Products.ZenModel.Linkable import Layer3Linkable
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIpAndNet, \
                                      ipwrap, ipunwrap, ipunwrap_strip
@@ -51,13 +49,12 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ManagedEntity, Layer3Linkable, IpAddressIndexable):
+class IpAddress(ManagedEntity, IpAddressIndexable):
     """IpAddress object"""
-    zope.interface.implements(IIndexed)
 
     event_key = portal_type = meta_type = 'IpAddress'
 
-    default_catalog = 'ipSearch'
+    default_catalog = ''
 
     version = 4
 
@@ -235,12 +232,12 @@ class IpAddress(ManagedEntity, Layer3Linkable, IpAddressIndexable):
         return None
 
     def index_object(self, idxs=None):
-        super(IpAddress, self).index_object(idxs)
-        self.index_links()
+        """ DEPRECATED """
+        pass
 
     def unindex_object(self):
-        self.unindex_links()
-        super(IpAddress, self).unindex_object()
+        """ DEPRECATED """
+        pass
 
     def deviceId(self):
         """
