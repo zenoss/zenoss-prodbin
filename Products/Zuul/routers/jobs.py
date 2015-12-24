@@ -71,7 +71,7 @@ class JobsRouter(DirectRouter):
             else:
                 deletedJobs.append(id_)
         if deletedJobs:
-            audit('UI.Jobs.DeleteJobs', ids=deletedJobs)
+            audit('UI.Jobs.Delete', ids=deletedJobs)
             return DirectResponse.succeed(deletedJobs=Zuul.marshal(deletedJobs))
 
     def getInfo(self, jobid):
