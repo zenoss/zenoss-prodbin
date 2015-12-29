@@ -667,8 +667,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         pingInterval = self.options.zhPingInterval
-        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True, pingInterval=pingInterval,
-                                              pingtimeout=pingInterval * 5)
+        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=self.options.pingPerspective,
+                                              pingInterval=pingInterval, pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
@@ -1099,6 +1099,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=120,
                                type='int',
                                help='How often to ping zenhub')
+
+        self.parser.add_option('--disable-ping-perspective',
+                               dest='pingPerspective',
+                               help="Enable or disable ping perspective",
+                               default=True,
+                               action='store_false')
 
         self.parser.add_option('--disable-event-deduplication',
                                dest='deduplicate_events',
