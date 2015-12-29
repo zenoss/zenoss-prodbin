@@ -21,7 +21,6 @@ class TestXmlEdges(ZenModelBaseTest):
         """
         Test that checks correct convertion of edges to an XML file
         """
-        import pdb; pdb.set_trace()
         start = ('10.111.23.0', '/some_path/10.111.23.0')
         node = ('10.111.23.0', 'network.png', '0xffffff', '10.111.23.0')
         child1 = ('ip-10-111-23-1.zenoss.loc', 'server.png', '0x00ff00', '10.111.23.1')
