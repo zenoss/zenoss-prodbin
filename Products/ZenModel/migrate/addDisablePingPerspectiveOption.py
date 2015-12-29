@@ -16,7 +16,6 @@ log = logging.getLogger("zen.migrate")
 
 from Products.ZenUtils.Utils import zenPath
 import Migrate
-import yaml
 
 
 class AddDisablePingPerspectiveOption(Migrate.Step):
