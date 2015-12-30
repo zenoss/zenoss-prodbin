@@ -21,7 +21,7 @@ sm.require("1.0.0")
 class AddQuiltInstallCommand(Migrate.Step):
     """Add `quilt-install` command to Zope service"""
 
-    version = Migrate.Version(5,1,70)
+    version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
 
