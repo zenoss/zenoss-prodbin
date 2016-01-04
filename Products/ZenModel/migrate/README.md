@@ -1,10 +1,21 @@
-# Service Migrations
+# Migrations
+
+There are 2 types of migrations, both of which are discussed below
+
+## Model Migrations
+
+These are migrations that affect the Zenoss model database, and possibly other zenoss-specific components.
+```
+TODO: Expand on this.
+```
+
+## Service Migrations
 
 The [service migration SDK](https://github.com/control-center/service-migration/) provides
 a programmatic way of making changes to service definitions.
 These changes take the form of individual Migrate.Step classes, kept for now in ZenModel's migrate directory.
 
-## Writing a new migration
+### Writing a new migration
 Below is an example migration script:
 
 ``` python
@@ -61,7 +72,7 @@ This is done even at the level of ServiceContext.services.
 In general, the elements of a service definition are represented as class attributes, usually with a normalized name to keep with Python style and to avoid shadowing builtin names.
 
 
-## Adding unit tests
+### Adding unit tests
 Here's an example class that would test the above boilerplate migration:
 
 ``` python
@@ -103,6 +114,7 @@ Any additional `test_*` functions added to the class will also be discovered and
 
 The service migration tests have also been added to zendev, so they can be invoked with `zendev test --zenoss-devimg unit Products.ZenModel.migrate`.
 
-## Running a migration manually
+### Running a migration manually
 
 Instructions for running a migration manually are available on the engineering site [here](https://sites.google.com/a/zenoss.com/engineering/home/faq/work-with-rm/howtorunzenmigrate).
+
