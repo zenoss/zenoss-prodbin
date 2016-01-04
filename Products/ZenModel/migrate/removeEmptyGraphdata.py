@@ -38,8 +38,9 @@ class RemoveEmptyGraphData(Migrate.Step):
             for mc in zenmodeler.monitoringProfile.metricConfigs:
                 mc.metrics = [m for m in mc.metrics if m.ID not in remove_metrics]
 
-            gcs = zenmodeler.monitoringProfile.graphConfigs
-            gcs = [gc for gc in gcs if gc.graphID not in remove_graphs]
+            zenmodeler.monitoringProfile.graphConfigs = [
+                gc for gc in zenmodeler.monitoringProfile.graphConfigs
+                if gc.graphID not in remove_graphs]
 
         # Commit our changes.
         ctx.commit()
