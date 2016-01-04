@@ -17,6 +17,7 @@ import cgi
 import logging
 from collections import defaultdict
 from Products import Zuul
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Jobber.exceptions import NoSuchJobException
 
@@ -70,6 +71,7 @@ class JobsRouter(DirectRouter):
             else:
                 deletedJobs.append(id_)
         if deletedJobs:
+            audit('UI.Jobs.Delete', ids=deletedJobs)
             return DirectResponse.succeed(deletedJobs=Zuul.marshal(deletedJobs))
 
     def getInfo(self, jobid):
