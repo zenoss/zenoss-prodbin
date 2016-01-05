@@ -5888,7 +5888,20 @@
        "daemon",
        "collector"
      ],
-     "OriginalConfigs": {},
+     "OriginalConfigs": {
+       "/opt/zenoss/etc/zminion/supervisord.conf": {
+         "Filename": "/opt/zenoss/etc/zminion/supervisord.conf",
+         "Owner": "",
+         "Permissions": "644",
+         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[include]\nfiles = zminion_supervisor.conf\n"
+       },
+       "/opt/zenoss/etc/zminion/zminion_supervisor.conf": {
+         "Filename": "/opt/zenoss/etc/zminion/zminion_supervisor.conf",
+         "Owner": "",
+         "Permissions": "644",
+         "Content": "[program:zminion]\ncommand=/opt/zenoss/bin/zminion --minion-name zminion_{{(parent .).Name}} serve\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+       }
+     },
      "ConfigFiles": {},
      "Instances": 1,
      "InstanceLimits": {
