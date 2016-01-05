@@ -242,19 +242,21 @@ class ZenPackCmd(ZenScriptBase):
             if not self.preInstallCheck(eggInstall):
                 self.stop('%s not installed' % self.options.installPackName)
             if eggInstall:
-                if  self.options.link and not os.path.isdir(self.options.installPackName):
-                    self.stop('--link specified but %s is not a directory' % self.options.installPackName)
-                if  not self.options.link and os.path.isdir(self.options.installPackName):
-                    self.stop('zenpack %s is a directory and requires --link option to install' % self.options.installPackName)
-                return EggPackCmd.InstallEggAndZenPack(
-                    self.dmd,
-                    self.options.installPackName,
-                    link=self.options.link,
-                    filesOnly=self.options.filesOnly,
-                    previousVersion= self.options.previousVersion,
-                    fromUI=self.options.fromui,
-                    serviceId=self.options.serviceId,
-                    ignoreServiceInstall=self.options.ignoreServiceInstall)
+                try:
+                    return EggPackCmd.InstallEggAndZenPack(
+                        self.dmd,
+                        self.options.installPackName,
+                        link=self.options.link,
+                        filesOnly=self.options.filesOnly,
+                        previousVersion= self.options.previousVersion,
+                        fromUI=self.options.fromui,
+                        serviceId=self.options.serviceId,
+                        ignoreServiceInstall=self.options.ignoreServiceInstall)
+                except (OSError,) as e:
+                    if self.options.link: 
+                        self.stop('%s cannot be installed with --link option' % self.options.installPackName)
+                    else:
+                        self.stop('%s could not be installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
