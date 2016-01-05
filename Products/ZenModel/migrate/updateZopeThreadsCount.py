@@ -35,12 +35,12 @@ class UpdateZopeThreadsCount(Migrate.Step):
         for zope_service in zope_services:
 
             # Update zope.conf.
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/zope.conf", zope_service.originalConfigs)[0]
-
-            cf.content = re.sub(
-                r'^(\s*zserver-threads\s+1)\s*$',
-                r'\n# Reverted to default value by ZenMigrate\n# \1\n',
-                cf.content, 0, re.MULTILINE)
+            cfs = filter(lambda f: f.name == "/opt/zenoss/etc/zope.conf", zope_service.originalConfigs)
+            for cf in cfs:
+                cf.content = re.sub(
+                    r'^(\s*zserver-threads\s+1)\s*$',
+                    r'\n# Reverted to default value by ZenMigrate\n# \1\n',
+                    cf.content, 0, re.MULTILINE)
 
         # Commit our changes.
         ctx.commit()

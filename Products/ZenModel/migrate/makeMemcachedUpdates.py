@@ -29,35 +29,36 @@ class MakeMemcachedUpdates(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        memcached = filter(lambda s: s.name == "memcached", ctx.services)[0]
-        if not memcached:
+        memcacheds = filter(lambda s: s.name == "memcached", ctx.services)
+        if not memcacheds:
             log.info("Couldn't find memcached service, skipping.")
             return
 
         commit = False
-        answering = filter(lambda hc: hc.name == 'answering', memcached.healthChecks)
-        if answering:
-            answering[0].script = "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
-            commit = True
+        for memcached in memcacheds:
+            answering = filter(lambda hc: hc.name == 'answering', memcached.healthChecks)
+            if answering:
+                answering[0].script = "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
+                commit = True
 
-        # Create /etc/sysconfig/memcached if it doesn't exist
-        esm_content = """\
+            # Create /etc/sysconfig/memcached if it doesn't exist
+            esm_content = """\
 PORT="11211"
 USER="memcached"
 MAXCONN="1024"
 CACHESIZE="{{.RAMCommitment}}"
 OPTIONS=""
-"""
-        e_s_memcached = sm.ConfigFile (
-            name = "/etc/sysconfig/memcached",
-            filename = "/etc/sysconfig/memcached",
-            owner = "zenoss:zenoss",
-            permissions = "0664",
-            content = esm_content,
-        )
-        if '/etc/sysconfig/memcached' not in [cf.name for cf in memcached.originalConfigs]:
-            memcached.originalConfigs.append(e_s_memcached)
-            commit = True
+    """
+            e_s_memcached = sm.ConfigFile (
+                name = "/etc/sysconfig/memcached",
+                filename = "/etc/sysconfig/memcached",
+                owner = "zenoss:zenoss",
+                permissions = "0664",
+                content = esm_content,
+            )
+            if '/etc/sysconfig/memcached' not in [cf.name for cf in memcached.originalConfigs]:
+                memcached.originalConfigs.append(e_s_memcached)
+                commit = True
 
         if commit:
             ctx.commit()
