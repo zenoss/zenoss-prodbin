@@ -33,12 +33,13 @@ class UpdateOpenTSDBConfigs(Migrate.Step):
         tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], tsdbs)
 
         for tsdb in tsdbs:
-            cf = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.originalConfigs)[0]
-            lines = cf.content.split('\n')
-            for i, line in enumerate(lines):
-                if line.startswith("tsd.storage.hbase.zk_quorum"):
-                    lines[i] = line.replace("localhost", "127.0.0.1")
-            cf.content = '\n'.join(lines)
+            cfs = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.originalConfigs)
+            for cf in cfs:
+                lines = cf.content.split('\n')
+                for i, line in enumerate(lines):
+                    if line.startswith("tsd.storage.hbase.zk_quorum"):
+                        lines[i] = line.replace("localhost", "127.0.0.1")
+                cf.content = '\n'.join(lines)
 
         # Commit our changes.
         ctx.commit()
