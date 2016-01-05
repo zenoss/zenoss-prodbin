@@ -242,6 +242,10 @@ class ZenPackCmd(ZenScriptBase):
             if not self.preInstallCheck(eggInstall):
                 self.stop('%s not installed' % self.options.installPackName)
             if eggInstall:
+                if  self.options.link and not os.path.isdir(self.options.installPackName):
+                    self.stop('--link specified but %s is not a directory' % self.options.installPackName)
+                if  not self.options.link and os.path.isdir(self.options.installPackName):
+                    self.stop('zenpack %s is a directory and requires --link option to install' % self.options.installPackName)
                 return EggPackCmd.InstallEggAndZenPack(
                     self.dmd,
                     self.options.installPackName,
