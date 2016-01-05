@@ -35,12 +35,13 @@ class SwitchLoggingLevel(Migrate.Step):
             log.info("Found %i services named 'CentralQuery'; skipping.", len(cqs))
             return
 
-        cqconfig = filter(lambda cf: cf.name == '/opt/zenoss/etc/central-query/configuration.yaml', cqs[0].originalConfigs)
-        cqconfig = cqconfig[0]
-        confyaml = yaml.load(cqconfig.content)
-        confyaml['logging']['level'] = 'WARN'
-        confyaml['logging']['loggers']['org.zenoss'] = 'WARN'
-        cqconfig.content = yaml.dump(confyaml)
+        cqconfigs = filter(lambda cf: cf.name == '/opt/zenoss/etc/central-query/configuration.yaml', cqs[0].originalConfigs)
+        for cqconfig in cqconfigs:
+            confyaml = yaml.load(cqconfig.content)
+            confyaml['logging']['level'] = 'WARN'
+            confyaml['logging']['loggers']['org.zenoss'] = 'WARN'
+            cqconfig.content = yaml.dump(confyaml)
+
         ctx.commit()
 
 SwitchLoggingLevel()

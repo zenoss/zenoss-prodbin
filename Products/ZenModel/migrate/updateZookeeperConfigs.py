@@ -34,12 +34,13 @@ class UpdateZookeeperConfigs(Migrate.Step):
         for zookeeper in zookeepers:
 
             # Update zookeeper.cfg.
-            cf = filter(lambda f: f.name == "/etc/zookeeper.cfg", zookeeper.originalConfigs)[0]
-            if cf.content.find("autopurge.snapRetainCount") < 0:
-                cf.content += "\nautopurge.snapRetainCount=3"
+            cfs = filter(lambda f: f.name == "/etc/zookeeper.cfg", zookeeper.originalConfigs)
+            for cf in cfs:
+                if cf.content.find("autopurge.snapRetainCount") < 0:
+                    cf.content += "\nautopurge.snapRetainCount=3"
 
-            if cf.content.find("autopurge.purgeInterval") < 0:
-                cf.content += "\nautopurge.purgeInterval=1"
+                if cf.content.find("autopurge.purgeInterval") < 0:
+                    cf.content += "\nautopurge.purgeInterval=1"
 
 
         # Commit our changes.

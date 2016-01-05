@@ -36,10 +36,10 @@ class AddZenMailHealthCheck(Migrate.Step):
             interval=10.0,
             script="echo 'QUIT' | nc -w 10 -C 127.0.0.1 50025 | grep -q '^220 '")
 
-        zenmail_service = filter(lambda s: s.name == "zenmail", ctx.services)[0]
-
-        if not filter(lambda c: c.name == 'service_ready', zenmail_service.healthChecks):
-            zenmail_service.healthChecks.append(service_ready_healthcheck)
+        zenmail_services = filter(lambda s: s.name == "zenmail", ctx.services)
+        for zenmail_service in zenmail_services:
+            if not filter(lambda c: c.name == 'service_ready', zenmail_service.healthChecks):
+                zenmail_service.healthChecks.append(service_ready_healthcheck)
 
         # Commit our changes.
         ctx.commit()
