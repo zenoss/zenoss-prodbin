@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2015-12-14 20:45:15.545899
+    Zenoss RelationshipManager export completed on 2016-01-05 20:03:52.818737
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.1.1]" export_date="2015-12-14 20:45:15.545899" zenoss_server="0ee84fad462f" >
+<objects version="[Zenoss, version 5.1.1]" export_date="2016-01-05 20:03:52.818737" zenoss_server="37fd526bfa96" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
