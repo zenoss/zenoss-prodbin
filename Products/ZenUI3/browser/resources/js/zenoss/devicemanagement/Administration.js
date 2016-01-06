@@ -323,6 +323,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     width: 50,
                                     value: 0,
                                     minValue: 0,
+                                    maxValue: 999,
                                     margin: '0 14px 0 0',
                                     allowDecimals: false,
                                     allowBlank: false
