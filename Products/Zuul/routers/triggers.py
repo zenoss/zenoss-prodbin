@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -52,8 +52,9 @@ class TriggersRouter(DirectRouter):
 
     @serviceConnectionError
     def removeTrigger(self, uuid):
+        trigger = self._getFacade().getTrigger(uuid)
         updated_count = self._getFacade().removeTrigger(uuid)
-        audit('UI.Trigger.Remove', uuid)
+        audit('UI.Trigger.Remove', trigger['name'])
         msg = "Trigger removed successfully. {count} {noun} {verb} updated.".format(
             count = updated_count,
             noun = 'notification' if updated_count == 1 else 'notifications',
@@ -162,7 +163,7 @@ class TriggersRouter(DirectRouter):
         facade = self._getFacade()
         triggers, notifications = facade.exportConfiguration(triggerIds, notificationIds)
         msg = "Exported %d triggers and %d notifications" % (
-                 len(triggers), len(notifications)) 
+                 len(triggers), len(notifications))
         audit('UI.TriggerNotification.Export', msg)
         return DirectResponse.succeed(triggers=Zuul.marshal(triggers),
                                       notifications=Zuul.marshal(notifications),
@@ -177,11 +178,10 @@ class TriggersRouter(DirectRouter):
             itcount, incount = facade.importConfiguration(triggers, notifications)
             msg = "Imported %d of %d triggers and %d of %d notifications" % (
                         tcount, itcount, ncount, incount)
-            audit('UI.TriggerNotification.Import', msg) 
+            audit('UI.TriggerNotification.Import', msg)
             return DirectResponse.succeed(msg=msg)
         except Exception as ex:
             audit('UI.TriggerNotification.Import', "Failed to import trigger/notification data")
             log.exception("Unable to import data:\ntriggers=%s\nnotifications=%s",
                           repr(triggers), repr(notifications))
             return DirectResponse.fail(str(ex))
-
