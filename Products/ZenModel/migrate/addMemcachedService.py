@@ -9,6 +9,7 @@
 
 import json
 import logging
+import os
 log = logging.getLogger("zen.migrate")
 
 import Migrate
@@ -41,46 +42,42 @@ class AddMemcachedService(Migrate.Step):
 
 def default_memcached_service():
     return {
-        "CPUCommitment": 0, 
+        "CPUCommitment": 1,
+        "Command": "/bin/memcached -u nobody -v -m {{percentScale .RAMCommitment 0.9 | bytesToMB}}",
         "ConfigFiles": {
             "/etc/sysconfig/memcached": {
-                "Filename": "/etc/sysconfig/memcached", 
-                "Owner": "root:root", 
+                "Filename": "/etc/sysconfig/memcached",
+                "Owner": "root:root",
                 "Permissions": "0644",
-                "Content": 'PORT="11211"\nUSER="memcached"\nMAXCONN="1024"\nCACHESIZE="{{.RAMCommitment}}"\nOPTIONS=""\n',
+                "Content": 'PORT="11211"\nUSER="memcached"\nMAXCONN="1024"\nCACHESIZE="{{.RAMCommitment}}"\nOPTIONS=""\n'
             }
-        }, 
-        "Description": "Free & open source, high-performance, distributed memory object caching system", 
-        "DesiredState": 1, 
+        },
+        "Description": "Free & open source, high-performance, distributed memory object caching system",
         "Endpoints": [
             {
-                "Application": "memcached", 
-                "Name": "memcached", 
-                "PortNumber": 11211, 
-                "Protocol": "tcp", 
+                "Application": "memcached",
+                "Name": "memcached",
+                "PortNumber": 11211,
+                "Protocol": "tcp",
                 "Purpose": "export"
             }
-        ], 
+        ],
         "HealthChecks": {
             "answering": {
-                "Interval": 5, 
+                "Interval": 5.0,
                 "Script": "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
             }
-        }, 
-        "Instances": 1,
-        "InstanceLimits": {
-            "Min": 1,
-            "Max": 0,
-            "Default": 0
         },
-        "Launch": "auto", 
-        "Name": "memcached", 
-        "RAMCommitment": "1G", 
-        "Startup": "/bin/memcached -u nobody -v -m {{percentScale .RAMCommitment 0.9 | bytesToMB}}", 
+        "ImageID": os.environ['SERVICED_SERVICE_IMAGE'],
+        "Instances": {
+            "Min": 1
+        },
+        "Launch": "auto",
+        "Name": "memcached",
+        "RAMCommitment": "1G",
         "Tags": [
-        "daemon"
+            "daemon"
         ]
     }
 
 AddMemcachedService()
-
