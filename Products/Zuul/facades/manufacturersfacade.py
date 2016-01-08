@@ -194,7 +194,7 @@ class ManufacturersFacade(TreeFacade):
         """
         edit the information for a given manufacturer
         """
-        manufacturer = self._getObject("/zport/dmd/Manufacturers/"+params['name'])
+        manufacturer = self._getObject("/zport/dmd/Manufacturers/"+params['oldname'])
         manufacturer.url = params['URL']
         manufacturer.supportNumber = params['phone']
         manufacturer.address1 = params['address1']
@@ -204,7 +204,7 @@ class ManufacturersFacade(TreeFacade):
         manufacturer.zip = params['zip']
         manufacturer.country = params['country']
         manufacturer.regexes = params['regexes']
-        if (manufacturer.title != params['name']):
+        if (manufacturer.id != params['name']):
             manufacturer.rename(params['name'])
 
     def moveProduct(self, moveFrom, moveTarget, ids):
