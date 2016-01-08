@@ -275,11 +275,12 @@ class InterfaceMap(SnmpPlugin):
                       getattr(device, 'zInterfaceMapIgnoreTypes')))
             return None
 
-        dontCollectIntDescriptions = getattr(device, 'zInterfaceMapIgnoreDescriptions', None)
-        if dontCollectIntDescriptions and re.search(dontCollectIntDescriptions, om.description):
-            log.debug( "Interface %s description %s matched the zInterfaceMapIgnoreDescriptions zprop '%s'" % (
-                      om.interfaceName, om.description, getattr(device, 'zInterfaceMapIgnoreDescriptions')))
-            return None
+        if hasattr(om, 'description'):
+            dontCollectIntDescriptions = getattr(device, 'zInterfaceMapIgnoreDescriptions', None)
+            if dontCollectIntDescriptions and re.search(dontCollectIntDescriptions, om.description):
+                log.debug( "Interface %s description %s matched the zInterfaceMapIgnoreDescriptions zprop '%s'",
+                          om.interfaceName, om.description, getattr(device, 'zInterfaceMapIgnoreDescriptions'))
+                return None
 
         # Append _64 to interface type if high-capacity counters are supported
         if hasattr(om, 'hcCounters'):
