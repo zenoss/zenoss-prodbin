@@ -13,20 +13,78 @@ IApplication* control-plane implementations.
 
 import logging
 import os
+import time
+from fnmatch import fnmatch
 from functools import wraps
 from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
 
 from Products.ZenUtils.application import (
-    IApplicationManager, IApplication, IApplicationLog,
-    IApplicationConfiguration, ApplicationState
+    IApplicationManager, IApplication,
+    IApplicationLog, IApplicationConfiguration
 )
 
 from .client import ControlPlaneClient
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
+
+
+def _search(services, params):
+    """
+    Returns a generator which produces ServiceDefinition objects.
+    """
+    if "name" in params:
+        namepat = params["name"]
+        services = (
+            svc for svc in services if fnmatch(svc.name, namepat)
+        )
+    if "tags" in params:
+        tags = set(params["tags"])
+        includes = set(t for t in tags if not t.startswith('-'))
+        excludes = set(t[1:] for t in tags if t.startswith('-'))
+        if includes:
+            services = (
+                svc for svc in services
+                if svc.tags and (set(svc.tags) & includes == includes)
+            )
+        if excludes:
+            services = (
+                svc for svc in services
+                if not svc.tags or excludes.isdisjoint(set(svc.tags))
+            )
+    return services
+
+
+class _Cache(object):
+    """Cache data with Time-To-Live value.
+    """
+
+    def __init__(self, updater, ttl=60):
+        """Initialize an instance of _Cache.
+
+        :param updater: The callable that updates the cache
+        :param ttl: How old the cache may live before updating.
+        """
+        self._updater = updater
+        self._data = None
+        self._ttl = ttl  # seconds
+        self._beginTime = 0
+
+    def update(self, data):
+        self._data = data
+        self._beginTime = time.time()
+
+    def get(self):
+        if not self.__nonzero__():
+            self.update(self._updater())
+        return self._data
+
+    def __nonzero__(self):
+        """Return True if there is cached data.
+        """
+        return (time.time() - self._beginTime) < self._ttl
 
 
 @implementer(IApplicationManager)
@@ -48,6 +106,17 @@ class DeployedAppLookup(object):
         # Cache RunState objects in order to persist state between requests
         #  to support RESTARTING state.
         self._statecache = {}
+        self._services = _Cache(self._updater)
+
+    def _updater(self):
+        tenant_id = self.getTenantId()
+        if tenant_id is None:
+            LOG.error(
+                "ERROR: Could not determine the tenantID from the "
+                "environment"
+            )
+            return tuple()
+        return self._client.queryServices(tenantID=tenant_id)
 
     def getTenantId(self):
         """
@@ -60,16 +129,19 @@ class DeployedAppLookup(object):
         """
         Returns a sequence of IApplication objects.
         """
-        tenant_id = self.getTenantId()
-        if tenant_id is None:
-            LOG.error("ERROR: Could not determine the tenantID from the "
-                      "environment")
+        services = self._services.get()
+        if not services:
             return ()
 
-        # Retrieve services according to name and tags.
-        result = self._client.queryServices(name=name, tags=tags, tenantID=tenant_id)
-        if not result:
-            return ()
+        params = {}
+        if name:
+            params["name"] = name
+        if tags:
+            if isinstance(tags, (str, unicode)):
+                tags = [tags]
+            params["tags"] = tags
+
+        result = _search(services, params)
 
         # If monitorName is specified, filter for services which are
         # parented by the specified monitor.
@@ -78,13 +150,16 @@ class DeployedAppLookup(object):
             # applications.
             tags = set(tags) - set(["daemon"])
             tags.add("-daemon")
-            parents = self._client.queryServices(name=monitorName, tags=list(tags), tenantID=tenant_id)
+            params = {
+                "name": monitorName,
+                "tags": list(tags)
+            }
+            parent = next(_search(services, params), None)
             # If the monitor name wasn't found, return an empty sequence.
-            if not parents:
+            if not parent:
                 return ()
-            parentId = parents[0].id  # Get control-plane service ID
             result = (
-                svc for svc in result if svc.parentId == parentId
+                svc for svc in result if svc.parentId == parent.id
             )
 
         return tuple(self._getApp(service) for service in result)
@@ -94,10 +169,12 @@ class DeployedAppLookup(object):
         Retrieve the IApplication object of the identified application.
         The default argument is returned if the application doesn't exist.
         """
-        service = self._client.getService(id)
+        service = next(
+            (svc for svc in self._services.get() if svc.id == id),
+            None
+        )
         if not service:
             return default
-
         return self._getApp(service)
 
     def _getApp(self, service):
@@ -113,7 +190,9 @@ class DeployedApp(object):
     """
     Control and interact with the deployed app via the control plane.
     """
-    UNKNOWN_STATUS = type('SENTINEL', (object,), {'__nonzero__': lambda x: False})()
+    UNKNOWN_STATUS = type(
+        'SENTINEL', (object,), {'__nonzero__': lambda x: False}
+    )()
 
     def __init__(self, service, client, runstate):
         self._client = client
@@ -198,14 +277,15 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
-        # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
+        # TODO: remove this; instead call 'facade.updateService(id)'
+        # from Products/Zuul/routers/application.py
         self._client.updateService(self._service)
 
     @property
     def configurations(self):
         """
         """
-        return  _DeployedAppConfigList(self._service, self._client)
+        return _DeployedAppConfigList(self._service, self._client)
 
     @configurations.setter
     def configurations(self, configs):
@@ -313,7 +393,7 @@ class _ConfigIterator(Iterator):
     def __init__(self, service, client):
         self._service = service
         self._client = client
-        if not self._service.configFiles is None:
+        if self._service.configFiles is not None:
             self._iter = iter(self._service.configFiles.values())
         else:
             self._iter = iter([])
