@@ -41,7 +41,7 @@ class ValueChangeThreshold(ThresholdClass):
                                       self.dsnames,
                                       eventClass=self.eventClass,
                                       severity=self.severity,
-                                      path = self.getPath())
+                                      definitionId = self.getPath())
         return mmt
 
 InitializeClass(ValueChangeThreshold)
@@ -52,10 +52,10 @@ class ValueChangeThresholdInstance(MetricThresholdInstance):
     Threshold that emits an event when a value changes from its previous value. Does not send clear events.
     """
 
-    def __init__(self, id, context, dpNames, eventClass, severity, path):
+    def __init__(self, id, context, dpNames, eventClass, severity, definitionId):
         MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self._lastValues = {}
-        self.path = path
+        self.definitionId = definitionId
 
     def _checkImpl(self, dataPoint, value):
         dpKey = self._getDpKey(dataPoint)
