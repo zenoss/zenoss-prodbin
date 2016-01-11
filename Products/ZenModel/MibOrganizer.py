@@ -27,6 +27,8 @@ from Organizer import Organizer
 from MibModule import MibModule
 from ZenPackable import ZenPackable
 
+_pathToMIB = '/var/ext/uploadedMIBs'
+
 def manage_addMibOrganizer(context, id, REQUEST = None):
     """make a device class"""
     sc = MibOrganizer(id)
@@ -227,7 +229,7 @@ class MibOrganizer(Organizer, ZenPackable):
         """
         filename = REQUEST.upload.filename
         mibs = REQUEST.upload.read()
-        savedMIBPath = zenPath('/var/ext/uploadedMIBs/%s' % filename)
+        savedMIBPath = zenPath(_pathToMIB, filename)
         atomicWrite(savedMIBPath, mibs, raiseException=True, createDir=True)
 
         # create the job
@@ -235,7 +237,7 @@ class MibOrganizer(Organizer, ZenPackable):
         if not mypath:
             mypath = '/'
         commandArgs = [binPath('zenmib'), 'run', savedMIBPath,
-                '--path=%s' % mypath]
+                '--path=%s' % mypath, '--mibdepsdir=%s' % zenPath(_pathToMIB)]
         return self.dmd.JobManager.addJob(SubprocessJob,
                    description="Load MIB at %s" % mypath,
                    kwargs=dict(cmd=commandArgs))
