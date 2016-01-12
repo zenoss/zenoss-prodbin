@@ -102,6 +102,23 @@ class ControlPlaneClient(object):
         response.close()
         return ServiceJsonDecoder().decode(body)
 
+    def getChangesSince(self, age):
+        """
+        Returns a sequence of ServiceDefinition objects that have changed
+        within the given age.  If there are no changes, and empty sequence
+        is returned.
+
+        :param age: How far back to look, in milliseconds, for changes.
+        """
+        query = {"since": age}
+        response = self._dorequest("/services", query=query)
+        body = ''.join(response.readlines())
+        response.close()
+        decoded = ServiceJsonDecoder().decode(body)
+        if decoded is None:
+            decoded = []
+        return decoded
+
     def updateService(self, service):
         """
         Updates the definition/state of a service.
