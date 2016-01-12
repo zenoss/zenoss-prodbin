@@ -32,7 +32,7 @@ LOG = logging.getLogger("zen.controlplane")
 _TENANT_ID_ENV = "CONTROLPLANE_TENANT_ID"
 
 
-def _getTenantId():
+def getTenantId():
     """Returns the tenant ID from the environment.
     """
     tid = os.environ.get(_TENANT_ID_ENV)
@@ -100,7 +100,7 @@ class _Cache(object):
     def _load(self):
         """Load all the data into the cache.
         """
-        tenant_id = _getTenantId()
+        tenant_id = getTenantId()
         if tenant_id is None:
             self._data = None
             self._lastUpdate = 0
