@@ -13,20 +13,146 @@ IApplication* control-plane implementations.
 
 import logging
 import os
+import time
+from fnmatch import fnmatch
 from functools import wraps
 from Products.ZenUtils.controlplane import getConnectionSettings
 from collections import Sequence, Iterator
 from zope.interface import implementer
 
 from Products.ZenUtils.application import (
-    IApplicationManager, IApplication, IApplicationLog,
-    IApplicationConfiguration, ApplicationState
+    IApplicationManager, IApplication,
+    IApplicationLog, IApplicationConfiguration
 )
 
-from .client import ControlPlaneClient
+from .client import ControlPlaneClient, ControlCenterError
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
+_TENANT_ID_ENV = "CONTROLPLANE_TENANT_ID"
+
+
+def getTenantId():
+    """Returns the tenant ID from the environment.
+    """
+    tid = os.environ.get(_TENANT_ID_ENV)
+    if tid is None:
+        LOG.error(
+            "ERROR: Could not determine the tenantID from the environment"
+        )
+    return tid
+
+
+def _search(services, params):
+    """
+    Returns a generator which produces ServiceDefinition objects.
+    """
+    if "name" in params:
+        namepat = params["name"]
+        services = (
+            svc for svc in services if fnmatch(svc.name, namepat)
+        )
+    if "tags" in params:
+        tags = set(params["tags"])
+        includes = set(t for t in tags if not t.startswith('-'))
+        excludes = set(t[1:] for t in tags if t.startswith('-'))
+        if includes:
+            services = (
+                svc for svc in services
+                if svc.tags and (set(svc.tags) & includes == includes)
+            )
+        if excludes:
+            services = (
+                svc for svc in services
+                if not svc.tags or excludes.isdisjoint(set(svc.tags))
+            )
+    return services
+
+
+# NOTE: This cache is per-Zope instance only.
+# Unfortunately, ControlCenter does _not_ identify deleted services
+# via the 'since' API (the 'getChangesSince' method call on the client).
+# This means that one Zope will have removed the deleted service(s) from
+# its cache, but the other Zopes won't pick up this change until the TTL
+# has expired on their caches and have the services reloaded.  The result
+# is that deleted services may appear and disappear from the service listing
+# if the browser client switches Zope instances during the TTL window.
+#
+# TODO: Update the ControlCenter REST API to support identification of
+# removed services and/or implement this cache using redis or memcached (or
+# something else equivalent) and have it shared among all the Zopes.
+
+class _Cache(object):
+    """Cache for ServiceDefinition objects.
+    """
+
+    def __init__(self, client, ttl=60):
+        """Initialize an instance of _Cache.
+
+        :param client: reference to the ControlCenterClient object.
+        :param ttl: Number of seconds the cache may age before cleared.
+        """
+        self._client = client
+        self._data = None
+        self._lastUpdate = 0
+        self._ttl = ttl
+
+    def _load(self):
+        """Load all the data into the cache.
+        """
+        tenant_id = getTenantId()
+        if tenant_id is None:
+            self._data = None
+            self._lastUpdate = 0
+        else:
+            self._data = self._client.queryServices(tenantID=tenant_id)
+            self._lastUpdate = time.time()
+
+    def _refresh(self):
+        """Update the cache with changes.
+        """
+        since = int((time.time() - self._lastUpdate) * 1000)
+        # No refresh if no time has elapsed since the last update
+        if since == 0:
+            return
+        changes = self._client.getChangesSince(since)
+        if changes:
+            # Changes exist, so refresh the last update time.
+            self._lastUpdate = time.time()
+        for changed_svc in changes:
+            idx = next(
+                (
+                    idx for idx, svc in enumerate(self._data)
+                    if svc.id == changed_svc.id
+                ), None
+            )
+            if idx is not None:
+                # Update existing service in cache
+                self._data[idx] = changed_svc
+            else:
+                # Add the new service to the cache
+                self._data.append(changed_svc)
+
+    def get(self):
+        """Return the cached data.
+        """
+        if not self.__nonzero__():
+            self._load()
+        else:
+            self._refresh()
+        return self._data
+
+    def clear(self):
+        """Clear the cache.
+        """
+        self._data = None
+        self._lastUpdate = 0
+
+    def __nonzero__(self):
+        """Return True if there is cached data.
+        """
+        age = int(time.time() - self._lastUpdate)
+        return age < self._ttl and self._data is not None
 
 
 @implementer(IApplicationManager)
@@ -48,28 +174,25 @@ class DeployedAppLookup(object):
         # Cache RunState objects in order to persist state between requests
         #  to support RESTARTING state.
         self._statecache = {}
-
-    def getTenantId(self):
-        """
-        Returns the tenant ID from the environment.
-        """
-        tenantID_env = "CONTROLPLANE_TENANT_ID"
-        return os.environ.get(tenantID_env)
+        self._servicecache = _Cache(self._client)
 
     def query(self, name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects.
         """
-        tenant_id = self.getTenantId()
-        if tenant_id is None:
-            LOG.error("ERROR: Could not determine the tenantID from the "
-                      "environment")
+        services = self._servicecache.get()
+        if not services:
             return ()
 
-        # Retrieve services according to name and tags.
-        result = self._client.queryServices(name=name, tags=tags, tenantID=tenant_id)
-        if not result:
-            return ()
+        params = {}
+        if name:
+            params["name"] = name
+        if tags:
+            if isinstance(tags, (str, unicode)):
+                tags = [tags]
+            params["tags"] = tags
+
+        result = _search(services, params)
 
         # If monitorName is specified, filter for services which are
         # parented by the specified monitor.
@@ -78,13 +201,16 @@ class DeployedAppLookup(object):
             # applications.
             tags = set(tags) - set(["daemon"])
             tags.add("-daemon")
-            parents = self._client.queryServices(name=monitorName, tags=list(tags), tenantID=tenant_id)
+            params = {
+                "name": monitorName,
+                "tags": list(tags)
+            }
+            parent = next(_search(services, params), None)
             # If the monitor name wasn't found, return an empty sequence.
-            if not parents:
+            if not parent:
                 return ()
-            parentId = parents[0].id  # Get control-plane service ID
             result = (
-                svc for svc in result if svc.parentId == parentId
+                svc for svc in result if svc.parentId == parent.id
             )
 
         return tuple(self._getApp(service) for service in result)
@@ -94,10 +220,12 @@ class DeployedAppLookup(object):
         Retrieve the IApplication object of the identified application.
         The default argument is returned if the application doesn't exist.
         """
-        service = self._client.getService(id)
+        service = next(
+            (svc for svc in self._servicecache.get() if svc.id == id),
+            None
+        )
         if not service:
             return default
-
         return self._getApp(service)
 
     def _getApp(self, service):
@@ -113,7 +241,9 @@ class DeployedApp(object):
     """
     Control and interact with the deployed app via the control plane.
     """
-    UNKNOWN_STATUS = type('SENTINEL', (object,), {'__nonzero__': lambda x: False})()
+    UNKNOWN_STATUS = type(
+        'SENTINEL', (object,), {'__nonzero__': lambda x: False}
+    )()
 
     def __init__(self, service, client, runstate):
         self._client = client
@@ -136,9 +266,15 @@ class DeployedApp(object):
         """
         Retrieves the current running instance of the application.
         """
-        result = self._client.queryServiceStatus(self._service.id)
-        instanceId_0 = [i for i in result.itervalues() if i.instanceId == 0]
-        self._status = instanceId_0[0] if instanceId_0 else None
+        try:
+            result = self._client.queryServiceStatus(self._service.id)
+            self._status = next(
+                (i for i in result.itervalues() if i.instanceId == 0), None
+            )
+        except ControlCenterError as ex:
+            if "No such entity" not in str(ex):
+                LOG.error(ex)
+            self._status = None  # No status on error
         if self._status is None:
             self._runstate.lost()
         else:
@@ -160,6 +296,11 @@ class DeployedApp(object):
     @property
     def description(self):
         return self._service.description
+
+    @description.setter
+    def description(self, desc):
+        self._service.description = desc
+        self._client.updateService(self._service)
 
     @property
     @_initStatus
@@ -198,14 +339,13 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
-        # TODO: remove this; instead call 'facade.updateService(id)' from Products/Zuul/routers/application.py
         self._client.updateService(self._service)
 
     @property
     def configurations(self):
         """
         """
-        return  _DeployedAppConfigList(self._service, self._client)
+        return _DeployedAppConfigList(self._service, self._client)
 
     @configurations.setter
     def configurations(self, configs):
@@ -313,7 +453,7 @@ class _ConfigIterator(Iterator):
     def __init__(self, service, client):
         self._service = service
         self._client = client
-        if not self._service.configFiles is None:
+        if self._service.configFiles is not None:
             self._iter = iter(self._service.configFiles.values())
         else:
             self._iter = iter([])
