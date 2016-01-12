@@ -12,14 +12,16 @@ import functools
 import unittest
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenUtils.controlplane import application
 from Products.ZenUtils.controlplane.application import (
     DeployedApp, DeployedAppConfig, DeployedAppLog, DeployedAppLookup
 )
 
 
-class _TestDeployedAppLookup(DeployedAppLookup):
-    def getTenantId(self):
-        return "abc123"
+def _getTenantId():
+    return "abc123"
+
+application.getTenantId = _getTenantId
 
 
 class _MockClient(object):
