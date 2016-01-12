@@ -18,6 +18,11 @@ class TestMinMaxThreshold(ZenModelBaseTest):
         super(TestMinMaxThreshold, self).afterSetUp()
         device = self.dmd.Devices.createInstance('test-device')
         t = MinMaxThreshold('test')
+
+        # Force acquisition explicitly so that MinMaxThreshold.getPath() doesn't
+        # raise any errors.
+        t = t.__of__(device)
+
         self.threshold = t.createThresholdInstance(device)
 
     def beforeTearDown(self):
