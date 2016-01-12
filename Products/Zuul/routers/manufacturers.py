@@ -51,8 +51,8 @@ class ManufacturersRouter(TreeRouter):
         """
         Edit a product
         """
-        oldData = self.getProductData(params['uid'], params['oldname'])
         facade = self._getFacade()
+        oldData = facade.getProductData(params['uid'], params['oldname'])[0]
         facade.editProduct(params)
 
         audit('UI.Manufacturers.editProduct', params['uid'],
