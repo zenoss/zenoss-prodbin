@@ -383,6 +383,10 @@ class ServiceDefinition(object):
     def description(self):
         return self._data.get("Description")
 
+    @description.setter
+    def description(self, desc):
+        self._data["Description"] = desc
+
     @property
     def tags(self):
         return self._data.get("Tags")

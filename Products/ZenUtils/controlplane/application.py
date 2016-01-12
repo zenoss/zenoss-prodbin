@@ -25,10 +25,22 @@ from Products.ZenUtils.application import (
     IApplicationLog, IApplicationConfiguration
 )
 
-from .client import ControlPlaneClient
+from .client import ControlPlaneClient, ControlCenterError
 from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
+_TENANT_ID_ENV = "CONTROLPLANE_TENANT_ID"
+
+
+def _getTenantId():
+    """Returns the tenant ID from the environment.
+    """
+    tid = os.environ.get(_TENANT_ID_ENV)
+    if tid is None:
+        LOG.error(
+            "ERROR: Could not determine the tenantID from the environment"
+        )
+    return tid
 
 
 def _search(services, params):
@@ -57,34 +69,90 @@ def _search(services, params):
     return services
 
 
+# NOTE: This cache is per-Zope instance only.
+# Unfortunately, ControlCenter does _not_ identify deleted services
+# via the 'since' API (the 'getChangesSince' method call on the client).
+# This means that one Zope will have removed the deleted service(s) from
+# its cache, but the other Zopes won't pick up this change until the TTL
+# has expired on their caches and have the services reloaded.  The result
+# is that deleted services may appear and disappear from the service listing
+# if the browser client switches Zope instances during the TTL window.
+#
+# TODO: Update the ControlCenter REST API to support identification of
+# removed services and/or implement this cache using redis or memcached (or
+# something else equivalent) and have it shared among all the Zopes.
+
 class _Cache(object):
-    """Cache data with Time-To-Live value.
+    """Cache for ServiceDefinition objects.
     """
 
-    def __init__(self, updater, ttl=60):
+    def __init__(self, client, ttl=60):
         """Initialize an instance of _Cache.
 
-        :param updater: The callable that updates the cache
-        :param ttl: How old the cache may live before updating.
+        :param client: reference to the ControlCenterClient object.
+        :param ttl: Number of seconds the cache may age before cleared.
         """
-        self._updater = updater
+        self._client = client
         self._data = None
-        self._ttl = ttl  # seconds
-        self._beginTime = 0
+        self._lastUpdate = 0
+        self._ttl = ttl
 
-    def update(self, data):
-        self._data = data
-        self._beginTime = time.time()
+    def _load(self):
+        """Load all the data into the cache.
+        """
+        tenant_id = _getTenantId()
+        if tenant_id is None:
+            self._data = None
+            self._lastUpdate = 0
+        else:
+            self._data = self._client.queryServices(tenantID=tenant_id)
+            self._lastUpdate = time.time()
+
+    def _refresh(self):
+        """Update the cache with changes.
+        """
+        since = int((time.time() - self._lastUpdate) * 1000)
+        # No refresh if no time has elapsed since the last update
+        if since == 0:
+            return
+        changes = self._client.getChangesSince(since)
+        if changes:
+            # Changes exist, so refresh the last update time.
+            self._lastUpdate = time.time()
+        for changed_svc in changes:
+            idx = next(
+                (
+                    idx for idx, svc in enumerate(self._data)
+                    if svc.id == changed_svc.id
+                ), None
+            )
+            if idx is not None:
+                # Update existing service in cache
+                self._data[idx] = changed_svc
+            else:
+                # Add the new service to the cache
+                self._data.append(changed_svc)
 
     def get(self):
+        """Return the cached data.
+        """
         if not self.__nonzero__():
-            self.update(self._updater())
+            self._load()
+        else:
+            self._refresh()
         return self._data
+
+    def clear(self):
+        """Clear the cache.
+        """
+        self._data = None
+        self._lastUpdate = 0
 
     def __nonzero__(self):
         """Return True if there is cached data.
         """
-        return (time.time() - self._beginTime) < self._ttl
+        age = int(time.time() - self._lastUpdate)
+        return age < self._ttl and self._data is not None
 
 
 @implementer(IApplicationManager)
@@ -106,30 +174,13 @@ class DeployedAppLookup(object):
         # Cache RunState objects in order to persist state between requests
         #  to support RESTARTING state.
         self._statecache = {}
-        self._services = _Cache(self._updater)
-
-    def _updater(self):
-        tenant_id = self.getTenantId()
-        if tenant_id is None:
-            LOG.error(
-                "ERROR: Could not determine the tenantID from the "
-                "environment"
-            )
-            return tuple()
-        return self._client.queryServices(tenantID=tenant_id)
-
-    def getTenantId(self):
-        """
-        Returns the tenant ID from the environment.
-        """
-        tenantID_env = "CONTROLPLANE_TENANT_ID"
-        return os.environ.get(tenantID_env)
+        self._servicecache = _Cache(self._client)
 
     def query(self, name=None, tags=None, monitorName=None):
         """
         Returns a sequence of IApplication objects.
         """
-        services = self._services.get()
+        services = self._servicecache.get()
         if not services:
             return ()
 
@@ -170,7 +221,7 @@ class DeployedAppLookup(object):
         The default argument is returned if the application doesn't exist.
         """
         service = next(
-            (svc for svc in self._services.get() if svc.id == id),
+            (svc for svc in self._servicecache.get() if svc.id == id),
             None
         )
         if not service:
@@ -215,9 +266,15 @@ class DeployedApp(object):
         """
         Retrieves the current running instance of the application.
         """
-        result = self._client.queryServiceStatus(self._service.id)
-        instanceId_0 = [i for i in result.itervalues() if i.instanceId == 0]
-        self._status = instanceId_0[0] if instanceId_0 else None
+        try:
+            result = self._client.queryServiceStatus(self._service.id)
+            self._status = next(
+                (i for i in result.itervalues() if i.instanceId == 0), None
+            )
+        except ControlCenterError as ex:
+            if "No such entity" not in str(ex):
+                LOG.error(ex)
+            self._status = None  # No status on error
         if self._status is None:
             self._runstate.lost()
         else:
@@ -239,6 +296,11 @@ class DeployedApp(object):
     @property
     def description(self):
         return self._service.description
+
+    @description.setter
+    def description(self, desc):
+        self._service.description = desc
+        self._client.updateService(self._service)
 
     @property
     @_initStatus
@@ -277,8 +339,6 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
-        # TODO: remove this; instead call 'facade.updateService(id)'
-        # from Products/Zuul/routers/application.py
         self._client.updateService(self._service)
 
     @property

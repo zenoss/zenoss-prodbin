@@ -65,7 +65,9 @@ class MonitorRouter(TreeRouter):
         """
         facade = self._getFacade()
         try:
-            monitor = IInfo(facade.addMonitor(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+            monitor = IInfo(facade.addMonitor(
+                id, sourceId=sourceId, hubId=hubId, poolId=poolId
+            ))
         except ControlCenterError as e:
             log.error("Control Center error: %s", e.message)
             return DirectResponse.fail(e.message)
