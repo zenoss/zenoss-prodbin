@@ -8,7 +8,7 @@
 ##############################################################################
 
 __doc__ = """
-Switch default logging level to WARN
+Switch default logging level to INFO
 """
 import logging
 log = logging.getLogger("zen.migrate")
@@ -38,8 +38,8 @@ class SwitchLoggingLevel(Migrate.Step):
         cqconfigs = filter(lambda cf: cf.name == '/opt/zenoss/etc/central-query/configuration.yaml', cqs[0].originalConfigs)
         for cqconfig in cqconfigs:
             confyaml = yaml.load(cqconfig.content)
-            confyaml['logging']['level'] = 'WARN'
-            confyaml['logging']['loggers']['org.zenoss'] = 'WARN'
+            confyaml['logging']['level'] = 'INFO'
+            confyaml['logging']['loggers']['org.zenoss'] = 'INFO'
             cqconfig.content = yaml.dump(confyaml)
 
         ctx.commit()
