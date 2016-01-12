@@ -16,6 +16,7 @@ name space.
 """
 
 import re
+import socket
 from persistent.list import PersistentList
 from zope.interface import implements
 from AccessControl import ClassSecurityInfo
