@@ -83,6 +83,7 @@ class ManufacturersFacade(TreeFacade):
             prod.partNumber  = params['partno']
             prod.description = params['description']
             prod.isOS        = isOS
+            prod.name = params['prodname']
             prod.rename(params['prodname'])
             prod.index_object()
 
