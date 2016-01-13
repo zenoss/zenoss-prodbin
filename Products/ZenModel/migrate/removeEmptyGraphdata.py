@@ -24,7 +24,6 @@ class RemoveEmptyGraphData(Migrate.Step):
     version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
-        log.info("Migration: RemoveEmptyGraphData")
 
         try:
             ctx = sm.ServiceContext()

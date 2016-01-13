@@ -23,7 +23,6 @@ class UpdateHBaseForNetcat(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
-        log.info("Migration: UpdateHBaseForNetcat")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:

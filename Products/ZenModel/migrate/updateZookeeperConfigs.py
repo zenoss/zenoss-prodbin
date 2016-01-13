@@ -23,7 +23,6 @@ class UpdateZookeeperConfigs(Migrate.Step):
 
     def cutover(self, dmd):
 
-        log.info("Migration: UpdateZookeeperConfigs")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:

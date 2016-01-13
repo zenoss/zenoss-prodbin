@@ -23,7 +23,6 @@ class UpdateZopeThreadsCount(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
-        log.info("Migration: UpdateZopeThreadsCount")
 
         try:
             ctx = sm.ServiceContext()

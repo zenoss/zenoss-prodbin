@@ -21,7 +21,6 @@ class zenmodelerWorkers(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
-        log.info("Migration: zenmodelerWorkers")
         # Don't apply this migration to core.
         if dmd.getProductName() == "core":
             return
