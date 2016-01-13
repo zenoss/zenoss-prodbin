@@ -32,12 +32,14 @@ class AddCentralQueryGraphConfigs(Migrate.Step):
 
         # Get all Central Query services.
         services = filter(lambda s: s.name == "CentralQuery", ctx.services)
+        log.info("Found %i services named 'CentralQuery'." % len(services))
 
         # Add graph config to monitoring profile
         commit = False
         for service in services:
             gcs = service.monitoringProfile.graphConfigs
             if not filter(lambda x: x.graphID == "queryRate", gcs):
+                log.info("No queryRate graph found; creating.")
                 commit = True
                 gcs.append(
                     GraphConfig(
@@ -67,6 +69,8 @@ class AddCentralQueryGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+            else:
+                log.info("QueryRate graph found; skipping.")
 
         # Commit our changes.
         if commit:

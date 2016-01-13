@@ -29,6 +29,7 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
 
         # Get all services tagged "collector" and "daemon".
         collectorDaemons = filter(lambda s: all(x in s.tags for x in ["collector", "daemon"]), ctx.services)
+        log.info("Found %i services tagged 'collector' or 'daemon'." % len(collectorDaemons))
 
         # Create the endpoint we're importing.
         endpoint = sm.Endpoint(
@@ -46,8 +47,10 @@ class CollectorDaemonsImportZproxy(Migrate.Step):
             # Make sure we're not already importing zproxy.
             zpImports = filter(lambda ep: ep.name == "zproxy" and ep.purpose == "import", daemon.endpoints)
             if len(zpImports) > 0:
+                log.info("Service %s already has a zproxy import endpoint." % daemon.name)
                 continue
 
+            log.info("Adding a zproxy import endpoint to service '%s'." % daemon.name)
             daemon.endpoints.append(endpoint)
 
         # Commit our changes.
