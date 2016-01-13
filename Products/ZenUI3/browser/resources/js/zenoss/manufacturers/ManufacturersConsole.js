@@ -25,6 +25,10 @@ Ext.onReady(function(){
                         items: [
                             {
                                 xtype: 'textfield',
+                                name: 'oldname',
+                                hidden: true
+                            },{
+                                xtype: 'textfield',
                                 name: 'name',
                                 fieldLabel: _t('Manufacturer Name'),
                                 margin: '0 10px 0 0',
@@ -161,6 +165,7 @@ Ext.onReady(function(){
                 for(var i = 0; i < fields.length; i++){
                     var record = fields.items[i];
                     switch(record.name){
+                        case "oldname"  : record.setValue(data.id);  break;
                         case "name"     : record.setValue(name);  break;
                         case "URL"      : record.setValue(data.url);  break;
                         case "phone"    : record.setValue(data.phone);  break;
@@ -176,6 +181,7 @@ Ext.onReady(function(){
             }
             manufacturersDialog.setSubmitHandler(function(e) {
                  var params = {
+                    'oldname'   :e.oldname,
                     'name'      :e.name,
                     'phone'     :e.phone,
                     'URL'       :e.URL,
@@ -189,6 +195,12 @@ Ext.onReady(function(){
                   };
                 REMOTE.editManufacturer({'params':params}, function(response){
                     if(response.success){
+                        var tree = Ext.getCmp('manufacturers_tree');
+                        tree.refresh();
+                        tree.getStore().on('load', function(s){
+                            var node = tree.getRootNode().findChild("uid", "/zport/dmd/Manufacturers/"+e.name, true);
+                            tree.getView().select(node);
+                        }, this, {single:true});
                         Zenoss.message.info(_t(e.name)+' added');
                     }
                 });
