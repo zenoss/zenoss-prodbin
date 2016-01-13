@@ -21,6 +21,7 @@ class UpdateZeneventserverHealthCheck(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
+        log.info("Migration: UpdateZeneventserverHealthCheck")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -28,11 +29,14 @@ class UpdateZeneventserverHealthCheck(Migrate.Step):
             return
 
         zeps = filter(lambda s: s.name == "zeneventserver", ctx.services)
+        log.info("Found %i services named 'zeneventserver'." % len(zeps))
         for zep in zeps:
 
             answering = filter(lambda hc: hc.name == "answering", zep.healthChecks)
+            log.info("Found %i 'answering' healthchecks." % len(answering))
             for a in answering:
                 a.script = "curl -f -s http://localhost:8084/zeneventserver/api/1.0/heartbeats/"
+                log.info("Updated 'answering' healthcheck.")
 
         ctx.commit()
 

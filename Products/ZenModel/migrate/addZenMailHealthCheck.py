@@ -24,6 +24,7 @@ class AddZenMailHealthCheck(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
+        log.info("Migration: AddZenMailHealthCheck")
 
         try:
             ctx = sm.ServiceContext()
@@ -37,9 +38,13 @@ class AddZenMailHealthCheck(Migrate.Step):
             script="echo 'QUIT' | nc -w 10 -C 127.0.0.1 50025 | grep -q '^220 '")
 
         zenmail_services = filter(lambda s: s.name == "zenmail", ctx.services)
+        log.info("Found %i services named 'zenmail'." % len(zenmail_services))
         for zenmail_service in zenmail_services:
             if not filter(lambda c: c.name == 'service_ready', zenmail_service.healthChecks):
+                log.info("Service_ready healthcheck not found; adding.")
                 zenmail_service.healthChecks.append(service_ready_healthcheck)
+            else:
+                log.info("Service_ready healthcheck found; skipping.")
 
         # Commit our changes.
         ctx.commit()

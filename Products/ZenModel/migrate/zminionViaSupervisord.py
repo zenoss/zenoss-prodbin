@@ -21,6 +21,7 @@ class RunZminionViaSupervisord(Migrate.Step):
     version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
+        log.info("Migration: RunZminionViaSupervisord")
 
         try:
             ctx = sm.ServiceContext()
@@ -29,13 +30,18 @@ class RunZminionViaSupervisord(Migrate.Step):
             return
 
         zminion_services = filter(lambda s: s.name == 'zminion', ctx.services)
+        log.info("Found %i services named 'zminion'." % len(zminion_services))
         for zminion in zminion_services:
             zminion.logConfigs = zminion.logConfigs or []
             logfiles = [z.path for z in zminion.logConfigs]
             log_path = "/opt/zenoss/log/zminion.log"
             if log_path not in logfiles:
+                log.info("Updating zminion startup command to use supervisord.")
                 zminion.startup = 'su - zenoss -c "/bin/supervisord -n -c /opt/zenoss/etc/zminion/supervisord.conf"'
+                log.info("Adding supervisord to logConfigs.")
                 zminion.logConfigs.append(sm.LogConfig(path=log_path, logType="zminion"))
+            else:
+                log.info("Service 'zminion' already has an /opt/zenoss/log/zminion.log; skipping.")
 
         # Commit our changes.
         ctx.commit()

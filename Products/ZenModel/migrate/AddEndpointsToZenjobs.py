@@ -24,6 +24,7 @@ class AddEndpointsToZenjobs(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
+        log.info("Migration: AddEndpointsToZenjobs")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -50,6 +51,7 @@ class AddEndpointsToZenjobs(Migrate.Step):
         # Get all zenjobs services (normally only 1)
         log.info("Looking for zenjobs services to migrate")
         services = filter(lambda s: s.name == "zenjobs", ctx.services)
+        log.info("Found %i services named 'zenjobs'." % len(services))
 
         # Add the zep endpoint import if it does not exist
         if not services:

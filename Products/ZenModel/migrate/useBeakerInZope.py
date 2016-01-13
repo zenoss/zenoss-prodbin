@@ -23,6 +23,7 @@ class UseBeakerInZope(Migrate.Step):
     version = Migrate.Version(5, 0, 70)
 
     def cutover(self, dmd):
+        log.info("Migration: UseBeakerInZope")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -49,10 +50,16 @@ class UseBeakerInZope(Migrate.Step):
 
         commit = False
         zopes_and_zauths = filter(lambda s: s.name in ["zope", "zauth", "Zope"], ctx.services)
+        log.info("Found %i services named 'zope', 'zauth', or 'Zope'." % len(zopes_and_zauths))
         for z in zopes_and_zauths:
             for configfile in filter(lambda f: f.name == '/opt/zenoss/etc/zope.conf', z.originalConfigs):
                 if '<product-config beaker>' in configfile.content:
+                    found_at = configfile.content.find('<product-config beaker>')
+                    log.info("Beaker product-config found at character %i; not adding another."
+                             % found_at)
                     continue
+                log.info("Appending beaker product-config to /opt/zenoss/etc/zope.conf for service '%s'."
+                         % z.name)
                 configfile.content += beaker_config_text
                 commit = True
         if commit:

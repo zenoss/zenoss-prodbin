@@ -33,6 +33,7 @@ class FixZopeHealthCheck(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
+        log.info("Migration: FixZopeHealthCheck")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -41,13 +42,17 @@ class FixZopeHealthCheck(Migrate.Step):
 
         # Get all toplevel applications that start with Zenoss or USC-PM
         service = ctx.getTopService()
+        log.info("Found top level service: '%s'" % service.name)
         if service.name.find("Zenoss") != 0 and service.name.find("UCS-PM") != 0:
+            log.info("Top level service name isn't Zenoss or UCS-PM; skipping.")
             return
 
         # Update all of the 'ready' healthchecks
         readyHealthChecks = filter(lambda healthCheck: healthCheck.name == "ready", service.healthChecks)
+        log.info("Found %i 'ready' healthchecks'." % len(readyHealthChecks))
         for readyCheck in readyHealthChecks:
             readyCheck.script = "curl --output /dev/null --silent --write-out \"%{http_code}\" http://localhost:8080/robots.txt | grep 200 >/dev/null"
+            log.info("Updated 'ready' healthcheck.")
 
         ctx.commit()
 

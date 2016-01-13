@@ -23,6 +23,7 @@ class UpdateZookeeperConfigs(Migrate.Step):
 
     def cutover(self, dmd):
 
+        log.info("Migration: UpdateZookeeperConfigs")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -30,17 +31,25 @@ class UpdateZookeeperConfigs(Migrate.Step):
             return
 
         zookeepers = filter(lambda s: s.name == "ZooKeeper", ctx.services)
+        log.info("Found %i services named 'ZooKeeper'" % len(zookeepers))
 
         for zookeeper in zookeepers:
 
             # Update zookeeper.cfg.
             cfs = filter(lambda f: f.name == "/etc/zookeeper.cfg", zookeeper.originalConfigs)
+            log.info("Found %i files named '/etc/zookeeper.cfg' '" % len(cfs))
             for cf in cfs:
                 if cf.content.find("autopurge.snapRetainCount") < 0:
                     cf.content += "\nautopurge.snapRetainCount=3"
+                    log.info("Added autopurge.snapRetainCount=3")
+                else:
+                    log.info("Found previous autopurge.snapRetainCount; not updating.")
 
                 if cf.content.find("autopurge.purgeInterval") < 0:
                     cf.content += "\nautopurge.purgeInterval=1"
+                    log.info("Added autopurge.purgeInterval=1")
+                else:
+                    log.info("Found previous autopurge.purgeInterval; not updating.")
 
 
         # Commit our changes.

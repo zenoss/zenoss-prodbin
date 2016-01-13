@@ -21,6 +21,7 @@ class DualLogChange(Migrate.Step):
     version = Migrate.Version(5,0,70)
 
     def cutover(self, dmd):
+        log.info("Migration: DualLogChange")
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -31,6 +32,7 @@ class DualLogChange(Migrate.Step):
         for svc in ctx.services:
             if svc.startup and svc.startup.find('--duallog') >= 0:
                 svc.startup = svc.startup.replace('--duallog', '--logfileonly')
+                log.info("Changed startup command for service '%s'." % svc.name)
 
         # Commit our changes.
         ctx.commit()
