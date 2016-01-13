@@ -37,6 +37,7 @@ class EnableCommitOnUpgrade(Migrate.Step):
         upgrades = filter(lambda c: c.name == "upgrade", zopes[0].commands)
         for command in upgrades:
             command.commitOnSuccess = True
+            log.info("Set commitOnSuccess=True for 'upgrade'.")
         ctx.commit()
 
 

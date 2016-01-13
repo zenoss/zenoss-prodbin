@@ -50,6 +50,7 @@ class AddEndpointsToZenjobs(Migrate.Step):
         # Get all zenjobs services (normally only 1)
         log.info("Looking for zenjobs services to migrate")
         services = filter(lambda s: s.name == "zenjobs", ctx.services)
+        log.info("Found %i services named 'zenjobs'." % len(services))
 
         # Add the zep endpoint import if it does not exist
         if not services:

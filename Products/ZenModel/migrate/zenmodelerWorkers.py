@@ -33,12 +33,14 @@ class zenmodelerWorkers(Migrate.Step):
 
         # Get all zenmodeler services.
         modelers = filter(lambda s: s.name == "zenmodeler", ctx.services)
+        log.info("Found %i services named 'zenmodeler'." % len(modelers))
 
         # Alter their startup command and instanceLimits.
         for modeler in modelers:
             modeler.startup = "su - zenoss -c \"/opt/zenoss/bin/zenmodeler run -c --logfileonly --workers {{.Instances}} --workerid $CONTROLPLANE_INSTANCE_ID --monitor {{(parent .).Name}} \""
             modeler.instanceLimits.minimum = 1
             modeler.instanceLimits.maximum = None
+            log.info("Updated startupcommand, set instance minimum to 1, and instance maximum to None.")
 
         # Commit our changes.
         ctx.commit()

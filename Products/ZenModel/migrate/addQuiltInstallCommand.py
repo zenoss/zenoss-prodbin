@@ -36,11 +36,15 @@ class AddQuiltInstallCommand(Migrate.Step):
                                         commitOnSuccess=False)
 
         zope_services = filter(lambda s: s.name == "Zope", ctx.services)
+        log.info("Found %i services named 'Zope'." % len(zope_services))
 
         for zope_service in zope_services:
             # Add `install-quilt` if it is not already present
             if not filter(lambda c: c.name == 'install-quilt', zope_service.commands):
+                log.info("Added install-quilt command.")
                 zope_service.commands.append(quilt_install_command)
+            else:
+                log.info("Install-quilt command alread present.")
 
         # Commit our changes.
         ctx.commit()
