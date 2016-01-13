@@ -32,15 +32,22 @@ class RemoveEmptyGraphData(Migrate.Step):
             return
 
         zenmodelers = filter(lambda s: s.name == "zenmodeler", ctx.services)
+        log.info("Found %i services named 'zenmodeler'." % len(zenmodelers))
         remove_metrics = ["dataPoints", "eventCount", "missedRuns", "taskCount"]
         remove_graphs = ["dataPoints", "events", "missedRuns", "tasks"]
         for zenmodeler in zenmodelers:
             for mc in zenmodeler.monitoringProfile.metricConfigs:
+                before = len(mc.metrics)
                 mc.metrics = [m for m in mc.metrics if m.ID not in remove_metrics]
+                after = len(mc.metrics)
+                log.info("Removed %i metrics from zenmodeler." % (before - after))
 
+            before = len(zenmodeler.monitoringProfile.graphConfigs)
             zenmodeler.monitoringProfile.graphConfigs = [
                 gc for gc in zenmodeler.monitoringProfile.graphConfigs
                 if gc.graphID not in remove_graphs]
+            after = len(zenmodeler.monitoringProfile.graphConfigs)
+            log.info("Removed %i graphs from zenmodeler." % (before - after))
 
         # Commit our changes.
         ctx.commit()

@@ -36,10 +36,18 @@ class SwitchLoggingLevel(Migrate.Step):
             return
 
         cqconfigs = filter(lambda cf: cf.name == '/opt/zenoss/etc/central-query/configuration.yaml', cqs[0].originalConfigs)
+        log.info("Found %i configs named '/opt/zenoss/etc/central-query/configuration.yaml'." % len(cqconfigs))
         for cqconfig in cqconfigs:
             confyaml = yaml.load(cqconfig.content)
+
+            old_level = confyaml['logging']['level']
+            log.info("Updating log level to 'WARN' (was '%s')." % old_level)
             confyaml['logging']['level'] = 'WARN'
+
+            old_oz = confyaml['logging']['loggers']['org.zenoss']
             confyaml['logging']['loggers']['org.zenoss'] = 'WARN'
+            log.info("Updating zenoss log level to 'WARN' (was '%s')." % old_oz)
+
             cqconfig.content = yaml.dump(confyaml)
 
         ctx.commit()

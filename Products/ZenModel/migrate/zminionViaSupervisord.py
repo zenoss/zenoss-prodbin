@@ -43,15 +43,20 @@ class RunZminionViaSupervisord(Migrate.Step):
         )
 
         zminion_services = filter(lambda s: s.name == 'zminion', ctx.services)
+        log.info("Found %i services named 'zminion'." % len(zminion_services))
         commit = False
         for zminion in zminion_services:
             zminion.logConfigs = zminion.logConfigs or []
             logfiles = [z.path for z in zminion.logConfigs]
             log_path = "/opt/zenoss/log/zminion.log"
             if log_path not in logfiles:
+                log.info("Updating zminion startup command to use supervisord.")
                 commit = True
                 zminion.startup = 'su - zenoss -c "/bin/supervisord -n -c /opt/zenoss/etc/zminion/supervisord.conf"'
+                log.info("Adding supervisord to logConfigs.")
                 zminion.logConfigs.append(sm.LogConfig(path=log_path, logType="zminion"))
+            else:
+                log.info("Service 'zminion' already has an /opt/zenoss/log/zminion.log; skipping.")
             # Check for existence of log files
             if supvd_config.name not in (cf.name for cf in zminion.originalConfigs):
                 commit = True

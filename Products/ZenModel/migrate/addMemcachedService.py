@@ -33,7 +33,9 @@ class AddMemcachedService(Migrate.Step):
 
         # If the service lacks memcached, add it now.
         memcached = filter(lambda s: s.name == "memcached", ctx.services)
+        log.info("Found %i services named 'memcached'." % len(memcached))
         if not memcached:
+            log.info("No memcached found; creating new service.")
             new_memcached = default_memcached_service()
             infrastructure = ctx.findServices('^[^/]+/Infrastructure$')[0]
             ctx.deployService(json.dumps(new_memcached), infrastructure)

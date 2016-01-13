@@ -30,6 +30,7 @@ class MakeMemcachedUpdates(Migrate.Step):
             return
 
         memcacheds = filter(lambda s: s.name == "memcached", ctx.services)
+        log.info("Found %i services named 'memcached'" % len(memcacheds))
         if not memcacheds:
             log.info("Couldn't find memcached service, skipping.")
             return
@@ -40,6 +41,9 @@ class MakeMemcachedUpdates(Migrate.Step):
             if answering:
                 answering[0].script = "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime"
                 commit = True
+                log.info("Updated 'answering' healthcheck.")
+            else:
+                log.info("Could not find 'answering' healthcheck to update.")
 
             # Create /etc/sysconfig/memcached if it doesn't exist
             esm_content = """\
@@ -58,6 +62,7 @@ OPTIONS=""
             )
             if '/etc/sysconfig/memcached' not in [cf.name for cf in memcached.originalConfigs]:
                 memcached.originalConfigs.append(e_s_memcached)
+                log.info("Added '/etc/sysconfig/memcached'")
                 commit = True
 
         if commit:
