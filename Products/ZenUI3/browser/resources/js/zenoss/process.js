@@ -218,12 +218,11 @@ Ext.define("Zenoss.process.ProcessStore", {
 
 Ext.define("Zenoss.process.ProcessGrid", {
     extend:"Zenoss.FilterGridPanel",
+    alias: ["widget.processgrid"],
     constructor: function(config) {
         Ext.applyIf(config, {
             id: 'navGrid',
-            flex: 3,
-            stateId: 'processNavGridState',
-            stateful: true,
+            scroll: "vertical",
             viewConfig: {
                 plugins: {
                     ptype: 'gridviewdragdrop',
@@ -231,7 +230,6 @@ Ext.define("Zenoss.process.ProcessGrid", {
                 }
             },
             rowSelectorDepth: 5,
-            height: 500,
             store: Ext.create('Zenoss.process.ProcessStore', {}),
             selModel: new Zenoss.ExtraHooksSelectionModel({
                 singleSelect: true,
@@ -254,6 +252,7 @@ Ext.define("Zenoss.process.ProcessGrid", {
                     }
                 }
             }),
+            forceFit: true,
             columns: [ {
                 dataIndex : 'name',
                 header : _t('Process Class Name'),
@@ -263,9 +262,10 @@ Ext.define("Zenoss.process.ProcessGrid", {
                 dataIndex : 'count',
                 header : _t('Set Count'),
                 filter: false,
+                flex: 0,
+                width: 100,
                 id : 'count'
             }]
-
         });
         this.callParent(arguments);
     },
@@ -325,23 +325,30 @@ Ext.define("Zenoss.process.ProcessGrid", {
     }
 });
 
-var tree = new ProcessTreePanel({});
-var treepanel = {
-    xtype: 'panel',
-    layout: 'fit',
-    flex: 1,
-    items: [tree]
-
-};
-
-var grid =  Ext.create('Zenoss.process.ProcessGrid', {});
 var panel = new Ext.Panel({
     layout: {
-        type: 'vbox',
+        type: 'border',
         align: 'stretch'
     },
-
-    items:[treepanel, grid]
+    items:[
+        {
+            xtype: 'panel',
+            split: true,
+            region: "center",
+            flex: 1,
+            autoScroll: true,
+            bodyStyle: {
+                backgroundColor: "#d4e0ee"
+            },
+            items: [new ProcessTreePanel({})]
+        },{
+            xtype: "processgrid",
+            region: "south",
+            flex: 1,
+            split: true,
+            autoScroll: true
+        }
+    ]
 });
 
 
