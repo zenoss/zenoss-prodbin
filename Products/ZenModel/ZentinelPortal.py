@@ -92,22 +92,7 @@ class ZentinelPortal ( PortalObjectBase ):
         search on the list of devices.
         """
         # TODO: Remove. Not used anymore in Zenoss code --Ian
-        zcatalog = self.dmd.Devices.deviceSearch
-        glob = queryString.rstrip('*') + '*'
-        idGlob = MatchGlob('id', glob)
-        titleGlob = MatchGlob('titleOrId', glob)
-        idOrTitleQuery = Or(idGlob,titleGlob)
-        query = Or(idOrTitleQuery, Eq('getDeviceIp', queryString))
-        additionalQuery = self._additionalQuery()
-        if additionalQuery:
-            query = And( query, additionalQuery )
-        brains = zcatalog.evalAdvancedQuery(query)
-        if REQUEST and len(brains) == 1:
-            raise Redirect(urllib.quote(brains[0].getPrimaryId))
-        if additionalQuery:
-            idGlob = And( idGlob, additionalQuery )
-        brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(idGlob)
-        return [ b.getObject() for b in brains ]
+        return []
 
     security.declareProtected(ZEN_COMMON, 'searchComponents')
     @deprecated
@@ -116,23 +101,7 @@ class ZentinelPortal ( PortalObjectBase ):
         Redirect to the component of a device. Hopefully.
         """
         # TODO: Remove. Not used anymore in Zenoss code --Ian
-        catalog = self.dmd.Devices.componentSearch
-        brains = []
-        if device and component:
-            brains = catalog(getParentDeviceName=device)
-        matchingBrains = []
-        if brains:
-            component = prepId(component)
-            for brain in brains:
-                if brain.getPath().split('/')[-1]==component:
-                    if REQUEST:
-                        raise Redirect(urllib.quote(
-                            brain.getPath()+'/viewEvents'))
-                    else:
-                        matchingBrains.append(brain)
-            if REQUEST and len(matchingBrains) == 0:
-                return self.searchDevices(device, REQUEST)
-        return [b.getObject() for b in matchingBrains]
+        return []
 
     security.declareProtected(ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):

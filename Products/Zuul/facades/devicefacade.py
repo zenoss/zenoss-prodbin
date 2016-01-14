@@ -532,6 +532,7 @@ class DeviceFacade(TreeFacade):
             return self._moveDevices(uids, target)
 
     def getDeviceByIpAddress(self, deviceName, collector="localhost", ipAddress=""):
+
         # convert device name to an ip address
         if not ipAddress:
             if isip(deviceName):
@@ -544,10 +545,11 @@ class DeviceFacade(TreeFacade):
                     return self.context.Devices.findDeviceByIdExact(deviceName)
 
         # find a device with the same ip on the same collector
-        query = Eq('getDeviceIp', ipAddress)
-        cat = self.context.Devices.deviceSearch
-        brains = cat.evalAdvancedQuery(query)
-        for brain in brains:
+        cat = IModelCatalogTool(self.context.Devices)
+        query = Eq('text_ipAddress', ipAddress)
+        search_results = cat.search(query=query)
+
+        for brain in search_results.results:
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
