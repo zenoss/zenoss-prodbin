@@ -50,6 +50,7 @@ from Products.ZenUtils.Utils import unused
 
 unused(Globals, DiscoverService, ModelerService, JobPropertiesProxy)
 
+DEFAULT_COMMUNITIES = ['public', 'private']
 
 def _partitionPingResults(results):
     """Groups the results into a 'good' results and 'bad' results and
@@ -285,7 +286,7 @@ class ZenDisc(ZenModeler):
             self.log.debug("Override acquired community strings")
             # Override the device class communities with the ones set on
             # this device, if they exist
-            communities = snmp_conf['zSnmpCommunities']
+            communities = snmp_conf['zSnmpCommunities'] or DEFAULT_COMMUNITIES
             if deviceSnmpCommunities:
                 communities = deviceSnmpCommunities
 
