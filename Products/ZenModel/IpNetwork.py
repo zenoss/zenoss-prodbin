@@ -48,6 +48,7 @@ from Products.ZenWidgets import messaging
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.catalog.indexable import IpNetworkIndexable
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 
@@ -71,7 +72,7 @@ addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 # into class A->B->C network tree
 defaultNetworkTree = (32,)
 
-class IpNetwork(DeviceOrganizer):
+class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     """IpNetwork object"""
 
     isInTree = True
@@ -272,32 +273,25 @@ class IpNetwork(DeviceOrganizer):
 
 
     def _getNet(self, ip):
-        """Recurse down the network tree to find the net of ip.
         """
-
-        # If we can find the IP in the catalog, use it. This is fast.
-        brains = self._search_ip_in_catalog(ip)
-        path = self.getPrimaryUrlPath()
-        for brain in brains:
-            bp = brain.getPath()
-            if bp.startswith(path):
-                try:
-                    return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
-                except KeyError:
-                    pass
-
-
-        # Otherwise we have to traverse the entire network hierarchy.
-        for net in self.children():
-            if net.hasIp(ip):
-                if len(net.children()):
-                    subnet = net._getNet(ip)
-                    if subnet:
-                        return subnet
-                    else:
-                        return net
-                else:
-                    return net
+        Search in the network tree the IpNetwork ip belongs to.
+        return None if the network is not found
+        """
+        net = None
+        cat = IModelCatalogTool(self.getNetworkRoot())
+        decimal_ip = ipToDecimal(ip)
+        query = {}
+        query["firstDecimalIp"] = "[ * TO {0} ]".format(decimal_ip)
+        query["lastDecimalIp"]  = "[ {0} TO * ]".format(decimal_ip)
+        query["objectImplements"] = "Products.ZenModel.IpNetwork.IpNetwork"
+        result = cat.search(query=query)
+        if result.total > 0:
+            # networks found. if more than network is found, return the one
+            # whose lastDecimalIp - firstDecimalIp is the smallest
+            net_brains_tuples = [ ( net_brain, net_brain.lastDecimalIp - net_brain.firstDecimalIp ) for net_brain in result.results ]
+            net_brain_tuple = min(net_brains_tuples, key=lambda x: x[1])
+            net = net_brain_tuple[0].getObject()
+        return net
 
 
     def createIp(self, ip, netmask=24):

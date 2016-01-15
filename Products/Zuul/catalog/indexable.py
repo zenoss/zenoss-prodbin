@@ -1,11 +1,14 @@
 
+import math
+
 from Acquisition import aq_base
 
 from interfaces import IPathReporter
+from ipaddr import IPNetwork
 
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-from Products.ZenUtils.IpUtil import ipToDecimal
+from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType
@@ -110,6 +113,15 @@ from zope.interface import ro
             |   idx_deviceId             |   deviceId              |                 |         |         |
             |   idx_ipAddressAsInt       |   ipAddressAsInt        |                 |         |         |
             |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
+            ----------------------------------------------------------------------------------------------
+
+        IpNetworkIndexable:
+
+            ----------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
+            ----------------------------------------------------------------------------------------------
+            |   idx_firstDecimalIp       |   firstDecimalIp        |                 |         |         |
+            |   idx_lastDecimalIp        |   lastDecimalIp         |                 |         |         |
             ----------------------------------------------------------------------------------------------
 
 
@@ -448,6 +460,23 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
     def idx_ipAddressAsText(self):
         return self.getIpAddress()
+
+
+class IpNetworkIndexable(object):
+
+    """ IpNetwork indexes """
+
+    @indexed(LongFieldType(stored=True), attr_query_name="firstDecimalIp")
+    def idx_firstDecimalIp(self):
+        net = IPNetwork(ipunwrap(self.id))
+        return long(int(net.network))
+
+    @indexed(LongFieldType(stored=True), attr_query_name="lastDecimalIp")
+    def idx_lastDecimalIp(self):
+        net = IPNetwork(ipunwrap(self.id))
+        first_decimal_ip = long(int(net.network))
+        last_decimal_ip = long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask))
+        return last_decimal_ip
 
 
 """ @TODO : Do we need to define this
