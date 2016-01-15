@@ -17,17 +17,6 @@ doUpgrade() {
     unset MIGRATE_INPUTFILE
     unset MIGRATE_OUTPUTFILE
     python /opt/zenoss/bin/service-migrate.py end || return "$?"
-    zengc=$ZENHOME/bin/zenglobalconf
-    dbtype=$(${zengc} -p zodb-db-type)
-    host=$(${zengc} -p zodb-host)
-    port=$(${zengc} -p zodb-port)
-    user=$(${zengc} -p zodb-user)
-    userpass=$(${zengc} -p zodb-password)
-    # TODO: zodb upgrade path
-    /opt/zenoss/bin/zeneventserver-create-db \
-        --dbtype $dbtype --dbhost $host --dbport $port \
-        --dbuser $user --dbpass "${userpass}" \
-        --update_schema_only || return "$?"
     return 0
 }
 
