@@ -27,6 +27,7 @@ from Products.Zuul.utils import CatalogLoggingFilter
 from Products.Zuul.catalog.events import onIndexingEvent
 import Products.ZenModel.ZenPackLoader as ZPL
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_ERROR
+from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 import zenpack as oldzenpack
 import transaction
 import os, sys
@@ -38,6 +39,7 @@ import socket
 import logging
 import zExceptions
 import json
+import pkg_resources
 
 from urlparse import urlparse
 
@@ -490,6 +492,18 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             return zenPack, deferFileDeletion, existing
         else:
             return zenPack, False, True
+
+    info = ReadZenPackInfo(dist)
+    if ('compatZenossVers' in info):
+        vers = info['compatZenossVers']
+        if vers[0] in string.digits:
+            vers = '==' + vers
+        try:
+            req = pkg_resources.Requirement.parse('zenoss%s' % vers)
+        except ValueError:
+            raise ZenPackException("Couldn't parse requirement zenoss%s" % vers)
+        if not req.__contains__(ZENOSS_VERSION):
+            raise ZenPackException("Incompatible Zenoss Version %s, need %s" % (ZENOSS_VERSION, vers))
 
     ZenPack.currentServiceId = serviceId
     zenPack, deferFileDeletion, existing = transactional_actions()
