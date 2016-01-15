@@ -85,6 +85,9 @@ from Products.ZenUtils.Search import (
 )
 
 
+DEVICE_CLASS_PING = '/Ping'
+
+
 def getNetworkRoot(context, performanceMonitor):
     """
     Return the default network root.
@@ -2187,11 +2190,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         
         # If this device is not monitored or has never been modeled, we do not
         # report on its status
-        if not self._snmpLastCollection or not self.monitorDevice():
+        if not self.monitorDevice():
             return None
         
+        if not self._snmpLastCollection:
+            if not self.getDeviceClassName().startswith(DEVICE_CLASS_PING):
+                return None
+
         from Products.ZenEvents.ZenEventClasses import Status_Ping
         if statusclass == Status_Ping:
+            return self._getPingStatus(statusclass)
+
+        return super(Device, self).getStatus(statusclass, **kwargs)
+
+    def _getPingStatus(self, statusclass):
+        if not self.zPingMonitorIgnore and self.getManageIp():
             from Products.Zuul import getFacade
             from Products.ZenEvents.events2.proxy import EventProxy
             from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
@@ -2217,8 +2230,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                  details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
             result = zep.getEventSummaries(0, filter=event_filter, limit=0)
             return int(result['total'])
-
-        return super(Device, self).getStatus(statusclass, **kwargs)
+        else:
+            return None
 
     def ipAddressAsInt(self):
         ip = self.getManageIp()
