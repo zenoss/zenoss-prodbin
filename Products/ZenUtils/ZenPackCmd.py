@@ -362,10 +362,14 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         runExternalZenpack = True
         #if zenpack with same name exists we can't load both modules
         #installing new egg zenpack will be done in a sub process
-        existing = dmd.ZenPackManager.packs._getOb(packName, None)
-        if existing:
-            log.info("Previous ZenPack exists with same name %s" % packName)
-        if filesOnly or not existing:
+        def doesExist():
+            existing = dmd.ZenPackManager.packs._getOb(packName, None)
+            if existing:
+                log.info("Previous ZenPack exists with same name %s" % packName)
+            return existing
+        if filesOnly or not doesExist():
+            if filesOnly:
+                log.info("ZenPack files only install: %s" % packName)
             #running files only or zenpack by same name doesn't already exists
             # so no need to install the zenpack in an external process
             runExternalZenpack = False
