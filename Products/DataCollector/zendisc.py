@@ -284,9 +284,12 @@ class ZenDisc(ZenModeler):
                         securityName=snmp_conf['zSnmpSecurityName']))
         else:
             self.log.debug("Override acquired community strings")
-            # Override the device class communities with the ones set on
-            # this device, if they exist
+            # Use a default set of SNMP community strings if the device
+            # class has none configured.
             communities = snmp_conf['zSnmpCommunities'] or DEFAULT_COMMUNITIES
+
+            # If they exist, use this device's SNMP community strings instead
+            # of the strings from the device class.
             if deviceSnmpCommunities:
                 communities = deviceSnmpCommunities
 
