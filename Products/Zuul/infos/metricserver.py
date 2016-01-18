@@ -9,6 +9,7 @@
 from zope.component import adapts, getMultiAdapter
 from zope.interface import implements
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenModel.OSProcess import OSProcess
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.Zuul.utils import mutateRPN
@@ -59,8 +60,10 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         For the reports we need the context in the title.
         """
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
-        if isinstance(self._context, DeviceComponent):
-            title =  "%s - %s" %(title, self._context.titleOrId())
+        if isinstance(self._context, OSProcess):
+            title = "%s - %s" % (title, self._context.getTitleOrId())
+        elif isinstance(self._context, DeviceComponent):
+            title = "%s - %s" % (title, self._context.titleOrId())
         return "%s - %s" % (self._object.titleOrId(), title)
 
     @property
@@ -156,7 +159,10 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
         if self._multiContext:
-            legend = self._context.titleOrId() + " " + legend
+            title = self._context.titleOrId()
+            if isinstance(self._context, OSProcess):
+                title = self._context.getTitleOrId()
+            legend = title + " " + legend
         return legend
 
     @property
