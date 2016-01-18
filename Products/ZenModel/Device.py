@@ -75,6 +75,7 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.indexable import DeviceIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
@@ -551,6 +552,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         # otherwise it will not appear in the list of components.
         if len(self.componentSearch):
             self.componentSearch()[0].getObject().index_object()
+
+    def getDeviceComponents_from_model_catalog(self, monitored=None, collector=None, type=None):
+        """
+        Return list of all DeviceComponents on this device extracted from model catalog. not used for now
+
+        @type monitored: boolean
+        @type collector: string
+        @type type: string
+        @permission: ZEN_VIEW
+        @rtype: list
+        """
+        query = {"objectImplements": "Products.ZenModel.DeviceComponent.DeviceComponent"}
+        if collector is not None:
+            query['collectors'] = collector
+        if monitored is not None:
+            query['monitored'] = monitored
+        if type is not None:
+            query['meta_type'] = type
+
+        cat = IModelCatalogTool(self)
+        search_results = cat.search(query=query)
+        results = []
+        if search_results.total > 0:
+            results = [ brain.getObject() for brain in search_results.results ]
+        return results
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
