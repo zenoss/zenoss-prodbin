@@ -299,6 +299,8 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
             ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
         notify(IndexingEvent(ipobj))
+        if self.device():
+            notify(IndexingEvent(self.device(), idxs=('path')))
         os = self.os()
         notify(ObjectMovedEvent(self, os, self.id, os, self.id))
         self.dmd.getDmdRoot("ZenLinkManager").add_device_network_to_cache(self.device().getId(), ipobj.network().getPrimaryUrlPath())
