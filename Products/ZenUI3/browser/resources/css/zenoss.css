@@ -420,6 +420,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 }
 
 .status-icon-small {
+  display: inline-block;
   width: 16px;
   height: 14px;
   background: transparent url() no-repeat;
@@ -446,6 +447,8 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 
 
 .status-icon-small-aged, .status-icon-small-cleared, .status-icon-small-closed {
+  display: inline-block;
+  vertical-align: middle;
   width: 16px;
   height: 14px;
   background: transparent url() no-repeat;
@@ -2061,5 +2064,5 @@ span.syntax-text  {
   line-height:20px;
   width:75px;
   float:left;
-  text-align:right; 
+  text-align:right;
 }
