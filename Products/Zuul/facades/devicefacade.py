@@ -154,6 +154,35 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
+    def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
+        """ """
+        model_catalog = IModelCatalogTool(self.context.dmd)
+        query = {}
+        if meta_type:
+            query["meta_type"] = meta_type
+        query["objectImplements"] = "Products.ZenModel.DeviceComponent.DeviceComponent"
+        query["deviceId"] = uid
+        model_query_results = model_catalog.search(query=query)
+        brains = [ brain for brain in model_query_results.results ]
+        return brains
+
+    def _get_component_brains_from_zcatalog(self, uid, meta_type=()):
+        """ """
+        querySet = []
+        if meta_type:
+            querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
+        querySet.append(Generic('getAllPaths', uid))
+        query = And(*querySet)
+        obj = self._getObject(uid)
+        if getattr(aq_base(obj.device()), 'componentSearch', None) is None:
+            obj.device()._create_componentSearch()
+
+        cat = obj.device().componentSearch
+        if 'getAllPaths' not in cat.indexes():
+            obj.device()._createComponentSearchPathIndex()
+        brains = cat.evalAdvancedQuery(query)
+        return brains
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
         reverse = dir=='DESC'
@@ -161,31 +190,11 @@ class DeviceFacade(TreeFacade):
             types = (types,)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
-        """
-        querySet = []
-        if meta_type:
-            querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
-        querySet.append(Generic('getAllPaths', uid))
-        query = And(*querySet)
-        obj = self._getObject(uid)
 
-        cat = obj.device().componentSearch
-        if 'getAllPaths' not in cat.indexes():
-            obj.device()._createComponentSearchPathIndex()
-        brains = cat.evalAdvancedQuery(query)
-        """
-        #--------------------------------------------------------------
-        # Lets use model catalog instead  @TODO remove old code
-        #--------------------------------------------------------------
-        model_catalog = IModelCatalogTool(self.context.dmd)
-        querySet = []
-        if meta_type:
-            querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
-        querySet.append(Generic('path', uid))
-        model_query = And(*querySet)
-        model_query_results = model_catalog.search(query=model_query)
-        brains = [ brain for brain in model_query_results.results ]
-        #--------------------------------------------------------------
+        brains = self._get_component_brains_from_zcatalog(uid, meta_type)
+
+        # @TODO Improve this method. Using solr we can pass start, limit etc
+        # so we dont retrieve all the results and then slice/sort them
 
         # unbrain the results
         comps=map(IInfo, map(unbrain, brains))
@@ -258,22 +267,10 @@ class DeviceFacade(TreeFacade):
                 for key, val in record.iteritems():
                     info.setBulkLoadProperty(key, val)
 
-    def getComponentTree(self, uid):
-        from Products.ZenEvents.EventManagerBase import EventManagerBase
+    def _get_component_types_from_model_catalog(self, uid):
+        """ """
         componentTypes = {}
         uuidMap = {}
-
-        """
-        dev = self._getObject(uid)
-        for brain in dev.componentSearch():
-            uuidMap[brain.getUUID] = brain.meta_type
-            compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
-            compType['count'] += 1
-        """
-
-        #------------------------------------------------------------------------------------------
-        # Let's use model catalog instead      @TODO remove old code
-        #------------------------------------------------------------------------------------------
         model_catalog = IModelCatalogTool(self.context.dmd)
         model_query = Eq('objectImplements', "Products.ZenModel.DeviceComponent.DeviceComponent")
         model_query = And(model_query, Eq("deviceId", uid))
@@ -283,8 +280,23 @@ class DeviceFacade(TreeFacade):
             uuidMap[brain.uuid] = brain.meta_type
             compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
             compType['count'] += 1
+        return (componentTypes, uuidMap)
 
-        #------------------------------------------------------------------------------------------
+    def _get_component_types_from_zcatalog(self, uid):
+        """ """
+        componentTypes = {}
+        uuidMap = {}
+        dev = self._getObject(uid)
+        for brain in dev.componentSearch():
+            uuidMap[brain.getUUID] = brain.meta_type
+            compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
+            compType['count'] += 1
+        return (componentTypes, uuidMap)
+
+    def getComponentTree(self, uid):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+
+        componentTypes, uuidMap = self._get_component_types_from_zcatalog(uid)
 
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
