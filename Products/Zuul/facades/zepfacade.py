@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -65,6 +65,7 @@ class ZepFacade(ZuulFacade):
 
     DEFAULT_SORT_MAP = {
         'eventstate':    { 'field': EventSort.STATUS },
+        'eventstatetext':{ 'field': EventSort.STATUS },
         'severity':      { 'field': EventSort.SEVERITY },
         'firsttime':     { 'field': EventSort.FIRST_SEEN },
         'lasttime':      { 'field': EventSort.LAST_SEEN },
@@ -855,7 +856,7 @@ class ZepFacade(ZuulFacade):
         """
         self.heartbeatClient.deleteHeartbeat(monitor, daemon)
 
-    def create(self, summary, severity, device, component=None, mandatory=True, 
+    def create(self, summary, severity, device, component=None, mandatory=True,
                **kwargs):
         """
         Create an event.

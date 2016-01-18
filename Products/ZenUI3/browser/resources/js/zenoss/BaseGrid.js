@@ -405,8 +405,11 @@
         },
         getSearchValues:function () {
             var values = {},
+                visibleColumns = [],
                 globbing = (this.appendGlob && (Ext.isDefined(globbing) ? globbing : true));
+
             this.eachColumn(function (col) {
+                visibleColumns.push(col.id);
                 var filter = col.filterField, excludeGlobChars = ['*', '"', '?'], query;
                 if (filter && filter.xtype !== 'component') {
                     if (!Ext.isEmpty(filter.getValue())) {
@@ -420,7 +423,18 @@
                     }
                 }
             });
-            values = Ext.applyIf(values, this.defaultFilters);
+
+            // only apply filters for visible columns
+            for(var key in this.defaultFilters){
+                if(Ext.Array.contains(visibleColumns, key)){
+                    values[key] = this.defaultFilters[key];
+                }
+            }
+
+            // always put tags key because aint no column for that
+            values["tags"] = this.defaultFilters["tags"];
+
+            //values = Ext.applyIf(values, this.defaultFilters);
             return values;
         },
 

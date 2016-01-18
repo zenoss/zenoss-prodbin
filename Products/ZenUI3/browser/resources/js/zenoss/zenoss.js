@@ -917,7 +917,14 @@ Zenoss.util.render_severity = function(sev) {
 };
 
 Zenoss.util.render_status = function(stat) {
-    return Zenoss.render.evstatus(stat);
+    return "<div style='text-align: center;'>" +
+        Zenoss.render.evstatus(stat) +
+        "</div>";
+};
+
+Zenoss.util.render_status_text = function(stat) {
+    return Zenoss.render.evstatus(stat) +
+        "<span style='vertical-align: middle; padding-left:5px;'>"+ stat +"</span>";
 };
 
 Zenoss.util.render_linkable = function(name, col, record) {
