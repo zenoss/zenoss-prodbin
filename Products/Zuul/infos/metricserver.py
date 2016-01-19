@@ -9,6 +9,7 @@
 from zope.component import adapts, getMultiAdapter
 from zope.interface import implements
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.ZenModel.OSProcess import OSProcess
 from Products.Zuul.infos import ProxyProperty, HasUuidInfoMixin
 from Products.Zuul.interfaces import template as templateInterfaces, IInfo
 from Products.Zuul.utils import mutateRPN
@@ -340,3 +341,27 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
                 info.setMultiContextRPN(newRPN)
 
 
+class OSProcessMetricServiceGraphDefinition(MetricServiceGraphDefinition):
+    adapts(GraphDefinition, OSProcess)
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    @property
+    def contextTitle(self):
+        return "{graphTitle} - {organizerName}/{deviceTitle} - {componentTitle}".format(
+            graphTitle=self._object.titleOrId(),
+            organizerName=self._context.device().deviceClass().getOrganizerName(),
+            deviceTitle=self._context.device().titleOrId(),
+            componentTitle=self._context.getTitleOrId())
+
+
+class OSProcessDataPointGraphPoint(MetricServiceGraphPoint):
+    adapts(DataPointGraphPoint, OSProcess)
+    implements(templateInterfaces.IMetricServiceGraphPoint)
+
+    @property
+    def legend(self):
+        o = self._object
+        legend = o.talesEval(o.legend, self._context)
+        if self._multiContext:
+            legend = self._context.getTitleOrId() + " " + legend
+        return legend
