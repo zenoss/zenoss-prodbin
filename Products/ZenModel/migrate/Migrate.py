@@ -134,12 +134,14 @@ class Migration(ZenScriptBase):
         import logging.handlers
         maxBytes = self.options.maxLogKiloBytes * 1024
         backupCount = self.options.maxBackupLogs
-        handler = logging.handlers.RotatingFileHandler(
+        file_handler = logging.handlers.RotatingFileHandler(
               logFilename, maxBytes=maxBytes, backupCount=backupCount)
-        handler.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                "%Y-%m-%d %H:%M:%S"))
-        log.addHandler(handler)
+        stdout_handler = logging.StreamHandler(stream=sys.stdout)
+        for handler in file_handler, stdout_handler:
+            handler.setFormatter(logging.Formatter(
+                    "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                    "%Y-%m-%d %H:%M:%S"))
+            log.addHandler(handler)
 
     def message(self, msg):
         log.info(msg)
