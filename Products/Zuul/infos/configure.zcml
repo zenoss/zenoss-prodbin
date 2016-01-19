@@ -64,6 +64,9 @@
     <adapter factory=".metricserver.MetricServiceGraphDefinition"
              provides="..interfaces.IMetricServiceGraphDefinition"
              />
+    <adapter factory=".metricserver.OSProcessMetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
     <adapter factory=".metricserver.MetricServiceGraphPoint"
              provides="..interfaces.IMetricServiceGraphPoint"
              />
@@ -71,6 +74,9 @@
              provides="..interfaces.IMetricServiceGraphPoint"
              />
     <adapter factory=".metricserver.CollectorDataPointGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.OSProcessDataPointGraphPoint"
              provides="..interfaces.IMetricServiceGraphPoint"
              />
     <adapter factory=".template.DataPointInfo"
