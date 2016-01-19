@@ -199,11 +199,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
         return float(value) if value else None
 
-    def titleOrId(self):
+    def getTitleOrId(self):
         if self.osProcessClass():
             return self.osProcessClass().titleOrId()
         return self.title() or self.id
-    
+
     def name(self):
         """
         Return a string that describes the process set
