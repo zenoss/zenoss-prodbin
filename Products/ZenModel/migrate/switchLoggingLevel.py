@@ -8,7 +8,7 @@
 ##############################################################################
 
 __doc__ = """
-Switch default logging level to WARN
+Switch default logging level to INFO
 """
 import logging
 log = logging.getLogger("zen.migrate")
@@ -41,12 +41,12 @@ class SwitchLoggingLevel(Migrate.Step):
             confyaml = yaml.load(cqconfig.content)
 
             old_level = confyaml['logging']['level']
-            log.info("Updating log level to 'WARN' (was '%s')." % old_level)
-            confyaml['logging']['level'] = 'WARN'
+            log.info("Updating log level to 'INFO' (was '%s')." % old_level)
+            confyaml['logging']['level'] = 'INFO'
 
             old_oz = confyaml['logging']['loggers']['org.zenoss']
-            confyaml['logging']['loggers']['org.zenoss'] = 'WARN'
-            log.info("Updating zenoss log level to 'WARN' (was '%s')." % old_oz)
+            confyaml['logging']['loggers']['org.zenoss'] = 'INFO'
+            log.info("Updating zenoss log level to 'INFO' (was '%s')." % old_oz)
 
             cqconfig.content = yaml.dump(confyaml)
 
