@@ -163,7 +163,7 @@ Ext.apply(Zenoss.render, {
         if (!evstatus){
             return '';
         }
-        return '<div class="status-icon-small-'+evstatus.toLowerCase()+'"><'+'/div>';
+        return '<span class="status-icon-small status-icon-small-'+evstatus.toLowerCase()+'"><'+'/span>';
     },
 
     events: function(value, count) {

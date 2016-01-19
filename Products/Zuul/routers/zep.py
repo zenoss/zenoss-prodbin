@@ -484,9 +484,13 @@ class EventsRouter(DirectRouter):
                 if not param_tags:
                     param_tags = ['dne'] # Filter everything (except "does not exist'). An empty tag list would be ignored.
 
+            status_filter = params.get('eventState', [])
+            if params.get('eventStateText', None):
+                status_filter = set().union(status_filter, params.get('eventStateText'))
+
             filter_params = {
                 'severity': params.get('severity'),
-                'status': [i for i in params.get('eventState', [])],
+                'status': status_filter,
                 'event_class': filter(None, [params.get('eventClass')]),
                 'first_seen': params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 'last_seen': params.get('lastTime') and self._timeRange(params.get('lastTime')),
