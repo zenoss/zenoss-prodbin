@@ -321,7 +321,8 @@ class LinkManager(Folder):
         for device_result in devices_search:
             device_id = device_result.id
             # get the the parent location the device belongs to
-            device_location_full_path_tuple = next(ifilter(lambda x: 'Locations' in x, device_result.path))
+            device_location_full_path = next(ifilter(lambda x: 'Locations' in x, device_result.path))
+            device_location_full_path_tuple = device_location_full_path.split('/')
             location_search_key = device_location_full_path_tuple[len(root_location_path_tuple)]
             device_parent_location = locations.get(location_search_key)
             if device_parent_location:
