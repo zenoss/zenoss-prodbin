@@ -27,7 +27,18 @@
             this.control({
                 'wizardadduserview': {
                     validitychange: this.onFormValidityChange,
-                    show: this.onFormShow
+                    show: this.onFormShow,
+                    afterrender: function(form, opts){
+                        form.keyNav = Ext.create("Ext.util.KeyNav", form.el, {
+                            enter: function(){
+                                // only move to next step if form is valid
+                                if(form.isValid()){
+                                    window.globalApp.fireEvent('nextstep');
+                                }
+                            },
+                            scope: this
+                        });
+                    }
                 }
             });
             var app = this.getApplication();
@@ -56,7 +67,6 @@
          * To account for errrors we have to "chain" the methods.
          **/
         onFinish: function() {
-
             this.markWizardAsFinished();
         },
         markWizardAsFinished: function() {
