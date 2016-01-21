@@ -8,7 +8,7 @@ from ipaddr import IPNetwork
 
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap
+from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType
@@ -58,7 +58,7 @@ from zope.interface import ro
             ----------------------------------------------------------------------------------------------
             |  ATTR_NAME                 |    ATTR_QUERY_NAME      |  FIELD NAME     | INDEXED |  STORED |
             ----------------------------------------------------------------------------------------------
-            |   idx_numeric_ipAddress    |   ipAddress             |                 |         |         |
+            |   idx_decimal_ipAddress    |   decimal_ipAddress     |                 |         |         |
             |   idx_text_ipAddress       |   text_ipAddress        |                 |         |         |
             |   idx_productionState      |   productionState       |                 |         |         |
             |   idx_macAddresses         |   macAddresses          |                 |         |         |
@@ -90,7 +90,7 @@ from zope.interface import ro
             |  ATTR_NAME                     |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
             ----------------------------------------------------------------------------------------------
             |  idx_interfaceId               |   interfaceId       |                 |         |         |
-            |  idx_numeric_ipAddress         |   ipAddress         |                 |         |         |
+            |  idx_decimal_ipAddress         |   decimal_ipAddress |                 |         |         |
             |  idx_text_ipAddress            |   text_ipAddress    |                 |         |         |
             |  idx_macAddresses              |   macAddresses      |                 |         |         |
             |  idx_lanId                     |   lanId             |                 |         |         |
@@ -111,7 +111,7 @@ from zope.interface import ro
             |   idx_ipAddressId          |   ipAddressId           |                 |         |         |
             |   idx_networkId            |   networkId             |                 |         |         |
             |   idx_deviceId             |   deviceId              |                 |         |         |
-            |   idx_ipAddressAsInt       |   ipAddressAsInt        |                 |         |         |
+            |   idx_decimal_ipAddress    |   decimal_ipAddress     |                 |         |         |
             |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
             ----------------------------------------------------------------------------------------------
 
@@ -231,11 +231,11 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddress") # Ip address as number
-    def idx_numeric_ipAddress(self):
+    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
-            return ipToDecimal(ip)
+            return str(ipToDecimal(ip))
         else:
             return None
 
@@ -369,11 +369,11 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddress") # Ip address as number
-    def idx_numeric_ipAddress(self):
+    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
-            return ipToDecimal(ip)
+            return str(ipToDecimal(ip))
         else:
             return None
 
@@ -453,9 +453,9 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
 
     """ ipSearch catalog indexes """
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddressAsInt")
-    def idx_ipAddressAsInt(self):
-        return int(self.ipAddressAsInt())
+    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress")
+    def idx_decimal_ipAddress(self):
+        return str(self.ipAddressAsInt())
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
     def idx_ipAddressAsText(self):
@@ -466,16 +466,21 @@ class IpNetworkIndexable(object):
 
     """ IpNetwork indexes """
 
-    @indexed(LongFieldType(stored=True), attr_query_name="firstDecimalIp")
+    @indexed(StringFieldType(stored=True), attr_query_name="firstDecimalIp")
     def idx_firstDecimalIp(self):
-        net = IPNetwork(ipunwrap(self.id))
-        return long(int(net.network))
+        first_decimal_ip = None
+        if isip(self.id):
+            net = IPNetwork(ipunwrap(self.id))
+            first_decimal_ip = str(int(net.network))
+        return first_decimal_ip
 
-    @indexed(LongFieldType(stored=True), attr_query_name="lastDecimalIp")
+    @indexed(StringFieldType(stored=True), attr_query_name="lastDecimalIp")
     def idx_lastDecimalIp(self):
-        net = IPNetwork(ipunwrap(self.id))
-        first_decimal_ip = long(int(net.network))
-        last_decimal_ip = long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask))
+        last_decimal_ip = None
+        if isip(self.id):
+            net = IPNetwork(ipunwrap(self.id))
+            first_decimal_ip = long(int(net.network))
+            last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask)))
         return last_decimal_ip
 
 

@@ -288,7 +288,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         if result.total > 0:
             # networks found. if more than network is found, return the one
             # whose lastDecimalIp - firstDecimalIp is the smallest
-            net_brains_tuples = [ ( net_brain, net_brain.lastDecimalIp - net_brain.firstDecimalIp ) for net_brain in result.results ]
+            net_brains_tuples = [ ( net_brain, long(net_brain.lastDecimalIp) - long(net_brain.firstDecimalIp) ) for net_brain in result.results ]
             net_brain_tuple = min(net_brains_tuples, key=lambda x: x[1])
             net = net_brain_tuple[0].getObject()
         return net

@@ -177,7 +177,7 @@ class TreeFacade(ZuulFacade):
                 else:
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('ipAddress', str(minip), str(maxip)))
+                        qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
