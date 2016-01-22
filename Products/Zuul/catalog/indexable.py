@@ -86,21 +86,20 @@ from zope.interface import ro
 
         IpInterfaceIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                     |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |  idx_interfaceId               |   interfaceId       |                 |         |         |
-            |  idx_decimal_ipAddress         |   decimal_ipAddress |                 |         |         |
-            |  idx_text_ipAddress            |   text_ipAddress    |                 |         |         |
-            |  idx_macAddresses              |   macAddresses      |                 |         |         |
-            |  idx_lanId                     |   lanId             |                 |         |         |
-            |  idx_macaddress                |   macaddress        |                 |         |         |
-            |  idx_component_searchKeywords  |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchKeywords|   searchKeywords    |                 |         |         |
-            |  idx_compoment_searchExcerpt   |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchExcerpt |   searchExcerpt     |                 |         |         |
-            
-            ----------------------------------------------------------------------------------------------
+            --------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                         |  ATTR_QUERY_NAME                |  FIELD NAME     | INDEXED |  STORED |
+            --------------------------------------------------------------------------------------------------------------
+            |  idx_interfaceId                   |   interfaceId                   |                 |         |         |
+            |  idx_iface_decimal_ipAddress       |   iface_decimal_ipAddress       |                 |         |         |
+            |  idx_text_ipAddress                |   text_ipAddress                |                 |         |         |
+            |  idx_macAddresses                  |   macAddresses                  |                 |         |         |
+            |  idx_lanId                         |   lanId                         |                 |         |         |
+            |  idx_macaddress                    |   macaddress                    |                 |         |         |
+            |  idx_component_searchKeywords      |   NOINDEX_TYPE                  | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchKeywords    |   searchKeywords                |                 |         |         |
+            |  idx_compoment_searchExcerpt       |   NOINDEX_TYPE                  | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchExcerpt     |   searchExcerpt                 |                 |         |         |
+            --------------------------------------------------------------------------------------------------------------
 
         IpAddressIndexable:
 
@@ -111,7 +110,7 @@ from zope.interface import ro
             |   idx_ipAddressId          |   ipAddressId           |                 |         |         |
             |   idx_networkId            |   networkId             |                 |         |         |
             |   idx_deviceId             |   deviceId              |                 |         |         |
-            |   idx_decimal_ipAddress    |   decimal_ipAddress     |                 |         |         |
+            |   idx_ip_decimal_ipAddress |   ip_decimal_ipAddress  |                 |         |         |
             |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
             ----------------------------------------------------------------------------------------------
 
@@ -140,6 +139,18 @@ from zope.interface import ro
             |                            |                         |                 |         |         |
             ----------------------------------------------------------------------------------------------
 """
+
+""" Indexed Fields formatters """
+
+def decimal_ipAddress_formatter(value):
+    if value is not None:
+        if not isinstance(value, basestring):
+            value = str(value)
+        return value.zfill(39)
+    else:
+        return value
+
+""" Indexable classes """
 
 class BaseIndexable(object):    # ZenModelRM inherits from this class
     '''
@@ -231,7 +242,7 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress") # Ip address as number
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
     def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
@@ -369,8 +380,8 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress") # Ip address as number
-    def idx_decimal_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="iface_decimal_ipAddress") # Ip address as number
+    def idx_iface_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
             return str(ipToDecimal(ip))
@@ -453,8 +464,8 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
 
     """ ipSearch catalog indexes """
 
-    @indexed(StringFieldType(stored=True), attr_query_name="decimal_ipAddress")
-    def idx_decimal_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="ip_decimal_ipAddress")
+    def idx_ip_decimal_ipAddress(self):
         return str(self.ipAddressAsInt())
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
@@ -466,7 +477,10 @@ class IpNetworkIndexable(object):
 
     """ IpNetwork indexes """
 
-    @indexed(StringFieldType(stored=True), attr_query_name="firstDecimalIp")
+    # largest 128 decimal is 340282366920938463463374607431768211456
+    # we need to fill to 39 chars for range queries to work
+
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="firstDecimalIp")
     def idx_firstDecimalIp(self):
         first_decimal_ip = None
         if isip(self.id):
@@ -474,7 +488,7 @@ class IpNetworkIndexable(object):
             first_decimal_ip = str(int(net.network))
         return first_decimal_ip
 
-    @indexed(StringFieldType(stored=True), attr_query_name="lastDecimalIp")
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="lastDecimalIp")
     def idx_lastDecimalIp(self):
         last_decimal_ip = None
         if isip(self.id):
@@ -490,4 +504,3 @@ class FileSystemIndexable(ComponentIndexable):
     def name(self):
         return self.name()
 """
-
