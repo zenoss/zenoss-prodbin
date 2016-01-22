@@ -10428,6 +10428,7 @@ CORE TRIGGER PAGE STUFF
 
 .commonlivegridinfopanel {
   border: 0 none !important;
+  border-top: solid #EEE 1px !important;
   background: white !important; }
 
 .x-docked.x-panel-default-collapsed {
