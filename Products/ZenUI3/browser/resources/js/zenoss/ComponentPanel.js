@@ -601,15 +601,18 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             fields: config.fields
         });
         config.sortInfo = config.sortInfo || {};
+
+        var store = new ZC.BaseComponentStore({
+            model: modelId,
+            initialSortColumn: config.sortInfo.field || 'name',
+            initialSortDirection: config.sortInfo.direction || 'ASC',
+            directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents
+        });
+        store.buffered = Zenoss.settings.enableInfiniteGridForEvents;
+
         config = Ext.applyIf(config, {
             autoExpandColumn: 'name',
-            bbar: {},
-            store: new ZC.BaseComponentStore({
-                model: modelId,
-                initialSortColumn: config.sortInfo.field || 'name',
-                initialSortDirection: config.sortInfo.direction || 'ASC',
-                directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-            }),
+            store: store,
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',
@@ -760,7 +763,15 @@ Ext.define("Zenoss.component.BaseComponentStore", {
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
-        this.on('guaranteedrange', function(){this.loaded = true;}, this);
+        this.on('guaranteedrange', function(){
+            this.loaded = true;
+        }, this);
+        // paginated grid fires load instead of guaranteedrange
+        this.on('load', function(){
+            if(!this.loaded){
+                this.fireEvent('guaranteedrange', this);
+            }
+        }, this);
     }
 });
 
