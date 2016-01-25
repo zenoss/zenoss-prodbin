@@ -83,7 +83,10 @@ class InterfacePathReporter(DefaultPathReporter):
 
 class IpAddressPathReporter(DefaultPathReporter):
     def getPaths(self):
-        return [ self.context.getPrimaryPath() ]
+        paths = [ ]
+        if self.context.interface(): 
+            paths.append(self.context.interface().getPrimaryPath() + ('ipaddresses',))
+        return paths
 
 
 class ProcessPathReporter(DefaultPathReporter):
