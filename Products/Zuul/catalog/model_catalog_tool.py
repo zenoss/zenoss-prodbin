@@ -136,8 +136,9 @@ class ModelCatalogTool(object):
 
         # Build query for paths
         if paths is not False:   # When paths is False we dont add any path condition
+            context_path = '/'.join(self.context.getPhysicalPath()) + '*'
             if not paths:
-                paths = ('/'.join(self.context.getPhysicalPath()) + '*', )
+                paths = (context_path, )
             elif isinstance(paths, basestring):
                 paths = (paths,)
 
@@ -148,7 +149,8 @@ class ModelCatalogTool(object):
             paths_query = Generic('path', q)
             """
             paths_query = In('path', paths)
-            partial_queries.append(paths_query)
+            uid_path_query = MatchGlob(UID, context_path)   # Add the context uid as filter
+            partial_queries.append( Or(paths_query, uid_path_query) )
 
         # filter based on permissions
         if filterPermissions and allowedRolesAndGroups(self.context):
