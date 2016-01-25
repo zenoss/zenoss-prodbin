@@ -208,6 +208,9 @@ class ZenActionD(ZCmdBase):
         self.parser.add_option('--maintenance-window-cycletime',
             dest='maintenceWindowCycletime', default=60, type="int",
             help="How often to check to see if there are any maintenance windows to execute")
+        self.parser.add_option('--maintenance-window-batch-size',
+            dest='maintenceWindowBatchSize', default=20, type="int",
+            help="How many devices update per one transaction on maintenance windows execution")
 
         self.parser.add_option("--workerid", dest='workerid', type='int', default=None,
                                help="ID of the worker instance.")
