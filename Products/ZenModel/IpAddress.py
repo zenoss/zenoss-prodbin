@@ -275,4 +275,16 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
             ip = ip.partition('/')[0]
         return str(numbip(ip))
 
+    #------------------------------------------
+    #--    ITreeSpanningComponent methods   --
+
+    def get_indexable_peers(self):
+        """  """
+        peers = []
+        if self.device():
+            peers.append(self.device().primaryAq())
+        if self.interface():
+            peers.append(self.interface().primaryAq())
+        return peers
+
 InitializeClass(IpAddress)
