@@ -86,33 +86,33 @@ from zope.interface import ro
 
         IpInterfaceIndexable:
 
-            --------------------------------------------------------------------------------------------------------------
-            |  ATTR_NAME                         |  ATTR_QUERY_NAME                |  FIELD NAME     | INDEXED |  STORED |
-            --------------------------------------------------------------------------------------------------------------
-            |  idx_interfaceId                   |   interfaceId                   |                 |         |         |
-            |  idx_iface_decimal_ipAddress       |   iface_decimal_ipAddress       |                 |         |         |
-            |  idx_text_ipAddress                |   text_ipAddress                |                 |         |         |
-            |  idx_macAddresses                  |   macAddresses                  |                 |         |         |
-            |  idx_lanId                         |   lanId                         |                 |         |         |
-            |  idx_macaddress                    |   macaddress                    |                 |         |         |
-            |  idx_component_searchKeywords      |   NOINDEX_TYPE                  | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchKeywords    |   searchKeywords                |                 |         |         |
-            |  idx_compoment_searchExcerpt       |   NOINDEX_TYPE                  | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchExcerpt     |   searchExcerpt                 |                 |         |         |
-            --------------------------------------------------------------------------------------------------------------
+            -----------------------------------------------------------------------------------------------
+            |  ATTR_NAME                      |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
+            -----------------------------------------------------------------------------------------------
+            |  idx_interfaceId                |   interfaceId       |                 |         |         |
+            |  idx_decimal_ipAddress          |   decimal_ipAddress |                 |         |         |
+            |  idx_text_ipAddress             |   text_ipAddress    |                 |         |         |
+            |  idx_macAddresses               |   macAddresses      |                 |         |         |
+            |  idx_lanId                      |   lanId             |                 |         |         |
+            |  idx_macaddress                 |   macaddress        |                 |         |         |
+            |  idx_component_searchKeywords   |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchKeywords |   searchKeywords    |                 |         |         |
+            |  idx_compoment_searchExcerpt    |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchExcerpt  |   searchExcerpt     |                 |         |         |
+            -----------------------------------------------------------------------------------------------
 
         IpAddressIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |   idx_interfaceId          |   interfaceId           |                 |         |         |
-            |   idx_ipAddressId          |   ipAddressId           |                 |         |         |
-            |   idx_networkId            |   networkId             |                 |         |         |
-            |   idx_deviceId             |   deviceId              |                 |         |         |
-            |   idx_ip_decimal_ipAddress |   ip_decimal_ipAddress  |                 |         |         |
-            |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
-            ----------------------------------------------------------------------------------------------
+            -----------------------------------------------------------------------------------------
+            |  ATTR_NAME               |  ATTR_QUERY_NAME     |  FIELD NAME     | INDEXED |  STORED |
+            -----------------------------------------------------------------------------------------
+            |   idx_interfaceId        |   interfaceId        |                 |         |         |
+            |   idx_ipAddressId        |   ipAddressId        |                 |         |         |
+            |   idx_networkId          |   networkId          |                 |         |         |
+            |   idx_deviceId           |   deviceId           |                 |         |         |
+            |   idx_decimal_ipAddress  |   decimal_ipAddress  |                 |         |         |
+            |   idx_ipAddressAsText    |   ipAddressAsText    |                 |         |         |
+            -----------------------------------------------------------------------------------------
 
         IpNetworkIndexable:
 
@@ -380,8 +380,8 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="iface_decimal_ipAddress") # Ip address as number
-    def idx_iface_decimal_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
             return str(ipToDecimal(ip))
@@ -464,8 +464,8 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
 
     """ ipSearch catalog indexes """
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="ip_decimal_ipAddress")
-    def idx_ip_decimal_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress")
+    def idx_decimal_ipAddress(self):
         return str(self.ipAddressAsInt())
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
