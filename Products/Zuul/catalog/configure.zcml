@@ -82,6 +82,10 @@
         class="Products.ZenModel.OSProcess.OSProcess"/>
 
     <five:implements
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.IpAddress.IpAddress"/>
+
+    <five:implements
         interface=".interfaces.IDeviceOrganizer"
         class="Products.ZenModel.DeviceGroup.DeviceGroup"/>
 
