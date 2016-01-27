@@ -90,15 +90,17 @@ class ZPLObject(ZenPackLoader):
         class AddToPack(ImportRM):
             def endElement(self, name):
                 if name == 'object':
-                    obj = self.objstack[-1]
-                    log.debug('Now adding %s', obj.getPrimaryUrlPath())
-                    try:
-                        obj.buildRelations()
-                        obj.removeRelation('pack')
-                        obj.addRelation('pack', pack)
-                    except Exception:
-                        log.exception("Error adding pack to %s",
-                                      obj.getPrimaryUrlPath())
+                    proxyObj = self.objstack[-1]
+                    if not proxyObj.exists:
+                        obj = proxyObj.object
+                        log.debug('Now adding %s', obj.getPrimaryUrlPath())
+                        try:
+                            obj.buildRelations()
+                            obj.removeRelation('pack')
+                            obj.addRelation('pack', pack)
+                        except Exception:
+                            log.exception("Error adding pack to %s",
+                                          obj.getPrimaryUrlPath())
 
                 ImportRM.endElement(self, name)
         importer = AddToPack(noopts=True, app=app)
