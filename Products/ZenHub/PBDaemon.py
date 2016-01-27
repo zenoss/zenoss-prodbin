@@ -667,8 +667,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         pingInterval = self.options.zhPingInterval
-        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True, pingInterval=pingInterval,
-                                              pingtimeout=pingInterval * 5)
+        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=self.options.pingPerspective,
+                                              pingInterval=pingInterval, pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
@@ -1127,4 +1127,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                default=publisher.defaultMaxOutstandingMetrics,
                                help='Max Number of metrics to allow in redis')
+        self.parser.add_option('--disable-ping-perspective',
+                               dest='pingPerspective',
+                               help="Enable or disable ping perspective",
+                               default=True,
+                               action='store_false')
+
         ZenDaemon.buildOptions(self)
