@@ -48,10 +48,11 @@ class UseBeakerInZope(Migrate.Step):
 """
 
         commit = False
-        zopes_and_zauths = filter(lambda s: s.name in ["zope", "zauth", "Zope"], ctx.services)
-        log.info("Found %i services named 'zope', 'zauth', or 'Zope'." % len(zopes_and_zauths))
+        zopes_and_zauths = filter(lambda s: s.name in ["zope", "zauth", "Zope", "Zauth"], ctx.services)
+        log.info("Found %i services named 'zope', 'zauth', 'Zope', or 'Zauth'." % len(zopes_and_zauths))
         for z in zopes_and_zauths:
-            for configfile in filter(lambda f: f.name == '/opt/zenoss/etc/zope.conf', z.originalConfigs):
+            configfiles = z.originalConfigs + z.configFiles
+            for configfile in filter(lambda f: f.name == '/opt/zenoss/etc/zope.conf', configfiles):
                 if '<product-config beaker>' in configfile.content:
                     found_at = configfile.content.find('<product-config beaker>')
                     log.info("Beaker product-config found at character %i; not adding another."
