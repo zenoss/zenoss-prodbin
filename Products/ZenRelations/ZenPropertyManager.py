@@ -312,7 +312,7 @@ class ZenPropertyManager(object, PropertyManager):
             from Products.ZenWidgets import messaging
 
             if not hasattr(self, value):
-                IMessageSender(self).sendTosendToBrowser(
+                IMessageSender(self).sendToBrowser(
                     'Wrong value in the `Value` field.',
                     'Object has no %s attribute.' % value,
                     priority=messaging.WARNING,
@@ -325,7 +325,7 @@ class ZenPropertyManager(object, PropertyManager):
             select_values = getattr(self, value)
             if not (isinstance(select_values, (list, tuple)) and
                     all(isinstance(v, basestring) for v in select_values)):
-                IMessageSender(self).sendTosendToBrowser(
+                IMessageSender(self).sendToBrowser(
                     'Wrong value in the `Value` field.',
                     'Property in Value field should contain a list of strings.',
                     priority=messaging.WARNING,

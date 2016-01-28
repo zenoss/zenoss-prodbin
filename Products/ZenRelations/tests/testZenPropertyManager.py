@@ -92,7 +92,7 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
                 self.__cls = cls
                 self.__cls._mock_calls = []
 
-            def sendTosendToBrowser(self, *args, **kwargs):
+            def sendToBrowser(self, *args, **kwargs):
                 self.__cls._mock_calls.append((args, kwargs))
 
         from Products.ZenRelations import ZenPropertyManager as property_manager
