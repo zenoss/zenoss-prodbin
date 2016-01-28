@@ -23,6 +23,9 @@ def _getTenantId():
 
 application.getTenantId = _getTenantId
 
+class _TestDeployedAppLookup(DeployedAppLookup):
+    def getTenantId(self):
+        return _getTenantId()
 
 class _MockClient(object):
 
