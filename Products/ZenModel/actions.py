@@ -48,7 +48,7 @@ from Products.ZenUtils import Utils
 from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
-from Products.ZenUtils.ZenTales import talesEval, InvalidTalesException
+from Products.ZenUtils.ZenTales import talEval, InvalidTalesException
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
@@ -100,7 +100,7 @@ def processTalSource(source, **kwargs):
 
     try:
         context = kwargs.get('here')
-        return talesEval(source, context, kwargs)
+        return talEval(source, context, kwargs)
     except CompilerError as ex:
         message = "%s: %s" % (ex, source)
         log.error("%s context = %s data = %s", message, context, kwargs)
