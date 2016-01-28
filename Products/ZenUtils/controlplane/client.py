@@ -15,6 +15,7 @@ import json
 import logging
 import urllib
 import urllib2
+import os
 
 from cookielib import CookieJar
 from urlparse import urlunparse
@@ -23,7 +24,7 @@ from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
                    ServiceStatusJsonDecoder)
 
 
-_DEFAULT_PORT = 443
+_DEFAULT_PORT = os.getenv('SERVICED_UI_PORT', 443)
 _DEFAULT_HOST = "localhost"
 
 
