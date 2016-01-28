@@ -7,8 +7,8 @@
             ZenPacks can no longer be added via the UI. Please use the CLI
 	    to add the zenpack. For example:
             <code>>
-               serviced service run zope zenpack create ZenPacks.awesome.Extension
-            </code>  
+               serviced service run zope zenpack-manager create ZenPacks.awesome.Extension
+            </code>
         </td>
     </tr>
 </table>
