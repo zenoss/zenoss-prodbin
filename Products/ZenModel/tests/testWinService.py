@@ -49,8 +49,7 @@ class TestWinService(ZenModelBaseTest):
     def testGets(self):
         self.assert_(self.wsvc.hostname() == 'testdev')
         self.assert_(self.wsvc.getParentDeviceName() == 'testdev')
-        #self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
-        self.assert_(self.wsvc.getParentDeviceUrl() =='http://nohost/zport/dmd/Devices/devices/testdev')
+        self.assert_(self.wsvc.getParentDeviceUrl() == self.dev.absolute_url_path())
 
 def test_suite():
     from unittest import TestSuite, makeSuite
