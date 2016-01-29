@@ -28,7 +28,6 @@ from Products.BeakerSessionDataManager.sessiondata import addBeakerSessionDataMa
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore.utils import getToolByName
 
-from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.Utils import prepId
 from Products.ZenUtils.deprecated import deprecated

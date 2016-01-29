@@ -41,7 +41,6 @@ from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
-from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenModel.Exceptions import DeviceExistsError
 
 import RRDTemplate
@@ -551,7 +550,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Return generator of components, by meta_type if specified
         """
-        catalog = ICatalogTool(self)
+        catalog = IModelCatalogTool(self)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         monitorq, typeq = None, None
         if monitored:

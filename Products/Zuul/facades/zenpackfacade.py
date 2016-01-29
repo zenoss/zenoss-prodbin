@@ -12,7 +12,7 @@ import logging
 from Products.Zuul.facades import ZuulFacade
 from itertools import ifilter
 from itertools import imap
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.interfaces.info import IInfo
 from Products.Zuul.utils import unbrain
 from Products.ZenModel.ZenPack import ZenPack
@@ -22,8 +22,8 @@ log = logging.getLogger('zen.ZenPackFacade')
 
 class ZenPackFacade(ZuulFacade):
 
-    def getDevelopmentZenPacks(self, uid='/zport/dmd/ZenPackManager'): 
-        catalog = ICatalogTool(self._dmd.unrestrictedTraverse(uid))
+    def getDevelopmentZenPacks(self, uid='/zport/dmd/ZenPackManager'):
+        catalog = IModelCatalogTool(self._dmd.unrestrictedTraverse(uid))
         brains = catalog.search(types=ZenPack)
         zenpacks = imap(unbrain, brains)
         return ifilter(lambda zp: zp.isDevelopment(), zenpacks)

@@ -9,7 +9,8 @@
 
 
 import Migrate
-from Products.Zuul.interfaces.tree import ICatalogTool
+from zope.component import getUtility
+from Products.Zuul.catalog.interfaces import IModelCatalog, IModelCatalogTool
 from Products.Zuul.utils import safe_hasattr as hasattr
 import logging
 log = logging.getLogger('zen.migrate')
@@ -20,13 +21,14 @@ class JobsDelete_4_0(Migrate.Step):
     def cutover(self, dmd):
         jmgr = getattr(dmd, 'JobManager', None)
         if jmgr:
+            model_catalog = getUtility(IModelCatalog).get_client(dmd)
             log.info("Removing old job records")
-            for ob in ICatalogTool(dmd.JobManager).search():
+            for brain in IModelCatalogTool(dmd.JobManager).search():
                 try:
-                    if ob.getPath() != '/zport/dmd/JobManager':
-                        dmd.global_catalog._catalog.uncatalogObject(ob.getPath())
+                    if brain.getPath() != '/zport/dmd/JobManager':
+                        model_catalog.uncatalog_object(brain.getObject())
                 except Exception:
-                    log.warn("Error removing %s", ob.getPath())
+                    log.warn("Error removing %s", brain.getPath())
             log.info("Removing old job relationship")
             if hasattr(jmgr, 'jobs'):
                 jmgr._delOb('jobs')

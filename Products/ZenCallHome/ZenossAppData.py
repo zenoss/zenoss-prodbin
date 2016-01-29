@@ -16,7 +16,7 @@ from Products.Zuul import getFacade
 from itertools import *
 
 import logging
-from Products.Zuul.interfaces.tree import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from zenoss.protocols.services.zep import ZepConnectionError
 from . import IDeviceLink
 
@@ -27,7 +27,7 @@ class ZenossAppData(object):
 
     def callHomeData(self, dmd):
         self.dmd = dmd
-        self._catalog = ICatalogTool(self.dmd)
+        self._catalog = IModelCatalogTool(self.dmd)
         stats = (self.server_key,
                       self.google_key,
                       self.version,
@@ -201,7 +201,7 @@ class ZenossResourceData(object):
 
     def callHomeData(self, dmd):
         self._dmd = dmd
-        self._catalog = ICatalogTool(self._dmd)
+        self._catalog = IModelCatalogTool(self._dmd)
         stats = self._process_devices()
         for key, value in stats.items():
             yield key, value

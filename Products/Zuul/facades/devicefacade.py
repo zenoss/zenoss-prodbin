@@ -22,7 +22,7 @@ from Products.AdvancedQuery import Eq, Or, Generic, And
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
+from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Jobber.jobs import SubprocessJob
 from Products.Zuul.tree import SearchResults
@@ -321,7 +321,7 @@ class DeviceFacade(TreeFacade):
         return result
 
     def getDeviceUids(self, uid):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
 
     def deleteComponents(self, uids):
@@ -877,7 +877,7 @@ class DeviceFacade(TreeFacade):
         This clears the geocode cache by reseting the latlong property of
         all locations.
         """
-        results = ICatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
+        results = IModelCatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
         for brain in results:
             try:
                 brain.getObject().latlong = None

@@ -10,13 +10,13 @@
 import Migrate
 from Products.AdvancedQuery import Eq
 from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 class ProcessCountThreshold(Migrate.Step):
     version = Migrate.Version(4, 2, 4)
 
     def cutover(self, dmd):
-        templates = ICatalogTool(dmd).search("Products.ZenModel.RRDTemplate.RRDTemplate",
+        templates = IModelCatalogTool(dmd).search("Products.ZenModel.RRDTemplate.RRDTemplate",
                                              query=Eq("name", "OSProcess"))
         for t in templates:
             template = t.getObject()

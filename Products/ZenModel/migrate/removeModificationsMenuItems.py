@@ -15,13 +15,13 @@ Remove Modifications menu items.
 $Id:$
 '''
 import Migrate
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 class RemoveModificationsMenuItems(Migrate.Step):
     version = Migrate.Version(4, 2, 0)
 
     def cutover(self, dmd):
-        items = ICatalogTool(dmd).search('Products.ZenModel.ZenMenuItem.ZenMenuItem')
+        items = IModelCatalogTool(dmd).search('Products.ZenModel.ZenMenuItem.ZenMenuItem')
         for brain in items:
             menuitem = brain.getObject()
             action = menuitem.action
