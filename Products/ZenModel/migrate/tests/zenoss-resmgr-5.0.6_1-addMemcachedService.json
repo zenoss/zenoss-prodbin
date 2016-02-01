@@ -6042,7 +6042,7 @@
      "Title": "",
      "Version": "",
      "Context": null,
-     "Startup": "/bin/memcached -u nobody -v -m {{percentScale .RAMCommitment 0.9 | bytesToMB}}",
+     "Command": "/bin/memcached -u nobody -v -m {{percentScale .RAMCommitment 0.9 | bytesToMB}}",
      "Description": "Free \u0026 open source, high-performance, distributed memory object caching system",
      "Tags": [
        "daemon"
@@ -6063,16 +6063,12 @@
          "Content": "PORT=\"11211\"\nUSER=\"memcached\"\nMAXCONN=\"1024\"\nCACHESIZE=\"{{.RAMCommitment}}\"\nOPTIONS=\"\"\n"
        }
      },
-     "Instances": 1,
-     "InstanceLimits": {
-       "Min": 1,
-       "Max": 0,
-       "Default": 0
+     "Instances": {
+        "Min": 1
      },
      "ChangeOptions": null,
      "ImageID": "67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest",
      "PoolID": "default",
-     "DesiredState": 1,
      "HostPolicy": "",
      "Hostname": "",
      "Privileged": false,
@@ -6120,7 +6116,7 @@
      "Runs": null,
      "Commands": null,
      "RAMCommitment": "1G",
-     "CPUCommitment": 0,
+     "CPUCommitment": 1,
      "HealthChecks": {
        "answering": {
          "Script": "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime",
