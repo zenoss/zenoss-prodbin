@@ -1346,7 +1346,7 @@
         setGetFilterParameters: function() {
             var params = Ext.Object.fromQueryString(location.search),
                 cleared = false;
-            Ext.each(["severity", "eventState", "device", "component", "eventClass"], function(param) {
+            Ext.each(["severity", "eventState", "device", "component", "eventClass", "summary"], function(param) {
                 var v = params[param];
                 if (Ext.isDefined(v)) {
                     if (!cleared) {
