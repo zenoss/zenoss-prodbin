@@ -114,7 +114,7 @@ var deviceColumns = [
         dataIndex: 'systems',
         width: 100,
         hidden: true,
-        sortable: false,
+        sortable: true,
         header: _t('Systems'),
         renderer: function(systems) {
             var links = [];
@@ -129,7 +129,7 @@ var deviceColumns = [
         dataIndex: 'groups',
         width: 100,
         hidden: true,
-        sortable: false,
+        sortable: true,
         header: _t('Groups'),
         renderer: function(groups) {
             var links = [];
@@ -155,7 +155,7 @@ var deviceColumns = [
         }
     },{
         id: 'worstevents',
-        sortable: false,
+        sortable: true,
         filter: false,
         width: 75,
         dataIndex: 'events',
