@@ -14,6 +14,7 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products import Zuul
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils import Time
 
 class DeviceManagementRouter(DirectRouter): 
     """
@@ -41,6 +42,12 @@ class DeviceManagementRouter(DirectRouter):
         facade = self._getFacade()
         data = facade.deleteMaintWindow(uid, id)
         return DirectResponse.succeed(data=Zuul.marshal(data))           
+
+    def getTimeZone(self):
+        """
+        Returns local timezone.
+        """
+        return DirectResponse(data=Time.getLocalTimezone())
 
     @serviceConnectionError
     def getMaintWindows(self, uid, params=None):
