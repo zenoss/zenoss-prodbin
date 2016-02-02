@@ -11,7 +11,7 @@
 
 Ext.ns('Zenoss', 'Zenoss.devicemanagement');
 
-    timeZone = "";
+    var timeZone = "";
 
     Zenoss.devicemanagement = {
         createTooltip: function(text, overtext){
@@ -259,7 +259,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     items: [
                                         {
                                             xtype: 'label',
-                                            text: Ext.String.format(_t('Time ({0})'), tz),
+                                            text: Ext.String.format(_t('Time ({0})'), timeZone),
                                             margin: labelmargin
                                         },{
                                             xtype: 'numberfield',
@@ -1016,9 +1016,9 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             maintDialog(this, data);
         },
         beforeRender: function() {
-            Zenoss.remote.DeviceManagementRouter.getTz({}, function(response){
+            Zenoss.remote.DeviceManagementRouter.getTimeZone({}, function(response){
                 if(response.success){
-                    tz = response.data;
+                    timeZone = response.data;
                 }
             });
         }
