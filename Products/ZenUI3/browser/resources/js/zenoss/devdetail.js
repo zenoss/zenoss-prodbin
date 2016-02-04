@@ -50,20 +50,21 @@ var REMOTE = Zenoss.remote.DeviceRouter,
                 }
             }
         },
-        action: function(node, target) {
-            var child = node.store.node.firstChild;
-            if (!child) {
-                node.store.node.on('append', function(tree,me,n){
-                    selectOnRender(n, tree.getSelectionModel());
-                }, node, {single:true});
-            } else {
-                if((typeof target.treepanel) !== "undefined"){
-                    selectOnRender(child, target.treepanel.getSelectionModel());
-                }else if((typeof target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel) !== "undefined"){
-                    selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
+        action: function (node, target) {
+            if (node.store && node.store.node) {
+                var child = node.store.node.firstChild;
+                if (!child) {
+                    node.store.node.on('append', function (tree, me, n) {
+                        selectOnRender(n, tree.getSelectionModel());
+                    }, node, { single: true });
+                } else {
+                    if (target.treepanel) {
+                        selectOnRender(child, target.treepanel.getSelectionModel());
+                    } else if (target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel) {
+                        selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
+                    }
                 }
             }
-
         }
     };
 
