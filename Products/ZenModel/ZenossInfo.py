@@ -163,7 +163,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         version = Version('ControlCenter')
         if os.path.exists('/serviced/serviced'):
             try:
-                output = subprocess.check_output(['sudo', '/serviced/serviced', 'version'])
+                # Note the port given below is not used when getting the version, but overrides the
+                # SERVICED_UI_PORT env variable that can cause it to fail cli parameter validation.
+                output = subprocess.check_output(['/serviced/serviced', '--uiport', ':1', 'version'])
                 for line in output.split('\n'):
                     splitLine = line.split()
                     if splitLine[0] == 'Version:':
