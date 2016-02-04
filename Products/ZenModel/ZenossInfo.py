@@ -163,7 +163,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         version = Version('ControlCenter')
         if os.path.exists('/serviced/serviced'):
             try:
-                output = subprocess.check_output(['/serviced/serviced', 'version'])
+                output = subprocess.check_output(['sudo', '/serviced/serviced', 'version'])
                 for line in output.split('\n'):
                     splitLine = line.split()
                     if splitLine[0] == 'Version:':
