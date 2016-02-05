@@ -113,7 +113,8 @@ class ServiceMigrationTestCase(object):
         else:
             dmd = FakeDmd()
         with mock.patch(sm_context, new=lambda: context):
-            getattr(migration, self.migration_class_name)().cutover(dmd)
+            with mock.patch.dict('os.environ', {'SERVICED_SERVICE_IMAGE': '67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest'}):
+                getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath = compare(actual, expected)
