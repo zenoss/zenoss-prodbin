@@ -190,6 +190,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                    'ds': self,
                    'datasource': self,
                    'here' : context,
+                   'context': context,
                    'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
