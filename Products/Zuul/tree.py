@@ -17,6 +17,7 @@ from BTrees.OOBTree import OOBTree
 from BTrees.IIBTree import IIBTree
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp
 from Products.ZCatalog.interfaces import ICatalogBrain
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.interfaces import ITreeNode, ICatalogTool, IInfo
 from Products.Zuul.utils import dottedname, unbrain, allowedRolesAndGroups
 from Products.Zuul.utils import UncataloguedObjectException, PathIndexCache
@@ -42,7 +43,7 @@ class TreeNode(object):
         if getattr(self._root, '_ob_cache', None) is None:
             self._root._ob_cache = {}
         if not ICatalogBrain.providedBy(ob):
-            brain = ICatalogTool(ob).getBrain(ob)
+            brain = IModelCatalogTool(ob).getBrain(ob)
             if brain is None:
                 raise UncataloguedObjectException(ob)
             # We already have the object - cache it here so _get_object doesn't
