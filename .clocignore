@@ -1,2 +1,6 @@
 Products/ZenUI3/browser/resources/js/dagre
+Products/ZenUI3/browser/resources/js/codemirror
 Products/ZenUI3/browser/resources/css/dagre
+Products/ZenUtils/js/MochiKit.js
+Products/ZenWidgets/skins/zenui/yui
+Products/ZenWidgets/skins/zenui/yowl
