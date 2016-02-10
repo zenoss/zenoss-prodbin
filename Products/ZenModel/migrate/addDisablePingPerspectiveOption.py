@@ -36,7 +36,6 @@ class AddDisablePingPerspectiveOption(Migrate.Step):
                         "zenprocess",
                         "zenperfsnmp",
                         "zensyslog",
-                        "zendisc",
                         "zenpop3",
                         "zenstatus",
                         "zenmail"]
