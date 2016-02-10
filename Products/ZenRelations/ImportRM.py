@@ -42,7 +42,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
 
-
 class ImportRM(ZCmdBase, ContentHandler):
     """
     Wrapper module to interface between Zope and the Python SAX XML library.
@@ -100,7 +99,7 @@ for a ZenPack.
         @return:
         @rtype: object
         """
-        return self.objstack[-1]
+        return self.objstack[-1].object
 
     def cleanattrs(self, attrs):
         """
@@ -152,7 +151,14 @@ for a ZenPack.
                                 (ipAddress, self._locator.getLineNumber())
                     raise Exception(msg)
 
-            obj = self.createObject(attrs)
+            exists = False
+            obj = self._getObj(attrs.get('id'))
+            if not obj:
+                obj = self.createObject(attrs)
+            else:
+                exists = True
+                self.log.debug('Object %s already exists -- skipping', attrs.get('id'))
+
             if obj is None:
                 formattedAttrs = ''
                 for key, value in attrs.items():
@@ -164,7 +170,7 @@ for a ZenPack.
                     'reIndex') and not self.rootpath:
                 self.rootpath = obj.getPrimaryId()
 
-            self.objstack.append(obj)
+            self.objstack.append(CreationProxy(obj, exists))
 
         elif name == 'tomanycont' or name == 'tomany':
             nextobj = self.context()._getOb(attrs['id'], None)
@@ -172,7 +178,7 @@ for a ZenPack.
                 self.skipobj = 1
                 return
             else:
-                self.objstack.append(nextobj)
+                self.objstack.append(CreationProxy(nextobj))
         elif name == 'toone':
             relname = attrs.get('id')
             self.log.debug('toone %s, on object %s', relname,
@@ -207,7 +213,7 @@ for a ZenPack.
         noIncrementalCommit = self.options.noCommit or self.options.chunk_size==0
 
         if name in ('object', 'tomany', 'tomanycont'):
-            obj = self.objstack.pop()
+            obj = self.objstack.pop().object
             notify(IndexingEvent(obj))
             if hasattr(aq_base(obj), 'index_object'):
                obj.index_object()
@@ -266,56 +272,43 @@ for a ZenPack.
         @return: newly created object
         @rtype: object
         """
-        # Does the object exist already?
-        id = attrs.get('id')
         obj = None
-        try:
-            if id.startswith('/'):
-                obj = getObjByPath2(self.app, id)
-            else:
-                obj = self.context()._getOb(id)
-        except (KeyError, AttributeError, NotFound):
-            pass
-
-        if obj is None:
-            klass = importClass(attrs.get('module'), attrs.get('class'))
-            if id.find('/') > -1:
-                (contextpath, id) = os.path.split(id)
-                try:
-                    pathobj = getObjByPath(self.context(), contextpath)
-                except (KeyError, AttributeError, NotFound):
-                    self.log.warn( "Unable to find context path %s (line %s ?) for %s" % (
-                        contextpath, self._locator.getLineNumber(), id ))
-                    if not self.options.noCommit:
-                        self.log.warn( "Not committing any changes" )
-                        self.options.noCommit = True
-                    return None
-                self.objstack.append(pathobj)
-            self.log.debug('Building instance %s of class %s',id,klass.__name__)
+        id = attrs.get('id')
+        klass = importClass(attrs.get('module'), attrs.get('class'))
+        if id.find('/') > -1:
+            (contextpath, id) = os.path.split(id)
             try:
-                if klass.__name__ == 'AdministrativeRole':
-                    user = [x for x in self.dmd.ZenUsers.objectValues() if x.id == id]
-                    if user:
-                        obj = klass(user[0], self.context().device())
-                    else:
-                        msg = "No AdminRole user %s exists (line %s)" % (
-                                       id, self._locator.getLineNumber())
-                        self.log.error(msg)
-                        raise Exception(msg)
+                pathobj = getObjByPath(self.context(), contextpath)
+            except (KeyError, AttributeError, NotFound):
+                self.log.warn( "Unable to find context path %s (line %s ?) for %s" % (
+                    contextpath, self._locator.getLineNumber(), id ))
+                if not self.options.noCommit:
+                    self.log.warn( "Not committing any changes" )
+                    self.options.noCommit = True
+                return None
+            self.objstack.append(CreationProxy(pathobj))
+        self.log.debug('Building instance %s of class %s',id,klass.__name__)
+        try:
+            if klass.__name__ == 'AdministrativeRole':
+                user = [x for x in self.dmd.ZenUsers.objectValues() if x.id == id]
+                if user:
+                    obj = klass(user[0], self.context().device())
                 else:
-                    obj = klass(id)
-            except TypeError, ex:
-                # This happens when the constructor expects more arguments
-                self.log.exception("Unable to build %s instance of class %s (line %s)",
-                                   id, klass.__name__, self._locator.getLineNumber())
-                raise
-            self.context()._setObject(obj.id, obj)
-            obj = self.context()._getOb(obj.id)
-            self.objectnumber += 1
-            self.log.debug('Added object %s to database'
-                            % obj.getPrimaryId())
-        else:
-            self.log.debug('Object %s already exists -- skipping' % id)
+                    msg = "No AdminRole user %s exists (line %s)" % (
+                                   id, self._locator.getLineNumber())
+                    self.log.error(msg)
+                    raise Exception(msg)
+            else:
+                obj = klass(id)
+        except TypeError, ex:
+            # This happens when the constructor expects more arguments
+            self.log.exception("Unable to build %s instance of class %s (line %s)",
+                               id, klass.__name__, self._locator.getLineNumber())
+            raise
+        self.context()._setObject(obj.id, obj)
+        obj = self.context()._getOb(obj.id)
+        self.objectnumber += 1
+        self.log.debug('Added object %s to database', obj.getPrimaryId())
         return obj
 
     def setZendoc(self, obj, value):
@@ -463,7 +456,7 @@ for a ZenPack.
         @param xmlfile: Name of XML file to load, or file-like object
         @type xmlfile: string or file-like object
         """
-        self.objstack = [self.app]
+        self.objstack = [CreationProxy(self.app)]
         self.links = []
         self.objectnumber = 0
         self.charvalue = ''
@@ -504,6 +497,46 @@ for a ZenPack.
         if hasattr(self, 'connection'):
             # It's safe to call syncdb()
             self.syncdb()
+
+    def _getObj(self, id):
+        """
+        Find and return the object by its id.
+
+        @param id: id of the object
+        @type id: string
+        """
+        obj = None
+        try:
+            if id.startswith('/'):
+                obj = getObjByPath2(self.app, id)
+            else:
+                obj = self.context()._getOb(id)
+        except (KeyError, AttributeError, NotFound):
+            pass
+        return obj
+
+
+class CreationProxy(object):
+    """
+    CreationProxy
+    """
+
+    def __init__(self, obj, exists=False):
+        self._obj = obj
+        self._exists = exists
+
+    @property
+    def object(self):
+        return self._obj
+
+    @property
+    def exists(self):
+        return self._exists
+
+    @exists.setter
+    def exists(self, val):
+        self._exists = val
+
 
 class SpoofedOptions(object):
     """
