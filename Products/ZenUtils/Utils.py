@@ -36,6 +36,7 @@ import contextlib
 import string
 import xmlrpclib
 import httplib
+import shlex
 from decimal import Decimal
 import asyncore
 import copy
@@ -1376,7 +1377,7 @@ def executeStreamCommand(cmd, writefunc, timeout=30):
     @param timeout: maxium number of seconds to wait for the command to execute
     @type timeout: number
     """
-    child = popen2.Popen4(cmd)
+    child = popen2.Popen4(shlex.split(cmd))
     flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
     fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
     pollPeriod = 1
