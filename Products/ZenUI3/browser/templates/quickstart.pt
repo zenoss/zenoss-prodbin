@@ -55,7 +55,7 @@
            <div id="center_panel" style="min-width: 900px;" >
            </div>
         </div>
-        <div id="footer">&copy; 2005-2015 Zenoss, Inc.</div>
+	<div id="footer">&copy; 2005-<span tal:content="here/getCurrentYear"/> Zenoss, Inc.</div>
 
 
     </div>
