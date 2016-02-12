@@ -138,6 +138,14 @@ class ModelerService(PerformanceConfig):
                 if d.getPerformanceServerName() == monitor)
         return [d[0] for d in sorted(devices, key=lambda x:x[1])]
 
+    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    def pre_adm_check(self, map, device):
+        return None
+
+    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    def post_adm_process(self, map, device, preadmdata):
+        pass
+
     @transact
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
@@ -149,28 +157,36 @@ class ModelerService(PerformanceConfig):
         changed = False
         with pausedAndOptimizedIndexing():
             for map in maps:
+                preadmdata = self.pre_adm_check(map, device)
+
                 start_time = time.time()
                 if adm._applyDataMap(device, map, commit=False):
                     changed = True
 
                 end_time = time.time() - start_time
+                changesubject = "device" if changed else "nothing"
                 if hasattr(map, "relname"):
                     log.debug(
-                        "Time in _applyDataMap for Device %s with relmap %s objects: %.2f",
+                        "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
                         device.getId(),
                         map.relname,
-                        end_time)
+                        end_time,
+                        changesubject)
                 elif hasattr(map, "modname"):
                     log.debug(
-                        "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f",
+                        "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
                         device.getId(),
                         len(map.items()),
-                        end_time)
+                        end_time,
+                        changesubject)
                 else:
                     log.debug(
-                        "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap",
+                        "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap, %s changed.",
                         device.getId(),
-                        end_time)
+                        end_time,
+                        changesubject)
+
+                self.post_adm_process(map, device, preadmdata)
 
         if setLastCollection:
             device.setSnmpLastCollection()
