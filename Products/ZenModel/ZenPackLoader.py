@@ -12,6 +12,7 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
+from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.config import ConfigFile
@@ -103,9 +104,11 @@ class ZPLObject(ZenPackLoader):
                 ImportRM.endElement(self, name)
         importer = AddToPack(noopts=True, app=app)
         importer.options.noindex = True
-        for f in self.objectFiles(pack):
-            log.info("Loading %s", f)
-            importer.loadObjectFromXML(xmlfile=f)
+        importer.options.chunk_size = 500
+        with pausedAndOptimizedIndexing():
+            for f in self.objectFiles(pack):
+                log.info("Loading %s", f)
+                importer.loadObjectFromXML(xmlfile=f)
 
 
     def parse(self, filename, handler):
