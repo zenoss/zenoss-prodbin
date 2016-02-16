@@ -215,8 +215,13 @@ for a ZenPack.
                 self.log.info('Calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()
                 self.rootpath = ''
-            if (not noIncrementalCommit and
-                not self.objectnumber % self.options.chunk_size):
+
+            # Not committing, or no objects to commit.
+            if noIncrementalCommit or not self.uncommittedObjects:
+                return
+
+            # Commit only after "chunk_size" objects need committed.
+            if self.uncommittedObjects >= self.options.chunk_size:
                 self.log.debug("Committing a batch of %s objects" %
                                self.options.chunk_size)
                 self.commit()
@@ -312,6 +317,7 @@ for a ZenPack.
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
+            self.uncommittedObjects += 1
             self.log.debug('Added object %s to database'
                             % obj.getPrimaryId())
         else:
@@ -466,6 +472,7 @@ for a ZenPack.
         self.objstack = [self.app]
         self.links = []
         self.objectnumber = 0
+        self.uncommittedObjects = 0
         self.charvalue = ''
         if xmlfile and isinstance(xmlfile, basestring):
             self.infile = open(xmlfile)
@@ -501,6 +508,7 @@ for a ZenPack.
         trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
+        self.uncommittedObjects = 0
         if hasattr(self, 'connection'):
             # It's safe to call syncdb()
             self.syncdb()
