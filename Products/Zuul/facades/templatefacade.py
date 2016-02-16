@@ -157,7 +157,8 @@ class TemplateFacade(ZuulFacade):
         template = datapoint.datasource().rrdTemplate()
         for graphDef in template.graphDefs():
             for point in graphDef.graphPoints():
-                if datapoint.name() == point.dpName:
+                if (isinstance(point, DataPointGraphPoint)
+                        and datapoint.name() == point.dpName):
                     self._deleteObject(point.getPrimaryId())
 
     def deleteDataSource(self, uid):
