@@ -231,12 +231,12 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         datapoint = self._getDataPoint()
         if datapoint:
             options = datapoint.getRateOptions()
-        elif self._object.rate is True:
+        elif self._object.rate:
             options = self._object.getRateOptions()
         else:
-            return dict()
+            return {}
 
-        if options.get("counter", None) is True and int(self._object.limit) > 0:
+        if options.get("counter", None) and int(self._object.limit) > 0:
             options["resetThreshold"] = self._object.limit
 
         return options
