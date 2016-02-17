@@ -51,8 +51,6 @@ class GraphPoint(ZenModelRM, ZenPackable):
     _rateCounter = False
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
-        {'id':'_rate', 'type':'boolean', 'mode':'w'},
-        {'id':'_rateCounter', 'type':'boolean', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (
@@ -213,7 +211,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return name
 
     def getRateOptions(self):
-        rateOptions = dict()
+        rateOptions = {}
         if self._rate:
             if self._rateCounter:
                 rateOptions['counter'] = True
