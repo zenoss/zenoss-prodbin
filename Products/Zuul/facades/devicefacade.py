@@ -192,7 +192,11 @@ class DeviceFacade(TreeFacade):
                     val = val()
                 if IInfo.providedBy(val):
                     val = val.name
-            return val
+            # Pad numeric values with 0's so that sort is
+            # both alphabetically and numerically correct.
+            # eth1/1  will sort on eth0000000001/0000000001
+            # eth1/12 will sort on eth0000000001/0000000012
+            return re.sub("[\d]+", lambda x:str.zfill(x.group(0),10), val) 
 
         # sort the components
         sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
