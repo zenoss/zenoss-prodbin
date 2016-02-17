@@ -2,17 +2,17 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<form method=post
     tal:attributes="action string:${here/absolute_url_path}">
 
-        <tal:block tal:define="message request/message | string:State at time:; 
+        <tal:block tal:define="message request/message | string:State at time:;
             tabletitle string:${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -26,7 +26,7 @@
         <td class="tableheader">Type</td>
         <td class="tablevalues" tal:content="here/getType"/>
     </tr>
-    
+
     <tr tal:condition="python: here.aqBaseHasAttr('draw')">
       <td class="tableheader">Draw</td>
       <td class="tablevalues" tal:condition="here/isManager">
@@ -43,7 +43,7 @@
         <td class="tableheader">DataPoint</td>
         <td class="tablevalues" tal:content="here/dpName"/>
     </tr>
-    
+
     <tr tal:condition="python: here.aqBaseHasAttr('vname')">
         <td class="tableheader">Vname</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -72,7 +72,7 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/dsName"/>
     </tr>
-    
+
     <tr tal:condition="python: here.aqBaseHasAttr('cFunc')">
         <td class="tableheader">Consolidation</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -145,8 +145,8 @@
       <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="lineType"
         tal:define="curtype here/lineType">
-            <option tal:repeat="opt here/lineTypeOptions" 
-                tal:attributes="value python:opt[1]; 
+            <option tal:repeat="opt here/lineTypeOptions"
+                tal:attributes="value python:opt[1];
                     selected python:curtype == opt[1]"
                 tal:content="python:opt[0]"></option>
         </select>
@@ -171,8 +171,30 @@
             tal:attributes="value e; selected python:e==here.stacked"/>
         </select>
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/stacked"/>
+    </tr>
+    <tr tal:condition="python: here.aqBaseHasAttr('rate')">
+        <td class="tableheader">Rate</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="rate:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.rate"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/rate"/>
+    </tr>
+    <tr tal:condition="python: here.aqBaseHasAttr('rateCounter')">
+        <td class="tableheader">Counter</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="rateCounter:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.rateCounter"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/rate"/>
     </tr>
     <tr tal:condition="python: here.aqBaseHasAttr('color')">
         <td class="tableheader">Color (Hex value RRGGBB)</td>
@@ -210,7 +232,7 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/text"/>
     </tr>
-    
+
     <tr tal:condition="python: here.aqBaseHasAttr('time')">
         <td class="tableheader">Time</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -277,13 +299,13 @@
                 name="manage_editProperties:method" />
         </td>
     </tr>
-    
+
     <tr>
         <td class="tableheader" colspan="2">
             &nbsp;
         </td>
     </tr>
-    
+
     <tal:block tal:condition="not: here/isThreshold">
     <tr tal:condition="here/isManager">
         <td class="tableheader">Available RRD Variables</td>
@@ -303,7 +325,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 </form>
 </tal:block>
 </tal:block>
