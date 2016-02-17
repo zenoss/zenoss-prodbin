@@ -211,10 +211,18 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
         return self._object.lineType.lower()
 
     def _getDataPoint(self):
+        dpName = self._object.dpName
+        template = self._object.graphDef().rrdTemplate()
         try:
-            return IInfo(self._object.graphDef().rrdTemplate().getRRDDataPoint(self._object.dpName))
-        except (ConfigurationError, AttributeError):
+            if template:
+                dp = template.getRRDDataPoint(dpName)
+            else:
+                dp = self._context.getRRDDataPoint(dpName)
+        except (ConfigurationError):
             return None
+
+        if dp:
+            return IInfo(dp)
 
     @property
     def rate(self):
