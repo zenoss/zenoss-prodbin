@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -45,8 +45,10 @@ class GraphPoint(ZenModelRM, ZenPackable):
     DEFAULT_FORMAT = '%5.2lf%s'
     DEFAULT_LEGEND = '${graphPoint/id}'
     DEFAULT_MULTIGRAPH_LEGEND = '${here/name | here/id} ${graphPoint/id}'
-    
+
     sequence = 0
+    _rate = False
+    _rateCounter = False
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
         )
@@ -54,12 +56,12 @@ class GraphPoint(ZenModelRM, ZenPackable):
     _relations = ZenPackable._relations + (
         ("graphDef", ToOne(ToManyCont,"Products.ZenModel.GraphDefinition","graphPoints")),
         )
-    
-    factory_type_information = ( 
-        { 
+
+    factory_type_information = (
+        {
             'immediate_view' : 'editGraphPoint',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'edit'
                 , 'name'          : 'Graph Point'
                 , 'action'        : 'editGraphPoint'
@@ -107,6 +109,14 @@ class GraphPoint(ZenModelRM, ZenPackable):
                 return False
             return True
 
+        isRate = REQUEST.get("rate", None)
+        if isRate is not None:
+            self._rate = isRate
+
+        isRateCounter = REQUEST.get("rateCounter", None)
+        if isRateCounter is not None:
+            self._rateCounter = isRateCounter
+
         color = REQUEST.get('color', '').strip().lstrip('#').upper()
         if color:
             if len(color) in (6, 8) and IsHex(color):
@@ -125,7 +135,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         ''' Return a description
         '''
         return self.id
-        
+
 
     def getTalesContext(self, thing=None, **kw):
         '''
@@ -153,10 +163,10 @@ class GraphPoint(ZenModelRM, ZenPackable):
         except Exception:
             result = '(Tales expression error)'
         return result
-            
+
 
     ## Graphing Support
-    
+
     def getColor(self, index):
         """
         Return a string apprpriate for use as the color part of an
@@ -174,7 +184,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             index %= len(self.colors)
             color = self.colors[index]
         color = '#%s' % color.lstrip('#')
-        
+
         return color
 
 
@@ -185,20 +195,29 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return color
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx,
                     multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         from Products.ZenUtils.Utils import unused
         unused(multiid, prefix, rrdDir)
         return cmds
-        
+
 
     def getDsName(self, base, multiid=-1, prefix=''):
         name = self.addPrefix(prefix, base)
         if multiid > -1:
             name = '%s_%s' % (name, multiid)
         return name
+
+    def getRateOptions(self):
+        rateOptions = {}
+        if self._rate:
+            if self._rateCounter:
+                rateOptions['counter'] = True
+                rateOptions["resetThreshold"] = 1
+            # TODO - counterMax
+        return rateOptions
 
 
     def addPrefix(self, prefix, base):
@@ -212,7 +231,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             s = '_'.join((prefix, base))
         s = self.scrubForRRD(s)
         return s
-        
+
 
     def scrubForRRD(self, value, namespace=None):
         ''' scrub value so it is a valid rrd variable name.  If namespace
@@ -238,6 +257,14 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '''
         value = value.replace(":", "\:")[:198]
         return value
+
+    @property
+    def rate(self):
+        return self._rate
+
+    @property
+    def rateCounter(self):
+        return self._rateCounter
 
 
 InitializeClass(GraphPoint)
