@@ -1307,7 +1307,7 @@ True
 False
 </property>
 <property type="string" id="maxval" mode="w" >
-(here.speed or 1e9) / 8 * .75
+(long(here.speed) or 1e9) / 8 * .75
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -2133,7 +2133,7 @@ True
 False
 </property>
 <property type="string" id="maxval" mode="w" >
-(here.speed or 1e9) / 8 * .75
+(long(here.speed) or 1e9) / 8 * .75
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
@@ -11268,7 +11268,7 @@ True
 False
 </property>
 <property type="string" id="maxval" mode="w" >
-here.speed / 8 * .75
+long(here.speed) / 8 * .75
 </property>
 <property type="int" id="escalateCount" mode="w" >
 0
