@@ -136,6 +136,20 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         self._contextRPN = False
         super(ColorMetricServiceGraphPoint, self).__init__(graph, context)
 
+    @property
+    def id(self):
+        if self._multiContext:
+            dev = self._context.device()
+            if dev and dev.id != self._context.id:
+                return "%s %s %s" % (dev.id, self._context.id, self._object.id)
+            else:
+                return "%s %s" % (self._context.id, self._object.id)
+        return self._object.id
+
+    @property
+    def name(self):
+        return self.id
+
     def setMultiContext(self):
         """
         Let this graph know that we are displaying the same
@@ -157,7 +171,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
         if self._multiContext:
-            legend = self._context.titleOrId() + " " + legend
+            legend = self.id + " " + legend
         return legend
 
     @property
@@ -189,18 +203,6 @@ class MetricServiceThreshold(ColorMetricServiceGraphPoint):
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     adapts(DataPointGraphPoint, ZenModelRM)
     implements(templateInterfaces.IMetricServiceGraphPoint)
-    @property
-    def id(self):
-        return self._object.id
-
-    @property
-    def name(self):
-        if self._multiContext:
-            return "%s %s" % (self._context.id, self._object.id)
-        # RPN expressions use the DataPointGraphPoint id to reference other datapoints for the graph, central query
-        # uses the "name" property to resolve references in RPN expression.
-        return self._object.id
-
     @property
     def metric(self):
         return metrics.ensure_prefix(self._context.device().id,
