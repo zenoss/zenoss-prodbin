@@ -275,10 +275,6 @@ class AliasPlugin(object):
                 lambda x: getAliasName(x) is not None, columns
             )
 
-        # Second, map the alias names to their columns
-        aliasColumnMap = \
-                dict(zip(map(getAliasName, aliasColumns), aliasColumns))
-
         columnDatapointsMap = {}
 
         # Map columns to empty list to ensure that there are placeholders
@@ -288,13 +284,8 @@ class AliasPlugin(object):
 
         # Fourth, match up the columns with the corresponding alias/datapoint
         # pairs
-        aliasDatapointPairs = \
-                getDataPointsByAliases(dmd, aliasColumnMap.keys())
-        for alias, datapoint in aliasDatapointPairs:
-            # If the alias-datapoint pair is missing the alias, then
-            # the column's aliasName was really the datapoint name.
-            column = aliasColumnMap[alias.id if alias else datapoint.id]
-            columnDatapointsMap[column].append((alias, datapoint))
+        for column in aliasColumns:
+            columnDatapointsMap[column] = list(getDataPointsByAliases(dmd, [column.getAliasName()]))
 
         return columnDatapointsMap
 
@@ -337,7 +328,7 @@ class AliasPlugin(object):
                     i+=1
                     if i % 100 == 0: transaction.abort()
                     record = self._createRecord(
-                        device, component, columnDatapointsMap, summary, 
+                        device, component, columnDatapointsMap, summary,
                         templateArgs)
                     report.append(record)
         return report
