@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2010, 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -41,7 +41,7 @@ log = logging.getLogger("zen.daemon")
 
 class DummyListener(object):
     zope.interface.implements(IConfigurationListener)
-    
+
     def deleted(self, configurationId):
         """
         Called when a configuration is deleted from the collector
@@ -144,7 +144,7 @@ class CollectorDaemon(RRDDaemon):
         """
         return self._prefs
 
-    def __init__(self, preferences, taskSplitter, 
+    def __init__(self, preferences, taskSplitter,
                  configurationListener=DUMMY_LISTENER,
                  initializationCallback=None,
                  stoppingCallback=None):
@@ -152,7 +152,7 @@ class CollectorDaemon(RRDDaemon):
         Constructs a new instance of the CollectorDaemon framework. Normally
         only a singleton instance of a CollectorDaemon should exist within a
         process, but this is not enforced.
-        
+
         @param preferences: the collector configuration
         @type preferences: ICollectorPreferences
         @param taskSplitter: the task splitter to use for this collector
@@ -178,7 +178,7 @@ class CollectorDaemon(RRDDaemon):
             raise TypeError("taskSplitter must provide ITaskSplitter")
         else:
             self._taskSplitter = taskSplitter
-        
+
         if not IConfigurationListener.providedBy(configurationListener):
             raise TypeError(
                     "configurationListener must provide IConfigurationListener")
@@ -247,14 +247,14 @@ class CollectorDaemon(RRDDaemon):
 
     def buildOptions(self):
         """
-        Method called by CmdBase.__init__ to build all of the possible 
+        Method called by CmdBase.__init__ to build all of the possible
         command-line options for this collector daemon.
         """
         super(CollectorDaemon, self).buildOptions()
 
         maxTasks = getattr(self.preferences, 'maxTasks', None)
         defaultMax = maxTasks if maxTasks else 500
-        
+
         self.parser.add_option('--maxparallel',
                                 dest='maxTasks',
                                 type='int',
@@ -384,7 +384,7 @@ class CollectorDaemon(RRDDaemon):
 
             dkey = "%s:%s" % (contextUUID, metric)
             value = self._derivative_tracker.derivative(
-                dkey, (int(value), timestamp), min, max)
+                dkey, (float(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if value is not None:
@@ -481,10 +481,10 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("remote_updateDeviceConfigs: workerid %s processing %s device configs", self.options.workerid, len(configs))
         for config in configs:
             self.remote_updateDeviceConfig(config)
-            
+
     def remote_notifyConfigChanged(self):
         """
-        Called from zenhub to notify that the entire config should be updated  
+        Called from zenhub to notify that the entire config should be updated
         """
         if self.reconfigureTimeout and self.reconfigureTimeout.active():
             # We will run along with the already scheduled task
@@ -616,7 +616,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("purgeOmittedDevices: deletedConfigs=%s", ','.join(deletedDevices))
         for configId in deletedDevices:
             self._deleteDevice(configId)
-            
+
     def _deleteDevice(self, deviceId):
         self.log.debug("Device %s deleted" % deviceId)
 
@@ -628,7 +628,7 @@ class CollectorDaemon(RRDDaemon):
     def _errorStop(self, result):
         """
         Twisted callback to receive fatal messages.
-        
+
         @param result: the Twisted failure
         @type result: failure object
         """
