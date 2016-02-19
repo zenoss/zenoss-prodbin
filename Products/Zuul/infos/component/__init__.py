@@ -74,6 +74,20 @@ class ComponentFormBuilder(FormBuilder):
         return form
 
 
+class IpRouteEntryFormBuilder(ComponentFormBuilder):
+    def render(self, fieldsets=True):
+        default = '0.0.0.0'
+        fields = ('nextHop', 'destination')
+        form = super(IpRouteEntryFormBuilder, self).render(fieldsets)
+        for item in form.get('items'):
+            for field in item.get('items'):
+                name = field.get('name', '')
+                if any(x == name for x in fields):
+                    if default in field.get('value', ''):
+                        field['value'] = None
+        return form
+
+
 def ServiceMonitor():
     """
     Closure for the 'monitor' property of ip/win services
