@@ -554,11 +554,11 @@ def ensureIp(ip):
             octet = int(octet)
         except ValueError:
             octet = 0
-            
+
         # make it 0 if not in the valid ip range
-        if not (0 < octet < 255):
+        if not (0 < octet < 256):
             octets[idx] = '0'
-            
+
     return '.'.join(octets)
 
 def get_ip_version(ip):
