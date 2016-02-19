@@ -157,8 +157,10 @@
                                          '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
                                          '</div>'),
         constructor: function(config) {
-            var padding = "padding:5px 5px 0px 0px;";
-
+            var padding = "padding:25px 10px 5px 0px;";
+            if (config.height <= 400) {
+                padding = "padding:0px 0px 0px 0px;";
+            }
             // dynamically adjust the height;
             config.graphPadding = padding;
             config.height = this.adjustHeightBasedOnMetrics(config.height, config.datapoints);
@@ -926,23 +928,14 @@
             for (i=start; i < Math.min(end, data.length); i++) {
                 graph = data[i];
                 graphId = Ext.id();
-
                 graphTitle = graph.title;
-                // backcompat from graph dimensions from rrd
-                // the properties were saved on each graph definition and we want to
-                // both preserve backward compabability
-                // so therefore
-                if (graph.height === 100 && graph.width === 500) {
-                    graph.height = 500;
-                    delete graph.width;
-                }
-
                 delete graph.title;
                 graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
                     uid: this.uid,
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
+                    height: 500,
                     // when a europa graph appears in a graph panel then don't show controls
                     dockedItems: [],
                     // set the date range incase we are refreshing after a resize or

@@ -1727,6 +1727,8 @@ div.europagraph {
 
 img.europaGraphGear {
     float:right;
+    position:relative;
+    top:-15px;
     opacity:.5;
     cursor:pointer
 }
@@ -1755,6 +1757,8 @@ img.europaGraphGear {
     padding-left: 10px;
     margin-left: 10px;
     font-size: 1.2em;
+    position: relative;
+    top: -15px;
     overflow: hide;
 }
 .graph_description {
