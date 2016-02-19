@@ -9,7 +9,6 @@
 
 
 import base64
-import cPickle
 import json
 import logging
 import random
@@ -34,9 +33,10 @@ def split_to_range(strToSplit, maxSize):
     return [strToSplit[i:i+maxSize] for i in range(0, len(strToSplit), maxSize)]
 
 def encode_for_js(toEnc):
+    base64ToEnc = base64.urlsafe_b64encode(toEnc)
     randToken = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(8))
-    encPackets = split_to_range(toEnc, MAX_GET_SIZE)
-    encPackets = [cPickle.dumps({
+    encPackets = split_to_range(base64ToEnc, MAX_GET_SIZE)
+    encPackets = [json.dumps({
                     'idx': x,
                     'tot': len(encPackets),
                     'rnd': randToken,
