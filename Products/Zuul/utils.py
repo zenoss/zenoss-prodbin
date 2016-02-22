@@ -367,9 +367,9 @@ class PathIndexCache(object):
 
     @classmethod
     def test(self, dmd):
-        from Products.Zuul.interfaces import ICatalogTool
-        results = ICatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
-        instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
+        from Products.Zuul.catalog.interfaces import IModelCatalogTool
+        results = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
+        instances = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
         print tree
 

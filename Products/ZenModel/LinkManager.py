@@ -21,12 +21,12 @@ from BTrees.OOBTree import OOBTree
 from json import dumps
 from Products.AdvancedQuery import Eq
 from Products.CMFCore.utils import getToolByName
-from Products.ZCatalog.ZCatalog import manage_addZCatalog
 from Products.ZenModel.Device import Device
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.NetworkTree import NetworkLink
-from Products.Zuul import getFacade
 from Products.ZenEvents.events2.processing import Manager
+from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG, SEVERITY_CLEAR)
@@ -58,32 +58,6 @@ def manage_addLinkManager(context, id="ZenLinkManager"):
     mgr = LinkManager(id)
     context._setObject(mgr.id, mgr)
     mgr = context._getOb(id)
-    _create_catalogs(mgr)
-
-
-def _create_layer2_catalog(mgr):
-    layer_2_indices = (
-        ('lanId', makeCaseInsensitiveFieldIndex),
-        ('macaddress', makeCaseInsensitiveFieldIndex),
-        ('deviceId', makeCaseInsensitiveFieldIndex),
-        ('interfaceId', makeCaseInsensitiveFieldIndex)
-    )
-    mgr._addLinkCatalog('layer2_catalog', layer_2_indices)
-
-
-def _create_layer3_catalog(mgr):
-    layer_3_indices = (
-        ('networkId', makeCaseInsensitiveFieldIndex),
-        ('ipAddressId', makeCaseInsensitiveFieldIndex),
-        ('deviceId', makeCaseInsensitiveFieldIndex),
-        ('interfaceId', makeCaseInsensitiveFieldIndex)
-    )
-    mgr._addLinkCatalog('layer3_catalog', layer_3_indices)
-
-
-def _create_catalogs(mgr):
-    _create_layer2_catalog(mgr)
-    _create_layer3_catalog(mgr)
 
 
 class Layer3Link(object):
@@ -213,43 +187,61 @@ class LinkManager(Folder):
         self.networks_per_device_cache = DeviceNetworksCache()
 
     def _getCatalog(self, layer=3):
+        # @TODO REMOVE Whenever all catalogs are migrated to solr
         try: 
             return getToolByName(self, 'layer%d_catalog' % layer)
         except AttributeError:
             return None
 
-    def _addLinkCatalog(self, id, indices):
-        manage_addZCatalog(self, id, id)
-        zcat = self._getOb(id)
-        cat = zcat._catalog
-        for index, factory in indices:
-            cat.addIndex(index, factory(index))
-            zcat.addColumn(index)
+    def _get_brains(self, layer, attr, value):
+        """
+        hack to make getLinkedNodes's awful code work with as little changes as possible
+        """
+        model_catalog = IModelCatalogTool(self.dmd)
+        query = {}
+        if layer == 3:
+            meta_type = "IpAddress"
+            query["deviceId"] = "*"  # We only are interested in assigned ips
+        else:
+            meta_type = "IpInterface"
+        query["meta_type"] = meta_type
+        if isinstance(value, basestring):
+            value = "*{0}".format(value)
+        query[attr] = value
+        search_results = model_catalog.search(query=query)
+        return [ brain for brain in search_results.results ]
 
-    def getLinkedNodes(self, meta_type, id, layer=3, visited=None):
-        cat = self._getCatalog(layer)
+    def getLinkedNodes(self, meta_type, ids, layer=3, visited=None):
         col = NODE_IDS['layer_%d' % layer][meta_type]
         nextcol = _getComplement(col, layer)
-        brains = cat(**{col:id})
+        brains = self._get_brains(layer, col, ids)
         gen1ids = set(getattr(brain, nextcol) for brain in brains)
         if visited:
             gen1ids = gen1ids - visited # Don't go places we've been!
-        gen2 = cat(**{nextcol:list(gen1ids)})
+        gen2 = self._get_brains(layer, nextcol, list(gen1ids))
         return gen2, gen1ids
-    
+
+    def _get_devices_under_path(self, path):
+        """ Returnd device's brains """
+        model_catalog = IModelCatalogTool(self.dmd.Devices)
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.Device.Device"
+        query["path"] = "{0}/*".format(path)
+        result = model_catalog.search(query=query)
+        return result.results
+
     # Deprecated. Left for testing purposes to compare perf and results with the new version
     def getChildLinks_old(self, organizer):
-        catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
         result = {}
         locs = organizer.children()
         locpaths = sorted(('/'.join(loc.getPrimaryPath()) for loc in locs), reverse=True)
         path = '/'.join(organizer.getPhysicalPath())
-        subdevs = catalog(path=path)
-        subids = dict((x.id, x.path) for x in subdevs)
+        subdevs = self._get_devices_under_path(path)
+        subids = dict((x.uid, x.path) for x in subdevs)
 
         def _whichorg(brain):
             for path in locpaths:
-                _matchpath = lambda x: '/'.join(x).startswith(path)
+                _matchpath = lambda x: x.startswith(path)
                 brainpath = subids.get(brain.deviceId, [])
                 if any(ifilter(_matchpath, brainpath)):
                     return path
@@ -280,6 +272,7 @@ class LinkManager(Folder):
             if _drawMapLinks(net):
                 bynet[net].append(link)
 
+
         # Build the links (if found)
         linkobs = []
         for devs in bynet.itervalues():
@@ -294,13 +287,22 @@ class LinkManager(Folder):
                 linkobs.extend(Layer3Link(self.dmd, dict(l)) for l in links)
         return dumps([(x.getUids(), x.getStatus()) for x in linkobs])
 
+    def _get_ip_brains_belonging_to_network(self, net):
+        """ returns IpAddress brains """
+        model_catalog = IModelCatalogTool(self.dmd)
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.IpAddress.IpAddress"
+        query["networkId"] = net
+        result = model_catalog.search(query=query)
+        return result.results
+
+
     def getChildLinks(self, organizer):
         """
         Find networks that are in more than one location,
         build links between connected locations and
         get the link status
         """
-        catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
 
         root_location_path_tuple = organizer.getPhysicalPath()
         root_location_path = '/'.join(root_location_path_tuple)
@@ -314,12 +316,13 @@ class LinkManager(Folder):
         devices_per_location = defaultdict(set)   # { location: set( device_id ) }
         locations_per_network = defaultdict(set)  # { network:  set( location ) }
 
-        devices_search = catalog(path=root_location_path)
+        devices_search = self._get_devices_under_path(root_location_path)
 
         for device_result in devices_search:
             device_id = device_result.id
             # get the the parent location the device belongs to
-            device_location_full_path_tuple = next(ifilter(lambda x: 'Locations' in x, device_result.path))
+            device_location_full_path = next(ifilter(lambda x: 'Locations' in x, device_result.path))
+            device_location_full_path_tuple = device_location_full_path.split('/')
             location_search_key = device_location_full_path_tuple[len(root_location_path_tuple)]
             device_parent_location = locations.get(location_search_key)
             if device_parent_location:

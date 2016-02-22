@@ -15,7 +15,7 @@ from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.services.zep import EventStatus
 from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.ZenEvents.events2.proxy import EventProxy
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.Zuul.interfaces import IMarshallable
 from lxml.html.clean import clean_html
@@ -65,7 +65,7 @@ class EventCompatInfo(object):
         self._eventOccurrence = event_summary['occurrence'][0]
         self._eventActor = self._eventOccurrence['actor']
         self._eventDetails = self._findDetails(self._eventOccurrence)
-        self._catalog = ICatalogTool(dmd)
+        self._catalog = IModelCatalogTool(dmd)
         self._manager = IGUIDManager(dmd)
 
     @property

@@ -16,9 +16,9 @@ from Products.ZenWidgets.messaging import IMessageSender
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo, ITreeFacade, INetworkFacade
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
@@ -65,16 +65,9 @@ class NetworkFacade(TreeFacade):
             raise TypeError('Netmask must be an integer')
 
         netRoot = self._root.restrictedTraverse(contextUid).getNetworkRoot()
-        foundNet = netRoot.findNet(netip, netmask)
 
-        if foundNet:
-            return foundNet
+        return netRoot.getNet(netip, netmask)
 
-        gotNet = netRoot.getNet(netip)
-        if gotNet and gotNet.netmask == netmask:
-            return gotNet
-
-        return None
 
     def deleteSubnet(self, uid):
         toDel = self._dmd.restrictedTraverse(uid)
@@ -123,7 +116,7 @@ class NetworkFacade(TreeFacade):
     def getIpAddresses(self, limit=0, start=0, sort='ipAddressAsInt', dir='DESC',
               params=None, uid=None, criteria=()):
         infos = []
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
 
         brains = cat.search("Products.ZenModel.IpAddress.IpAddress",

@@ -1,15 +1,18 @@
 
+import math
+
 from Acquisition import aq_base
 
 from interfaces import IPathReporter
+from ipaddr import IPNetwork
 
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-from Products.ZenUtils.IpUtil import ipToDecimal
+from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType
-from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType
+from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 from ZODB.POSException import ConflictError
 from zope.interface import ro
@@ -55,7 +58,7 @@ from zope.interface import ro
             ----------------------------------------------------------------------------------------------
             |  ATTR_NAME                 |    ATTR_QUERY_NAME      |  FIELD NAME     | INDEXED |  STORED |
             ----------------------------------------------------------------------------------------------
-            |   idx_numeric_ipAddress    |   ipAddress             |                 |         |         |
+            |   idx_decimal_ipAddress    |   decimal_ipAddress     |                 |         |         |
             |   idx_text_ipAddress       |   text_ipAddress        |                 |         |         |
             |   idx_productionState      |   productionState       |                 |         |         |
             |   idx_macAddresses         |   macAddresses          |                 |         |         |
@@ -83,33 +86,41 @@ from zope.interface import ro
 
         IpInterfaceIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                     |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |  idx_interfaceId               |   interfaceId       |                 |         |         |
-            |  idx_numeric_ipAddress         |   ipAddress         |                 |         |         |
-            |  idx_text_ipAddress            |   text_ipAddress    |                 |         |         |
-            |  idx_macAddresses              |   macAddresses      |                 |         |         |
-            |  idx_lanId                     |   lanId             |                 |         |         |
-            |  idx_macaddress                |   macaddress        |                 |         |         |
-            |  idx_component_searchKeywords  |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchKeywords|   searchKeywords    |                 |         |         |
-            |  idx_compoment_searchExcerpt   |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchExcerpt |   searchExcerpt     |                 |         |         |
-            
-            ----------------------------------------------------------------------------------------------
+            -----------------------------------------------------------------------------------------------
+            |  ATTR_NAME                      |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
+            -----------------------------------------------------------------------------------------------
+            |  idx_interfaceId                |   interfaceId       |                 |         |         |
+            |  idx_decimal_ipAddress          |   decimal_ipAddress |                 |         |         |
+            |  idx_text_ipAddress             |   text_ipAddress    |                 |         |         |
+            |  idx_macAddresses               |   macAddresses      |                 |         |         |
+            |  idx_lanId                      |   lanId             |                 |         |         |
+            |  idx_macaddress                 |   macaddress        |                 |         |         |
+            |  idx_component_searchKeywords   |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchKeywords |   searchKeywords    |                 |         |         |
+            |  idx_compoment_searchExcerpt    |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
+            |  idx_ipInterface_searchExcerpt  |   searchExcerpt     |                 |         |         |
+            -----------------------------------------------------------------------------------------------
 
         IpAddressIndexable:
+
+            -----------------------------------------------------------------------------------------
+            |  ATTR_NAME               |  ATTR_QUERY_NAME     |  FIELD NAME     | INDEXED |  STORED |
+            -----------------------------------------------------------------------------------------
+            |   idx_interfaceId        |   interfaceId        |                 |         |         |
+            |   idx_ipAddressId        |   ipAddressId        |                 |         |         |
+            |   idx_networkId          |   networkId          |                 |         |         |
+            |   idx_deviceId           |   deviceId           |                 |         |         |
+            |   idx_decimal_ipAddress  |   decimal_ipAddress  |                 |         |         |
+            |   idx_ipAddressAsText    |   ipAddressAsText    |                 |         |         |
+            -----------------------------------------------------------------------------------------
+
+        IpNetworkIndexable:
 
             ----------------------------------------------------------------------------------------------
             |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
             ----------------------------------------------------------------------------------------------
-            |   idx_interfaceId          |   interfaceId           |                 |         |         |
-            |   idx_ipAddressId          |   ipAddressId           |                 |         |         |
-            |   idx_networkId            |   networkId             |                 |         |         |
-            |   idx_deviceId             |   deviceId              |                 |         |         |
-            |   idx_ipAddressAsInt       |   ipAddressAsInt        |                 |         |         |
-            |   idx_ipAddressAsText      |   ipAddressAsText       |                 |         |         |
+            |   idx_firstDecimalIp       |   firstDecimalIp        |                 |         |         |
+            |   idx_lastDecimalIp        |   lastDecimalIp         |                 |         |         |
             ----------------------------------------------------------------------------------------------
 
 
@@ -129,7 +140,37 @@ from zope.interface import ro
             ----------------------------------------------------------------------------------------------
 """
 
-class BaseIndexable(object):    # ZenModelRM inherits from this class
+""" Indexed Fields formatters """
+
+def decimal_ipAddress_formatter(value):
+    if value is not None:
+        if not isinstance(value, basestring):
+            value = str(value)
+        return value.zfill(39)
+    else:
+        return value
+
+""" Indexable classes """
+
+class TransactionIndexable(object):
+    """
+    Internal fields to temporaty index documents that have been committed
+    to model index mid transaction
+    """
+
+    @indexed(LongFieldType(stored=True), attr_query_name="tx_state")
+    def idx_tx_state(self):
+        """
+        Transaction state. We use this field to be able to tell
+        if the document was updated by a committed transaction or by an
+        ongoing transaction. By default we assume we all documents were
+        indexed by commited transactions. The transaction manager will fill
+        this appropriately before sending it to solr
+        """
+        return 0
+
+
+class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this class
     '''
     @indexed(StringFieldType(stored=True), attr_query_name="indexable"):
     def idx_base_indexable(self):
@@ -219,11 +260,11 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddress") # Ip address as number
-    def idx_numeric_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
-            return ipToDecimal(ip)
+            return str(ipToDecimal(ip))
         else:
             return None
 
@@ -357,11 +398,11 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddress") # Ip address as number
-    def idx_numeric_ipAddress(self):
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
-            return ipToDecimal(ip)
+            return str(ipToDecimal(ip))
         else:
             return None
 
@@ -420,7 +461,7 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     def idx_interfaceId(self):
         interface_id = None
         if self.interfaceId():
-            interface_id = self.interfaceId()
+            interface_id = self.interface().interfaceId()
         return interface_id
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressId")
@@ -439,13 +480,40 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
             device_id = self.device().idx_uid()
         return device_id
 
-    @indexed(LongFieldType(stored=True), attr_query_name="ipAddressAsInt")
-    def idx_ipAddressAsInt(self):
-        return int(self.ipAddressAsInt())
+    """ ipSearch catalog indexes """
+
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress")
+    def idx_decimal_ipAddress(self):
+        return str(self.ipAddressAsInt())
 
     @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
     def idx_ipAddressAsText(self):
         return self.getIpAddress()
+
+
+class IpNetworkIndexable(object):
+
+    """ IpNetwork indexes """
+
+    # largest 128 decimal is 340282366920938463463374607431768211456
+    # we need to fill to 39 chars for range queries to work
+
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="firstDecimalIp")
+    def idx_firstDecimalIp(self):
+        first_decimal_ip = None
+        if isip(self.id):
+            net = IPNetwork(ipunwrap(self.id))
+            first_decimal_ip = str(int(net.network))
+        return first_decimal_ip
+
+    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="lastDecimalIp")
+    def idx_lastDecimalIp(self):
+        last_decimal_ip = None
+        if isip(self.id):
+            net = IPNetwork(ipunwrap(self.id))
+            first_decimal_ip = long(int(net.network))
+            last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
+        return last_decimal_ip
 
 
 """ @TODO : Do we need to define this
@@ -454,4 +522,3 @@ class FileSystemIndexable(ComponentIndexable):
     def name(self):
         return self.name()
 """
-

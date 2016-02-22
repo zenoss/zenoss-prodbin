@@ -2,35 +2,19 @@
 
 import logging
 
-from Acquisition import aq_parent, Implicit
+
 from interfaces import IModelCatalog, IModelCatalogTool
-from .model_catalog import ModelCatalogUnavailableError
-from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp
-from Products.ZCatalog.interfaces import ICatalogBrain
+from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
+
 from Products.Zuul.catalog.interfaces import IModelCatalog
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups
-from zenoss.modelindex.exceptions import SearchException
 from zenoss.modelindex.searcher import SearchParams
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
 from zope.interface import implements
 from zope.component import getUtility
 
+
 log = logging.getLogger("model_catalog_tool")
-
-
-class SearchResults(object):
-
-    def __init__(self, results, total, hash_, areBrains=True):
-        self.results = results
-        self.total = total
-        self.hash_ = hash_
-        self.areBrains = areBrains
-
-    def __hash__(self):
-        return self.hash_
-
-    def __iter__(self):
-        return self.results
 
 
 class ModelCatalogTool(object):
@@ -40,10 +24,32 @@ class ModelCatalogTool(object):
 
     def __init__(self, context):
         self.context = context
-        self.model_catalog = getUtility(IModelCatalog).get_client(context)
+        self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
 
-    def is_model_catalog_enabled(self):
-        return self.model_catalog.searcher is not None
+    def _parse_user_query(self, query):
+        """
+        # if query is a dict, we convert it to AdvancedQuery
+        # @TODO We should make the default query something other than AdvancedQuery
+        """
+        def _parse_basic_query(attr, value):
+            if isinstance(value, str) and '*' in value:
+                return MatchGlob(attr, value)
+            else:
+                return Eq(attr, value)
+
+        if isinstance(query, dict):
+            subqueries = []
+            for attr, value in query.iteritems():
+                if isinstance(value, (list, set, tuple)):
+                    # If value is a list or similar, we build an OR
+                    or_queries = []
+                    for or_query in value:
+                        or_queries.append( _parse_basic_query(attr, or_query) )
+                    subqueries.append( Or(*or_queries) )
+                else:
+                    subqueries.append(_parse_basic_query(attr, value))
+            query = And(*subqueries)
+        return query
 
     def _build_query(self, types=(), paths=(), depth=None, query=None, filterPermissions=True, globFilters=None):
         """
@@ -56,7 +62,7 @@ class ModelCatalogTool(object):
 
         @return: tuple (AdvancedQuery query, not indexed filters dict)
         """
-        available_indexes = self.model_catalog.searcher.get_indexes()
+        available_indexes = self.model_catalog_client.get_indexes()
         not_indexed_user_filters = {} # Filters that use not indexed fields
 
         user_filters_query = None
@@ -67,7 +73,20 @@ class ModelCatalogTool(object):
         partial_queries = []
 
         if query:
+            """
+            # if query is a dict, we convert it to AdvancedQuery
+            # @TODO We should make the default query something other than AdvancedQuery
+            subqueries = []
+            if isinstance(query, dict):
+                for attr, value in query.iteritems():
+                    if isinstance(value, str) and '*' in value:
+                        subqueries.append(MatchGlob(attr, value))
+                    else:
+                        subqueries.append(Eq(attr, value))
+                query = And(*subqueries)
             partial_queries.append(query)
+            """
+            partial_queries.append(self._parse_user_query(query))
 
         # Build query from filters passed by user
         if globFilters:
@@ -96,21 +115,22 @@ class ModelCatalogTool(object):
             partial_queries.append(types_query)
 
         # Build query for paths
-        if not paths:
-            paths = ('/'.join(self.context.getPhysicalPath()) + '*', )
-        elif isinstance(paths, basestring):
-            paths = (paths,)
+        if paths is not False:   # When paths is False we dont add any path condition
+            context_path = '/'.join(self.context.getPhysicalPath()) + '*'
+            if not paths:
+                paths = (context_path, )
+            elif isinstance(paths, basestring):
+                paths = (paths,)
 
-        """  OLD CODE. Why this instead of In?  What do we need depth for?
-        q = {'query':paths}
-        if depth is not None:
-            q['depth'] = depth
-        paths_query = Generic('path', q)
-        """
-        paths_query = In('path', paths)
-
-        if paths_query:
-            partial_queries.append(paths_query)
+            """  OLD CODE. Why this instead of In?  What do we need depth for?
+            q = {'query':paths}
+            if depth is not None:
+                q['depth'] = depth
+            paths_query = Generic('path', q)
+            """
+            paths_query = In('path', paths)
+            uid_path_query = MatchGlob(UID, context_path)   # Add the context uid as filter
+            partial_queries.append( Or(paths_query, uid_path_query) )
 
         # filter based on permissions
         if filterPermissions and allowedRolesAndGroups(self.context):
@@ -121,8 +141,7 @@ class ModelCatalogTool(object):
         search_query = And(*partial_queries)
         return (search_query, not_indexed_user_filters)
 
-
-    def _search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False):
+    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False):
         """
         @returns: SearchResults
         """
@@ -130,21 +149,9 @@ class ModelCatalogTool(object):
         brains = []
         count = 0
         search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse)
-        try:
-            catalog_results = self.model_catalog.searcher.search(search_params)
-        except SearchException as e:
-            log.error("EXCEPTION: {0}".format(e.message))
-            raise ModelCatalogUnavailableError()
-            
-        else:
-            for result in catalog_results.results:
-                brain = ModelCatalogBrain(result)
-                brain = brain.__of__(self.context.dmd)
-                brains.append(brain)
-            count = catalog_results.total_count
+        catalog_results = self.model_catalog_client.search(search_params, self.context)
 
-        return SearchResults(iter(brains), total=count, hash_=str(count))
-
+        return catalog_results
 
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
@@ -154,10 +161,7 @@ class ModelCatalogTool(object):
         @param query: Advanced Query query
         @param globFilters: dict {field: value}
         """
-        if not self.is_model_catalog_enabled():
-            return None
-        
-        available_indexes = self.model_catalog.searcher.get_indexes()
+        available_indexes = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
         areBrains = orderby in available_indexes or orderby is None
         queryOrderby = orderby if areBrains else None
@@ -172,7 +176,7 @@ class ModelCatalogTool(object):
         # @TODO get all results if areBrains == False
         #
         
-        catalog_results = self._search_model_catalog(query, start=start, limit=limit, order_by=orderby, reverse=reverse)
+        catalog_results = self.search_model_catalog(query, start=start, limit=limit, order_by=orderby, reverse=reverse)
 
         # @TODO take care of unindexed filters
         return catalog_results
@@ -183,16 +187,13 @@ class ModelCatalogTool(object):
         Gets the brain representing the object defined at C{path}.
         The search is done by uid field
         """
-        if not self.is_model_catalog_enabled():
-            return None
-
         if not isinstance(path, (tuple, basestring)):
             path = '/'.join(path.getPhysicalPath())
         elif isinstance(path, tuple):
             path = '/'.join(path)
 
         query = Eq(UID, path)
-        search_results = self._search_model_catalog(query)
+        search_results = self.search_model_catalog(query)
 
         brain = None
         if search_results.total > 0:
@@ -225,18 +226,14 @@ class ModelCatalogTool(object):
         @return: The number of children matching.
         @rtype: int
         """
-
-        if not self.is_model_catalog_enabled():
-            return None
-
         if path is None:
             path = '/'.join(self.context.getPhysicalPath())
         if not path.endswith('*'):
             path = path + '*'
         query, _ = self._build_query(types=types, paths=(path,), filterPermissions=filterPermissions)
-        search_results = self._search_model_catalog(query)
+        search_results = self.search_model_catalog(query)
 
-        """ #  OLD CODEEE had some caching stuff
+        """ #  @TODO OLD CODEEE had some caching stuff
         # Check for a cache
         caches = self.catalog._v_caches
         types = (types,) if isinstance(types, basestring) else types
@@ -258,53 +255,8 @@ class ModelCatalogTool(object):
         return search_results.total
 
     def update(self, obj):
-        self.model_catalog.catalog_object(obj)
+        self.model_catalog_client.catalog_object(obj)
 
+    def indexes(self):
+        return self.model_catalog_client.get_indexes()
 
-class ModelCatalogBrain(Implicit):
-    implements(ICatalogBrain)
-    
-    def __init__(self, result):
-        """
-        Modelindex result wrapper
-        @param result: modelindex.zenoss.modelindex.search.SearchResult
-        """
-        self._result = result
-        for idx in result.idxs:
-            setattr(self, idx, getattr(result, idx, None))
-
-    def has_key(self, key):
-        return self.__contains__(key)
-
-    def __contains__(self, name):
-        return hasattr(self._result, name)
-
-    def getPath(self):
-        """ Get the physical path for this record """
-        uid = str(self._result.uid)
-        if not uid.startswith('/zport/dmd'):
-            uid = '/zport/dmd/' + uid
-        return uid
-
-    def _unrestrictedGetObject(self):
-        """ """
-        return self.getObject()
-
-    def getObject(self):
-        """Return the object for this record
-
-        Will return None if the object cannot be found via its cataloged path
-        (i.e., it was deleted or moved without recataloging), or if the user is
-        not authorized to access the object.
-        """
-        parent = aq_parent(self)
-        obj = None
-        try:
-            obj = parent.unrestrictedTraverse(self.getPath()) 
-        except:
-            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self._result.uid))
-        return obj
-
-    def getRID(self):
-        """Return the record ID for this object."""
-        return self._result.uuid

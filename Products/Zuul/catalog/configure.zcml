@@ -48,6 +48,12 @@
         />
 
     <adapter
+        factory = ".paths.IpAddressPathReporter"
+        for = "Products.ZenModel.IpAddress.IpAddress"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
         factory = ".paths.ProcessPathReporter"
         for = "Products.ZenModel.OSProcess.OSProcess"
         provides = ".interfaces.IPathReporter"
@@ -74,6 +80,10 @@
     <five:implements
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.OSProcess.OSProcess"/>
+
+    <five:implements
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.IpAddress.IpAddress"/>
 
     <five:implements
         interface=".interfaces.IDeviceOrganizer"

@@ -16,7 +16,8 @@ from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.interfaces import IMibInfo, IMibOrganizerNode, IMibNode
-from Products.Zuul.interfaces import ICatalogTool, IMibOrganizerInfo, IMibNodeInfo, IMibNotificationInfo
+from Products.Zuul.interfaces import IMibOrganizerInfo, IMibNodeInfo, IMibNotificationInfo
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
 from Products.ZenModel.MibBase import MibBase
@@ -29,7 +30,7 @@ class MibOrganizerNode(TreeNode):
     @property
     def text(self):
         text = super(MibOrganizerNode, self).text
-        count = ICatalogTool(self._object).count((MibModule,), self.uid)
+        count = IModelCatalogTool(self._object).count((MibModule,), self.uid)
         return {'text': text, 'count': count}
 
     @property

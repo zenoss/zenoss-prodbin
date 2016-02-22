@@ -9,7 +9,7 @@
 
 import transaction
 from Products.AdvancedQuery import Eq
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenReports.AliasPlugin import AliasPlugin
 from Products.ZenReports import Utils
 
@@ -23,7 +23,7 @@ class monitoredcomponents(AliasPlugin):
 
     def getSubComponents(self, dmd):
         i = 0
-        catalog = ICatalogTool(dmd.Devices)
+        catalog = IModelCatalogTool(dmd.Devices)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         query = Eq('monitored', '1')
         for brain in catalog.search(COMPONENT, query=query):

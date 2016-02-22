@@ -34,6 +34,7 @@ from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.Zuul.catalog.indexable import BaseIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseIndexable):
     """
@@ -56,8 +57,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseI
 
     def setTitle(self, title):
         self.title = title
-        from Products.Zuul.interfaces import ICatalogTool
-        ICatalogTool(self).update(self)
+        IModelCatalogTool(self).update(self)
 
     security.declareProtected('Manage DMD', 'rename')
     def rename(self, newId, REQUEST=None):

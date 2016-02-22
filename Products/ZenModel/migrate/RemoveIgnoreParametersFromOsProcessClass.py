@@ -14,7 +14,7 @@ import Globals
 import logging
 import Migrate
 from Products.ZenEvents.ZenEventClasses import Debug, Error
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.OSProcessClass import OSProcessClass
 
 log = logging.getLogger("zen.migrate")
@@ -27,7 +27,7 @@ class RemoveIgnoreParametersFromOsProcessClass(Migrate.Step):
     def cutover(self, dmd):
         log.info("Removing ignoreParameters and ignoreParametersWhenModeling from all OSProcessClass objects")
         try:
-            for brain in ICatalogTool(dmd).search(OSProcessClass):
+            for brain in IModelCatalogTool(dmd).search(OSProcessClass):
                 try:
                     pc = brain.getObject()
                 except:

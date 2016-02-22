@@ -27,7 +27,8 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import unused
-from Products.Zuul.interfaces import ICatalogTool
+
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 unused(Globals)
 
@@ -172,7 +173,7 @@ class MonitoredDataPointReporter(ZenScriptBase):
         # Connect to ZODB.
         self.connect()
 
-        total = ICatalogTool(self.dmd.Devices).search(
+        total = IModelCatalogTool(self.dmd.Devices).search(
             types=[Device, DeviceComponent]).total
 
         self.log.info("starting: %s total devices and components", total)

@@ -14,7 +14,7 @@ Add an IPv6 network model for tracking IPv6 networks.
 """
 
 import Migrate
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.Zuul.utils import safe_hasattr as hasattr
 
@@ -23,7 +23,7 @@ class fixIpv6Network(Migrate.Step):
 
     def cutover(self, dmd):
         if hasattr(dmd, 'IPv6Networks'):
-            for brain in ICatalogTool(dmd.IPv6Networks).search(IpNetwork):
+            for brain in IModelCatalogTool(dmd.IPv6Networks).search(IpNetwork):
                 try:
                     org = brain.getObject()
                     org.version = 6
