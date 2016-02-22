@@ -65,16 +65,9 @@ class NetworkFacade(TreeFacade):
             raise TypeError('Netmask must be an integer')
 
         netRoot = self._root.restrictedTraverse(contextUid).getNetworkRoot()
-        foundNet = netRoot.findNet(netip, netmask)
 
-        if foundNet:
-            return foundNet
+        return netRoot.getNet(netip, netmask)
 
-        gotNet = netRoot.getNet(netip)
-        if gotNet and gotNet.netmask == netmask:
-            return gotNet
-
-        return None
 
     def deleteSubnet(self, uid):
         toDel = self._dmd.restrictedTraverse(uid)
