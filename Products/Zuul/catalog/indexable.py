@@ -12,7 +12,7 @@ from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType
-from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType
+from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 from ZODB.POSException import ConflictError
 from zope.interface import ro
@@ -152,7 +152,25 @@ def decimal_ipAddress_formatter(value):
 
 """ Indexable classes """
 
-class BaseIndexable(object):    # ZenModelRM inherits from this class
+class TransactionIndexable(object):
+    """
+    Internal fields to temporaty index documents that have been committed
+    to model index mid transaction
+    """
+
+    @indexed(LongFieldType(stored=True), attr_query_name="tx_state")
+    def idx_tx_state(self):
+        """
+        Transaction state. We use this field to be able to tell
+        if the document was updated by a committed transaction or by an
+        ongoing transaction. By default we assume we all documents were
+        indexed by commited transactions. The transaction manager will fill
+        this appropriately before sending it to solr
+        """
+        return 0
+
+
+class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this class
     '''
     @indexed(StringFieldType(stored=True), attr_query_name="indexable"):
     def idx_base_indexable(self):
@@ -494,7 +512,7 @@ class IpNetworkIndexable(object):
         if isip(self.id):
             net = IPNetwork(ipunwrap(self.id))
             first_decimal_ip = long(int(net.network))
-            last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask)))
+            last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
         return last_decimal_ip
 
 
