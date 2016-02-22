@@ -177,20 +177,10 @@ class IpRouteEntry(OSComponent):
         If the nexthop is a 127. or 0. address store locally
         else link to it in the network hierarchy
         """
-        if localIpCheck(self, nextHopIp) or not nextHopIp:
-            self._nexthop = nextHopIp
-        else:
-            networks = self.device().getNetworkRoot()
-            ip = networks.findIp(nextHopIp)
-            if not ip: 
-                netmask = 24
-                int = self.interface()
-                if int: 
-                    intip = int.getIpAddressObj()
-                    if intip: netmask = intip.netmask
-                ip = networks.createIp(nextHopIp, netmask)
-            self.addRelation('nexthop', ip)
-      
+        self._nexthop = nextHopIp
+        # We dont want to add an IpAddress object for this. We should
+        # probably stop modeling this
+
 
     def matchTarget(self, ip):
         """
@@ -251,7 +241,7 @@ class IpRouteEntry(OSComponent):
         else:
             int = None
         if int: self.interface.addRelation(int)
-        else: log.warn("interface index:%s not found", ifindex)
+        #else: log.warn("interface index:%s not found", ifindex)
 
 
     def getInterfaceIndex(self):

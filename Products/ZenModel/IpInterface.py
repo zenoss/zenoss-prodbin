@@ -279,15 +279,17 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         return ip, netmask
 
 
-    def addIpAddress(self, ip, netmask=24):
+    def addIpAddress(self, ip, netmask=None):
         """
         Add an ip to the ipaddresses relationship on this interface.
         """
         self._invalidate_ipaddress_cache()
         networks = self.device().getNetworkRoot()
         ip, netmask = self._prepIp(ip, netmask)
-        #see if ip exists already and link it to interface
-        ipobj = networks.findIp(ip)
+        if not netmask:
+            netmask = get_default_netmask(ip)
+
+        ipobj = networks.find_ip(ip, netmask)
         if ipobj:
             dev = ipobj.device()
             if dev and dev != self.device():
