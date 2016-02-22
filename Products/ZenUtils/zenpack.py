@@ -546,13 +546,8 @@ class ZenPackCmd(ZenScriptBase):
                 if filesOnly:
                     cmd.append("--files-only")
                 cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
-                try:
-                    self.log.debug("running cmd `%s`", cmd.join(" "))
-                    with open(os.devnull, 'w') as fnull:
-                        # the first time fixes the easy-install path
-                        subprocess.check_call(cmd)
-                except Exception:
-                    pass
+                self.log.debug("running cmd `%s`", cmd.join(" "))
+                subprocess.check_call(cmd)
             finally:
                 try:
                     os.remove(os.path.join(tempfile.gettempdir(), os.path.basename(candidate)))
