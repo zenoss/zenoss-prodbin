@@ -9,7 +9,6 @@
 
 
 import base64
-import cPickle
 import logging
 from urllib import urlencode
 import urllib2
@@ -17,7 +16,7 @@ import zlib
 
 from Products.ZenCallHome.transport import CallHome
 
-POST_CHECKIN_URL = 'http://callhome.zenoss.com/callhome/v1/post'
+POST_CHECKIN_URL = 'http://callhome.zenoss.com/callhome/v2/post'
 _URL_TIMEOUT=5
 
 logger = logging.getLogger('zen.callhome')
