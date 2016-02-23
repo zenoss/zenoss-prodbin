@@ -546,7 +546,7 @@ class ZenPackCmd(ZenScriptBase):
                 if filesOnly:
                     cmd.append("--files-only")
                 cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
-                self.log.debug("running cmd `%s`", cmd.join(" "))
+                self.log.debug("running cmd `%s`", (" ").join(cmd))
                 subprocess.check_call(cmd)
             finally:
                 try:
