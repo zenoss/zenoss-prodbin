@@ -546,14 +546,7 @@ class ZenPackCmd(ZenScriptBase):
                 if filesOnly:
                     cmd.append("--files-only")
                 cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
-                try:
-                    self.log.debug("running cmd `%s`", cmd.join(" "))
-                    with open(os.devnull, 'w') as fnull:
-                        # the first time fixes the easy-install path
-                        subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-                except Exception:
-                    pass
-                # the second time runs the loaders
+                self.log.debug("running cmd `%s`", (" ").join(cmd))
                 subprocess.check_call(cmd)
             finally:
                 try:
@@ -864,7 +857,7 @@ class ZenPackCmd(ZenScriptBase):
         self.parser.defaults['logpath'] = zenPath('log')
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     log = logging.getLogger('zen.ZenPackCmd')
     try:
         zp = ZenPackCmd()
