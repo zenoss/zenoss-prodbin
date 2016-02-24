@@ -277,7 +277,7 @@ class ModelCatalogTool(object):
         query, _ = self._build_query(types=types, paths=(path,), filterPermissions=filterPermissions)
         search_results = self.search_model_catalog(query)
 
-        """ #  OLD CODEEE had some caching stuff
+        """ #  @TODO OLD CODEEE had some caching stuff
         # Check for a cache
         caches = self.catalog._v_caches
         types = (types,) if isinstance(types, basestring) else types
@@ -300,6 +300,9 @@ class ModelCatalogTool(object):
 
     def update(self, obj):
         self.model_catalog.catalog_object(obj)
+
+    def indexes(self):
+        return self.model_catalog.searcher.get_indexes()
 
 
 class ModelCatalogBrain(Implicit):

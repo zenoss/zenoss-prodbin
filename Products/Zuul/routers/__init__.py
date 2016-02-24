@@ -14,7 +14,7 @@ Zenoss JSON API
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import contextRequire
-from Products.Zuul.interfaces.tree import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.System import System
@@ -94,7 +94,7 @@ class TreeRouter(DirectRouter):
         # Trac #29148: When we delete a DeviceClass we also delete its devices
         #     and child device classes and their devices, so audit them all.
         if isinstance(node, DeviceClass):
-            childBrains = ICatalogTool(node).search((
+            childBrains = IModelCatalogTool(node).search((
                 'Products.ZenModel.DeviceClass.DeviceClass',
                 'Products.ZenModel.Device.Device',
             ))

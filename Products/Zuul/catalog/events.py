@@ -27,17 +27,11 @@ class IndexingEvent(object):
         self.idxs = idxs
         self.update_metadata = update_metadata
 
-
-@adapter(IGloballyIndexed, IIndexingEvent)
-def onIndexingEvent(ob, event):
-    try:
-        catalog = ob.getPhysicalRoot().zport.global_catalog
-    except (KeyError, AttributeError):
-        # Migrate script hasn't run yet; ignore indexing
-        return
-    idxs = event.idxs
-    if isinstance(idxs, basestring):
-        idxs = [idxs]
+def _get_object_to_index(ob):
+    """
+    Returns the object to be indexed/unindexed or None 
+    if the object does not have to be indexed
+    """
     try:
         evob = ob.primaryAq()
     except (AttributeError, KeyError):
@@ -45,10 +39,18 @@ def onIndexingEvent(ob, event):
     path = evob.getPrimaryPath()
     # Ignore things dmd or above
     if len(path)<=3 or path[2]!='dmd':
-        return
-    catalog.catalog_object(evob, idxs=idxs,
-                           update_metadata=event.update_metadata)
-    getUtility(IModelCatalog).catalog_object(ob)
+        return None
+    else:
+        return evob
+
+@adapter(IGloballyIndexed, IIndexingEvent)
+def onIndexingEvent(ob, event):
+    idxs = event.idxs
+    if isinstance(idxs, basestring):
+        idxs = [idxs]
+    object_to_index = _get_object_to_index(ob)
+    if object_to_index:
+        getUtility(IModelCatalog).catalog_object(object_to_index) # @TODO pass idxs
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
@@ -57,20 +59,9 @@ def onObjectRemoved(ob, event):
     Unindex, please.
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        path = ob.getPrimaryPath()
-        # Ignore things dmd or above
-        if len(path)<=3 or path[2]!='dmd':
-            return
-        uid = '/'.join(path)
-        if catalog.getrid(uid) is None:
-            return
-        catalog.uncatalog_object(uid)
-        getUtility(IModelCatalog).uncatalog_object(ob)
+        object_to_unindex = _get_object_to_index(ob)
+        if object_to_unindex:
+            getUtility(IModelCatalog).uncatalog_object(object_to_unindex)
 
 
 @adapter(IGloballyIndexed, IObjectAddedEvent)
@@ -99,15 +90,9 @@ def onOrganizerBeforeDelete(ob, event):
     to the devices. 
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        # get the catalog
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        
         # remove the device's path from this organizer
         # from the indexes
+        # @TODO This is not yet working with SOLR
         for device in ob.devices.objectValuesGen():
             notify(IndexingEvent(device, idxs=['path']))
 

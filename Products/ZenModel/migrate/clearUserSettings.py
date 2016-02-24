@@ -17,10 +17,8 @@ script removes them all.
 
 import Migrate
 import logging
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 log = logging.getLogger('zen.migrate')
-
-
 
 
 class ClearUserSettings(Migrate.Step):
@@ -28,7 +26,7 @@ class ClearUserSettings(Migrate.Step):
 
     def cutover(self, dmd):
         if not hasattr(dmd, '_clearedUserSettingsExtJs4'):
-            for brain in ICatalogTool(dmd).search('Products.ZenModel.UserSettings.UserSettings'):
+            for brain in IModelCatalogTool(dmd).search('Products.ZenModel.UserSettings.UserSettings'):
                 user = brain.getObject()
                 if hasattr(user, '_browser_state'):
                     del brain.getObject()._browser_state

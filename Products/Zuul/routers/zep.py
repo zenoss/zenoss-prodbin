@@ -34,7 +34,7 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUI3.browser.eventconsole.grid import column_config
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
 from lxml.html.clean import clean_html
@@ -207,7 +207,7 @@ class EventsRouter(DirectRouter):
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = Zuul.getFacade('zep', context)
-        self.catalog = ICatalogTool(context)
+        self.catalog = IModelCatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
         self._filterParser = _FilterParser(self.zep)
 

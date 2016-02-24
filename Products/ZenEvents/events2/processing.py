@@ -18,7 +18,7 @@ from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.ZenUtils.IpUtil import isip, ipToDecimal
 from Products.ZenUtils.FunctionCache import FunctionCache
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.AdvancedQuery import Eq, Or
 from zope.component import getUtility, getUtilitiesFor
 from Acquisition import aq_chain
@@ -127,7 +127,7 @@ class Manager(object):
         if cls:
             catalog = catalog or self._catalogs.get(element_type_id)
             if catalog:
-                results = ICatalogTool(catalog).search(cls,
+                results = IModelCatalogTool(catalog).search(cls,
                                                        query=Or(Eq('id', id),
                                                                 Eq('name', id)),
                                                        filterPermissions=False,
@@ -167,7 +167,7 @@ class Manager(object):
         Returns a tuple ([device brains], [devices]) searching manage IP and
         interface IPs. limit is the maximum total number in both lists.
         """
-        dev_cat = ICatalogTool(self._devices)
+        dev_cat = IModelCatalogTool(self._devices)
 
         try:
             ip_address = next(i for i in (ipAddress, identifier) if isip(i))
@@ -197,7 +197,7 @@ class Manager(object):
         if ip_decimal is None:
             return [], []
 
-        net_cat = ICatalogTool(self._networks)
+        net_cat = IModelCatalogTool(self._networks)
         results = net_cat.search(types=IpAddress,
                                  query=(Eq('name', ip_address)),
                                  limit = limit,

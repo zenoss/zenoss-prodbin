@@ -20,7 +20,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 from Products.Zuul import getFacade
 from Products.AdvancedQuery import And, Eq, Generic, Or
-from Products.Zuul.interfaces.tree import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG, SEVERITY_CLEAR)
@@ -196,7 +196,7 @@ class Report(object):
         zep = getFacade("zep", dmd)
 
         path = '/zport/dmd/'
-        
+
         pathFilterList = [Generic('path',{'query':path})]
         
         if self.DeviceClass:
@@ -210,7 +210,7 @@ class Report(object):
         if self.device:
             pathFilterList.append(Or(Eq('name', self.device), Eq('id', self.device)))
 
-        results = ICatalogTool(dmd.Devices).search(types='Products.ZenModel.Device.Device',
+        results = IModelCatalogTool(dmd.Devices).search(types='Products.ZenModel.Device.Device',
                 query=And(*pathFilterList))
 
         if not results.total:
