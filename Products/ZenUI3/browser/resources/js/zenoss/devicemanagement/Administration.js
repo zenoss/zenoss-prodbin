@@ -808,6 +808,10 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         constructor: function(config) {
             config = config || {};
 
+            Zenoss.Security.onPermissionsChange(function() {
+                this.disableButtons();
+            }, this);
+
             Ext.applyIf(config, {
                 stateId: config.id || 'maintwindow_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
@@ -818,6 +822,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Set up a new Maintenance Window'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
                         handler: function() {
@@ -863,6 +868,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'customize',
                     tooltip: _t('Edit selected Maintenance Window'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'customizeButton',
                         handler: function() {
@@ -882,6 +888,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'suppress',
                     tooltip: _t('Toggle Enable/Disable on selected Maintenance Window'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'disableMaintButton',
                         handler: function() {
@@ -1020,6 +1027,14 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             Zenoss.remote.DeviceManagementRouter.getTimeZone({}, function(response){
                 if(response.success){
                     timeZone = response.data;
+                }
+            });
+        },
+        disableButtons: function() {
+            var btns = this.query("button");
+            Ext.each(btns, function(btn){
+                if(btn.requiredPermission) {
+                    btn.setDisabled(Zenoss.Security.doesNotHavePermission(btn.requiredPermission));    
                 }
             });
         }
