@@ -821,8 +821,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Set up a new Maintenance Window'),
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'addButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid");
@@ -867,8 +867,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'customize',
                     tooltip: _t('Edit selected Maintenance Window'),
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'customizeButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
@@ -887,8 +887,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'suppress',
                     tooltip: _t('Toggle Enable/Disable on selected Maintenance Window'),
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'disableMaintButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
