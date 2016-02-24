@@ -243,7 +243,10 @@ class SnmpClient(BaseClient):
                 log.exception("Device %s had an error: %s",self.hostname,result)
         else:
             self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
-        self.proxy.close()
+        try:
+            self.proxy.close()
+        except AttributeError:
+            log.info("Caught AttributeError closing SNMP connection.")
         """tell the datacollector that we are all done"""
         if self.datacollector:
             self.datacollector.clientFinished(self)
@@ -252,4 +255,3 @@ class SnmpClient(BaseClient):
 
     def stop(self):
         self.proxy.close()
-
