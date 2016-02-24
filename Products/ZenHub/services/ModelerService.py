@@ -155,38 +155,38 @@ class ModelerService(PerformanceConfig):
         adm.setDeviceClass(device, devclass)
 
         changed = False
-        with pausedAndOptimizedIndexing():
-            for map in maps:
-                preadmdata = self.pre_adm_check(map, device)
+        #with pausedAndOptimizedIndexing():
+        for map in maps:
+            preadmdata = self.pre_adm_check(map, device)
 
-                start_time = time.time()
-                if adm._applyDataMap(device, map, commit=False):
-                    changed = True
+            start_time = time.time()
+            if adm._applyDataMap(device, map, commit=False):
+                changed = True
 
-                end_time = time.time() - start_time
-                changesubject = "device" if changed else "nothing"
-                if hasattr(map, "relname"):
-                    log.debug(
-                        "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
-                        device.getId(),
-                        map.relname,
-                        end_time,
-                        changesubject)
-                elif hasattr(map, "modname"):
-                    log.debug(
-                        "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
-                        device.getId(),
-                        len(map.items()),
-                        end_time,
-                        changesubject)
-                else:
-                    log.debug(
-                        "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap, %s changed.",
-                        device.getId(),
-                        end_time,
-                        changesubject)
+            end_time = time.time() - start_time
+            changesubject = "device" if changed else "nothing"
+            if hasattr(map, "relname"):
+                log.debug(
+                    "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
+                    device.getId(),
+                    map.relname,
+                    end_time,
+                    changesubject)
+            elif hasattr(map, "modname"):
+                log.debug(
+                    "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
+                    device.getId(),
+                    len(map.items()),
+                    end_time,
+                    changesubject)
+            else:
+                log.debug(
+                    "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap, %s changed.",
+                    device.getId(),
+                    end_time,
+                    changesubject)
 
-                self.post_adm_process(map, device, preadmdata)
+            self.post_adm_process(map, device, preadmdata)
 
         if setLastCollection:
             device.setSnmpLastCollection()
