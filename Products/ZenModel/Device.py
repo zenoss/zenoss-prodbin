@@ -75,6 +75,7 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.indexable import DeviceIndexable
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
@@ -86,6 +87,7 @@ from Products.ZenUtils.Search import (
 
 
 DEVICE_CLASS_PING = '/Ping'
+
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -197,7 +199,7 @@ addDevice = DTMLFile('dtml/addDevice',globals())
 class NoNetMask(Exception): pass
 
 class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
-             AdministrativeRoleable, ZenMenuable):
+             AdministrativeRoleable, ZenMenuable, DeviceIndexable):
     """
     Device is a base class that represents the idea of a single computer system
     that is made up of software running on hardware. It currently must be IP

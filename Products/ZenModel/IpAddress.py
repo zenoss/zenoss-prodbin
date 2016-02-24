@@ -37,7 +37,7 @@ from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIp
                                      ipwrap, ipunwrap, ipunwrap_strip
 from Products.ZenModel.Exceptions import WrongSubnetError
 from Products.ZenUtils.IpUtil import numbip
-
+from Products.Zuul.catalog.indexable import IpAddressIndexable
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     """make an IpAddress"""
@@ -51,7 +51,7 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ManagedEntity, Layer3Linkable):
+class IpAddress(ManagedEntity, Layer3Linkable, IpAddressIndexable):
     """IpAddress object"""
     zope.interface.implements(IIndexed)
 
