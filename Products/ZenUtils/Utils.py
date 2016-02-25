@@ -2162,3 +2162,13 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
         if msg != msgId:
             return msg
     return msg
+
+def unpublished(func):
+    """Makes decorated method unpublished.
+
+    Removes docstring of decorated method thus it will not be
+    published by Zope.
+    """
+    func.__doc__ = None
+    return func
+

@@ -37,7 +37,7 @@ import os
 import sys
 import string
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.Utils import zenPath, binPath, unpublished
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
@@ -467,6 +467,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
 
     #security.declareProtected('View', 'writeExportRows')
+    @unpublished
     def writeExportRows(self, fieldsAndLabels, objects, out=None):
         '''Write out csv rows with the given objects and fields.
         If out is not None then call out.write() with the result and return None
