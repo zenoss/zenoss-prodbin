@@ -466,7 +466,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.errorEmailThankYou()
 
 
-    #security.declareProtected('View', 'writeExportRows')
     @unpublished
     def writeExportRows(self, fieldsAndLabels, objects, out=None):
         '''Write out csv rows with the given objects and fields.
