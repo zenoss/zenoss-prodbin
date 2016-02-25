@@ -20,7 +20,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import getDisplayType, getDisplayName
+from Products.ZenUtils.Utils import getDisplayType, getDisplayName, unpublished
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
@@ -56,6 +56,7 @@ class Organizer(ZenModelRM, EventView):
         ZenModelRM.__init__(self, id)
         self.description = description
 
+    @unpublished
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Override urlLink to return a link with the full path of the organizer.
