@@ -90,6 +90,12 @@
         },
         'zWinEventlogMinSeverity': {
             xtype: 'reverseseverity'
+        },
+        'zFlappingIntervalSeconds': {
+            xtype: 'numberfield',
+            allowDecimals: false,
+            width: 100,
+            minValue: 600
         }
     });
 
