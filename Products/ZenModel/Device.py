@@ -85,9 +85,6 @@ from Products.ZenUtils.Search import (
 )
 
 
-DEVICE_CLASS_PING = '/Ping'
-
-
 def getNetworkRoot(context, performanceMonitor):
     """
     Return the default network root.
