@@ -306,6 +306,8 @@
             return clause_code;
         },
         setValue: function(expression) {
+            var matchOperator = false;
+
             // If the clause is for a custom zenpack detail, we need to remove
             // the hasattr condition
             if (expression.startsWith("hasattr")) {
@@ -323,13 +325,27 @@
                             cleansub = subject.replace(
                                 new RegExp("^"+this.getBuilder().prefix), '');
 
-                        this.subject.setValue(cleansub);
+                        try {
+                            this.subject.setValue(cleansub);
+                        } catch(e) {
+                            Zenoss.message.warning("Invalid rule '"+ expression +"'. could not find subject '"+ cleansub +"'");
+                            return;
+                        }
+
                         this.comparison.setValue(cmp);
                         this.predicate.setValue(Ext.decode(value));
+                        matchOperator = true;
+
                         break;
                     }
                 }
             }
+            // loop's over but we didn't find a comparison operator
+            // that matched :(
+            if(!matchOperator){
+                Zenoss.message.warning("Invalid rule '"+ expression +"'. Could not match comparison operator");
+            }
+
         },
         getBuilder: function() {
             if (!this.builder) {
