@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -123,12 +123,12 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
             summary.cleared_by_event_uuid = "Event aging task"
         elif summary.status == zep_pb2.STATUS_CLOSED:
             occur = signal.clear_event.occurrence.add()
-            
+
             # once an event is in a closed state, the ownerid (current_user_name) is removed
             # determine who closed the event by extracting the most recent user_name in the event's audit_log
             last_audit_entry = max(signal.event.audit_log, key=lambda x:x.timestamp)
             summary.current_user_name = last_audit_entry.user_name
-            
+
             occur.summary = "User '" + summary.current_user_name + "' closed the event in the Zenoss event console."
             summary.cleared_by_event_uuid = "User action"
         data = NotificationEventContextWrapper(summary, signal.clear_event)
@@ -242,7 +242,8 @@ class IActionBase(object):
         updates = dict()
 
         for k in self.actionContentInfo.names(all=True):
-            updates[k] = data.get(k)
+            if k in data:
+                updates[k] = data[k]
 
         content.update(updates)
 
@@ -285,7 +286,7 @@ class TargetableAction(object):
             else:
                 targets.add(recipient['value'])
         return targets
-    
+
     def handleExecuteError(self, exception, notification, target):
         # If there is an error executing this action on a target,
         # we need to handle it, but we don't want to prevent other
@@ -304,7 +305,7 @@ class TargetableAction(object):
                       message=traceback,
                       severity=SEVERITY_WARNING, component="zenactiond")
         notification.dmd.ZenEventManager.sendEvent(event)
-    
+
     def executeBatch(self, notification, signal, targets):
         raise NotImplemented()
 
@@ -342,9 +343,9 @@ class EmailAction(IActionBase, TargetableAction):
     id = 'email'
     name = 'Email'
     actionContentInfo = IEmailActionContentInfo
-    
+
     shouldExecuteInBatch = True
-    
+
     def __init__(self):
         super(EmailAction, self).__init__()
 
@@ -381,17 +382,17 @@ class EmailAction(IActionBase, TargetableAction):
         """
         Try to encode the text in the following character sets, if we can't decode it
         then strip out anything we can't encode in ascii.
-        """        
+        """
         for body_charset in 'US-ASCII', 'UTF-8':
             try:
                 plain_body = MIMEText(body.encode(body_charset), 'plain', body_charset)
                 break
             except UnicodeError:
-                pass                
-        else:            
+                pass
+        else:
             plain_body = MIMEText(body.decode('ascii', 'ignore'))
         return plain_body
-    
+
     def executeBatch(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
@@ -587,7 +588,7 @@ class EventCommandProtocol(ProcessProtocol):
                       eventClass="/Cmd/Failed",
                       summary="%s %s" % (self.notification.id, summary),
                       message=message,
-                      eventKey=eventKey, 
+                      eventKey=eventKey,
                       notification=self.notification.titleOrId(),
                       stdout=self.data,
                       stderr=self.error,
@@ -835,7 +836,7 @@ class SNMPTrapAction(IActionBase):
         varbinds = self.makeVarBinds(baseOID, fields, eventDict)
 
         session = self._getSession(notification.content)
-        
+
         for v in varbinds:
             log.debug(v)
         session.sendTrap(baseOID + '.0.0.1', varbinds=varbinds)
