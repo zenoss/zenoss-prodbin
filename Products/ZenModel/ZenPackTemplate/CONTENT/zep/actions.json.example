@@ -3,7 +3,7 @@
 // name, they will be updated with the new properties specified im this file.
 //
 // The file should be renamed to actions.json to be picked up during the
-// ZenPack's installation.
+// ZenPack's installation, and all comments should be deleted.
 {
     "triggers": [
         {
@@ -12,7 +12,7 @@
             "enabled": true,
             "rule": {
                 "api_version": 1,
-                "source": "(prodState &gt;= 1000) and (eventState &gt;= 0) and (severity &gt;= 5)",
+                "source": "(dev.production_state >= 1000) and (evt.status >= 0) and (evt.severity >= 5)",
                 "type": 1
             }
         }
@@ -29,8 +29,8 @@
             "repeat_seconds": 0,
             "send_initial_occurrence": true,
             "send_clear": false,
-            "body_format": "echo ${evt/evid} &gt; $$ZENHOME/var/critical_evid.log",
-            "clear_body_format": "echo ${evt/evid} &gt; $$ZENHOME/var/cleared_evid.log",
+            "body_format": "echo ${evt/evid} > $$ZENHOME/var/critical_evid.log",
+            "clear_body_format": "echo ${evt/evid} > $$ZENHOME/var/cleared_evid.log",
             "subscriptions": ["A556B89C-F991-4A29-B7ED-F95643ADFD89"]
         }
     ]
