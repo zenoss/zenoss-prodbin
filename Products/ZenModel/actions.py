@@ -242,7 +242,7 @@ class IActionBase(object):
         updates = dict()
 
         for k in self.actionContentInfo.names(all=True):
-            if k in data:
+            if data.get(k) is not None:
                 updates[k] = data[k]
 
         content.update(updates)
