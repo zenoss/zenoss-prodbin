@@ -12,7 +12,7 @@
 Ext.ns('Zenoss', 'Zenoss.devicemanagement');
 
     var timeZone = "";
- 
+
     Zenoss.devicemanagement = {
         createTooltip: function(text, overtext){
             return '<span style="cursor:pointer" title="'+overtext+'" >'+text+'</span>';
