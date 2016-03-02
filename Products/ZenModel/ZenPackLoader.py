@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -214,12 +214,12 @@ class ZPLDaemons(ZenPackLoader):
                     pack.About._getLogPath(name).rsplit('/', 1)[0]
             if logpath and logpath != zenPath('log'):
                 try:
-                    with open(zenPath('etc', '%s.conf' % name), 'r') as conf: 
-                        confFile = ConfigFile(conf) 
-                        confFile.parse() 
-                        if 'logpath' not in (key for key, value in confFile.items()): 
-                            with open(zenPath('etc', '%s.conf' % name), 'a') as conf: 
-                                conf.write('\nlogpath %s\n' % logpath) 
+                    with open(zenPath('etc', '%s.conf' % name), 'r') as conf:
+                        confFile = ConfigFile(conf)
+                        confFile.parse()
+                        if 'logpath' not in (key for key, value in confFile.items()):
+                            with open(zenPath('etc', '%s.conf' % name), 'a') as conf:
+                                conf.write('\nlogpath %s\n' % logpath)
                 except IOError:
                     # No conf file. Move on.
                     pass
@@ -417,10 +417,10 @@ class ZPTriggerAction(ZenPackLoader):
         log.debug("ZPTriggerAction: load")
         import Products.Zuul as Zuul
         from Products.Zuul.facades import ObjectNotFoundException
-        
+
         tf = Zuul.getFacade('triggers', app.dmd)
         guidManager = IGUIDManager(app)
-        
+
         for conf in findFiles(pack, 'zep',lambda f: f == 'actions.json'):
 
             data = json.load(open(conf, "r"))
@@ -443,7 +443,7 @@ class ZPTriggerAction(ZenPackLoader):
 
                     log.info('Existing trigger found, updating: %s' % trigger_conf['name'])
                     tf.updateTrigger(**trigger_conf)
-                    
+
                 else:
 
                     test_name = trigger_conf['name']
@@ -458,24 +458,29 @@ class ZPTriggerAction(ZenPackLoader):
                         raise Exception('Could not find unique name for trigger: "%s".' % trigger_conf['name'])
 
                     log.info('Creating trigger: %s' % test_name)
-                    tf.createTrigger(test_name, uuid=trigger_conf['uuid'], rule=trigger_conf['rule'])
 
+                    try:
+                        tf.createTrigger(test_name, uuid=trigger_conf['uuid'].lower(), rule=trigger_conf['rule'])
+                    except ServiceResponseError as e:
+                        log.warning("Could not create trigger '%s': %s" % (test_name, e))
 
             for notification_conf in notifications:
-                
+
                 existing_notification = guidManager.getObject(str(notification_conf['guid']))
 
                 if existing_notification:
                     log.info("Existing notification found, updating: %s" % existing_notification.id)
-                    
+
                     subscriptions = set(existing_notification.subscriptions + notification_conf['subscriptions'])
                     notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % existing_notification.id
-                    notification_conf['subscriptions'] = list(subscriptions)
+                    # ensure uuid's are lowercase
+                    notification_conf['subscriptions'] = [x.lower() for x in list(subscriptions)]
                     notification_conf['name'] = existing_notification.id
-                    tf.updateNotification(**notification_conf)
+                    try:
+                        tf.updateNotification(**notification_conf)
+                    except ServiceResponseError as e:
+                        log.warning("Could not update notification '%s': %s" % (existing_notification.id, e))
                 else:
-
-
                     test_id = notification_conf['id']
                     for x in xrange(1,101):
                         test_uid = '/zport/dmd/NotificationSubscriptions/%s' % test_id
@@ -494,9 +499,17 @@ class ZPTriggerAction(ZenPackLoader):
                     tf.createNotification(str(test_id), notification_conf['action'], notification_conf['guid'])
 
                     notification_conf['uid'] = '/zport/dmd/NotificationSubscriptions/%s' % test_id
-                    tf.updateNotification(**notification_conf)
+                    # ensure uuid's are lowercase
+                    notification_conf['subscriptions'] = [x.lower() for x in list(notification_conf['subscriptions'])]
+                    try:
+                        tf.updateNotification(**notification_conf)
+                    except ServiceResponseError as e:
+                        # couldnt create notifiation in zep
+                        log.warning("Could not create notification '%s': %s" % (str(test_id), e))
+                        # remove notification from the zope side
+                        tf.removeNotification(notification_conf['uid'])
 
-    
+
     def _getTriggerGuid(self, facade, name):
         triggers = facade.getTriggers()
         guid = None
@@ -561,7 +574,7 @@ class ZPZep(ZenPackLoader):
         data = self._prepare(pack, app)
         for handler in self.handlers:
             handler.load(data)
-    
+
     def unload(self, pack, app, leaveObjects=False):
         data = self._prepare(pack, app)
         for handler in self.handlers:
@@ -581,14 +594,14 @@ class ZPZep(ZenPackLoader):
 
 class EventDetailItemHandler(object):
     key = 'EventDetailItem'
-    
+
     def load(self, configData):
         """
         configData is a JSON dict that contains a key of the same
         name as specified in this class (ie self.key).
 
         The value from this key is expected to be an arrary of dictionaries
-        as used by the ZEP system. See the documentation in the 
+        as used by the ZEP system. See the documentation in the
         ZenModel/ZenPackTemplate/CONTENT/zep/zep.json.example file.
         """
         if configData:
@@ -608,7 +621,7 @@ class EventDetailItemHandler(object):
                 log.error("ZEP %s error adding detailItemSet data: %s\nconfigData= %s",
                               getattr(ex, 'status', 'unknown'), detailItemSet, configData)
                 log.error("See the ZEP logs for more information.")
-        
+
     def list(self, configData):
         if configData:
             self.zep = getFacade('zep')
@@ -617,7 +630,7 @@ class EventDetailItemHandler(object):
             for item in items:
                 info.append("Would be adding the following detail to be indexed by ZEP: %s" % item.key)
             return info
-    
+
     def unload(self, configData, leaveObjects):
         if not leaveObjects and configData:
             self.zep = getFacade('zep')
