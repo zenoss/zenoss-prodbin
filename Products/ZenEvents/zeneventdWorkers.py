@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2011, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -40,7 +40,7 @@ class EventletQueueConsumerTask(BaseQueueConsumerTask, BasePubSubMessageTask):
         zepRawEvent = self.processor.processMessage(message)
 
         if log.isEnabledFor(logging.DEBUG):
-            log.debug("Publishing event: %s", to_dict(zepRawEvent))
+            log.debug("[pid %s] Publishing event: %s", os.getpid(), to_dict(zepRawEvent))
 
         yield Publishable(zepRawEvent, exchange=self._dest_exchange,
             routingKey=self._routing_key(zepRawEvent))
@@ -83,7 +83,7 @@ class EventDEventletWorker(ZCmdBase):
                     type="string", help='Sets the path to save pickle files.')
 
     def _sigterm(self, signum=None, frame=None):
-        log.debug("worker sigterm...")
+        log.debug("[pid %s] Worker sigterm...", os.getpid())
         self.shutdown()
 
     def _listen(self, task, retry_wait=30):
@@ -93,12 +93,12 @@ class EventDEventletWorker(ZCmdBase):
         while keepTrying and not self._shutdown:
             try:
                 if sleep:
-                    log.info("Waiting %s seconds to reconnect..." % sleep)
+                    log.info("[pid %s] Waiting %s seconds to reconnect...", os.getpid(), sleep)
                     time.sleep(sleep)
                     sleep = min(retry_wait, sleep * 2)
                 else:
                     sleep = .1
-                log.info("Connecting to RabbitMQ...")
+                log.info("[pid %s] Connecting to RabbitMQ...", os.getpid())
                 self._pubsub = getProtobufPubSub(self._amqpConnectionInfo, self._queueSchema, QUEUE_RAW_ZEN_EVENTS)
                 self._pubsub.registerHandler('$Event', task)
                 self._pubsub.registerExchange('$ZepZenEvents')
@@ -107,7 +107,7 @@ class EventDEventletWorker(ZCmdBase):
                 sleep=0
                 self._pubsub.run()
             except (socket.error, AMQPConnectionException) as e:
-                log.warn("RabbitMQ Connection error %s" % e)
+                log.warn("[pid %s] RabbitMQ Connection error %s", os.getpid(), e)
             except KeyboardInterrupt:
                 keepTrying = False
             finally:
