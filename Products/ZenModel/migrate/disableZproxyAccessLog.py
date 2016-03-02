@@ -20,7 +20,7 @@ sm.require("1.0.0")
 class DisableZproxyAccessLog(Migrate.Step):
     "Disable zproxy nginx access logging by default"
 
-    version = Migrate.Version(5,0,70)
+    version = Migrate.Version(5,2,0)
 
     def cutover(self, dmd):
 
