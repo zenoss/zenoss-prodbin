@@ -18,7 +18,9 @@ sm.require("1.0.0")
 
 
 class FixZauthHealthCheck(Migrate.Step):
-    "Use different curl request to prevent `authentication failed` spam in audit.log"
+    """
+    Use different curl request to prevent `authentication failed` spam in audit.log
+    """
 
     version = Migrate.Version(5,0,70)
 
