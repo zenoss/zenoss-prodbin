@@ -1,0 +1,31 @@
+#! /bin/sh
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2014, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+#
+# check if central_query and metric_consumer are both accessible
+#
+auth=$(/opt/zenoss/bin/python -c "import yaml; import base64; f = open('/opt/zenoss/etc/metricshipper/metricshipper.yaml','r'); y = yaml.load(f); print 'basic '+base64.b64encode(y['username']+':'+y['password'])" 2>/dev/null)
+
+[ "$auth" == "" ] && exit 1
+
+is_ready()
+{
+    status_url=$1
+    timeout 5 curl -w %{http_code} -s -XHEAD --cookie cookies.txt --cookie-jar cookies.txt -H "Authorization: $auth" -d '{}' ${status_url}
+}
+
+central_query_ready=$(is_ready http://localhost:8080/api/performance/status)
+metric_consumer_ready=$(is_ready http://localhost:8080/api/metrics/store/status)
+
+if [ "$metric_consumer_ready" != "200" ] || [ "$central_query_ready" != "200" ] 
+then
+    exit 1
+fi
+
+exit 0
