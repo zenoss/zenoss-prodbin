@@ -808,6 +808,10 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         constructor: function(config) {
             config = config || {};
 
+            Zenoss.Security.onPermissionsChange(function() {
+                disableButtons(this);
+            }, this);
+
             Ext.applyIf(config, {
                 stateId: config.id || 'maintwindow_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
@@ -818,7 +822,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Set up a new Maintenance Window'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'addButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid");
@@ -863,7 +868,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'customize',
                     tooltip: _t('Edit selected Maintenance Window'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'customizeButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
@@ -882,7 +888,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'suppress',
                     tooltip: _t('Toggle Enable/Disable on selected Maintenance Window'),
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                     ref: 'disableMaintButton',
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
@@ -1033,6 +1040,15 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         return false;
     };
 
+    var disableButtons = function(cmp) {
+        var btns = cmp.query("button");
+        Ext.each(btns, function(btn){
+            if(btn.requiredPermission) {
+                btn.setDisabled(Zenoss.Security.doesNotHavePermission(btn.requiredPermission));
+            }
+        });
+    }
+
 
 // ------------------------------------------------------- Commands:
 
@@ -1071,6 +1087,10 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         constructor: function(config) {
             config = config || {};
 
+            Zenoss.Security.onPermissionsChange(function() {
+                disableButtons(this);
+            }, this);
+
             Ext.applyIf(config, {
                 stateId: config.id || 'admincommands_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
@@ -1081,6 +1101,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Add a User Command'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
                         handler: function() {
@@ -1126,6 +1147,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'customize',
                     tooltip: _t('Edit selected User Command'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'customizeButton',
                         handler: function() {
@@ -1145,6 +1167,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     iconCls: 'export',
                     tooltip: _t('Add selected User Command to ZenPack'),
                     ref: '../refreshButton',
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     handler: function() {
                         var grid = Ext.getCmp("deviceCommandsGrid");
@@ -1156,6 +1179,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'acknowledge',
                         tooltip: _t('Run the selected command'),
+                        requiredPermission: 'Manage Device', // change the line below as well
                         disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                         listeners: {
                             afterrender: function(b){
@@ -1269,6 +1293,10 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         constructor: function(config) {
             config = config || {};
 
+            Zenoss.Security.onPermissionsChange(function() {
+                disableButtons(this);
+            }, this);
+
             Ext.applyIf(config, {
                 stateId: config.id || 'admins_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
@@ -1279,6 +1307,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Add a User'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'addButton',
                         handler: function() {
@@ -1324,6 +1353,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'set',
                     tooltip: _t('Edit users on the advanced user account edit page'),
+                    requiredPermission: 'Manage Device', // change the line below as well
                     disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
                     ref: 'editAdminButton',
                         handler: function() {
