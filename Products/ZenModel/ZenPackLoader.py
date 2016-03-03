@@ -461,8 +461,9 @@ class ZPTriggerAction(ZenPackLoader):
 
                     try:
                         tf.createTrigger(test_name, uuid=trigger_conf['uuid'].lower(), rule=trigger_conf['rule'])
-                    except ServiceResponseError as e:
-                        log.warning("Could not create trigger '%s': %s" % (test_name, e))
+                    except Exception as e:
+                        log.warning("Failed creating trigger '%s': %s" % (test_name, e))
+                        raise
 
             for notification_conf in notifications:
 
@@ -478,8 +479,9 @@ class ZPTriggerAction(ZenPackLoader):
                     notification_conf['name'] = existing_notification.id
                     try:
                         tf.updateNotification(**notification_conf)
-                    except ServiceResponseError as e:
-                        log.warning("Could not update notification '%s': %s" % (existing_notification.id, e))
+                    except Exception as e:
+                        log.warning("Failed updating notification '%s': %s" % (existing_notification.id, e))
+                        raise
                 else:
                     test_id = notification_conf['id']
                     for x in xrange(1,101):
@@ -503,11 +505,12 @@ class ZPTriggerAction(ZenPackLoader):
                     notification_conf['subscriptions'] = [x.lower() for x in list(notification_conf['subscriptions'])]
                     try:
                         tf.updateNotification(**notification_conf)
-                    except ServiceResponseError as e:
+                    except Exception as e:
                         # couldnt create notifiation in zep
-                        log.warning("Could not create notification '%s': %s" % (str(test_id), e))
+                        log.warning("Failed creating notification '%s': %s" % (str(test_id), e))
                         # remove notification from the zope side
                         tf.removeNotification(notification_conf['uid'])
+                        raise
 
 
     def _getTriggerGuid(self, facade, name):
