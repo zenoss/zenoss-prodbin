@@ -18,8 +18,8 @@ from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
 from zenoss.modelindex.exceptions import IndexException, SearchException
-from zenoss.modelindex.indexer import ModelUpdate, INDEX, UNINDEX
-from zenoss.modelindex.searcher import SearchParams
+from zenoss.modelindex.model_index import ModelUpdate, INDEX, UNINDEX, SearchParams
+
 from zope.component import getGlobalSiteManager, getUtility
 from zope.interface import implements
 
@@ -224,12 +224,8 @@ class ModelCatalogDataManager(object):
 
     implements(IDataManager)
 
-    def __init__(self, solr_url):
-        # @TODO Should we collapse indexer and searcher in a unique connection?
-        # Since we have a client per thread we wont need search and index at the same time
-        self._indexer = zope.component.createObject('ModelIndexer', solr_url)
-        self._searcher = zope.component.createObject('ModelSearcher', solr_url)
-
+    def __init__(self, solr_servers):
+        self.model_index = zope.component.createObject('ModelIndex', solr_servers)
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread
 
@@ -243,10 +239,10 @@ class ModelCatalogDataManager(object):
         return self._current_transactions.get(tid)
 
     def ping_index(self):
-        return self._indexer.ping()
+        return self.model_index.ping()
 
-    def get_indexes(self): # Do we need to implement it?
-        return self._searcher.get_indexes()
+    def get_indexes(self):
+        return self.model_index.get_indexes()
 
     def _process_pending_updates(self, tx_state):
         updates = tx_state.get_pending_updates()
@@ -275,7 +271,7 @@ class ModelCatalogDataManager(object):
             tweaked_updates.append(update)
 
         # send and commit indexed docs to solr
-        self._indexer.process_model_updates(tweaked_updates)
+        self.model_index.process_model_updates(tweaked_updates)
         # marked docs as indexed
         tx_state.mark_pending_updates_as_indexed(indexed_uids)
 
@@ -330,7 +326,7 @@ class ModelCatalogDataManager(object):
         @param  context object to hook brains up to acquisition
         """
         try:
-            catalog_results = self._searcher.search(search_params)
+            catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
             self.raise_model_catalog_error()
@@ -376,19 +372,13 @@ class ModelCatalogDataManager(object):
         if tx_state and tx_state.are_there_indexed_updates():
             try:
                 query = {"tx_state":tx_state.tid}
-                self._searcher.unindex_search(SearchParams(query))
+                self.model_index.unindex_search(SearchParams(query))
             except Exception as e:
                 log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))
                 raise ModelCatalogError("Model Catalog error trying to abort transaction")
 
     def abort(self, tx):
         try:
-            # @TODO add close to indexer and searcher
-            """c = self._connection
-            if c is not None:
-                self._connection = None
-                c.close()
-            """
             self._delete_temporary_tx_documents()
         finally:
             self.reset_tx_state(tx)
@@ -411,11 +401,12 @@ class ModelCatalogDataManager(object):
                 updates = tx_state.get_updates_to_finish_transaction()
                 dirty_tx = tx_state.are_there_indexed_updates()
                 try:
-                    self._indexer.process_model_updates(updates)
+                    self.model_index.process_model_updates(updates)
                     self._delete_temporary_tx_documents()
                     # @TODO TEMP LOGGING
                     log.warn("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
-                except:
+                except Exception as e:
+                    log.exception("Exception in tcp_finish: {0} / {1}".format(e, e.message))
                     self.abort(transaction)
                     raise
         finally:
@@ -482,6 +473,11 @@ class ModelCatalog(object):
         catalog_client.uncatalog_object(obj)
 
 
+def get_solr_config():
+    config = getGlobalConfiguration()
+    return config.get('solr-servers', 'http://localhost:8984')
+
+
 def register_model_catalog():
     """
     Register the model catalog as an utility
@@ -490,9 +486,7 @@ def register_model_catalog():
         >>> from zope.component import getUtility
         >>> getUtility(IModelCatalog)
     """
-    config = getGlobalConfiguration()
-    solr_servers = config.get('solr-servers', 'http://localhost:8984')
-    model_catalog = ModelCatalog(solr_servers)
+    model_catalog = ModelCatalog(get_solr_config())
     getGlobalSiteManager().registerUtility(model_catalog, IModelCatalog)
 
 

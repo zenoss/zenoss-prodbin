@@ -492,8 +492,8 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         """ Return the net starting form the Networks root for ip. """
         return self.get_net_from_cache(ipunwrap(ip), netmask)
 
-    def get_net_from_cache(self, netip):
-        return self.get_network_cache().get_net(netip, None, context=self)
+    def get_net_from_cache(self, netip, netmask=None):
+        return self.get_network_cache().get_net(netip, netmask, context=self)
 
     def get_net_from_catalog(self, ip):
         """

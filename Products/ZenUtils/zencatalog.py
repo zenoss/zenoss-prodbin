@@ -387,7 +387,6 @@ def catalog_the_things(worker_id, inbox, trash, buffer_size, permissions_only, p
                 # We intentionally don't do legacy indexing:
                 # if hasattr(obj, 'index_object'): obj.index_object()
                 catalog.catalog_object(obj)
-                getUtility(IModelCatalog).catalog_object(obj)  # TEMP to be able to index model catalog
         except (AttributeError, ClientDisconnected, DisconnectedError):
             raise
         except Exception:
@@ -492,7 +491,6 @@ def convert_into_document(worker_id, inbox, outbox, buffer_size, permissions_onl
                     # We intentionally don't do legacy indexing:
                     # if hasattr(obj, 'index_object'): obj.index_object()
                     catalog.catalog_object(obj)
-                    getUtility(IModelCatalog).catalog_object(obj)  # TEMP to be able to index model catalog
                 if documentIds:
                     uid = uids.pop()
                     documentId = documentIds[0]
@@ -518,7 +516,6 @@ def convert_into_document(worker_id, inbox, outbox, buffer_size, permissions_onl
         while True:
             try:
                 if (counter.count % 100 == 0) and (time.time() - tick > 5.0):
-                  getUtility(IModelCatalog).get_client(dmd).data_manager.tpc_finish(transaction.get())  # @TODO TEMP
                   transaction.abort() # Allow garbage collection
                   tick = time.time()
                 primary_path = inbox.get_nowait()
@@ -533,7 +530,6 @@ def convert_into_document(worker_id, inbox, outbox, buffer_size, permissions_onl
             except Exception:
                 log.info("Error indexing object %s. Skipping.", primary_path,
                          exc_info = log.isEnabledFor(logging.DEBUG))
-    getUtility(IModelCatalog).get_client(dmd).data_manager.tpc_finish(transaction.get())   # @TODO TEMP
 
 # A sub-process
 def remove_from_catalog(inbox, counts, buffer_size, print_progress=None):

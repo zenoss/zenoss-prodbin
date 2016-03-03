@@ -8,7 +8,7 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchG
 
 from Products.Zuul.catalog.interfaces import IModelCatalog
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups
-from zenoss.modelindex.searcher import SearchParams
+from zenoss.modelindex.model_index import SearchParams
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
 from zope.interface import implements
 from zope.component import getUtility

@@ -61,8 +61,8 @@ class DevicePathReporter(DefaultPathReporter):
         paths.extend(relPath(dev, 'location'))
         paths.extend(relPath(dev, 'systems'))
         paths.extend(relPath(dev, 'groups'))
-        for iface in self.context.os.interfaces.objectValuesGen():
-            paths.extend(devicePathsFromComponent(iface))
+        #for iface in self.context.os.interfaces.objectValuesGen(): # @TODO need to find an alternative
+        #    paths.extend(devicePathsFromComponent(iface))
         return paths
 
 
