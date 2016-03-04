@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class SetMariaDbBufferPoolSize(Migrate.Step):
     """Setting MariaDB buffer pool size default"""
 
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(5, 1, 1)
 
     def cutover(self, dmd):
 
