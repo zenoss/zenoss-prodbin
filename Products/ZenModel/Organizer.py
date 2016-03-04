@@ -53,6 +53,7 @@ class Organizer(ZenModelRM, EventView):
         @type description: string
         @rtype: Organizer
         """
+        id = self.prepId(id)
         ZenModelRM.__init__(self, id)
         self.description = description
 
@@ -187,6 +188,7 @@ class Organizer(ZenModelRM, EventView):
             if newPath.startswith("/"):
                 org = self.createOrganizer(newPath)
             else:
+                newPath = self.prepId(newPath)
                 org = factory(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
@@ -355,8 +357,12 @@ class Organizer(ZenModelRM, EventView):
         >>> dmd.Events.Status.getOrganizer('/Events/Status/Snmp')
         <EventClass at /zport/dmd/Events/Status/Snmp>
         """
-        if path.startswith("/"): path = path[1:]
-        return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path)
+        path = self.prepId(path)
+        if path.startswith("/"):
+            path = path[1:]
+            return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path)
+        else:
+            return self._getOb(path)
 
 
     security.declareProtected(ZEN_COMMON, "getOrganizerName")

@@ -230,10 +230,7 @@ class TreeFacade(ZuulFacade):
     def addOrganizer(self, contextUid, id, description=''):
         context = self._getObject(contextUid)
         context.manage_addOrganizer(id)
-        if id.startswith("/"):
-            organizer = context.getOrganizer(id)
-        else:
-            organizer = context._getOb(id)
+        organizer = context.getOrganizer(id)
         organizer.description = description
         return IOrganizerInfo(organizer)
 
