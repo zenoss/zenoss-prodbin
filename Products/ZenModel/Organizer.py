@@ -184,11 +184,11 @@ class Organizer(ZenModelRM, EventView):
         if factory is None:
             factory = self.__class__
         if not newPath: return self.callZenScreen(REQUEST)
-        newPath = self.prepId(newPath)
         try:
             if newPath.startswith("/"):
                 org = self.createOrganizer(newPath)
             else:
+                newPath = self.prepId(newPath)
                 org = factory(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
