@@ -8,7 +8,7 @@
 #
 ##############################################################################
 #
-# check if metric_consumer is accessible
+# check if central_query is accessible
 #
 is_ready()
 {
@@ -16,7 +16,7 @@ is_ready()
     timeout 3 curl -w %{http_code} -s -XHEAD ${status_url}
 }
 
-http_code=$(is_ready http://localhost:8080/ping/status/metrics)
+http_code=$(is_ready http://localhost:8080/ping/status/performance)
 
 if [ "$http_code" != "200" ] 
 then
