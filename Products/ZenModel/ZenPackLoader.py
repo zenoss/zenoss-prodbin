@@ -506,7 +506,7 @@ class ZPTriggerAction(ZenPackLoader):
                     try:
                         tf.updateNotification(**notification_conf)
                     except Exception as e:
-                        # couldnt create notifiation in zep
+                        # couldnt create notification in zep
                         log.warning("Failed creating notification '%s': %s" % (str(test_id), e))
                         # remove notification from the zope side
                         tf.removeNotification(notification_conf['uid'])
