@@ -289,7 +289,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         if not netmask:
             netmask = get_default_netmask(ip)
 
-        ipobj = networks.find_ip(ip, netmask)
+        ipobj = networks.findIp(ip, netmask)
         if ipobj:
             dev = ipobj.device()
             if dev and dev != self.device():

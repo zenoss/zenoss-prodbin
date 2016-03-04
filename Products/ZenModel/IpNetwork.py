@@ -728,7 +728,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         search_result = cat.search(query=query)
         return [ brain for brain in search_result.results ]
 
-    def findIp(self, ip):
+    def find_ip(self, ip):
         """
         Looks for the ipaddress in the catalog.
         Avoid calling this method during modeling if possible
@@ -742,7 +742,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
                 raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
         return ip_obj
 
-    def find_ip(self, ip, netmask):
+    def findIp(self, ip, netmask=None):
         """
         Search for the ip in the network cache.
         Use this method for modeling if possible
