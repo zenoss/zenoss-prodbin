@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class SetMariaDbBufferPoolSize(Migrate.Step):
     """Setting MariaDB buffer pool size default"""
 
-    version = Migrate.Version(5, 1, 1)
+    version = Migrate.Version(5, 2, 0)
 
     def cutover(self, dmd):
 
@@ -32,20 +32,34 @@ class SetMariaDbBufferPoolSize(Migrate.Step):
         marias = filter(lambda s: s.name in marialist, ctx.services)
 
         commit = False
-        chk1 = 'innodb_buffer_pool_size = {{percentScale .RAMCommitment 0.8}}'
-        chk2 = 'innodb_buffer_pool_size = 512M'
-        repl = 'innodb_buffer_pool_size = {{.CPUCommitment}}G'
+        chk  = 'innodb_buffer_pool_size = 512M'
+        repl = 'innodb_buffer_pool_size = {{percentScale .RAMCommitment 0.8}}'
         for maria in marias:
+
+            if maria.ramCommitment == "2G"
+                maria.ramCommitment = "4G"
+                commit = True
+
+            for cnf in maria.originalConfigs:
+                if cnf.name != '/etc/my.cnf':
+                    continue
+                lines = cnf.content.split('\n')
+                for i in range(len(lines)):
+                    if lines[i] == chk:
+                        lines[i] = repl
+                cnf.content = '\n'.join(lines)
+                commit = True
+
             for cnf in maria.configFiles:
                 if cnf.name != '/etc/my.cnf':
                     continue
                 lines = cnf.content.split('\n')
                 for i in range(len(lines)):
-                    if lines[i] == chk1 or lines[i] == chk2:
+                    if lines[i] == chk:
                         lines[i] = repl
                 cnf.content = '\n'.join(lines)
                 commit = True
-                
+
         if commit:
             ctx.commit()
 
