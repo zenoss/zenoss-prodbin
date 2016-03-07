@@ -843,7 +843,8 @@ class EventsRouter(DirectRouter):
 
 
     @require(ZEN_MANAGE_EVENTS)
-    def add_event(self, summary, device, component, severity, evclasskey, evclass=None):
+    def add_event(self, summary, device, component, severity, evclasskey,
+                  evclass=None, **kwargs):
         """
         Create a new event.
 
@@ -861,11 +862,14 @@ class EventsRouter(DirectRouter):
         @type  evclass: string
         @param evclass: Event class for the new event
         @rtype:   DirectResponse
+
+        For other parameters please see class Event.
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
-            self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
-                            eventClass=evclass)
+            self.zep.create(summary, severity, device, component,
+                            eventClassKey=evclasskey, eventClass=evclass,
+                            **kwargs)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
