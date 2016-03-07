@@ -138,7 +138,7 @@ class TriggersFacade(ZuulFacade):
 
         # create all triggers in zodb that do not exist in zep.
         for t in trigger_set.triggers:
-            if not t.uuid in zodb_uuids:
+            if t.uuid not in zodb_uuids and t.uuid.lower() not in zodb_uuids:
                 log.info('SYNC: Found trigger uuid in zep that does not seem to exist in zodb, creating: %s' % t.name)
                 triggerObject = Trigger(str(t.name))
 
@@ -170,7 +170,7 @@ class TriggersFacade(ZuulFacade):
 
             subs = list(n.subscriptions)
             for s in subs:
-                if s not in zep_uuids:
+                if s not in zep_uuids and s.lower() not in zep_uuids:
                     # this trigger no longer exists in zep, remove it from
                     # this notification's subscriptions.
                     log.info('SYNC: Notification subscription no longer valid: %s' % s)
@@ -299,6 +299,9 @@ class TriggersFacade(ZuulFacade):
     def getTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
+        if trigger is None:
+            log.warning("Could not find trigger with uuid: %s" % uuid)
+            raise Exception("Could not find trigger with uuid: %s" % uuid)
         log.debug('Trying to fetch trigger: %s' % trigger.id)
         if self.triggerPermissions.userCanViewTrigger(user, trigger):
             response, trigger = self.triggers_service.getTrigger(uuid)
@@ -366,17 +369,17 @@ class TriggersFacade(ZuulFacade):
                         if triggerObj.getDmd().Triggers.findObject(newId):
                             message = 'Trigger %s already exists' % newId
                             # Duplicate trigger found
-                            raise Exception(message)    
+                            raise Exception(message)
                     except AttributeError as ex:
                         # We came here in the good case, because the newId is not a duplicate
-                        pass                            
-        
+                        pass
+
                     try:
                         parent.manage_renameObject(oldId, newId)
                         triggerObj.id = newId
                     except CopyError:
                         raise Exception("Trigger rename failed.")
-                    
+
             trigger = from_dict(zep.EventTrigger, data)
             response, content = self.triggers_service.updateTrigger(trigger)
             return content
