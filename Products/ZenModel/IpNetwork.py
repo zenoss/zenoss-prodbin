@@ -23,6 +23,7 @@ log = logging.getLogger('zen')
 from ipaddr import IPAddress, IPNetwork
 
 from BTrees.OOBTree import OOBTree
+from OFS.SimpleItem import SimpleItem
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -56,7 +57,7 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.utils import safe_hasattr as hasattr
 
 
-class NetworkCache(object):
+class NetworkCache(SimpleItem):
     """
         We need to be able to quickly find if a network is already in Zenoss. Searching in the
         zcatalogs or solr decreases modeling performance. To work around this, we will have a
