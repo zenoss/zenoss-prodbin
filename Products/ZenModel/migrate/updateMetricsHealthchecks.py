@@ -58,11 +58,11 @@ class UpdateMetricsHealthChecks(Migrate.Step):
                                  interval=10.0,
                                  script="/opt/zenoss/bin/healthchecks/metrics_answering")
 
-        # adding both to zenpython
+        # adding hc to zenpython
         zenpy_svc.healthChecks.append(query_hc)
         log.info("Updated 'central_query_answering' healthcheck for zenpython.")
 
-        # adding central query zenhub
+        # adding hc to query zenhub
         zenhub_svc.healthChecks.append(query_hc)
         log.info("Updated 'Central_query_answering' healthcheck for zenhub.")
         zenhub_svc.healthChecks.append(metrics_hc)
