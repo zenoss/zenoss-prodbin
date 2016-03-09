@@ -4,6 +4,8 @@
 <p>
 Users
 <br>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <select id="add_users_to_group_combo2" class="tableheader" name="userids" multiple
     tal:define="users here/getAllUserSettings">
     <option tal:repeat="user users"
