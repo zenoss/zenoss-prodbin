@@ -43,8 +43,7 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
-from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import edgesToXML, unused, zenPath
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
@@ -54,6 +53,7 @@ from zope.interface import implements
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.indexable import IpNetworkIndexable
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 
 class NetworkCache(object):
@@ -86,17 +86,16 @@ class NetworkCache(object):
     def _get_net(self, netip, netmask, context):
         net_obj = None
         key = self.get_key(netip, netmask)
-        net_paths = self.cache.get(key)
-        if net_paths:
-            for net_path in net_paths:
-                try:
-                    net = context.dmd.unrestrictedTraverse(net_path)
-                    if net.netmask == netmask:
-                        net_obj = net
-                        break
-                except KeyError:
-                    self.delete_net(key, net_path)
-                    net_obj = None
+        net_paths = self.cache.get(key, ())
+        for net_path in net_paths:
+            try:
+                net = context.dmd.unrestrictedTraverse(net_path)
+                if net.netmask == netmask:
+                    net_obj = net
+                    break
+            except KeyError:
+                self.delete_net(key, net_path)
+                net_obj = None
         return net_obj
 
     def get_net(self, netip, netmask, context):
@@ -120,7 +119,7 @@ class NetworkCache(object):
             self.cache[net_key] = nets
 
     def delete_net(self, net_key, net_path):
-        if self.cache.has_key(net_key):
+        if net_key in self.cache:
             nets = self.cache.get(net_key)
             if net_path in nets:
                 nets.remove(net_path)
@@ -137,7 +136,7 @@ class NetworkCache(object):
         net_ip = netFromIpAndNet(ip, netmask)
         net_obj = self.get_net(net_ip, netmask, context=context)
         if net_obj is not None: # Network does not exist so neither does the ip
-            for existing_ip in net_obj.ipaddresses(): # traverse ip addresses looking for the one
+            for existing_ip in net_obj.ipaddresses.objectValuesGen(): # traverse ip addresses looking for the one
                 if existing_ip.id == ip:
                     ip_obj = existing_ip
                     break
@@ -162,11 +161,11 @@ class NetworkCache(object):
         """
         subnets = []
         if net_obj:
-            net = IPNetwork(ipunwrap(net_obj.id))
+            net = IPNetwork(ipunwrap(net_obj.id)) # addr.IPNetwork
             first_decimal_ip = long(int(net.network))
             last_decimal_ip = long(first_decimal_ip + math.pow(2, net.max_prefixlen - net_obj.netmask) - 1)
             for net_uids in self.cache.values(min=first_decimal_ip, max=last_decimal_ip, excludemin=True, excludemax=True):
-                subnets.extend(list(net_uids))
+                subnets.extend(net_uids)
         return subnets
 
 
