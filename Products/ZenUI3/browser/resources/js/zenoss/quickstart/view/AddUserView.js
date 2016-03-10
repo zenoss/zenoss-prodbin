@@ -6,24 +6,24 @@
  * License.zenoss under the directory where your Zenoss product is installed.
  *
  ****************************************************************************/
-(function () {
+(function(){
 
     /**
      * Add a vtype for "form fields must match"
      **/
     Ext.apply(Ext.form.VTypes, {
-        password: function (val, field) {
+        password: function(val, field) {
             // If the password field has initialPassField (2nd box), do a comparison.
             if (field.initialPassField) {
                 var pwd = Ext.getCmp(field.initialPassField);
-                if (val !== pwd.getValue()) {
+                if (val !== pwd.getValue()){
                     Ext.form.VTypes["passwordText"] = _t("The passwords you've typed don't match.");
                     return false;
                 }
             }
             // Validate the validity of the password field (either of them)
             var pattern = new RegExp("(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}");
-            if (!val.match(pattern)) {
+            if (!val.match(pattern)){
                 Ext.form.VTypes["passwordText"] = _t("Password does not meet password rules");
                 return false;
             }
@@ -41,7 +41,7 @@
         extend: 'Ext.form.Panel',
         alias: 'widget.wizardadduserview',
         stepTitle: _t('Setup Users'),
-        constructor: function (config) {
+        constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
                 labelWidth: 100,
@@ -88,14 +88,14 @@
                                 <li>Contain at least one upper and lower case character</li>\
                             </ul>\
                         ")
-                    }, {
+                    },{
                         fieldLabel: _t('Admin password'),
                         inputType: 'password',
                         vtype: 'password',
                         name: 'admin-password1',
                         id: 'admin-password1',
                         allowBlank: false
-                    }, {
+                    },{
                         fieldLabel: _t('Confirm password'),
                         inputType: 'password',
                         vtype: 'password',
@@ -104,7 +104,7 @@
                         allowBlank: false,
                         msgTarget: 'under'
                     }]
-                }, {
+                },{
                     xtype: 'fieldset',
                     border: false,
                     layout: 'anchor',
@@ -113,6 +113,7 @@
                         labelAlign: 'top',
                         padding: "0 0 7px 0"
                     },
+                    id: 'userfieldset',
                     defaultType: 'textfield',
                     title: _t("Create your account"),
                     items: [{
@@ -120,24 +121,24 @@
                         frame: false,
                         border: false,
                         cls: 'helptext',
-                        html: _t("Enter information for your personal user " +
-                            "account. You'll use this to perform " +
+                        html: _t("Enter information for your personal user "+
+                            "account. You'll use this to perform "+
                             "most tasks.")
-                    }, {
+                    },{
                         context: '/zport/dmd/ZenUsers',
                         xtype: 'idfield',
                         id: 'username',
                         fieldLabel: _t('Username'),
                         name: 'username',
                         allowBlank: false
-                    }, {
+                    },{
                         fieldLabel: _t('Password'),
                         inputType: 'password',
                         vtype: 'password',
                         name: 'password1',
                         id: 'password1',
                         allowBlank: false
-                    }, {
+                    },{
                         fieldLabel: _t('Retype password'),
                         inputType: 'password',
                         vtype: 'password',
@@ -145,7 +146,7 @@
                         initialPassField: 'password1',
                         allowBlank: false,
                         msgTarget: 'under'
-                    }, {
+                    },{
                         fieldLabel: _t('Your email'),
                         vtype: 'email',
                         name: 'emailAddress',
@@ -156,6 +157,8 @@
             this.callParent([config]);
         }
     });
+
+
 
 
 })();
