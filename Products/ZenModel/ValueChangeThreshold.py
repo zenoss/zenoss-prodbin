@@ -41,7 +41,7 @@ class ValueChangeThreshold(ThresholdClass):
                                       self.dsnames,
                                       eventClass=self.eventClass,
                                       severity=self.severity,
-                                      definitionId = self.getPath())
+                                      definitionId = self.getPrimaryDmdId())
         return mmt
 
 InitializeClass(ValueChangeThreshold)

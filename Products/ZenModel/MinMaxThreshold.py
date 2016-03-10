@@ -87,7 +87,7 @@ class MinMaxThreshold(ThresholdClass):
                                       eventClass=self.eventClass,
                                       severity=self.getSeverity(context),
                                       escalateCount=self.getEscalateCount(context),
-                                      definitionId = self.getPath(),
+                                      definitionId = self.getPrimaryDmdId(),
                                       description = self.description,
                                       eventFields=self.getEventFields(context),
               )

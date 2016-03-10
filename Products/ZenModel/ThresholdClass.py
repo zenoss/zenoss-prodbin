@@ -92,7 +92,3 @@ class ThresholdClass(ZenModelRM, ZenPackable):
             else:
                 names.append('%s(<span style="color: red">missing</span>)' % dsName)
         return ','.join(names)
-
-    def getPath(self):
-        """Return the path of this threshold in ZODB"""
-        return self.breadCrumbs()[-1][0]
