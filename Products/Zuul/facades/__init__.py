@@ -233,6 +233,8 @@ class TreeFacade(ZuulFacade):
         if id.startswith("/"):
             organizer = context.getOrganizer(id)
         else:
+            # call prepId for each segment.
+            id = '/'.join(context.prepId(s) for s in id.split('/'))
             organizer = context._getOb(id)
         organizer.description = description
         return IOrganizerInfo(organizer)
