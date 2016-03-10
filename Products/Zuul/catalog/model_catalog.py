@@ -307,19 +307,16 @@ class ModelCatalogDataManager(object):
         if tweak_results:
             dirty_uids = set(tx_state.indexed_updates.keys())
             temp_indexed_uids = tx_state.temp_indexed_uids
-        brains = []
-        count = 0
+
         for result in catalog_results.results:
             if tweak_results:
                 if result.uid in dirty_uids:
                     continue  # outdated result
-                elif result.uid in temp_indexed_uids:
+                elif result.uid in temp_indexed_uids: # object has been updated mid transaction
                     result.uid = result.uid.split(TX_SEPARATOR)[0]
             brain = ModelCatalogBrain(result)
             brain = brain.__of__(context.dmd)
-            brains.append(brain)
-            count = count + 1
-        return SearchResults(iter(brains), total=count, hash_=str(count))
+            yield brain
 
     def _do_search(self, search_params, context):
         """
@@ -330,7 +327,13 @@ class ModelCatalogDataManager(object):
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
             self.raise_model_catalog_error()
-        return self._parse_catalog_results(catalog_results, context)
+
+        brains = self._parse_catalog_results(catalog_results, context)
+        # this count might occasionally be wrong if there are mid tx updated objects
+        # Since we should avoid mid transaction searches we will use it
+        #
+        count = catalog_results.total_count
+        return SearchResults(brains, total=count, hash_=str(count))
 
     def search(self, search_params, context):
         """
