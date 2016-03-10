@@ -257,7 +257,13 @@ class TemplateFacade(ZuulFacade):
             del data['newId']
             info.rename(newId)
 
-        return self._editDetails(info, data)
+        info = self._editDetails(info, data)
+
+        from zope.event import notify
+        from zope.lifecycleevent import ObjectModifiedEvent
+        notify(ObjectModifiedEvent(obj, data))
+
+        return info
 
     def getDataPointDetails(self, uid):
         """
