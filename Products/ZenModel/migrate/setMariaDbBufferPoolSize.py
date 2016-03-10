@@ -36,7 +36,7 @@ class SetMariaDbBufferPoolSize(Migrate.Step):
         repl = 'innodb_buffer_pool_size = {{percentScale .RAMCommitment 0.8}}'
         for maria in marias:
 
-            if maria.ramCommitment == "2G"
+            if maria.ramCommitment == "2G":
                 maria.ramCommitment = "4G"
                 commit = True
 
