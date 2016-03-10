@@ -19,12 +19,17 @@
         extend: 'Ext.form.Panel',
         alias: 'widget.wizardaddsmtpview',
         stepTitle: _t('Setup SMTP'),
-        setDefaultPort: function(_this, ev, eOpts) {
-            if(_this.getValue() != null) {
-                var portField = _this.nextSibling();
-                if(portField.getValue() == null) {
+        setDefaultPort: function (_this, ev, eOpts) {
+            var portField = _this.nextSibling();
+            if (!Ext.isEmpty(_this.getValue())) {
+                portField.allowBlank = false;
+                if (Ext.isEmpty(portField.getValue())) {
                     portField.setValue(25);
                 }
+            }
+            else {
+                portField.allowBlank = true;
+                portField.validate();
             }
         },
         constructor: function (config) {
@@ -34,12 +39,12 @@
                 frame: false,
                 border: false,
                 layout: {
-                    type: 'hbox'
+                    type: 'vbox'
                 },
                 defaults: {
-                    layout: 'anchor',
                     frame: false,
-                    width: "50%",
+                    labelWidth: 200,
+                    width: '100%',
                     border: false,
                     style: {
                         padding: "25px"
@@ -47,61 +52,46 @@
                 },
                 items: [
                     {
-                        xtype: 'fieldset',
+                        xtype: 'panel',
+                        frame: false,
                         border: false,
-                        layout: 'anchor',
-                        defaults: {
-                            anchor: '95%',
-                            labelAlign: 'top',
-                            padding: "0 0 7px 0"
-                        },
-                        defaultType: 'textfield',
-                        items: [
-                            {
-                                xtype: 'textfield',
-                                fieldLabel: _t('SMTP Host'),
-                                name: 'smtpHost',
-                                allowBlank: true,
-                                listeners: {
-                                    blur: this.setDefaultPort
-                                }
-                            },
-                            {
-                                xtype: 'numberfield',
-                                fieldLabel: _t('SMTP Port (usually 25)'),
-                                name: 'smtpPort',
-                                minValue: 1,
-                                hideTrigger: true,
-                                allowDecimals: false,
-                                allowExponential: false,
-                                allowBlank: true
-                            }
-                        ]
+                        cls: 'helptext',
+                        html: _t("Define SMTP server host, port, username, and password to enable email from Zenoss")
                     },
                     {
-                        xtype: 'fieldset',
-                        border: false,
-                        layout: 'anchor',
-                        defaults: {
-                            anchor: '95%',
-                            labelAlign: 'top',
-                            padding: '0 0 7px 0'
-                        },
-                        items: [
-                            {
-                                xtype: 'textfield',
-                                fieldLabel: _t('SMTP Username (blank for none)'),
-                                name: 'smtpUser',
-                                allowBlank: true
-                            },
-                            {
-                                xtype: 'textfield',
-                                inputType: 'password',
-                                fieldLabel: _t('SMTP Password (blank for none)'),
-                                name: 'smtpPass',
-                                allowBlank: true
-                            }
-                        ]
+                        xtype: 'textfield',
+                        fieldLabel: _t('SMTP Host'),
+                        name: 'smtpHost',
+                        labelAlign: 'left',
+                        allowBlank: true,
+                        listeners: {
+                            blur: this.setDefaultPort
+                        }
+                    },
+                    {
+                        xtype: 'numberfield',
+                        fieldLabel: _t('SMTP Port (usually 25)'),
+                        name: 'smtpPort',
+                        minValue: 1,
+                        hideTrigger: true,
+                        allowDecimals: false,
+                        allowExponential: false,
+                        allowBlank: true,
+                        blankText: 'This field is required if a SMTP host is provided',
+                        msgTarget: 'under'
+                    },
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: _t('SMTP Username (blank for none)'),
+                        name: 'smtpUser',
+                        allowBlank: true
+                    },
+                    {
+                        xtype: 'textfield',
+                        inputType: 'password',
+                        fieldLabel: _t('SMTP Password (blank for none)'),
+                        name: 'smtpPass',
+                        allowBlank: true
                     }
                 ]
             });

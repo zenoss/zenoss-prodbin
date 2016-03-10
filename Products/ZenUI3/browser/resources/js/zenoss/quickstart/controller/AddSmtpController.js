@@ -24,20 +24,31 @@
             selector: 'wizardaddsmtpview'
         }],
         extend: 'Ext.app.Controller',
+        onFormValidityChange: function (form, isValid) {
+            this.getApplication().formValidityChange(isValid);
+        },
         init: function () {
             var app = this.getApplication();
             app.on('finish', this.onFinish, this);
+            this.control({
+                wizardaddsmtpview: {
+                    validitychange: this.onFormValidityChange
+                }
+            });
         },
 
         onFinish: function () {
-            var values = this.getUserForm().getForm().getValues();
-            var params = {
-                smtpHost: values.smtpHost,
-                smtpPort: values.smtpPort,
-                smtpUser: values.smtpUser,
-                smtpPass: values.smtpPass
-            };
-            Zenoss.remote.SettingsRouter.setDmdSettings(params);
+            var form = this.getUserForm().getForm();
+            if (form.isValid()) {
+                var values = form.getValues();
+                var params = {
+                    smtpHost: values.smtpHost,
+                    smtpPort: values.smtpPort,
+                    smtpUser: values.smtpUser,
+                    smtpPass: values.smtpPass
+                };
+                Zenoss.remote.SettingsRouter.setDmdSettings(params);
+            }
         }
     });
 })();
