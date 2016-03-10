@@ -17,8 +17,10 @@
         xtype: 'wizardautodiscoveryview'
     }, {
         xtype: 'wizardadddeviceview'
+    }, {
+        xtype: 'wizardaddsmtpview'
     }];
-    Zenoss.quickstart.Wizard.controllers = ["OutlineController", "AddUserController", "AutoDiscoveryController", "AddDeviceController"];
+    Zenoss.quickstart.Wizard.controllers = ["OutlineController", "AddUserController", "AutoDiscoveryController", "AddDeviceController", "AddSmtpController"];
     Zenoss.quickstart.Wizard.events = Ext.create('Ext.util.Observable', {});
     Zenoss.quickstart.Wizard.events.addEvents('beforeapplaunch');
 
