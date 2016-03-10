@@ -301,6 +301,7 @@
         },
         formValidityChange: function(isValid) {
             this.next.setDisabled(!isValid);
+            this.finish.setDisabled(!isValid);
         },
         /**
          * Application handler for the previouspressed event
