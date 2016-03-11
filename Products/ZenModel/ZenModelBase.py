@@ -35,6 +35,7 @@ from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
 
+from Products.ZenUtils.csrf import get_csrf_token
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime
@@ -717,6 +718,12 @@ class ZenModelBase(object):
         solution.
         """
         return getattr(aq_base(self), attr, _MARKER) is not _MARKER
+
+    def get_csrf_token(self):
+        """
+        Returns string with CSRF token for current user.
+        """
+        return get_csrf_token(self.REQUEST)
 
 
 class ZenModelZenDocProvider(object):
