@@ -75,7 +75,7 @@
                     },{
                         html: '<hr />',
                         width: "100%",
-                    }],
+                    }]
                 }, {
                     id: 'wizard_card_panel',
                     region: 'center',
