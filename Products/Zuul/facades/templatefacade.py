@@ -12,6 +12,8 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
@@ -259,8 +261,6 @@ class TemplateFacade(ZuulFacade):
 
         info = self._editDetails(info, data)
 
-        from zope.event import notify
-        from zope.lifecycleevent import ObjectModifiedEvent
         notify(ObjectModifiedEvent(obj, data))
 
         return info
