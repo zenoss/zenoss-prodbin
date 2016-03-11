@@ -3,6 +3,8 @@
 
 <form method="post" name="adminObjects" 
         tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <input type="hidden" name="zenScreenName" tal:attributes="value string:administeredDevices"/>
 <input type="hidden" name="redirect" value="true"/>
 

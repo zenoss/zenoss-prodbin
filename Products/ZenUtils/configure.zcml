@@ -10,6 +10,13 @@
     <include package=".guid"/>
     <include package=".controlplane"/>
 
+    <browser:page
+            for="*"
+            name="csrf_token"
+            class=".csrf.CSRFTokenView"
+            permission="zope.Public"
+            />
+
     <utility provides=".ZenPackInstallFilter.IZenPackInstallFilter"
              factory=".ZenPackInstallFilter.ZenPackInstallFilter"
              name="list_filter"
