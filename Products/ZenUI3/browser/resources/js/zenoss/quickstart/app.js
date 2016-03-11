@@ -75,9 +75,7 @@
                     },{
                         html: '<hr />',
                         width: "100%",
-                        height: 25
                     }],
-                    height: 70
                 }, {
                     id: 'wizard_card_panel',
                     region: 'center',
