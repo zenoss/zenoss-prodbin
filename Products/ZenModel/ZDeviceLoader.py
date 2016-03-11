@@ -40,6 +40,7 @@ from Products.Jobber.jobs import Job
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 from Products.ZenModel.interfaces import IDeviceLoader
+from ZenossSecurity import ZEN_CHANGE_DEVICE
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):
@@ -379,6 +380,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             clearWebLoggingStream(handler)
         if xmlrpc: return 0
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addManufacturer')
     def addManufacturer(self, newHWManufacturerName=None,
                         newSWManufacturerName=None, REQUEST=None):
         """add a manufacturer to the database"""
@@ -404,7 +406,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setHWProduct')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWProduct')
     def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
         """set the productName of this device"""
         if not hwManufacturer and REQUEST:
@@ -422,7 +424,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setOSProduct')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setOSProduct')
     def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
         """set the productName of this device"""
         if not osManufacturer and REQUEST:
@@ -440,7 +442,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'addLocation')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """add a location to the database"""
         try:
@@ -460,7 +462,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'addSystem')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
         """add a system to the database"""
         try:
@@ -482,7 +484,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'addDeviceGroup')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
         """add a device group to the database"""
         try:
@@ -504,7 +506,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setPerformanceMonitor')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setPerformanceMonitor')
     def setPerformanceMonitor(self, newPerformanceMonitor, REQUEST=None):
         """add new performance monitor to the database"""
         try:

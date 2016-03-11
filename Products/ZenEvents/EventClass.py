@@ -249,6 +249,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     def prepId(self, id, subchar='_'):
         return globalPrepId(id, subchar)
 
+    security.declareProtected(ZEN_ADD, 'createInstance')
     def createInstance(self, id=None, REQUEST=None):
         """Add an EventClassInst to this EventClass.
         """
@@ -267,6 +268,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         return self.instances._getOb(id)
 
 
+    security.declareProtected(ZEN_DELETE, 'removeInstances')
     def removeInstances(self, ids=None, REQUEST=None):
         """Remove Instances from an EventClass.
         """
@@ -279,6 +281,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if REQUEST: return self()
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'moveInstances')
     def moveInstances(self, moveTarget, ids=None, REQUEST=None):
         """Move instances from this EventClass to moveTarget.
         """
@@ -356,6 +359,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         except IndexError:
             return "Unknown"
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
         log.debug("reindexing EventClass:%s", self.getOrganizerName())
@@ -366,6 +370,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 ip.index_object()
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """Create a catalog for EventClassRecord searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog

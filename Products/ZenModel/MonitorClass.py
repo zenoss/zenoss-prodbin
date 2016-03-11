@@ -24,6 +24,7 @@ from OFS.Folder import Folder
 from Products.ZenMessaging.audit import audit
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Utils import checkClass
+from Products.ZenModel.ZenossSecurity import ZEN_ADD, ZEN_DELETE, ZEN_MANAGE_DMD
 
 from .RRDTemplate import RRDTemplate
 from .TemplateContainer import TemplateContainer
@@ -76,6 +77,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         ZenModelRM.__init__(self, id, title, buildRelations)
         self.prevCollectorPerDevice = OOBTree()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'setPreviousCollectorForDevice')
     def setPreviousCollectorForDevice(self, device_id, collector):
         """
         Sets the previous collector for a device.
@@ -95,6 +97,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
             prev_collector = self.prevCollectorPerDevice.get(device_id, None)
         return prev_collector
 
+    security.declareProtected(ZEN_DELETE, 'deletePreviousCollectorForDevice')
     def deletePreviousCollectorForDevice(self, device_id):
         """ Deletes the previos collector info for a device """
         if hasattr(self, 'prevCollectorPerDevice') \
@@ -123,7 +126,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         return [obj for obj in self.objectValues()
                 if checkClass(obj.__class__, self.sub_class)]
 
-    security.declareProtected('Manage DMD', 'manage_removeMonitor')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeMonitor')
     def manage_removeMonitor(self, ids=None, submon="", REQUEST=None):
         """
         Remove an object of sub_class, from a module of the same name.
@@ -152,7 +155,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
                 )
             return self.callZenScreen(REQUEST)
 
-    security.declareProtected('Manage DMD', 'manage_addMonitor')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addMonitor')
     def manage_addMonitor(self, id, submon=None, REQUEST=None):
         """
         Construct a new monitor and add it to this.
@@ -192,7 +195,7 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         "return the list of RRD Templates available at this level"
         return self.rrdTemplates()
 
-    security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
+    security.declareProtected(ZEN_ADD, 'manage_addRRDTemplate')
     def manage_addRRDTemplate(self, id, REQUEST=None):
         """Add an RRDTemplate to this DeviceClass.
         """
