@@ -17,8 +17,10 @@
         xtype: 'wizardautodiscoveryview'
     }, {
         xtype: 'wizardadddeviceview'
+    }, {
+        xtype: 'wizardaddsmtpview'
     }];
-    Zenoss.quickstart.Wizard.controllers = ["OutlineController", "AddUserController", "AutoDiscoveryController", "AddDeviceController"];
+    Zenoss.quickstart.Wizard.controllers = ["OutlineController", "AddUserController", "AutoDiscoveryController", "AddDeviceController", "AddSmtpController"];
     Zenoss.quickstart.Wizard.events = Ext.create('Ext.util.Observable', {});
     Zenoss.quickstart.Wizard.events.addEvents('beforeapplaunch');
 
@@ -73,9 +75,7 @@
                     },{
                         html: '<hr />',
                         width: "100%",
-                        height: 25
-                    }],
-                    height: 70
+                    }]
                 }, {
                     id: 'wizard_card_panel',
                     region: 'center',
@@ -299,6 +299,7 @@
         },
         formValidityChange: function(isValid) {
             this.next.setDisabled(!isValid);
+            this.finish.setDisabled(!isValid);
         },
         /**
          * Application handler for the previouspressed event
