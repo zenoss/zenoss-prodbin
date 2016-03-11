@@ -259,10 +259,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
 
     @property
     def status(self):
-        if not self.snmpSysName:
-            status = self._object.getPingStatus()
-        else:
-            status = self._object.getSnmpStatus()
+        status = self._object.getPingStatus()
         return None if status is None else status < 1
 
     @property
