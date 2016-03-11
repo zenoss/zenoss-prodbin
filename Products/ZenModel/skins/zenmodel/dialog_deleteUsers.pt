@@ -4,6 +4,8 @@
 Are you sure you want to remove these Users?<br/>
 </p>
 <br/>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <div id="dialog_buttons">
 <input id="dialog_delete_users_submit" type="submit" name="manage_deleteUsers:method" value="OK"
  tal:attributes="onclick string:return $$('dialog').submit_form(

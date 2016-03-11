@@ -23,6 +23,7 @@ from ZenossSecurity import *
 from UserCommand import UserCommand
 from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
+from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenUtils.Utils import unused
 from Products.ZenWidgets import messaging
@@ -46,6 +47,7 @@ class Commandable:
     security = ClassSecurityInfo()
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 'manage_addUserCommand')
+    @validate_csrf_token
     def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
         unused(desc, cmd)

@@ -4,6 +4,8 @@
 Are you sure you want to save these User Settings?<br/>
 </p>
 <br/>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <div id="dialog_buttons">
 <input type="submit" name="manage_editUserSettings:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
