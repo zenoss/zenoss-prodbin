@@ -30,12 +30,15 @@ from cgi import parse_qs
 from Acquisition import aq_base
 from AccessControl import AuthEncoding
 from AccessControl.SpecialUsers import emergency_user
+from AccessControl import ClassSecurityInfo
 from zope.event import notify
 from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
 from Products.PluggableAuthService.PluggableAuthService import \
         _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from Products.PluggableAuthService.plugins import CookieAuthHelper
+from Products.PluggableAuthService.plugins import (ZODBUserManager, ZODBGroupManager,
+                                                   ZODBRoleManager)
 from Products.PluggableAuthService.interfaces.authservice import _noroles
 from Products.PluggableAuthService.interfaces.plugins import \
         IAuthenticationPlugin
@@ -360,3 +363,24 @@ def termsCheck(self):
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
+
+
+def _make_class_private(class_):
+    """Restrics access to specified class."""
+    security = ClassSecurityInfo()
+    security.declareObjectPrivate()
+
+    security.apply(class_)
+
+
+def disable_pas_resources():
+    """Disable access to users/groups/roles management PAS plugins from browser
+    as they have no protection from CSRF attacks.
+    """
+    _make_class_private(ZODBUserManager.ZODBUserManager)
+    _make_class_private(ZODBGroupManager.ZODBGroupManager)
+    _make_class_private(ZODBRoleManager.ZODBRoleManager)
+
+
+disable_pas_resources()
+
