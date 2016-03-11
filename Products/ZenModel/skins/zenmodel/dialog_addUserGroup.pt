@@ -1,6 +1,8 @@
 <h2>Add Group</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <p style="text-align:right;">
 <span id="new_id_label">Group:&nbsp;</span>
 <input id="new_id" name="groupid">
