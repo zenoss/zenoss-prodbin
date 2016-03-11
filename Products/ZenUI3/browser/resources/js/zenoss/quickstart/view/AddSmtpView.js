@@ -19,7 +19,7 @@
         extend: 'Ext.form.Panel',
         alias: 'widget.wizardaddsmtpview',
         stepTitle: _t('Setup SMTP'),
-        padding: '0 0 15 0',
+        padding: '0 0 10 0',
         setDefaultPort: function (_this, ev, eOpts) {
             var portField = _this.nextSibling();
             if (!Ext.isEmpty(_this.getValue())) {
@@ -47,6 +47,7 @@
                     labelWidth: 200,
                     width: '60%',
                     border: false,
+                    padding: "0 0 0 10",
                     style: {
                         padding: "25px"
                     }
@@ -56,9 +57,10 @@
                         xtype: 'panel',
                         frame: false,
                         border: false,
-                        cls: 'helptext',
-                        html: _t("Define SMTP server host, port, username, and password to enable email from Zenoss"),
-                        padding: "0 25 25 25"
+                        cls: 'wizard_subtitle',
+                        height: 30,
+                        padding: 0,
+                        html: "<h2><em>" + _t("Define SMTP server host, port, username, and password to enable email from Zenoss") +"</em></h2>"
                     },
                     {
                         xtype: 'textfield',
