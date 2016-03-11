@@ -12,7 +12,9 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
 from Products.Zuul.catalog.model_catalog import get_solr_config
+from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
 from zenoss.modelindex.indexer import ModelUpdate, INDEX, UNINDEX
+from zenoss.modelindex.solr.solr_client import SolrClient
 
 import logging
 import sys
@@ -190,11 +192,9 @@ def reindex_tree(root_path="", exclude_paths=None, batch_size=DEFAULT_BATCH_SIZE
 
 
 def reindex(paths):
-
     # Uncomment this to run without workers
     #reindex_tree()
     #return
-
     workers = []
     if not isinstance(paths, set):
         paths = set(paths)
@@ -216,9 +216,28 @@ def reindex(paths):
         time.sleep(30)
 
 
-if __name__ == "__main__":
+def create_collection():
+    solr_servers = get_solr_config()
+    solr_client = SolrClient(solr_servers)
 
+    if ZENOSS_MODEL_COLLECTION_NAME not in solr_client.get_collections():
+        # @TODO we should read config values from file
+        collection_config = {}
+        collection_config["collection_name"] = ZENOSS_MODEL_COLLECTION_NAME
+        collection_config["num_shards"] = 1
+        solr_client.create_collection(collection_config)
+
+
+def init():
+    create_collection()
+    # By default, we get separate threads to reindex Networks and Devices
+    # @TODO spend some time thinking how to make reindexing as fast a possible
+    #
     reindex( ("/zport/dmd/Networks", "/zport/dmd/Devices") )
+
+
+if __name__ == "__main__":
+    init()
 
 
 #----------------------------------------------------

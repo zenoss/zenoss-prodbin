@@ -478,7 +478,7 @@ class ModelCatalog(object):
 
 def get_solr_config():
     config = getGlobalConfiguration()
-    return config.get('solr-servers', 'http://localhost:8984')
+    return config.get('solr-servers', 'http://localhost:8983')
 
 
 def register_model_catalog():
