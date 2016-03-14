@@ -322,13 +322,15 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
                 return []
 
             try:
-                minval = rpneval(minval, rpn)
+                if minval is not NaN:
+                    minval = rpneval(minval, rpn)
             except:
                 minval= 0
                 self.raiseRPNExc()
 
             try:
-                maxval = rpneval(maxval, rpn)
+                if maxval is not NaN:
+                    maxval = rpneval(maxval, rpn)
             except:
                 maxval= 0
                 self.raiseRPNExc()
