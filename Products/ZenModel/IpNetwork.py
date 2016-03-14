@@ -47,8 +47,6 @@ from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
 
-ZEN_CHANGE_NET = 'Change Network'
-
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
     """make a IpNetwork"""
     net = IpNetwork(id, netmask=netmask, version=version)

@@ -40,6 +40,10 @@ ZEN_DELETE = "Delete objects"
 ZEN_ADD = 'Add DMD Objects'
 
 
+# Network specific permissions
+ZEN_CHANGE_NET = 'Change Network'
+
+
 # Notification specific permissions
 VIEW_NOTIFICATION = "View Notification"
 UPDATE_NOTIFICATION = "Update Notification"
