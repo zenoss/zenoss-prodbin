@@ -12,8 +12,6 @@ import Migrate
 
 import Globals
 
-from Products.ZenModel.LinkManager import _create_layer2_catalog
-
 import logging
 log = logging.getLogger("zen.migrate")
 
@@ -24,7 +22,10 @@ class Layer2Catalog(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
     def cutover(self, dmd):  
+        # OBSOLETE: We have to eventually remove this migrate
+        return
 
+        from Products.ZenModel.LinkManager import _create_layer2_catalog
         # Add the catalog
         try:
             getattr(dmd.ZenLinkManager, 'layer2_catalog')

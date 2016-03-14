@@ -216,16 +216,22 @@ def reindex(paths):
         time.sleep(30)
 
 
-def create_collection():
+def create_collection(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     solr_servers = get_solr_config()
     solr_client = SolrClient(solr_servers)
 
-    if ZENOSS_MODEL_COLLECTION_NAME not in solr_client.get_collections():
+    if collection_name not in solr_client.get_collections():
         # @TODO we should read config values from file
         collection_config = {}
-        collection_config["collection_name"] = ZENOSS_MODEL_COLLECTION_NAME
+        collection_config["collection_name"] = collection_name
         collection_config["num_shards"] = 1
         solr_client.create_collection(collection_config)
+
+def clear_collection(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
+    solr_servers = get_solr_config()
+    solr_client = SolrClient(solr_servers)
+    if collection_name in solr_client.get_collections():
+        solr_client.delete(query="*:*", commit=True, collection=collection_name)
 
 
 def init():
