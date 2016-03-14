@@ -10,6 +10,7 @@
 import logging
 log = logging.getLogger("zen.migrate")
 
+import re
 import Migrate
 import servicemigration as sm
 from servicemigration import HealthCheck
@@ -67,6 +68,40 @@ class UpdateMetricsHealthChecks(Migrate.Step):
         log.info("Updated 'Central_query_answering' healthcheck for zenhub.")
         zenhub_svc.healthChecks.append(metrics_hc)
         log.info("Updated 'metric_consumer_answering' healthcheck for zenhub.")
+
+        # now fix the original nginx config files on disk
+        top_svc = ctx.getTopService()
+
+        if top_svc.name.find("Zenoss") == 0 or top_svc.name.find("UCS-PM") == 0:
+            # assuming the original files are all correct
+            cfs = filter(lambda f: f.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", top_svc.originalConfigs)
+            for cf in cfs:
+                # fix dos mode to linux
+                cf.content = cf.content.replace('\r\n', '\n')
+
+                # skip if the file already contains the new entry
+                if cf.content.find('location ^~ /ping/') > 0:
+                    log.info("original zproxy-nginx.conf already contains 'ping' resource")
+                    continue
+
+                # else insert the new entry behind the markered section
+                marker = re.compile(r"(\s*location\s+/\s+{.+?})", re.DOTALL)
+                if not marker.search(cf.content):
+                    continue
+
+                cf.content = marker.sub(
+                    r"""\1
+
+        # inserted by 5.2.0 migration script
+        location ^~ /ping/ {
+            include zenoss-zapp-ping-nginx.cfg;
+            proxy_no_cache 1;
+            proxy_cache_bypass 1;
+            proxy_set_header Host $myhost;
+            proxy_method HEAD;
+        }
+        #""", cf.content, 1)
+                log.info("updated zproxy-nginx.conf")
 
         ctx.commit()
 
