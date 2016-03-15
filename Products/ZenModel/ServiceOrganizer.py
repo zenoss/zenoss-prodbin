@@ -285,6 +285,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         self._setProperty("zHideFieldsFromList", [], type="lines")
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
@@ -294,6 +295,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                 inst.index_object()
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """Create a catalog for ServiceClass searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog

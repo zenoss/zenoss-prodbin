@@ -555,6 +555,7 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'cleanUserFolders')
     def cleanUserFolders(self):
         """Delete orphaned user folders.
         """
