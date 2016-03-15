@@ -196,6 +196,7 @@ class MibOrganizer(Organizer, ZenPackable):
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
@@ -206,6 +207,7 @@ class MibOrganizer(Organizer, ZenPackable):
                     thing.index_object()
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """Create a catalog for mibs searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
