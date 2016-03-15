@@ -14,6 +14,7 @@ log = logging.getLogger("zen.widgets.userviews")
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from Products.ZenUtils import Ext
+from Products.ZenUtils.csrf import check_csrf_token
 from Products.CMFCore.utils import getToolByName
 from Products.ZenModel.Quickstart import getTopQuickstartStep
 
@@ -33,6 +34,8 @@ class CreateUserView(BrowserView):
         Handles form submission for setting the admin password and creating
         an initial user.
         """
+        check_csrf_token(self.request)
+
         response = Ext.FormResponse()
 
         adminPassword = self.request.form.get("admin-password1")

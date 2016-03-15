@@ -72,6 +72,7 @@ setTimeout(function () {
                 Automatically generate a new password and send it to the email listed below.
             </div>
             <div style="float:left;padding:2px 0 0 8px;">
+              <input type="hidden" name="csrf_token" tal:attributes="value context/csrf_token/token">
               <input type="submit" name="manage_resetPassword:method" id="resetInitiator" style="display:none;" />
               <input type="button" value="Reset Password"
                      tabindex="-1"
