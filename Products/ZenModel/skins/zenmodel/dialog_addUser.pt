@@ -1,6 +1,8 @@
 <h2 id="add_user_header">Add User</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <p style="text-align:right;">
 <span id="new_id_label">Username:&nbsp;</span>
 <input id="new_id" name="userid">
