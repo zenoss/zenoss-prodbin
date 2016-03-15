@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2016-01-05 19:31:06.411823
+    Zenoss RelationshipManager export completed on 2016-03-11 11:26:54.655148
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2016-01-05 19:31:06.411823" zenoss_server="196719ab575a" >
+<objects version="[Zenoss, version 5.0.70]" export_date="2016-03-11 11:26:54.655148" zenoss_server="7f52067b9966" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -192,6 +192,9 @@ False
 </property>
 <property visible="True" type="date" id="cDateTest" >
 1900/01/01 00:00:00 US/Central
+</property>
+<property visible="True" label="Timeout for User Commands (seconds)" type="float" description="Specifies the time to wait for a user command to complete." id="zCommandUserCommandTimeout" >
+15.0
 </property>
 <tomanycont id='zenMenus'>
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
