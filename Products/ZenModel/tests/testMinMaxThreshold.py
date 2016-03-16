@@ -17,11 +17,19 @@ class TestMinMaxThreshold(ZenModelBaseTest):
     def afterSetUp(self):
         super(TestMinMaxThreshold, self).afterSetUp()
         device = self.dmd.Devices.createInstance('test-device')
-        t = MinMaxThreshold('test')
 
-        # Force acquisition explicitly so that MinMaxThreshold.getPath() doesn't
-        # raise any errors.
-        t = t.__of__(device)
+        thresholdId = 'test'
+        templateId = 'myTemplate'
+
+        t = MinMaxThreshold(thresholdId)
+
+        # Put the threshold into dmd so that we can add the definition dmd id
+        # of the threshold as an attribute of a threshold instance generated
+        # from the threshold.
+        self.dmd.Devices.manage_addRRDTemplate(templateId)
+        (self.dmd.unrestrictedTraverse(
+            '/zport/dmd/Devices/rrdTemplates/' + templateId)
+            .thresholds._setObject(thresholdId, t))
 
         self.threshold = t.createThresholdInstance(device)
 
