@@ -93,6 +93,7 @@ Z_PROPERTIES = [
     ('zCommandLoginTries', 1, 'int', 'Command Login Tries', 'Sets the number of times to attempt login.'),
     ('zCommandLoginTimeout', 10.0, 'float', 'Timeout for Login (seconds)', 'Specifies the time to wait for a login prompt.'),
     ('zCommandCommandTimeout', 10.0, 'float', 'Timeout for Commands (seconds)', 'Specifies the time to wait for a command to complete.'),
+    ('zCommandUserCommandTimeout', 15.0, 'float', 'Timeout for User Commands (seconds)', 'Specifies the time to wait for a user command to complete.'),
     ('zCommandSearchPath', [], 'lines', 'Command Search Path', 'Sets the path to search for any commands.'),
     ('zCommandExistanceTest', 'test -f %s', 'string', 'Command Existance Test', ''),
     ('zCommandPath', '/usr/local/zenoss/libexec', 'string', 'Command Path', 'Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command).'),
