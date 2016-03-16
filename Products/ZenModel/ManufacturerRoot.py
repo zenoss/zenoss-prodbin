@@ -24,7 +24,7 @@ import transaction
 
 from Globals import InitializeClass
 from Acquisition import aq_base
-from AccessControl import Permissions as permissions
+from AccessControl import Permissions as permissions, ClassSecurityInfo
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.PrimaryPathObjectManager import \
@@ -82,6 +82,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
           },
         )
 
+    security = ClassSecurityInfo()
 
     def __init__(self, id=None):
         if not id: id = self.dmdRootName
@@ -107,6 +108,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_ADD, 'createManufacturer')
     def createManufacturer(self, manufacturerName=None):
         """Return and create if nessesary manufacturerName.
         """
@@ -165,6 +167,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                         brains[0].getPrimaryId, self.default_catalog)
 
     
+    security.declareProtected(ZEN_ADD, 'createHardwareProduct')
     def createHardwareProduct(self,prodName,manufacturer="Unknown",**kwargs):
         """Return and create if necessary a HardwareClass object.
         """
@@ -172,6 +175,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         return self._getProduct(prodName, manufacturer, HardwareClass, **kwargs)
 
 
+    security.declareProtected(ZEN_ADD, 'createSoftwareProduct')
     def createSoftwareProduct(self, prodName, manufacturer="Unknown", isOS=False, **kwargs):
         """Return and create if necessary a SoftwareClass object.
         """
@@ -200,6 +204,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                 yield prod
         
     
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
@@ -208,6 +213,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
             prod.index_object()
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """Create a catalog for EventClassRecord searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
