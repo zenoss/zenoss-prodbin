@@ -4812,42 +4812,6 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='SupportBundleFiles_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
-<tomanycont id='zenMenuItems'>
-<object id='deleteSupportBundle' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property id='zendoc' type='string'>
-Delete Support Bundle...
-</property>
-<property type="text" id="description" mode="w" >
-Delete Support Bundle...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_deleteSupportBundle
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="banned_classes" mode="w" >
-[]
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-[]
-</property>
-<property type="lines" id="banned_ids" mode="w" >
-[]
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-90.5
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Templates' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addTemplate' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
