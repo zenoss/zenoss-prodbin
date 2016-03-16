@@ -28,7 +28,10 @@ from ZODB.transact import transact
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
 from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
-from Products.ZenModel.ZenossSecurity import ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES,
+    ZEN_ADD, ZEN_MANAGE_DMD
+)
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
 from Products.ZenUtils.Search import (
@@ -148,6 +151,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     childMoveTargets = getPeerDeviceClassNames
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'createInstance')
     def createInstance(self, devId, performanceMonitor="localhost", manageIp=""):
         """
         Create an instance based on its location in the device tree
@@ -800,6 +804,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """
         Make the catalog for device searching
@@ -820,6 +825,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat.addColumn('id')
         zcat.addColumn('path')
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """
         Go through all devices in this tree and reindex them.

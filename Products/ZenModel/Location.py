@@ -20,7 +20,7 @@ import transaction
 from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
 
 from DeviceOrganizer import DeviceOrganizer
@@ -107,6 +107,7 @@ class Location(DeviceOrganizer, ZenPackable):
         self.address = address
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'setAddress')
     def setAddress(self, address):
         """Sets the mailing address for this location"""
         self.address = address
