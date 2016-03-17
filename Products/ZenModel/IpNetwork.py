@@ -42,9 +42,10 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import unused, zenPath, unpublished
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
+
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
     """make a IpNetwork"""
@@ -136,7 +137,7 @@ class IpNetwork(DeviceOrganizer):
         if version == 6:
             self.dmdRootName = "IPv6Networks"
 
-    security.declareProtected('Change Network', 'manage_addIpNetwork')
+    security.declareProtected(ZEN_CHANGE_NET, 'manage_addIpNetwork')
     def manage_addIpNetwork(self, newPath, REQUEST=None):
         """
         From the GUI, create a new subnet (if necessary)
@@ -161,6 +162,7 @@ class IpNetwork(DeviceOrganizer):
         return self.dmd.getDmdRoot("Networks")
 
 
+    security.declareProtected(ZEN_ADD, 'createNet')
     def createNet(self, netip, netmask=24):
         """
         Return and create if necessary network.  netip is in the form
@@ -230,6 +232,7 @@ class IpNetwork(DeviceOrganizer):
         return netobj
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'rebalance')
     def rebalance(self, netobjParent, netobj):
         """
         Look for children of the netobj at this level and move them to the
@@ -295,6 +298,7 @@ class IpNetwork(DeviceOrganizer):
                     return net
 
 
+    security.declareProtected(ZEN_ADD, 'createIp')
     def createIp(self, ip, netmask=24):
         """Return an ip and create if nessesary in a hierarchy of
         subnetworks based on the zParameter zDefaulNetworkTree.
@@ -343,6 +347,7 @@ class IpNetwork(DeviceOrganizer):
         return map(strip, range(start,end))
 
 
+    security.declareProtected(ZEN_DELETE, 'deleteUnusedIps')
     def deleteUnusedIps(self):
         """Delete ips that are unused in this network.
         """
@@ -369,7 +374,7 @@ class IpNetwork(DeviceOrganizer):
         return "%s/%d" % (self.id, self.netmask)
 
 
-    security.declareProtected('View', 'primarySortKey')
+    security.declareProtected(ZEN_VIEW, 'primarySortKey')
     def primarySortKey(self):
         """
         Sort by the IP numeric
@@ -381,7 +386,7 @@ class IpNetwork(DeviceOrganizer):
         return numbip(self.id)
 
 
-    security.declareProtected('Change Network', 'addSubNetwork')
+    security.declareProtected(ZEN_CHANGE_NET, 'addSubNetwork')
     def addSubNetwork(self, ip, netmask=24):
         """Return and add if nessesary subnetwork to this network.
         """
@@ -392,7 +397,7 @@ class IpNetwork(DeviceOrganizer):
         return self.getSubNetwork(ip)
 
 
-    security.declareProtected('View', 'getSubNetwork')
+    security.declareProtected(ZEN_VIEW, 'getSubNetwork')
     def getSubNetwork(self, ip):
         """get an ip on this network"""
         return self._getOb(ipwrap(ip), None)
@@ -406,7 +411,7 @@ class IpNetwork(DeviceOrganizer):
             nets.extend(subgroup.getSubNetworks())
         return nets
 
-    security.declareProtected('Change Network', 'addIpAddress')
+    security.declareProtected(ZEN_CHANGE_NET, 'addIpAddress')
     def addIpAddress(self, ip, netmask=24):
         """add ip to this network and return it"""
         ipobj = IpAddress(ip,netmask)
@@ -414,12 +419,12 @@ class IpNetwork(DeviceOrganizer):
         return self.getIpAddress(ip)
 
 
-    security.declareProtected('View', 'getIpAddress')
+    security.declareProtected(ZEN_VIEW, 'getIpAddress')
     def getIpAddress(self, ip):
         """get an ip on this network"""
         return self.ipaddresses._getOb(ipwrap(ip), None)
 
-    security.declareProtected('Change Network', 'manage_deleteIpAddresses')
+    security.declareProtected(ZEN_CHANGE_NET, 'manage_deleteIpAddresses')
     def manage_deleteIpAddresses(self, ipaddresses=(), REQUEST=None):
         """Delete ipaddresses by id from this network.
         """
@@ -430,7 +435,7 @@ class IpNetwork(DeviceOrganizer):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('View', 'countIpAddresses')
+    security.declareProtected(ZEN_VIEW, 'countIpAddresses')
     def countIpAddresses(self, inuse=False):
         """get an ip on this network"""
         if inuse:
@@ -446,7 +451,7 @@ class IpNetwork(DeviceOrganizer):
             count += net.countIpAddresses(inuse)
         return count
 
-    security.declareProtected('View', 'countDevices')
+    security.declareProtected(ZEN_VIEW, 'countDevices')
     countDevices = countIpAddresses
 
 
@@ -492,7 +497,7 @@ class IpNetwork(DeviceOrganizer):
             raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
         return ret[0].getObject()
 
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'buildZProperties')
     def buildZProperties(self):
         if self.version == 6:
             nets = self.getDmdRoot("IPv6Networks")
@@ -509,6 +514,7 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zSnmpStrictDiscovery", False, type="boolean")
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
         zcat = self._getCatalog()
@@ -518,6 +524,7 @@ class IpNetwork(DeviceOrganizer):
                 ip.index_object()
 
 
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """make the catalog for device searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
@@ -533,12 +540,14 @@ class IpNetwork(DeviceOrganizer):
         zcat._catalog.addIndex('path', makeMultiPathIndex('path'))
 
 
+    security.declareProtected(ZEN_ADD, 'discoverNetwork')
     def discoverNetwork(self, REQUEST=None):
         """
         """
         path = '/'.join(self.getPrimaryPath()[4:])
         return self.discoverDevices([path], REQUEST=REQUEST)
 
+    security.declareProtected(ZEN_ADD, 'discoverDevices')
     def discoverDevices(self, organizerPaths=None, REQUEST = None):
         """
         Load a device into the database connecting its major relations
@@ -613,7 +622,7 @@ class IpNetwork(DeviceOrganizer):
             % (self.absolute_url(), self.id))
         response.write("</table></body></html>")
 
-    security.declareProtected('View', 'getXMLEdges')
+    security.declareProtected(ZEN_VIEW, 'getXMLEdges')
     def getXMLEdges(self, depth=1, filter='/', start=()):
         """ Gets XML """
         if not start: start=self.id
@@ -629,6 +638,7 @@ class IpNetwork(DeviceOrganizer):
             return '/zport/dmd/img/icons/noicon.png'
 
 
+    @unpublished
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Return an anchor tag if the user has access to the remote object.

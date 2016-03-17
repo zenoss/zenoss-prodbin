@@ -123,6 +123,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         return self.monitorOSProcessClasses(ids, False, REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'monitorOSProcessClasses')
     def monitorOSProcessClasses(self, ids=None, monitor=True, REQUEST=None):
         """Remove OSProcessClasses from an EventClass.
         """
@@ -134,6 +135,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         if REQUEST: return self()
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'removeOSProcessClasses')
     def removeOSProcessClasses(self, ids=None, REQUEST=None):
         """Remove OSProcessClasses from an EventClass.
         """
@@ -149,6 +151,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         if REQUEST: return self()
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'moveOSProcessClasses')
     def moveOSProcessClasses(self, moveTarget, ids=None, REQUEST=None):
         """Move OSProcessClasses from this EventClass to moveTarget.
         """

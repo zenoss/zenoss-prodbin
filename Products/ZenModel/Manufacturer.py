@@ -131,6 +131,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         if REQUEST: return self.callZenScreen(REQUEST)
 
    
+    security.declareProtected(ZEN_MANAGE_DMD, 'moveProducts')
     def moveProducts(self, moveTarget=None, ids=None, REQUEST=None):
         """Move product to different manufacturer.
         """

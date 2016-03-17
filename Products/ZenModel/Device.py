@@ -64,7 +64,7 @@ from ZenossSecurity import (
   ZEN_DELETE_DEVICE, ZEN_ADMIN_DEVICE, ZEN_MANAGE_DMD,
   ZEN_EDIT_LOCAL_TEMPLATES, ZEN_CHANGE_DEVICE_PRODSTATE,
 )
-from Products.ZenUtils.Utils import edgesToXML
+from Products.ZenUtils.Utils import edgesToXML, unpublished
 from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
@@ -451,6 +451,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             ManagedEntity._setPropValue(self, id, value)
 
 
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'applyDataMap')
     def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
@@ -673,6 +674,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.os.getProductKey()
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setOSProductKey')
     def setOSProductKey(self, prodKey, manufacturer=None):
         """
         Set the productKey of the device OS.
@@ -689,18 +691,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.hw.tag
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWTag')
     def setHWTag(self, assettag):
         """
         Set the asset tag of the device hardware.
         """
         self.hw.tag = assettag
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWProductKey')
     def setHWProductKey(self, prodKey, manufacturer=None):
         """
         Set the productKey of the device hardware.
         """
         self.hw.setProductKey(prodKey, manufacturer)
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWSerialNumber')
     def setHWSerialNumber(self, number):
         """
         Set the hardware serial number.
@@ -1228,6 +1233,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setTitle')
     def setTitle(self, newTitle):
         """
         Changes the title to newTitle and reindexes the object
@@ -1470,6 +1476,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit(['UI.Device', action], self, location=locationPath)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """
         DEPRECATED
@@ -1723,6 +1730,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if DateTime() > lastcoll + hours: return 1
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'applyProductContext')
     def applyProductContext(self):
         """
         Apply zProperties inherited from Product Contexts.
@@ -1870,6 +1878,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         except CopyError:
             raise Exception("Device rename failed.")
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
         """
         Override so ips get indexed on move.
@@ -1881,6 +1890,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 ip.index_object()
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'unindex_object')
     def unindex_object(self):
         """
         Override so ips get unindexed as well.
@@ -1889,6 +1899,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         super(Device, self).unindex_object()
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'unindex_ips')
     def unindex_ips(self):
         """
         IpAddresses aren't contained underneath Device, so manage_beforeDelete
@@ -2093,6 +2104,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return edgesToXML(edges, start)
 
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
+    @unpublished
     def getPrettyLink(self, target=None, altHref=""):
         """
         Gets a link to this device, plus an icon
