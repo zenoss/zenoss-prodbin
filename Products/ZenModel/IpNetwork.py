@@ -419,7 +419,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         if netobj is None:
             # Network does not exist. Create a new network
             if not netmask:
-                netmask = get_default_netmask(ip)
+                netmask = get_default_netmask(netip)
 
             # Let's find a parent of the new net
             parent_mask = -1
