@@ -42,7 +42,7 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import unused, zenPath, unpublished
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
 
@@ -638,6 +638,7 @@ class IpNetwork(DeviceOrganizer):
             return '/zport/dmd/img/icons/noicon.png'
 
 
+    @unpublished
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Return an anchor tag if the user has access to the remote object.

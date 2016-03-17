@@ -33,7 +33,7 @@ from Acquisition import aq_base, aq_chain
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath, unpublished
 
 from Products.ZenUtils.csrf import get_csrf_token
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
@@ -201,6 +201,7 @@ class ZenModelBase(object):
             return screen()
 
 
+    @unpublished
     def zenScreenUrl(self):
         """
         Return the url for the current screen as defined by zenScreenName.
@@ -214,6 +215,7 @@ class ZenModelBase(object):
         return self.getPrimaryUrlPath() + "/" + screenName
 
 
+    @unpublished
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Return an anchor tag if the user has access to the remote object.
@@ -429,6 +431,7 @@ class ZenModelBase(object):
         return '/'+'/'.join(path)
 
 
+    @unpublished
     def zenpathjoin(self, path):
         """
         DEPRECATED Build a Zenoss path based on a list or tuple.
@@ -457,6 +460,7 @@ class ZenModelBase(object):
         return createHierarchyObj(root, name, factory, relpath, alog)
 
 
+    @unpublished
     def getHierarchyObj(self, root, name, relpath):
         """
         DEPRECATED this doesn't seem to be used anywere don't use it!!!
