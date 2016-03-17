@@ -9,13 +9,6 @@
 
 
 <browser:directRouter
-    name="support_router"
-    for="*"
-    class=".support.SupportRouter"
-    namespace="Zenoss.remote"
-    />
-
-<browser:directRouter
     name="messaging_router"
     for="*"
     class=".messaging.MessagingRouter"

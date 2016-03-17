@@ -191,11 +191,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'support'
-                , 'name'          : 'Support'
-                , 'action'        : 'support'
-                , 'permissions'   : ( "Manage DMD", )
-                }
             )
           },
         )
@@ -615,10 +610,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self.REQUEST.response.setHeader('Cache-Control', 'no-transform')
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
-
-    security.declareProtected(ZEN_MANAGE_DMD, 'getSupportBundleFilesInfo')
-    def getSupportBundleFilesInfo(self):
-        return self.getFilesInfo('var/ext/support')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):

@@ -8,12 +8,6 @@
             for="*"
             />
 
-   <adapter factory=".SupportFacade"
-            provides="..interfaces.IFacade"
-            name="support"
-            for="*"
-            />
-
    <adapter factory=".PropertiesFacade"
             provides="..interfaces.IPropertiesFacade"
             name="properties"
