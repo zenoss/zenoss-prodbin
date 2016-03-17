@@ -64,7 +64,7 @@ from ZenossSecurity import (
   ZEN_DELETE_DEVICE, ZEN_ADMIN_DEVICE, ZEN_MANAGE_DMD,
   ZEN_EDIT_LOCAL_TEMPLATES, ZEN_CHANGE_DEVICE_PRODSTATE,
 )
-from Products.ZenUtils.Utils import edgesToXML
+from Products.ZenUtils.Utils import edgesToXML, unpublished
 from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
@@ -2104,6 +2104,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return edgesToXML(edges, start)
 
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
+    @unpublished
     def getPrettyLink(self, target=None, altHref=""):
         """
         Gets a link to this device, plus an icon
