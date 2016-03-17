@@ -16,7 +16,7 @@ from transaction.interfaces import IDataManager
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
-from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
+from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID_FIELD
 from zenoss.modelindex.exceptions import IndexException, SearchException
 from zenoss.modelindex.model_index import ModelUpdate, INDEX, UNINDEX, SearchParams
 
@@ -29,6 +29,7 @@ log = logging.getLogger("model_catalog")
 
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty 
 
+TX_STATE_FIELD = "tx_state"
 
 class ModelCatalogError(Exception):
     def __init__(self, message=""):
@@ -108,6 +109,15 @@ class ModelCatalogBrain(Implicit):
         return self._result.uuid
 
 
+class ObjectUpdate(object):
+    """ Contains the info needed to create a modelindex.ModelUpdate """
+    def __init__(self, obj, op=INDEX, idxs=None):
+        self.uid = obj.idx_uid()
+        self.obj = obj
+        self.op = op
+        self.idxs = idxs
+
+
 class ModelCatalogClient(object):
 
     def __init__(self, solr_url):
@@ -125,7 +135,7 @@ class ModelCatalogClient(object):
     def catalog_object(self, obj, idxs=None):
         if not isinstance(obj, self._get_forbidden_classes()):
             try:
-                self._data_manager.add_model_update(ModelUpdate(obj, op=INDEX, idxs=idxs))
+                self._data_manager.add_model_update(ObjectUpdate(obj, op=INDEX, idxs=idxs))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error()
@@ -133,7 +143,7 @@ class ModelCatalogClient(object):
     def uncatalog_object(self, obj):
         if not isinstance(obj, self._get_forbidden_classes()):
             try:
-                self._data_manager.add_model_update(ModelUpdate(obj, op=UNINDEX))
+                self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error()
@@ -172,12 +182,30 @@ class ModelCatalogTransactionState(object):
         self.temp_indexed_uids = set() # uids (uid@=@tid) of temporary indexed documents
         self.commits_metric = []
 
-    def add_model_update(self, update):
-        # When we support atomic updates the logic to combine multiple
-        # atomic updates for an object will be here. For now as we only can
-        # index/unindex the last update overwrites any previous one
-        #
-        self.pending_updates[update.uid]=update
+    def add_model_update(self, object_update):
+        """
+        Generates and stores a ModelUpdate from the received ObjectUpdate taking into account
+        any previous model update (if any)
+        """
+        uid = object_update.uid
+        op = object_update.op
+        idxs = object_update.idxs
+
+        previous_model_update = self.pending_updates.get(uid) if self.pending_updates.get(uid) else self.indexed_updates.get(uid)
+        # When we get INDEX after UNINDEX or UNINDEX after INDEX, the last operation to come overwrites the previous
+        if previous_model_update and previous_model_update.op == INDEX: # combine the previous update with the new one
+            if op == UNINDEX:
+                idxs = None # unindex the object
+            else: # previous op was index, lets check if it was a partial update or not
+                if not previous_model_update.idxs or not idxs: # one or both of them was a full index
+                    idxs = None # index the whole object
+                elif previous_model_update.idxs and idxs: # combine them
+                    idxs = set(idxs) | set(previous_model_update.idxs)
+                    idxs.update(TX_STATE_FIELD, UID_FIELD) # Mandatory fields
+
+        model_update = ModelUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
+        self.pending_updates[object_update.uid] = model_update
+        del object_update # Make sure we dont keep references to the object
 
     def get_pending_updates(self):
         """ return updates that have not been sent to the index """
@@ -194,8 +222,8 @@ class ModelCatalogTransactionState(object):
         for uid, update in self.indexed_updates.iteritems():
             # update the uid and tx_state
             if update.op == INDEX:
-                update.spec.set_field_value("uid", uid)
-                update.spec.set_field_value("tx_state", 0)
+                update.spec.set_field_value(UID_FIELD, uid)
+                update.spec.set_field_value(TX_STATE_FIELD, 0)
             final_updates[uid] = update
         # now update overwriting in case we had a new update for any
         # of the already indexed objects
@@ -265,8 +293,8 @@ class ModelCatalogDataManager(object):
                     update.uid = temp_uid
             else:
                 # Index the object with a special uid
-                update.spec.set_field_value("uid", temp_uid)
-                update.spec.set_field_value("tx_state", tid)
+                update.spec.set_field_value(UID_FIELD, temp_uid)
+                update.spec.set_field_value(TX_STATE_FIELD, tid)
                 indexed_uids.add(temp_uid)
             tweaked_updates.append(update)
 
@@ -284,9 +312,9 @@ class ModelCatalogDataManager(object):
         if tx_state:
             values.append(tx_state.tid)
         if isinstance(search_params.query, dict):
-            search_params.query["tx_state"] = values
+            search_params.query[TX_STATE_FIELD] = values
         else: # We assume it is an AdvancedQuery
-            or_query = [ Eq("tx_state", value) for value in values]
+            or_query = [ Eq(TX_STATE_FIELD, value) for value in values]
             search_params.query = And( search_params.query, Or(*or_query) )
         return search_params
 
@@ -374,7 +402,7 @@ class ModelCatalogDataManager(object):
         tx_state = self._get_tx_state()
         if tx_state and tx_state.are_there_indexed_updates():
             try:
-                query = {"tx_state":tx_state.tid}
+                query = {TX_STATE_FIELD:tx_state.tid}
                 self.model_index.unindex_search(SearchParams(query))
             except Exception as e:
                 log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))

@@ -50,7 +50,7 @@ def onIndexingEvent(ob, event):
         idxs = [idxs]
     object_to_index = _get_object_to_index(ob)
     if object_to_index:
-        getUtility(IModelCatalog).catalog_object(object_to_index) # @TODO pass idxs
+        getUtility(IModelCatalog).catalog_object(object_to_index, idxs)
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
@@ -76,11 +76,11 @@ def onObjectAdded(ob, event):
 @adapter(IGloballyIndexed, IObjectMovedEvent)
 def onObjectMoved(ob, event):
     """
-    Reindex paths only, don't update metadata.
+    Reindex paths only
     """
     if not (IObjectAddedEvent.providedBy(event) or
             IObjectRemovedEvent.providedBy(event)):
-        notify(IndexingEvent(ob, 'path', False))
+        notify(IndexingEvent(ob, 'path'))
 
 
 @adapter(IDeviceOrganizer, IObjectWillBeMovedEvent)
@@ -90,9 +90,6 @@ def onOrganizerBeforeDelete(ob, event):
     to the devices. 
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        # remove the device's path from this organizer
-        # from the indexes
-        # @TODO This is not yet working with SOLR
         for device in ob.devices.objectValuesGen():
             notify(IndexingEvent(device, idxs=['path']))
 
