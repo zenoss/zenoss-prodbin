@@ -44,7 +44,7 @@
                 },
                 defaults: {
                     frame: false,
-                    labelWidth: 200,
+                    labelWidth: 225,
                     width: '60%',
                     border: false,
                     padding: "0 0 0 10",
@@ -96,6 +96,18 @@
                         fieldLabel: _t('SMTP Password (blank for none)'),
                         name: 'smtpPass',
                         allowBlank: true
+                    },
+                    {
+                        xtype: 'textfield',
+                        fieldLabel: _t('From Address for Emails'),
+                        name: 'emailFrom',
+                        allowBlank: true
+                    },
+                    {
+                        xtype: 'checkbox',
+                        fieldLabel: _t("Use Transport Layer Security for E-mail?"),
+                        value: '1',
+                        name: 'smtpUseTLS'
                     }
                 ]
             });
