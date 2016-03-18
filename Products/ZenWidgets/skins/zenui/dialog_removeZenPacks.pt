@@ -14,6 +14,8 @@ Warning: If any DeviceClasses are deleted then all<br />
 contained Device Classes and Devices will also be deleted.
 </p>
 </div>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 
 <div id="dialog_buttons">
 <input id="dialog_cancel" type="button" value="Cancel"
