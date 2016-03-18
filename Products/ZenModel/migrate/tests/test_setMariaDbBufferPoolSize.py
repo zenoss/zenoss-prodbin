@@ -11,16 +11,10 @@ class Test_SetMariaDbBufferPoolSize(unittest.TestCase, common.ServiceMigrationTe
     """
     Test that MariaDB Timeout values are set to 7200 seconds
     """
-    # initial_servicedef = 'zenoss-core-5.0.6_193.json'
-    # expected_servicedef = 'zenoss-core-5.0.6_193-setMariaDbBufferPoolSize.json'
-    # migration_module_name = 'setMariaDbBufferPoolSize'
-    # migration_class_name = 'SetMariaDbBufferPoolSize'
-
-    initial_servicedef = 'zenoss-resmgr-lite-5.1.0.json'
-    expected_servicedef = 'zenoss-resmgr-lite-5.1.0-setMariaDbModelRamCommitment.json'
+    initial_servicedef = 'zenoss-core-5.0.6_193.json'
+    expected_servicedef = 'zenoss-core-5.0.6_193-setMariaDbBufferPoolSize.json'
     migration_module_name = 'setMariaDbBufferPoolSize'
     migration_class_name = 'SetMariaDbBufferPoolSize'
-
 
 if __name__ == '__main__':
     unittest.main()
