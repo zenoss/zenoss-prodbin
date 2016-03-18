@@ -13,9 +13,8 @@ class Test_SetMariaDbBufferPoolSize(unittest.TestCase, common.ServiceMigrationTe
     """
     initial_servicedef = 'zenoss-core-5.0.6_193.json'
     expected_servicedef = 'zenoss-core-5.0.6_193-setMariaDbBufferPoolSize.json'
-    migration_module_name = 'setMariaDbBufferPoolSize'
-    migration_class_name = 'SetMariaDbBufferPoolSize'
-
+    migration_module_name = 'setMariaDbConfigDefaults'
+    migration_class_name = 'SetMariaDbConfigDefaults'
 
 if __name__ == '__main__':
     unittest.main()
