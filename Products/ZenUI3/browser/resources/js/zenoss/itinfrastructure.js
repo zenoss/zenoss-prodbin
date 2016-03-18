@@ -222,7 +222,6 @@ function treeselectionchange(sm, newnodes) {
         Ext.getCmp('master_panel').items.each(function(card){
             card.navButton.setVisible(!newnode.data.hidden);
         });
-
     }
 }
 
