@@ -45,7 +45,9 @@
                     smtpHost: values.smtpHost,
                     smtpPort: values.smtpPort,
                     smtpUser: values.smtpUser,
-                    smtpPass: values.smtpPass
+                    smtpPass: values.smtpPass,
+                    emailFrom: values.emailFrom,
+                    smtpUseTLS: values.smtpUseTLS
                 };
                 Zenoss.remote.SettingsRouter.setDmdSettings(params);
             }
