@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import importlib
+import difflib
 import json
 import mock
 import os
@@ -63,27 +64,33 @@ def compare(this, that, path=None):
     iab = []
     if isinstance(this, list):
         if not isinstance(that, list):
-            return False, path
+            return False, path, None
         if len(this) != len(that):
-            return False, path
+            return False, path, None
         iab = enumerate(zip(this, that))
     elif isinstance(this, dict):
         if not isinstance(that, dict):
-            return False, path
+            return False, path, None
         if len(this.keys()) != len(that.keys()):
             for key in list(set(this.keys() + that.keys())):
                 if this.get(key) != this.get(key):
-                    return False, path + [key]
+                    return False, path + [key], None
         keys = this.keys()
         iab = zip(keys, [(this.get(k), that.get(k)) for k in keys])
+    elif isinstance(this, basestring):
+        if this == that:
+            return True, None, None
+        dis = this.split('\n')
+        dat = that.split('\n')
+        return False, path, difflib.unified_diff(dis, dat)
     else:
         if this != that:
-            return False, path
+            return False, path, None
     for i, (a, b) in iab:
-        r, p = compare(a, b, path + [i])
+        r, p, n = compare(a, b, path + [i])
         if not r:
-            return False, p
-    return True, None
+            return False, p, n
+    return True, None, None
 
 
 class ServiceMigrationTestCase(object):
@@ -117,7 +124,7 @@ class ServiceMigrationTestCase(object):
                 getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = context.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
-        result, rpath = compare(actual, expected)
+        result, rpath, rdiff = compare(actual, expected)
         if not result:
             e, a = expected, actual
             for p in rpath:
@@ -125,8 +132,12 @@ class ServiceMigrationTestCase(object):
             e = ('None' if e is None else e) or '""'
             a = ('None' if a is None else a) or '""'
             fpath = '.'.join([str(p) for p in rpath])
-            self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                      % (e, rpath, a))
+            if rdiff is not None:
+                self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
+                        % (rpath, "\n".join(rdiff)))
+            else:            
+                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
+                        % (e, rpath, a))
 
 
     def test_cutover_correctness(self):
