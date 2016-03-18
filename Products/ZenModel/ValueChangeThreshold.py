@@ -58,9 +58,9 @@ class ValueChangeThresholdInstance(MetricThresholdInstance):
     def _checkImpl(self, dataPoint, value):
         dpKey = self._getDpKey(dataPoint)
         lastValue = self._lastValues.get(dpKey, None)
-        if value != None:
+        if value is not None:
             self._lastValues[dpKey] = value
-        if lastValue != value and lastValue != None:
+        if lastValue != value and lastValue is not None:
             event = dict(
                 device=self.context().deviceName,
                 summary="Value changed from %s to %s" % (lastValue, value),
