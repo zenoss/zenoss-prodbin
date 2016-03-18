@@ -15,7 +15,7 @@ import servicemigration as sm
 
 sm.require("1.0.0")
 
-class SetMariaDbBufferPoolSize(Migrate.Step):
+class SetMariaDbConfigDefaults(Migrate.Step):
     """Setting MariaDB buffer pool size default"""
 
     version = Migrate.Version(5, 2, 0)
@@ -93,4 +93,4 @@ innodb_buffer_pool_instances = 1
         if commit:
             ctx.commit()
 
-SetMariaDbBufferPoolSize()
+SetMariaDbConfigDefaults()

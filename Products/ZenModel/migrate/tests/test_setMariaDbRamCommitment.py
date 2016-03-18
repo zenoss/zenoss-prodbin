@@ -14,8 +14,8 @@ class Test_SetMariaDbRamCommitment(unittest.TestCase, common.ServiceMigrationTes
     
     initial_servicedef = 'zenoss-resmgr-lite-5.1.0.json'
     expected_servicedef = 'zenoss-resmgr-lite-5.1.0-setMariaDbModelRamCommitment.json'
-    migration_module_name = 'setMariaDbBufferPoolSize'
-    migration_class_name = 'SetMariaDbBufferPoolSize'
+    migration_module_name = 'setMariaDbConfigDefaults'
+    migration_class_name = 'SetMariaDbConfigDefaults'
 
 if __name__ == '__main__':
     unittest.main()
