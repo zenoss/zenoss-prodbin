@@ -256,7 +256,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         return self.osProcessClass()
 
 
-    security.declareProtected('Manage DMD', 'manage_editOSProcess')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_editOSProcess')
     def manage_editOSProcess(self, zMonitor=False, zAlertOnRestart=False,
                              zFailSeverity=3, msg=None,REQUEST=None):
         """
@@ -318,6 +318,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
             return self.osProcessClass().primaryAq().getZ("zSendEventWhenBlockedFlag")
         return self.sendEventWhenBlockedFlag
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'sendEventWhenBlocked')
     def sendEventWhenBlocked(self):
         return self._getSendEventWhenBlockedFlag()
 
@@ -355,14 +356,17 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
                 if pclass.getZ("zSendEventWhenBlockedFlag") == self.sendEventWhenBlockedFlag:
                     self.sendEventWhenBlockedFlag = None
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'unlock')
     def unlock(self, REQUEST=None):
         Lockable.unlock(self, REQUEST=REQUEST)
         self._checkLockProperties()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromDeletion')
     def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
         Lockable.lockFromDeletion(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
         self._checkLockProperties()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromUpdates')
     def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
         Lockable.lockFromUpdates(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
         self._checkLockProperties()
