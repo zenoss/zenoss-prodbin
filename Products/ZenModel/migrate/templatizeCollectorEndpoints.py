@@ -45,6 +45,11 @@ class TemplatizeCollectorEndpoints(Migrate.Step):
             log.info("Found %i export endpoints for service '%s'." % (len(publicEndpoints), svc.name))
             for endpoint in publicEndpoints:
 
+                # Fix items broken by previous implementation of this migration:
+                if "{{(parent .).Name}}" in endpoint.application:
+                    log.info("Replacing unprocessed template with actual parent name on endpoint application for '%s'." % svc.name)
+                    endpoint.application = endpoint.application.replace("{{(parent .).Name}}", parentname)
+
                 # Prepend parent service name to endpoint application, if it doesn't already exist
                 if not endpoint.application.startswith(parentname + "_"):
                     log.info("Prepending parent name to endpoint application for '%s'." % svc.name)
