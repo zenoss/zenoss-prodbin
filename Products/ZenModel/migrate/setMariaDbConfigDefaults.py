@@ -15,7 +15,7 @@ import servicemigration as sm
 
 sm.require("1.0.0")
 
-class SetMariaDbBufferPoolSize(Migrate.Step):
+class SetMariaDbConfigDefaults(Migrate.Step):
     """Setting MariaDB buffer pool size default"""
 
     version = Migrate.Version(5, 2, 0)
@@ -32,14 +32,44 @@ class SetMariaDbBufferPoolSize(Migrate.Step):
         marias = filter(lambda s: s.name in marialist, ctx.services)
 
         commit = False
-        chk  = 'innodb_buffer_pool_size = 512M'
-        repl = 'innodb_buffer_pool_size = {{percentScale .RAMCommitment 0.8}}'
         for maria in marias:
 
-            if maria.ramCommitment == "2G":
+            # RAM Commitment
+            if maria.ramCommitment == "2G" and maria.name == "mariadb-model":
                 maria.ramCommitment = "4G"
                 commit = True
 
+            # Buffer Pool Instances
+            chk  = "innodb_buffer_pool_instances = {{.CPUCommitment}}"
+            repl = """{{with $coresless1 := plus (uintToInt .CPUCommitment) -1 }}
+innodb_buffer_pool_instances = {{$coresless1}}
+{{else}}
+innodb_buffer_pool_instances = 1
+{{end}}"""
+            for cnf in maria.originalConfigs:
+                if cnf.name != '/etc/my.cnf':
+                    continue
+                lines = cnf.content.split('\n')
+                for i in range(len(lines)):
+                    if lines[i] == chk:
+                        lines[i] = repl
+                cnf.content = '\n'.join(lines)
+                commit = True
+
+            for cnf in maria.configFiles:
+                if cnf.name != '/etc/my.cnf':
+                    continue
+                lines = cnf.content.split('\n')
+                for i in range(len(lines)):
+                    if lines[i] == chk:
+                        lines[i] = repl
+                cnf.content = '\n'.join(lines)
+                commit = True
+
+
+            # Buffer Pool Size
+            chk  = 'innodb_buffer_pool_size = 512M'
+            repl = 'innodb_buffer_pool_size = {{percentScale .RAMCommitment 0.8}}'
             for cnf in maria.originalConfigs:
                 if cnf.name != '/etc/my.cnf':
                     continue
@@ -63,4 +93,4 @@ class SetMariaDbBufferPoolSize(Migrate.Step):
         if commit:
             ctx.commit()
 
-SetMariaDbBufferPoolSize()
+SetMariaDbConfigDefaults()
