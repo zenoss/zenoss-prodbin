@@ -241,6 +241,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return self.ZenEventManager.getSeverityString(self.severity)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, ignored=None):
         return ZenModelRM.zmanage_editProperties(self, REQUEST)
 
@@ -253,6 +254,7 @@ class SimpleRRDDataSource(RRDDataSource):
     security = ClassSecurityInfo()
     
     
+    security.declareProtected(ZEN_MANAGE_DMD, 'addDataPoints')
     def addDataPoints(self):
         """
         Make sure there is exactly one datapoint and that it has the same name

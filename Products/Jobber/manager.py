@@ -15,6 +15,7 @@ from uuid import uuid4
 
 import transaction
 
+from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
@@ -428,3 +429,6 @@ class JobLogDownload(BrowserView):
             response.setHeader('Content-Disposition', 'attachment;filename=%s' % os.path.basename(logfile))
             with open(logfile, 'r') as f:
                 return f.read()
+
+
+InitializeClass(JobManager)
