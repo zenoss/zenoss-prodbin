@@ -15,6 +15,7 @@ and builds the nessesary DEF and CDEF statements for it.
 """
 
 from Products.ZenModel import RRDDataSource
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
@@ -135,6 +136,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         return False
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:
@@ -241,7 +243,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write('DONE in %s seconds' % long(time.time() - start))
         out.write(str(footer))
 
-    security.declareProtected('Change Device', 'manage_testDataSource')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
         ''' Test the datasource by executing the command and outputting the
         non-quiet results.

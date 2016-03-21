@@ -2952,8 +2952,8 @@
          "PortNumber": 514,
          "PortTemplate": "",
          "VirtualAddress": "",
-         "Application": "localhost_syslog",
-         "ApplicationTemplate": "{{(parent .).Name}}_syslog",
+         "Application": "{{(parent .).Name}}_syslog",
+         "ApplicationTemplate": "syslog",
          "AddressConfig": {
            "Port": 514,
            "Protocol": "udp"
@@ -7001,8 +7001,8 @@
          "PortNumber": 162,
          "PortTemplate": "",
          "VirtualAddress": "",
-         "Application": "localhost_snmp_trap",
-         "ApplicationTemplate": "{{(parent .).Name}}_snmp_trap",
+         "Application": "{{(parent .).Name}}_snmp_trap",
+         "ApplicationTemplate": "snmp_trap",
          "AddressConfig": {
            "Port": 162,
            "Protocol": "udp"
