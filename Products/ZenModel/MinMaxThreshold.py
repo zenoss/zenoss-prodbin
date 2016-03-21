@@ -87,6 +87,8 @@ class MinMaxThreshold(ThresholdClass):
                                       eventClass=self.eventClass,
                                       severity=self.getSeverity(context),
                                       escalateCount=self.getEscalateCount(context),
+                                      definitionId = self.getPrimaryDmdId(),
+                                      description = self.description,
                                       eventFields=self.getEventFields(context),
               )
         return mmt
@@ -170,6 +172,7 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
 
     def __init__(self, id, context, dpNames,
                  minval, maxval, eventClass, severity, escalateCount,
+                 definitionId, description,
                  eventFields={}):
         MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
         self.count = {}
@@ -177,6 +180,8 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
         self.maximum = maxval if maxval != '' else None
         self.escalateCount = escalateCount
         self.eventFields = eventFields
+        self.definitionId = definitionId 
+        self.description = description
 
     def countKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp

@@ -12,6 +12,8 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
@@ -258,7 +260,11 @@ class TemplateFacade(ZuulFacade):
             del data['newId']
             info.rename(newId)
 
-        return self._editDetails(info, data)
+        info = self._editDetails(info, data)
+
+        notify(ObjectModifiedEvent(obj, data))
+
+        return info
 
     def getDataPointDetails(self, uid):
         """

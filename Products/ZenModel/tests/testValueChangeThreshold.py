@@ -22,7 +22,7 @@ class TestValueChangeThreshold(ZenModelBaseTest):
     def testImpl(self):
         mKey=MockObject(return__="testKey")
         context = MockObject(key=mKey)
-        threshold = ValueChangeThresholdInstance("testThrehold",context,'','/Status/Perf', 4)
+        threshold = ValueChangeThresholdInstance("testThrehold",context,'','/Status/Perf', 4, '')
         events = threshold._checkImpl("testDataPoint", 1.0)
         self.assertIsNotNone(events)
         self.assertEquals(1,len(events))
