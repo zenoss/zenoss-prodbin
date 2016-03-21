@@ -557,6 +557,7 @@ class ZenPack(ZenModelRM):
         return GetCatalogedObjects(self.dmd, self.id) or []
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST, redirect=False):
         """
         Edit a ZenPack object

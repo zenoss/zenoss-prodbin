@@ -8,6 +8,9 @@
 ##############################################################################
 
 
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenWidgets import messaging
 
 UNLOCKED = 0
@@ -19,6 +22,8 @@ class Lockable(object):
 
     sendEventWhenBlockedFlag = False
     modelerLock = UNLOCKED
+
+    security = ClassSecurityInfo()
 
     def getNextLockableParent(self, obj=None):
         if not obj: obj = self
@@ -74,12 +79,15 @@ class Lockable(object):
                 return False
         '''
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'setSendEventWhenBlockedFlag')
     def setSendEventWhenBlockedFlag(self):
         self.sendEventWhenBlockedFlag = True
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'unsetSendEventWhenBlockedFlag')
     def unsetSendEventWhenBlockedFlag(self):
         self.sendEventWhenBlockedFlag = False
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'unlock')
     def unlock(self, REQUEST=None):
         """Unlock object"""
         self.modelerLock = UNLOCKED
@@ -96,6 +104,7 @@ class Lockable(object):
             )
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromDeletion')
     def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
         """Lock object from being deleted"""
         self.modelerLock = DELETE_LOCKED
@@ -115,6 +124,7 @@ class Lockable(object):
             )
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromUpdates')
     def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
         """Lock object from being deleted or updated"""
         self.modelerLock = UPDATE_LOCKED
@@ -157,3 +167,6 @@ class Lockable(object):
             return "Send event when blocked"
         else:
             return "Do not send event when blocked"
+
+
+InitializeClass(Lockable)
