@@ -34,6 +34,7 @@ class MetricServiceGraph(HasUuidInfoMixin):
         self._object = graph
         self._context = context
         self._showContextTitle = False
+        self._prefix = None
 
 class MetricServiceGraphDefinition(MetricServiceGraph):
     adapts(GraphDefinition, ZenModelRM)
@@ -141,9 +142,11 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         if self._multiContext:
             dev = self._context.device()
             if dev and dev.id != self._context.id:
-                return "%s %s %s" % (dev.id, self._context.id, self._object.id)
+                self._prefix = "%s %s" % (dev.id, self._context.id)
             else:
-                return "%s %s" % (self._context.id, self._object.id)
+                self._prefix = "%s" % (self._context.id)
+        if self._prefix:
+            return "%s %s" % (self._prefix, self._object.id)
         return self._object.id
 
     @property
@@ -347,7 +350,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     def _updateRPNForMultiContext(self, infos, knownDatapointNames):
         for info in infos:
             if getattr(info._object, "rpn", False):
-                newRPN = mutateRPN(info._context.id, knownDatapointNames, info._object.rpn)
+                newRPN = mutateRPN(info._prefix, knownDatapointNames, info._object.rpn)
                 info.setMultiContextRPN(newRPN)
 
 
