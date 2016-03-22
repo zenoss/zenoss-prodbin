@@ -204,8 +204,11 @@ function treeselectionchange(sm, newnodes) {
 
         Zenoss.env.contextUid = uid;
 
-        Zenoss.util.setContext(uid, 'detail_panel', 'commands-menu',
-                               'footer_bar');
+        // ZEN-22556: now that we have more than one panel in addition to the device_grid
+        // always switch back to the default panel when selection changed
+        Ext.getCmp('detail_panel').layout.setActiveItem(0);
+
+        Zenoss.util.setContext(uid, 'detail_panel', 'commands-menu', 'footer_bar');
         // explicitly set the new security context (to update permissions)
         Zenoss.Security.setContext(uid);
 
