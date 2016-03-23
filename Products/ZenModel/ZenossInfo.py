@@ -129,11 +129,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                {'id': 'support'
-                , 'name': 'Support'
-                , 'action': '../dmd/support'
-                , 'permissions': ( "Manage DMD", )
-                },
            )
           },
         )
