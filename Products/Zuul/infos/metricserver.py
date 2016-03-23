@@ -29,12 +29,13 @@ These adapters are responsible for serializing the graph
 definitions into a form that is consumable by the metric service
 """
 
+
 class MetricServiceGraph(HasUuidInfoMixin):
     def __init__(self, graph, context):
         self._object = graph
         self._context = context
         self._showContextTitle = False
-        self._prefix = None
+
 
 class MetricServiceGraphDefinition(MetricServiceGraph):
     adapts(GraphDefinition, ZenModelRM)
@@ -139,19 +140,26 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
 
     @property
     def id(self):
-        if self._multiContext:
-            dev = self._context.device()
-            if dev and dev.id != self._context.id:
-                self._prefix = "%s %s" % (dev.id, self._context.id)
-            else:
-                self._prefix = "%s" % (self._context.id)
-        if self._prefix:
-            return "%s %s" % (self._prefix, self._object.id)
+        if self.prefix():
+            return "%s %s" % (self.prefix(), self._object.id)
         return self._object.id
 
     @property
     def name(self):
         return self.id
+
+    def prefix(self):
+        """
+        Return the prefix to be used to qualify the id of the metric
+        in a multi-graph context. If not multi-graph, return None.
+        """
+        if self._multiContext:
+            dev = self._context.device()
+            if dev and dev.id != self._context.id:
+                return "%s %s" % (dev.id, self._context.id)
+            else:
+                return "%s" % (self._context.id)
+        return None
 
     def setMultiContext(self):
         """
@@ -182,6 +190,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         if not self._multiContext:
             return self._object.getColor(self._object.sequence)
 
+
 class MetricServiceThreshold(ColorMetricServiceGraphPoint):
     adapts(ThresholdGraphPoint, ZenModelRM)
     implements(templateInterfaces.IMetricServiceGraphPoint)
@@ -203,9 +212,11 @@ class MetricServiceThreshold(ColorMetricServiceGraphPoint):
                 pass
         return []
 
+
 class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     adapts(DataPointGraphPoint, ZenModelRM)
     implements(templateInterfaces.IMetricServiceGraphPoint)
+
     @property
     def metric(self):
         return metrics.ensure_prefix(self._context.device().id,
@@ -287,6 +298,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
             return True
         return False
 
+
 # Charts adapters for collector graphs
 class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     adapts(GraphDefinition, PerformanceConf)
@@ -299,6 +311,7 @@ class CollectorMetricServiceGraphDefinition(MetricServiceGraphDefinition):
     @property
     def contextTitle(self):
         return "%s - %s" % (self.title, self._context.titleOrId())
+
 
 class CollectorDataPointGraphPoint(MetricServiceGraphPoint):
     adapts(DataPointGraphPoint, PerformanceConf)
@@ -349,8 +362,9 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     def _updateRPNForMultiContext(self, infos, knownDatapointNames):
         for info in infos:
-            if getattr(info._object, "rpn", False):
-                newRPN = mutateRPN(info._prefix, knownDatapointNames, info._object.rpn)
+            if info.prefix() and getattr(info._object, "rpn", False):
+                newRPN = mutateRPN(info.prefix(), knownDatapointNames,
+                                   info._object.rpn)
                 info.setMultiContextRPN(newRPN)
 
 
