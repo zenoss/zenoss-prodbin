@@ -3,25 +3,47 @@
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
 <pagehelp target="Dashboard" title="Dashboard">
 
-  <p>The Dashboard provides at-a-glance information about the status of your IT infrastructure.</p>
+<p>The Dashboard provides at-a-glance information about the status of your IT infrastructure.</p>
 
 <p><strong>User Information Area</strong><br />
 Go here to:
 <ul>
-  <li>Sign out of the system.</li>
-  <li>Access product documentation, FAQs, and HowTos.</li>
   <li>Edit user preferences and settings, by clicking the displayed login ID.</li>
+  <li>Sign out of the system.</li>
+  <li>Access product documentation.</li>
 </ul>
 </p>
 
 <p><strong>Portlets</strong><br />
-The main content of the Dashboard comprises <em>portlets</em>, which provide information about the system and your infrastructure.</p>
+The main content of a Dashboard comprises <em>portlets</em>, which provide information about the system and your infrastructure.</p>
 
-<p>To add a portlet to the Dashboard, select <strong>Add portlet</strong>. Click <img src="/++resource++pagehelp/portlet_action.png"/>, which appears at the top right corner of each portlet, to edit its settings or remove the portlet.</p>
+<p>To add a portlet to the current Dashboard, click <img src="/++resource++pagehelp/Add_Menu.png"/> and select <strong>Add Portlet</strong>.</p>
 
-<p>To arrange portlets, click the portlet header and drag the portlet to any location on the Dashboard. Other portlets rearrange depending on the location you drop it.</p>
+<p>The buttons in each portlet's top right corner let you:
+<ul>
+  <li>Collapse/re-expand the portlet.</li>
+  <li>Temporarily expand the portlet to full screen mode.</li>
+  <li>Edit the portlet's settings.</li>
+  <li>Delete the portlet.</li>
+</ul>
+</p>
 
-<p>You also can change the Dashboard column layout to one, two, or three-column displays. For two-column display, you can additionally choose a layout that offers columns of equal or varying widths. Select <strong>Configure Layout</strong> to change the layout.</p>
+<p>To arrange portlets, click the portlet header and drag the portlet to any location on the Dashboard. Other portlets rearrange depending on the location you drop it. To resize a portlet, click the portlet's border and drag it to the desired size.</p>
+
+<p><strong>Note:</strong> When the Dashboard is locked, most of this functionality is disabled.</p>
+
+<p><strong>Dashboards</strong><br />
+To switch between Dashboards, select one from the <strong>Dashboards</strong> pull-down menu.</p>
+
+<p>To edit the current Dashboard, click <img src="/++resource++pagehelp/Config.png"/>. The settings allow you to:
+<ul>
+  <li>Control who is allowed to view this Dashboard.</li>
+  <li>Set the number of columns the Dashboard uses.</li>
+  <li>Lock (and unlock) the Dashboard from being updated.</li>
+</ul>
+</p>
+
+<p>To add another Dashboard, click <img src="/++resource++pagehelp/Add_Menu.png"/> and select <strong>New Dashboard</strong>. To delete the current Dashboard, click <img src="/++resource++pagehelp/Delete.png"/>.</p>
 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
