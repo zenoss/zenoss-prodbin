@@ -297,4 +297,3 @@ from .application import ApplicationFacade
 from .monitor import MonitorFacade
 from userfacade import UserFacade
 from .hostfacade import HostFacade
-from .supportfacade import SupportFacade
