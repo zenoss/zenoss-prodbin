@@ -1077,9 +1077,6 @@ def varPath(*args):
     return sane_pathjoin('/var/zenoss', *args)
 
 
-def supportBundlePath(*args):
-    return zenPath('var/ext/support', *args)
-
 def zenPath(*args):
     """
     Return a path relative to $ZENHOME specified by joining args.  The path
