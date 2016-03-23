@@ -8,6 +8,7 @@
 ##############################################################################
 
 
+import collections
 import socket
 import re
 import os
@@ -840,17 +841,17 @@ class DeviceFacade(TreeFacade):
 
     @info
     def getGraphDefinitionsForComponent(self, uid):
-        graphDefs = dict()
         obj = self._getObject(uid)
         if isinstance(obj, ComponentGroup):
             components = obj.getComponents()
         else:
-            components = list(getObjectsFromCatalog(obj.componentSearch, None, log))
+            components = getObjectsFromCatalog(obj.componentSearch)
 
+        graphDefs = collections.defaultdict(set)
         for component in components:
-            if graphDefs.get(component.meta_type):
-                continue
-            graphDefs[component.meta_type] = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            for graphDef, context in component.getGraphObjects():
+                graphDefs[context.meta_type].add(graphDef.id)
+
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
