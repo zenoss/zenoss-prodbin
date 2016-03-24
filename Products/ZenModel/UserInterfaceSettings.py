@@ -58,7 +58,6 @@ class UserInterfaceSettings(ZenModelRM):
         'zenjobsRefreshInterval': {'xtype': 'numberfield', 'name': _t('Job Notification Refresh Interval (seconds)'), 'defaultValue' : 10, 'minValue' : 0, 'maxValue': 300, 'allowBlank': False},
         'showPageStatistics': {'xtype': 'checkbox', 'name': _t('Show Page Statistics (debug information)'), 'defaultValue' : False},
         'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False},
-        'supportBundlesGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False},
     }
 
     def getInterfaceSettings(self):

@@ -98,11 +98,6 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id': 'support'
-                , 'name': 'Support'
-                , 'action': '../dmd/support'
-                , 'permissions': ( "Manage DMD", )
-                },
             )
          },
         )
