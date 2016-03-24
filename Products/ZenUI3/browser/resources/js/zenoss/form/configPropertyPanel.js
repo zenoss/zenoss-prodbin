@@ -86,7 +86,9 @@
             xtype: 'severity'
         },
         'zFlappingThreshold': {
-            xtype: 'severity'
+            xtype: 'numberfield',
+            allowDecimals: false,
+            width: 100
         },
         'zWinEventlogMinSeverity': {
             xtype: 'reverseseverity'
