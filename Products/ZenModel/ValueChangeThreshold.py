@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -18,6 +18,7 @@ from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdContext
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO
 from Products.ZenEvents.ZenEventClasses import Status_Perf
+from Products.ZenUtils import Map
 
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
@@ -29,7 +30,7 @@ class ValueChangeThreshold(ThresholdClass):
     """
     Threshold that can watch changes in a value
     """
-    
+
     eventClass = Status_Perf
     severity = SEVERITY_INFO
 
@@ -51,30 +52,31 @@ class ValueChangeThresholdInstance(MetricThresholdInstance):
     Threshold that emits an event when a value changes from its previous value. Does not send clear events.
     """
 
-    def __init__(self, id, context, dpNames, eventClass, severity):
-        MetricThresholdInstance.__init__(self, id, context, dpNames, eventClass, severity)
-        self._lastValues = {}
+    lastValues = Map.Locked(Map.Timed({}, 60*60*24)) # 24-hour timeout
 
     def _checkImpl(self, dataPoint, value):
         dpKey = self._getDpKey(dataPoint)
-        lastValue = self._lastValues.get(dpKey, None)
+        lastValue = ValueChangeThresholdInstance.lastValues.get(dpKey, None)
+        # get also updates the access time, so only set if the value changes.
         if lastValue != value:
-            self._lastValues[dpKey] = value
-            event = dict(
-                device=self.context().deviceName,
-                summary="Value changed from %s to %s" % (lastValue, value),
-                eventKey=self.id,
-                eventClass=self.eventClass,
-                component=self.context().componentName,
-                current=value,
-                previous=lastValue,
-                severity=self.severity)
-            return (event,)
+            # Update the value in the map.
+            ValueChangeThresholdInstance.lastValues[dpKey] = value
+            # .. Only create a change event if this isn't the first collection
+            if lastValue != None:
+                event = dict(
+                    device=self.context().deviceName,
+                    summary="Value changed from %s to %s" % (lastValue, value),
+                    eventKey=self.id,
+                    eventClass=self.eventClass,
+                    component=self.context().componentName,
+                    current=value,
+                    previous=lastValue,
+                    severity=self.severity)
+                return (event,)
         return tuple()
 
     def _getDpKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp
-
 
 from twisted.spread import pb
 pb.setUnjellyableForClass(ValueChangeThresholdInstance, ValueChangeThresholdInstance)
