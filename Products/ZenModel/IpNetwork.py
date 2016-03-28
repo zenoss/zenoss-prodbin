@@ -747,7 +747,10 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         Search for the ip in the network cache.
         Use this method for modeling if possible
         """
-        return self.get_network_cache().get_ip(ip, netmask, context=self)
+        if isip(ip):
+            return self.get_network_cache().get_ip(ip, netmask, context=self)
+        else: # need to look in the catalog
+            return self.find_ip(ip)
 
     def buildZProperties(self):
         if self.version == 6:
