@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -23,6 +23,10 @@ class Timed(object):
         self.lastClean = 0
 
 
+    def __len__(self):
+        return len(self.map)
+
+
     def clean(self, now = None):
         "remove old values"
         # FIXME O(N) search
@@ -35,7 +39,7 @@ class Timed(object):
                 del self.map[k]
         self.lastClean = now
 
-    
+
     def get(self, key, default):
         now = time.time()
         self.clean(now)
@@ -67,7 +71,7 @@ class Timed(object):
             return self.map.pop(key)
         else:
             return self.map.pop(key, default)
-        
+
     def update(self, d):
         now = time.time()
         self.clean(now)
@@ -94,6 +98,9 @@ class Locked(object):
     def __contains__(self, key):
         return key in self.map
 
+    def __len__(self):
+        return len(self.map)
+
     def has_key(self, key):
         "Deprecated, convert to using 'key in map' form"
         return key in self
@@ -104,7 +111,7 @@ class Locked(object):
             return self.map.pop(key)
         else:
             return self.map.pop(key, default)
-        
+
     @Locked_synchronize
     def get(self, *args):
         if not args:
