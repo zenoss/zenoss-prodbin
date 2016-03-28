@@ -233,231 +233,27 @@ class CatalogTool(object):
 
     def __init__(self, context):
         self.context = context
-        self.catalog = context.getPhysicalRoot().zport.global_catalog
-        self.catalog._v_caches = getattr(self.catalog, "_v_caches", OOBTree())
+        self.model_catalog = IModelCatalogTool(self.context)
 
     def getBrain(self, path):
-        # Make sure it's actually a path
-        if not isinstance(path, (tuple, basestring)):
-            path = '/'.join(path.getPhysicalPath())
-        elif isinstance(path, tuple):
-            path = '/'.join(path)
-        cat = self.catalog._catalog
-        try:
-            rid = cat.uids[path]
-            if rid:
-                return cat.__getitem__(rid)
-        except (KeyError, UncataloguedObjectException), e:
-            log.error("Unable to get brain. Trying to reindex: %s", path)
-            try:
-                dmd = self.context.dmd
-                obj = dmd.unrestrictedTraverse(path)
-                obj.index_object()
-                cat.catalogObject(obj, path)
-                log.info("Successfully reindexed: %s", path)
-            except Exception, e:
-                log.exception("Unable to reindex %s: %s", path, e)
+        return self.model_catalog.getBrain(path)
 
     def parents(self, path):
-        # Make sure it's actually a path
-        if not isinstance(path, (tuple, basestring)):
-            path = path.getPhysicalPath()
-        brains = self.catalog(path={'query':path, 'navtree':True, 'depth':0})
-        # Sort to ensure order
-        return sorted(brains, key=lambda b:b.getPath())
+        return self.model_catalog.parents(path)
 
     def count(self, types=(), path=None, filterPermissions=True):
-        if path is None:
-            path = '/'.join(self.context.getPhysicalPath())
-
-        # Check for a cache
-        caches = self.catalog._v_caches
-        types = (types,) if isinstance(types, basestring) else types
-        types = tuple(sorted(map(dottedname, types)))
-        for key in caches:
-            if path.startswith(key):
-                cache = caches[key].get(types, None)
-                if cache is not None and not cache.expired:
-                    return cache.count(path)
-        else:
-            # No cache; make one
-            results = self._queryCatalog(types, orderby=None, paths=(path,), filterPermissions=filterPermissions)
-            # cache the results for 5 seconds
-            cache = CountCache(results, path, time.time() + 5)
-            caches[path] = caches.get(path, OOBTree())
-            caches[path][types] = cache
-            return len(results)
-
-    def _buildQuery(self, types, paths, depth, query, filterPermissions):
-        qs = []
-        if query is not None:
-            qs.append(query)
-
-        # Build the path query
-        if not paths:
-            paths = ('/'.join(self.context.getPhysicalPath()),)
-
-        q = {'query':paths}
-        if depth is not None:
-            q['depth'] = depth
-        pathq = Generic('path', q)
-        qs.append(pathq)
-
-        # Build the type query
-        if not isinstance(types, (tuple, list)):
-            types = (types,)
-        subqs = [Eq('objectImplements', dottedname(t)) for t in types]
-        if subqs:
-            # Don't unnecessarily nest in an Or if there is only one type query
-            typeq = subqs[0] if len(subqs) == 1 else Or(*subqs)
-            qs.append(typeq)
-
-        # filter based on permissions
-        if filterPermissions:
-            qs.append(In('allowedRolesAndUsers', allowedRolesAndGroups(self.context)))
-
-        # Consolidate into one query
-        return And(*qs)
-
-    def _buildSort(self, orderby, reverse):
-        if orderby:
-            if reverse:
-                sortinfo = (orderby, 'desc')
-            else:
-                sortinfo = (orderby, 'asc')
-            return (sortinfo,)
-
-    def _queryCatalog(self, types=(), orderby=None, reverse=False, paths=(),
-                     depth=None, query=None, filterPermissions=True):
-        query = self._buildQuery(types, paths, depth, query, filterPermissions)
-        sort = self._buildSort(orderby, reverse)
-        args = (query, sort) if sort else (query, )
-
-        # Get the brains
-        result = self.catalog.evalAdvancedQuery(*args)
-        return result
+        return self.model_catalog.parents(types=types, path=path, filterPermissions=filterPermissions)
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None):
 
-        # if orderby is not an index then _queryCatalog, then query results
-        # will be unbrained and sorted
-        areBrains = orderby in self.catalog._catalog.indexes or orderby is None
-        queryOrderby = orderby if areBrains else None
-        infoFilters = {}
-
-        if globFilters:
-            for key, value in globFilters.iteritems():
-                if self.catalog.hasIndexForTypes(types, key):
-                    if query:
-                        query = And(query, MatchRegexp(key, '(?i).*%s.*' % value))
-                    else:
-                        query = MatchRegexp(key, '(?i).*%s.*' % value)
-                else:
-                    areBrains = False
-                    infoFilters[key] = value
-        try:
-            queryResults = self._queryCatalog(types, queryOrderby, reverse, paths, depth, query, filterPermissions)
-        except sre_constants.error:
-            # if there is an invalid regex in the query return an empty list
-            log.error("Invalid regex in the following query: %s" % query)
-            queryResults = []
-
-        # see if we need to filter by waking up every object
-        if infoFilters:
-            queryResults = self._filterQueryResults(queryResults, infoFilters)
-
-        totalCount = len(queryResults)
-        hash_ = totalCount
-        if areBrains or not queryResults:
-            allResults = queryResults
-        else:
-            allResults = self._sortQueryResults(queryResults, orderby, reverse)
-
-        if hashcheck is not None:
-            if hash_ != int(hashcheck):
-                raise StaleResultsException("Search results do not match")
-
-        # Return a slice
-        start = max(start, 0)
-        if limit is None:
-            stop = None
-        else:
-            stop = start + limit
-        results = islice(allResults, start, stop)
-
-        return SearchResults(results, totalCount, str(hash_), areBrains)
+        return self.model_catalog.search(types=types, start=start, limit=limit, orderby=orderby,
+               reverse=reverse, paths=paths, depth=depth, query=query,
+               hashcheck=hashcheck, filterPermissions=filterPermissions, globFilters=globFilters)
 
     def update(self, obj):
-        self.catalog.catalog_object(obj, idxs=())
-
-    def _filterQueryResults(self, queryResults, infoFilters):
-        """
-        filters the results by the passed in infoFilters dictionary. If the
-        property of the info object is another info object the "name" attribute is used.
-        The filters are applied as case-insensitive strings on the attribute of the info object.
-        @param queryResults list of brains
-        @param infoFilters dict: key/value pairs of filters
-        @return list of brains
-        """
-        if not infoFilters:
-            return list(queryResults)
-
-        #Optimizing!
-        results = { brain: [True, IInfo(brain.getObject())] for brain in queryResults }
-        for key, value in infoFilters.iteritems():
-            valRe = re.compile(".*" + unicode(value) + ".*", re.IGNORECASE)
-            for result in results:
-                match, info = results[result]
-                if not match:
-                    continue
-
-                testvalues = getattr(info, key)
-                if not hasattr(testvalues, "__iter__"):
-                    testvalues = [testvalues]
-
-                # if the property was a dictionary see if the "key" is valid
-                # or if it is a dict representation of an info object, then check for the
-                # name attribute.
-                if isinstance(testvalues, dict):
-                    val = testvalues.get(key, testvalues.get('name'))
-                    if not (val and valRe.match(str(val))):
-                        results[result][0] = False
-                else:
-                    # if anyone of these values is satisfied then include the object
-                    isMatch = False
-                    for testVal in testvalues:
-                        if isinstance(testVal, InfoBase):
-                            testVal = testVal.name
-                        if valRe.match(str(testVal)):
-                            isMatch = True
-                            break
-                    if not isMatch:
-                        results[result][0] = False
-        return [key for key,matches in results.iteritems() if matches[0]]
-
-    def _sortQueryResults(self, queryResults, orderby, reverse):
-
-        # save the values during sorting in case getting the value is slow
-        savedValues = {}
-
-        def getValue(obj):
-            key = obj.getPrimaryPath()
-            if key in savedValues:
-                value = savedValues[key]
-            else:
-                value = getattr(IInfo(obj), orderby)
-                if callable(value):
-                    value = value()
-                # if an info object is returned then sort by the name
-                if IInfo.providedBy(value):
-                    value = value.name.lower()
-                savedValues[key] = value
-            return value
-
-        return sorted((unbrain(brain) for brain in queryResults),
-                        key=getValue, reverse=reverse, cmp=natural_compare)
+        self.model_catalog.update(obj)
 
 
 class PermissionedCatalogTool(CatalogTool):
