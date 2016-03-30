@@ -18,8 +18,8 @@ class ZopeDirectRouter(DirectRouter):
     def __call__(self):
         # Allow only requests with application/json content type as text/plain
         # content type is used for CSRF attacks.
-        content_type = self.request.get('CONTENT_TYPE')
-        if not isinstance(content_type, basestring) or content_type.lower() != 'application/json':
+        content_type = self.request.get_header('content-type')
+        if not isinstance(content_type, basestring) or not content_type.lower().startswith('application/json'):
             raise DirectException('Only `application/json` is supported as content type.')
 
         body = self.request.get('BODY')
