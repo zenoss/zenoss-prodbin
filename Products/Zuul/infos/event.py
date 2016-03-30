@@ -293,7 +293,7 @@ class EventCompatInfo(object):
         if uuid:
             path = self._getPathFromUuid(uuid)
             if path:
-                brain = self._catalog.getBrain(path)
+                brain = self._catalog.getBrain(path, fields="name")
                 if brain:
                     return brain.name
 

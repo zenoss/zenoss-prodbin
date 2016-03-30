@@ -278,7 +278,7 @@ class DeviceFacade(TreeFacade):
         model_catalog = IModelCatalogTool(self.context.dmd)
         model_query = Eq('objectImplements', "Products.ZenModel.DeviceComponent.DeviceComponent")
         model_query = And(model_query, Eq("deviceId", uid))
-        model_query_results = model_catalog.search(query=model_query)
+        model_query_results = model_catalog.search(query=model_query, fields=["uuid", "meta_type"])
 
         for brain in model_query_results.results:
             uuidMap[brain.uuid] = brain.meta_type

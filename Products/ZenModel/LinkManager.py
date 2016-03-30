@@ -227,7 +227,8 @@ class LinkManager(Folder):
         query = {}
         query["objectImplements"] = "Products.ZenModel.Device.Device"
         query["path"] = "{0}/*".format(path)
-        result = model_catalog.search(query=query)
+        fields = ["id", "path", model_catalog.uid_field_name]
+        result = model_catalog.search(query=query, fields=fields)
         return result.results
 
     # Deprecated. Left for testing purposes to compare perf and results with the new version
@@ -286,16 +287,6 @@ class LinkManager(Folder):
                 links = combinations(results.iteritems(), 2)
                 linkobs.extend(Layer3Link(self.dmd, dict(l)) for l in links)
         return dumps([(x.getUids(), x.getStatus()) for x in linkobs])
-
-    def _get_ip_brains_belonging_to_network(self, net):
-        """ returns IpAddress brains """
-        model_catalog = IModelCatalogTool(self.dmd)
-        query = {}
-        query["objectImplements"] = "Products.ZenModel.IpAddress.IpAddress"
-        query["networkId"] = net
-        result = model_catalog.search(query=query)
-        return result.results
-
 
     def getChildLinks(self, organizer):
         """

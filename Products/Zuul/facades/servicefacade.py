@@ -74,7 +74,7 @@ class ServiceFacade(TreeFacade):
         return info
 
     def _serviceSearch(self, limit=None, start=None, sort='name', dir='ASC',
-              params=None, uid=None, criteria=()):
+              params=None, uid=None, criteria=(), fields=None):
         cat = IModelCatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
         query = {}
@@ -85,14 +85,14 @@ class ServiceFacade(TreeFacade):
 
         return cat.search("Products.ZenModel.ServiceClass.ServiceClass",
                           start=start, limit=limit, orderby=sort,
-                          reverse=reverse, query=query)
+                          reverse=reverse, query=query, fields=fields)
 
     def getClassNames(self, uid=None, query=None):
         params = None
         if query:
             params = {'name':query}
         data = []
-        brains = self._serviceSearch(uid=uid, params=params)
+        brains = self._serviceSearch(uid=uid, params=params, fields=["uid", "name"])
         for klass in brains:
             value = klass.getPath().lstrip('/zport/dmd/Services')
             path = re.sub(r'/serviceclasses/.*', r'/', value)+klass.name

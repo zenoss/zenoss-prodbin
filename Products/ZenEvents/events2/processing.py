@@ -131,7 +131,7 @@ class Manager(object):
                                                        query=Or(Eq('id', id),
                                                                 Eq('name', id)),
                                                        filterPermissions=False,
-                                                       limit=1)
+                                                       limit=1, fields=["uuid"])
                 if results.total:
                     try:
                         result = results.results.next()
@@ -182,7 +182,8 @@ class Manager(object):
         device_brains = list(dev_cat.search(types=Device,
                                             query=query_set,
                                             limit=limit,
-                                            filterPermissions=False))
+                                            filterPermissions=False,
+                                            fields=["uid", "uuid"]))
 
         if device_brains:
             return device_brains, []

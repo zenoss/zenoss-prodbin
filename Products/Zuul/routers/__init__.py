@@ -96,8 +96,7 @@ class TreeRouter(DirectRouter):
         if isinstance(node, DeviceClass):
             childBrains = IModelCatalogTool(node).search((
                 'Products.ZenModel.DeviceClass.DeviceClass',
-                'Products.ZenModel.Device.Device',
-            ))
+                'Products.ZenModel.Device.Device', ), fields="meta_type")
             for child in childBrains:
                 audit(['UI', getDisplayType(child), 'Delete'], child.getPath())
         elif isinstance(node, System):

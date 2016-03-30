@@ -211,7 +211,7 @@ class Report(object):
             pathFilterList.append(Or(Eq('name', self.device), Eq('id', self.device)))
 
         results = IModelCatalogTool(dmd.Devices).search(types='Products.ZenModel.Device.Device',
-                query=And(*pathFilterList))
+                query=And(*pathFilterList), fields=["uid", "uuid"])
 
         if not results.total:
             return []

@@ -25,6 +25,7 @@ class ModelCatalogTool(object):
     def __init__(self, context):
         self.context = context
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
+        self.uid_field_name = UID
 
     def _parse_user_query(self, query):
         """
@@ -141,25 +142,39 @@ class ModelCatalogTool(object):
         search_query = And(*partial_queries)
         return (search_query, not_indexed_user_filters)
 
-    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False):
+    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False, fields=None):
         """
         @returns: SearchResults
         """
         catalog_results = []
         brains = []
         count = 0
-        search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse)
+        search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
         catalog_results = self.model_catalog_client.search(search_params, self.context)
 
         return catalog_results
 
+    def _get_fields_to_return(self, uid_only, fields):
+        """
+        return the list of fields that brains returned by the current search will have
+        """
+        if isinstance(fields, basestring):
+            fields = [ fields ]
+        brain_fields = set(fields) if fields else set()
+        if uid_only:
+            brain_fields.add(self.uid_field_name)
+        return list(brain_fields)
+
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True, globFilters=None):
+               hashcheck=None, filterPermissions=True, globFilters=None, uid_only=True, fields=None):
         """
         Build and execute a query against the global catalog.
         @param query: Advanced Query query
         @param globFilters: dict {field: value}
+        @param uid_only: if True model index will only return the uid
+        @param fields: Fields we want model index to return. The fewer 
+                       fields we need to retrieve the faster the query will be
         """
         available_indexes = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
@@ -176,13 +191,16 @@ class ModelCatalogTool(object):
         # @TODO get all results if areBrains == False
         #
         
-        catalog_results = self.search_model_catalog(query, start=start, limit=limit, order_by=orderby, reverse=reverse)
+        fields_to_return = self._get_fields_to_return(uid_only, fields)
+
+        catalog_results = self.search_model_catalog(query, start=start, limit=limit,
+                                                    order_by=orderby, reverse=reverse, fields=fields_to_return)
 
         # @TODO take care of unindexed filters
         return catalog_results
 
 
-    def getBrain(self, path):
+    def getBrain(self, path, fields=None):
         """
         Gets the brain representing the object defined at C{path}.
         The search is done by uid field
@@ -193,7 +211,7 @@ class ModelCatalogTool(object):
             path = '/'.join(path)
 
         query = Eq(UID, path)
-        search_results = self.search_model_catalog(query)
+        search_results = self.search_model_catalog(query, fields=fields)
 
         brain = None
         if search_results.total > 0:
@@ -231,8 +249,7 @@ class ModelCatalogTool(object):
         if not path.endswith('*'):
             path = path + '*'
         query, _ = self._build_query(types=types, paths=(path,), filterPermissions=filterPermissions)
-        search_results = self.search_model_catalog(query)
-
+        search_results = self.search_model_catalog(query, start=0, limit=0)
         """ #  @TODO OLD CODEEE had some caching stuff
         # Check for a cache
         caches = self.catalog._v_caches

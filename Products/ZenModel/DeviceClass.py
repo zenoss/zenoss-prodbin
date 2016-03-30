@@ -508,7 +508,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         ret = self._findDevice(devicename)
         if not ret: return ""
-        return ret[0].getPrimaryId
+        return ret[0].getPath()
 
     def findDevice(self, devicename):
         """
