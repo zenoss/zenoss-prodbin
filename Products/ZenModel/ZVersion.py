@@ -7,5 +7,6 @@
 # 
 ##############################################################################
 
-# If you change this, also change inst/zenoss-version/setup.py
-VERSION="5.0.70"
+# If you change this, also change legacy/zenoss-version/setup.py
+#  in the zenoss/platform-build repository.
+VERSION="5.2.0"
