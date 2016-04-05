@@ -195,7 +195,7 @@ class Commandable:
         '''
         command = cmd.command
         # make sure we are targeting the right collector
-        if hasattr(target, "getPerformanceServerName"):
+        if not command.startswith("dcsh") and hasattr(target, "getPerformanceServerName"):
             collector = target.getPerformanceServer()
             command = 'zminion --minion-name zminion_%s run -- "%s"' % (target.getPerformanceServerName(), command.replace('\n', ' '))
         exp = "string:"+ command
