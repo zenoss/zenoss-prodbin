@@ -215,6 +215,9 @@ class InterfaceMap(SnmpPlugin):
                            ifidx))
                 continue
 
+            # Use row's index if no ifIndex column exists for the row.
+            iftable[ifidx].setdefault('ifindex', ifidx.strip('.'))
+
             iftable[ifidx]['description'] = data.get('description', '')
 
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
