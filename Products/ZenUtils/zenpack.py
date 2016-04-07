@@ -43,11 +43,14 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
+from Products.ZenModel.ZVersion import VERSION
 import ZenPackCmd as EggPackCmd
 from Products.Zuul import getFacade
 
 from zope.component import getUtilitiesFor
 from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
+
+ZPHISTORY = zenPath('packs/zphistory.json')
 
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
@@ -253,7 +256,7 @@ class ZenPackCmd(ZenScriptBase):
                         serviceId=self.options.serviceId,
                         ignoreServiceInstall=self.options.ignoreServiceInstall)
                 except (OSError,) as e:
-                    if self.options.link: 
+                    if self.options.link:
                         self.stop('%s cannot be installed with --link option' % self.options.installPackName)
                     else:
                         self.stop('%s could not be installed' % self.options.installPackName)
@@ -356,6 +359,17 @@ class ZenPackCmd(ZenScriptBase):
 
         zpsToRestore = {} # {'zpName': (version, filesOnly, zpSource)}
         linkedPacks = []
+
+        # find any new zenpacks to be installed
+        if os.path.isfile(ZPHISTORY):
+            try:
+                zphistory = json.load(open(ZPHISTORY))
+                for zp in zphistory:
+                    if parse_version(zphistory[zp]) > parse_version(VERSION):
+                        zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
+            except:
+                pass
+
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             zpSource = None
             restoreZenPack = False
