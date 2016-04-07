@@ -396,15 +396,17 @@ class MetricFacade(ZuulFacade):
         if search:
             prefix = search.groups()[0]
             metricname = metrics.ensure_prefix(prefix, metricname)
+            name = context.getResourceKey() + "|" + dp.name()
         metric = dict(
             metric=metricname,
             aggregator=agg,
-            rpn=extraRpn,
             format=format,
             tags=tags,
             rate=info.rate,
-            name=context.getResourceKey() + "|" + dp.name()
+            name=name
         )
+        if extraRpn:
+            metric['expression'] = "rpn:{},{}".format(name,extraRpn)
         if rateOptions:
             metric['rateOptions'] = rateOptions
         return metric
