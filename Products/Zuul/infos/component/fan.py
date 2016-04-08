@@ -24,5 +24,6 @@ class FanInfo(ComponentInfo):
     @property
     def rpm(self):
         rpm = self.getFetchedDataPoint('rpm')
-        if rpm is None and not isnan(rpm):
-            return long(rpm)
+        if rpm is not None and not isnan(rpm):
+            rpm = long(rpm)
+        return rpm
