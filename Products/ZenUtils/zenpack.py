@@ -50,7 +50,7 @@ from Products.Zuul import getFacade
 from zope.component import getUtilitiesFor
 from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
 
-ZPHISTORY = zenPath('packs/zphistory.json')
+ZPHISTORY = zenPath('zphistory.json')
 
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
