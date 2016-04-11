@@ -325,7 +325,7 @@ class MetricFacade(ZuulFacade):
                     # we have found a definition for a datapoint, use it and continue on
                     metricnames[dp.name()] = ds
                     for subject in subjects:
-                        datapoints.append(self._buildMetric(subject, dp, cf, extraRpn, format))
+                        datapoints.extend(self._buildMetric(subject, dp, cf, extraRpn, format))
                     break
         # no valid datapoint names were entered
         if not datapoints:
@@ -333,7 +333,6 @@ class MetricFacade(ZuulFacade):
 
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
         request = self._buildRequest(subjects, datapoints, start, end, returnSet, downsample)
-
         # submit it to the client
         content = self._metrics_connection.request(METRIC_URL_PATH, request)
         if content is None:
@@ -400,16 +399,25 @@ class MetricFacade(ZuulFacade):
         metric = dict(
             metric=metricname,
             aggregator=agg,
-            format=format,
             tags=tags,
             rate=info.rate,
             name=name
         )
-        if extraRpn:
-            metric['expression'] = "rpn:{},{}".format(name,extraRpn)
+        combined_metric = [metric]
         if rateOptions:
             metric['rateOptions'] = rateOptions
-        return metric
+        if extraRpn:
+            metric['emit'] = 'false'
+            metric['name'] = "{}-raw".format(dp.name())
+            new_metric = dict(
+                expression="rpn:{}-raw,{}".format(dp.name(), extraRpn),
+                format=format,
+                name=name
+            )
+            combined_metric.append(new_metric)
+        else:
+            metric['format'] = format
+        return combined_metric
 
     def _formatTime(self, t):
         """
