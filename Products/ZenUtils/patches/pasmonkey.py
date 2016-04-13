@@ -48,6 +48,7 @@ from Products.ZenUtils.Security import _createInitialUser
 
 from Products.PluggableAuthService.plugins import ZODBUserManager
 from Products.PluggableAuthService.plugins import SessionAuthHelper
+from datetime import datetime, timedelta
 
 import logging
 log = logging.getLogger('PAS Patches')
@@ -116,6 +117,9 @@ def validate(self, request, auth='', roles=_noroles):
     """
     plugins = self._getOb( 'plugins' )
     is_top = self._isTop()
+    user_ids = []
+    if not request.SESSION.get('__blocked'):
+        user_ids = self._extractUserIds(request, plugins)
     user_ids = self._extractUserIds(request, plugins)
     accessed, container, name, value = self._getObjectContext(request['PUBLISHED'], request)
     ipaddress = get_ip(request)
@@ -288,6 +292,10 @@ def updateCredentials(self, request, response, login, new_password):
     # PAS sends to this methos all credentials provided by user without
     # checking.  So they need to be validate before session update.
 
+    LOCKED_TIMEOUT = timedelta(seconds=300)
+    ATTEMPT_LIMIT = 5
+    isBlocked = False
+
     # `admin` user located in another PAS instance.
     if login == 'admin':
         acl_users = self.getPhysicalRoot().acl_users
@@ -310,7 +318,19 @@ def updateCredentials(self, request, response, login, new_password):
     # user and return immediately if authenticated
     user_id, info = acl_users._tryEmergencyUserAuthentication(credentials)
 
-    if user_id is None:
+    request.SESSION.set('__blocked', None)
+    current = self.attempt.get(login, {})
+    if current.get('counter', 1) >= ATTEMPT_LIMIT:
+        lastAttempt = current.get('lastAttempt')
+        if datetime.now() - lastAttempt < LOCKED_TIMEOUT:
+            isBlocked = True
+        else:
+            current['counter'] = 0
+            isBlocked = False
+    else:
+        isBlocked = False
+
+    if user_id is None and not isBlocked:
         for authenticator_id, auth in authenticators:
             try:
                 uid_and_info = auth.authenticateCredentials(credentials)
@@ -330,6 +350,27 @@ def updateCredentials(self, request, response, login, new_password):
     if user_id is not None:
         request.SESSION.set('__ac_logged_as', user_id)
         request.SESSION.set('__ac_logged_info', info)
+
+        if self.attempt.get(user_id):
+            del self.attempt[user_id]
+    else:
+        if current:
+            now = datetime.now()
+            last = current['lastAttempt']
+            if isBlocked:
+                remaining = LOCKED_TIMEOUT - (now - last)
+                msg = "Account [%s] is locked due to numerous bad attempts, try again in %s seconds or contact administrator" % (login, remaining.seconds )
+                log.warning(msg)
+                request.SESSION.set('__blocked', msg)
+            else:
+                current['counter'] += 1
+                current['lastAttempt'] = now
+                self.attempt[login] = current
+        else:
+            structure = {'lastAttempt' : None, 'counter' : None}
+            structure['lastAttempt'] = datetime.now()
+            structure['counter'] = 1
+            self.attempt[login] = structure
 
 SessionAuthHelper.SessionAuthHelper.updateCredentials = updateCredentials
 

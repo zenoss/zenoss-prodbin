@@ -72,9 +72,12 @@ class ZentinelPortal ( PortalObjectBase ):
         session = self.session_data_manager.getSessionData()
 
         url = request.form.get('came_from')
+        blocked = request.SESSION.get('__blocked', None)
 
         if 'terms' in url:
             msg = "You did not accept the Zenoss Terms."
+        elif blocked:
+            msg = blocked
         elif session.get('login_message'):
             msg = session.get('login_message')
             del session['login_message']
