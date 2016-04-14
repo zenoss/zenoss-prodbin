@@ -120,7 +120,6 @@ def validate(self, request, auth='', roles=_noroles):
     user_ids = []
     if not request.SESSION.get('__blocked'):
         user_ids = self._extractUserIds(request, plugins)
-    user_ids = self._extractUserIds(request, plugins)
     accessed, container, name, value = self._getObjectContext(request['PUBLISHED'], request)
     ipaddress = get_ip(request)
     for user_id, login in user_ids:
