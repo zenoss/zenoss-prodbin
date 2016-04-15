@@ -25,6 +25,7 @@ Related tickets:
 
 import urllib
 import urlparse
+import time
 from uuid import uuid1
 from cgi import parse_qs
 from Acquisition import aq_base
@@ -48,10 +49,12 @@ from Products.ZenUtils.Security import _createInitialUser
 
 from Products.PluggableAuthService.plugins import ZODBUserManager
 from Products.PluggableAuthService.plugins import SessionAuthHelper
-from datetime import datetime, timedelta
 
 import logging
 log = logging.getLogger('PAS Patches')
+
+LOCKED_TIMEOUT = 300 # seconds
+ATTEMPT_LIMIT = 5
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
@@ -291,8 +294,6 @@ def updateCredentials(self, request, response, login, new_password):
     # PAS sends to this methos all credentials provided by user without
     # checking.  So they need to be validate before session update.
 
-    LOCKED_TIMEOUT = timedelta(seconds=300)
-    ATTEMPT_LIMIT = 5
     isBlocked = False
 
     # `admin` user located in another PAS instance.
@@ -321,13 +322,11 @@ def updateCredentials(self, request, response, login, new_password):
     current = self.attempt.get(login, {})
     if current.get('counter', 1) >= ATTEMPT_LIMIT:
         lastAttempt = current.get('lastAttempt')
-        if datetime.now() - lastAttempt < LOCKED_TIMEOUT:
+        if time.time() - lastAttempt < LOCKED_TIMEOUT:
             isBlocked = True
         else:
             current['counter'] = 0
             isBlocked = False
-    else:
-        isBlocked = False
 
     if user_id is None and not isBlocked:
         for authenticator_id, auth in authenticators:
@@ -350,25 +349,24 @@ def updateCredentials(self, request, response, login, new_password):
         request.SESSION.set('__ac_logged_as', user_id)
         request.SESSION.set('__ac_logged_info', info)
 
-        if self.attempt.get(user_id):
+        if user_id in self.attempt:
             del self.attempt[user_id]
     else:
         if current:
-            now = datetime.now()
+            now = time.time()
             last = current['lastAttempt']
             if isBlocked:
                 remaining = LOCKED_TIMEOUT - (now - last)
                 msg = "Account [%s] is locked due to numerous bad attempts, try again in %s seconds or contact administrator" % (login, remaining.seconds )
                 log.warning(msg)
+                audit('UI.Authentication.Failed',  msg=msg)
                 request.SESSION.set('__blocked', msg)
             else:
                 current['counter'] += 1
                 current['lastAttempt'] = now
                 self.attempt[login] = current
         else:
-            structure = {'lastAttempt' : None, 'counter' : None}
-            structure['lastAttempt'] = datetime.now()
-            structure['counter'] = 1
+            structure = {'lastAttempt' : time.time(), 'counter' : 1}
             self.attempt[login] = structure
 
 SessionAuthHelper.SessionAuthHelper.updateCredentials = updateCredentials
