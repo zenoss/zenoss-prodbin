@@ -21,6 +21,7 @@ import shutil
 import time
 import tempfile
 import re
+import json
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -368,17 +369,14 @@ class ZenPackCmd(ZenScriptBase):
         to_version = parse_version(VERSION)
         if os.path.isfile(ZPHISTORY):
             self.log.info("Scanning %s for new Zenpacks." % (ZPHISTORY))
-            try:
-                zphistory = json.load(open(ZPHISTORY))
-                for zp in zphistory:
-                    zp_version = parse_version(zphistory[zp])
-                    if zp_version > from_version and zp_version <= to_version:
-                        self.log.info("Zenpack %s (new since %s) to be installed." % (zp, zp_version))
-                        zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
-                    else:
-                        self.log.info("Zenpack %s (new since %s) is not new." % (zp, zp_version))
-            except:
-                pass
+            zphistory = json.load(open(ZPHISTORY))
+            for zp in zphistory:
+                zp_version = parse_version(zphistory[zp])
+                if zp_version > from_version and zp_version <= to_version:
+                    self.log.info("Zenpack %s (new since %s) to be installed." % (zp, zp_version))
+                    zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
+                else:
+                    self.log.info("Zenpack %s (new since %s) is not new." % (zp, zp_version))
 
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             zpSource = None
