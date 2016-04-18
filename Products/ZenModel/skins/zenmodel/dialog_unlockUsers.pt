@@ -1,0 +1,17 @@
+<h2>Unlock Users</h2>
+<br/><br/>
+<p>
+Are you sure you want to unlock these Users?<br/>
+</p>
+<br/>
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
+<div id="dialog_buttons">
+<input id="dialog_unlock_users_submit" type="submit" name="manage_unlockUsers:method" value="OK"
+ tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
