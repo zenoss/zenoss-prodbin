@@ -21,6 +21,7 @@ import shutil
 import time
 import tempfile
 import re
+import json
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -43,11 +44,14 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
+from Products.ZenModel.ZVersion import VERSION
 import ZenPackCmd as EggPackCmd
 from Products.Zuul import getFacade
 
 from zope.component import getUtilitiesFor
 from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
+
+ZPHISTORY = zenPath('zphistory.json')
 
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
@@ -253,7 +257,7 @@ class ZenPackCmd(ZenScriptBase):
                         serviceId=self.options.serviceId,
                         ignoreServiceInstall=self.options.ignoreServiceInstall)
                 except (OSError,) as e:
-                    if self.options.link: 
+                    if self.options.link:
                         self.stop('%s cannot be installed with --link option' % self.options.installPackName)
                     else:
                         self.stop('%s could not be installed' % self.options.installPackName)
@@ -356,6 +360,24 @@ class ZenPackCmd(ZenScriptBase):
 
         zpsToRestore = {} # {'zpName': (version, filesOnly, zpSource)}
         linkedPacks = []
+
+        # find any new zenpacks to be installed
+        from_version = self.dmd.version
+        from_version = ' '.join([x for x in from_version.split()
+                                 if x[0].isdigit() and x[-1].isdigit()])
+        from_version = parse_version(from_version)
+        to_version = parse_version(VERSION)
+        if os.path.isfile(ZPHISTORY):
+            self.log.info("Scanning %s for new Zenpacks." % (ZPHISTORY))
+            zphistory = json.load(open(ZPHISTORY))
+            for zp in zphistory:
+                zp_version = parse_version(zphistory[zp])
+                if zp_version > from_version and zp_version <= to_version:
+                    self.log.info("Zenpack %s (new since %s) to be installed." % (zp, zp_version))
+                    zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
+                else:
+                    self.log.info("Zenpack %s (new since %s) is not new." % (zp, zp_version))
+
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             zpSource = None
             restoreZenPack = False
