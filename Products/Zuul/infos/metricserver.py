@@ -181,9 +181,6 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     def legend(self):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
-        import logging
-        log = logging.getLogger("metricserver")
-        log.warn("legend is %s and id is %s and legend is in id %s" %(legend, self.id, legend in self.id))
         if self._multiContext:
             if legend not in self.id:
                 legend = self.id + " " + legend
