@@ -43,8 +43,8 @@ class MetricFacadeTest(BaseTestCase):
         metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
         metric = self.facade._buildMetric(dev, metric, cf)
-        self.assertEquals(metric['metric'], "device1/test_test")
-        self.assertEquals(metric['aggregator'], 'avg')
+        self.assertEquals(metric[0]['metric'], "device1/test_test")
+        self.assertEquals(metric[0]['aggregator'], 'avg')
 
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]

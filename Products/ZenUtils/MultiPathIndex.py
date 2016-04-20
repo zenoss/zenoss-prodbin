@@ -216,13 +216,14 @@ class MultiPathIndex(ExtendedPathIndex):
             paths = [paths]
 
         if docid in self._unindex:
-            unin = self._unindex[docid]
-            # Migrate old versions of the index to use OOSet
-            if isinstance(unin, set):
-                unin = self._unindex[docid] = OOSet(unin)
-            for oldpath in list(unin):
-                if list(oldpath.split('/')) not in paths:
-                    self.unindex_paths(docid, (oldpath,))
+            if isinstance(self._unindex[docid], set):
+                self._unindex[docid] = OOSet(self._unindex[docid])
+
+            unin = set(self._unindex[docid])
+            paths_set = {'/'.join(x) for x in paths}
+
+            for oldpath in unin - paths_set:
+                self.unindex_paths(docid, (oldpath,))
         else:
             self._unindex[docid] = OOSet()
             self._length.change(1)
@@ -230,7 +231,6 @@ class MultiPathIndex(ExtendedPathIndex):
         self.index_paths(docid, paths)
 
         return 1
-
 
     def index_paths(self, docid, paths):
         for path in paths:

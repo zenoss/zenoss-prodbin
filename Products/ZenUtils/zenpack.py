@@ -21,6 +21,7 @@ import shutil
 import time
 import tempfile
 import re
+import json
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -50,7 +51,7 @@ from Products.Zuul import getFacade
 from zope.component import getUtilitiesFor
 from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
 
-ZPHISTORY = zenPath('packs/zphistory.json')
+ZPHISTORY = zenPath('zphistory.json')
 
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
@@ -361,14 +362,21 @@ class ZenPackCmd(ZenScriptBase):
         linkedPacks = []
 
         # find any new zenpacks to be installed
+        from_version = self.dmd.version
+        from_version = ' '.join([x for x in from_version.split()
+                                 if x[0].isdigit() and x[-1].isdigit()])
+        from_version = parse_version(from_version)
+        to_version = parse_version(VERSION)
         if os.path.isfile(ZPHISTORY):
-            try:
-                zphistory = json.load(open(ZPHISTORY))
-                for zp in zphistory:
-                    if parse_version(zphistory[zp]) > parse_version(VERSION):
-                        zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
-            except:
-                pass
+            self.log.info("Scanning %s for new Zenpacks." % (ZPHISTORY))
+            zphistory = json.load(open(ZPHISTORY))
+            for zp in zphistory:
+                zp_version = parse_version(zphistory[zp])
+                if zp_version > from_version and zp_version <= to_version:
+                    self.log.info("Zenpack %s (new since %s) to be installed." % (zp, zp_version))
+                    zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
+                else:
+                    self.log.info("Zenpack %s (new since %s) is not new." % (zp, zp_version))
 
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
             zpSource = None
