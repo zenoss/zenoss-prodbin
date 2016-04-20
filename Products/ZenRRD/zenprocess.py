@@ -735,11 +735,11 @@ class ZenProcessTask(ObservableMixin):
         """
         Display the processes in a sane manner.
 
-        @parameter procs: list of (pid, (name, args))
+        @parameter procs: list of (pid, name_with_args)
         @type procs: list of tuples
         """
         device_name = self._devId
-        proc_list = ['%s %s %s' % (pid, name, args) for pid, (name, args) in sorted(procs)]
+        proc_list = ['%s %s' % (pid, name_with_args) for pid, name_with_args in sorted(procs)]
         proc_list.append('')
         log.info("#===== Processes on %s:\n%s", device_name, '\n'.join(proc_list))
 
@@ -823,7 +823,7 @@ def mapResultsToDicts(showrawtables, results):
     @parameter results: results of SNMP table gets ie (OID + pid, value)
     @type results: dictionary of dictionaries
     @return: maps relating names and pids to each other
-    @rtype: dictionary, list of tuples
+    @rtype: list of tuples
     """
 
     def extract(dictionary, oid, value):
