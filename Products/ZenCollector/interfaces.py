@@ -310,6 +310,24 @@ class IScheduledTask(IObservable):
         pass
 
 
+class IPausingScheduledTask(IScheduledTask):
+    """
+    An IScheduledTask that needs to take action to pause and resume
+    """
+
+    def pause(self):
+        """
+        Called to pause a task.
+        """
+        pass
+
+    def resume(self):
+        """
+        Called to resume a task.
+        """
+        pass
+
+
 class IScheduledTaskFactory(zope.interface.Interface):
     """
     Collectors can provide their own task factories to build complex task
