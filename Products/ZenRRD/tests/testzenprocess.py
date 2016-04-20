@@ -18,6 +18,7 @@ log = logging.getLogger('zen.testzenprocess')
 import re
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.zenprocess import ZenProcessTask
+from Products.ZenRRD.zenprocess import mapResultsToDicts
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenHub.services.ProcessConfig import ProcessProxy
 
@@ -855,6 +856,27 @@ class TestZenprocess(BaseTestCase):
                                             '.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
                                             '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
         self.compareTestData(data, task, self.expected(PROCESSES=18, AFTERBYCONFIG=9, MISSING=0))
+
+    def testMapResultsToDicts(self):
+
+        values = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'myapp',
+                                              '.1.3.6.1.2.1.25.4.2.1.2.2': 'otherapp'},
+                  '.1.3.6.1.2.1.25.4.2.1.4': {'.1.3.6.1.2.1.25.4.2.1.4.1': '/dummy_processes/myapp',
+                                              '.1.3.6.1.2.1.25.4.2.1.4.2': '/dummy_processes/otherapp'},
+                  '.1.3.6.1.2.1.25.4.2.1.5': {'.1.3.6.1.2.1.25.4.2.1.5.1': 'arbitrary arguments',
+                                              '.1.3.6.1.2.1.25.4.2.1.5.2': 'arbitrary arguments'}}
+        
+        result = mapResultsToDicts(False, values)
+
+        expected = [
+            (1, '/dummy_processes/myapp arbitrary arguments'),
+            (2, '/dummy_processes/otherapp arbitrary arguments')
+        ]
+        
+        self.assertEqual(result, expected)
+
+    
+
 
 
 def test_suite():

@@ -392,7 +392,7 @@ class JobManager(ZenModelRM):
                 ob = b.getObject()
                 if ob.finished != None and ob.finished < untiltime:
                     self.deleteJob(ob.getId())
-                elif ob.status == states.ABORTED and ob.started < untiltime:
+                elif ob.status == states.ABORTED and (ob.started is None or ob.started < untiltime):
                     self.deleteJob(ob.getId())
             except ConflictError:
                 pass
