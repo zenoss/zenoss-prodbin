@@ -171,6 +171,8 @@
             if (config.height === 100 && config.width === 500) {
                 config.height = 500;
                 delete config.width;
+            } else if (config.height == undefined) {
+                config.height = 500;
             }
 
             // dynamically adjust the height;
