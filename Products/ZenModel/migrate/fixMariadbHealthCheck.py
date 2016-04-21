@@ -38,14 +38,16 @@ class FixMariadbHealthCheck(Migrate.Step):
         for service in mariadb-model:
             healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
             for check in healthChecks:
-                check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zodb-admin-user\")}} -h{{(getContext . \"global.conf.zodb-host\")}} -P{{(getContext . \"global.conf.zodb-port\")}} -e 'select 1' > /dev/null"
-                log.info("Updated 'answering' healthcheck for mariadb-model")
+                if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script:
+                    check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zodb-admin-user\")}} -h{{(getContext . \"global.conf.zodb-host\")}} -P{{(getContext . \"global.conf.zodb-port\")}} -e 'select 1' > /dev/null"
+                    log.info("Updated 'answering' healthcheck for mariadb-model")
         
         for service in mariadb-events:
             healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
             for check in healthChecks:
-                check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
-                log.info("Updated 'answering' healthcheck for mariadb-events")
+                if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script: 
+                    check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
+                    log.info("Updated 'answering' healthcheck for mariadb-events")
                  
 
         ctx.commit()
