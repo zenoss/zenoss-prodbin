@@ -97,7 +97,7 @@ def sendEvent( self, message="", device='', severity=Event.Error, event_key=None
     }
     if event_key:
         error_event['eventKey'] = event_key
-
+        
     # At this point, we don't know what we have
     try:
         if hasattr_path( self, "factory.datacollector.sendEvent" ):
@@ -356,6 +356,12 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         log.error( message )
         sendEvent( self, message=message, event_key=event_key )
 
+    def _handleLoginSuccess(self, message, event_key=None):
+        """
+        Handle SSH login success by clearing any failure events.
+        """
+        sendEvent(self, message=message, event_key=event_key, severity=Event.Clear)
+
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
@@ -441,8 +447,10 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             self._handleFailure(msg, event_key="sshClientAuth")
             self.factory.clientFinished(LoginFailed(msg))
         else:
-            sendEvent(self, "Authentication succeeded for username %s" % self.user, severity=Event.Clear,
+            msg = "SSH Authentication succeeded for username %s" % self.user
+            sendEvent(self, msg, severity=Event.Clear,
                       event_key="sshClientAuth")
+            self._handleLoginSuccess(msg, event_key="sshClientAuth")
         return userauth.SSHUserAuthClient.serviceStopped(self, *args, **kwargs)
 
 class SshConnection(connection.SSHConnection):

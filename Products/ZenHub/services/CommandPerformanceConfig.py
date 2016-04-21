@@ -117,6 +117,9 @@ class CommandPerformanceConfig(CollectorConfigService):
                     self._warnUsernameNotSet(device)
                     continue
 
+                # clear any lingering no-username events
+                self._clearUsernameNotSet(device)
+
                 parserName = getattr(ds, "parser", "Auto")
                 ploader = getParserLoader(self.dmd, parserName)
                 if ploader is None:
