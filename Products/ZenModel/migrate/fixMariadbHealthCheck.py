@@ -32,24 +32,31 @@ class FixMariadbHealthCheck(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        mariadb-model = filter(lambda s: s.name == "mariadb-model", ctx.services)
-        mariadb-events = filter(lambda s: s.name == "mariadb-events", ctx.services)
+        mariadb_model = filter(lambda s: s.name == "mariadb-model", ctx.services)
+        mariadb_events = filter(lambda s: s.name == "mariadb-events", ctx.services)
+        mariadb_core = filter(lambda s: s.name == "mariadb", ctx.services)
 
-        for service in mariadb-model:
+
+        for service in mariadb_model:
             healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
             for check in healthChecks:
                 if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script:
                     check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zodb-admin-user\")}} -h{{(getContext . \"global.conf.zodb-host\")}} -P{{(getContext . \"global.conf.zodb-port\")}} -e 'select 1' > /dev/null"
                     log.info("Updated 'answering' healthcheck for mariadb-model")
         
-        for service in mariadb-events:
+        for service in mariadb_events:
             healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
             for check in healthChecks:
                 if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script: 
                     check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
                     log.info("Updated 'answering' healthcheck for mariadb-events")
-                 
+
+        for service in mariadb_core:
+            healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
+            for check in healthChecks:
+                if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script: 
+                    check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
+                    log.info("Updated 'answering' healthcheck for mariadb")
 
         ctx.commit()
-
 FixMariadbHealthCheck()
