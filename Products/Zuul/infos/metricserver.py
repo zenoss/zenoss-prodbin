@@ -182,7 +182,10 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
         if self._multiContext:
-            legend = self.id + " " + legend
+            if legend not in self.id:
+                legend = self.id + " " + legend
+            else:
+               legend = self.id
         return legend
 
     @property
