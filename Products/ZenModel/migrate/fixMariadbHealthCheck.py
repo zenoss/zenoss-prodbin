@@ -38,21 +38,21 @@ class FixMariadbHealthCheck(Migrate.Step):
 
 
         for service in mariadb_model:
-            healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
+            healthChecks = filter(lambda hc: hc.name == "answering", service.healthChecks)
             for check in healthChecks:
                 if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script:
                     check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zodb-admin-user\")}} -h{{(getContext . \"global.conf.zodb-host\")}} -P{{(getContext . \"global.conf.zodb-port\")}} -e 'select 1' > /dev/null"
                     log.info("Updated 'answering' healthcheck for mariadb-model")
         
         for service in mariadb_events:
-            healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
+            healthChecks = filter(lambda hc: hc.name == "answering", service.healthChecks)
             for check in healthChecks:
                 if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script: 
                     check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
                     log.info("Updated 'answering' healthcheck for mariadb-events")
 
         for service in mariadb_core:
-            healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
+            healthChecks = filter(lambda hc: hc.name == "answering", service.healthChecks)
             for check in healthChecks:
                 if "mysql --protocol TCP -uroot -hlocalhost -P3306 -e 'select 1' > /dev/null" in check.script: 
                     check.script = "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null"
