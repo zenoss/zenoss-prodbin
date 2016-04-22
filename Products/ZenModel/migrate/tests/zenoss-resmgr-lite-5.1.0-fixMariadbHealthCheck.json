@@ -18677,7 +18677,7 @@
      "Actions": null,
      "HealthChecks": {
        "answering": {
-         "Script": "Script": "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null",
+         "Script": "mysql --protocol TCP -u{{(getContext . \"global.conf.zep-admin-user\")}} -h{{(getContext . \"global.conf.zep-host\")}} -P{{(getContext . \"global.conf.zep-port\")}} -e 'select 1' > /dev/null",
          "Interval": 5,
          "Timeout": 0
        }
