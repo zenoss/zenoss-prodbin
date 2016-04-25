@@ -25,7 +25,7 @@ class filesystems( AliasPlugin ):
 
     def getCompositeColumns(self):
         return [ Column( 'availableBytes', PythonColumnHandler('totalBytes - usedBytes if totalBytes is not None and usedBytes is not None else 0') ),
-                 Column( 'percentFull', PythonColumnHandler( 'totalBytes and usedBytes is not None and ( 100 - float(availableBytes) * 100 / float(totalBytes) ) or None' ) ) ]
+                 Column( 'percentFull', PythonColumnHandler( '(100 - float(availableBytes) * 100 / float(totalBytes)) if totalBytes is not None and availableBytes is not None else None' )) ]
 
     def getComponentPath(self):
         return 'os/filesystems'
