@@ -220,6 +220,13 @@
                     // spacer for metadata/value
                     height: 25,
                     xtype: 'container'
+                },{
+                   //Add hidden input fields to prevent password autocomplete
+                   xtype: 'textfield',
+                   hidden: true
+                },{
+                   xtype: 'password',
+                   hidden: true
                 }, editConfig
             ],
             // explicitly do not allow enter to submit the dialog

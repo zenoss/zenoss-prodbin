@@ -564,7 +564,6 @@ class DeviceFacade(TreeFacade):
         zProps = dict(zSnmpCommunity=snmpCommunity,
                       zSnmpPort=snmpPort,
                       zCommandUsername=zCommandUsername,
-                      zCommandPassword=zCommandPassword,
                       zWinUser=zWinUser,
                       zWinPassword=zWinPassword
                  )
