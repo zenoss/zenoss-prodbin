@@ -69,6 +69,85 @@ Ext.namespace('Zenoss.env');
 Ext.QuickTips.init();
 
 /**
+ * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function. 
+ * Currently new version of ExtJs hasn't fixed deprecated calls in GC function
+ */
+
+Ext.enableGarbageCollector = false;
+Zenoss.env.enableGarbageCollector = true;
+
+Zenoss.env.garbageCollect = function() {
+    if (!Zenoss.env.enableGarbageCollector) {
+        clearInterval(Zenoss.collectorThreadId);
+    } else {
+        var EC = Ext.cache,
+            eid,
+            d,
+            o,
+            t;
+
+        for (eid in EC) {
+            if (!EC.hasOwnProperty(eid)) {
+                continue;
+            }
+
+            o = EC[eid];
+
+            // Skip document and window elements
+            if (o.skipGarbageCollection) {
+                continue;
+            }
+
+            d = o.dom;
+
+            // Should always have a DOM node
+            if (!d) {
+                Ext.Error.raise('Missing DOM node in element garbage collection: ' + eid);
+            }
+
+            // Check that document and window elements haven't got through
+            if (d && (d.getElementById || d.navigator)) {
+                Ext.Error.raise('Unexpected document or window element in element garbage collection');
+            }
+
+            // -------------------------------------------------------
+            // Determining what is garbage:
+            // -------------------------------------------------------
+            // !d.getBoundingClientRect()
+            // no getBoundingClientRect() == direct orphan, definitely garbage
+            // -------------------------------------------------------
+            // !d.getBoundingClientRect() && !document.getElementById(eid)
+            // display none elements have no getBoundingClientRect() so we will
+            // also try to look it up by it's id. However, check
+            // getBoundingClientRect() first so we don't do unneeded lookups.
+            // This enables collection of elements that are not orphans
+            // directly, but somewhere up the line they have an orphan
+            // parent.
+            // -------------------------------------------------------
+            if (d && (!d.parentNode || (!d.getBoundingClientRect() && !Ext.getElementById(eid)))) {
+                if (Ext.enableListenerCollection) {
+                    Ext.EventManager.removeAll(d);
+                }
+                delete EC[eid];
+            }
+        }
+        // Cleanup IE Object leaks
+        if (Ext.isIE) {
+            t = {};
+            for (eid in EC) {
+                if (!EC.hasOwnProperty(eid)) {
+                    continue;
+                }
+                t[eid] = EC[eid];
+            }
+            EC = Ext.cache = t;
+        }
+    }
+};
+
+Zenoss.collectorThreadId = setInterval(Zenoss.env.garbageCollect, 30000);
+
+/**
  *
  * @param except Return all columns except the ones
  * where id is in this array.
