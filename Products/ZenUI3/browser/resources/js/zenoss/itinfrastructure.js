@@ -727,11 +727,11 @@ Ext.apply(Zenoss.devices, {
                                 multiSelect: true,
                                 width: 200
                             },{
-                               //Add hidden input field to prevent password autocomplete
-                               xtype: 'password',
-                               id: 'autocompletePassword',
-                               name: 'autocompletePassword',
-                               hidden: true
+                                //Add hidden input field to prevent password autocomplete
+                                xtype: 'password',
+                                id: 'autocompletePassword',
+                                name: 'autocompletePassword',
+                                hidden: true
                             },{
                                 xtype: 'textfield',
                                 inputType: 'password',
