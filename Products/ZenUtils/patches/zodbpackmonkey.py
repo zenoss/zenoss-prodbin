@@ -10,29 +10,56 @@
 """
 This module patches relstorage.adapters.packundo.HistoryFreePackUndo to prevent
 the creation of POSKey errors during the execution of zodbpack.
-Patched methods:
+
+Patched methods in HistoryFreePackUndo:
     def _pre_pack_main(self, conn, cursor, pack_tid, get_references)
     def pack(self, pack_tid, sleep=None, packed_func=None)
+    def fill_object_refs(self, conn, cursor, get_references)
+
+Patched methods in PackUndo:
+    def _traverse_graph(self, cursor)
+
 """
 
 from Products.ZenUtils.Utils import monkeypatch
-from collections import defaultdict
+from collections import defaultdict, deque
+from itertools import groupby
+from operator import itemgetter
 
 import logging
+import multiprocessing
 import os
 import pickle
 import time
 
+def set_up_logger():
+    log_format = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
+    logging.basicConfig(filename='/opt/zenoss/log/zenossdbpack.log', filemode='a', level=logging.INFO, format=log_format)
+    #set up logging to console for root logger
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    console.setFormatter(logging.Formatter(log_format))
+    logging.getLogger('').addHandler(console)
+
+set_up_logger()
+
 log = logging.getLogger("zenoss.zodbpack.monkey")
 
-GLOBAL_OPTIONS = []
+GLOBAL_OPTIONS = {}
 
-def set_build_tables_only_option():
-    GLOBAL_OPTIONS.append("BUILD_TABLES_ONLY")
+def set_external_option(option, value=True):
+    """
+    Supported options:
+        "BUILD_TABLES_ONLY"
+        "N_WORKERS"
+        "MINIMIZE_MEMORY_USAGE"
+    """
+    GLOBAL_OPTIONS[option] = value
+
 
 class ZodbPackMonkeyHelper(object):
 
-    VERSION = '1.1'
+    VERSION = '1.3'
     REF_TABLE_NAME = 'object_ref'
     REVERSE_REF_INDEX = 'reverse_ref_index'
     PICKLE_FILENAME = 'zodbpack_skipped_oids.pickle'
@@ -69,6 +96,18 @@ class ZodbPackMonkeyHelper(object):
             cursor.execute(index_sql)
             log.info("Reverse reference index creation took {0} seconds.".format(time.time()-start))
 
+    def get_ref_tables_engine(self, cursor):
+        """ Returns the engine of object_ref and object_refs_added """
+        engines = {} # { table : engine }
+        try:
+            sql = """ SELECT TABLE_NAME, ENGINE  FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ("object_ref", "object_refs_added"); """
+            cursor.execute(sql)
+            if cursor.rowcount == 2:
+                engines = { table:engine.lower() for table, engine in cursor.fetchall() }
+        except Exception:
+            log.error("Exception retrieving ref tables engine")
+        return engines
+
     def get_current_database(self, cursor):
         sql = """SELECT DATABASE();"""
         cursor.execute(sql)
@@ -91,7 +130,7 @@ class ZodbPackMonkeyHelper(object):
         while to_remove:
             batch = to_remove[:batch_size]
             del to_remove[:batch_size]
-            values = ', '.join([ str(zoid) for zoid, tid in batch ])
+            values = ','.join( str(zoid) for zoid, tid in batch )
             sql = """UPDATE pack_object SET keep = TRUE WHERE zoid IN ({0});""".format(values)
             cursor.execute(sql)
         conn.commit()
@@ -114,7 +153,6 @@ class ZodbPackMonkeyHelper(object):
         references_map = ZodbPackMonkeyHelper.ReferencesMap()
         zoids = oids[:]
         batch_size = 10000
-        n_batch = 1
         while zoids:
             start = time.time()
             batch = zoids[:batch_size]
@@ -122,7 +160,6 @@ class ZodbPackMonkeyHelper(object):
             references = self._get_references(cursor, batch)
             for r in references:
                 references_map.add_reference(r)
-            n_batch = n_batch + 1
         return references_map
 
     def _get_connected_oids_to(self, oid, references, visited):
@@ -317,15 +354,44 @@ class ZodbPackMonkeyHelper(object):
 
 MONKEY_HELPER = ZodbPackMonkeyHelper()
 
+
+def duration_to_pretty_text(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%dh:%02dm:%02ds" % (h, m, s)
+
+'''
+#========================================================================
+#                      RELSTORAGE MONKEY PATCHES
+#========================================================================
+'''
 try:
+
+    from relstorage.adapters.packundo import PackUndo
     from relstorage.adapters.packundo import HistoryFreePackUndo
+
+
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def _pre_pack_main(self, conn, cursor, pack_tid, get_references):
-    	"""Determine what to garbage collect."""
+        """
+        Determine what to garbage collect.
+        """
+        log.info("Running with the following options: {0}".format(GLOBAL_OPTIONS))
+        # Create reverse ref index
         MONKEY_HELPER.create_reverse_ref_index(cursor)
+
+        # In order to use workers the engine for the ref tables should be innodb.
+        # By default the engine is MyISAM and the whole table blocks on write.
+        if "N_WORKERS" in GLOBAL_OPTIONS:
+            engines = MONKEY_HELPER.get_ref_tables_engine(cursor)
+            if not all(map(lambda x: x=="innodb", engines.values())):
+                log.warn("Reference tables engines should be InnoDB to run zenossdbpack -t. {0}".format(engines))
+
         original(self, conn, cursor, pack_tid, get_references)
 
+
     #------------------ Functions related to pack method ---------------------
+
 
     def get_grouped_oids(cursor, oids_to_remove):
         """ Groups oids to be removed in groups of connected objects """
@@ -344,7 +410,7 @@ try:
 
         return result
 
-    from relstorage.adapters.packundo import HistoryFreePackUndo
+
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def remove_isolated_oids(self, conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed):
         """
@@ -398,7 +464,6 @@ try:
         return oids_processed
 
 
-    from relstorage.adapters.packundo import HistoryFreePackUndo
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def remove_connected_oids(self, conn, cursor, grouped_oids, sleep, packed_func, total, oids_processed):
         """
@@ -464,10 +529,9 @@ try:
             except Exception as e:
                 MONKEY_HELPER.log_exception(e, "Exception while exporting skipped oids.")
             """
-
         return prevent_pke_oids
-            
-    from relstorage.adapters.packundo import HistoryFreePackUndo
+
+
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def pack(self, pack_tid, sleep=None, packed_func=None):
         """ Run garbage collection. Requires the information provided by pre_pack. """
@@ -487,7 +551,6 @@ try:
                 """
                 self.runner.run_script_stmt(cursor, stmt)
                 to_remove = list(cursor)
-
                 marked_for_removal = len(to_remove)
                 log.info("pack: %d object(s) marked to be removed", marked_for_removal)
 
@@ -533,5 +596,322 @@ try:
         finally:
             self.connmanager.close(conn, cursor)
 
-except ImportError:
-    pass
+    '''
+    Methods added to support packing systems that have not been packed for a long time
+    and that cause zenossdbpack to crash with an OOM error
+    '''
+
+    REPORT_PERIOD = 60
+    OIDS_PER_TASK = 1000
+
+    class RefTableWorker(multiprocessing.Process):
+        def __init__(self, tasks_queue, results_queue, conn, context, get_references):
+            multiprocessing.Process.__init__(self)
+            self.tasks_queue = tasks_queue
+            self.results_queue = results_queue
+            self.conn = conn
+            self.cursor = self.conn.cursor()
+            self.context = context
+            self.get_references = get_references
+            self.oids_processed = 0
+
+        def run(self):
+            last_report = time.time()
+            task_dequeued = False
+            while True:
+                try:
+                    task = self.tasks_queue.get()
+                    task_dequeued = True
+                    if task is None:
+                        break # poison pill
+                    else:
+                        self.context._add_refs_for_oids(self.cursor, task, self.get_references)
+                        self.conn.commit()
+                        self.oids_processed = self.oids_processed + len(task)
+                        now = time.time()
+                        if now > last_report + REPORT_PERIOD:
+                            last_report = now
+                            self.results_queue.put( (self.name, self.oids_processed) )
+                except (KeyboardInterrupt, Exception) as e:
+                    if isinstance(e, KeyboardInterrupt):
+                        log.info("{0}: Stopping worker...".format(self.name))
+                    else:
+                        log.exception("{0}: Exception in worker while building ref tables. {1}".format(self.name, e))
+                    self.conn.rollback()
+                    break
+                finally:
+                    if task_dequeued:
+                        self.tasks_queue.task_done()
+                        task_dequeued = False
+            self.context.connmanager.close(self.conn, self.cursor)
+
+
+    def _log_ref_tables_progress(processed, total, proccessed_last_report):
+        log_text = "Objects Processed: {0} | Remaining: {1} | Total: {2} | Processed since last report: {3}"
+        proccessed_since_last_report = processed - proccessed_last_report
+        txt_processed = str(processed).rjust(10)
+        txt_remaining = str(total - processed).rjust(10)
+        txt_total = str(total).rjust(10)
+        txt_proccessed_since_last_report = str(proccessed_since_last_report).rjust(10)
+        log.info(log_text.format(txt_processed, txt_remaining, txt_total, txt_proccessed_since_last_report))
+
+
+    def _get_n_workers(total_oids):
+        if "N_WORKERS" in GLOBAL_OPTIONS and GLOBAL_OPTIONS["N_WORKERS"] > 0:
+            n_workers = GLOBAL_OPTIONS["N_WORKERS"]
+        else:
+            n_workers = multiprocessing.cpu_count() * 2
+            batches_needed = int(total_oids / OIDS_PER_TASK) + 1
+            if batches_needed < n_workers:
+                n_workers = batches_needed
+            n_workers = min(n_workers, 16)  # max of 16 workers
+        return n_workers
+
+    def _get_tasks(oids):
+        """ Group oids in tasks of OIDS_PER_TASK oids. @return deque """
+        start = time.time()
+        tasks = deque()
+        for step in xrange(0, len(oids), OIDS_PER_TASK):
+            task = oids[step:step+OIDS_PER_TASK]
+            tasks.append(task)
+        return tasks      
+
+    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
+    def workerized_ref_tables_builder(self, oids, conn, cursor, get_references):
+        """
+        Use multiple workers to build ref tables
+        """
+        start = time.time()
+        total_oids = len(oids)
+        n_workers = _get_n_workers(total_oids)
+        log.info("Starting {0} workers to build ref tables...".format(n_workers))
+        # Get tasks
+        tasks = _get_tasks(oids)
+        oids = None # free some mem
+        # Create work queues
+        tasks_queue = multiprocessing.JoinableQueue()
+        results_queue = multiprocessing.Queue()
+        # Start workers
+        workers = []
+        for i in range(n_workers):
+            conn, cursor = self.connmanager.open_for_pre_pack()
+            worker = RefTableWorker(tasks_queue, results_queue, conn, self, get_references)
+            worker.start()
+            workers.append(worker)
+        time.sleep(2)
+        try:
+            reports = {}
+            last_report = 0
+            processed = 0
+            queueing_done = False
+            while True:
+                """ Give work to workers """
+                if not queueing_done:
+                    for _ in xrange(2*len(workers)): # make sure workers have enough stuff to do
+                        if not tasks:
+                            break
+                        task = tasks.popleft()
+                        try:
+                            tasks_queue.put_nowait(task)  # task is a batch of OIDS_PER_TASK oids
+                        except multiprocessing.Queue.Full: # queue is full
+                            tasks.appendleft(task)
+                            log.info("Main process: sleeping 60 seconds. Tasks queue is full...")
+                            time.sleep(60)
+
+                    if not tasks and not queueing_done:
+                        queueing_done = True
+                        for worker in workers:
+                            tasks_queue.put(None) # poison pill
+
+                """ Process reports from workers """
+                while not results_queue.empty(): # Process messages from workers
+                    try:
+                        result = results_queue.get(block=False)
+                        reports[result[0]] = result[1]  # {worker_id: oids_processed so far}
+                    except multiprocessing.Queue.Empty:
+                        break # No items ready in queue event though results_queue.empty said otherwise
+
+                """ Report status """
+                if time.time() > last_report + REPORT_PERIOD:  # Report
+                    new_processed = sum(reports.values())
+                    _log_ref_tables_progress(new_processed, total_oids, processed)
+                    last_report = time.time()
+                    processed = new_processed
+
+                """ Check if workers are done, otherwise take a nap """
+                workers = [ w for w in workers if w.is_alive() ]
+                if workers:
+                    if queueing_done:
+                        log.debug("Waiting for workers to finish")
+                        time.sleep(1) # sleep a little, workers are busy
+                else:
+                    if queueing_done:
+                        break # we are done!
+                    else: # oh oh, workers are dead
+                        raise Exception("Workers are dead")
+
+        except (Exception, KeyboardInterrupt) as e:
+            if isinstance(e, KeyboardInterrupt):
+                log.warn("Building reference tables interrupted.")
+            else:
+                log.exception("Exception while building ref tables. {0}".format(e))
+            while not results_queue.empty():
+                results_queue.get(block=False)
+            for worker in workers:
+                worker.terminate()
+                worker.join()
+            tasks_queue.close()
+            results_queue.close()
+            raise e
+        else:
+            tasks_queue.close()
+            tasks_queue.join()
+            results_queue.close()
+            for worker in workers:
+                worker.join()
+
+
+    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
+    def patched_fill_object_refs(self, conn, cursor, get_references):
+        """ Patched version that uses workers if analyzing a large number of oids """
+
+        HEADER = "ref-tables-builder"
+        log.info("{0}: Looking for updated objects...".format(HEADER))
+
+        start = time.time()
+
+        stmt = """
+        SELECT object_state.zoid FROM object_state
+            LEFT JOIN object_refs_added
+                ON (object_state.zoid = object_refs_added.zoid)
+        WHERE object_refs_added.tid IS NULL
+            OR object_refs_added.tid != object_state.tid
+        """
+        self.runner.run_script_stmt(cursor, stmt)
+        oids = [ oid for (oid,) in cursor ]
+
+        duration = duration_to_pretty_text(time.time()-start)
+        log.info("{0}: Looking for updated objects took {1}. {2} objects found".format(HEADER, duration, len(oids)))
+
+        if len(oids) > 0:
+            start = time.time()
+            log.info("{0}: Building reference tables...".format(HEADER))
+            self.workerized_ref_tables_builder(oids, conn, cursor, get_references)
+            duration = duration_to_pretty_text(time.time()-start)
+            log.info("{0}: Build reference tables took {1}.".format(HEADER, duration))
+
+
+    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
+    def fill_object_refs(self, conn, cursor, get_references):
+        """ Update the object_refs table by analyzing new object states. """
+        if "BUILD_TABLES_ONLY" in GLOBAL_OPTIONS and "N_WORKERS" in GLOBAL_OPTIONS:
+            # Lets build ref tables with workers
+            self.patched_fill_object_refs(conn, cursor, get_references)
+        else:
+            original(self, conn, cursor, get_references)
+
+
+    @monkeypatch('relstorage.adapters.packundo.PackUndo')
+    def _patched_traverse_graph(self, cursor):
+        """Visit the entire object graph to find out what should be kept.
+
+        Sets the pack_object.keep flags.
+        """
+        log.info("pre_pack: downloading pack_object and object_ref.")
+
+        # Download the list of root objects to keep from pack_object.
+        keep_set = set()  # set([oid])
+        stmt = """
+        SELECT zoid
+        FROM pack_object
+        WHERE keep = %(TRUE)s
+        """
+        self.runner.run_script_stmt(cursor, stmt)
+        for from_oid, in cursor:
+            keep_set.add(from_oid)
+
+        # Note the Oracle optimizer hints in the following statement; MySQL
+        # and PostgreSQL ignore these. Oracle fails to notice that pack_object
+        # is now filled and chooses the wrong execution plan, completely
+        # killing this query on large RelStorage databases, unless these hints
+        # are included.
+        stmt = """
+        SELECT
+            /*+ FULL(object_ref) */
+            /*+ FULL(pack_object) */
+            object_ref.zoid, object_ref.to_zoid
+        FROM object_ref
+            JOIN pack_object ON (object_ref.zoid = pack_object.zoid)
+        WHERE object_ref.tid >= pack_object.keep_tid
+            AND object_ref.zoid IN ({0})
+        ORDER BY object_ref.zoid
+        """
+
+        # Traverse the object graph.  Add all of the reachable OIDs
+        # to keep_set.
+        log.info("pre_pack: traversing the object graph "
+            "to find reachable objects.")
+        parents = set()
+        parents.update(keep_set)
+        pass_num = 0
+        while parents:
+            pass_num += 1
+            children = set()
+
+            # NOTE(viktors): For a some reasons, mysql don't like ~10^6 rows in
+            # IN statement, so let's split a big `parrents` array into a
+            # smaller ones.
+            # FIXME: It can be a bad idea - to create one more huge (10^6 rows)
+            # list from the same set. It would be nice to optimize it.
+            parents_list = list(parents)
+            limit = 3000
+            for step in xrange(0, len(parents_list), limit):
+                limited_list = parents_list[step:step+limit]
+
+                # FIXME: Don't use string parameters interpolation (%) to pass
+                # variables to a SQL query string
+                execute_stmt = stmt.format(', '.join([str(p) for p in limited_list]))
+                self.runner.run_script_stmt(cursor, execute_stmt)
+                # Grouped by object_ref.zoid, store all object_ref.to_zoid in sets
+                for from_oid, rows in groupby(cursor, itemgetter(0)):
+                    children.update(set(row[1] for row in rows))
+
+                log.debug("pre_pack: %d items left" % (len(parents_list)-step))
+
+            parents = children.difference(keep_set)
+            keep_set.update(parents)
+            log.debug("pre_pack: found %d more referenced object(s) in "
+                "pass %d", len(parents), pass_num)
+
+        keep_list = list(keep_set)
+        keep_list.sort()
+        log.info("pre_pack: marking objects reachable: %d", len(keep_list))
+        batch = []
+
+        def upload_batch():
+            oids_str = ','.join(str(oid) for oid in batch)
+            del batch[:]
+            stmt = """
+            UPDATE pack_object SET keep = %%(TRUE)s, visited = %%(TRUE)s
+            WHERE zoid IN (%s)
+            """ % oids_str
+            self.runner.run_script_stmt(cursor, stmt)
+
+        for oid in keep_list:
+            batch.append(oid)
+            if len(batch) >= 1000:
+                upload_batch()
+        if batch:
+            upload_batch()
+
+
+    @monkeypatch('relstorage.adapters.packundo.PackUndo')
+    def _traverse_graph(self, cursor):
+        if "MINIMIZE_MEMORY_USAGE" in GLOBAL_OPTIONS:
+            self._patched_traverse_graph(cursor)
+        else:
+            original(self, cursor)
+
+
+except ImportError as e:
+    raise e
