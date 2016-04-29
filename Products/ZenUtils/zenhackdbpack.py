@@ -30,7 +30,7 @@ DISCLAIMER = """
         mv /opt/zenoss/bin/zenossdbpack /opt/zenoss/bin/_zenossdbpack
  6) Run this script as many times as needed until the database reaches desired size
         cd /opt/zenoss
-        python Products/ZenUtils/zenhackdbpack.py -w WORKERS -n NUMBER_OF_OBJECTS_TO_REMOVE
+        python Products/ZenUtils/zenhackdbpack.py -w WORKERS -n NUMBER_OF_OBJECTS_TO_REMOVE -i NUMBER_OF_ITERATIONS
 Once the database has desired size:
  1) Undo changes done in step 6
  2) Truncate object_ref, object_refs_added, object_pack
@@ -44,7 +44,6 @@ Improper use of this script could lead to unrecoverable data loss
 
 For any questions please contact Zenoss Support 
 ---------------------------------------------------------------------------------------------------------------
-
 """
 
 import Globals
@@ -58,7 +57,10 @@ import cPickle
 import logging
 import multiprocessing
 import MySQLdb
+import socket
+import sys
 import time
+
 
 def set_up_logger():
     log_format = "%(asctime)s [%(name)s] %(levelname)s %(message)s"
@@ -71,10 +73,8 @@ def set_up_logger():
     logging.getLogger('').addHandler(console)
 
 set_up_logger()
-
 log = logging.getLogger("zenoss.hack.zodbpack")
 
-DEFAULT_REPORT_PERIOD = 60
 
 class BCOLORS:
     BLUE = '\033[94m'
@@ -82,6 +82,34 @@ class BCOLORS:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     ENDC = '\033[0m'
+
+
+def assert_not_running():
+    """ Only one instance of this process is allowed to run """
+    global LOCK
+    LOCK = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        LOCK.bind('\0zenhackdbpack_lock')
+    except socket.error:
+        msg = "\n{0}ERROR: Another instance of this script is already running. Aborting....{1}\n"
+        print(msg.format(BCOLORS.RED, BCOLORS.ENDC))
+        sys.exit (0)
+
+assert_not_running()
+
+
+def load_db_config():
+    """  Load zodb config from global.conf """
+    global_conf = getGlobalConfiguration()
+    db_conf = {}
+    db_conf["HOST"] = global_conf.get("zodb-host", '127.0.0.1')
+    if db_conf["HOST"] == "localhost":
+        db_conf["HOST"] = "127.0.0.1"
+    db_conf["PORT"] = int(global_conf.get("zodb-port", 13306))
+    db_conf["USER"] = global_conf.get("zodb-user", "zenoss")
+    db_conf["PASSWORD"] = global_conf.get("zodb-password", "zenoss")
+    db_conf["DB"] = global_conf.get("zodb-db", "zodb")
+    return db_conf
 
 
 def get_zodb_connection(db_config):
@@ -96,6 +124,9 @@ def duration_to_pretty_text(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%dh:%02dm:%02ds" % (h, m, s)
+
+
+DEFAULT_REPORT_PERIOD = 60
 
 
 class WorkersDeadException(Exception):
@@ -173,7 +204,6 @@ class ZodbPackHack(object):
         self.db_config = db_config
         self.n_workers = n_workers
         self.n_oids_to_remove = n_oids
-        self.no_questions = False
         self.queued = 0
         self.report_period = report_period
         try:
@@ -329,12 +359,12 @@ class ZodbPackHack(object):
             for worker in workers:
                 worker.join()
 
-    def pack(self):
+    def pack(self, user_confirmation=True):
         """ Remove self.n_oids_to_remove oids from object_state using workers """
-        if not self.no_questions:
+        if user_confirmation:
             log.info("Calculating total number of unreferenced objects...")
             to_remove, to_keep = self.check_pack_object_table()
-            log.info("{0}Detected {1} stale objects in your system{2}".format(BCOLORS.YELLOW, to_remove, BCOLORS.ENDC))
+            log.info("Detected {0}{1}{2} stale objects in your system.".format(BCOLORS.YELLOW, to_remove, BCOLORS.ENDC))
             # Ask for user confirmation
             msg = "{0}Are you sure to continue? {1} objects will be removed.{2}\nPress Enter to continue: "
             u_sure = raw_input(msg.format(BCOLORS.YELLOW, self.n_oids_to_remove, BCOLORS.ENDC))
@@ -345,42 +375,49 @@ class ZodbPackHack(object):
         duration = duration_to_pretty_text(time.time()-pack_start)
         log.info("{0}Removing {1} objects using {2} workers took {3}{4}".format(BCOLORS.GREEN, self.queued, self.n_workers, duration, BCOLORS.ENDC))
 
-    def check_db(self):
+
+class ConfigChecker(object):
+
+    def __init__(self, db_config):
+        self.db_config = db_config
+
+    def _check_db(self, cursor):
         db_ok = False
         sql = """ SELECT zoid FROM object_state LIMIT 1"""
         try:
-            self.cursor.execute(sql)
-            self.cursor.fetchall()
+            cursor.execute(sql)
+            cursor.fetchall()
             db_ok = True
         except Exception:
             pass
         return db_ok
 
-    def check_pack_table_engine(self):
+    def _check_pack_table_engine(self, cursor):
         """ return true if pack_object engine is innodb """
         sql = """ SELECT LOWER(ENGINE) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME = "pack_object"; """
         engine_ok = False
         try:
-            self.cursor.execute(sql)
-            if "innodb" in self.cursor.fetchall()[0]:
+            cursor.execute(sql)
+            if "innodb" in cursor.fetchall()[0]:
                 engine_ok = True
         except MySQLdb.Error:
             log.error("Exception retrieving pack_object engine")
         return engine_ok
 
+    def check(self):
+        all_good = False
+        conn = get_zodb_connection(self.db_config)
+        cursor = conn.cursor()
 
-def load_db_config():
-    """  Load zodb config from global.conf """
-    global_conf = getGlobalConfiguration()
-    db_conf = {}
-    db_conf["HOST"] = global_conf.get("zodb-host", '127.0.0.1')
-    if db_conf["HOST"] == "localhost":
-        db_conf["HOST"] = "127.0.0.1"
-    db_conf["PORT"] = int(global_conf.get("zodb-port", 13306))
-    db_conf["USER"] = global_conf.get("zodb-user", "zenoss")
-    db_conf["PASSWORD"] = global_conf.get("zodb-password", "zenoss")
-    db_conf["DB"] = global_conf.get("zodb-db", "zodb")
-    return db_conf
+        if not self._check_db(cursor):
+            log.error("Error accessing DB: Please check config parameters in global.conf.")
+        elif not self._check_pack_table_engine(cursor):
+            log.error("zodb.pack_object table engine must be set to 'innodb' to run this script. Aborting...")
+        else:
+            all_good = True
+        cursor.close()
+        conn.close()
+        return all_good
 
 
 def parse_options():
@@ -390,8 +427,8 @@ def parse_options():
                         help="Number of workers used to pack objects.")
     parser.add_argument("-n", "--n_objects", dest="n_oids", action="store", default=1000000, type=int,
                         help="Number of objects to pack")
-    parser.add_argument("-y", "--no_questions", dest="no_questions", action="store_true", default=False,
-                        help="Do not ask for user confirmation.")
+    parser.add_argument("-i", "--n_iterations", dest="n_iterations", action="store", default=1, type=int,
+                        help="Number iterations to run. Only first iteration asks for user confirmation.")
     return vars(parser.parse_args())
 
 
@@ -400,19 +437,30 @@ def banner():
     print msg.format(BCOLORS.RED, DISCLAIMER, BCOLORS.ENDC)
 
 
+def run_hack(db_config, cli_options):
+    n_workers = cli_options.get("n_workers")
+    n_iterations = cli_options.get("n_iterations")
+    n_oids = cli_options.get("n_oids")
+    user_confirmation = True
+
+    for i in xrange(n_iterations):
+        log_msg = "Starting iteration {0} out of {1}".format(i+1, n_iterations)
+        log.info("{0}{1}{2}".format(BCOLORS.BLUE, log_msg, BCOLORS.ENDC))
+        hack = ZodbPackHack(db_config, n_oids, n_workers)
+        hack.pack(user_confirmation)
+        user_confirmation = False # ask for confirmation only first time
+        if i+1 < n_iterations:
+            log.info("Sleeping 30 seconds until next iteration...")
+            time.sleep(30)
+
+
 def main():
     banner()
     db_config = load_db_config()
     cli_options = parse_options()
-    hack = ZodbPackHack(db_config, cli_options.get("n_oids"), cli_options.get("n_workers"))
-    if hack.check_db():
-        if hack.check_pack_table_engine():
-            hack.no_questions = cli_options.get("no_questions")
-            hack.pack()
-        else:
-            log.error("zodb.pack_object table engine must be set to 'innodb' to run this script. Aborting...")
-    else:
-        log.error("Error accessing DB: Please check config parameters in this script.")
+
+    if ConfigChecker(db_config).check():
+        run_hack(db_config, cli_options)
 
 
 if __name__ == "__main__":

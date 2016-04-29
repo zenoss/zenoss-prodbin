@@ -647,14 +647,15 @@ try:
 
 
     def _log_ref_tables_progress(processed, total, proccessed_last_report):
-        log_text = "Objects Processed: {0} | Remaining: {1} | Total: {2} | Processed since last report: {3}"
         proccessed_since_last_report = processed - proccessed_last_report
-        txt_processed = str(processed).rjust(10)
-        txt_remaining = str(total - processed).rjust(10)
-        txt_total = str(total).rjust(10)
-        txt_proccessed_since_last_report = str(proccessed_since_last_report).rjust(10)
-        log.info(log_text.format(txt_processed, txt_remaining, txt_total, txt_proccessed_since_last_report))
-
+        progress = float((processed*100) / float(total))
+        txt_percentage = "{0:.2f}%".format(progress)
+        txt_progress = "Progress: {0} completed".format(txt_percentage.rjust(7))
+        txt_processed = str(processed).rjust(9)
+        txt_remaining = str(total - processed).rjust(9)
+        txt_proccessed_since_last_report = str(proccessed_since_last_report).rjust(8)
+        log_text = "{0}  | Processed: {1} | Remaining: {2} | Processed since last report: {3}"
+        log.info(log_text.format(txt_progress, txt_processed, txt_remaining, txt_proccessed_since_last_report))
 
     def _get_n_workers(total_oids):
         if "N_WORKERS" in GLOBAL_OPTIONS and GLOBAL_OPTIONS["N_WORKERS"] > 0:
