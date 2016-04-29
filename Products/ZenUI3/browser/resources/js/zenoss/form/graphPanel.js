@@ -166,14 +166,14 @@
             var padding = "padding:5px 5px 5px 0px;";
             // backcompat from graph dimensions from rrd
             // the properties were saved on each graph definition and we want to
-            // both preserve backward compabability
-            // so therefore
+            // preserve backward compabability
             if (config.height === 100 && config.width === 500) {
                 config.height = 500;
-                delete config.width;
             } else if (config.height == undefined) {
                 config.height = 500;
             }
+            // width is not customizable - always fills column
+            delete config.width;
 
             // dynamically adjust the height;
             config.graphPadding = padding;
