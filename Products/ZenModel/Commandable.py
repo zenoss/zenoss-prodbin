@@ -197,9 +197,8 @@ class Commandable:
         # make sure we are targeting the right collector
         if not command.startswith("dcsh") and hasattr(target, "getPerformanceServerName"):
             collector = target.getPerformanceServer()
-            # if there isn't a collector just run it locally
-            if collector and hasattr(collector, 'isLocalHost') and not collector.isLocalHost():
-                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command.replace('\n', ' '))
+            if collector:
+                command = 'zminion --minion-name zminion_%s run -- "%s"' % (target.getPerformanceServerName(), command.replace('\n', ' '))
         exp = "string:"+ command
         compiled = talesCompile(exp)
         environ = target.getUserCommandEnvironment()
