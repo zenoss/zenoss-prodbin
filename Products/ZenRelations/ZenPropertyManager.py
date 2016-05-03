@@ -467,7 +467,10 @@ class ZenPropertyManager(object, PropertyManager):
             if ptype in ("selection", 'multiple selection'): ptype="string"
             if ptype in type_converters:
                 propvalue=type_converters[ptype](propvalue)
-            if getattr(self, propname, None) != propvalue:
+            if ptype == "password" and propvalue == self.zenPropertyString(propname):
+                    # Don't save passwords that haven't changed and don't save "*" passwords
+                    pass
+            elif getattr(self, propname, None) != propvalue:
                 self._setProperty(propname, propvalue, type=ptype)
         if REQUEST: return self.callZenScreen(REQUEST)
 
