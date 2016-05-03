@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-import cPickle
+import json
 import logging
 import time
 from urllib import urlencode
@@ -16,7 +16,7 @@ import urllib2
 
 from Products.ZenUtils.Version import Version
 
-VERSION_CHECK_URL = 'http://callhome.zenoss.com/callhome/v1/versioncheck'
+VERSION_CHECK_URL = 'http://callhome.zenoss.com/callhome/v2/versioncheck'
 _URL_TIMEOUT=5
 logger = logging.getLogger('zen.callhome')
 
@@ -24,7 +24,7 @@ def version_check(dmd):
     params = urlencode({'product': dmd.getProductName()})
     try:
         httpreq = urllib2.urlopen(VERSION_CHECK_URL, params, _URL_TIMEOUT)
-        returnPayload = cPickle.loads(httpreq.read())
+        returnPayload = json.loads(httpreq.read())
     except Exception as e:
         logger.warning('Error retrieving version from callhome server: %s', e)
     else:

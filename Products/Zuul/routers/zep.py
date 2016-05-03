@@ -39,6 +39,7 @@ from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
 from lxml.html.clean import clean_html
 
+READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
 log = logging.getLogger('zen.%s' % __name__)
 
@@ -574,10 +575,18 @@ class EventsRouter(DirectRouter):
             raise Exception('Could not find event %s' % evid)
 
     def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+        user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
         if params.get('excludeNonActionables'):
             return Zuul.checkPermission('ZenCommon', self.context)
+        if user.hasNoGlobalRoles():
+            try:
+                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+            except (AttributeError, KeyError):
+                return False
+            manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+            return organizer_name in manage_events_for
         return False
 
     def write_event_logs(self, evid=None, message=None):
@@ -843,7 +852,8 @@ class EventsRouter(DirectRouter):
 
 
     @require(ZEN_MANAGE_EVENTS)
-    def add_event(self, summary, device, component, severity, evclasskey, evclass=None):
+    def add_event(self, summary, device, component, severity, evclasskey,
+                  evclass=None, **kwargs):
         """
         Create a new event.
 
@@ -861,11 +871,14 @@ class EventsRouter(DirectRouter):
         @type  evclass: string
         @param evclass: Event class for the new event
         @rtype:   DirectResponse
+
+        For other parameters please see class Event.
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
-            self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
-                            eventClass=evclass)
+            self.zep.create(summary, severity, device, component,
+                            eventClassKey=evclasskey, eventClass=evclass,
+                            **kwargs)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not

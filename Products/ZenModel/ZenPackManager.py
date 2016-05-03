@@ -18,6 +18,7 @@ from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.Utils import binPath
 from Products.ZenWidgets import messaging
 import os
@@ -97,11 +98,6 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id': 'support'
-                , 'name': 'Support'
-                , 'action': '../dmd/support'
-                , 'permissions': ( "Manage DMD", )
-                },
             )
          },
         )
@@ -110,6 +106,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addZenPack')
+    @validate_csrf_token
     def manage_addZenPack(self, packId, REQUEST=None, devDir=''):
         """
         Create a new zenpack on the filesystem with the given info.
@@ -159,6 +156,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeZenPacks')
+    @validate_csrf_token
     def manage_removeZenPacks(self, ids=(), REQUEST=None):
         """
         Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
@@ -229,6 +227,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
+    @validate_csrf_token
     def manage_installZenPack(self, zenpack=None, REQUEST=None):
         """
         Installs the given zenpack.  Zenpack is a file upload from the browser.

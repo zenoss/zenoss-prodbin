@@ -37,7 +37,7 @@ import os
 import sys
 import string
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenUtils.Utils import zenPath, binPath, unpublished
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
@@ -191,11 +191,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : 'userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
                 },
-                { 'id'            : 'support'
-                , 'name'          : 'Support'
-                , 'action'        : 'support'
-                , 'permissions'   : ( "Manage DMD", )
-                }
             )
           },
         )
@@ -466,7 +461,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.errorEmailThankYou()
 
 
-    #security.declareProtected('View', 'writeExportRows')
+    @unpublished
     def writeExportRows(self, fieldsAndLabels, objects, out=None):
         '''Write out csv rows with the given objects and fields.
         If out is not None then call out.write() with the result and return None
@@ -615,10 +610,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             self.REQUEST.response.setHeader('Cache-Control', 'no-transform')
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
-
-    security.declareProtected(ZEN_MANAGE_DMD, 'getSupportBundleFilesInfo')
-    def getSupportBundleFilesInfo(self):
-        return self.getFilesInfo('var/ext/support')
 
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):

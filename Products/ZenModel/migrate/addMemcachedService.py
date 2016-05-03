@@ -58,6 +58,7 @@ def default_memcached_service():
         "Endpoints": [
             {
                 "Application": "memcached",
+                "ApplicationTemplate": "memcached",
                 "Name": "memcached",
                 "PortNumber": 11211,
                 "Protocol": "tcp",

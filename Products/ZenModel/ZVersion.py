@@ -8,4 +8,4 @@
 ##############################################################################
 
 # If you change this, also change inst/zenoss-version/setup.py
-VERSION="5.1.1"
+VERSION="5.1.3"

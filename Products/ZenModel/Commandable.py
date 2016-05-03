@@ -23,6 +23,7 @@ from ZenossSecurity import *
 from UserCommand import UserCommand
 from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
+from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenUtils.Utils import unused
 from Products.ZenWidgets import messaging
@@ -46,6 +47,7 @@ class Commandable:
     security = ClassSecurityInfo()
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 'manage_addUserCommand')
+    @validate_csrf_token
     def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
         unused(desc, cmd)
@@ -195,9 +197,8 @@ class Commandable:
         # make sure we are targeting the right collector
         if not command.startswith("dcsh") and hasattr(target, "getPerformanceServerName"):
             collector = target.getPerformanceServer()
-            # if there isn't a collector just run it locally
-            if collector and hasattr(collector, 'isLocalHost') and not collector.isLocalHost():
-                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command.replace('\n', ' '))
+            if collector:
+                command = 'zminion --minion-name zminion_%s run -- "%s"' % (target.getPerformanceServerName(), command.replace('\n', ' '))
         exp = "string:"+ command
         compiled = talesCompile(exp)
         environ = target.getUserCommandEnvironment()

@@ -197,7 +197,7 @@ class DiscoverService(ModelerService):
                 updateAttributes = {}
                 for k,v in kw.items():
                     if k not in ('manageIp', 'deviceName', 'devicePath',
-                            'discoverProto', 'performanceMonitor'):
+                            'discoverProto', 'performanceMonitor', 'productionState'):
                         updateAttributes[k] = v
                 # use updateDevice so we don't clobber existing device properties.
                 e.dev.updateDevice(**updateAttributes)

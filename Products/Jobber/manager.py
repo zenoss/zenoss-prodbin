@@ -15,6 +15,8 @@ from uuid import uuid4
 
 import transaction
 
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from OFS.ObjectManager import ObjectManager
@@ -24,6 +26,7 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.celeryintegration import current_app, states, chain
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from ZODB.POSException import ConflictError
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 
 from .exceptions import NoSuchJobException
 from .jobs import Job
@@ -150,6 +153,7 @@ class JobRecord(ObjectManager):
 
 class JobManager(ZenModelRM):
 
+    security = ClassSecurityInfo()
     meta_type = portal_type = 'JobManager'
 
     def getCatalog(self):
@@ -168,6 +172,7 @@ class JobManager(ZenModelRM):
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
+    security.declareProtected(ZEN_ADD, 'addJobChain')
     def addJobChain(self, *joblist, **options):
         """
         Submit a list of SubJob objects that will execute in list order.
@@ -209,6 +214,7 @@ class JobManager(ZenModelRM):
 
         return records
 
+    security.declareProtected(ZEN_ADD, 'addJob')
     def addJob(self, jobclass,
             description=None, args=None, kwargs=None, properties=None):
         """
@@ -375,6 +381,7 @@ class JobManager(ZenModelRM):
         """
         return self._getByStatus(states.ALL_STATES, type_)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'deleteUntil')
     def deleteUntil(self, untiltime):
         """
         Delete all jobs older than untiltime.
@@ -385,11 +392,12 @@ class JobManager(ZenModelRM):
                 ob = b.getObject()
                 if ob.finished != None and ob.finished < untiltime:
                     self.deleteJob(ob.getId())
-                elif ob.status == states.ABORTED and ob.started < untiltime:
+                elif ob.status == states.ABORTED and (ob.started is None or ob.started < untiltime):
                     self.deleteJob(ob.getId())
             except ConflictError:
                 pass
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'clearJobs')
     def clearJobs(self):
         """
         Clear out all finished jobs.
@@ -397,6 +405,7 @@ class JobManager(ZenModelRM):
         for b in self.getCatalog()():
             self.deleteJob(b.getObject().getId())
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'killRunning')
     def killRunning(self):
         """
         Abort running jobs.
@@ -420,3 +429,6 @@ class JobLogDownload(BrowserView):
             response.setHeader('Content-Disposition', 'attachment;filename=%s' % os.path.basename(logfile))
             with open(logfile, 'r') as f:
                 return f.read()
+
+
+InitializeClass(JobManager)

@@ -1074,9 +1074,6 @@ def varPath(*args):
     return sane_pathjoin('/var/zenoss', *args)
 
 
-def supportBundlePath(*args):
-    return zenPath('var/ext/support', *args)
-
 def zenPath(*args):
     """
     Return a path relative to $ZENHOME specified by joining args.  The path
@@ -2159,3 +2156,13 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
         if msg != msgId:
             return msg
     return msg
+
+def unpublished(func):
+    """Makes decorated method unpublished.
+
+    Removes docstring of decorated method thus it will not be
+    published by Zope.
+    """
+    func.__doc__ = None
+    return func
+

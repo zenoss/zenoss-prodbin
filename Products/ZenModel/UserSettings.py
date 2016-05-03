@@ -34,6 +34,7 @@ from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils import DotNetCommunication
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
+from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
 from Products.ZenMessaging.audit import audit
@@ -125,11 +126,6 @@ class UserSettingsManager(ZenModelRM):
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
                 , 'permissions'   : ( "Manage DMD", )
-                },
-                {'id': 'support'
-                , 'name': 'Support'
-                , 'action': '../dmd/support'
-                , 'permissions': ( "Manage DMD", )
                 },
            )
          },
@@ -248,6 +244,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
+    @validate_csrf_token
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
                     REQUEST=None,**kw):
         """
@@ -342,7 +339,7 @@ class UserSettingsManager(ZenModelRM):
         return False
 
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'manage_changeUser')
+    security.declarePrivate('manage_changeUser')
     def manage_changeUser(self, userid, password=None, sndpassword=None,
                           roles=None, domains=None, REQUEST=None, **kw):
         """Change a zenoss users settings.
@@ -393,6 +390,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsers')
+    @validate_csrf_token
     def manage_deleteUsers(self, userids=(), REQUEST=None):
         """Delete a list of zenoss users from the system.
         """
@@ -453,6 +451,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addGroup')
+    @validate_csrf_token
     def manage_addGroup(self, groupid, REQUEST=None):
         """Add a zenoss group to the system and set its default properties.
         """
@@ -472,6 +471,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGroups')
+    @validate_csrf_token
     def manage_deleteGroups(self, groupids=(), REQUEST=None):
         """ Delete a zenoss group from the system
         """
@@ -497,6 +497,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroups')
+    @validate_csrf_token
     def manage_addUsersToGroups(self, userids=(), groupids=(), REQUEST=None):
         """ Add users to a group
         """
@@ -549,6 +550,7 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'cleanUserFolders')
     def cleanUserFolders(self):
         """Delete orphaned user folders.
         """
@@ -569,6 +571,7 @@ class UserSettingsManager(ZenModelRM):
 
 
 
+@validate_csrf_token
 def manage_addUserSettings(context, id, title = None, REQUEST = None):
     """make a device class"""
     dc = UserSettings(id, title)
@@ -708,7 +711,8 @@ class UserSettings(ZenModelRM):
         return False
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_resetPassword')
-    def manage_resetPassword(self):
+    @validate_csrf_token
+    def manage_resetPassword(self, REQUEST=None):
         """
         Reset a password.
         """
@@ -1008,6 +1012,7 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_addAdministrativeRole')
+    @validate_csrf_token
     def manage_addAdministrativeRole(self, name=None, type='device', role=None,
                                      guid=None, uid=None, REQUEST=None):
         "Add a Admin Role to the passed object"
@@ -1068,6 +1073,7 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_editAdministrativeRoles')
+    @validate_csrf_token
     def manage_editAdministrativeRoles(self, ids=(), role=(), REQUEST=None):
         """Edit list of admin roles.
         """
@@ -1097,6 +1103,7 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_deleteAdministrativeRole')
+    @validate_csrf_token
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete admin roles of objects."
         if isinstance(delids, basestring):
@@ -1285,6 +1292,7 @@ class GroupSettings(UserSettings):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroup')
+    @validate_csrf_token
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
         """
@@ -1306,6 +1314,7 @@ class GroupSettings(UserSettings):
         self._getG().removePrincipalFromGroup( userid, self.id )
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsersFromGroup')
+    @validate_csrf_token
     def manage_deleteUsersFromGroup(self, userids=(), REQUEST=None ):
         """ Delete users from this group
         """

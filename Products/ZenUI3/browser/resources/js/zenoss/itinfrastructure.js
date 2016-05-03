@@ -204,8 +204,11 @@ function treeselectionchange(sm, newnodes) {
 
         Zenoss.env.contextUid = uid;
 
-        Zenoss.util.setContext(uid, 'detail_panel', 'commands-menu',
-                               'footer_bar');
+        // ZEN-22556: now that we have more than one panel in addition to the device_grid
+        // always switch back to the default panel when selection changed
+        Ext.getCmp('detail_panel').layout.setActiveItem(0);
+
+        Zenoss.util.setContext(uid, 'detail_panel', 'commands-menu', 'footer_bar');
         // explicitly set the new security context (to update permissions)
         Zenoss.Security.setContext(uid);
 
@@ -462,6 +465,7 @@ Ext.apply(Zenoss.devices, {
                         handler: function() {
                             var form = win.childPanel.getForm();
                             var opts = form.getValues();
+                            delete opts.autocompletePassword;
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 if (!response.success) {
                                     Zenoss.message.error(_t('Error adding device job.'));
@@ -722,6 +726,12 @@ Ext.apply(Zenoss.devices, {
                                 emptyText: _t('None...'),
                                 multiSelect: true,
                                 width: 200
+                            },{
+                                //Add hidden input field to prevent password autocomplete
+                                xtype: 'password',
+                                id: 'autocompletePassword',
+                                name: 'autocompletePassword',
+                                hidden: true
                             },{
                                 xtype: 'textfield',
                                 inputType: 'password',

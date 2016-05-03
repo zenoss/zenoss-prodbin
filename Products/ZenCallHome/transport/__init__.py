@@ -12,7 +12,7 @@ __doc__='''Callhome mechanism. Reports anonymous statistics back to Zenoss, Inc.
 '''
 
 import base64
-import cPickle
+import json
 import logging
 import os
 import random
@@ -83,7 +83,7 @@ class CallHome(object):
         payload['symkey'] = self.callHome.symmetricKey
         payload['metrics'] = self.callHome.metrics
         
-        return encrypt(cPickle.dumps(payload), self.callHome.publicKey)
+        return encrypt(json.dumps(payload), self.callHome.publicKey)
     
     def save_return_payload(self, returnPayload):
         '''
@@ -93,7 +93,7 @@ class CallHome(object):
         '''
         try:
             returnPayload = zlib.decompress(base64.urlsafe_b64decode(returnPayload))
-            returnPayload = cPickle.loads(returnPayload)
+            returnPayload = json.loads(returnPayload)
         except:
             logger.debug('Error decoding return payload from server')
             return
@@ -105,9 +105,12 @@ class CallHome(object):
                 self.callHome.publicKey = newPubkey
         
         if 'encrypted' in returnPayload:
-            data = cPickle.loads(decrypt(returnPayload.get('encrypted'),
-                                         self.callHome.symmetricKey))
+            base64data = base64.urlsafe_b64decode(str(returnPayload.get('encrypted')))
+            data = json.loads(decrypt(base64data, self.callHome.symmetricKey))
             
+            if 'compliancereport' in data:
+                data['compliancereport']['pdf'] = base64.urlsafe_b64decode(str(data['compliancereport']['pdf']))
+
             if 'latestVersion' in data:
                 # Save the latest version, and send a message if new version available
                 self.dmd.lastVersionCheck = long(time.time())
