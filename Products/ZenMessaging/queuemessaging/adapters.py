@@ -112,12 +112,12 @@ class DeviceComponentProtobuf(ObjectProtobuf):
 def _safestr(s):
     """
     Defensive catchall to be sure that any string going into a protobuf can be
-    decoded safely with 7-bit ASCII.  If any specialized encoding is desired, it
+    decoded safely with UTF-8.  If any specialized encoding is desired, it
     is the responsibility of the caller/sender to take care of it.
     """
     if isinstance(s, str):
         try:
-            unicode(s, 'ascii')
+            s = unicode(s, 'utf_8')
         except UnicodeDecodeError:
             s = str(s.decode('ascii','ignore'))
     elif not isinstance(s, basestring):
