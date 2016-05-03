@@ -71,7 +71,8 @@ def commandListDict(commandList):
 def commandDictList(commandDict):
     commandList = []
     for k, v in commandDict.iteritems():
-        commandList.append(sm.Command(k, v["Command"], v["CommitOnSuccess"]))
+        commandList.append(sm.Command(k, command=v["Command"],
+                                      commitOnSuccess=v["CommitOnSuccess"]))
     return commandList
 
 
