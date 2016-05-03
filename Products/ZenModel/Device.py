@@ -85,9 +85,6 @@ from Products.ZenUtils.Search import (
 )
 
 
-DEVICE_CLASS_PING = '/Ping'
-
-
 def getNetworkRoot(context, performanceMonitor):
     """
     Return the default network root.
@@ -2199,10 +2196,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         if not self.monitorDevice():
             return None
-
-        if not self._snmpLastCollection:
-            if not self.getDeviceClassName().startswith(DEVICE_CLASS_PING):
-                return None
 
         from Products.ZenEvents.ZenEventClasses import Status_Ping
         if statusclass == Status_Ping:
