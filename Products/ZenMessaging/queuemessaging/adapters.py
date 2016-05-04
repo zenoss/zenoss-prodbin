@@ -119,7 +119,8 @@ def _safestr(s):
         try:
             s = unicode(s, 'utf_8')
         except UnicodeDecodeError:
-            s = str(s.decode('ascii','ignore'))
+            # Could not force string to unicode so trying best effort to treat as ascii
+            s = str(s.decode('ascii','replace'))
     elif not isinstance(s, basestring):
         s = str(s)
     return s
