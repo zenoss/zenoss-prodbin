@@ -59,11 +59,18 @@ def pack_database(config):
         configfile.write(config)
         configfile.flush()
         cmd = [_zodbpack, configfile.name, '-d', str(options.days)]
+        if options.buildTablesOnly or options.workers > 0:
+            cmd.append("--prepack")
         if not options.legacy:
             from Products.ZenUtils.patches import zodbpackmonkey
-            if options.buildTablesOnly:
+            if options.buildTablesOnly or options.workers >0:
                 print("zenossdbpack will only build internal tables. Pack phase will be skipped.")
-                zodbpackmonkey.set_build_tables_only_option()
+                zodbpackmonkey.set_external_option("BUILD_TABLES_ONLY")
+                if options.workers > 0:
+                    zodbpackmonkey.set_external_option("N_WORKERS", options.workers)
+            if options.minimizeMemoryUsage:
+                print("Running zenossdbpack minimizing memory usage during tree traversal.")
+                zodbpackmonkey.set_external_option("MINIMIZE_MEMORY_USAGE")
         return zodbpack.main(cmd)
 
 
@@ -106,11 +113,28 @@ if __name__ == "__main__":
         "-t", "--build-tables", dest="buildTablesOnly",
         action="store_true", default=False,
         help="Builds internal tables only and does not do the pack.")
+    parser.add_argument(
+        "-tw", "--workers", dest="workers",
+        action="store", default=-1, type=int,
+        help="Build internal tables only using workers.")
+    parser.add_argument(
+        "-m", "--minimize-memory", dest="minimizeMemoryUsage",
+        action="store_true", default=False,
+        help="Minimize memory usage during tree traversal. NOTE: Use only when zenossdbpack crashes with out of memory error.")
+    parser.add_argument(
+        "-v", "--version", dest="version",
+        action="store_true", default=False,
+        help="Prints version of zenossdbpack")
 
     options = parser.parse_args()
     if options.days < 0.5:
         print "  --days below 0.5 is no longer supported - defaulting to 0.5"
         options.days = 0.5
+
+    if options.version:
+        from Products.ZenUtils.patches.zodbpackmonkey import MONKEY_HELPER
+        print "\nzenossdbpack version: {0}\n".format(MONKEY_HELPER.VERSION)
+        sys.exit(0)
 
     retcode = 1
 
@@ -129,4 +153,3 @@ if __name__ == "__main__":
         print "Skipping zodb session"
 
     sys.exit(retcode)
-

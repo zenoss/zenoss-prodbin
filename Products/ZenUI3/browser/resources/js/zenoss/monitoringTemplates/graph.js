@@ -549,11 +549,6 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             name: 'height',
             minValue: 250
         },{
-            xtype: 'numberfield',
-            fieldLabel: _t('Width'),
-            name: 'width',
-            minValue: 0
-        },{
             xtype: 'textfield',
             fieldLabel: _t('Units'),
             name: 'units'
