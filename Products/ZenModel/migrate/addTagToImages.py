@@ -34,7 +34,7 @@ class AddTagToImages(Migrate.Step):
         for service in services:
             m = re.search("\/\S*:\w*", service.imageID)
             if service.imageID and m is None:
-                log.info("Updated imaged id for %s" % service.name)
+                log.info("Updated image id for %s" % service.name)
                 service.imageID += ":latest"
                 updatedImageId = True
         if updatedImageId:
