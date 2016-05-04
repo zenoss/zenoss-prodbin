@@ -60,7 +60,7 @@
                         cls: 'wizard_subtitle',
                         height: 30,
                         padding: 0,
-                        html: "<h2><em>" + _t("Define SMTP server host, port, username, and password to enable email from Zenoss") +"</em></h2>"
+                        html: "<h2><em>" + _t("Define SMTP server host, port, username, and password to enable email notifications") +"</em></h2>"
                     },
                     {
                         xtype: 'textfield',
