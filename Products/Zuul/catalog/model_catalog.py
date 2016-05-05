@@ -18,7 +18,7 @@ from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID_FIELD
 from zenoss.modelindex.exceptions import IndexException, SearchException
-from zenoss.modelindex.model_index import ModelUpdate, INDEX, UNINDEX, SearchParams
+from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 
 from zope.component import getGlobalSiteManager, getUtility
 from zope.interface import implements
@@ -110,7 +110,7 @@ class ModelCatalogBrain(Implicit):
 
 
 class ObjectUpdate(object):
-    """ Contains the info needed to create a modelindex.ModelUpdate """
+    """ Contains the info needed to create a modelindex.IndexUpdate """
     def __init__(self, obj, op=INDEX, idxs=None):
         self.uid = obj.idx_uid()
         self.obj = obj
@@ -184,7 +184,7 @@ class ModelCatalogTransactionState(object):
 
     def add_model_update(self, object_update):
         """
-        Generates and stores a ModelUpdate from the received ObjectUpdate taking into account
+        Generates and stores a IndexUpdate from the received ObjectUpdate taking into account
         any previous model update (if any)
         """
         uid = object_update.uid
@@ -203,7 +203,7 @@ class ModelCatalogTransactionState(object):
                     idxs = set(idxs) | set(previous_model_update.idxs)
                     idxs.update(TX_STATE_FIELD, UID_FIELD) # Mandatory fields
 
-        model_update = ModelUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
+        model_update = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
         self.pending_updates[object_update.uid] = model_update
         del object_update # Make sure we dont keep references to the object
 
@@ -299,7 +299,7 @@ class ModelCatalogDataManager(object):
             tweaked_updates.append(update)
 
         # send and commit indexed docs to solr
-        self.model_index.process_model_updates(tweaked_updates)
+        self.model_index.process_batched_updates(tweaked_updates)
         # marked docs as indexed
         tx_state.mark_pending_updates_as_indexed(indexed_uids)
 
@@ -432,7 +432,7 @@ class ModelCatalogDataManager(object):
                 updates = tx_state.get_updates_to_finish_transaction()
                 dirty_tx = tx_state.are_there_indexed_updates()
                 try:
-                    self.model_index.process_model_updates(updates)
+                    self.model_index.process_batched_updates(updates)
                     self._delete_temporary_tx_documents()
                     # @TODO TEMP LOGGING
                     log.warn("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
