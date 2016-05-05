@@ -449,6 +449,28 @@ class UserSettingsManager(ZenModelRM):
                 audit('UI.User.Delete', username=userid)
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_unlockUsers')
+    @validate_csrf_token
+    def manage_unlockUsers(self, userids=(), REQUEST=None):
+        """Unlocked a list of zenoss users from the system which are locked
+            due to numerous bad login attempts.
+        """
+
+        for user_id in userids:
+            try:
+                del self.acl_users.sessionAuthHelper.attempt[user_id]
+            except KeyError:
+                pass
+
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Users Unlocked',
+                "Users were unlocked: %s." % (', '.join(userids))
+            )
+            for userid in userids:
+                audit('UI.User.Unlock', username=userid)
+            return self.callZenScreen(REQUEST)
+
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addGroup')
     @validate_csrf_token
