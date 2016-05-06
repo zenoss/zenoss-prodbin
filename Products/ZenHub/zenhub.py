@@ -160,6 +160,9 @@ class HubAvitar(pb.Avatar):
     def perspective_ping(self):
         return 'pong'
 
+    def perspective_getHubInstanceId(self):
+        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
+
     def perspective_getService(self,
                                serviceName,
                                instance = None,
