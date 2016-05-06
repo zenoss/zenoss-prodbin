@@ -643,6 +643,22 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         self.log.info("Attempting to connect to zenhub")
 
+    def getZenhubInstanceId(self):
+        """
+        Called after we connected to zenhub.
+        """
+
+        def callback(result):
+            self.log.info("Connected to the zenhub/%s instance", result)
+
+        def errback(result):
+            self.log.info("Unexpected error appeared while getting zenhub instance number %s", result)
+
+        d = self.perspective.callRemote('getHubInstanceId')
+        d.addCallback(callback)
+        d.addErrback(errback)
+        return d
+
     def gotPerspective(self, perspective):
         """
         This gets called every time we reconnect.
@@ -650,7 +666,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         @parameter perspective: Twisted perspective object
         @type perspective: Twisted perspective object
         """
-        self.log.info("Connected to ZenHub")
+        self.getZenhubInstanceId()
         self.perspective = perspective
         # Cancel the connection timeout timer as it's no longer needed.
         if self._connectionTimeout:
