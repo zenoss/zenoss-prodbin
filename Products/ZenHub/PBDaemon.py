@@ -666,8 +666,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         @parameter perspective: Twisted perspective object
         @type perspective: Twisted perspective object
         """
-        self.getZenhubInstanceId()
         self.perspective = perspective
+        self.getZenhubInstanceId()
         # Cancel the connection timeout timer as it's no longer needed.
         if self._connectionTimeout:
             try:
