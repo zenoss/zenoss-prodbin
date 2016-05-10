@@ -2,9 +2,6 @@ __doc__ = """
 Add user snmpwalk command for snmp v3
 """
 
-import logging
-log = logging.getLogger("zen.migrate")
-
 import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
