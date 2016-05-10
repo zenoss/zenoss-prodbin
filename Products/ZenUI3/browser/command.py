@@ -21,6 +21,10 @@ from Products.ZenUI3.browser.streaming import StreamingView, StreamClosed
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul import getFacade
 
+SNMPV3_COMMAND = ('snmpwalk -${device/zSnmpVer} -l authNoPriv -a ${device/zSnmpAuthType} '
+                  '-x ${device/zSnmpPrivType} -A ${device/zSnmpAuthPassword} '
+                  '-X ${device/zSnmpPrivPassword} -u ${device/zSnmpSecurityName} '
+                  '${device/snmpwalkPrefix}${here/manageIp}:${here/zSnmpPort} system')
 
 class CommandView(StreamingView):
     """
@@ -66,6 +70,12 @@ class CommandView(StreamingView):
 
     def execute(self, cmd, target):
         try:
+            if (cmd.command).startswith('snmpwalk'):
+                snmp_version = getattr(target, 'zSnmpVer')
+                self.write('snmp version: %s' % snmp_version)
+                if snmp_version == 'v3':
+                    cmd.command = SNMPV3_COMMAND
+
             compiled = str(self.context.compile(cmd, target))
 
             timeout = getattr(target, 'zCommandUserCommandTimeout',
