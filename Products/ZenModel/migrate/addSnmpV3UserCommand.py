@@ -3,8 +3,6 @@ Add user snmpwalk command for snmp v3
 """
 
 import Migrate
-import servicemigration as sm
-sm.require("1.0.0")
 
 SNMPV3_ID = 'snmpwalk_v3'
 SNMPV3_COMMAND = ('snmpwalk -${device/zSnmpVer} -l authNoPriv -a ${device/zSnmpAuthType} '
