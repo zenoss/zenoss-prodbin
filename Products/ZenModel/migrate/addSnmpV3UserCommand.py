@@ -13,7 +13,7 @@ SNMPV3_COMMAND = ('snmpwalk -${device/zSnmpVer} -l authNoPriv -a ${device/zSnmpA
 
 class AddSnmpV3UserCommand(Migrate.Step):
 
-    version = Migrate.Version(5, 1, 3)
+    version = Migrate.Version(5, 2, 0)
 
     def cutover(self, dmd):
         if SNMPV3_ID not in [d.id for d in dmd.userCommands()]:
