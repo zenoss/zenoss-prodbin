@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -23,20 +23,17 @@ class TestValueChangeThreshold(ZenModelBaseTest):
         mKey=MockObject(return__="testKey")
         context = MockObject(key=mKey)
         threshold = ValueChangeThresholdInstance("testThrehold",context,'','/Status/Perf', 4)
-        events = threshold._checkImpl("testDataPoint", 1.0)
-        self.assertIsNotNone(events)
-        self.assertEquals(1,len(events))
-        event = events[0]
-        self.assertEquals(1.0, event['current'])
-        self.assertEquals(None, event['previous'])
-        self.assertEquals('testThrehold', event['eventKey'])
-        self.assertEquals(4, event['severity'])
-        self.assertEquals('/Status/Perf', event['eventClass'])
-
+        # First data point. Should save the value, but generate no event.
         events = threshold._checkImpl("testDataPoint", 1.0)
         self.assertIsNotNone(events)
         self.assertEquals(0,len(events))
 
+        # Check that a duplicate data point generates no event.
+        events = threshold._checkImpl("testDataPoint", 1.0)
+        self.assertIsNotNone(events)
+        self.assertEquals(0,len(events))
+
+        # Check that a modified data point generates an event.
         events = threshold._checkImpl("testDataPoint", 2.0)
         self.assertIsNotNone(events)
         self.assertEquals(1,len(events))
