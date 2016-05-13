@@ -68,7 +68,6 @@ class ElasticClient(object):
              }
         )
         self.session.verify = False
-        log.warn("cc is %s" % _CC_URL)
         resp = self.session.post(_CC_URL + _CC_LOGIN_URI, data=ccLoginBody)
         if resp.status_code != 200:
             raise ElasticClientException('Unable to authenticate with Control Center', resp)
