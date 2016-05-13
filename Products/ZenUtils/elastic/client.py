@@ -13,10 +13,11 @@ import json
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.controlplane.application import getConnectionSettings
+import os
 
 _ZPROXY_URL = 'http://127.0.0.1:8080'
 _ZAUTH_LOGIN_URI = '/zauth/api/login'
-_CC_URL = 'https://127.0.0.1'
+_CC_URL = 'https://127.0.0.1:'+os.environ["SERVICED_UI_PORT"]
 _CC_LOGIN_URI = '/login'
 _ELASTIC_URI = '/api/controlplane/elastic'
 
@@ -67,6 +68,7 @@ class ElasticClient(object):
              }
         )
         self.session.verify = False
+        log.warn("cc is %s" % _CC_URL)
         resp = self.session.post(_CC_URL + _CC_LOGIN_URI, data=ccLoginBody)
         if resp.status_code != 200:
             raise ElasticClientException('Unable to authenticate with Control Center', resp)
