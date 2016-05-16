@@ -16,7 +16,7 @@ from Products.ZenUtils.controlplane.application import getConnectionSettings
 
 _ZPROXY_URL = 'http://127.0.0.1:8080'
 _ZAUTH_LOGIN_URI = '/zauth/api/login'
-_CC_URL = 'https://127.0.0.1'
+_CC_URL = 'https://127.0.0.1:'+os.environ["SERVICED_UI_PORT"]
 _CC_LOGIN_URI = '/login'
 _ELASTIC_URI = '/api/controlplane/elastic'
 
