@@ -182,7 +182,7 @@ function main()
     VARDIR="/etc/rabbitmq"
     [[ -n "$VARDIR" ]] || die "VARDIR env var is not set"
     [[ -d "$VARDIR" ]] || die "VARDIR=$VARDIR is not a directory"
-    export RABBITMQ_NODENAME="rabbit@localhost"
+    export RABBITMQ_NODENAME="rabbit@$(hostname -s)"
 
     CMD="$1"
     shift
