@@ -83,7 +83,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         authorization = IAuthorizationTool(self.context)
         token = authorization.createAuthToken(self.request)
 
-        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=session.secure, http_only=session.httponly)
+        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=session.secure, http_only=True)
 
     def hasGlobalRoles(self):
         """
