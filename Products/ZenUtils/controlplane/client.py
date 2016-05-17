@@ -15,7 +15,6 @@ import json
 import logging
 import urllib
 import urllib2
-import os
 
 from cookielib import CookieJar
 from urlparse import urlunparse
@@ -24,7 +23,6 @@ from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
                    ServiceStatusJsonDecoder)
 
 
-_DEFAULT_HOST = "localhost"
 
 
 LOG = logging.getLogger("zen.controlplane.client")
