@@ -16,6 +16,7 @@ from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IAuthorizationTool
+from collective.beaker.interfaces import ISession
 
 ZAUTH_COOKIE = 'ZAuthToken'
 
@@ -78,9 +79,11 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return func
 
     def _setAuthorizationCookie(self):
+        session = ISession(self.context.REQUEST)
         authorization = IAuthorizationTool(self.context)
         token = authorization.createAuthToken(self.request)
-        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=True, http_only=True)
+
+        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=session.secure, http_only=True)
 
     def hasGlobalRoles(self):
         """
