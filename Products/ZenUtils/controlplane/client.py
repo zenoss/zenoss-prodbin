@@ -15,7 +15,6 @@ import json
 import logging
 import urllib
 import urllib2
-import os
 
 from cookielib import CookieJar
 from urlparse import urlunparse
@@ -24,8 +23,6 @@ from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
                    ServiceStatusJsonDecoder)
 
 
-_DEFAULT_PORT = os.getenv('SERVICED_UI_PORT', 443)
-_DEFAULT_HOST = "localhost"
 
 
 LOG = logging.getLogger("zen.controlplane.client")
@@ -62,9 +59,10 @@ class ControlPlaneClient(object):
             urllib2.HTTPSHandler(),
             urllib2.HTTPCookieProcessor(self._cj)
         )
+        # Zproxy always provides a proxy to serviced on port 443
         self._server = {
-            "host": host if host else _DEFAULT_HOST,
-            "port": port if port else _DEFAULT_PORT,
+            "host": "127.0.0.1",
+            "port": 443,
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
