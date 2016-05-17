@@ -381,6 +381,8 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             else:
                 zenPack = ZenPack(packName)
             zenPack.eggPack = True
+            if hasattr(zenPack, 'install_bin_files'):
+                zenPack.install_bin_files()
             CopyMetaDataToZenPackObject(dist, zenPack)
             if filesOnly:
                 for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
