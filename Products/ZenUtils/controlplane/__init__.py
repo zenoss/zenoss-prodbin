@@ -20,15 +20,11 @@ def getConnectionSettings(options=None):
     else:
         o = options
     settings = {
-        "host": o.get("controlplane-host", 'localhost'),
-        "port": o.get("controlplane-port", 443),
         "user": o.get("controlplane-user", "zenoss"),
         "password": o.get("controlplane-password", "zenoss"),
         }
     # allow these to be set from the global.conf for development but
     # give preference to the environment variables
-    settings["host"] = os.getenv('SERVICED_MASTER_IP', settings["host"])
-    settings["port"] = os.getenv('SERVICED_UI_PORT', settings['port'])
     settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
     settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])
     return settings
