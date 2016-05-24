@@ -534,16 +534,16 @@ class TriggersFacade(ZuulFacade):
         if self.notificationPermissions.userCanManageNotification(user, notification):
             # if these values are not sent (in the case that the fields have been
             # disabled, do not set the value.
-            if 'notification_globalRead' in data:
-                notification.globalRead = data.get('notification_globalRead')
+            if 'globalRead' in data:
+                notification.globalRead = data.get('globalRead')
                 log.debug('setting globalRead')
 
-            if 'notification_globalWrite' in data:
-                notification.globalWrite = data.get('notification_globalWrite')
+            if 'globalWrite' in data:
+                notification.globalWrite = data.get('globalWrite')
                 log.debug('setting globalWrite')
 
-            if 'notification_globalManage' in data:
-                notification.globalManage = data.get('notification_globalManage')
+            if 'globalManage' in data:
+                notification.globalManage = data.get('globalManage')
                 log.debug('setting globalManage')
 
             for field in notification._properties:
@@ -712,7 +712,8 @@ class TriggersFacade(ZuulFacade):
         Does not attempt to link a trigger to a notification.
         """
         existingTriggers = [x['name'] for x in self.getTriggerList()]
-        existingUsers = [x.id for x in self._dmd.ZenUsers.getAllUserSettings()]
+        existingUsers = {"{} (User)".format(x.id): IGlobalIdentifier(x).getGUID() for x in self._dmd.ZenUsers.getAllUserSettings()}
+        existingUsers.update({"{} (Group)".format(x.id): IGlobalIdentifier(x).getGUID() for x in self._dmd.ZenUsers.getAllGroupSettings()})
 
         removeDataList = [ 'subscriptions' ]
 
@@ -735,11 +736,15 @@ class TriggersFacade(ZuulFacade):
                     del data[key]
 
             # Don't delete data from list you're looping through
+            data['users'] = []
             for user in trigger.get('users', []):
-                if user not in existingUsers:
+                if user['label'] in existingUsers:
+                    newuser = deepcopy(user)
+                    newuser['value'] = existingUsers[user['label']]
+                    data['users'].append(newuser)
+                else:
                     log.warning("Unable to find trigger %s user '%s' on this server -- skipping",
                                 name, user)
-                    data['users'].remove(user)
 
             # Make changes to the definition
             self.updateTrigger(**data)
@@ -752,7 +757,6 @@ class TriggersFacade(ZuulFacade):
         Add new notification definitions to the system.
         """
         existingNotifications = [x.id for x in self.getNotifications()]
-        existingTypes = [x.action for x in self.getNotifications()]
         usersGroups = dict( (x['label'], x) for x in self.getRecipientOptions())
         trigerToUuid = dict( (x['name'], x['uuid']) for x in self.getTriggers())
 
@@ -769,13 +773,9 @@ class TriggersFacade(ZuulFacade):
             if ntype is None:
                 log.warn("Missing 'action' in notification definition: %s", notification)
                 continue
-            if ntype not in existingTypes:
-                log.warn("The notification %s references an unknown action type: %s",
-                         name, ntype)
-                continue
 
             data = deepcopy(notification)
-            obj = self.addNotification(name, ntype)
+            obj = self.createNotification(name, ntype)
             notification['uid'] = data['uid'] = obj.getPrimaryUrlPath()
 
             self.getRecipientsToImport(name, data, usersGroups)
@@ -802,9 +802,13 @@ class TriggersFacade(ZuulFacade):
 
     def getRecipientsToImport(self, name, data, usersGroups):
         recipients = []
-        for label in data.get('recipients', []):
+        for recipient in data.get('recipients', []):
+            label = recipient['label']
             if label in usersGroups:
-                recipients.append(usersGroups[label])
+                newrecipient = deepcopy(usersGroups[label])
+                newrecipient['write'] = recipient.get('write', False)
+                newrecipient['manage'] = recipient.get('manage', False)
+                recipients.append(newrecipient)
             else:
                 log.warn("Unable to find %s for recipients for notification %s",
                          label, name)
@@ -813,7 +817,7 @@ class TriggersFacade(ZuulFacade):
     def linkImportedNotificationToTriggers(self, notification, trigerToUuid):
         subscriptions = []
         for subscription in notification.get('subscriptions', []):
-            uuid = trigerToUuid.get(subscription['name'])
+            uuid = trigerToUuid.get(subscription)
             if uuid is not None:
                 subscriptions.append(uuid)
             else:
