@@ -532,15 +532,24 @@ class TriggersFacade(ZuulFacade):
         if self.notificationPermissions.userCanManageNotification(user, notification):
             # if these values are not sent (in the case that the fields have been
             # disabled, do not set the value.
-            if 'globalRead' in data:
+            if 'notification_globalRead' in data:
+                notification.globalRead = data.get('notification_globalRead')
+                log.debug('setting globalRead')
+            elif 'globalRead' in data:
                 notification.globalRead = data.get('globalRead')
                 log.debug('setting globalRead')
 
-            if 'globalWrite' in data:
+            if 'notification_globalWrite' in data:
+                notification.globalWrite = data.get('notification_globalWrite')
+                log.debug('setting globalWrite')
+            elif 'globalWrite' in data:
                 notification.globalWrite = data.get('globalWrite')
                 log.debug('setting globalWrite')
 
-            if 'globalManage' in data:
+            if 'notification_globalManage' in data:
+                notification.globalManage = data.get('notification_globalManage')
+                log.debug('setting globalManage')
+            elif 'globalManage' in data:
                 notification.globalManage = data.get('globalManage')
                 log.debug('setting globalManage')
 
