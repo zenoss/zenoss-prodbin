@@ -5,4 +5,4 @@ BRANCH ?= develop
 all: tar
 
 tar:
-	tar cfz prod-bin-$(BRANCH)-$(VERSION).tar.gz Products bin
+	tar cfz prodbin-$(BRANCH)-$(VERSION).tar.gz Products bin
