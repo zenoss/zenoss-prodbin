@@ -1854,10 +1854,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newId == '' or newId == oldId:
             return path
 
-        devices = self.dmd.Devices.findDevicesById( newId )
+        devices = self.dmd.Devices.findDevicesById(newId)
         if devices:
             message = 'Device already exists with id %s' % newId
-            raise DeviceExistsError( message, devices[0] )
+            raise DeviceExistsError(message, devices[0])
 
         if REQUEST:
             audit('UI.Device.ChangeId', self, id=newId)
