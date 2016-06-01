@@ -16,29 +16,24 @@ $Id$'''
 
 __version__ = "$Revision$"[11:-2]
 
-import os
-import popen2
-import fcntl
-import time
-import sys
-import select
-import logging
-import signal
 from copy import copy
+import logging
+import sys
+
+import Globals # noqa
+from Products.ZenUtils import Utils
+from Products.ZenUtils import ZenScriptBase
+
+
 log = logging.getLogger("zen.zentestcommand")
-
-import Globals
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.DataCollector.SshClient import SshClient
-
 snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
                 "-%(zSnmpVer)s %(manageIp)s %(oid)s")
 
 
-class TestRunner(ZenScriptBase):
+class TestRunner(ZenScriptBase.ZenScriptBase):
 
     def __init__(self):
-        ZenScriptBase.__init__(self, connect=True)
+        ZenScriptBase.ZenScriptBase.__init__(self, connect=True)
         self.getDataRoot()
         self.device = None
         self.usessh = False
@@ -73,55 +68,6 @@ class TestRunner(ZenScriptBase):
             self.write('No COMMAND or SNMP datasource %s applies to device %s.' % (
                                                             dsName, devName))
 
-    def remote_exec(self, cmd):
-        from twisted.internet import reactor
-        from Products.ZenUtils.Utils import DictAsObj
-        ssh_client_options = DictAsObj(
-            loginTries=self.device.zCommandLoginTries,
-            searchPath=self.device.zCommandSearchPath,
-            existenceTest=self.device.zCommandExistanceTest,
-            username=self.device.zCommandUsername,
-            password=self.device.zCommandPassword,
-            loginTimeout=self.device.zCommandLoginTimeout,
-            commandTimeout=self.device.zCommandCommandTimeout,
-            keyPath=self.device.zKeyPath,
-            concurrentSessions=self.device.zSshConcurrentSessions
-        )
-        connection = SshClient(self.device,
-                            self.device.manageIp,
-                            self.device.zCommandPort,
-                            options=ssh_client_options)
-        connection.clientFinished = reactor.stop
-        connection.workList.append(cmd)
-        connection._commands.append(cmd)
-        connection.run()
-        reactor.run()
-        # getResults() normally returns [(None, "command output")],
-        # or [(None,'')] in case of empty output,
-        # or [] when cmd was not executed in some reasons (e.g. wrong path)
-        for x in connection.getResults():
-            [self.write(y) for y in x if y]
-
-    def execute(self, cmd):
-        child = popen2.Popen4(cmd)
-        flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
-        fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
-        pollPeriod = 1
-        timeout = max(self.options.timeout, 1)
-        endtime = time.time() + timeout
-        firstPass = True
-        while time.time() < endtime and (
-            firstPass or child.poll()==-1):
-            firstPass = False
-            r,w,e = select.select([child.fromchild],[],[],pollPeriod)
-            if r:
-                t = child.fromchild.read()
-                if t:
-                    self.write(t)
-        if child.poll()==-1:
-            self.write('Command timed out')
-            os.kill(child.pid, signal.SIGKILL)
-
     def write(self, text):
         print text
 
@@ -130,15 +76,14 @@ class TestRunner(ZenScriptBase):
         if not (device and dsName):
             self.write("Must provide a device and datasource.")
             sys.exit(2)
-        d = self.getCommand(device, dsName)
+        cmd = self.getCommand(device, dsName)
         if self.usessh:
-            self.remote_exec(d)
+            Utils.executeSshCommand(device, cmd, self.write)
         else:
-            self.execute(d)
-
+            Utils.executeStreamCommand(cmd, self.write)
 
     def buildOptions(self):
-        ZenScriptBase.buildOptions(self)
+        ZenScriptBase.ZenScriptBase.buildOptions(self)
         self.parser.add_option('-d', '--device',
                     dest="device",
                     help="Device on which to test command")
@@ -150,6 +95,6 @@ class TestRunner(ZenScriptBase):
                     help="Command timeout")
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     tr = TestRunner()
     tr.run()
