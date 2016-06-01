@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -19,7 +19,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeStreamCommand
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
 from Products.ZenWidgets import messaging
 from copy import copy
 import cgi, time
@@ -198,7 +198,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         command = None
         if self.sourcetype=='COMMAND':
             # to prevent command injection, get these from self rather than the browser REQUEST
-            command = self.getCommand(device, self.get('commandTemplate'))           
+            command = self.getCommand(device, self.get('commandTemplate'))
             displayCommand = command
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
@@ -211,7 +211,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
             errorLog(
                 'Test Failed',
                 'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING  
+                priority=messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
         if not command:
@@ -233,7 +233,10 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write('')
         start = time.time()
         try:
-            executeStreamCommand(command, write)
+            if self.usessh:
+                executeSshCommand(device, command, write)
+            else:
+                executeStreamCommand(command, write)
         except:
             import sys
             write('exception while executing command')
