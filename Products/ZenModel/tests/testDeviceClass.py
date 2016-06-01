@@ -72,18 +72,20 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual( foundDevices[0].id, self.dev2.id )
         
     def testFindExact(self):
-        
         id = 'testdev'
         devices = self.dmd.Devices
-        devices.createInstance('TESTDEV')
-        #inexact        
-        self.assertEqual(len(devices._findDevice(id)), 2)
-        #exact
+        self.assertEqual(len(devices._findDevice(id)), 1)
+
         dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
         
         self.assert_( not devices.findDeviceByIdExact(None) )
         self.assert_( not devices.findDeviceByIdExact('badid') )
+
+    def testFindDevicesById(self):
+        id = 'TesTDeV'
+        devices = self.dmd.Devices
+        self.assertEqual(len(devices.findDevicesById(id)), 1)
 
     def test_FindDevices(self):
         devBrains = self.dmd.Devices._findDevice( 'testdev' )
@@ -155,12 +157,6 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual(guid, newguid)
         path = self.dmd.guid_table.get(newguid, None)
         self.assertEqual(path, '/zport/dmd/Devices/Server/devices/testdev')
-
-    def testMoveDevicesWithPotentialCaseIssue(self):
-        self.dmd.Devices.createInstance( 'TESTDEV' )
-        self.dmd.Devices.moveDevices('/Server', 'testdev')
-        dev = self.dmd.Devices.Server.devices.testdev
-        self.assert_(dev.os.interfaces)
 
     def testMoveDevicesStandardToCust(self):
         anna = self.dmd.Locations.createOrganizer("Annapolis")

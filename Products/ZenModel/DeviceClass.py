@@ -560,9 +560,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         query = MatchRegexp('id', queryfilter)
         objects = catalog.evalAdvancedQuery(query)
         objects = list(objects)
-        if len(objects) > 0:
-            return objects
-        return []
+        return objects
 
     def findDevicePingStatus(self, devicename):
         """
