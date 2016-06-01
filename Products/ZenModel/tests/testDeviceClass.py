@@ -82,14 +82,6 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_( not devices.findDeviceByIdExact(None) )
         self.assert_( not devices.findDeviceByIdExact('badid') )
 
-    def testFindDevicesById(self):
-        id = 'TesTDeV'
-        devices = self.dmd.Devices
-        self.assertEqual(len(devices.findDevicesById('TesTDeV')), 1)
-        self.assertEqual(len(devices.findDevicesById('testDEV2')), 1)
-        devBrains = devices.findDevicesById('TestDE')
-        self.assert_( not devBrains )
-
     def test_FindDevices(self):
         devBrains = self.dmd.Devices._findDevice( 'testdev' )
         self.assertEqual( len( devBrains ), 1 )

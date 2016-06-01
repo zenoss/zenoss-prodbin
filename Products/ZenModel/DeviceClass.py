@@ -546,22 +546,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if dev.id == devicename:
                 return dev
 
-    def findDevicesById(self, devicename):
-        """
-        Check if device name is already used for one of devices.
-        Case-insensitive.
-        @param devicename: name of device
-        @type: string
-        @return: list of devices or False
-        """
-
-        catalog = self._getCatalog()
-        queryfilter = '(?i)%s' % devicename
-        query = MatchRegexp('id', queryfilter)
-        objects = catalog.evalAdvancedQuery(query)
-        objects = list(objects)
-        return objects
-
     def findDevicePingStatus(self, devicename):
         """
         look up device in catalog and return its pingStatus
