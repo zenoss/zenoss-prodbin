@@ -183,13 +183,13 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     
         if deviceName:
             try:
-                dev = self.getDmdRoot('Devices').findDevicesById(deviceName)
+                dev = self.getDmdRoot('Devices').findDevice(deviceName)
             except Exception:
                 pass
             else: 
                 if dev:
                     raise DeviceExistsError("Device %s already exists" %
-                                            deviceName, dev[0])
+                                            deviceName, dev)
                 
         if ip:
             dev = mon.findDevice(ip)
