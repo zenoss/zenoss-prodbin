@@ -25,7 +25,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from ZODB.transact import transact
 
-from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
+from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And, MatchRegexp
 from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
 from Products.ZenModel.ZenossSecurity import (
@@ -183,7 +183,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     
         if deviceName:
             try:
-                dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
+                dev = self.getDmdRoot('Devices').findDevice(deviceName)
             except Exception:
                 pass
             else: 
