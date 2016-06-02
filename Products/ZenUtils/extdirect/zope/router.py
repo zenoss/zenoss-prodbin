@@ -7,8 +7,9 @@
 # 
 ##############################################################################
 
-
+import cgi
 from Products.ZenUtils.extdirect.router import DirectRouter, DirectException
+
 
 class ZopeDirectRouter(DirectRouter):
     def __init__(self, context, request=None):
@@ -19,8 +20,10 @@ class ZopeDirectRouter(DirectRouter):
         # Allow only requests with application/json content type as text/plain
         # content type is used for CSRF attacks.
         content_type = self.request.get_header('content-type')
-        if not isinstance(content_type, basestring) or not content_type.lower().startswith('application/json'):
-            raise DirectException('Only `application/json` is supported as content type.')
+        mimetype, options = cgi.parse_header(content_type)
+        if mimetype.lower() != "application/json":
+            raise DirectException(
+                "Only 'application/json' is supported as content type.")
 
         body = self.request.get('BODY')
         self.request.response.setHeader('Content-Type', 'application/json')
