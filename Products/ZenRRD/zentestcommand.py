@@ -21,8 +21,8 @@ import logging
 import sys
 
 import Globals # noqa
-from Products.ZenUtils import Utils
-from Products.ZenUtils import ZenScriptBase
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 
 log = logging.getLogger("zen.zentestcommand")
@@ -30,10 +30,10 @@ snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
                 "-%(zSnmpVer)s %(manageIp)s %(oid)s")
 
 
-class TestRunner(ZenScriptBase.ZenScriptBase):
+class TestRunner(ZenScriptBase):
 
     def __init__(self):
-        ZenScriptBase.ZenScriptBase.__init__(self, connect=True)
+        ZenScriptBase.__init__(self, connect=True)
         self.getDataRoot()
         self.device = None
         self.usessh = False
@@ -78,12 +78,12 @@ class TestRunner(ZenScriptBase.ZenScriptBase):
             sys.exit(2)
         cmd = self.getCommand(device, dsName)
         if self.usessh:
-            Utils.executeSshCommand(device, cmd, self.write)
+            executeSshCommand(device, cmd, self.write)
         else:
-            Utils.executeStreamCommand(cmd, self.write)
+            executeStreamCommand(cmd, self.write)
 
     def buildOptions(self):
-        ZenScriptBase.ZenScriptBase.buildOptions(self)
+        ZenScriptBase.buildOptions(self)
         self.parser.add_option('-d', '--device',
                     dest="device",
                     help="Device on which to test command")
