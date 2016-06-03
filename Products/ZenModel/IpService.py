@@ -204,6 +204,9 @@ class IpService(Service):
         @return: IP address to contact the service on
         @rtype: string
         """
+        if self.manageIp and isip(self.manageIp):
+            return self.manageIp
+
         manage_ip = Service.getManageIp(self)
         bare_ip = manage_ip.split('/',1)[0]
         if bare_ip in self.ipaddresses:
@@ -229,12 +232,7 @@ class IpService(Service):
         if not isip(bare_ip):
             return
 
-        ips = self.getIpAddresses()
-        if '0.0.0.0' in self.ipaddresses and bare_ip in ips:
-            self.manageIp = bare_ip
-
-        if bare_ip in self.ipaddresses:
-            self.manageIp = bare_ip
+        self.manageIp = bare_ip
 
     def unsetManageIp(self):
         """
