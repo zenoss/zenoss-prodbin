@@ -1463,7 +1463,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             if (Ext.isEmpty(selected)) {
                 location = '/zport/dmd/ZenUsers/manageUserFolder';
             }else{
-                location = '/zport/dmd/ZenUsers/' + selected[0].data.id;
+                location = '/zport/dmd/ZenUsers/' + encodeURIComponent(selected[0].data.id);
             }
 
             var hostString = window.location.protocol + '//' + window.location.host;
