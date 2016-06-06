@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class RetryZopeHealthCheck(Migrate.Step):
     "Change 'answering' healthcheck to retry a few times on failture"
 
-    version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(5, 1, 4)
 
     def cutover(self, dmd):
         try:
