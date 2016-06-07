@@ -52,7 +52,7 @@ class UserInterfaceSettings(ZenModelRM):
         'showEventSeverityIcons': {'xtype': 'checkbox', 'name': _t('Show Tree Event Severity Icons (disabling may speed up the page load)'), 'defaultValue': True},
         'enableTreeFilters': {'xtype': 'checkbox', 'name': _t('Enable Tree Filters'), 'defaultValue': True},
         'deviceGridBufferSize': {'xtype': 'numberfield', 'name': _t('Device Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 1000, 'allowBlank': False},
-        'componentGridBufferSize': {'xtype': 'numberfield', 'name': _t('Component Grid Buffer Size'), 'defaultValue': 50, 'minValue': 25, 'maxValue': 1000, 'allowBlank': False},
+        'componentGridBufferSize': {'xtype': 'numberfield', 'name': _t('Component Grid Buffer Size'), 'defaultValue': 25, 'minValue': 10, 'maxValue': 1000, 'allowBlank': False},
         'eventConsoleBufferSize': {'xtype': 'numberfield', 'name': _t('Event Console Buffer Size'), 'defaultValue': 200, 'minValue': 50, 'maxValue': 1000, 'allowBlank': False},
         'deviceMoveJobThreshold': {'xtype': 'numberfield', 'name': _t('Device Move Job Threshold'), 'defaultValue': 5, 'minValue': 0, 'allowBlank': False},
         'zenjobsRefreshInterval': {'xtype': 'numberfield', 'name': _t('Job Notification Refresh Interval (seconds)'), 'defaultValue' : 10, 'minValue' : 0, 'maxValue': 300, 'allowBlank': False},

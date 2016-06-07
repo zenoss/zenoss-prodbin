@@ -606,9 +606,9 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             model: modelId,
             initialSortColumn: config.sortInfo.field || 'name',
             initialSortDirection: config.sortInfo.direction || 'ASC',
-            directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents
+            directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents,
+            buffered: Zenoss.settings.enableInfiniteGridForEvents
         });
-        store.buffered = Zenoss.settings.enableInfiniteGridForEvents;
 
         config = Ext.applyIf(config, {
             autoExpandColumn: 'name',
@@ -755,8 +755,10 @@ Ext.define("Zenoss.component.BaseComponentStore", {
         var bufferSize = Zenoss.settings.componentGridBufferSize;
         // work around a bug in ExtJs 4.1.3. TODO: remove this after
         // we update the library.
-        if (bufferSize < 100) {
-            bufferSize = 100;
+        if (config.buffered) {
+            if (bufferSize < 100) {
+                bufferSize = 100;
+            }
         }
         Ext.applyIf(config, {
             pageSize: bufferSize,
