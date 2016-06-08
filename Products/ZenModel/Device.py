@@ -1854,7 +1854,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newId == '' or newId == oldId:
             return path
 
-        device = self.dmd.Devices.findDevice(newId)
+        device = self.dmd.Devices.findDeviceByIdExact(newId)
         if device:
             message = 'Device already exists with id %s' % newId
             raise DeviceExistsError(message, device)
