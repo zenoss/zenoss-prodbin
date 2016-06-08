@@ -183,7 +183,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     
         if deviceName:
             try:
-                dev = self.getDmdRoot('Devices').findDevice(deviceName)
+                dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
             except Exception:
                 pass
             else: 
