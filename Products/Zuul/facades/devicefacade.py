@@ -17,8 +17,9 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter
-from Products.AdvancedQuery import Eq, Or, Generic, And
+from zope.component import getMultiAdapter, queryUtility
+from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
+from Products.Zuul.catalog.interfaces import IComponentFieldSpec
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -47,6 +48,7 @@ from Products.ZenEvents.Event import Event
 from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 
 iszprop = re.compile("z[A-Z]").match
@@ -153,12 +155,78 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
+    def _getTypeCatalog(self, obj, meta_type):
+
+        class ThingyWrapper(object):
+            def __init__(self, obj):
+                self._obj = obj
+                self._info = IInfo(obj)
+
+            def getPhysicalPath(self):
+                uid = self._info.uid or "/".join(self._obj.getPhysicalPath())
+                print "RETURNING UID", uid
+                return self._info.uid
+
+            def __getattr__(self, attr):
+                val = getattr(self._info, attr)
+                if isinstance(val, dict):
+                    return val.get('name')
+                return str(val)
+
+        spec = queryUtility(IComponentFieldSpec, meta_type)
+        if spec is None:
+            return
+        device = obj.device()
+        name = '%s_componentCatalog' % meta_type
+        try:
+            catalog = device._getOb(name)
+        except AttributeError:
+            from Products.ZCatalog.ZCatalog import manage_addZCatalog
+            manage_addZCatalog(device, name, name)
+            catalog = device._getOb(name)
+            for field in spec.fields:
+                catalog.addIndex(str(field), makeCaseInsensitiveFieldIndex(str(field)))
+            for component in device.componentSearch(meta_type=meta_type):
+                catalog.catalog_object(ThingyWrapper(component.getObject()), component.getPath())
+        return catalog
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
+        if isinstance(meta_type, basestring):
+            obj = self._getObject(uid)
+            typecat = self._getTypeCatalog(obj, meta_type)
+            if typecat is not None:
+                querySet = []
+                fields = queryUtility(IComponentFieldSpec, meta_type).fields
+                if name:
+                    querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in fields)))
+                brains = typecat.evalAdvancedQuery(And(*querySet), ((sort, dir),))
+                total = len(brains)
+                hash_ = str(total)
+                if limit is None:
+                    brains = brains[start:]
+                else:
+                    brains = brains[start:start+limit]
+                comps = map(IInfo, map(unbrain, brains))
+                # fetch any rrd data necessary
+                self.bulkLoadMetricData(comps)
+                # Do one big lookup of component events and add to the result objects
+                showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+                if showSeverityIcon:
+                    uuids = [r.uuid for r in comps]
+
+                    zep = getFacade('zep')
+                    severities = zep.getWorstSeverity(uuids)
+
+                    setCount = 0
+                    for r in comps:
+                        r.setWorstEventSeverity(severities[r.uuid])
+                return SearchResults(iter(comps), total, hash_, False)
         reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
         if isinstance(meta_type, basestring):
+            #print queryUtility(IComponentFieldSpec, meta_type).fields
             meta_type = (meta_type,)
         querySet = []
         if meta_type:
@@ -174,7 +242,6 @@ class DeviceFacade(TreeFacade):
 
         # unbrain the results
         comps=map(IInfo, map(unbrain, brains))
-
 
         # filter the components
         if name is not None:
@@ -209,6 +276,18 @@ class DeviceFacade(TreeFacade):
 
         # fetch any rrd data necessary
         self.bulkLoadMetricData(pagedResult)
+
+        # Do one big lookup of component events and add to the result objects
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            uuids = [r.uuid for r in pagedResult]
+
+            zep = getFacade('zep')
+            severities = zep.getWorstSeverity(uuids)
+
+            setCount = 0
+            for r in pagedResult:
+                r.setWorstEventSeverity(severities[r.uuid])
 
         return SearchResults(iter(pagedResult), total, hash_, False)
 
