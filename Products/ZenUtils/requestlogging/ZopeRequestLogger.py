@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import logging, logging.handlers
+import logging
 import re
 import os
 import redis
@@ -9,49 +9,69 @@ import time
 import threading
 
 from AccessControl import getSecurityManager
-from Products.ZenUtils.RedisUtils import parseRedisUrl
 from Products.ZenUtils.config import ConfigFile
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.RedisUtils import parseRedisUrl
+
+log = logging.getLogger('ZenUtils.ZopeRequestLogger')
 
 class ZopeRequestLogger(object):
     """
-    Logs information about the requests proccessed by Zopes.
-    Disabled by default. It is enabled only when the file /opt/zenoss/etc/LOG-ZOPE-REQUESTS exists.
+    Logs information about requests proccessed by Zopes. Disabled by default. Two types of logging:
+
+        1 - Request duration metrics are pushed to opentsdb when a request finishes if
+          its duration is higer than a configurable parameter. This logging is enabled by
+          setting "zope-request-logging" in global.conf to a value greater
+          than zero. The value represents the min duration of requests to be logged.
+          It must be > 0, otherwise we would log too much
+
+        2 - Requests that started and have not yet finished. This logging is enabled by running
+            "zencheckzopes enable"
     """
 
-    # SEPARATOR and FIELDS are used by a external tool
-    SEPARATOR = '@$@'
     FIELDS = []
     FIELDS.append('user_name')
     FIELDS.append('start_time')
-    FIELDS.append('end_time')
-    FIELDS.append('duration')
-    FIELDS.append('server_name')
-    FIELDS.append('server_port')
     FIELDS.append('path_info')
     FIELDS.append('action_and_method')
-    FIELDS.append('client')
-    FIELDS.append('http_host')
-    FIELDS.append('http_method')
-    FIELDS.append('xff')
     FIELDS.append('body')
+    FIELDS.append('http_method')
+    FIELDS.append('zope_id')
+    # fields below are not relevant anymore
+    #FIELDS.append('http_host')
+    #FIELDS.append('client')
+    #FIELDS.append('xff')
+    #FIELDS.append('server_name')
+    #FIELDS.append('server_port')
 
-    FINGERPRINT_FIELDS = [ f for f in FIELDS if f not in ['end_time', 'duration', 'body', 'xff'] ]
-
-    ACTION_REGEX = '"action":"(.+?)"'
-    METHOD_REGEX = '"method":"(.+?)"'
-
-    ZENHOME = os.environ.get('ZENHOME')
-    DEFAULT_LOG_FILE = os.path.join(ZENHOME, 'log', 'ZReq.log')
+    ACTION_REGEX = '"action"\s*:\s*"(.+?)"'
+    METHOD_REGEX = '"method"\s*:\s*"(.+?)"'
 
     DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
     REDIS_KEY_PATTERN = 'ZOPE-REQUEST'
-    REDIS_LOG_ZOPE_REQUESTS = 'ZOPE-LOG-REQUESTS'
+    REDIS_ONGOING_REQUESTS_KEY = 'ZOPE-LOG-ONGOING-REQUESTS'
 
     REDIS_RECONNECTION_INTERVAL = 60
+    ONGOING_REQUEST_LOGGING_CHECK_INTERVAL = 60
+    PUSH_TO_REDIS_INTERVAL = 1
 
-    MIN_REQUEST_DURATION = 5 # only requests that take more than MIN_REQUEST_DURATION seconds will be logged
+    GLOBAL_CONF_VARIABLE = "zope-request-logging"
+    OPENTSDB_METRIC_NAME = "zrequest.duration"
 
-    LOG = logging.getLogger('ZenUtils.ZopeRequestLogger')
+    def __init__(self):
+        """ """
+        self.redis_url = ZopeRequestLogger.get_redis_url()
+        self._log_duration = self.get_log_duration() # float indicating min duration to be logged
+        self._log_ongoing_requests = False
+
+        self._redis_last_connection_attemp = time.time()
+        self._last_ongoing_request_enabled_check = time.time()
+
+        # connect to redis when we need to log a request
+        self._redis_client = None
+
+        if self._log_duration > 0:
+            log.info("Zope request debug enabled. Logging requests that take longer than: {0} seconds".format(self._log_duration))
 
     @staticmethod
     def create_redis_client(redis_url):
@@ -61,60 +81,20 @@ class ZopeRequestLogger(object):
             client.config_get() # test the connection
         except Exception as e:
             client = None
-            print e
         return client
-
-    GLOBAL_CONF_SETTINGS = None
-
-    @staticmethod
-    def load_global_conf_settings():
-        global_config_path = os.path.join(ZopeRequestLogger.ZENHOME, 'etc', 'global.conf')
-        with open(global_config_path, 'r') as fp:
-            global_conf = ConfigFile(fp)
-            settings = {}
-            for line in global_conf.parse():
-                if line.setting:
-                    key, val = line.setting
-                    settings[key] = val
-            ZopeRequestLogger.GLOBAL_CONF_SETTINGS = settings
 
     @staticmethod
     def get_redis_url():
-        url = ZopeRequestLogger.DEFAULT_REDIS_URL
-        if ZopeRequestLogger.GLOBAL_CONF_SETTINGS is None:
-            ZopeRequestLogger.load_global_conf_settings()
-        if ZopeRequestLogger.GLOBAL_CONF_SETTINGS.get('redis-url'):
-            url = ZopeRequestLogger.GLOBAL_CONF_SETTINGS.get('redis-url')
-        return url
+        config = getGlobalConfiguration()
+        return config.get('redis-url', ZopeRequestLogger.DEFAULT_REDIS_URL)
 
-    @staticmethod
-    def get_request_min_duration():
-        min_duration = ZopeRequestLogger.MIN_REQUEST_DURATION
-        if ZopeRequestLogger.GLOBAL_CONF_SETTINGS is None:
-            ZopeRequestLogger.load_global_conf_settings()
-        if ZopeRequestLogger.GLOBAL_CONF_SETTINGS.get('log-requests-longer-than'):
-            min_duration = ZopeRequestLogger.GLOBAL_CONF_SETTINGS.get('log-requests-longer-than')
-        return int(min_duration)
-
-    def __init__(self, filename = DEFAULT_LOG_FILE):
-        self._next_config_check = time.time()
-        self._log_zope_requests = False
-        self._log = None
-        self._redis_client = None
-        self._redis_last_connection_attemp = time.time()
-        self.redis_url = ZopeRequestLogger.get_redis_url()
-        # connect to redis when we need to log a request
-        self._redis_client = None
-        self._log = logging.getLogger('zope_request_logger')
-        self._log.propagate = False
-        handler = logging.handlers.RotatingFileHandler(filename, mode='a', maxBytes=50*1024*1024, backupCount=5)
-        #handler = logging.handlers.TimedRotatingFileHandler(filename, when='midnight', backupCount=3)
-        handler.setFormatter(logging.Formatter("%(asctime)s{0}%(message)s".format(ZopeRequestLogger.SEPARATOR)))
-        self._log.addHandler(handler)
+    def get_log_duration(self):
+        config = getGlobalConfiguration()
+        return float(config.get(self.GLOBAL_CONF_VARIABLE, -1))
 
     def _extract_action_and_method_from_body(self, body):
-        if body is None:
-            return ''
+        if not body:
+            return ""
         my_regex = re.compile(ZopeRequestLogger.ACTION_REGEX)
         actions = my_regex.findall(body)
         my_regex = re.compile(ZopeRequestLogger.METHOD_REGEX)
@@ -131,82 +111,145 @@ class ZopeRequestLogger(object):
         if hasattr(request, '_data_to_log'):
             return
 
+        zope_id = os.environ.get("CONTROLPLANE_INSTANCE_ID", "X")
+
         data = {}
         user_name = getSecurityManager().getUser().getId()
         data['user_name'] = str(user_name)
-        data['http_host'] = request.get('HTTP_HOST', default='')
-        data['server_name'] = request.get('SERVER_NAME', default='')
-        data['server_port'] = request.get('SERVER_PORT', default='')
+        data['start_time'] = str(request._start)
         data['path_info'] = request.get('PATH_INFO', default='')
-        data['action_and_method'] = ''
         data['body'] = request.get('BODY', {})
         data['action_and_method'] = self._extract_action_and_method_from_body(request.get('BODY'))
-        data['client'] = request.get('REMOTE_ADDR', default='')
-        data['start_time'] = str(request._start)
         data['http_method'] = request.get('method', default='')
-        data['xff'] = request.get('X_FORWARDED_FOR', default='')
+        data['zope_id'] = zope_id
+        #data['xff'] = request.get('X_FORWARDED_FOR', default='')
+        #data['client'] = request.get('REMOTE_ADDR', default='')
+        #data['http_host'] = request.get('HTTP_HOST', default='')
+        #data['server_name'] = request.get('SERVER_NAME', default='')
+        #data['server_port'] = request.get('SERVER_PORT', default='')
         try:
             ident = str(threading.current_thread().ident)
             fingerprint = ":".join((
                 ZopeRequestLogger.REDIS_KEY_PATTERN,
                 os.environ.get("CONTROLPLANE_SERVICED_ID", "X"),
-                os.environ.get("CONTROLPLANE_INSTANCE_ID", "X"),
                 str(os.getpid()),
                 ident,
+                str(zope_id),
+                str(int(request._start))
             ))
-            request._store_fingerprint = fingerprint
+            request._request_fingerprint = fingerprint
             request._data_to_log = data
-            request._user_name = user_name
         except Exception as ex:
-            print ex
+            log.warning("Exception extracting request fingerprint {0}".format(ex))
 
-    def _reconnect_to_redis(self):
-        now = time.time()
-        if now - self._redis_last_connection_attemp > ZopeRequestLogger.REDIS_RECONNECTION_INTERVAL:
-            ZopeRequestLogger.LOG.info("Trying to reconnect to redis")
-            self._redis_last_connection_attemp = now
-            self._redis_client = ZopeRequestLogger.create_redis_client(self.redis_url)
-            if self._redis_client:
-                ZopeRequestLogger.LOG.info("Connected to redis")
+    def _connected_to_redis(self):
+        """ ensures we have a connection to redis """
+        if self._redis_client is None:
+            now = time.time()
+            if now - self._redis_last_connection_attemp > self.REDIS_RECONNECTION_INTERVAL:
+                log.info("Trying to reconnect to redis")
+                self._redis_last_connection_attemp = now
+                self._redis_client = ZopeRequestLogger.create_redis_client(self.redis_url)
+                if self._redis_client:
+                    log.info("Connected to redis")
+                else:
+                    log.info("Could not connect to redis")
+        return self._redis_client is not None
+
+    def _check_ongoing_requests_enabled(self):
+        previous = self._log_ongoing_requests
+        if self._redis_client is not None:
+            now = time.time()
+            if now - self._last_ongoing_request_enabled_check > self.ONGOING_REQUEST_LOGGING_CHECK_INTERVAL:
+                self._last_ongoing_request_enabled_check = now
+                self._log_ongoing_requests = False
+                if self._redis_client.keys(self.REDIS_ONGOING_REQUESTS_KEY):
+                    self._log_ongoing_requests = True
+        if self._log_ongoing_requests != previous:
+            if previous:
+                log.info("Zope ongoing requests logging disabled.")
             else:
-                ZopeRequestLogger.LOG.info("Could not connect to redis")
+                log.info("Zope ongoing requests logging enabled.")
+        return self._log_ongoing_requests is True
 
-    def log_request(self, request, finished=False):
+    def _is_relevant_request(self, request):
+        """ filter requests we care about for ongoing request logging """
+        user = request._data_to_log.get('user_name')
+        path = request._data_to_log.get('path_info')
+        relevant_user = user and user != str(None)
+        relevant_path = path and not path.startswith("/++resource++")
+        return relevant_user and relevant_path
+
+    def _get_duration_metric(self, request):
+        start = request._start
+        duration = time.time() - request._start
+        if duration < self._log_duration:
+           return {}
+
+        user = request._data_to_log['user_name']
+        zope_id = os.environ.get("CONTROLPLANE_INSTANCE_ID", "X")
+        path = request._data_to_log['path_info']
+        action_and_method = request._data_to_log['action_and_method']
+
+        if not action_and_method: # opentsdb does not like empty strings
+            action_and_method = str(None)
+
+        tags = {"zope": zope_id, "user": user, "path": path, "action": action_and_method}
+
+        metric_data = {"timestamp": int(time.time()*1000), "metric": self.OPENTSDB_METRIC_NAME, "value": duration, "tags": tags}
+
+        return metric_data
+
+    def _log_request(self, request, finished=False):
         ''' '''
-        if self._next_config_check <= time.time():
-            # self._log_zope_requests = self._redis_client.get(ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS) in ("1", "true", "True", "t")
-            self._log_zope_requests = os.path.isfile(os.path.join(ZopeRequestLogger.ZENHOME, 'etc', ZopeRequestLogger.REDIS_LOG_ZOPE_REQUESTS))
-            self._next_config_check = time.time() + 10 # set next time to check in 10 seconds
-
-        if not self._log_zope_requests:
+        # Is redis up?
+        if not self._connected_to_redis():
             return
 
-        if self._redis_client is None:
-            # Tries to reconnect to redis if we dont have a connection
-            self._reconnect_to_redis()
+        ongoing_requests_enabled = self._check_ongoing_requests_enabled()
 
-        if self._redis_client:
-            try:  # Tests the redis connection
-                self._redis_client.config_get()
-            except Exception as ex:
-                ZopeRequestLogger.LOG.error("Connection to redis lost: %s", ex)
-                self._redis_client = None
+        # Is logging enabled?
+        if self._log_duration <=0 and not ongoing_requests_enabled: # logging not enabled
+            return
+
+        # store requests info in the request itself
+        self._load_data_to_log(request)
+
+        # TODO BATCH REDIS REQUESTS
+
+        # push to redis the opentsdb metric
+        if self._log_duration > 0 and finished:
+            metric_data = self._get_duration_metric(request)
+            if metric_data:
+                try:
+                    self._redis_client.lpush("metrics", json.dumps(metric_data)) 
+                except Exception as e:
+                    log.info("Exception trying to push metric to redis: {0}".format(e))
+                    self._redis_client = None
+                    return
+
+        # log ongoing requests
+        if ongoing_requests_enabled and self._is_relevant_request(request):
+            redis_key = request._request_fingerprint
+            if finished: #delete request from redis
+                redis_value = None
             else:
-                self._load_data_to_log(request)
-                redis_key = request._store_fingerprint
-                if finished and self._redis_client.exists(redis_key): #delete request from redis
-                    self._redis_client.delete(redis_key)
-                elif request._user_name : #write request to redis
-                    redis_value = json.dumps(request._data_to_log)
+                redis_value = json.dumps(request._data_to_log)
+
+            try:
+                if redis_value:
                     self._redis_client.set(redis_key, redis_value)
-                    self._redis_client.expire(redis_key, 24*60*60) # Keys expires after 24 hours
-        if self._log and finished:
-            self._load_data_to_log(request)
-            ts = time.time()
-            duration = ts - request._start
-            if duration >= ZopeRequestLogger.get_request_min_duration():
-                data_to_log = request._data_to_log
-                data_to_log['end_time'] = str(ts)
-                data_to_log['duration'] = str(duration)
-                self._log.info(json.dumps(data_to_log))
+                    self._redis_client.expire(redis_key, 1*60*60) # Keys expires after 1 hours
+                elif self._redis_client.exists(redis_key):
+                    self._redis_client.delete(redis_key)
+            except Exception as e:
+                log.info("Exception trying to push metric to redis: {0}".format(e))
+                self._redis_client = None
+
+    def log_request(self, request, finished=False):
+        try:
+            self._log_request(request, finished)
+        except Exception as e:
+            # Ensure debugging functinality does not affect the application
+            log.debug("Exception logging zope request: {0}".format(e))
 
