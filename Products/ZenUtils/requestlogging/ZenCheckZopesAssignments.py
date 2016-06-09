@@ -123,7 +123,6 @@ def enable_logging(redis_client):
 def disable_logging(redis_client):
     if is_logging_enabled(redis_client):
         redis_client.delete(ZopeRequestLogger.REDIS_ONGOING_REQUESTS_KEY)
-        clear_redis(redis_client)
         print "Zope ongoing requests logging disabled"
 
 
