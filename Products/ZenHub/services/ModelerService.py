@@ -77,7 +77,7 @@ class ModelerService(PerformanceConfig):
     def remote_getDeviceConfig(self, names, checkStatus=False):
         result = []
         for name in names:
-            device = self.getPerformanceMonitor().findDevice(name)
+            device = self.getPerformanceMonitor().findDeviceByIdExact(name)
             if not device:
                 continue
             device = device.primaryAq()
@@ -150,7 +150,7 @@ class ModelerService(PerformanceConfig):
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
 
@@ -199,7 +199,7 @@ class ModelerService(PerformanceConfig):
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         self._setSnmpLastCollection(device)
 
     def _do_with_retries(self, action):
@@ -219,7 +219,7 @@ class ModelerService(PerformanceConfig):
     @transact
     @translateError
     def remote_setSnmpConnectionInfo(self, device, version, port, community):
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         device.updateDevice(zSnmpVer=version,
                             zSnmpPort=port,
                             zSnmpCommunity=community)
