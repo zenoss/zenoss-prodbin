@@ -10,11 +10,12 @@ import re
 
 from zope.interface import Interface
 from zope.component import queryUtility
+from OFS.interfaces import IObjectWillBeAddedEvent
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
+
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
-from Products.Zuul.interfaces import IInfo
-
+from ..interfaces import IInfo
 from .interfaces import IComponentFieldSpec
 
 
@@ -90,7 +91,7 @@ def onComponentIndexingEvent(ob, event):
     if spec is None:
         return
     catalog = spec.get_catalog(ob, ob.meta_type)
-    catalog.catalog_object(ComponentCatalogWrapper(ob), '/'.join(ob.getPhysicalPath()))
+    catalog.catalog_object(ComponentWrapper(ob), '/'.join(ob.getPhysicalPath()))
 
 
 def onComponentRemoved(ob, event):
