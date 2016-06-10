@@ -62,7 +62,8 @@ This program checks the status of the running zope processes.
 def clear_redis(redis_client):
     pattern = '{0}*'.format(ZopeRequestLogger.REDIS_KEY_PATTERN)
     keys = redis_client.keys(pattern)
-    redis_client.delete(*keys)
+    if keys:
+        redis_client.delete(*keys)
     print "Pending requests cleared from redis"
 
 
