@@ -61,8 +61,6 @@ class TestDevice(ZenModelBaseTest):
         dev = manage_createDevice(self.dmd, 'mydevice', '/')
         self.assertRaises(DeviceExistsError,
                           manage_createDevice, self.dmd, 'mydevice', '/')
-        self.assertRaises(DeviceExistsError,
-                          manage_createDevice, self.dmd, 'MyDevIce', '/')
 
     def testManage_createDeviceDupIp(self):
         dev = manage_createDevice(self.dmd, 'mydevice', '/', manageIp='1.1.1.1')
@@ -678,13 +676,11 @@ class TestDevice(ZenModelBaseTest):
     def testRenameDeviceDuplicateName(self):
         testId1 = 'testId1'
         testId2 = 'testId2'
-        testId3 = 'TESTid2'
         dev1 = manage_createDevice(self.dmd, testId1, '/')
         manage_createDevice(self.dmd, testId2, '/Devices')
         self.assertRaises( DeviceExistsError,
-                           dev1.renameDevice, testId2 )
-        self.assertRaises( DeviceExistsError,
-                           dev1.renameDevice, testId3 )
+                           dev1.renameDevice,
+                           testId2 )
 
 class GetSnmpConnInfoTest(ZenModelBaseTest):
 
