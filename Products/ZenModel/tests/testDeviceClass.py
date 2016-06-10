@@ -74,7 +74,10 @@ class TestDeviceClass(ZenModelBaseTest):
     def testFindExact(self):
         id = 'testdev'
         devices = self.dmd.Devices
-        self.assertEqual(len(devices._findDevice(id)), 1)
+        devices.createInstance('TESTDEV')
+        #inexact
+        self.assertEqual(len(devices._findDevice(id)), 2)
+        #exact
 
         dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
@@ -152,6 +155,12 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual(guid, newguid)
         path = self.dmd.guid_table.get(newguid, None)
         self.assertEqual(path, '/zport/dmd/Devices/Server/devices/testdev')
+
+    def testMoveDevicesWithPotentialCaseIssue(self):
+        self.dmd.Devices.createInstance( 'TESTDEV' )
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        dev = self.dmd.Devices.Server.devices.testdev
+        self.assert_(dev.os.interfaces)
 
     def testMoveDevicesStandardToCust(self):
         anna = self.dmd.Locations.createOrganizer("Annapolis")
