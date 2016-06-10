@@ -624,7 +624,8 @@
             text: _t('Save'),
             xtype:'button',
             ref: '../savebtn',
-            disabled: true,
+            disabled: Zenoss.Security.doesNotHavePermission('Manage Device') &&
+                      Zenoss.Security.doesNotHavePermission('Change Device Production State'),
             hidden: true,
             handler: function(){
                 this.refOwner.getForm().submit();
