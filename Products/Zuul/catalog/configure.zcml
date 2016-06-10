@@ -95,6 +95,14 @@
     <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
 
+    <subscriber handler=".component_catalog.onComponentIndexingEvent"
+        for="Products.ZenModel.DeviceComponent.DeviceComponent
+             .interfaces.IIndexingEvent"/>
+
+    <subscriber handler=".component_catalog.onComponentRemoved"
+        for="Products.ZenModel.DeviceComponent.DeviceComponent
+             OFS.interfaces.IObjectWillBeMovedEvent"/>
+
     <utility factory="Products.Zuul.catalog.global_catalog.GlobalCatalogFactory"
         provides="Products.Zuul.catalog.interfaces.IGlobalCatalogFactory"
         />

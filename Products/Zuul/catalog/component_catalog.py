@@ -11,8 +11,8 @@ import re
 from zope.interface import Interface
 from zope.component import queryUtility
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+
 from Products.Zuul.interfaces import IInfo
 
 from .interfaces import IComponentFieldSpec
@@ -28,10 +28,14 @@ class ComponentWrapper(object):
         self._info = IInfo(obj)
 
     def __getattr__(self, attr):
+        sort = False
+        if attr.endswith('__sort'):
+            sort = True
+            attr = attr[:-6]
         val = getattr(self._info, attr)
         if isinstance(val, dict):
             return val.get('name')
-        return pad_numeric_values_for_indexing(val)
+        return pad_numeric_values_for_indexing(val) if sort else str(val)
 
 
 class ComponentFieldSpec(object):
@@ -47,7 +51,11 @@ class ComponentFieldSpec(object):
         manage_addZCatalog(device, self.catalog_name, self.catalog_name)
         catalog = device._getOb(self.catalog_name)
         for field in self.fields:
-            catalog.addIndex(str(field), makeCaseInsensitiveFieldIndex(str(field)))
+            field = str(field)
+            # Add two indexes, one for natural sorting
+            sort_field = field + '__sort'
+            catalog.addIndex(field, makeCaseInsensitiveFieldIndex(field))
+            catalog.addIndex(sort_field, makeCaseInsensitiveFieldIndex(sort_field))
         return catalog
 
     def index_all_of_type(self, obj, meta_type):

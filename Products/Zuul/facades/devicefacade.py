@@ -113,10 +113,15 @@ class DeviceFacade(TreeFacade):
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
-        comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
-                                       dir=dir, name=name)
-        for i, b in enumerate(comps):
-            if '/'.join(b._object.getPrimaryPath())==componentUid:
+        brains, total = self._typecatComponentBrains(uid=uid, meta_type=meta_type, sort=sort, dir=dir, name=name)
+        if brains is None:
+            comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
+                                           dir=dir, name=name)
+            for i, b in enumerate(comps):
+                if '/'.join(b._object.getPrimaryPath())==componentUid:
+                    return i
+        for i, b in enumerate(brains):
+            if b.getPath() == componentUid:
                 return i
 
     def _filterComponents(self, comps, keys, query):
@@ -155,22 +160,32 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
-    def _typecatComponentSearch(self, uid=None, types=(), meta_type=(), start=0,
+    def _typecatComponentBrains(self, uid=None, types=(), meta_type=(), start=0,
             limit=None, sort='name', dir='ASC', name=None, keys=()):
         obj = self._getObject(uid)
         spec = get_component_field_spec(meta_type)
-        if spec is not None:
-            typecat = spec.get_catalog(obj, meta_type)
-            querySet = []
-            if name:
-                querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
-            brains = typecat.evalAdvancedQuery(And(*querySet), ((sort, dir),))
-            total = len(brains)
+        if spec is None:
+            return None, 0
+        typecat = spec.get_catalog(obj, meta_type)
+        sortspec = ()
+        if sort:
+            if sort not in typecat._catalog.indexes:
+                # Fall back to slow queries and sorting
+                return None, 0
+            sortspec = ((sort, dir),)
+        querySet = []
+        if name:
+            querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
+        brains = typecat.evalAdvancedQuery(And(*querySet), sortspec)
+        total = len(brains)
+        if limit is None:
+            brains = brains[start:]
+        else:
+            brains = brains[start:start+limit]
+        return brains, total
+
+    def _typecatComponentPostProcess(self, brains, total):
             hash_ = str(total)
-            if limit is None:
-                brains = brains[start:]
-            else:
-                brains = brains[start:start+limit]
             comps = map(IInfo, map(unbrain, brains))
             # fetch any rrd data necessary
             self.bulkLoadMetricData(comps)
@@ -189,10 +204,14 @@ class DeviceFacade(TreeFacade):
 
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
-        if isinstance(meta_type, basestring):
-            return self._typecatComponentSearch(uid, types, meta_type, start,
+        if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
+            brains, total = self._typecatComponentBrains(uid, types, meta_type, start,
                     limit, sort, dir, name, keys)
+            if brains is not None:
+                return self._typecatComponentPostProcess(brains, total)
         reverse = dir=='DESC'
+        if isinstance(meta_type, basestring):
+            meta_type = (meta_type,)
         if isinstance(types, basestring):
             types = (types,)
         querySet = []
