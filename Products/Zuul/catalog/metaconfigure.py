@@ -10,12 +10,15 @@
 from zope.component.zcml import utility
 
 from .interfaces import IComponentFieldSpec
+from .component_catalog import ComponentFieldSpec
 
 def componentFieldSpecDirective(_context, class_, fields=()):
     meta_type = class_.meta_type
     klass = type('ComponentFieldSpec',
-                 (object,),
-                 {'fields':fields}
+                 (ComponentFieldSpec,),
+                 {
+                     'fields':fields,
+                     'meta_type':meta_type,
+                 }
             )
-    print "Registering utility for meta_type", meta_type
     utility(_context, name=meta_type, factory=klass, provides=IComponentFieldSpec)

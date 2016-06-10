@@ -23,6 +23,7 @@ from Products.Zuul.catalog.interfaces import IComponentFieldSpec
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
+from Products.Zuul.catalog.component_catalog import get_component_field_spec, pad_numeric_values_for_indexing
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Jobber.jobs import SubprocessJob
@@ -48,7 +49,6 @@ from Products.ZenEvents.Event import Event
 from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 
 iszprop = re.compile("z[A-Z]").match
@@ -155,79 +155,46 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
-    def _getTypeCatalog(self, obj, meta_type):
+    def _typecatComponentSearch(self, uid=None, types=(), meta_type=(), start=0,
+            limit=None, sort='name', dir='ASC', name=None, keys=()):
+        obj = self._getObject(uid)
+        spec = get_component_field_spec(meta_type)
+        if spec is not None:
+            typecat = spec.get_catalog(obj, meta_type)
+            querySet = []
+            if name:
+                querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
+            brains = typecat.evalAdvancedQuery(And(*querySet), ((sort, dir),))
+            total = len(brains)
+            hash_ = str(total)
+            if limit is None:
+                brains = brains[start:]
+            else:
+                brains = brains[start:start+limit]
+            comps = map(IInfo, map(unbrain, brains))
+            # fetch any rrd data necessary
+            self.bulkLoadMetricData(comps)
+            # Do one big lookup of component events and add to the result objects
+            showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+            if showSeverityIcon:
+                uuids = [r.uuid for r in comps]
 
-        class ThingyWrapper(object):
-            def __init__(self, obj):
-                self._obj = obj
-                self._info = IInfo(obj)
+                zep = getFacade('zep')
+                severities = zep.getWorstSeverity(uuids)
 
-            def getPhysicalPath(self):
-                uid = self._info.uid or "/".join(self._obj.getPhysicalPath())
-                print "RETURNING UID", uid
-                return self._info.uid
-
-            def __getattr__(self, attr):
-                val = getattr(self._info, attr)
-                if isinstance(val, dict):
-                    return val.get('name')
-                return str(val)
-
-        spec = queryUtility(IComponentFieldSpec, meta_type)
-        if spec is None:
-            return
-        device = obj.device()
-        name = '%s_componentCatalog' % meta_type
-        try:
-            catalog = device._getOb(name)
-        except AttributeError:
-            from Products.ZCatalog.ZCatalog import manage_addZCatalog
-            manage_addZCatalog(device, name, name)
-            catalog = device._getOb(name)
-            for field in spec.fields:
-                catalog.addIndex(str(field), makeCaseInsensitiveFieldIndex(str(field)))
-            for component in device.componentSearch(meta_type=meta_type):
-                catalog.catalog_object(ThingyWrapper(component.getObject()), component.getPath())
-        return catalog
+                setCount = 0
+                for r in comps:
+                    r.setWorstEventSeverity(severities[r.uuid])
+            return SearchResults(iter(comps), total, hash_, False)
 
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
         if isinstance(meta_type, basestring):
-            obj = self._getObject(uid)
-            typecat = self._getTypeCatalog(obj, meta_type)
-            if typecat is not None:
-                querySet = []
-                fields = queryUtility(IComponentFieldSpec, meta_type).fields
-                if name:
-                    querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in fields)))
-                brains = typecat.evalAdvancedQuery(And(*querySet), ((sort, dir),))
-                total = len(brains)
-                hash_ = str(total)
-                if limit is None:
-                    brains = brains[start:]
-                else:
-                    brains = brains[start:start+limit]
-                comps = map(IInfo, map(unbrain, brains))
-                # fetch any rrd data necessary
-                self.bulkLoadMetricData(comps)
-                # Do one big lookup of component events and add to the result objects
-                showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
-                if showSeverityIcon:
-                    uuids = [r.uuid for r in comps]
-
-                    zep = getFacade('zep')
-                    severities = zep.getWorstSeverity(uuids)
-
-                    setCount = 0
-                    for r in comps:
-                        r.setWorstEventSeverity(severities[r.uuid])
-                return SearchResults(iter(comps), total, hash_, False)
+            return self._typecatComponentSearch(uid, types, meta_type, start,
+                    limit, sort, dir, name, keys)
         reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
-        if isinstance(meta_type, basestring):
-            #print queryUtility(IComponentFieldSpec, meta_type).fields
-            meta_type = (meta_type,)
         querySet = []
         if meta_type:
             querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
@@ -259,11 +226,7 @@ class DeviceFacade(TreeFacade):
                     val = val()
                 if IInfo.providedBy(val):
                     val = val.name
-            # Pad numeric values with 0's so that sort is
-            # both alphabetically and numerically correct.
-            # eth1/1  will sort on eth0000000001/0000000001
-            # eth1/12 will sort on eth0000000001/0000000012
-            return re.sub("[\d]+", lambda x:str.zfill(x.group(0),10), val) 
+            return pad_numeric_values_for_indexing(val)
 
         # sort the components
         sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
