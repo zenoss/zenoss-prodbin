@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class RemoveEmptyGraphs(Migrate.Step):
     """Remove some graph datapoints from a few services."""
 
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(5, 2, 0)
 
     def cutover(self, dmd):
 
