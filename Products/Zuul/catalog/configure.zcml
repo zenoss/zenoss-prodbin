@@ -95,6 +95,8 @@
     <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
 
+    <meta:provides feature="componentCatalogs" />
+
     <subscriber handler=".component_catalog.onComponentIndexingEvent"
         for="Products.ZenModel.DeviceComponent.DeviceComponent
              .interfaces.IIndexingEvent"/>
