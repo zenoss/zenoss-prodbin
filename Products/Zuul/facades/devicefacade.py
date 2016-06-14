@@ -193,11 +193,8 @@ class DeviceFacade(TreeFacade):
             showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
             if showSeverityIcon:
                 uuids = [r.uuid for r in comps]
-
                 zep = getFacade('zep')
                 severities = zep.getWorstSeverity(uuids)
-
-                setCount = 0
                 for r in comps:
                     r.setWorstEventSeverity(severities[r.uuid])
             return SearchResults(iter(comps), total, hash_, False)
@@ -263,11 +260,8 @@ class DeviceFacade(TreeFacade):
         showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
         if showSeverityIcon:
             uuids = [r.uuid for r in pagedResult]
-
             zep = getFacade('zep')
             severities = zep.getWorstSeverity(uuids)
-
-            setCount = 0
             for r in pagedResult:
                 r.setWorstEventSeverity(severities[r.uuid])
 
