@@ -13,7 +13,10 @@ from zope.component import queryUtility
 from OFS.interfaces import IObjectWillBeAddedEvent
 from Products.ZCatalog.ZCatalog import manage_addZCatalog
 
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from Products.ZenUtils.Search import (
+    makeCaseInsensitiveFieldIndex, 
+    makeMultiPathIndex
+) 
 
 from ..interfaces import IInfo
 from .interfaces import IComponentFieldSpec
@@ -27,6 +30,10 @@ class ComponentWrapper(object):
     def __init__(self, obj):
         self._obj = obj
         self._info = IInfo(obj)
+
+    @property
+    def path(self):
+        return self._obj.getAllPaths()
 
     def __getattr__(self, attr):
         sort = False
@@ -51,6 +58,7 @@ class ComponentFieldSpec(object):
     def create_catalog(self, device):
         manage_addZCatalog(device, self.catalog_name, self.catalog_name)
         catalog = device._getOb(self.catalog_name)
+        catalog.addIndex('path', makeMultiPathIndex('path'))
         for field in self.fields:
             field = str(field)
             # Add two indexes, one for natural sorting
@@ -77,7 +85,10 @@ class ComponentFieldSpec(object):
         try:
             catalog = device._getOb(self.catalog_name)
         except AttributeError:
-            catalog = self.create_catalog(obj)
+            catalog = self.create_catalog(device)
+            self.index_all_of_type(obj, meta_type)
+        if 'path' not in catalog._catalog.indexes:
+            catalog.addIndex('path', makeMultiPathIndex('path'))
             self.index_all_of_type(obj, meta_type)
         return catalog
 

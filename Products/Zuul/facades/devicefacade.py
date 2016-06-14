@@ -173,7 +173,7 @@ class DeviceFacade(TreeFacade):
                 # Fall back to slow queries and sorting
                 return None, 0
             sortspec = ((sort, dir),)
-        querySet = []
+        querySet = [Generic('path', uid)]
         if name:
             querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
         brains = typecat.evalAdvancedQuery(And(*querySet), sortspec)
