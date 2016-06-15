@@ -255,17 +255,28 @@ class ZPLDaemons(ZenPackLoader):
 class ZPLBin(ZenPackLoader):
 
     name = "Bin"
-
     extensionsToIgnore = ('.svn-base', '.pyc' '~')
+
     def filter(self, f):
         for ext in self.extensionsToIgnore:
             if f.endswith(ext):
                 return False
         return True
 
+    def binPath(self, bin_file):
+        args = ['bin']
+        if '/zenrun.d/' in bin_file:
+            args.append('zenrun.d')
+        args.append(os.path.basename(bin_file))
+        return zenPath(*args)
+
     def load(self, pack, unused):
         for fs in findFiles(pack, 'bin', filter=self.filter):
             os.chmod(fs, 0755)
+            path = self.binPath(fs)
+            if os.path.lexists(path):
+                os.remove(path)
+            os.symlink(fs, path)
 
     def upgrade(self, pack, app):
         self.unload(pack, app)
