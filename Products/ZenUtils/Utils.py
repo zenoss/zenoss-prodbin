@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-from Products.ZenUtils import Map
-
 __doc__="""Utils
 
 General utility functions module
@@ -2169,3 +2167,32 @@ def unpublished(func):
     func.__doc__ = None
     return func
 
+
+def executeSshCommand(device, cmd, writefunc):
+    from Products.DataCollector.SshClient import SshClient
+
+    ssh_client_options = DictAsObj(
+        loginTries=device.zCommandLoginTries,
+        searchPath=device.zCommandSearchPath,
+        existenceTest=device.zCommandExistanceTest,
+        username=device.zCommandUsername,
+        password=device.zCommandPassword,
+        loginTimeout=device.zCommandLoginTimeout,
+        commandTimeout=device.zCommandCommandTimeout,
+        keyPath=device.zKeyPath,
+        concurrentSessions=device.zSshConcurrentSessions
+    )
+    connection = SshClient(device,
+                           device.manageIp,
+                           device.zCommandPort,
+                           options=ssh_client_options)
+    connection.clientFinished = reactor.stop
+    connection.workList.append(cmd)
+    connection._commands.append(cmd)
+    connection.run()
+    reactor.run()
+    # getResults() normally returns [(None, "command output")],
+    # or [(None,'')] in case of empty output,
+    # or [] when cmd was not executed in some reasons (e.g. wrong path)
+    for x in connection.getResults():
+        [writefunc(y) for y in x if y]

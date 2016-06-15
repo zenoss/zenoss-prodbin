@@ -204,6 +204,20 @@ class PerformanceConf(Monitor, StatusColor):
         if brains:
             return brains[0].getObject()
 
+    def findDeviceByIdExact(self, deviceName):
+        """
+        Look up device in catalog and return it.  devicename
+        must match device id exactly
+
+        @param deviceName: Name of a device
+        @type deviceName: string
+        @return: device corresponding to the name, or None
+        @rtype: device object
+        """
+        dev = self.dmd.Devices.findDeviceByIdExact(deviceName)
+        if dev:
+            return dev
+
     def getNetworkRoot(self, version=None):
         """
         Get the root of the Network object in the DMD

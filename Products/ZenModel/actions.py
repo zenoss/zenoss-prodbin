@@ -8,6 +8,7 @@
 ##############################################################################
 
 
+from collections import defaultdict
 import os
 import re
 from time import strftime, localtime
@@ -766,7 +767,7 @@ class SNMPTrapAction(IActionBase):
     name = 'SNMP Trap'
     actionContentInfo = ISnmpTrapActionContentInfo
 
-    _sessions = {}
+    _sessions = defaultdict(dict)
 
     def setupAction(self, dmd):
         self.guidManager = GUIDManager(dmd)
@@ -894,7 +895,7 @@ class SNMPTrapAction(IActionBase):
         community = content.get('community', 'public')
         version = content.get('version', 'v2c')
 
-        session = self._sessions.get(destination, None)
+        session = self._sessions[destination].get(version, None)
         if session is None:
             log.debug("Creating SNMP trap session to %s", destination)
 
@@ -909,8 +910,11 @@ class SNMPTrapAction(IActionBase):
                 '-c', community,
                 destination)
             )
+            agent_addr = os.getenv('CONTROLPLANE_HOST_IPS', '').split(' ')[0]
+            if agent_addr:
+                session.agent_addr = agent_addr
             session.open()
-            self._sessions[destination] = session
+            self._sessions[destination][version] = session
 
         return session
 

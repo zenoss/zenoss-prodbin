@@ -54,7 +54,7 @@ class DaemonsView(BrowserView):
                 name = cookie['name'],
                 value = cookie['value'],
                 quoted = True,
-                domain = self.request.environ['HTTP_HOST'],
+                domain = self.request.environ['HTTP_HOST'].split(':')[0], # Don't include the port
                 path = '/',
                 secure = cookie['secure']
             )
