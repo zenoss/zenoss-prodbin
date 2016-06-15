@@ -72,13 +72,13 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual( foundDevices[0].id, self.dev2.id )
         
     def testFindExact(self):
-        
         id = 'testdev'
         devices = self.dmd.Devices
         devices.createInstance('TESTDEV')
-        #inexact        
+        #inexact
         self.assertEqual(len(devices._findDevice(id)), 2)
         #exact
+
         dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
         

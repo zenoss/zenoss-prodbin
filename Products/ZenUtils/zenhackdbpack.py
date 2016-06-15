@@ -21,7 +21,7 @@ DISCLAIMER = """
  1) Change pack_object, object_ref, object_refs_added table engines to innodb
  2) Make sure zenossdbpack version is 1.3 or higher (zenossdbpack -v)
  3) Build zenossdbpack internal tables using workers and minimizing mem usage:
-        zenossdbpack -e session -tw 16 -m
+        zenossdbpack -e session -tw 8 -m
  4) Build zenossdbpack internal tables again without workers. Do not skip this step, it is very important.
     If possible, stop all zenoss components that use zodb to prevent POSKeyErrors
         zenossdbpack -e session -t -m
@@ -33,9 +33,9 @@ DISCLAIMER = """
         python Products/ZenUtils/zenhackdbpack.py -w WORKERS -n NUMBER_OF_OBJECTS_TO_REMOVE -i NUMBER_OF_ITERATIONS
 Once the database has desired size:
  1) Undo changes done in step 6
- 2) Truncate object_ref, object_refs_added, object_pack
+ 2) Truncate object_ref, object_refs_added, pack_object
  3) Build zenossdbpack internal tables using workers:
-        zenossdbpack -e session -tw 16
+        zenossdbpack -e session -tw 8
  4) Run zenossdbpack
         zenossdbpack -e session
  5) Use Zenoss toolbox to ensure zodb is in a good state
