@@ -17,11 +17,13 @@ from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter
-from Products.AdvancedQuery import Eq, Or, Generic, And
+from zope.component import getMultiAdapter, queryUtility
+from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
+from Products.Zuul.catalog.interfaces import IComponentFieldSpec
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
+from Products.Zuul.catalog.component_catalog import get_component_field_spec, pad_numeric_values_for_indexing
 from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Jobber.jobs import SubprocessJob
@@ -111,10 +113,15 @@ class DeviceFacade(TreeFacade):
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
-        comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
-                                       dir=dir, name=name)
-        for i, b in enumerate(comps):
-            if '/'.join(b._object.getPrimaryPath())==componentUid:
+        brains, total = self._typecatComponentBrains(uid=uid, meta_type=meta_type, sort=sort, dir=dir, name=name)
+        if brains is None:
+            comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
+                                           dir=dir, name=name)
+            for i, b in enumerate(comps):
+                if '/'.join(b._object.getPrimaryPath())==componentUid:
+                    return i
+        for i, b in enumerate(brains):
+            if b.getPath() == componentUid:
                 return i
 
     def _filterComponents(self, comps, keys, query):
@@ -153,13 +160,57 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
+    def _typecatComponentBrains(self, uid=None, types=(), meta_type=(), start=0,
+            limit=None, sort='name', dir='ASC', name=None, keys=()):
+        obj = self._getObject(uid)
+        spec = get_component_field_spec(meta_type)
+        if spec is None:
+            return None, 0
+        typecat = spec.get_catalog(obj, meta_type)
+        sortspec = ()
+        if sort:
+            if sort not in typecat._catalog.indexes:
+                # Fall back to slow queries and sorting
+                return None, 0
+            sortspec = ((sort, dir),)
+        querySet = [Generic('path', uid)]
+        if name:
+            querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
+        brains = typecat.evalAdvancedQuery(And(*querySet), sortspec)
+        total = len(brains)
+        if limit is None:
+            brains = brains[start:]
+        else:
+            brains = brains[start:start+limit]
+        return brains, total
+
+    def _typecatComponentPostProcess(self, brains, total):
+            hash_ = str(total)
+            comps = map(IInfo, map(unbrain, brains))
+            # fetch any rrd data necessary
+            self.bulkLoadMetricData(comps)
+            # Do one big lookup of component events and add to the result objects
+            showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+            if showSeverityIcon:
+                uuids = [r.uuid for r in comps]
+                zep = getFacade('zep')
+                severities = zep.getWorstSeverity(uuids)
+                for r in comps:
+                    r.setWorstEventSeverity(severities[r.uuid])
+            return SearchResults(iter(comps), total, hash_, False)
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
+        if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
+            brains, total = self._typecatComponentBrains(uid, types, meta_type, start,
+                    limit, sort, dir, name, keys)
+            if brains is not None:
+                return self._typecatComponentPostProcess(brains, total)
         reverse = dir=='DESC'
-        if isinstance(types, basestring):
-            types = (types,)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
+        if isinstance(types, basestring):
+            types = (types,)
         querySet = []
         if meta_type:
             querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
@@ -174,7 +225,6 @@ class DeviceFacade(TreeFacade):
 
         # unbrain the results
         comps=map(IInfo, map(unbrain, brains))
-
 
         # filter the components
         if name is not None:
@@ -192,11 +242,7 @@ class DeviceFacade(TreeFacade):
                     val = val()
                 if IInfo.providedBy(val):
                     val = val.name
-            # Pad numeric values with 0's so that sort is
-            # both alphabetically and numerically correct.
-            # eth1/1  will sort on eth0000000001/0000000001
-            # eth1/12 will sort on eth0000000001/0000000012
-            return re.sub("[\d]+", lambda x:str.zfill(x.group(0),10), val) 
+            return pad_numeric_values_for_indexing(val)
 
         # sort the components
         sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
@@ -209,6 +255,15 @@ class DeviceFacade(TreeFacade):
 
         # fetch any rrd data necessary
         self.bulkLoadMetricData(pagedResult)
+
+        # Do one big lookup of component events and add to the result objects
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            uuids = [r.uuid for r in pagedResult]
+            zep = getFacade('zep')
+            severities = zep.getWorstSeverity(uuids)
+            for r in pagedResult:
+                r.setWorstEventSeverity(severities[r.uuid])
 
         return SearchResults(iter(pagedResult), total, hash_, False)
 
