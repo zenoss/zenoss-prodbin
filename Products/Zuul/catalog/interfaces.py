@@ -80,3 +80,9 @@ class IGlobalCatalogFactory(Interface):
         @param portal_object: The portal object on which to remove the global catalog.
         @type portal_object: zport
         """
+
+class IComponentFieldSpec(Interface):
+    def get_fields():
+        """
+        Returns the fields associated with this type.
+        """
