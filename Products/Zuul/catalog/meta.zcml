@@ -1,0 +1,14 @@
+<configure
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+  <meta:directives namespace="http://namespaces.zope.org/zope">
+
+    <meta:directive
+        name="componentFields"
+        schema=".metadirectives.IComponentFieldSpecDirective"
+        handler=".metaconfigure.componentFieldSpecDirective"
+        />
+
+  </meta:directives>
+
+</configure>
