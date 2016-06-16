@@ -99,7 +99,7 @@ class IpRoutesParser(BaseParser):
                 # 192.168.99.0/24 dev eth0  scope link
                 route.id = isroute.group(1).replace('/', '_')
                 route.routemask = isroute.group(1).split('/', 1)[1]
-                if route.routemask == 32:
+                if route.routemask == '32':
                     continue
                 route.setTarget = isroute.group(1)
                 route.setNextHopIp = '0.0.0.0'
@@ -111,7 +111,7 @@ class IpRoutesParser(BaseParser):
             if isroute:
                 route.id = isroute.group(1).replace('/', '_')
                 route.routemask = isroute.group(1).split('/', 1)[1]
-                if route.routemask == 32:
+                if route.routemask == '32':
                     continue
                 route.setTarget = isroute.group(1)
                 route.setNextHopIp = '0.0.0.0'
