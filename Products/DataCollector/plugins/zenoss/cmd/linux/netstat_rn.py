@@ -83,7 +83,7 @@ class IpRoutesParser(BaseParser):
             if isgate:
                 # default via 10.111.23.1 dev eth0
                 route.id = "0.0.0.0_0"
-                route.mask = '0'
+                route.routemask = '0'
                 route.setTarget = '0.0.0.0/0'  # rfc1519
                 route.setNextHopIp = isgate.group(1)
                 route.setInterfaceName = isgate.group(2)
@@ -98,8 +98,8 @@ class IpRoutesParser(BaseParser):
             if isroute:
                 # 192.168.99.0/24 dev eth0  scope link
                 route.id = isroute.group(1).replace('/', '_')
-                route.mask = isroute.group(1).split('/', 1)[1]
-                if route.mask == 32:
+                route.routemask = isroute.group(1).split('/', 1)[1]
+                if route.routemask == '32':
                     continue
                 route.setTarget = isroute.group(1)
                 route.setNextHopIp = '0.0.0.0'
@@ -110,8 +110,8 @@ class IpRoutesParser(BaseParser):
             isroute = IP_ROUTE_RECORD_SHORT.search(line)
             if isroute:
                 route.id = isroute.group(1).replace('/', '_')
-                route.mask = isroute.group(1).split('/', 1)[1]
-                if route.mask == 32:
+                route.routemask = isroute.group(1).split('/', 1)[1]
+                if route.routemask == '32':
                     continue
                 route.setTarget = isroute.group(1)
                 route.setNextHopIp = '0.0.0.0'
@@ -121,7 +121,7 @@ class IpRoutesParser(BaseParser):
 
             if route.id is not None:
                 self.log.debug('Got route %s %s %s %s %s %s %s', route.id,
-                               route.setTarget, route.mask,
+                               route.setTarget, route.routemask,
                                route.setInterfaceName, route.setNextHopIp,
                                route.routetype, route.routeproto)
                 routes.append(route)
