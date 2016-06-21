@@ -86,7 +86,7 @@ def print_details(redis_client, keys):
         if not value:
             continue
         start_ts = key.split(":")[-1]
-        running_for = time.time() - int(start_ts)
+        running_for = time.time() - int(start_ts)/1000
         requests.append((running_for, value))
 
     sorted_requests = sorted(requests)

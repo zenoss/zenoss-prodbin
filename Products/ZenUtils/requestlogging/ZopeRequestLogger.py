@@ -5,6 +5,7 @@ import re
 import os
 import redis
 import json
+import random
 import time
 import threading
 
@@ -13,17 +14,95 @@ from Products.ZenUtils.config import ConfigFile
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.RedisUtils import parseRedisUrl
 
+
 log = logging.getLogger('ZenUtils.ZopeRequestLogger')
+
+
+class DurationMetricBuffer(object):
+    """ Buffer pending updates to redis instead of pushing after each request """
+
+    BUFFER_INTERVAL = 60
+
+    def __init__(self):
+        self.buffer = []
+        self.last_flush = time.time()
+        self.lock = threading.Lock()
+
+    def add_duration_metric(self, update):
+        self.buffer.append(update) # this is thread safe
+
+    def push_to_redis(self, redis_client):
+        start = time.time()
+        updates = []
+        if time.time() > self.last_flush + self.BUFFER_INTERVAL:
+            with self.lock:
+                if time.time() > self.last_flush + self.BUFFER_INTERVAL:
+                    if self.buffer:
+                        n_updates = len(self.buffer)
+                        updates = self.buffer[:n_updates]
+                        del self.buffer[:n_updates]
+                        self.last_flush = time.time()
+            if updates:
+                pipe = redis_client.pipeline()
+                # push duration metrics
+                for update in updates:
+                    pipe.lpush("metrics", json.dumps(update))
+                pipe.execute()
+                log.debug("Flush {0} metrics to redis took {1} seconds".format(len(updates), time.time()-start))
+
+
+class OngoingRequestsBuffer(object):
+    """ Buffer ongoing requests """
+
+    BUFFER_INTERVAL = 5
+
+    def __init__(self):
+        self.last_flush = time.time()
+        self.lock = threading.Lock()
+        # a request is always processed by the same thread
+        self.buffer = {} # {requests_fingerprint : request_data}
+
+    def request_start(self, fingerprint, data):
+        with self.lock:
+            self.buffer[fingerprint] = data
+
+    def request_end(self, fingerprint):
+        with self.lock:
+            if fingerprint in self.buffer:
+                del self.buffer[fingerprint]
+            else:
+                self.buffer[fingerprint] = None
+
+    def push_to_redis(self, redis_client):
+        start = time.time()
+        items = ()
+        if time.time() > self.last_flush + self.BUFFER_INTERVAL:
+            with self.lock:
+                if time.time() > self.last_flush + self.BUFFER_INTERVAL:
+                    items = self.buffer.items()
+                    self.buffer = {}
+                    self.last_flush = time.time()
+            if items:
+                pipe = redis_client.pipeline()
+                # push duration metrics
+                for fingerprint, data in items:
+                    if data:
+                        pipe.set(fingerprint, json.dumps(data))
+                        pipe.expire(fingerprint, 1*60*60) # Keys expires after 1 hours
+                    else:
+                        pipe.delete(fingerprint)
+                pipe.execute()
+                log.debug("Flush {0} ongoing requests to redis took {1} seconds".format(len(items), time.time()-start))
+
 
 class ZopeRequestLogger(object):
     """
     Logs information about requests proccessed by Zopes. Disabled by default. Two types of logging:
 
-        1 - Request duration metrics are pushed to opentsdb when a request finishes if
-          its duration is higer than a configurable parameter. This logging is enabled by
+        1 - Request duration metrics are pushed to opentsdb if the request duration
+          is higer than a configurable parameter. This logging is enabled by
           setting "zope-request-logging" in global.conf to a value greater
           than zero. The value represents the min duration of requests to be logged.
-          It must be > 0, otherwise we would log too much
 
         2 - Requests that started and have not yet finished. This logging is enabled by running
             "zencheckzopes enable"
@@ -64,14 +143,17 @@ class ZopeRequestLogger(object):
         self._log_duration = self.get_log_duration() # float indicating min duration to be logged
         self._log_ongoing_requests = False
 
-        self._redis_last_connection_attemp = time.time()
-        self._last_ongoing_request_enabled_check = time.time()
+        self._redis_last_connection_attemp = 0
+        self._last_ongoing_request_enabled_check = 0
 
         # connect to redis when we need to log a request
         self._redis_client = None
 
         if self._log_duration > 0:
             log.info("Zope request debug enabled. Logging requests that take longer than: {0} seconds".format(self._log_duration))
+
+        self.duration_metric_buffer = DurationMetricBuffer()
+        self.ongoing_request_buffer = OngoingRequestsBuffer()
 
     @staticmethod
     def create_redis_client(redis_url):
@@ -131,11 +213,12 @@ class ZopeRequestLogger(object):
             ident = str(threading.current_thread().ident)
             fingerprint = ":".join((
                 ZopeRequestLogger.REDIS_KEY_PATTERN,
+                str(random.randint(0,100)),
                 os.environ.get("CONTROLPLANE_SERVICED_ID", "X"),
                 str(os.getpid()),
                 ident,
                 str(zope_id),
-                str(int(request._start))
+                str(int(request._start*1000))
             ))
             request._request_fingerprint = fingerprint
             request._data_to_log = data
@@ -215,36 +298,32 @@ class ZopeRequestLogger(object):
         # store requests info in the request itself
         self._load_data_to_log(request)
 
-        # TODO BATCH REDIS REQUESTS
-
         # push to redis the opentsdb metric
         if self._log_duration > 0 and finished:
             metric_data = self._get_duration_metric(request)
             if metric_data:
-                try:
-                    self._redis_client.lpush("metrics", json.dumps(metric_data)) 
-                except Exception as e:
-                    log.info("Exception trying to push metric to redis: {0}".format(e))
-                    self._redis_client = None
-                    return
-
-        # log ongoing requests
-        if ongoing_requests_enabled and self._is_relevant_request(request):
-            redis_key = request._request_fingerprint
-            if finished: #delete request from redis
-                redis_value = None
-            else:
-                redis_value = json.dumps(request._data_to_log)
-
+                self.duration_metric_buffer.add_duration_metric(metric_data)
             try:
-                if redis_value:
-                    self._redis_client.set(redis_key, redis_value)
-                    self._redis_client.expire(redis_key, 1*60*60) # Keys expires after 1 hours
-                elif self._redis_client.exists(redis_key):
-                    self._redis_client.delete(redis_key)
+                self.duration_metric_buffer.push_to_redis(self._redis_client)
             except Exception as e:
                 log.info("Exception trying to push metric to redis: {0}".format(e))
                 self._redis_client = None
+                return
+
+        # log ongoing requests
+        if ongoing_requests_enabled:
+            if self._is_relevant_request(request):
+                fingerprint = request._request_fingerprint
+                if not finished:
+                    self.ongoing_request_buffer.request_start(fingerprint, request._data_to_log)
+                else:
+                    self.ongoing_request_buffer.request_end(fingerprint)
+            try:
+                self.ongoing_request_buffer.push_to_redis(self._redis_client)
+            except Exception as e:
+                log.info("Exception trying to push metric to redis: {0}".format(e))
+                self._redis_client = None
+
 
     def log_request(self, request, finished=False):
         try:
