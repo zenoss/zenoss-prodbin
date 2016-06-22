@@ -14,7 +14,7 @@ SEPARATOR_CHAR = "/"
 from StringIO import StringIO
 from cookielib import CookieJar
 from twisted.internet import reactor
-from twisted.web.client import Agent, CookieAgent, FileBodyProducer
+from twisted.web.client import Agent, CookieAgent, FileBodyProducer, HTTPConnectionPool
 from twisted.web.http_headers import Headers
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.metrics import ensure_prefix
@@ -24,6 +24,13 @@ import logging
 
 log = logging.getLogger('zen.metrics')
 
+pool = None 
+
+def getPool():
+    global pool
+    if pool is None:
+        pool = HTTPConnectionPool(reactor, maxPersistentPerHost=3)
+    return pool
 
 class MetricServiceRequest(object):
     """
@@ -40,7 +47,7 @@ class MetricServiceRequest(object):
         self._metric_url_v2 = '%s/%s' % (urlstart, WILDCARD_URL_PATH)
         creds = IAuthorizationTool(None).extractGlobalConfCredentials()
         auth = base64.b64encode('{login}:{password}'.format(**creds))
-        self.agent = CookieAgent(Agent(reactor, connectTimeout=30), self.cookieJar)
+        self.agent = CookieAgent(Agent(reactor, pool=getPool(), connectTimeout=30), self.cookieJar)
         self._headers = Headers({
             'Authorization': ['basic %s' % auth],
             'content-type': ['application/json'],
