@@ -208,9 +208,9 @@ class TestInternalMetricWriter(BaseTestCase):
         self.publisher = Publisher()
         self.internal_publisher = Publisher()
         self.publisher_cache = Products.ZenHub.zenhub.publisher
-        Products.ZenHub.zenhub.publisher = lambda u,p,url:\
-            self.publisher if url == "url" else self.internal_publisher
-        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "url")
+        Products.ZenHub.zenhub.publisher = lambda u,p,url:self.internal_publisher
+        Products.ZenHub.zenhub.redisPublisher = lambda u,p,url:self.publisher
+        self.metric_writer = Products.ZenHub.zenhub.metricWriter()
 
     def testWriteInternalMetric(self):
         metric = ["name", 0.0, "now", {}]

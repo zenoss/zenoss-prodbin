@@ -30,7 +30,7 @@ def getPool():
     global pool
     if pool is None:
         pool = HTTPConnectionPool(reactor)
-        poo.maxPersistentPerHost=3
+        pool.maxPersistentPerHost=3
     return pool
 
 class MetricServiceRequest(object):

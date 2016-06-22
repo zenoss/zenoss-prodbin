@@ -344,8 +344,11 @@ class _ZenHubWorklist(object):
 def publisher(username, password, url):
     return HttpPostPublisher( username, password, url)
 
+def redisPublisher():
+    return RedisListPublisher()
+
 def metricWriter():
-    metric_writer = MetricWriter( RedisListPublisher())
+    metric_writer = MetricWriter( redisPublisher())
     if os.environ.get( "CONTROLPLANE", "0") == "1":
         internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
         internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
@@ -536,7 +539,9 @@ class ZenHub(ZCmdBase):
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
+        self.log.info("metricwriter....")
         metric_writer = metricWriter()
+        self.log.info("got metricwriter....")
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,
