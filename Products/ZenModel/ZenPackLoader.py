@@ -285,7 +285,7 @@ class ZPLBin(ZenPackLoader):
     def unload(self, pack, app, leaveObjects=False):
         for fs in findFiles(pack, 'bin', filter=self.filter):
             try:
-                os.remove(self.binPath(fs))
+                os.remove(self.binPath(fs, get_path(pack, 'bin')))
             except OSError:
                 pass
 
