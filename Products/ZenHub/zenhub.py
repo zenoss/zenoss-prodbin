@@ -348,7 +348,7 @@ def redisPublisher():
     return RedisListPublisher()
 
 def metricWriter():
-    metric_writer = MetricWriter( redisPublisher())
+    metric_writer = MetricWriter(redisPublisher())
     if os.environ.get( "CONTROLPLANE", "0") == "1":
         internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
         internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
