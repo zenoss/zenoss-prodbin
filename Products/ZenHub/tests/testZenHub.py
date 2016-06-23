@@ -191,7 +191,7 @@ class TestMetricWriter(BaseTestCase):
         self.publisher = Publisher()
         self.publisher_cache = Products.ZenHub.zenhub.publisher
         Products.ZenHub.zenhub.publisher = lambda u,p,url: self.publisher
-        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "")
+        self.metric_writer = Products.ZenHub.zenhub.metricWriter()
 
     def tearDown(self):
         Products.ZenHub.zenhub.publisher = self.publisher_cache
