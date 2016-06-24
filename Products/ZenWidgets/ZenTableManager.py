@@ -22,6 +22,7 @@ import logging
 import math
 import re
 import ZTUtils
+import urllib
 from Globals import InitializeClass
 from Acquisition import aq_base
 from OFS.SimpleItem import SimpleItem
@@ -240,6 +241,20 @@ class ZenTableManager(SimpleItem, PropertyManager):
         return filteredObjects
 
 
+    def evaluateTales(self, expression, dev):
+        log.warning("evaluating %s" % dev.__dict__)
+        variables_and_funcs = {
+            'device':dev, 'dev':dev
+        }
+        expression = expression.replace('python:', 'attr=')
+        try:
+            exec(expression, variables_and_funcs)
+            attr = variables_and_funcs['attr']
+            log.warning("attr is %s" % attr)
+        except Exception, ex:
+            attr = str(ex)
+        return attr
+
     def sortObjects(self, objects, request):
         """Sort objects.
         """
@@ -253,10 +268,13 @@ class ZenTableManager(SimpleItem, PropertyManager):
                     if isinstance(field, basestring): field = field.lower()
                     self.field = field
                     self.cargo = cargo
-            if isinstance(objects[0], dict):
-                objects = [Wrapper(o.get(field, ''), o) for o in objects]
+            if field.startswith("python:"):
+                objects = [Wrapper(self.evaluateTales(field, o), o) for o in objects]
             else:
-                objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
+                if isinstance(objects[0], dict):
+                    objects = [Wrapper(o.get(field, ''), o) for o in objects]
+                else:
+                    objects = [Wrapper(getattr(o, field, ''), o) for o in objects]
             objects = sort(objects, (('field', rule, sence),), {'zencmp': zencmp})
             return [w.cargo for w in objects]
 
@@ -302,7 +320,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         else:
             sortedSence = 'asc'
         href = "%s?tableName=%s&sortedHeader=%s&" % (
-                self.REQUEST.URL, tableName, fieldName)
+                self.REQUEST.URL, tableName, urllib.quote_plus(fieldName))
         href += "sortedSence=%s&sortRule=%s%s\">" % (
                 sortedSence, sortRule, params)
         tableState.addFilterField(fieldName)
