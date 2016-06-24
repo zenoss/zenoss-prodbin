@@ -539,9 +539,7 @@ class ZenHub(ZCmdBase):
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
-        self.log.info("metricwriter....")
         metric_writer = metricWriter()
-        self.log.info("got metricwriter....")
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,
