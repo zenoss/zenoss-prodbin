@@ -204,6 +204,8 @@ class ZopeRequestLogger(object):
         data['action_and_method'] = self._extract_action_and_method_from_body(request.get('BODY'))
         data['http_method'] = request.get('method', default='')
         data['zope_id'] = zope_id
+        # Commenting out the below data. It'd be too much data to log
+        # Leaving it in case we need it in the future
         #data['xff'] = request.get('X_FORWARDED_FOR', default='')
         #data['client'] = request.get('REMOTE_ADDR', default='')
         #data['http_host'] = request.get('HTTP_HOST', default='')
@@ -218,7 +220,7 @@ class ZopeRequestLogger(object):
                 str(os.getpid()),
                 ident,
                 str(zope_id),
-                str(int(request._start*1000))
+                str(int(request._start*1000))  # timestamp in milliseconds
             ))
             request._request_fingerprint = fingerprint
             request._data_to_log = data
@@ -264,7 +266,6 @@ class ZopeRequestLogger(object):
         return relevant_user and relevant_path
 
     def _get_duration_metric(self, request):
-        start = request._start
         duration = time.time() - request._start
         if duration < self._log_duration:
            return {}
