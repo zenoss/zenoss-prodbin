@@ -66,7 +66,7 @@ from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_CLEAR
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
-from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher
+from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher, RedisListPublisher
 
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
@@ -343,9 +343,12 @@ class _ZenHubWorklist(object):
 
 def publisher(username, password, url):
     return HttpPostPublisher( username, password, url)
-  
-def metricWriter(username, password, url):
-    metric_writer = MetricWriter( publisher(username, password, url))
+
+def redisPublisher():
+    return RedisListPublisher()
+
+def metricWriter():
+    metric_writer = MetricWriter(redisPublisher())
     if os.environ.get( "CONTROLPLANE", "0") == "1":
         internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
         internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
@@ -536,11 +539,7 @@ class ZenHub(ZCmdBase):
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
-        self.log.info('Will post metrics to: %s', self.options.metrics_store_url)
-        metric_writer = metricWriter(
-            self.options.zauthUsername,
-            self.options.zauthPassword,
-            self.options.metrics_store_url)
+        metric_writer = metricWriter()
         derivative_tracker = DerivativeTracker()
 
         rrdStats.config('zenhub', perfConf.id, metric_writer,
@@ -1064,15 +1063,6 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--invalidation-poll-interval', 
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
-        self.parser.add_option('--metrics-store-url', dest='metrics_store_url',
-            type='string', default='http://localhost:8080/api/metrics/store',
-            help='URL for posting internal metrics (default: %default)')
-        self.parser.add_option(
-            "--zauth-username", dest="zauthUsername", 
-            help="Username to use when publishing to metric consumer. Default is %default")
-        self.parser.add_option(
-            "--zauth-password", dest="zauthPassword", 
-            help="Password to use when publishing to metric consumer. Default is %default")
 
         notify(ParserReadyForOptionsEvent(self.parser))
 
