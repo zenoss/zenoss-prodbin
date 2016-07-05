@@ -820,7 +820,7 @@ class ZenHub(ZCmdBase):
         reactor.callLater(0.1, self.giveWorkToWorkers)
         yield returnValue(result)
 
-    def _sleep(secs):
+    def _sleep(self, secs):
         d = defer.Deferred()
         reactor.callLater(secs, d.callback, None)
         return d
