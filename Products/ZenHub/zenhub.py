@@ -50,7 +50,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite, wait
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -820,11 +820,6 @@ class ZenHub(ZCmdBase):
         reactor.callLater(0.1, self.giveWorkToWorkers)
         yield returnValue(result)
 
-    def _sleep(self, secs):
-        d = defer.Deferred()
-        reactor.callLater(secs, d.callback, None)
-        return d
-
     @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
@@ -835,7 +830,7 @@ class ZenHub(ZCmdBase):
         while self.workList:
             if all(w.busy for w in self.workers):
                 self.log.debug("all workers are busy")
-                self._sleep(0.1)
+                yield wait(0.1)
                 break
 
             job = self.workList.pop()
