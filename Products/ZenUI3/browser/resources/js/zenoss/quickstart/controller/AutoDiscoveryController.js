@@ -93,7 +93,7 @@
                 }
             }
             if ('zSnmpCommunities' in zProperties) {
-                zProperties['zSnmpCommunities'] = zProperties['zSnmpCommunities'].split("\n");
+                zProperties['zSnmpCommunities'] = Ext.htmlEncode(zProperties['zSnmpCommunities']).split("\n");
             }
             params = {
                 networks: ranges,
