@@ -50,7 +50,7 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite, wait
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -817,7 +817,7 @@ class ZenHub(ZCmdBase):
             job.deferred.callback(result)
 
         self.updateStatusAtFinish(wId, job, error)
-        reactor.callLater(0, self.giveWorkToWorkers)
+        reactor.callLater(0.1, self.giveWorkToWorkers)
         yield returnValue(result)
 
     @inlineCallbacks
@@ -830,6 +830,7 @@ class ZenHub(ZCmdBase):
         while self.workList:
             if all(w.busy for w in self.workers):
                 self.log.debug("all workers are busy")
+                yield wait(0.1)
                 break
 
             job = self.workList.pop()
@@ -858,7 +859,7 @@ class ZenHub(ZCmdBase):
 
         if incompleteJobs:
             self.log.debug("No workers available for %d jobs." % len(incompleteJobs))
-            reactor.callLater(0, self.giveWorkToWorkers)
+            reactor.callLater(0.1, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:
             reactor.callLater(5, self.giveWorkToWorkers, True)
