@@ -817,13 +817,8 @@ class ZenHub(ZCmdBase):
             job.deferred.callback(result)
 
         self.updateStatusAtFinish(wId, job, error)
-        reactor.callLater(0.1, self.giveWorkToWorkers)
+        reactor.callLater(0, self.giveWorkToWorkers)
         yield returnValue(result)
-
-    def _sleep(self, secs):
-        d = defer.Deferred()
-        reactor.callLater(secs, d.callback, None)
-        return d
 
     @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):
@@ -835,7 +830,6 @@ class ZenHub(ZCmdBase):
         while self.workList:
             if all(w.busy for w in self.workers):
                 self.log.debug("all workers are busy")
-                self._sleep(0.1)
                 break
 
             job = self.workList.pop()
@@ -864,7 +858,7 @@ class ZenHub(ZCmdBase):
 
         if incompleteJobs:
             self.log.debug("No workers available for %d jobs." % len(incompleteJobs))
-            reactor.callLater(0.1, self.giveWorkToWorkers)
+            reactor.callLater(0, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:
             reactor.callLater(5, self.giveWorkToWorkers, True)
