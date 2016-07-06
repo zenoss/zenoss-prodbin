@@ -522,5 +522,4 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return separator + separator.join(parts)
 
 
-
 InitializeClass(RRDTemplate)
