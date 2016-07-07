@@ -214,6 +214,7 @@ class EventsRouter(DirectRouter):
         param_to_detail_mapping = self.zep.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
         null_detail_index_value = self.zep.ZENOSS_NULL_DETAIL_INDEX_VALUE
         self._filterParser = _FilterParser(self.zep)
+        self.use_permissions = False
 
     def _canViewEvents(self):
         """
@@ -224,6 +225,8 @@ class EventsRouter(DirectRouter):
         if not user.hasNoGlobalRoles():
             return True
         # make sure they have view permission on something
+        if len(user.getAllAdminRoles()) > 0:
+            self.use_permissions = True
         return len(user.getAllAdminRoles()) > 0
 
     def _timeRange(self, value):
@@ -361,7 +364,8 @@ class EventsRouter(DirectRouter):
         filter = self._buildFilter(uids, params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter(uids, exclusion_filter)
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter, exclusion_filter=exclusion_filter)
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter,
+                                            exclusion_filter=exclusion_filter, use_permissions=self.use_permissions)
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo

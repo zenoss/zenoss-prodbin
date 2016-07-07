@@ -504,15 +504,14 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if obj is None:
             obj = aq_parent(self)
             path = list(obj.getPrimaryPath())
+            # remove the "devices" relationship
+            path.pop(path.index('devices'))
             if isinstance(obj, DeviceComponent):
                 # remove the component relationship
-                path.pop(-2)
-                # remove the device relationship
-                path.pop(-3)
+                comp_rel = obj.getParentNode().id
+                path.pop(path.index(comp_rel))
             else:
                 # this template is in a Device
-                # remove the "devices" relationship
-                path.pop(-2)
                 path = path[:-1]
                 path.append(obj.titleOrId())
         else:

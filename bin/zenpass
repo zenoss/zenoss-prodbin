@@ -8,6 +8,15 @@
 # 
 ##############################################################################
 
+# There are no arguments to zenpass. Show command help if they provide any.
+if [ ! -z "$1" ]; then
+  cmd=`basename $0`
+  cat - >&2  <<USAGE
+$cmd: A utility to change the admin user password.
+Usage: $cmd
+USAGE
+  exit 1
+fi
 
 cd $ZENHOME
 
@@ -18,9 +27,19 @@ echo
 stty echo
 
 $ZENHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
-WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
-if [ -z "${WEBSERVERCTL}" ]; then
-    WEBSERVERCTL=zopectl
+if [ $? -ne 0 ]; then
+    echo "zpasswd.py returned a non-zero exit code." >&2
+    exit 1
 fi
-$WEBSERVERCTL stop
-$WEBSERVERCTL start
+
+zpid=`pgrep runzope`
+
+# If we don't have the runzope pid, we can't send sigint 
+if [ -z "${zpid}" ]; then
+  echo "Unable to locate the runzope process." >&2
+  echo "Zope will need to be restarted for changes to take effect." >&2
+  exit 1
+fi
+
+# Send an interrupt to runzope process to restart zope.
+kill -INT ${zpid}
