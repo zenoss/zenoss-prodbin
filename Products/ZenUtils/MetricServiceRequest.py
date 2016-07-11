@@ -48,7 +48,7 @@ class MetricServiceRequest(object):
         self._metric_url_v2 = '%s/%s' % (urlstart, WILDCARD_URL_PATH)
         creds = IAuthorizationTool(None).extractGlobalConfCredentials()
         auth = base64.b64encode('{login}:{password}'.format(**creds))
-	self.agent = CookieAgent(Agent(reactor, pool=getPool(), connectTimeout=30), self.cookieJar)
+        self.agent = CookieAgent(Agent(reactor, pool=getPool(), connectTimeout=30), self.cookieJar)
         self._headers = Headers({
             'Authorization': ['basic %s' % auth],
             'content-type': ['application/json'],
