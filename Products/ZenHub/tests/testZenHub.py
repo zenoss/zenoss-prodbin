@@ -190,11 +190,14 @@ class TestMetricWriter(BaseTestCase):
         os.environ["CONTROLPLANE"] = "0"
         self.publisher = Publisher()
         self.publisher_cache = Products.ZenHub.zenhub.publisher
+	self.redispublisher_cache = Products.ZenHub.zenhub.redisPublisher
         Products.ZenHub.zenhub.publisher = lambda u,p,url: self.publisher
-        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "")
+	Products.ZenHub.zenhub.redisPublisher = lambda:self.publisher
+	self.metric_writer = Products.ZenHub.zenhub.metricWriter()
 
     def tearDown(self):
         Products.ZenHub.zenhub.publisher = self.publisher_cache
+	Products.ZenHub.zenhub.redisPublisher = self.redispublisher_cache
         
     def testWriteMetric(self):
         metric = [ "name", 0.0, "now", {}]
@@ -208,9 +211,10 @@ class TestInternalMetricWriter(BaseTestCase):
         self.publisher = Publisher()
         self.internal_publisher = Publisher()
         self.publisher_cache = Products.ZenHub.zenhub.publisher
-        Products.ZenHub.zenhub.publisher = lambda u,p,url:\
-            self.publisher if url == "url" else self.internal_publisher
-        self.metric_writer = Products.ZenHub.zenhub.metricWriter("", "", "url")
+        self.redispublisher_cache = Products.ZenHub.zenhub.redisPublisher
+        Products.ZenHub.zenhub.publisher = lambda u,p,url:self.internal_publisher
+        Products.ZenHub.zenhub.redisPublisher = lambda:self.publisher
+        self.metric_writer = Products.ZenHub.zenhub.metricWriter()
 
     def testWriteInternalMetric(self):
         metric = ["name", 0.0, "now", {}]
