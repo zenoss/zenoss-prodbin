@@ -239,7 +239,7 @@ class MibRouter(TreeRouter):
         """
         Check for illegal characters in OID
         """
-        oidRegex= re.compile('^[-.0-9]+$')
+        oidRegex= re.compile('^[.0-9]+$')
         oid = oidRegex.match(oid)
         if not oid:
             return False
