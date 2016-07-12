@@ -23,6 +23,7 @@ from twisted.web.http_headers import Headers
 from httplib import UNAUTHORIZED
 from zope.interface import implements
 from txredis import RedisClientFactory
+from Products.ZenUtils.MetricServiceRequest import getPool
 
 import json as _stdlib_json
 from .compat import json
@@ -285,7 +286,7 @@ class HttpPostPublisher(BasePublisher):
         if self._username:
             self._needsAuth = True
         self._cookieJar = CookieJar()
-        self._agent = CookieAgent(Agent(reactor), self._cookieJar)
+        self._agent = CookieAgent(Agent(reactor, pool=getPool()), self._cookieJar)
         self._url = url
         self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py")) if sys.argv[0] else "python"
         reactor.addSystemEventTrigger('before', 'shutdown', self._shutdown)
