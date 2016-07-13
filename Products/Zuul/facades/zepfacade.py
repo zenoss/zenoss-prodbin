@@ -359,6 +359,7 @@ class ZepFacade(ZuulFacade):
         if filter is not None and isinstance(filter,dict):
             filter = from_dict(EventFilter, filter)
         if exclusion_filter is not None and isinstance(exclusion_filter, dict):
+            exclusion_filter['operator'] = 1 # Set operator to OR
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
