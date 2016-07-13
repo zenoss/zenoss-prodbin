@@ -7,11 +7,12 @@
 #
 ##############################################################################
 
-import transaction
 from Products.AdvancedQuery import Eq
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenReports.AliasPlugin import AliasPlugin
 from Products.ZenReports import Utils
+from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
+
 
 class monitoredcomponents(AliasPlugin):
     """
@@ -22,20 +23,17 @@ class monitoredcomponents(AliasPlugin):
     """
 
     def getSubComponents(self, dmd):
-        i = 0
         catalog = ICatalogTool(dmd.Devices)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         query = Eq('monitored', '1')
-        for brain in catalog.search(COMPONENT, query=query):
-            i += 1
-            obj = None
-            try:
-                obj = brain.getObject()
-            except KeyError:
-                continue
-            dev = obj.device()
-            status = obj.getStatus()
-            row = (dict(
+        with gc_cache_every(100, db=dmd._p_jar._db):
+            for brain in catalog.search(COMPONENT, query=query):
+                try:
+                    obj = brain.getObject()
+                except KeyError:
+                    continue
+                status = obj.getStatus()
+                row = (dict(
                     getParentDeviceTitle=obj.getParentDeviceTitle(),
                     hostname=obj.getParentDeviceTitle(),
                     name=obj.name(),
@@ -46,12 +44,8 @@ class monitoredcomponents(AliasPlugin):
                     getPrimaryUrlPath=obj.getPrimaryUrlPath(),
                     cssclass=obj.getStatusCssClass(status),
                     status=status
-                    ))
-            obj._p_invalidate()
-            dev._p_invalidate()
-            if i % 100 == 0:
-                transaction.abort()
-            yield Utils.Record(**row)
+                ))
+                yield Utils.Record(**row)
 
     def run(self, dmd, args):
         return self.getSubComponents(dmd)
