@@ -210,6 +210,9 @@ class EventsRouter(DirectRouter):
         self.zep = Zuul.getFacade('zep', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
+        detail_list =  self.zep.getDetailsMap().keys()
+        param_to_detail_mapping = self.zep.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_detail_index_value = self.zep.ZENOSS_NULL_DETAIL_INDEX_VALUE
         self._filterParser = _FilterParser(self.zep)
         self.use_permissions = False
 
@@ -229,7 +232,8 @@ class EventsRouter(DirectRouter):
     def _timeRange(self, value):
         try:
             values = []
-            for t in value.split('/'):
+            splitter = ' TO ' if ' TO ' in value else '/'
+            for t in value.split(splitter):
                 values.append(int(isoToTimestamp(t)) * 1000)
             return values
         except ValueError:
