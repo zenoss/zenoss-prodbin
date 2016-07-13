@@ -15,6 +15,7 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
+import cgi
 import httplib
 import re
 from persistent.list import PersistentList
@@ -595,7 +596,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             and edges using the obj with objid as a root
         """
         import urllib
-        objid = urllib.unquote(objid)
+        objid = cgi.escape(urllib.unquote(objid))
         try:
             devid = objid
             if not devid.endswith('*'): devid += '*'
