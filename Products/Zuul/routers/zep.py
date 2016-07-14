@@ -210,6 +210,9 @@ class EventsRouter(DirectRouter):
         self.zep = Zuul.getFacade('zep', context)
         self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
+        detail_list =  self.zep.getDetailsMap().keys()
+        param_to_detail_mapping = self.zep.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
+        null_detail_index_value = self.zep.ZENOSS_NULL_DETAIL_INDEX_VALUE
         self._filterParser = _FilterParser(self.zep)
         self.use_permissions = False
 
@@ -229,7 +232,8 @@ class EventsRouter(DirectRouter):
     def _timeRange(self, value):
         try:
             values = []
-            for t in value.split('/'):
+            splitter = ' TO ' if ' TO ' in value else '/'
+            for t in value.split(splitter):
                 values.append(int(isoToTimestamp(t)) * 1000)
             return values
         except ValueError:
@@ -857,7 +861,7 @@ class EventsRouter(DirectRouter):
 
     @require(ZEN_MANAGE_EVENTS)
     def add_event(self, summary, device, component, severity, evclasskey,
-                  evclass=None, **kwargs):
+                  evclass=None, monitor=None, **kwargs):
         """
         Create a new event.
 
@@ -880,9 +884,8 @@ class EventsRouter(DirectRouter):
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
-            self.zep.create(summary, severity, device, component,
-                            eventClassKey=evclasskey, eventClass=evclass,
-                            **kwargs)
+            self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
+                            eventClass=evclass, monitor=monitor, **kwargs)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not

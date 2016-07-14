@@ -31,6 +31,16 @@
         if (Zenoss.env.device_uid) {
             device = Zenoss.env.device_uid.split("/").reverse()[0];
         }
+        var collectors = new Ext.data.ArrayStore({
+                        data: Zenoss.env.COLLECTORS,
+                        fields: ['name']
+                    })
+        var defaultValue;
+        if (Zenoss.env.COLLECTORS[0].indexOf('localhost') > -1){
+            defaultValue = "localhost";
+        } else {
+            defaultValue = null;
+        }
         var addevent = Ext.create('Zenoss.dialog.BaseWindow', {
             title: _t('Create Event'),
             id: 'addeventwindow',
@@ -106,6 +116,22 @@
                     listConfig: {
                         resizable: true,
                         id: 'add_event_evclass_combo_list'
+                    }
+                },{
+                    fieldLabel: _t('Collector'),
+                    name: 'monitor',
+                    xtype: 'combo',
+                    allowBlank: false,
+                    store: collectors,
+                    valueField: 'name',
+                    displayField: 'name',
+                    typeAhead: true,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    selectOnFocus: true,
+                    value: defaultValue,
+                    listConfig: {
+                        resizable: true
                     }
                 }],
                 buttons: [{
