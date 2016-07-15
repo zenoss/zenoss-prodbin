@@ -607,7 +607,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             initialSortColumn: config.sortInfo.field || 'name',
             initialSortDirection: config.sortInfo.direction || 'ASC',
             directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents,
-            buffered: Zenoss.settings.enableInfiniteGridForEvents
+            buffered: Zenoss.settings.enableInfiniteGridForComponents
         });
 
         config = Ext.applyIf(config, {
