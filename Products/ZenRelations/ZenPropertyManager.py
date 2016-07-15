@@ -353,9 +353,12 @@ class ZenPropertyManager(object, PropertyManager):
         """
         if id == 'sequence' and hasattr(self, 'eventClassKey'):
             for insts in self.dmd.Events.getInstances():
-                if insts.id == self.id and insts.sequence == value:
-                    raise Exception('EventClass Mapping Instance "%s" '
-                                    'has duplicated sequence' % self.id)
+                if (insts.id == self.id and
+                    insts.sequence == value and
+                        insts.eventClass().getEventClass() !=
+                        self.eventClass().getEventClass()):
+                    raise ValueError('EventClass Mapping Instance "%s" '
+                                     'has duplicated sequence' % self.id)
         try:
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:

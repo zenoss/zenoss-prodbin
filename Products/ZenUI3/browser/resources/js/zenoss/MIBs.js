@@ -359,8 +359,8 @@ MibBrowser = Ext.extend(Ext.Container, {
                                             var form = Ext.getCmp('addNodeForm').getForm();
                                             var addParams = {
                                                     uid: Zenoss.env.currentUid,
-                                                    id: form.findField('id').getValue(),
-                                                    oid: form.findField('oid').getValue()
+                                                    id: Ext.htmlEncode(form.findField('id').getValue()),
+                                                    oid: Ext.htmlEncode(form.findField('oid').getValue())
                                                 };
                                             currentAddFn(addParams, function() {
                                                 Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
