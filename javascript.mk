@@ -43,6 +43,8 @@ JSBUILDER = /opt/zenoss/share/java/sencha_jsbuilder-2/JSBuilder2.jar
 UID := $(shell id -u)
 GID := $(shell id -g)
 
+.PHONY: clean-javascript build-javascript
+
 clean-javascript:
 	-rm -rf $(JS_OUTPUT_DIR)
 

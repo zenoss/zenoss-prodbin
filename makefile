@@ -11,13 +11,13 @@ BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 .PHONY: all clean build javascript zensocket
 
 include javascript.mk
+include zensocket.mk
 
 all: build
 
-build: build-javascript
+build: build-javascript build-zensocket
 	tar cvfz $(ARTIFACT) Products bin
 
-clean: clean-javascript
+clean: clean-javascript clean-zensocket
 	rm -f $(ARTIFACT)
-	-make -f javascript.mk clean
 
