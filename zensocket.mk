@@ -10,13 +10,6 @@ LDFLAGS :=
 ZENSOCKET_BINARY := bin/zensocket
 ZENSOCKET_SRC := legacy/zensocket/zensocket.c
 
-#
-# FIXME: the following logic needs to be somewhere such the file ownership/perms
-#        on the binary looks like:
-#-rwsr-x--- 1 root zenoss <size> <date> /opt/zenoss/bin/zensocket
-#
-# chown root $@; chmod uog+rx,u+ws $@"
-
 clean-zensocket:
 	rm -rf $(ZENSOCKET_BINARY)
 
