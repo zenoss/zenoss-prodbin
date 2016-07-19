@@ -8,6 +8,15 @@ BUILD_IMAGE = build-tools
 BUILD_VERSION = 0.0.3
 BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 
+UID := $(shell id -u)
+GID := $(shell id -g)
+
+DOCKER_RUN := docker run --rm \
+		-v $(PWD):/mnt \
+		--user $(UID):$(GID) \
+		$(BUILD_IMAGE_TAG) \
+		/bin/bash -c
+
 .PHONY: all clean build javascript zensocket
 
 include javascript.mk

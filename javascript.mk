@@ -40,9 +40,6 @@ JS_OUTPUT_DIR = $(ZENOSS_JS_BASEDIR)/$(JSB_DEPLOY_DIR)
 # JSBUILDER - the path to the JSBuilder jar in the runtime image
 JSBUILDER = /opt/zenoss/share/java/sencha_jsbuilder-2/JSBuilder2.jar
 
-UID := $(shell id -u)
-GID := $(shell id -g)
-
 .PHONY: clean-javascript build-javascript
 
 clean-javascript:
@@ -50,8 +47,4 @@ clean-javascript:
 
 build-javascript:
 	@echo "Minifying $(ZENOSS_SRC_BASEDIR) -> $(JS_OUTPUT_DIR)/$(JSB_COMPILED_JS_NAME)"
-	docker run --rm \
-		-v $(PWD):/mnt \
-		--user $(UID):$(GID) \
-		$(BUILD_IMAGE_TAG) \
-		/bin/bash -c "cd /mnt && java -jar $(JSBUILDER) -p $(ZENOSS_JSB_FILE) -d $(ZENOSS_JS_BASEDIR) -v"
+	$(DOCKER_RUN) "cd /mnt && java -jar $(JSBUILDER) -p $(ZENOSS_JSB_FILE) -d $(ZENOSS_JS_BASEDIR) -v"

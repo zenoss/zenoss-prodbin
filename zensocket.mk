@@ -10,9 +10,6 @@ LDFLAGS :=
 ZENSOCKET_BINARY := bin/zensocket
 ZENSOCKET_SRC := legacy/zensocket/zensocket.c
 
-UID := $(shell id -u)
-GID := $(shell id -g)
-
 #
 # FIXME: the following logic needs to be somewhere such the file ownership/perms
 #        on the binary looks like:
@@ -27,9 +24,4 @@ build-zensocket: $(ZENSOCKET_BINARY)
 
 $(ZENSOCKET_BINARY): $(ZENSOCKET_SRC)
 	cd legacy/zensocket && \
-	docker run --rm \
-		-v $(PWD):/mnt \
-		--user $(UID):$(GID) \
-		$(BUILD_IMAGE_TAG) \
-		/bin/bash -c \
-		"cd /mnt && $(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(ZENSOCKET_SRC)"
+	$(DOCKER_RUN) "cd /mnt && $(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(ZENSOCKET_SRC)"
