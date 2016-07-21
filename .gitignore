@@ -21,6 +21,7 @@ bin/zenvmwareevents
 bin/zenvmwaremodeler
 bin/zenvmwareperf
 
+dist
 
 .idea/
 *.iml

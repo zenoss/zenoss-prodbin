@@ -2,6 +2,8 @@ VERSION  := 5.2.0
 BRANCH   := develop
 ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
 
+DIST_ROOT := dist
+
 # Define the name, version and tag name for the docker build image
 # Note that build-tools is derived from zenoss-centos-base which contains JSBuilder
 BUILD_IMAGE = build-tools
@@ -21,12 +23,23 @@ DOCKER_RUN := docker run --rm \
 
 include javascript.mk
 include zensocket.mk
+include zenoss-version.mk
 
 all: build
 
-build: build-javascript build-zensocket
-	tar cvfz $(ARTIFACT) Products bin
+mk-dist:
+	mkdir -p $(DIST_ROOT)
 
-clean: clean-javascript clean-zensocket
+#
+# To build the tar,
+#     - create the 'dist' subdirectory
+#     - compile & minify the javascript, which is saved in the Products directory tree
+#     - compile the zensocket binary, which is copied into bin
+#     - build the zenoss-version wheel, which is copied into dist
+#
+build: mk-dist build-javascript build-zensocket build-zenoss-version
+	tar cvfz $(ARTIFACT) Products bin dist
+
+clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)
-
+	rm -rf $(DIST_ROOT)
