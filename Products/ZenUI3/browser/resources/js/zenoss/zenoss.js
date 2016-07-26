@@ -675,7 +675,6 @@ Ext.define("Zenoss.RefreshMenuButton", {
                 xtype: 'menucheckitem',
                 text: '1 minute',
                 value: 60,
-                checked: true,
                 group: 'refreshgroup'
             },{
                 xtype: 'menucheckitem',
