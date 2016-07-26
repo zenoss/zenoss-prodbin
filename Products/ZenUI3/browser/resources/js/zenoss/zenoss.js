@@ -623,9 +623,9 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
 
         var items = this.items.items;
         Ext.each(items, function(item) {
+            item.checked = false;
             if (item.value === savedInterval) {
                 item.checked = true;
-                return;
             }
         }, this);
         this.trigger.on('afterrender', function() {
