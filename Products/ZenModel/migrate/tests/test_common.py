@@ -23,6 +23,13 @@ class test_updateHbaseLogPath(unittest.TestCase):
         self.assertEqual((False, ['b'], None), common.compare(d, d1))
         self.assertEqual((False, ['c'], None), common.compare(d, d2))
 
+    def test_compare_dicts_case(self):
+        d = dict(AA=1, Aa=2, aA=3, aa=4, bB=6, BB=7)
+        d1 = dict(Aa=4, BB=6)
+        d2 = dict(Aa=4, BB=7)
+        self.assertEqual((True, None, None), common.compare(d, d1))
+        self.assertEqual((False, ['bb'], None), common.compare(d1, d2))
+   
     def test_compare_lists(self):
         l  = [1,2,3]
         l1 = [1,4,3]

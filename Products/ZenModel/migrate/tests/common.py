@@ -71,12 +71,16 @@ def compare(this, that, path=None):
     elif isinstance(this, dict):
         if not isinstance(that, dict):
             return False, path, None
-        if len(this.keys()) != len(that.keys()):
-            for key in list(set(this.keys() + that.keys())):
-                if this.get(key) != this.get(key):
-                    return False, path + [key], None
-        keys = this.keys()
-        iab = zip(keys, [(this.get(k), that.get(k)) for k in keys])
+        # The json deserialization in serviced matches the fields case-
+        #   insensitively, choosing the last match encountered for any field.
+        #   The keys are sorted in service-migration, so in the case of 
+        #   duplicates the "most lower-case" is the last and therefore wins.
+        # Duplicate this behavior when comparing dictionaries.
+        this = dict((k.lower(), this[k]) for k in sorted(this.iterkeys()))
+        that = dict((k.lower(), that[k]) for k in sorted(that.iterkeys()))
+        for key in set(this.iterkeys()) ^ set(that.iterkeys()):
+            return False, path + [key], None
+        iab = [(k, (this.get(k), that.get(k))) for k in this.iterkeys()]
     elif isinstance(this, basestring):
         if this == that:
             return True, None, None
