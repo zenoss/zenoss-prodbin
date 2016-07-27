@@ -20,11 +20,21 @@ fi
 
 cd $ZENHOME
 
-echo -n 'Password for the Zenoss "admin" user: '
+echo -n 'Enter the new password for the Zenoss "admin" user: '
 stty -echo
 read ZOPEPASSWORD
 echo
+echo -n 'Retype the password to confirm: '
+read ZOPECONFIRM
 stty echo
+
+echo
+echo
+
+if [ ${ZOPEPASSWORD} != ${ZOPECONFIRM} ]; then
+    echo 'The passwords don'"'"'t match. Aborting.' >&2
+    exit 1
+fi
 
 $ZENHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 if [ $? -ne 0 ]; then
@@ -32,12 +42,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-zpid=`pgrep runzope`
+echo "The admin password has been changed."
+
+zpid=`pgrep -f runzope -u zenoss`
 
 # If we don't have the runzope pid, we can't send sigint 
 if [ -z "${zpid}" ]; then
+  echo
   echo "Unable to locate the runzope process." >&2
-  echo "Zope will need to be restarted for changes to take effect." >&2
+  echo "Zope will need to be manually restarted for changes to take effect." >&2
   exit 1
 fi
 
