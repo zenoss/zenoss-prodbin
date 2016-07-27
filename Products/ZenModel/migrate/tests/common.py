@@ -60,6 +60,7 @@ class FakeDmd:
 
 
 def compare(this, that, path=None):
+    sentinel = object()
     path = path or []
     iab = []
     if isinstance(this, list):
@@ -73,7 +74,7 @@ def compare(this, that, path=None):
             return False, path, None
         if len(this.keys()) != len(that.keys()):
             for key in list(set(this.keys() + that.keys())):
-                if this.get(key) != this.get(key):
+                if this.get(key, sentinel) != that.get(key, sentinel):
                     return False, path + [key], None
         keys = this.keys()
         iab = zip(keys, [(this.get(k), that.get(k)) for k in keys])
