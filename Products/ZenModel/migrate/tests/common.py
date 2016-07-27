@@ -5,6 +5,8 @@ import difflib
 import json
 import mock
 import os
+from collections import namedtuple
+from itertools import chain
 
 import Globals
 from servicemigration import context, service
@@ -51,47 +53,63 @@ def fakeContextFromFile(jsonfile):
     return FakeServiceContext()
 
 class FakeDmd:
-
     def __init__(self):
         None
-
     def getProductName(self):
         return "Resource Manager"
 
 
 def compare(this, that, path=None):
-    sentinel = object()
+    """
+    Compare two json serialized values.
+    Returns a triplet:
+        1) Boolean representing whether the two objects are equal
+        2) If not equal, the path leading to the first difference
+        3) If not equal, either a compare.Diff object or, in the
+           case of a diff in a multi-line string, a generator
+           containing a text representation of the diff
+    """
     path = path or []
     iab = []
     if isinstance(this, list):
         if not isinstance(that, list):
-            return False, path, None
+            return False, path, compare.Diff(this, that)
         if len(this) != len(that):
-            return False, path, None
+            return False, path, compare.Diff(this, that)
         iab = enumerate(zip(this, that))
     elif isinstance(this, dict):
         if not isinstance(that, dict):
-            return False, path, None
-        if len(this.keys()) != len(that.keys()):
-            for key in list(set(this.keys() + that.keys())):
-                if this.get(key, sentinel) != that.get(key, sentinel):
-                    return False, path + [key], None
-        keys = this.keys()
-        iab = zip(keys, [(this.get(k), that.get(k)) for k in keys])
+            return False, path, compare.Diff(this, that)
+        # The json deserialization in serviced does a case-insensitive match on
+        #   the field name, choosing the last match encountered for any field.
+        #   The keys are sorted in service-migration, so in the case of
+        #   duplicates the "most lower-case" is the last and therefore wins.
+        # Duplicate this behavior when comparing dictionaries.
+        dis = dict((k.lower(), this[k]) for k in sorted(this.iterkeys()))
+        dat = dict((k.lower(), that[k]) for k in sorted(that.iterkeys()))
+        get_val = lambda d,k: d.get(k, compare.missingKey)
+        keys = set(chain(dis.iterkeys(), dat.iterkeys()))
+        iab = [(k, (get_val(dis, k), get_val(dat, k))) for k in keys]
     elif isinstance(this, basestring):
         if this == that:
             return True, None, None
-        dis = this.split('\n')
-        dat = that.split('\n')
-        return False, path, difflib.unified_diff(dis, dat)
+        if not isinstance(that, basestring):
+            return False, path, compare.Diff(this, that)
+        if any ('\n' in i for i in (this, that)):
+            diff = difflib.unified_diff(this.split('\n'), that.split('\n'))
+            return False, path, diff
+        else:
+            return False, path, compare.Diff(this, that)
     else:
         if this != that:
-            return False, path, None
+            return False, path, compare.Diff(this, that)
     for i, (a, b) in iab:
         r, p, n = compare(a, b, path + [i])
         if not r:
             return False, p, n
     return True, None, None
+compare.Diff = namedtuple('Diff', ['actual', 'expected'])
+compare.missingKey = '<<KEY NOT PRESENT>>'
 
 
 class ServiceMigrationTestCase(object):
@@ -127,18 +145,12 @@ class ServiceMigrationTestCase(object):
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath, rdiff = compare(actual, expected)
         if not result:
-            e, a = expected, actual
-            for p in rpath:
-                e, a = e[p], a[p]
-            e = ('None' if e is None else e) or '""'
-            a = ('None' if a is None else a) or '""'
-            fpath = '.'.join([str(p) for p in rpath])
-            if rdiff is not None:
+            if isinstance(rdiff, compare.Diff):
+                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
+                        % (rdiff.actual, rpath, rdiff.expected))
+            else:
                 self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
                         % (rpath, "\n".join(rdiff)))
-            else:            
-                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                        % (e, rpath, a))
 
 
     def test_cutover_correctness(self):
