@@ -101,7 +101,7 @@ class ZenossAppData(object):
         yield "Collectors", len(results)
 
     def event_count(self):
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         try:
             yield "Event Count", zep.countEventsSince(time.time() - 24 * 60 * 60)
         except ZepConnectionError:
