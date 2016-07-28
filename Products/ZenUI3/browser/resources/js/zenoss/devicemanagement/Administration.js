@@ -833,6 +833,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Delete selected Maintenance Window'),
+                        requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                        disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                         handler: function() {
                             var grid = Ext.getCmp("maintWindowGrid"),
                                 data,
@@ -1112,6 +1114,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Delete selected User Command'),
+                        requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                        disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                         handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid"),
                                 data,
@@ -1318,6 +1322,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Remove selected User from the Device Administrators panel'),
+                        requiredPermission: 'Maintenance Windows Edit', // change the line below as well
+                        disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
                         handler: function() {
                             var grid = Ext.getCmp("adminsGrid"),
                                 data,

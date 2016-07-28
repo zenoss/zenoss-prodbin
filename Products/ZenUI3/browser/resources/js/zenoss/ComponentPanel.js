@@ -607,7 +607,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
             initialSortColumn: config.sortInfo.field || 'name',
             initialSortDirection: config.sortInfo.direction || 'ASC',
             directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents,
-            buffered: Zenoss.settings.enableInfiniteGridForEvents
+            buffered: Zenoss.settings.enableInfiniteGridForComponents
         });
 
         config = Ext.applyIf(config, {
@@ -723,9 +723,16 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                     Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
                         // will return a null if not found
                         if (Ext.isNumeric(r.index)) {
-                            store.on('guaranteedrange', gridSelect, me);
-                            var scroller = me.verticalScroller;
-                            me.getView().scrollBy({ x: 0, y: scroller.rowHeight * r.index }, true);
+                            if (store.buffered){
+                                // infinite grids fire guaranteedrange event
+                                store.on('guaranteedrange', gridSelect, me);
+                                var scroller = me.verticalScroller;
+                                me.getView().scrollBy({ x: 0, y: scroller.rowHeight * r.index }, true);
+                            } else {
+                                // paginated grids fire load event
+                                store.loadPage(store.getPageFromRecordIndex(r.index));
+                                store.on('load', gridSelect, me);
+                            }
                         } else {
                             // We can't find the index, it might be an invalid UID so
                             // select the first item so the details section isn't blank.

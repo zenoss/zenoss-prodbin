@@ -30,6 +30,7 @@ class UserInterfaceSettings(ZenModelRM):
     _properties = (
         {'id': 'enableHtmlInEventFields', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableInfiniteGridForEvents', 'type': 'boolean', 'mode': 'w'},
+        {'id': 'enableInfiniteGridForComponents', 'type': 'boolean', 'mode': 'w'},
         {'id': 'enableLiveSearch', 'type': 'boolean', 'mode': 'w'},
         {'id': 'incrementalTreeLoad', 'type': 'boolean', 'mode': 'w'},
         {'id': 'showEventSeverityIcons', 'type': 'boolean', 'mode': 'w'},
@@ -47,6 +48,7 @@ class UserInterfaceSettings(ZenModelRM):
     _propertyMetaData = {
         'enableHtmlInEventFields': {'xtype': 'checkbox', 'name': _t('Enable Hyperlinks in Event Fields'), 'defaultValue': False},
         'enableInfiniteGridForEvents': {'xtype': 'checkbox', 'name': _t('Enable Infinite Grids for Events'), 'defaultValue': True},
+        'enableInfiniteGridForComponents': {'xtype': 'checkbox', 'name': _t('Enable Infinite Grids for Components'), 'defaultValue': True},
         'enableLiveSearch': {'xtype': 'checkbox', 'name': _t('Enable Live Filters'), 'defaultValue': True},
         'incrementalTreeLoad': {'xtype': 'checkbox', 'name': _t('Enable Incremental Tree Loading on the Infrastructure Page'), 'defaultValue': True},
         'showEventSeverityIcons': {'xtype': 'checkbox', 'name': _t('Show Tree Event Severity Icons (disabling may speed up the page load)'), 'defaultValue': True},

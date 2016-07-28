@@ -15,6 +15,7 @@ Available at:  /zport/dmd/mib_router
 """
 
 import logging
+import re
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.decorators import require
@@ -234,7 +235,22 @@ class MibRouter(TreeRouter):
         audit('UI.Mib.Edit', uid, data_=data)
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
+    def _validateOid(self, oid):
+        """
+        Check for illegal characters in OID
+        """
+        oidRegex= re.compile('^[.0-9]+$')
+        oid = oidRegex.match(oid)
+        if not oid:
+            return False
+        else:
+            return True
+
     def addOidMapping(self, uid, id, oid, nodetype='node'):
+
+        if not self._validateOid(oid):
+            msg = "Invalid OID value %s" % oid
+            return DirectResponse.fail(msg)
 
         # Make sure they have permission
         if not Zuul.checkPermission('Manage DMD'):
@@ -245,6 +261,10 @@ class MibRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def addTrap(self, uid, id, oid, nodetype='notification'):
+
+        if not self._validateOid(oid):
+            msg = "Invalid OID value %s" % oid
+            return DirectResponse.fail(msg)
 
         # Make sure they have permission
         if not Zuul.checkPermission('Manage DMD'):
