@@ -5,6 +5,7 @@ import difflib
 import json
 import mock
 import os
+from collections import namedtuple
 
 import Globals
 from servicemigration import context, service
@@ -51,10 +52,8 @@ def fakeContextFromFile(jsonfile):
     return FakeServiceContext()
 
 class FakeDmd:
-
     def __init__(self):
         None
-
     def getProductName(self):
         return "Resource Manager"
 
@@ -64,33 +63,44 @@ def compare(this, that, path=None):
     iab = []
     if isinstance(this, list):
         if not isinstance(that, list):
-            return False, path, None
+            return False, path, compare.Diff(this, that)
         if len(this) != len(that):
-            return False, path, None
+            return False, path, compare.Diff(this, that)
         iab = enumerate(zip(this, that))
     elif isinstance(this, dict):
         if not isinstance(that, dict):
-            return False, path, None
-        if len(this.keys()) != len(that.keys()):
-            for key in list(set(this.keys() + that.keys())):
-                if this.get(key) != this.get(key):
-                    return False, path + [key], None
-        keys = this.keys()
-        iab = zip(keys, [(this.get(k), that.get(k)) for k in keys])
+            return False, path, compare.Diff(this, that)
+        # The json deserialization in serviced matches the fields case-
+        #   insensitively, choosing the last match encountered for any field.
+        #   The keys are sorted in service-migration, so in the case of 
+        #   duplicates the "most lower-case" is the last and therefore wins.
+        # Duplicate this behavior when comparing dictionaries.
+        this = dict((k.lower(), this[k]) for k in sorted(this.iterkeys()))
+        that = dict((k.lower(), that[k]) for k in sorted(that.iterkeys()))
+        for key in set(this.iterkeys()) ^ set(that.iterkeys()):
+            get_val = lambda d: d.get(key, compare.missingKey) 
+            return False, path + [key], compare.Diff(get_val(this), get_val(that))
+        iab = [(k, (this.get(k), that.get(k))) for k in this.iterkeys()]
     elif isinstance(this, basestring):
         if this == that:
             return True, None, None
-        dis = this.split('\n')
-        dat = that.split('\n')
-        return False, path, difflib.unified_diff(dis, dat)
+        if not isinstance(that, basestring):
+            return False, path, compare.Diff(this, that)
+        if any ('\n' in i for i in (this, that)):
+            diff = difflib.unified_diff(this.split('\n'), that.split('\n'))
+            return False, path, diff
+        else:
+            return False, path, compare.Diff(this, that)
     else:
         if this != that:
-            return False, path, None
+            return False, path, compare.Diff(this, that)
     for i, (a, b) in iab:
         r, p, n = compare(a, b, path + [i])
         if not r:
             return False, p, n
     return True, None, None
+compare.Diff = namedtuple('Diff', ['actual', 'expected'])
+compare.missingKey = '<<KEY NOT PRESENT>>'
 
 
 class ServiceMigrationTestCase(object):
@@ -126,18 +136,12 @@ class ServiceMigrationTestCase(object):
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath, rdiff = compare(actual, expected)
         if not result:
-            e, a = expected, actual
-            for p in rpath:
-                e, a = e[p], a[p]
-            e = ('None' if e is None else e) or '""'
-            a = ('None' if a is None else a) or '""'
-            fpath = '.'.join([str(p) for p in rpath])
-            if rdiff is not None:
+            if isinstance(rdiff, compare.Diff):
+                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
+                        % (rdiff.actual, rpath, rdiff.expected))
+            else:
                 self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
                         % (rpath, "\n".join(rdiff)))
-            else:            
-                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                        % (e, rpath, a))
 
 
     def test_cutover_correctness(self):
