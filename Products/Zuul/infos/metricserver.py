@@ -64,7 +64,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
-        return "%s - %s" % (self._object.titleOrId(), title)
+        return "%s - %s" % (self._object.getGraphGroups()[0].titleOrId(), title)
 
     @property
     def type(self):
@@ -338,7 +338,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        return self._object.id
+        return self._object.getGraphGroups()[0].titleOrId()
 
     def _getGraphPoints(self, klass):
         """
