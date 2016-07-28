@@ -18,7 +18,10 @@ class ICallHomeCollector(Interface):
     def generateData(self):
         """
         Generate data to be sent via call home
-        @return: dictionary of data to be sent
+        @return: dictionary of data to be sent.
+                 values keyed by "_ERRORS_" should
+                 be objects that will be attached
+                 at the top level.
         @rtype: dict
         """
 
@@ -32,6 +35,9 @@ class IMasterCallHomeCollector(Interface):
         Generate data to be sent via call home
         @param dmd: databse connection
         @return: dictionary of data to be sent
+                 values keyed by "_ERRORS_" should
+                 be objects that will be attached
+                 at the top level.
         @rtype: dict
         """
 
