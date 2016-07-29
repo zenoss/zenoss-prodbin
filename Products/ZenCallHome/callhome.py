@@ -19,6 +19,8 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 import logging
 log = logging.getLogger("zen.callhome")
 
+ERROR_KEY="_ERROR_"
+EXTERNAL_ERROR_KEY="errors"
 
 class CallHomeCollector(object):
 
@@ -27,24 +29,39 @@ class CallHomeCollector(object):
         self._needsDmd = False
 
     def generateData(self, dmd=None):
+        errors = []
         stats = {}
         args = []
         if self._needsDmd:
             args.append(dmd)
         for name, utilClass in getUtilitiesFor(self._utilityClass):
-            log.debug("Getting data from %s %s, args: %s", name, utilClass, str(args))
-            util = utilClass()
-            for key, val in util.callHomeData(*args):
-                log.debug("Data: %s | %s", key, val)
-                if key in stats:
-                    #if already a list append, else turn into a list
-                    if isinstance(stats[key], list):
-                        stats[key].append(val)
+            try:
+                log.debug("Getting data from %s %s, args: %s", name, utilClass, str(args))
+                util = utilClass()
+                for key, val in util.callHomeData(*args):
+                    log.debug("Data: %s | %s", key, val)
+                    if key in stats:
+                        #if already a list append, else turn into a list
+                        if isinstance(stats[key], list):
+                            stats[key].append(val)
+                        else:
+                            stats[key] = [stats[key], val]
                     else:
-                        stats[key] = [stats[key], val]
-                else:
-                    stats[key]=val
-        return {self._key: stats}
+                        stats[key]=val
+            except Exception, e:
+                errorObject = dict(
+                                source = utilClass.__name__,
+                                key = name,
+                                callhome_collector = self.__class__.__name__,
+                                exception = str(e) )
+                log.warn( "Continuing after catching exception while generating callhome data for" +
+                          " collector %(callhome_collector)s (%(source)s:%(key)s : %(exception)s" % errorObject )
+                errors.append( errorObject )
+        returnValue = {self._key: stats}
+        if errors:
+            returnValue[ERROR_KEY] = errors
+        return returnValue
+        
 
 class ZenossDataCallHomeCollector(CallHomeCollector):
     """
@@ -81,16 +98,43 @@ class CallHomeData(object):
 
     def getData(self):
         data = dict()
+        errors = []
         data["Report Date"] = datetime.utcnow().isoformat()
         for name, utilClass in getUtilitiesFor(ICallHomeCollector):
-            chData = utilClass().generateData()
-            if chData:
-                data.update(chData)
+            try:
+                chData = utilClass().generateData()
+                if chData:
+                    if ERROR_KEY in chData:
+                        errors.extend( chData[ERROR_KEY] )
+                        del chData[ERROR_KEY]
+                    data.update(chData)
+            except Exception, e:
+                errorObject = dict(
+                                  callhome_collector = utilClass.__name__,
+                                  name = name,
+                                  exception = str(e) )
+                log.warn( "Caught exception while generating callhome data " +
+                          "%(callhome_collector)s:%(name)s : %(exception)s" % errorObject )
+                errors.append( errorObject )
         if self._master:
             for name, utilClass in getUtilitiesFor(IMasterCallHomeCollector):
-                chData = utilClass().generateData(self._dmd)
-                if chData:
-                    data.update(chData)
+                try:
+                    chData = utilClass().generateData(self._dmd)
+                    if chData:
+                        if ERROR_KEY in chData:
+                            errors.extend( chData[ERROR_KEY] )
+                            del chData[ERROR_KEY]
+                        data.update(chData)
+                except Exception, e:
+                    errorObject = dict(
+                                      callhome_collector = utilClass.__name__,
+                                      name = name,
+                                      exception = str(e) )
+                    log.warn( "Caught exception while generating callhome data " +
+                              "%(callhome_collector)s:%(name)s : %(exception)s" % errorObject )
+                    errors.append( errorObject )
+        if errors:
+            data[EXTERNAL_ERROR_KEY] = errors
         return data
 
 class Main(ZenScriptBase):
