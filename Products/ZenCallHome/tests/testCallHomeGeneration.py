@@ -190,8 +190,6 @@ class testCallHomeGeneration(BaseTestCase):
 
         time.sleep(1)
 
-        import pdb;pdb.set_trace()
-
         # Unfortunately the cycler code can't be disentagled
         # from itself for testability so we have to mimic it
         # for this test case.
