@@ -6037,24 +6037,12 @@
      "DatabaseVersion": 2
    },
    {
-     "ID": "c6vgco55zerx6s066ego208a6",
      "Name": "memcached",
-     "Title": "",
-     "Version": "",
-     "Context": null,
      "Command": "/bin/memcached -u nobody -v -m {{percentScale .RAMCommitment 0.9 | bytesToMB}}",
      "Description": "Free \u0026 open source, high-performance, distributed memory object caching system",
      "Tags": [
        "daemon"
      ],
-     "OriginalConfigs": {
-       "/etc/sysconfig/memcached": {
-         "Filename": "/etc/sysconfig/memcached",
-         "Owner": "root:root",
-         "Permissions": "0644",
-         "Content": "PORT=\"11211\"\nUSER=\"memcached\"\nMAXCONN=\"1024\"\nCACHESIZE=\"{{.RAMCommitment}}\"\nOPTIONS=\"\"\n"
-       }
-     },
      "ConfigFiles": {
        "/etc/sysconfig/memcached": {
          "Filename": "/etc/sysconfig/memcached",
@@ -6066,12 +6054,7 @@
      "Instances": {
         "Min": 1
      },
-     "ChangeOptions": null,
      "ImageID": "67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest",
-     "PoolID": "default",
-     "HostPolicy": "",
-     "Hostname": "",
-     "Privileged": false,
      "Launch": "auto",
      "Endpoints": [
        {
@@ -6079,42 +6062,15 @@
          "Purpose": "export",
          "Protocol": "tcp",
          "PortNumber": 11211,
-         "PortTemplate": "",
-         "VirtualAddress": "",
          "Application": "memcached",
          "ApplicationTemplate": "memcached",
          "AddressConfig": {
            "Port": 0,
            "Protocol": ""
-         },
-         "VHosts": null,
-         "VHostList": null,
-         "AddressAssignment": {
-           "ID": "",
-           "AssignmentType": "",
-           "HostID": "",
-           "PoolID": "",
-           "IPAddr": "",
-           "Port": 0,
-           "ServiceID": "",
-           "EndpointName": ""
          }
        }
      ],
-     "Tasks": null,
      "ParentServiceID": "34i3hdbkmx6kek2q7hk9zkmqt",
-     "Volumes": null,
-     "CreatedAt": "2015-11-18T22:09:40.313251439Z",
-     "UpdatedAt": "2015-11-18T22:11:23.282276343Z",
-     "DeploymentID": "dev",
-     "DisableImage": false,
-     "LogConfigs": null,
-     "Snapshot": {
-       "Pause": "",
-       "Resume": ""
-     },
-     "Runs": null,
-     "Commands": null,
      "RAMCommitment": "1G",
      "CPUCommitment": 1,
      "HealthChecks": {
@@ -6123,17 +6079,7 @@
          "Interval": 5,
          "Timeout": 0
        }
-     },
-     "Prereqs": null,
-     "MonitoringProfile": {
-       "MetricConfigs": [],
-       "GraphConfigs": [],
-       "ThresholdConfigs": []
-     },
-     "MemoryLimit": 0,
-     "CPUShares": 0,
-     "PIDFile": "",
-     "DatabaseVersion": 2
+     }
    },
    {
      "ID": "34i3hdbkmx6kek2q7hk9zkmqt",
