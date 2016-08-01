@@ -235,6 +235,7 @@ def findZenossProducts(include_zenpacks):
     validProds = ['Products.'+x for x in (
         'DataCollector',
         'Jobber',
+        'ZenCallHome',
         'ZenEvents',
         'ZenHub',
         'ZenModel',
