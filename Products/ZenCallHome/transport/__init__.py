@@ -19,6 +19,7 @@ import random
 import string
 import time
 import zlib
+from datetime import datetime
 
 import transaction
 from persistent.dict import PersistentDict
@@ -71,9 +72,11 @@ class CallHome(object):
                 return True
         return False
     
-    def get_payload(self):
+    def get_payload(self, doEncrypt=True):
         '''
         Retrieve the current callhome payload to send.
+        This is the call that occurs at send/request time (as
+        opposed to the time that the report was generated).
         '''
         payload = {}
         
@@ -81,10 +84,19 @@ class CallHome(object):
         payload['product'] = self.dmd.getProductName()
         payload['uuid'] = self.dmd.uuid or "NOT ACTIVATED"
         payload['symkey'] = self.callHome.symmetricKey
-        payload['metrics'] = self.callHome.metrics
+       
+        metrics = self.callHome.metrics
+        metricsObj = json.loads(metrics)
+        metricsObj['Send Date'] = datetime.utcnow().isoformat()
         
-        return encrypt(json.dumps(payload), self.callHome.publicKey)
-    
+        payload['metrics'] = json.dumps(metricsObj)
+        payloadString = json.dumps(payload)
+        
+        if doEncrypt:
+            payloadString = encrypt(payloadString, self.callHome.publicKey)
+
+        return payloadString
+
     def save_return_payload(self, returnPayload):
         '''
         Process and save the data returned from the callhome server. This always

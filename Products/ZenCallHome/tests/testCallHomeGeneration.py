@@ -10,8 +10,8 @@
 
 import time
 import unittest
-
-from DateTime import DateTime
+import json
+from datetime import datetime
 
 import Globals
 
@@ -23,6 +23,10 @@ from Products.Five import zcml
 import Products.ZenCallHome
 from Products.ZenCallHome import ICallHomeCollector
 from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, EXTERNAL_ERROR_KEY
+from Products.ZenCallHome.transport import CallHome, CallHomeData as PersistentCallHomeData
+from Products.ZenCallHome.transport.crypt import decrypt
+
+DATETIME_ISOFORMAT='%Y-%m-%dT%H:%M:%S.%f'
 
 TEST_DATA="""
 <configure xmlns="http://namespaces.zope.org/zope"
@@ -173,6 +177,57 @@ class testCallHomeGeneration(BaseTestCase):
         self.assertTrue( "test" in successData )
         self.assertTrue( EXTERNAL_ERROR_KEY in data )
         self.assertEquals( FAILING_DATA_ERROR_MESSAGE, data[EXTERNAL_ERROR_KEY][0]['exception'] )
+
+    def testPayloadGeneration(self):
+        # check current version of report (should be empty)
+        self.checkForExistingCallHomeData()
+        
+        # call callhome scripting
+        beforeReportGeneration = datetime.utcnow()
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+        afterReportGeneration = datetime.utcnow()
+
+        time.sleep(1)
+
+        # Unfortunately the cycler code can't be disentagled
+        # from itself for testability so we have to mimic it
+        # for this test case.
+        # What happens is that CallHomeCycler 
+        # kicks off the callhome script (callhome.py)
+        # and takes the process output as a string
+        # and stores it in the callhome object
+        # in zodb (dmd.callHome). In callhome.py you can
+        # see that the Main class spits out the 
+        # json.dumps of the output of CallHomeData.getData.
+        self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = json.dumps( data )
+
+        # create the actual payload that will be sent
+        beforePayloadGeneration = datetime.utcnow()
+        payloadGenerator = CallHome( self.dmd )
+        payload = payloadGenerator.get_payload(False)
+        afterPayloadGeneration = datetime.utcnow()
+
+        # decrypt payload and reconstitute object
+        payloadObj = json.loads( payload )
+       
+        # make sure payload has the required fields
+        self.assertTrue( 'product' in payloadObj )
+        self.assertTrue( 'uuid' in payloadObj )
+        self.assertTrue( 'symkey' in payloadObj )
+        self.assertTrue( 'metrics' in payloadObj )
+       
+        # reconstitute metrics obj & make sure send date is present
+        # and has a valid time
+        metricsObj = json.loads( payloadObj['metrics'] )
+        self.assertTrue( 'Send Date' in metricsObj )
+        sendDateDT = datetime.strptime( metricsObj['Send Date'], DATETIME_ISOFORMAT )
+        reportDateDT = datetime.strptime( metricsObj['Report Date'], DATETIME_ISOFORMAT )
+        self.assertTrue( reportDateDT < sendDateDT )
+        self.assertTrue( beforeReportGeneration <= reportDateDT <= afterReportGeneration )
+        self.assertTrue( beforePayloadGeneration <= sendDateDT <= afterPayloadGeneration )
+        
 
     #
     # UNFORTUNATELY CANNOT EASILY UNIT TEST TIMEOUTS BECAUSE
