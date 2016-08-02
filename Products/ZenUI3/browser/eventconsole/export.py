@@ -83,7 +83,7 @@ class EventsExporter(BrowserView):
         keys = (x.iterkeys() for x in events)
         fields = list({item for item in itertools.chain.from_iterable(keys)})
         if len(fields) > CSV_MAX_COLUMNS:
-            fields = list(fields)[:CSV_MAX_COLUMNS]
+            fields = fields[:CSV_MAX_COLUMNS]
             writer.writerow(['WARNING',
                 'Data is too big. First {} non empty columns are shown.'.format(
                     CSV_MAX_COLUMNS)])
