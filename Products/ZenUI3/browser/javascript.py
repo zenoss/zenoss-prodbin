@@ -226,13 +226,11 @@ class ZenossData(JavaScriptSnippet):
         priorities = [dict(name=s[0],
                            value=int(s[1])) for s in
                       self.context.dmd.getPriorityConversions()]
-        priorities.append({'name': 'None', 'value': "\"\""})
 
         # production states
         productionStates = [dict(name=s[0],
                                  value=int(s[1])) for s in
                             self.context.dmd.getProdStateConversions()]
-        productionStates.append({'name': 'None', 'value': "\"\""})
 
         # timezone
         # to determine the timezone we look in the following order
