@@ -185,10 +185,9 @@ COLUMN_CONFIG = {
         header='First Seen',
         sortable=True,
         filter={
-            'xtype':'daterange',
+            'xtype':'datefield',
             'format':'Y-m-d H:i:s',
-            'altFormats':'m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d|n-j|n/j|Y-m-d H:i:s \\T\\O Y-m-d H:i:s',
-            'invalidText' : '{0} is not a valid date/daterange'
+            'invalidText' : "{0} is not a valid date - it must be in the format yyyy/mm/dd hh:mm:ss"
         },
         width=135,
         renderer='Zenoss.date.renderDateColumn()'
@@ -198,10 +197,9 @@ COLUMN_CONFIG = {
         header='Last Seen',
         sortable=True,
         filter={
-            'xtype':'daterange',
+            'xtype':'datefield',
             'format':'Y-m-d H:i:s',
-            'altFormats':'m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d|n-j|n/j|Y-m-d H:i:s \\T\\O Y-m-d H:i:s',
-            'invalidText' : '{0} is not a valid date/daterange'
+            'invalidText' : "{0} is not a valid date - it must be in the format yyyy/mm/dd hh:mm:ss"
         },
         width=135,
         renderer='Zenoss.date.renderDateColumn()'
