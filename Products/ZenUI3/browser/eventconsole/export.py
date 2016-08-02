@@ -77,16 +77,16 @@ class EventsExporter(BrowserView):
         response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
         from csv import writer
         writer = writer(response)
-        gen = (dict((k, v) for k, v in evt.iteritems() if v) for _, evt in
-                  self._query(archive, **params))
-        fields = set().union(*[x.keys() for x in gen])
+        events = [dict((k, v) for k, v in evt.iteritems() if v) for _, evt in
+                  self._query(archive, **params)]
+        fields = set().union(*[x.keys() for x in events])
         if len(fields) > CSV_MAX_COLUMNS:
             fields = list(fields)[:CSV_MAX_COLUMNS]
             writer.writerow(['WARNING',
                 'Data is too big. First {} non empty columns are shown.'.format(
                     CSV_MAX_COLUMNS)])
         wroteHeader = False
-        for _, evt in self._query(archive, **params):
+        for evt in events:
             if not wroteHeader:
                 writer.writerow(list(fields))
                 wroteHeader = True
