@@ -26,6 +26,10 @@
              provides="Products.ZenCallHome.ICallHomeCollector"
              name="zenosshostdata"/>
 
+    <utility component="Products.ZenCallHome.VersionHistory.ZenossVersionHistoryCallHomeCollector"
+             provides="Products.ZenCallHome.IVersionHistoryCallHomeCollector"
+             name="zenosshistory"/>
+
     <utility component="Products.ZenCallHome.HostData.CpuProcFileData" provides="Products.ZenCallHome.IHostData"
              name="hostcpudata"/>
     <utility component="Products.ZenCallHome.HostData.MemProcFileData" provides="Products.ZenCallHome.IHostData"

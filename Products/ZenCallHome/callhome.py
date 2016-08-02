@@ -14,13 +14,15 @@ from datetime import datetime
 from itertools import *
 from zope.interface import implements
 from zope.component import getUtilitiesFor
-from Products.ZenCallHome import IZenossData, IHostData, IZenossEnvData, ICallHomeCollector, IMasterCallHomeCollector
+from Products.ZenCallHome import IZenossData, IHostData, IZenossEnvData, ICallHomeCollector, IMasterCallHomeCollector, IVersionHistoryCallHomeCollector
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 import logging
 log = logging.getLogger("zen.callhome")
 
 ERROR_KEY="_ERROR_"
 EXTERNAL_ERROR_KEY="errors"
+REPORT_DATE_KEY="Report Date"
+VERSION_HISTORIES_KEY="Version History"
 
 class CallHomeCollector(object):
 
@@ -63,6 +65,7 @@ class CallHomeCollector(object):
         return returnValue
         
 
+
 class ZenossDataCallHomeCollector(CallHomeCollector):
     """
     Gathers data from all IZenossData utilities registered
@@ -96,10 +99,22 @@ class CallHomeData(object):
         self._dmd = dmd
         self._master = master
 
+    def getExistingVersionHistories(self):
+        versionHistories = {}
+        if self._dmd:
+            try:
+                metricsString = self._dmd.callHome.metrics
+                metricsObj = json.loads(metricsString)
+                versionHistories = metricsObj.get( VERSION_HISTORIES_KEY, {} )
+            except AttributeError:
+                pass
+        return { VERSION_HISTORIES_KEY: versionHistories }
+
     def getData(self):
         data = dict()
         errors = []
-        data["Report Date"] = datetime.utcnow().isoformat()
+        data[REPORT_DATE_KEY] = datetime.utcnow().isoformat()
+        data.update( self.getExistingVersionHistories() )   
         for name, utilClass in getUtilitiesFor(ICallHomeCollector):
             try:
                 chData = utilClass().generateData()
@@ -131,6 +146,18 @@ class CallHomeData(object):
                                       name = name,
                                       exception = str(e) )
                     log.warn( "Caught exception while generating callhome data " +
+                              "%(callhome_collector)s:%(name)s : %(exception)s" % errorObject )
+                    errors.append( errorObject )
+        if self._dmd:
+            for name, utilClass in getUtilitiesFor(IVersionHistoryCallHomeCollector):
+                try:
+                    utilClass().addVersionHistory(self._dmd,data)
+                except Exception, e:
+                    errorObject = dict(
+                                      callhome_collector = utilClass.__name__,
+                                      name = name,
+                                      exception = str(e) )
+                    log.warn( "Caught exception while adding version history : " +
                               "%(callhome_collector)s:%(name)s : %(exception)s" % errorObject )
                     errors.append( errorObject )
         if errors:
