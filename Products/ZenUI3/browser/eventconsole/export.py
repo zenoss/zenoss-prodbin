@@ -14,6 +14,7 @@ Given a list of events to export, format them
 appropriately and then return back a string
 """
 
+import itertools
 import json
 import logging
 from datetime import datetime
@@ -26,6 +27,8 @@ from Products.Zuul.routers.zep import EventsRouter
 from interfaces import IEventManagerProxy
 
 log = logging.getLogger('zen.eventexport')
+
+CSV_MAX_COLUMNS = 16000
 
 class EventsExporter(BrowserView):
     def __call__(self):
@@ -75,9 +78,17 @@ class EventsExporter(BrowserView):
         response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
         from csv import writer
         writer = writer(response)
-
+        events = [dict((k, v) for k, v in evt.iteritems() if v) for _, evt in
+                  self._query(archive, **params)]
+        keys = (x.iterkeys() for x in events)
+        fields = list({item for item in itertools.chain.from_iterable(keys)})
+        if len(fields) > CSV_MAX_COLUMNS:
+            fields = fields[:CSV_MAX_COLUMNS]
+            writer.writerow(['WARNING',
+                'Data is too big. First {} non empty columns are shown.'.format(
+                    CSV_MAX_COLUMNS)])
         wroteHeader = False
-        for fields, evt in self._query(archive, **params):
+        for evt in events:
             if not wroteHeader:
                 writer.writerow(fields)
                 wroteHeader = True
