@@ -81,7 +81,7 @@ class EventsExporter(BrowserView):
         events = [dict((k, v) for k, v in evt.iteritems() if v) for _, evt in
                   self._query(archive, **params)]
         keys = (x.iterkeys() for x in events)
-        fields = {item for item in itertools.chain.from_iterable(keys)}
+        fields = list({item for item in itertools.chain.from_iterable(keys)})
         if len(fields) > CSV_MAX_COLUMNS:
             fields = list(fields)[:CSV_MAX_COLUMNS]
             writer.writerow(['WARNING',
@@ -90,7 +90,7 @@ class EventsExporter(BrowserView):
         wroteHeader = False
         for evt in events:
             if not wroteHeader:
-                writer.writerow(list(fields))
+                writer.writerow(fields)
                 wroteHeader = True
             data = []
             for field in fields:
