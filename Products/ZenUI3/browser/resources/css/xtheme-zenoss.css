@@ -331,8 +331,8 @@ input, textarea, select {
   visibility: hidden !important; }
 
 .x-item-disabled .x-form-item-label, .x-item-disabled .x-form-field, .x-item-disabled .x-form-cb-label {
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=30);
-  opacity: 0.3; }
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
+  opacity: 0.6; }
 
 .x-ie6 .x-item-disabled {
   filter: none; }
