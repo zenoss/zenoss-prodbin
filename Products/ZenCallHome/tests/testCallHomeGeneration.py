@@ -10,8 +10,9 @@
 
 import time
 import unittest
+import json
 
-from DateTime import DateTime
+from datetime import datetime
 
 import Globals
 
@@ -22,7 +23,13 @@ from Products.Five import zcml
 
 import Products.ZenCallHome
 from Products.ZenCallHome import ICallHomeCollector
-from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, EXTERNAL_ERROR_KEY
+from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, EXTERNAL_ERROR_KEY, REPORT_DATE_KEY, VERSION_HISTORIES_KEY
+from Products.ZenCallHome.VersionHistory import KeyedVersionHistoryCallHomeCollector, \
+                                                VERSION_START_KEY
+from Products.ZenCallHome.transport import CallHome, CallHomeData as PersistentCallHomeData
+from Products.ZenCallHome.transport.crypt import decrypt
+
+DATETIME_ISOFORMAT='%Y-%m-%dT%H:%M:%S.%f'
 
 TEST_DATA="""
 <configure xmlns="http://namespaces.zope.org/zope"
@@ -66,6 +73,15 @@ FAST_FAIL_KEY="fastfail"
 
 FAST_FAIL_ERROR_MESSAGE="Fast failed at collector level"
 FAILING_DATA_ERROR_MESSAGE="Failed individual test data"
+
+TEST_VERSION_HISTORY_COLLECTOR="""
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+     <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.TestVersionHistoryCollector"
+                     provides="Products.ZenCallHome.IVersionHistoryCallHomeCollector"
+                     name="testversionhistory"/>
+     </configure>
+"""
 
 
 class ITestCallHomeData(Interface):
@@ -111,6 +127,24 @@ class FastFailCollector(CallHomeCollector):
 
     def generateData(self):
         raise FastFailTestException(FAST_FAIL_ERROR_MESSAGE)
+
+TEST_VERSION_HISTORY_ENTITY="testentity"
+TEST_VERSION_1 = "testversion1"
+TEST_VERSION_2 = "testversion2"
+TEST_CURRENT_VERSION = TEST_VERSION_1
+
+def returnHistory():
+    return TEST_CURRENT_VERSION
+
+class TestVersionHistoryCollector(KeyedVersionHistoryCallHomeCollector):
+    """
+    """
+    def __init__(self):
+        super(TestVersionHistoryCollector,self).__init__( TEST_VERSION_HISTORY_ENTITY,
+                                                          {} )
+
+    def getCurrentVersion(self,dmd,callHomeData):
+        return returnHistory()
 
 class testCallHomeGeneration(BaseTestCase):
 
@@ -173,6 +207,130 @@ class testCallHomeGeneration(BaseTestCase):
         self.assertTrue( "test" in successData )
         self.assertTrue( EXTERNAL_ERROR_KEY in data )
         self.assertEquals( FAILING_DATA_ERROR_MESSAGE, data[EXTERNAL_ERROR_KEY][0]['exception'] )
+
+    def testPayloadGeneration(self):
+        # check current version of report (should be empty)
+        self.checkForExistingCallHomeData()
+        
+        # call callhome scripting
+        beforeReportGeneration = datetime.utcnow()
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+        afterReportGeneration = datetime.utcnow()
+
+        time.sleep(1)
+
+        # Unfortunately the cycler code can't be disentagled
+        # from itself for testability so we have to mimic it
+        # for this test case.
+        # What happens is that CallHomeCycler 
+        # kicks off the callhome script (callhome.py)
+        # and takes the process output as a string
+        # and stores it in the callhome object
+        # in zodb (dmd.callHome). In callhome.py you can
+        # see that the Main class spits out the 
+        # json.dumps of the output of CallHomeData.getData.
+        self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = json.dumps( data )
+
+        # create the actual payload that will be sent
+        beforePayloadGeneration = datetime.utcnow()
+        payloadGenerator = CallHome( self.dmd )
+        payload = payloadGenerator.get_payload(False)
+        afterPayloadGeneration = datetime.utcnow()
+
+        # decrypt payload and reconstitute object
+        payloadObj = json.loads( payload )
+       
+        # make sure payload has the required fields
+        self.assertTrue( 'product' in payloadObj )
+        self.assertTrue( 'uuid' in payloadObj )
+        self.assertTrue( 'symkey' in payloadObj )
+        self.assertTrue( 'metrics' in payloadObj )
+       
+        # reconstitute metrics obj & make sure send date is present
+        # and has a valid time
+        metricsObj = json.loads( payloadObj['metrics'] )
+        self.assertTrue( 'Send Date' in metricsObj )
+        sendDateDT = datetime.strptime( metricsObj['Send Date'], DATETIME_ISOFORMAT )
+        reportDateDT = datetime.strptime( metricsObj['Report Date'], DATETIME_ISOFORMAT )
+        self.assertTrue( reportDateDT < sendDateDT )
+        self.assertTrue( beforeReportGeneration <= reportDateDT <= afterReportGeneration )
+        self.assertTrue( beforePayloadGeneration <= sendDateDT <= afterPayloadGeneration )
+        
+    def testZenossVersionHistory(self):
+        # check current version of report (should be empty?)
+        self.checkForExistingCallHomeData()
+        
+        # call callhome scripting
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+        reportDate = data[REPORT_DATE_KEY]
+        zenossVersion = data['Zenoss App Data']['Zenoss']
+
+        # make sure report has Zenoss version history record
+        self.assertTrue( VERSION_HISTORIES_KEY in data )
+        versionHistories = data[VERSION_HISTORIES_KEY] 
+        self.assertTrue( 'Zenoss' in versionHistories )
+        versionHistory = versionHistories['Zenoss']
+        self.assertTrue( zenossVersion in versionHistory )
+        historyRecord = versionHistory[ zenossVersion ]
+        self.assertTrue( VERSION_START_KEY in historyRecord )
+        self.assertEquals( reportDate, historyRecord[VERSION_START_KEY] )
+
+    def testSavedVersionHistory(self):
+        # check current version of report (should be empty)
+        self.checkForExistingCallHomeData()
+        
+        # set up test version history collector
+        zcml.load_string( TEST_VERSION_HISTORY_COLLECTOR )
+
+        # generate callhome
+        beforeReportGeneration = datetime.utcnow()
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+        firstReportDate = data[REPORT_DATE_KEY]
+
+        time.sleep(1)
+
+        # make sure version history record is present and correct
+        self.assertTrue( VERSION_HISTORIES_KEY in data )
+        versionHistories = data[VERSION_HISTORIES_KEY] 
+        self.assertTrue( TEST_VERSION_HISTORY_ENTITY in versionHistories )
+        versionHistory = versionHistories[TEST_VERSION_HISTORY_ENTITY]
+        self.assertTrue( TEST_VERSION_1 in versionHistory )
+        historyRecord = versionHistory[ TEST_VERSION_1 ]
+        self.assertTrue( VERSION_START_KEY in historyRecord )
+        self.assertEquals( firstReportDate, historyRecord[VERSION_START_KEY] )
+
+        # The cycler code is where the saving of
+        # callhome data in ZODB occurs. We'll have
+        # to mimic that again here.
+        self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = json.dumps( data )
+
+        # update the version history
+        global TEST_CURRENT_VERSION
+        TEST_CURRENT_VERSION = TEST_VERSION_2
+
+        # generate callhome again
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+        secondReportDate = data[REPORT_DATE_KEY]
+
+        # make sure a second version history record exists
+        self.assertTrue( VERSION_HISTORIES_KEY in data )
+        versionHistories = data[VERSION_HISTORIES_KEY] 
+        self.assertTrue( TEST_VERSION_HISTORY_ENTITY in versionHistories )
+        versionHistory = versionHistories[TEST_VERSION_HISTORY_ENTITY]
+        self.assertTrue( TEST_VERSION_1 in versionHistory )
+        historyRecord = versionHistory[ TEST_VERSION_1 ]
+        self.assertTrue( VERSION_START_KEY in historyRecord )
+        self.assertEquals( firstReportDate, historyRecord[VERSION_START_KEY] )
+        self.assertTrue( TEST_VERSION_2 in versionHistory )
+        historyRecord = versionHistory[ TEST_VERSION_2 ]
+        self.assertTrue( VERSION_START_KEY in historyRecord )
+        self.assertEquals( secondReportDate, historyRecord[VERSION_START_KEY] )
 
     #
     # UNFORTUNATELY CANNOT EASILY UNIT TEST TIMEOUTS BECAUSE
