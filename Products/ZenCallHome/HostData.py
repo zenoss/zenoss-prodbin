@@ -1,15 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import string
-import time
 import os
 import math
 import platform
@@ -27,14 +26,18 @@ LOCAL_HOSTNAMES = ["localhost",
                    socket.gethostname(),
                    socket.getfqdn()]
 
+
 class PlatformData(object):
     implements(IHostData)
+
     def callHomeData(self):
         distro = " ".join(platform.linux_distribution())
         processor = platform.processor()
         system = platform.system()
         release = platform.release()
-        yield "OS", "{distro} {processor} ({system} kernel {release})".format(**locals())
+        yield "OS", "{distro} {processor} ({system} kernel {release})".format(
+            **locals())
+
 
 class ProcFileData(object):
     """
@@ -43,6 +46,7 @@ class ProcFileData(object):
     implements(IHostData)
     _proc_file = None
     _parser = None
+
     def callHomeData(self):
         """
         @return:: name, value pairs of host stats for call home
@@ -73,6 +77,7 @@ class ProcFileData(object):
     def _createParser(self):
         return self._parser()
 
+
 class ProcFileParser(object):
 
     @classmethod
@@ -80,6 +85,7 @@ class ProcFileParser(object):
         if not line.strip():
             return None, None
         return [" ".join(word.split()) for word in line.split(":")]
+
 
 class CpuinfoParser(ProcFileParser):
 
@@ -105,7 +111,8 @@ class CpuinfoParser(ProcFileParser):
             cores += count
             dct = dict(tuples)
             cache_size = convert_kb(dct["cache size"])
-            yield "CPU", "{dct[model name]} ({cache_size} cache)".format(**locals())
+            yield "CPU", "{dct[model name]} ({cache_size} cache)".format(
+                **locals())
         yield "CPU Cores", cores
 
     def _summarize(self):
@@ -123,7 +130,7 @@ class CpuinfoParser(ProcFileParser):
                 self._summaries[key] = 1
 
 
-class CpuProcFileData(ProcFileData ):
+class CpuProcFileData(ProcFileData):
     _proc_file = "/proc/cpuinfo"
     _parser = CpuinfoParser
 
@@ -144,7 +151,9 @@ class MemoryStat(object):
                 stat[1] = convert_kb(value, key.endswith("Total"))
 
     def __repr__(self):
-        return "{self._free[1]} of {self._total[1]} available".format(**locals())
+        return "{self._free[1]} of {self._total[1]} available".format(
+            **locals())
+
 
 class MeminfoParser(ProcFileParser):
 
@@ -163,7 +172,6 @@ class MeminfoParser(ProcFileParser):
             yield stat.label, str(stat)
 
 
-
 class MemProcFileData(ProcFileData):
     _proc_file = "/proc/meminfo"
     _parser = MeminfoParser
@@ -179,6 +187,7 @@ class CommandData(object):
     """
     _args = []
     _parser = None
+
     def callHomeData(self):
         """
         @return:: name, value pairs of host stats for call home
@@ -204,6 +213,7 @@ class CommandData(object):
     def _osErrorOutputHandler(self):
         return tuple()
 
+
 class FilesystemInfo(object):
 
     def __init__(self, mounted_on="", size=None, avail=None):
@@ -216,7 +226,8 @@ class FilesystemInfo(object):
         return cmp(self.mounted_on, other_fs_info.mounted_on)
 
     def __repr__(self):
-        repr_ = "'{self.mounted_on}', {self.avail} of {self.size} available".format(**locals())
+        repr_ = ("'{self.mounted_on}', " +
+                 "{self.avail} of {self.size} available").format(**locals())
         if self.supporting:
             supporting = ", ".join(self.supporting)
             repr_ = "{repr_} (supports {supporting})".format(**locals())
@@ -235,13 +246,17 @@ class DfParser(object):
         if not line.startswith("/"):
             return
         filesystem, size, used, avail, use_pct, mounted_on = line.split()
-        fs_info = FilesystemInfo(mounted_on, convert_kb(size), convert_kb(avail, False))
+        fs_info = FilesystemInfo(mounted_on, convert_kb(size), convert_kb(
+                avail, False))
 
         for environ_var in zenhome, zendshome, rabbitmq_mnesia_base:
-            if environ_var.value is not None and environ_var.value.startswith(mounted_on):
-                if len(mounted_on) > len(self._zenoss_mounts[environ_var.environ_key]):
+            if environ_var.value is not None and environ_var.value.startswith(
+                    mounted_on):
+                if len(mounted_on) > len(self._zenoss_mounts[
+                        environ_var.environ_key]):
                     fs_info.supporting.append(environ_var.environ_key)
-                    self._zenoss_mounts[environ_var.environ_key] = fs_info.mounted_on
+                    self._zenoss_mounts[environ_var.environ_key] = \
+                        fs_info.mounted_on
 
         self._filesystems.append(fs_info)
 
@@ -249,6 +264,7 @@ class DfParser(object):
     def output(self):
         for filesystem in self._filesystems:
             yield "Filesystem", str(filesystem)
+
 
 class DfData(CommandData):
     implements(IHostData)
@@ -259,12 +275,14 @@ class DfData(CommandData):
     def _osErrorOutputHandler(self):
         yield "Filesystem", "Not Available"
 
+
 class HostId(CommandData):
-    implements  (IHostData)
-    _args =['hostid']
+    implements(IHostData)
+    _args = ['hostid']
+
     def __init__(self):
         self._parser = HostId
-        self._hostId=None
+        self._hostId = None
 
     def parse(self, line):
         self._hostId = line
@@ -293,12 +311,14 @@ class RpmParser(object):
             label = "%s - %s" % (label, self._key)
         yield label, self._output
 
+
 class RPMData(CommandData):
 
     def __init__(self, rpm_arg):
-        super(RPMData,self).__init__()
+        super(RPMData, self).__init__()
         self._rpm_arg = rpm_arg
-        if os.path.exists("/etc/redhat-release") or os.path.exists("/etc/SuSe-release"):
+        if os.path.exists("/etc/redhat-release") or \
+                os.path.exists("/etc/SuSe-release"):
             self._rpm_support = True
             self._args = ["rpm", "-q", rpm_arg]
         else:
@@ -323,22 +343,30 @@ class ZenossRPMData(RPMData):
     implements(IZenossEnvData)
 
     def __init__(self):
-        super(ZenossRPMData,self).__init__('zenoss')
+        super(ZenossRPMData, self).__init__('zenoss')
+
 
 class ZenDSRPMData(RPMData):
     implements(IZenossEnvData)
+
     def __init__(self):
-        super(ZenDSRPMData,self).__init__('zends')
+        super(ZenDSRPMData, self).__init__('zends')
+
 
 class CoreZenpackRPMData(RPMData):
     implements(IZenossEnvData)
+
     def __init__(self):
-        super(CoreZenpackRPMData,self).__init__('zenoss-core-zenpacks')
+        super(CoreZenpackRPMData, self).__init__('zenoss-core-zenpacks')
+
 
 class EnterpriseZenpackRPMData(RPMData):
     implements(IZenossEnvData)
+
     def __init__(self):
-        super(EnterpriseZenpackRPMData,self).__init__('zenoss-enterprise-zenpacks')
+        super(EnterpriseZenpackRPMData, self).__init__(
+            'zenoss-enterprise-zenpacks')
+
 
 class Zenhome(object):
 
@@ -408,23 +436,30 @@ rabbitmq_mnesia_base = RabbitmqMnesiaBase()
 
 class ZenHomeData(object):
     implements(IZenossEnvData)
+
     def callHomeData(self):
         return zenhome.generate()
 
+
 class ZenDSHomeData(object):
     implements(IZenossEnvData)
+
     def callHomeData(self):
         return zendshome.generate()
 
+
 class RabbitData(object):
     implements(IZenossEnvData)
+
     def callHomeData(self):
         return rabbitmq_mnesia_base.generate()
+
 
 def convert_kb(kb_str, round_up=True):
     units = ['YB', 'ZB', 'EB', 'PB', 'TB', 'GB', 'MB', 'KB']
     quantity = int(kb_str.translate(None, string.ascii_letters))
-    while quantity > (1024 - (1024 * 0.05)): # 5 percent fudge factor for rounding up
+    # 5 percent fudge factor for rounding up
+    while quantity > (1024 - (1024 * 0.05)):
         quantity = quantity / 1024.0
         units.pop()
     unit = units.pop()
