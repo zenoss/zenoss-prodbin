@@ -22,14 +22,16 @@ from Products.Five import zcml
 
 import Products.ZenCallHome
 from Products.ZenCallHome import ICallHomeCollector
-from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, \
-                                          EXTERNAL_ERROR_KEY, \
-                                          REPORT_DATE_KEY, \
-                                          VERSION_HISTORIES_KEY
-from Products.ZenCallHome.VersionHistory import VERSION_START_KEY, \
-        KeyedVersionHistoryCallHomeCollector
-from Products.ZenCallHome.transport \
-        import CallHome, CallHomeData as PersistentCallHomeData
+from Products.ZenCallHome.callhome import (CallHomeCollector, CallHomeData,
+                                           EXTERNAL_ERROR_KEY,
+                                           REPORT_DATE_KEY,
+                                           VERSION_HISTORIES_KEY)
+from Products.ZenCallHome.VersionHistory import (
+        VERSION_START_KEY,
+        KeyedVersionHistoryCallHomeCollector)
+from Products.ZenCallHome.transport import (
+                                       CallHome,
+                                       CallHomeData as PersistentCallHomeData)
 
 DATETIME_ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 

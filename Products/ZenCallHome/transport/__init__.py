@@ -67,11 +67,20 @@ class CallHome(object):
         # If we have waited long enough between checkings or attempts (or one
         # has been requested), and we have metrics to send and are not
         # currently updating them, then attempt a callhome
-        if (now - self.callHome.lastAttempt[method] > CHECKIN_ATTEMPT_WAIT and
-            now - self.callHome.lastSuccess > CHECKIN_WAIT) or \
-                self.callHome.requestCallhome:
-            if (self.callHome.metrics and
-                    not self.callHome.requestMetricsGather):
+        if (
+             (
+              now - self.callHome.lastAttempt[method] > CHECKIN_ATTEMPT_WAIT
+              and
+              now - self.callHome.lastSuccess > CHECKIN_WAIT
+             )
+             or
+             self.callHome.requestCallhome
+           ):
+            if (
+                self.callHome.metrics
+                and
+                not self.callHome.requestMetricsGather
+               ):
                 self.callHome.lastAttempt[method] = now
                 self.callHome.requestCallhome = False
                 return True

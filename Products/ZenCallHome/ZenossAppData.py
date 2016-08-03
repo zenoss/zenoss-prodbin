@@ -9,9 +9,9 @@
 
 
 import time
-from Products.ZenCallHome import IZenossData, IDeviceResource, \
-                                 IDeviceCpuCount, IDeviceType, \
-                                 IVirtualDeviceType
+from Products.ZenCallHome import (IZenossData, IDeviceResource,
+                                  IDeviceCpuCount, IDeviceType,
+                                  IVirtualDeviceType)
 from zope.interface import implements
 from zope.component import subscribers, getAdapters
 from Products.Zuul import getFacade
@@ -72,13 +72,13 @@ class ZenossAppData(object):
         yield "Google Key", self.dmd.geomapapikey
 
     def version(self):
-        yield "Zenoss Version", \
-            "{self.dmd.version}".format(**locals())
+        yield ("Zenoss Version",
+               "{self.dmd.version}".format(**locals()))
 
     def zenpacks(self):
         for zenpack in self.dmd.ZenPackManager.packs():
-            yield "Zenpack", \
-                "{zenpack.id} {zenpack.version}".format(**locals())
+            yield ("Zenpack",
+                   "{zenpack.id} {zenpack.version}".format(**locals()))
 
     def all_versions(self):
         for version in self.dmd.About.getAllVersions():
@@ -109,8 +109,8 @@ class ZenossAppData(object):
     def event_count(self):
         zep = getFacade('zep', self.dmd)
         try:
-            yield "Event Count", \
-                zep.countEventsSince(time.time() - 24 * 60 * 60)
+            yield ("Event Count",
+                   zep.countEventsSince(time.time() - 24 * 60 * 60))
         except ZepConnectionError:
             yield "Event Count: last 24hr", "Not Available"
 

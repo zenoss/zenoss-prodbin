@@ -27,8 +27,10 @@ def _getEnv():
 
 
 def encrypt(stringToEncrypt, publicKey):
-    cmd = GPGCMD + '--keyring %s --trustdb-name %s -e -r %s' % \
-          (CRYPTPATH + '/pubring.gpg', CRYPTPATH + '/trustdb.gpg', publicKey)
+    cmd = (GPGCMD + '--keyring %s --trustdb-name %s -e -r %s' %
+           (CRYPTPATH + '/pubring.gpg',
+            CRYPTPATH + '/trustdb.gpg',
+            publicKey))
 
     p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, env=_getEnv(),
                          stdout=subprocess.PIPE, stderr=open(os.devnull))

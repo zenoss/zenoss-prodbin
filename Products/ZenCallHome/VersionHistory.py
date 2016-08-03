@@ -11,8 +11,8 @@
 import Globals # noqa F401
 from zope.interface import implements
 from Products.ZenCallHome import IVersionHistoryCallHomeCollector
-from Products.ZenCallHome.callhome import REPORT_DATE_KEY, \
-                                          VERSION_HISTORIES_KEY
+from Products.ZenCallHome.callhome import (REPORT_DATE_KEY,
+                                           VERSION_HISTORIES_KEY)
 import logging
 log = logging.getLogger("zen.callhome")
 
@@ -63,13 +63,13 @@ class KeyedVersionHistoryCallHomeCollector(VersionHistoryCallHomeCollector):
     """
 
     def __init__(self, versionedEntity, historyRecordKeys=[]):
-        super(KeyedVersionHistoryCallHomeCollector, self).\
-            __init__(versionedEntity)
+        super(KeyedVersionHistoryCallHomeCollector,
+              self).__init__(versionedEntity)
         self._historyRecordKeys = historyRecordKeys
 
     def createVersionHistoryRecord(self, dmd, callHomeData):
-        record = super(KeyedVersionHistoryCallHomeCollector, self).\
-                     createVersionHistoryRecord(dmd, callHomeData)
+        record = super(KeyedVersionHistoryCallHomeCollector,
+                       self).createVersionHistoryRecord(dmd, callHomeData)
         if self._historyRecordKeys:
             for hrKey, targetKey in self._historyRecordKeys.iteritems():
                 value = self.getKeyedValue(hrKey, callHomeData)
