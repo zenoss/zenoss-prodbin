@@ -41,6 +41,18 @@ class IMasterCallHomeCollector(Interface):
         @rtype: dict
         """
 
+class IVersionHistoryCallHomeCollector(Interface):
+    """
+    Implementers provide version history records 
+    """
+    
+    def addVersionHistory(self, dmd, callHomeData):
+        """
+        Create records to be added to version history
+        @param the callhome data that will be modified
+               then sent
+        """
+
 class IHostData(Interface):
     """
     Used to gather Host machine statistics for call home
