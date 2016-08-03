@@ -445,7 +445,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                     self.log.critical("Unknown device loader '%s'", loaderName)
                     sys.exit(1)
                 except Exception:
-                    devName = device_specs.get('device_specs', 'Unkown Device')
+                    devName = device_specs.get('device_specs', 'Unknown Device')
                     msg = "Ignoring device loader issue for %s" % devName
                     self.reportException(msg, devName, specs=str(device_specs))
                     processed['errors'] += 1
