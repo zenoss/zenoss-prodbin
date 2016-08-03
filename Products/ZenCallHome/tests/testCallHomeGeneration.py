@@ -9,12 +9,11 @@
 
 
 import time
-import unittest
 import json
 
 from datetime import datetime
 
-import Globals
+import Globals # noqa F401
 
 from zope.interface import Interface, implements
 
@@ -23,65 +22,68 @@ from Products.Five import zcml
 
 import Products.ZenCallHome
 from Products.ZenCallHome import ICallHomeCollector
-from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, EXTERNAL_ERROR_KEY, REPORT_DATE_KEY, VERSION_HISTORIES_KEY
-from Products.ZenCallHome.VersionHistory import KeyedVersionHistoryCallHomeCollector, \
-                                                VERSION_START_KEY
-from Products.ZenCallHome.transport import CallHome, CallHomeData as PersistentCallHomeData
-from Products.ZenCallHome.transport.crypt import decrypt
+from Products.ZenCallHome.callhome import CallHomeCollector, CallHomeData, \
+                                          EXTERNAL_ERROR_KEY, \
+                                          REPORT_DATE_KEY, \
+                                          VERSION_HISTORIES_KEY
+from Products.ZenCallHome.VersionHistory import VERSION_START_KEY, \
+        KeyedVersionHistoryCallHomeCollector
+from Products.ZenCallHome.transport \
+        import CallHome, CallHomeData as PersistentCallHomeData
 
-DATETIME_ISOFORMAT='%Y-%m-%dT%H:%M:%S.%f'
+DATETIME_ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
-TEST_DATA="""
+TEST_DATA = """
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
-      <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.TestCallHomeData"
+     <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.TestCallHomeData"
                provides="Products.ZenCallHome.tests.testCallHomeGeneration.ITestCallHomeData"
                name="testdata"/>
       </configure>
-"""
+""" # noqa E501
 
-FAILING_TEST_DATA="""
+FAILING_TEST_DATA = """
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
       <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.FailingTestCallHomeData"
                provides="Products.ZenCallHome.tests.testCallHomeGeneration.ITestCallHomeData"
                name="failingtestdata"/>
       </configure>
-"""
+""" # noqa E501
 
-SIMPLE_SUCCESS_COLLECTOR="""
+SIMPLE_SUCCESS_COLLECTOR = """
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
       <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.SimpleSuccessCollector"
                provides="Products.ZenCallHome.ICallHomeCollector"
                name="simplesuccess"/>
       </configure>
-"""
+""" # noqa E501
 
-SIMPLE_SUCCESS_KEY="simplesuccess"
+SIMPLE_SUCCESS_KEY = "simplesuccess"
 
-FAST_FAIL_COLLECTOR="""
+FAST_FAIL_COLLECTOR = """
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
      <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.FastFailCollector"
                      provides="Products.ZenCallHome.ICallHomeCollector"
                      name="fastfail"/>
      </configure>
-"""
+""" # noqa E501
 
-FAST_FAIL_KEY="fastfail"
+FAST_FAIL_KEY = "fastfail"
 
-FAST_FAIL_ERROR_MESSAGE="Fast failed at collector level"
-FAILING_DATA_ERROR_MESSAGE="Failed individual test data"
+FAST_FAIL_ERROR_MESSAGE = "Fast failed at collector level"
+FAILING_DATA_ERROR_MESSAGE = "Failed individual test data"
 
-TEST_VERSION_HISTORY_COLLECTOR="""
+TEST_VERSION_HISTORY_COLLECTOR = """
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
      <utility component="Products.ZenCallHome.tests.testCallHomeGeneration.TestVersionHistoryCollector"
                      provides="Products.ZenCallHome.IVersionHistoryCallHomeCollector"
                      name="testversionhistory"/>
      </configure>
-"""
+""" # noqa E501
 
 
 class ITestCallHomeData(Interface):
@@ -91,60 +93,73 @@ class ITestCallHomeData(Interface):
         """
         """
 
+
 class TestCallHomeData(object):
     implements(ITestCallHomeData)
+
     def callHomeData(self):
         yield "test", "test"
+
 
 class FailingTestDataException(Exception):
     pass
 
+
 class FailingTestCallHomeData(object):
     implements(ITestCallHomeData)
+
     def callHomeData(self):
         raise FailingTestDataException(FAILING_DATA_ERROR_MESSAGE)
+
 
 class SimpleSuccessCollector(CallHomeCollector):
     """
     Default success collector as a control variable
     """
     implements(ICallHomeCollector)
+
     def __init__(self):
-        super(SimpleSuccessCollector,self).__init__(ITestCallHomeData)
-        self._key=SIMPLE_SUCCESS_KEY
+        super(SimpleSuccessCollector, self).__init__(ITestCallHomeData)
+        self._key = SIMPLE_SUCCESS_KEY
+
 
 class FastFailTestException(Exception):
     pass
+
 
 class FastFailCollector(CallHomeCollector):
     """
     Default success collector as a control variable
     """
     implements(ICallHomeCollector)
+
     def __init__(self):
-        super(FastFailCollector,self).__init__(ITestCallHomeData)
-        self._key=FAST_FAIL_KEY
+        super(FastFailCollector, self).__init__(ITestCallHomeData)
+        self._key = FAST_FAIL_KEY
 
     def generateData(self):
         raise FastFailTestException(FAST_FAIL_ERROR_MESSAGE)
 
-TEST_VERSION_HISTORY_ENTITY="testentity"
+TEST_VERSION_HISTORY_ENTITY = "testentity"
 TEST_VERSION_1 = "testversion1"
 TEST_VERSION_2 = "testversion2"
 TEST_CURRENT_VERSION = TEST_VERSION_1
 
+
 def returnHistory():
     return TEST_CURRENT_VERSION
+
 
 class TestVersionHistoryCollector(KeyedVersionHistoryCallHomeCollector):
     """
     """
     def __init__(self):
-        super(TestVersionHistoryCollector,self).__init__( TEST_VERSION_HISTORY_ENTITY,
-                                                          {} )
+        super(TestVersionHistoryCollector, self).__init__(
+                  TEST_VERSION_HISTORY_ENTITY, {})
 
-    def getCurrentVersion(self,dmd,callHomeData):
+    def getCurrentVersion(self, dmd, callHomeData):
         return returnHistory()
+
 
 class testCallHomeGeneration(BaseTestCase):
 
@@ -158,7 +173,7 @@ class testCallHomeGeneration(BaseTestCase):
 
     def checkForExistingCallHomeData(self):
         try:
-            self.dmd.callHome 
+            self.dmd.callHome
             self.fail("New zodb instance should not have callhome data")
         except AttributeError:
             pass
@@ -168,30 +183,31 @@ class testCallHomeGeneration(BaseTestCase):
         self.checkForExistingCallHomeData()
 
         # register bad acting callhome collector via zcml (or directly)
-        zcml.load_string( TEST_DATA )
-        zcml.load_string( SIMPLE_SUCCESS_COLLECTOR )
-        zcml.load_string( FAST_FAIL_COLLECTOR )
+        zcml.load_string(TEST_DATA)
+        zcml.load_string(SIMPLE_SUCCESS_COLLECTOR)
+        zcml.load_string(FAST_FAIL_COLLECTOR)
 
         # call callhome scripting
         chd = CallHomeData(self.dmd, True)
         data = chd.getData()
 
-        # make sure report has data from default collectors and 
+        # make sure report has data from default collectors and
         # successful collector, but not the failing collector
-        self.assertTrue( "Zenoss Env Data" in data )
-        self.assertTrue( SIMPLE_SUCCESS_KEY in data )
-        self.assertTrue( FAST_FAIL_KEY not in data )
-        self.assertTrue( EXTERNAL_ERROR_KEY in data )
-        self.assertEquals( FAST_FAIL_ERROR_MESSAGE, data[EXTERNAL_ERROR_KEY][0]['exception'] )
+        self.assertTrue("Zenoss Env Data" in data)
+        self.assertTrue(SIMPLE_SUCCESS_KEY in data)
+        self.assertTrue(FAST_FAIL_KEY not in data)
+        self.assertTrue(EXTERNAL_ERROR_KEY in data)
+        self.assertEquals(FAST_FAIL_ERROR_MESSAGE,
+                          data[EXTERNAL_ERROR_KEY][0]['exception'])
 
     def testConstituentDataFailure(self):
         # check current version of report (should be empty?)
         self.checkForExistingCallHomeData()
-        
+
         # register bad acting callhome collector via zcml (or directly)
-        zcml.load_string( FAILING_TEST_DATA )
-        zcml.load_string( TEST_DATA )
-        zcml.load_string( SIMPLE_SUCCESS_COLLECTOR )
+        zcml.load_string(FAILING_TEST_DATA)
+        zcml.load_string(TEST_DATA)
+        zcml.load_string(SIMPLE_SUCCESS_COLLECTOR)
 
         # call callhome scripting
         chd = CallHomeData(self.dmd, True)
@@ -201,17 +217,18 @@ class testCallHomeGeneration(BaseTestCase):
         # specifically make sure that simple success section is present
         # and that the successful data entry is there and the failed
         # entry is not
-        self.assertTrue( "Zenoss Env Data" in data )
-        self.assertTrue( SIMPLE_SUCCESS_KEY in data )
+        self.assertTrue("Zenoss Env Data" in data)
+        self.assertTrue(SIMPLE_SUCCESS_KEY in data)
         successData = data[SIMPLE_SUCCESS_KEY]
-        self.assertTrue( "test" in successData )
-        self.assertTrue( EXTERNAL_ERROR_KEY in data )
-        self.assertEquals( FAILING_DATA_ERROR_MESSAGE, data[EXTERNAL_ERROR_KEY][0]['exception'] )
+        self.assertTrue("test" in successData)
+        self.assertTrue(EXTERNAL_ERROR_KEY in data)
+        self.assertEquals(FAILING_DATA_ERROR_MESSAGE,
+                          data[EXTERNAL_ERROR_KEY][0]['exception'])
 
     def testPayloadGeneration(self):
         # check current version of report (should be empty)
         self.checkForExistingCallHomeData()
-        
+
         # call callhome scripting
         beforeReportGeneration = datetime.utcnow()
         chd = CallHomeData(self.dmd, True)
@@ -223,45 +240,49 @@ class testCallHomeGeneration(BaseTestCase):
         # Unfortunately the cycler code can't be disentagled
         # from itself for testability so we have to mimic it
         # for this test case.
-        # What happens is that CallHomeCycler 
+        # What happens is that CallHomeCycler
         # kicks off the callhome script (callhome.py)
         # and takes the process output as a string
         # and stores it in the callhome object
         # in zodb (dmd.callHome). In callhome.py you can
-        # see that the Main class spits out the 
+        # see that the Main class spits out the
         # json.dumps of the output of CallHomeData.getData.
         self.dmd.callHome = PersistentCallHomeData()
-        self.dmd.callHome.metrics = json.dumps( data )
+        self.dmd.callHome.metrics = json.dumps(data)
 
         # create the actual payload that will be sent
         beforePayloadGeneration = datetime.utcnow()
-        payloadGenerator = CallHome( self.dmd )
-        payload = payloadGenerator.get_payload(False)
+        payloadGenerator = CallHome(self.dmd)
+        payload = payloadGenerator.get_payload(doEncrypt=False)
         afterPayloadGeneration = datetime.utcnow()
 
         # decrypt payload and reconstitute object
-        payloadObj = json.loads( payload )
-       
+        payloadObj = json.loads(payload)
+
         # make sure payload has the required fields
-        self.assertTrue( 'product' in payloadObj )
-        self.assertTrue( 'uuid' in payloadObj )
-        self.assertTrue( 'symkey' in payloadObj )
-        self.assertTrue( 'metrics' in payloadObj )
-       
+        self.assertTrue('product' in payloadObj)
+        self.assertTrue('uuid' in payloadObj)
+        self.assertTrue('symkey' in payloadObj)
+        self.assertTrue('metrics' in payloadObj)
+
         # reconstitute metrics obj & make sure send date is present
         # and has a valid time
-        metricsObj = json.loads( payloadObj['metrics'] )
-        self.assertTrue( 'Send Date' in metricsObj )
-        sendDateDT = datetime.strptime( metricsObj['Send Date'], DATETIME_ISOFORMAT )
-        reportDateDT = datetime.strptime( metricsObj['Report Date'], DATETIME_ISOFORMAT )
-        self.assertTrue( reportDateDT < sendDateDT )
-        self.assertTrue( beforeReportGeneration <= reportDateDT <= afterReportGeneration )
-        self.assertTrue( beforePayloadGeneration <= sendDateDT <= afterPayloadGeneration )
-        
+        metricsObj = json.loads(payloadObj['metrics'])
+        self.assertTrue('Send Date' in metricsObj)
+        sendDateDT = datetime.strptime(metricsObj['Send Date'],
+                                       DATETIME_ISOFORMAT)
+        reportDateDT = datetime.strptime(metricsObj['Report Date'],
+                                         DATETIME_ISOFORMAT)
+        self.assertTrue(reportDateDT < sendDateDT)
+        self.assertTrue(beforeReportGeneration <= reportDateDT
+                        <= afterReportGeneration)
+        self.assertTrue(beforePayloadGeneration <= sendDateDT
+                        <= afterPayloadGeneration)
+
     def testZenossVersionHistory(self):
         # check current version of report (should be empty?)
         self.checkForExistingCallHomeData()
-        
+
         # call callhome scripting
         chd = CallHomeData(self.dmd, True)
         data = chd.getData()
@@ -269,24 +290,23 @@ class testCallHomeGeneration(BaseTestCase):
         zenossVersion = data['Zenoss App Data']['Zenoss']
 
         # make sure report has Zenoss version history record
-        self.assertTrue( VERSION_HISTORIES_KEY in data )
-        versionHistories = data[VERSION_HISTORIES_KEY] 
-        self.assertTrue( 'Zenoss' in versionHistories )
+        self.assertTrue(VERSION_HISTORIES_KEY in data)
+        versionHistories = data[VERSION_HISTORIES_KEY]
+        self.assertTrue('Zenoss' in versionHistories)
         versionHistory = versionHistories['Zenoss']
-        self.assertTrue( zenossVersion in versionHistory )
-        historyRecord = versionHistory[ zenossVersion ]
-        self.assertTrue( VERSION_START_KEY in historyRecord )
-        self.assertEquals( reportDate, historyRecord[VERSION_START_KEY] )
+        self.assertTrue(zenossVersion in versionHistory)
+        historyRecord = versionHistory[zenossVersion]
+        self.assertTrue(VERSION_START_KEY in historyRecord)
+        self.assertEquals(reportDate, historyRecord[VERSION_START_KEY])
 
     def testSavedVersionHistory(self):
         # check current version of report (should be empty)
         self.checkForExistingCallHomeData()
-        
+
         # set up test version history collector
-        zcml.load_string( TEST_VERSION_HISTORY_COLLECTOR )
+        zcml.load_string(TEST_VERSION_HISTORY_COLLECTOR)
 
         # generate callhome
-        beforeReportGeneration = datetime.utcnow()
         chd = CallHomeData(self.dmd, True)
         data = chd.getData()
         firstReportDate = data[REPORT_DATE_KEY]
@@ -294,20 +314,20 @@ class testCallHomeGeneration(BaseTestCase):
         time.sleep(1)
 
         # make sure version history record is present and correct
-        self.assertTrue( VERSION_HISTORIES_KEY in data )
-        versionHistories = data[VERSION_HISTORIES_KEY] 
-        self.assertTrue( TEST_VERSION_HISTORY_ENTITY in versionHistories )
+        self.assertTrue(VERSION_HISTORIES_KEY in data)
+        versionHistories = data[VERSION_HISTORIES_KEY]
+        self.assertTrue(TEST_VERSION_HISTORY_ENTITY in versionHistories)
         versionHistory = versionHistories[TEST_VERSION_HISTORY_ENTITY]
-        self.assertTrue( TEST_VERSION_1 in versionHistory )
-        historyRecord = versionHistory[ TEST_VERSION_1 ]
-        self.assertTrue( VERSION_START_KEY in historyRecord )
-        self.assertEquals( firstReportDate, historyRecord[VERSION_START_KEY] )
+        self.assertTrue(TEST_VERSION_1 in versionHistory)
+        historyRecord = versionHistory[TEST_VERSION_1]
+        self.assertTrue(VERSION_START_KEY in historyRecord)
+        self.assertEquals(firstReportDate, historyRecord[VERSION_START_KEY])
 
         # The cycler code is where the saving of
         # callhome data in ZODB occurs. We'll have
         # to mimic that again here.
         self.dmd.callHome = PersistentCallHomeData()
-        self.dmd.callHome.metrics = json.dumps( data )
+        self.dmd.callHome.metrics = json.dumps(data)
 
         # update the version history
         global TEST_CURRENT_VERSION
@@ -319,28 +339,73 @@ class testCallHomeGeneration(BaseTestCase):
         secondReportDate = data[REPORT_DATE_KEY]
 
         # make sure a second version history record exists
-        self.assertTrue( VERSION_HISTORIES_KEY in data )
-        versionHistories = data[VERSION_HISTORIES_KEY] 
-        self.assertTrue( TEST_VERSION_HISTORY_ENTITY in versionHistories )
+        self.assertTrue(VERSION_HISTORIES_KEY in data)
+        versionHistories = data[VERSION_HISTORIES_KEY]
+        self.assertTrue(TEST_VERSION_HISTORY_ENTITY in versionHistories)
         versionHistory = versionHistories[TEST_VERSION_HISTORY_ENTITY]
-        self.assertTrue( TEST_VERSION_1 in versionHistory )
-        historyRecord = versionHistory[ TEST_VERSION_1 ]
-        self.assertTrue( VERSION_START_KEY in historyRecord )
-        self.assertEquals( firstReportDate, historyRecord[VERSION_START_KEY] )
-        self.assertTrue( TEST_VERSION_2 in versionHistory )
-        historyRecord = versionHistory[ TEST_VERSION_2 ]
-        self.assertTrue( VERSION_START_KEY in historyRecord )
-        self.assertEquals( secondReportDate, historyRecord[VERSION_START_KEY] )
+        self.assertTrue(TEST_VERSION_1 in versionHistory)
+        historyRecord = versionHistory[TEST_VERSION_1]
+        self.assertTrue(VERSION_START_KEY in historyRecord)
+        self.assertEquals(firstReportDate, historyRecord[VERSION_START_KEY])
+        self.assertTrue(TEST_VERSION_2 in versionHistory)
+        historyRecord = versionHistory[TEST_VERSION_2]
+        self.assertTrue(VERSION_START_KEY in historyRecord)
+        self.assertEquals(secondReportDate, historyRecord[VERSION_START_KEY])
+
+    def testSendMethod(self):
+        # check current version of report (should be empty)
+        self.checkForExistingCallHomeData()
+
+        # call callhome scripting
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData()
+
+        # Unfortunately the cycler code can't be disentagled
+        # from itself for testability so we have to mimic it
+        # for this test case.
+        # What happens is that CallHomeCycler
+        # kicks off the callhome script (callhome.py)
+        # and takes the process output as a string
+        # and stores it in the callhome object
+        # in zodb (dmd.callHome). In callhome.py you can
+        # see that the Main class spits out the
+        # json.dumps of the output of CallHomeData.getData.
+        self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = json.dumps(data)
+
+        # create the actual payload that will be sent
+        payloadGenerator = CallHome(self.dmd)
+        payload = payloadGenerator.get_payload(doEncrypt=False)
+
+        # reconstitute object
+        payloadObj = json.loads(payload)
+
+        # reconstitute metrics obj & make sure send date is present
+        # and has a valid time
+        metricsObj = json.loads(payloadObj['metrics'])
+        self.assertTrue('Send Method' in metricsObj)
+        self.assertEquals('directpost', metricsObj['Send Method'])
+
+        # Fetch the payload the browserjs way
+        payloadGenerator = CallHome(self.dmd)
+        payload = payloadGenerator.get_payload(method='browserjs',
+                                               doEncrypt=False)
+
+        # reconstitute object
+        payloadObj = json.loads(payload)
+
+        # reconstitute metrics obj & make sure send date is present
+        # and has a valid time
+        metricsObj = json.loads(payloadObj['metrics'])
+        self.assertTrue('Send Method' in metricsObj)
+        self.assertEquals('browserjs', metricsObj['Send Method'])
 
     #
     # UNFORTUNATELY CANNOT EASILY UNIT TEST TIMEOUTS BECAUSE
     # OF THE CROSS-PROCESS STEPS
     #
-    #def testTimeOutCallHomeCollector(self):
-        # check current version of report (should be empty?)
-        # register bad acting callhome collector via zcml (or directly)
-        # call callhome scripting
-        # make sure report has basic values even though part failed 
+    # def testTimeOutCallHomeCollector(self):
+    #
 
 
 def test_suite():
@@ -348,6 +413,3 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(testCallHomeGeneration))
     return suite
-
-if __name__=="__main__":
-    framework()
