@@ -57,6 +57,20 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         return self._object.titleOrId()
 
     @property
+    def titleGroup(self):
+        """
+        For multi graph reports we need group name in title.
+        """
+        obj = self._object
+        if hasattr(obj, "getGraphGroups"):
+            for group in obj.getGraphGroups():
+                if obj.id == group.graphDefId:
+                    groupName = group.titleOrId()
+        else:
+            groupName = obj.titleOrId()
+        return groupName    
+
+    @property
     def contextTitle(self):
         """
         For the reports we need the context in the title.
@@ -64,7 +78,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
-        return "%s - %s" % (self._object.getGraphGroups()[0].titleOrId(), title)
+        return "%s - %s" % (self.titleGroup, title)
 
     @property
     def type(self):
@@ -338,7 +352,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        return self._object.getGraphGroups()[0].titleOrId()
+        return self.titleGroup
 
     def _getGraphPoints(self, klass):
         """
