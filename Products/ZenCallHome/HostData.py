@@ -35,8 +35,9 @@ class PlatformData(object):
         processor = platform.processor()
         system = platform.system()
         release = platform.release()
-        yield "OS", "{distro} {processor} ({system} kernel {release})".format(
-            **locals())
+        yield ("OS",
+               "{distro} {processor} "
+               "({system} kernel {release})".format(**locals()))
 
 
 class ProcFileData(object):
@@ -111,8 +112,8 @@ class CpuinfoParser(ProcFileParser):
             cores += count
             dct = dict(tuples)
             cache_size = convert_kb(dct["cache size"])
-            yield "CPU", "{dct[model name]} ({cache_size} cache)".format(
-                **locals())
+            yield ("CPU",
+                   "{dct[model name]} ({cache_size} cache)".format(**locals()))
         yield "CPU Cores", cores
 
     def _summarize(self):
@@ -151,8 +152,8 @@ class MemoryStat(object):
                 stat[1] = convert_kb(value, key.endswith("Total"))
 
     def __repr__(self):
-        return "{self._free[1]} of {self._total[1]} available".format(
-            **locals())
+        return ("{self._free[1]} of "
+                "{self._total[1]} available").format(**locals())
 
 
 class MeminfoParser(ProcFileParser):
@@ -226,7 +227,7 @@ class FilesystemInfo(object):
         return cmp(self.mounted_on, other_fs_info.mounted_on)
 
     def __repr__(self):
-        repr_ = ("'{self.mounted_on}', " +
+        repr_ = ("'{self.mounted_on}', "
                  "{self.avail} of {self.size} available").format(**locals())
         if self.supporting:
             supporting = ", ".join(self.supporting)
@@ -252,11 +253,10 @@ class DfParser(object):
         for environ_var in zenhome, zendshome, rabbitmq_mnesia_base:
             if environ_var.value is not None and environ_var.value.startswith(
                     mounted_on):
-                if len(mounted_on) > len(self._zenoss_mounts[
-                        environ_var.environ_key]):
-                    fs_info.supporting.append(environ_var.environ_key)
-                    self._zenoss_mounts[environ_var.environ_key] = \
-                        fs_info.mounted_on
+                key = environ_var.environ_key
+                if len(mounted_on) > len(self._zenoss_mounts[key]):
+                    fs_info.supporting.append(key)
+                    self._zenoss_mounts[key] = fs_info.mounted_on
 
         self._filesystems.append(fs_info)
 
@@ -317,8 +317,11 @@ class RPMData(CommandData):
     def __init__(self, rpm_arg):
         super(RPMData, self).__init__()
         self._rpm_arg = rpm_arg
-        if os.path.exists("/etc/redhat-release") or \
-                os.path.exists("/etc/SuSe-release"):
+        if (
+            os.path.exists("/etc/redhat-release")
+            or
+            os.path.exists("/etc/SuSe-release")
+           ):
             self._rpm_support = True
             self._args = ["rpm", "-q", rpm_arg]
         else:

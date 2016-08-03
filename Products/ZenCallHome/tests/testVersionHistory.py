@@ -14,8 +14,10 @@ import Globals # noqa F401
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenCallHome.callhome import REPORT_DATE_KEY
-from Products.ZenCallHome.VersionHistory import VERSION_HISTORIES_KEY, \
-        KeyedVersionHistoryCallHomeCollector, VERSION_START_KEY
+from Products.ZenCallHome.VersionHistory import (
+        VERSION_START_KEY,
+        VERSION_HISTORIES_KEY,
+        KeyedVersionHistoryCallHomeCollector)
 
 
 TEST_ENTITY = "testentity"

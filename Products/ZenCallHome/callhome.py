@@ -15,10 +15,10 @@ from datetime import datetime
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 
-from Products.ZenCallHome import IZenossData, IHostData, IZenossEnvData, \
-                                 ICallHomeCollector, \
-                                 IMasterCallHomeCollector, \
-                                 IVersionHistoryCallHomeCollector
+from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
+                                  ICallHomeCollector,
+                                  IMasterCallHomeCollector,
+                                  IVersionHistoryCallHomeCollector)
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
 import logging
@@ -63,9 +63,9 @@ class CallHomeCollector(object):
                                 key=name,
                                 callhome_collector=self.__class__.__name__,
                                 exception=str(e))
-                log.warn(("Continuing after catching exception while " +
-                          "generating callhome data for collector " +
-                          "%(callhome_collector)s (%(source)s:%(key)s : " +
+                log.warn(("Continuing after catching exception while "
+                          "generating callhome data for collector "
+                          "%(callhome_collector)s (%(source)s:%(key)s : "
                           "%(exception)s") % errorObject)
                 errors.append(errorObject)
         returnValue = {self._key: stats}
@@ -142,7 +142,7 @@ class CallHomeData(object):
                                   callhome_collector=utilClass.__name__,
                                   name=name,
                                   exception=str(e))
-                log.warn(("Caught exception while generating callhome data " +
+                log.warn(("Caught exception while generating callhome data "
                           "%(callhome_collector)s:%(name)s : %(exception)s")
                          % errorObject)
                 errors.append(errorObject)
@@ -160,8 +160,8 @@ class CallHomeData(object):
                                       callhome_collector=utilClass.__name__,
                                       name=name,
                                       exception=str(e))
-                    log.warn(("Caught exception while generating callhome " +
-                              "data %(callhome_collector)s:%(name)s : " +
+                    log.warn(("Caught exception while generating callhome "
+                              "data %(callhome_collector)s:%(name)s : "
                               "%(exception)s") % errorObject)
                     errors.append(errorObject)
         if self._dmd:
@@ -174,8 +174,8 @@ class CallHomeData(object):
                                       callhome_collector=utilClass.__name__,
                                       name=name,
                                       exception=str(e))
-                    log.warn(("Caught exception while adding version " +
-                              "history: %(callhome_collector)s:%(name)s : " +
+                    log.warn(("Caught exception while adding version "
+                              "history: %(callhome_collector)s:%(name)s : "
                               "%(exception)s") % errorObject)
                     errors.append(errorObject)
         if errors:

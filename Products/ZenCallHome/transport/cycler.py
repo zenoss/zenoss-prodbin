@@ -42,10 +42,16 @@ class CallHomeCycler(object):
             self.dmd._p_jar.sync()
 
             # Start metrics gather if needed
-            if (now - self.callhome.lastMetricsGather >
-                GATHER_METRICS_INTERVAL or
-                self.callhome.requestMetricsGather) \
-               and not self.gatherProtocol:
+            if (
+                 (
+                  now - self.callhome.lastMetricsGather >
+                  GATHER_METRICS_INTERVAL
+                  or
+                  self.callhome.requestMetricsGather
+                 )
+                 and not
+                 self.gatherProtocol
+               ):
                 self.gatherProtocol = GatherMetricsProtocol()
                 self.callhome.requestMetricsGather = True
 
