@@ -9,7 +9,7 @@
 
 """MySqlZodbConnection
 """
-
+import uuid
 import logging
 log = logging.getLogger("zen.MySqlZodbFactory")
 
@@ -25,6 +25,8 @@ import _mysql_exceptions as db_exceptions
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.ZodbFactory import IZodbFactory
+
+import memcacheClientWrapper
 
 _DEFAULT_MYSQLPORT = 3306
 _DEFAULT_COMMIT_LOCK_TIMEOUT = 30
@@ -81,6 +83,8 @@ def _getDefaults(options=None):
     return settings
 
 
+
+
 class MySqlZodbFactory(object):
     implements(IZodbFactory)
 
@@ -133,8 +137,11 @@ class MySqlZodbFactory(object):
             socket = _ZENDS_CONFIG.get("socket")
         if socket:
             connectionParams['unix_socket'] = socket
+        wrappedModuleName = 'wrappedMemcache-' + str(uuid.uuid4())
+        memcacheClientWrapper.createModule(wrappedModuleName,
+                server_max_value_length = kwargs.get('zodb_cache_max_object_size'))
         relstoreParams = {
-            'cache_module_name':'memcache',
+            'cache_module_name': wrappedModuleName,
             'keep_history': kwargs.get('zodb_keep_history', False),
             'commit_lock_timeout': kwargs.get(
                 'zodb_commit_lock_timeout', _DEFAULT_COMMIT_LOCK_TIMEOUT)
@@ -199,6 +206,8 @@ class MySqlZodbFactory(object):
         group.add_option('--zodb-poll-interval', dest='zodb_poll_interval', default=None, type='int',
                     help='Defer polling the database for the specified maximum time interval, in seconds.'
                     ' This will default to 60 only if --zodb-cacheservers is set.')
+        group.add_option('--zodb-cache-max-object-size', dest='zodb_cache_max_object_size',
+                    default=None, type='int', help='memcached maximum object size in bytes')
         group.add_option(
             '--zodb-commit-lock-timeout',
             dest='zodb_commit_lock_timeout', default=30, type='int',
