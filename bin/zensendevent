@@ -176,7 +176,8 @@ if not evt['summary']:
     parser.error('no summary supplied')
 evt['device'] = opts.device
 evt['component'] = opts.component
-evt['ipAddress'] = opts.ipAddress
+if opts.ipAddress:
+    evt['ipAddress'] = opts.ipAddress
 if opts.eventkey:
     evt['eventKey'] = opts.eventkey
 if opts.eventClassKey:
