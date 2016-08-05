@@ -664,6 +664,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--prod_state', dest='productionState',
             default=1000, type='int',
             help="Initial production state for discovered devices")
+        self.parser.add_option('--prod-state', dest='productionState',
+            default=1000, type='int',
+            help="Initial production state for discovered devices")
         self.parser.add_option('--location', dest='location',
             default=None,
             help="Initial location for discovered devices")
