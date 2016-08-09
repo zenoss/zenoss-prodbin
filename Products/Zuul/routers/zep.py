@@ -229,7 +229,8 @@ class EventsRouter(DirectRouter):
     def _timeRange(self, value):
         try:
             values = []
-            for t in value.split('/'):
+            splitter = ' TO ' if ' TO ' in value else '/'
+            for t in value.split(splitter):
                 values.append(int(isoToTimestamp(t)) * 1000)
             return values
         except ValueError:
