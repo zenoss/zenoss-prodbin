@@ -23,7 +23,7 @@ from Products.ZenUtils.Ext import DirectRouter
 
 from Products.ZenCallHome.transport import CallHome
 
-JS_CALLHOME_URL = 'http://callhome.zenoss.com/callhome/v2/js'
+JS_CALLHOME_URL = 'https://callhome.zenoss.com/callhome/v2/js'
 MAX_GET_SIZE = 768
 
 logger = logging.getLogger('zen.callhome')
