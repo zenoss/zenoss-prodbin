@@ -86,7 +86,7 @@ class AuthorizationTool(object):
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
         if token is None:
-            log.info("Token is None for sessionid %s", sessionId)
+            log.debug("Token is None for sessionid %s", sessionId)
             return True
         log.debug("Token is %s for sessionid %s", token, sessionId)
         newexp = self._getSessionTimeout()
