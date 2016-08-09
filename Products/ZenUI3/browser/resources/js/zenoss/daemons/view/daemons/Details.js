@@ -74,7 +74,7 @@
                 xtype: 'panel',
                 ref: 'logs',
                 id: 'logs',
-                src: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/logview/#/dashboard/file/zenoss.json",
+                src: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/api/controlplane/kibana",
                 bodyStyle: {
                     overflow: 'hidden'
                 }

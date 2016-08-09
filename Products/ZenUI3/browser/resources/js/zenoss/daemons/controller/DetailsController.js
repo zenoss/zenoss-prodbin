@@ -194,13 +194,14 @@
         },
         showDaemonLogs: function() {
             document.getElementById("logs-body").innerHTML = [
-                "<iframe style='width:100%; height:100%;' src='",
+                "<iframe style='width:100%; height:100%;' src=",
                 location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : ""),
-                "/logview/#/dashboard/file/zenoss.json?query=*",
+                "/api/controlplane/kibana",
+                "/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-15m,mode:quick,to:now))",
+                "&_a=(index:'logstash-*',columns:!(_source),interval:auto,query:(query_string:(analyze_wildcard:!t,query:'*",
                 this.selected.raw.name,
-                "*&title=",
-                this.selected.raw.name, " logs",
-                "'></iframe>"].join('');
+                "')),sort:!('@timestamp',desc))",
+                "></iframe>"].join('');
         },
         showDaemonConfigurationFiles: function() {
             var selected = this.selected,
