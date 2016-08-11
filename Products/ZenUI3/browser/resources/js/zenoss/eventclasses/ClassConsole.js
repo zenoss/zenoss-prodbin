@@ -124,7 +124,6 @@ Ext.onReady(function(){
                     flex:1,
                     dataIndex:'text',
                     renderer:function (value, l, n) {
-                        console.log(value);
                         if(Ext.isString(value)){
                             return value;
                         }
