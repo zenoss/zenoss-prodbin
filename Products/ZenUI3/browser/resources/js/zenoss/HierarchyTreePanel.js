@@ -285,16 +285,19 @@
                                 return value;
                             }
                             var parentNode = n.parentNode,
+                                safeText = Ext.String.htmlEncode(value.text),
+                                safeDescription = Ext.String.htmlEncode(value.description),
                                 count;
+
                             if (Ext.isEmpty(value.count)) {
                                 count = "";
                             } else {
-                                count = Ext.String.format(" <span title='{0}'>({1})</span>", value.description, value.count);
+                                count = Ext.String.format(" <span title='{0}'>({1})</span>", safeDescription, value.count);
                             }
                             if (parentNode.data.root === true) {
-                                return Ext.String.format("<span class='rootNode'>{0}{1}</span>", value.text, count);
+                                return Ext.String.format("<span class='rootNode'>{0}{1}</span>", safeText, count);
                             } else {
-                                return Ext.String.format("<span class='subNode'>{0}</span>{1}", value.text, count);
+                                return Ext.String.format("<span class='subNode'>{0}</span>{1}", safeText, count);
                             }
 
                         }
