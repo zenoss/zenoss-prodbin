@@ -33,7 +33,6 @@ class ZenossAppData(object):
         self._catalog = ICatalogTool(self.dmd)
         stats = (self.server_key,
                  self.google_key,
-                 self.version,
                  self.all_versions,
                  self.event_classes,
                  self.event_count,
@@ -70,10 +69,6 @@ class ZenossAppData(object):
 
     def google_key(self):
         yield "Google Key", self.dmd.geomapapikey
-
-    def version(self):
-        yield ("Zenoss Version",
-               "{self.dmd.version}".format(**locals()))
 
     def zenpacks(self):
         for zenpack in self.dmd.ZenPackManager.packs():
