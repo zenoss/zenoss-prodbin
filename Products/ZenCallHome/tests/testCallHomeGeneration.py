@@ -402,6 +402,17 @@ class testCallHomeGeneration(BaseTestCase):
         self.assertTrue('Send Method' in metricsObj)
         self.assertEquals('browserjs', metricsObj['Send Method'])
 
+    def testGenerateReportWithEmptyMetricsField(self):
+        # Make sure that an empty metrics field
+        # does not cause failure on subsequent
+        # callhome generation calls
+        self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = ""
+
+        # call callhome scripting
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData() # noqa F841
+
     #
     # UNFORTUNATELY CANNOT EASILY UNIT TEST TIMEOUTS BECAUSE
     # OF THE CROSS-PROCESS STEPS
