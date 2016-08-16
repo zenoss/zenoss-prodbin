@@ -77,12 +77,13 @@ class UpdateZepLogbackConfig(Migrate.Step):
     
         isUpdated = False
         service = filter(lambda s: s.name == "zeneventserver", ctx.services)[0]
-       
+        configFiles = service.originalConfigs + service.configFiles 
         # Update logback.xml
-        cfg = filter(lambda f: f.name == "/opt/zenoss/etc/zeneventserver/logback.xml", service.originalConfigs)[0]
-        if "METRICS-APPENDER" in cfg.content:
-            cfg.content = self.UPDATED_LOGBACK_CONFIG
-            isUpdated = True
+        cfgs = filter(lambda f: f.name == "/opt/zenoss/etc/zeneventserver/logback.xml", configFiles)
+        for cfg in cfgs:
+            if "METRICS-APPENDER" in cfg.content:
+                cfg.content = self.UPDATED_LOGBACK_CONFIG
+                isUpdated = True
 
         if isUpdated:
             ctx.commit()
