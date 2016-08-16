@@ -405,9 +405,24 @@ class testCallHomeGeneration(BaseTestCase):
     def testGenerateReportWithEmptyMetricsField(self):
         # Make sure that an empty metrics field
         # does not cause failure on subsequent
-        # callhome generation calls
+        # callhome generation calls. First
+        # handle None value for metrics
         self.dmd.callHome = PersistentCallHomeData()
+        self.dmd.callHome.metrics = None
+
+        # call callhome scripting
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData() # noqa F841
+
+        # Then handle empty string value
         self.dmd.callHome.metrics = ""
+
+        # call callhome scripting
+        chd = CallHomeData(self.dmd, True)
+        data = chd.getData() # noqa F841
+
+        # Then handle whitespace-only string value
+        self.dmd.callHome.metrics = "   "
 
         # call callhome scripting
         chd = CallHomeData(self.dmd, True)
