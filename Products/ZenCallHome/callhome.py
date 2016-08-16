@@ -118,7 +118,7 @@ class CallHomeData(object):
         if self._dmd:
             try:
                 metricsString = self._dmd.callHome.metrics
-                if metricsString.strip():
+                if metricsString and metricsString.strip():
                     metricsObj = json.loads(metricsString)
                     versionHistories = metricsObj.get(VERSION_HISTORIES_KEY,
                                                       {})
