@@ -118,8 +118,10 @@ class CallHomeData(object):
         if self._dmd:
             try:
                 metricsString = self._dmd.callHome.metrics
-                metricsObj = json.loads(metricsString)
-                versionHistories = metricsObj.get(VERSION_HISTORIES_KEY, {})
+                if metricsString and metricsString.strip():
+                    metricsObj = json.loads(metricsString)
+                    versionHistories = metricsObj.get(VERSION_HISTORIES_KEY,
+                                                      {})
             except AttributeError:
                 pass
         return {VERSION_HISTORIES_KEY: versionHistories}
