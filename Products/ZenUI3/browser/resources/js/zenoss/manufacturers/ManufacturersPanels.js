@@ -445,7 +445,7 @@ Ext.onReady(function(){
                         flex: 1,
                         sortable: true,
                         renderer: function(e){
-                            return e.toString().replace(",",",  ");
+                            return Ext.htmlEncode(e.toString().replace(",",",  "));
                         },
                         filter: []
                     },{
