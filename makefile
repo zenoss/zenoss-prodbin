@@ -38,7 +38,7 @@ mk-dist:
 #     - build the zenoss-version wheel, which is copied into dist
 #
 build: mk-dist build-javascript build-zensocket build-zenoss-version
-	tar cvfz $(ARTIFACT) Products bin dist etc legacy/sitecustomize.py
+	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
 
 clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)
