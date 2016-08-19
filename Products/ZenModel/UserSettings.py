@@ -30,7 +30,7 @@ from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne, ToMany
 from Products.ZenUtils import Time
-from Products.ZenUtils.Utils import unused, prepId
+from Products.ZenUtils.Utils import unused, prepId, unpublished
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils import DotNetCommunication
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
@@ -223,6 +223,7 @@ class UserSettingsManager(ZenModelRM):
         return self._getOb(groupid)
 
 
+    @unpublished
     def setDashboardState(self, userid=None, REQUEST=None):
         """ Store a user's portlets and layout. If userid is not passed
             set the state for the current user.
