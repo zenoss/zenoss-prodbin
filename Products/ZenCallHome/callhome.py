@@ -12,7 +12,7 @@ import Globals # noqa F401
 import json
 from datetime import datetime
 
-from zope.interface import implements, providedBy
+from zope.interface import implements
 from zope.component import getUtilitiesFor
 
 from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
