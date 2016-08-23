@@ -12,7 +12,7 @@ import Globals # noqa F401
 import json
 from datetime import datetime
 
-from zope.interface import implements
+from zope.interface import implements, providedBy
 from zope.component import getUtilitiesFor
 
 from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
@@ -29,6 +29,8 @@ EXTERNAL_ERROR_KEY = "errors"
 REPORT_DATE_KEY = "Report Date"
 VERSION_HISTORIES_KEY = "Version History"
 
+
+import pdb
 
 class CallHomeCollector(object):
 
@@ -47,9 +49,14 @@ class CallHomeCollector(object):
                 log.debug("Getting data from %s %s, args: %s",
                           name, utilClass, str(args))
                 util = utilClass()
+
+                if int(IHostData in providedBy(util)) == 1 or int(IZenossEnvData in providedBy(util)) == 1:
+                    continue
                 for key, val in util.callHomeData(*args):
                     log.debug("Data: %s | %s", key, val)
-                    if key in stats:
+                    if key == 'OS':
+                        continue
+                    elif key in stats:
                         # if already a list append, else turn into a list
                         if isinstance(stats[key], list):
                             stats[key].append(val)
@@ -131,7 +138,10 @@ class CallHomeData(object):
         errors = []
         data[REPORT_DATE_KEY] = datetime.utcnow().isoformat()
         data.update(self.getExistingVersionHistories())
+        excluded_data_keys = ['zenossenvdata', 'zenosshostdata']
         for name, utilClass in getUtilitiesFor(ICallHomeCollector):
+            if name in excluded_data_keys:
+                break
             try:
                 chData = utilClass().generateData()
                 if chData:
@@ -150,6 +160,8 @@ class CallHomeData(object):
                 errors.append(errorObject)
         if self._master:
             for name, utilClass in getUtilitiesFor(IMasterCallHomeCollector):
+                if name in excluded_data_keys:
+                    break
                 try:
                     chData = utilClass().generateData(self._dmd)
                     if chData:
@@ -169,6 +181,8 @@ class CallHomeData(object):
         if self._dmd:
             for name, utilClass in getUtilitiesFor(
                                        IVersionHistoryCallHomeCollector):
+                if name in excluded_data_keys:
+                    break
                 try:
                     utilClass().addVersionHistory(self._dmd, data)
                 except Exception, e:
