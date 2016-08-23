@@ -312,7 +312,7 @@ class SshRunner(object):
             log.debug("Deleting connection %s from pool",
                       connection)
             del self._pool[self._poolkey]
-        if close and connection and connection.transport:
+        if close and connection and hasattr(connection, 'transport'):
                 connection.transport.loseConnection()
 
 
