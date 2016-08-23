@@ -381,6 +381,17 @@ class ControlPlaneClient(object):
                     detail = detail.replace("Internal Server Error: ", "")
                     raise ControlCenterError(detail)
                 raise
+            except urllib2.URLError as ex:
+                # In some cases we get a 104 error when we have not authenticated 
+                # and are trying to POST.  Sadly, urllib does not give us a nice 
+                # error code we can check against, so just compare it to a known
+                # string and hope for the best.  In the case where logging in 
+                # does not resolve the problem, we will catch it on the retry and 
+                # eventually raise the error.
+                if str(ex.reason) == '[Errno 104] Connection reset by peer':
+                    self._login()
+                    continue
+                raise
             else:
                 # break the loop so we skip the loop's else clause
                 break
