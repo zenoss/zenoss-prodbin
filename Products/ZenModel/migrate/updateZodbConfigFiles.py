@@ -93,8 +93,7 @@ class UpdateZodbConfigFiles(Migrate.Step):
         zauth = filter(lambda x: x.name=="Zauth", ctx.services)
 
         zope_changed = self._migrate_zope_service(zope)
-        if zauth:
-            zauth_changed = self._migrate_zauth_service(zauth[0])
+        zauth_changed = self._migrate_zauth_service(zauth[0]) if zauth else False
 
         if zope_changed or zauth_changed:
             log.info("Zodb config files updated to be dinamically generated.")
