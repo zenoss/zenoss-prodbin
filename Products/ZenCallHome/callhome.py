@@ -141,6 +141,7 @@ class CallHomeData(object):
         data[REPORT_DATE_KEY] = datetime.utcnow().isoformat()
         data.update(self.getExistingVersionHistories())
         excluded_data_keys = ['zenossenvdata', 'zenosshostdata']
+        # excluded_data_keys = ['zenossenvdata']
         for name, utilClass in getUtilitiesFor(ICallHomeCollector):
             if currentVersionIs5xOrLater and name in excluded_data_keys:
                 break
