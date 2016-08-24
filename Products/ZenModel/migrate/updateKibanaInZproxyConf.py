@@ -39,16 +39,16 @@ class UpdateKibanaInZproxyConf(Migrate.Step):
 
     def _update_kibana_config(self, zproxy_config, old_route_string):
         """
-        Fin the old kibana route and replace it with the new one
+        Find the old kibana route and replace it with the new one
+        @param old_route_string: old route string found in the config file
         """
         new_content = ""
         start = zproxy_config.content.find(old_route_string)
-        if start != -1:
-            end = zproxy_config.content.find("}", start)
-            new_content = zproxy_config.content[:start] + \
-                          self.KIBANA_NEW_ROUTE_CONFIG + \
-                          zproxy_config.content[end+1:]
-            zproxy_config.content = new_content
+        end = zproxy_config.content.find("}", start)
+        new_content = zproxy_config.content[:start] + \
+                      self.KIBANA_NEW_ROUTE_CONFIG + \
+                      zproxy_config.content[end+1:]
+        zproxy_config.content = new_content
 
     def cutover(self, dmd):
         try:
@@ -59,7 +59,6 @@ class UpdateKibanaInZproxyConf(Migrate.Step):
 
         zproxy = ctx.getTopService()
         commit = False
-        config = None
         for configs in [zproxy.configFiles, zproxy.originalConfigs]:
             for config in configs:
                 if config.filename == self.CONFIG_FILENAME:
