@@ -50,6 +50,7 @@ from Products.ZenUtils.IpUtil import getHostByName, isip
 from Products.ZenUtils.guid.guid import GUIDManager
 from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenUtils.ZenTales import talEval, InvalidTalesException
+from Products.ZenUtils.Time import convertTimestampToTimeZone, isoToTimestamp
 from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
@@ -392,76 +393,110 @@ class EmailAction(IActionBase, TargetableAction):
         else:            
             plain_body = MIMEText(body.decode('ascii', 'ignore'))
         return plain_body
-    
+
+    def _targetsByTz(self, dmd, targets):
+        """
+        Take timezone from user property to convert a event time in
+        notification and also group targets emails by those timezones.
+        """
+        targets_by_timezones = {}
+        for user in dmd.ZenUsers.getAllUserSettings():
+            if user.email in targets:
+                if targets_by_timezones.get(user.timezone):
+                    targets_by_timezones[user.timezone].add(user.email)
+                else:
+                    targets_by_timezones[user.timezone] = set([user.email])
+        return targets_by_timezones
+
+    def _adjustToTimezone(self, millis, timezone):
+        """
+        Convert event timestamp to timezone from user property.
+        """
+        return long(isoToTimestamp(convertTimestampToTimeZone(
+                    millis / 1000, timezone, "%Y-%m-%d %H:%M:%S"
+                    ))) * 1000
+
     def executeBatch(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
+        targets_by_timezones = self._targetsByTz(notification.dmd, targets)
+        original_lst = signal.event.last_seen_time
+        original_fst = signal.event.first_seen_time
+        original_sct = signal.event.status_change_time
+        for target_timezone, targets in targets_by_timezones.iteritems():
+            # Convert timestamp to user timezone
+            signal.event.last_seen_time = self._adjustToTimezone(
+                original_lst, target_timezone)
+            signal.event.first_seen_time = self._adjustToTimezone(
+                original_fst, target_timezone)
+            signal.event.status_change_time =  self._adjustToTimezone(
+                original_sct, target_timezone)
 
-        data = self._signalToContextDict(signal, notification)
+            data = self._signalToContextDict(signal, notification)
 
-        # Check for email recipients in the event
-        details = data['evt'].details
-        mail_targets = details.get('recipients', '')
-        mail_targets = [x.strip() for x in mail_targets.split(',') if x.strip()]
-        if len(mail_targets) > 0:
-            log.debug("Adding recipients defined in the event %s", mail_targets)
-            targets |= set(mail_targets)
+            # Check for email recipients in the event
+            details = data['evt'].details
+            mail_targets = details.get('recipients', '')
+            mail_targets = [x.strip() for x in mail_targets.split(',') if x.strip()]
+            if len(mail_targets) > 0:
+                log.debug("Adding recipients defined in the event %s", mail_targets)
+                targets |= set(mail_targets)
 
-        if signal.clear:
-            log.debug('This is a clearing signal.')
-            subject = processTalSource(notification.content['clear_subject_format'], **data)
-            body = processTalSource(notification.content['clear_body_format'], **data)
-        else:
-            subject = processTalSource(notification.content['subject_format'], **data)
-            body = processTalSource(notification.content['body_format'], **data)
+            if signal.clear:
+                log.debug("Generating a notification at enabled 'Send Clear' option when event was closed")
+                subject = processTalSource(notification.content['clear_subject_format'], **data)
+                body = processTalSource(notification.content['clear_body_format'], **data)
+            else:
+                subject = processTalSource(notification.content['subject_format'], **data)
+                body = processTalSource(notification.content['body_format'], **data)
 
-        log.debug('Sending this subject: %s', subject)
+            log.debug('Sending this subject: %s', subject)
 
-        plain_body = self._encodeBody(self._stripTags(body))
+            plain_body = self._encodeBody(self._stripTags(body))
 
-        email_message = plain_body
+            email_message = plain_body
 
-        if notification.content['body_content_type'] == 'html':
-            email_message = MIMEMultipart('related')
-            email_message_alternative = MIMEMultipart('alternative')
-            email_message_alternative.attach(plain_body)
+            if notification.content['body_content_type'] == 'html':
+                email_message = MIMEMultipart('related')
+                email_message_alternative = MIMEMultipart('alternative')
+                email_message_alternative.attach(plain_body)
 
-            html_body = self._encodeBody(body.replace('\n', '<br />\n'))
-            html_body.set_type('text/html')
-            email_message_alternative.attach(html_body)
+                html_body = self._encodeBody(body.replace('\n', '<br />\n'))
+                html_body.set_type('text/html')
+                email_message_alternative.attach(html_body)
 
-            email_message.attach(email_message_alternative)
-            log.debug('Sending this body: %s', body)
-        else:
-            log.debug('Sending this body: %s', plain_body)
+                email_message.attach(email_message_alternative)
+                log.debug('Sending this body: %s', body)
+            else:
+                log.debug('Sending this body: %s', plain_body)
 
-        host = notification.content['host']
-        port = notification.content['port']
-        user = notification.content['user']
-        password = notification.content['password']
-        useTls = notification.content['useTls']
-        email_from = notification.content['email_from']
+            host = notification.content['host']
+            port = notification.content['port']
+            user = notification.content['user']
+            password = notification.content['password']
+            useTls = notification.content['useTls']
+            email_from = notification.content['email_from']
 
-        email_message['Subject'] = subject
-        email_message['From'] = email_from
-        email_message['To'] = ','.join(targets)
-        email_message['Date'] = formatdate(None, True)
+            email_message['Subject'] = subject
+            email_message['From'] = email_from
+            email_message['To'] = ','.join(targets)
+            email_message['Date'] = formatdate(None, True)
 
-        result, errorMsg = sendEmail(
-            email_message,
-            host, port,
-            useTls,
-            user, password
-        )
-
-        if result:
-            log.debug("Notification '%s' sent emails to: %s",
-                     notification.id, targets)
-        else:
-            raise ActionExecutionException(
-                "Notification '%s' FAILED to send emails to %s: %s" %
-                (notification.id, targets, errorMsg)
+            result, errorMsg = sendEmail(
+                email_message,
+                host, port,
+                useTls,
+                user, password
             )
+
+            if result:
+                log.debug("Notification '%s' sent emails to: %s",
+                         notification.id, targets)
+            else:
+                raise ActionExecutionException(
+                    "Notification '%s' FAILED to send emails to %s: %s" %
+                    (notification.id, targets, errorMsg)
+                )
 
     def getActionableTargets(self, target):
         """
