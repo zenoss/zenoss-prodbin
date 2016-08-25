@@ -15,29 +15,40 @@ See http://twistedmatrix.com/trac/wiki/Documentation for Twisted documentation,
 specifically documentation on 'conch' (Twisted's SSH protocol support).
 """
 
-import os
-import sys
-from pprint import pformat
 import logging
-log = logging.getLogger("zen.SshClient")
+import os
+from pprint import pformat
 import socket
-
-import Globals
+from subprocess import CalledProcessError, check_output, PIPE
+import sys
+from tempfile import NamedTemporaryFile
 
 from twisted.conch.ssh import transport, userauth, connection
 from twisted.conch.ssh import common, channel
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
+
+import Globals  # noqa
+from Products.DataCollector import CollectorClient
 from Products.ZenEvents import Event
-from Products.ZenUtils.Utils import getExitMessage
 from Products.ZenUtils.IpUtil import getHostByName
+from Products.ZenUtils.Utils import getExitMessage
 
-from Exceptions import *
 
-import CollectorClient
+log = logging.getLogger("zen.SshClient")
 
 # NB: Most messages returned back from Twisted are Unicode.
 #     Expect to use str() to convert to ASCII before dumping out. :)
+
+
+def _convert_ssh_key(key):
+    with NamedTemporaryFile() as temp_file:
+        temp_file.file.write("%s %s" % ("ssh-ed25519", key))
+        key = check_output(("ssh-keygen", "-e", "-f", temp_file.name),
+                           stdout=PIPE, stderr=PIPE)
+        temp_file.file.write(key)
+        return check_output(("ssh-keygen", "-i", "-f", temp_file.name),
+                            stdout=PIPE, stderr=PIPE)
 
 
 def sendEvent( self, message="", device='', severity=Event.Error, event_key=None):
@@ -370,9 +381,17 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         if os.path.exists(keyPath):
             try:
                 data = ''.join(open(keyPath).readlines()).strip()
-                key = Key.fromString(data,
-                               passphrase=self.factory.password)
-            except IOError, ex:
+                # NOTE: Twisted don't support ed25519 key type so we are use the
+                #       workaround to work with them.
+                # TODO: Remove _convert_ssh_key() when Twisted will support
+                #        ed25519 key
+                if "ed25519" in os.path.basename(keyPath):
+                    key = _convert_ssh_key(data)
+                else:
+                    key = Key.fromString(data, passphrase=self.factory.password)
+            # TODO: Remove CalledProcessError catch at the same time with
+            #       _convert_ssh_key()
+            except (IOError, CalledProcessError) as ex:
                 message = "Unable to read the SSH key file because %s" % (
                              str(ex))
                 log.warn(message)
@@ -829,7 +848,6 @@ def main():
     Each command must be enclosed in quotes (") to be interpreted
     properly as a complete unit.
     """
-    from itertools import chain
     import pprint
 
     logging.basicConfig()
