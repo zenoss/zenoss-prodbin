@@ -147,6 +147,9 @@ class MySshClient(SshClient):
         self.tasks = set()
         self.is_expired = False     # TODO: placeholder; not implemented yet
 
+    def __str__(self):
+        return self.description
+
     def run(self):
         d = self.connect_defer = defer.Deferred()
         self.close_defer = defer.Deferred()
