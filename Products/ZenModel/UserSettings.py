@@ -227,6 +227,10 @@ class UserSettingsManager(ZenModelRM):
         """ Store a user's portlets and layout. If userid is not passed
             set the state for the current user.
         """
+        # Return False in case we are trying to set dashboard state
+        # for a user which doesn't exist.
+        if userid and userid not in self.getAllUserSettingsNames():
+            return False
         user = self.getUserSettings(userid)
         posted = Utils.extractPostContent(REQUEST)
         if posted:
