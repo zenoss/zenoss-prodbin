@@ -32,12 +32,7 @@ from Products.ZenCallHome.VersionHistory import (
 from Products.ZenCallHome.transport import (
                                        CallHome,
                                        CallHomeData as PersistentCallHomeData)
-from Products.ZenUtils.Version import Version
-from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 
-ver_5_0_0 = Version('Zenoss', 5,0,0)
-currentVersion = Version.parse('Zenoss ' + ZENOSS_VERSION)
-currentVersionIs5xOrLater = currentVersion >= ver_5_0_0
 
 DATETIME_ISOFORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -203,11 +198,10 @@ class testCallHomeGeneration(BaseTestCase):
         # successful collector, but not the failing collector
         self.assertTrue(SIMPLE_SUCCESS_KEY in data)
         self.assertTrue(FAST_FAIL_KEY not in data)
-        if not currentVersionIs5xOrLater:
-            self.assertTrue("Zenoss Env Data" in data)
-            self.assertTrue(EXTERNAL_ERROR_KEY in data)
-            self.assertEquals(FAST_FAIL_ERROR_MESSAGE,
-                              data[EXTERNAL_ERROR_KEY][0]['exception'])
+        self.assertTrue("Zenoss App Data" in data)
+        self.assertTrue(EXTERNAL_ERROR_KEY in data)
+        self.assertEquals(FAST_FAIL_ERROR_MESSAGE,
+                          data[EXTERNAL_ERROR_KEY][0]['exception'])
 
     def testConstituentDataFailure(self):
         # check current version of report (should be empty?)
@@ -226,8 +220,7 @@ class testCallHomeGeneration(BaseTestCase):
         # specifically make sure that simple success section is present
         # and that the successful data entry is there and the failed
         # entry is not
-        if not currentVersionIs5xOrLater:
-            self.assertTrue("Zenoss Env Data" in data)
+        self.assertTrue("Zenoss App Data" in data)
         self.assertTrue(SIMPLE_SUCCESS_KEY in data)
         successData = data[SIMPLE_SUCCESS_KEY]
         self.assertTrue("test" in successData)

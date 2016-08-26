@@ -20,12 +20,7 @@ from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
                                   IMasterCallHomeCollector,
                                   IVersionHistoryCallHomeCollector)
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Version import Version
-from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 
-ver_5_0_0 = Version('Zenoss', 5,0,0)
-currentVersion = Version.parse('Zenoss ' + ZENOSS_VERSION)
-currentVersionIs5xOrLater = currentVersion >= ver_5_0_0
 
 import logging
 log = logging.getLogger("zen.callhome")
@@ -56,9 +51,7 @@ class CallHomeCollector(object):
                 util = utilClass()
                 for key, val in util.callHomeData(*args):
                     log.debug("Data: %s | %s", key, val)
-                    if currentVersionIs5xOrLater and key == 'OS':
-                        continue
-                    elif key in stats:
+                    if key in stats:
                         # if already a list append, else turn into a list
                         if isinstance(stats[key], list):
                             stats[key].append(val)
@@ -140,10 +133,7 @@ class CallHomeData(object):
         errors = []
         data[REPORT_DATE_KEY] = datetime.utcnow().isoformat()
         data.update(self.getExistingVersionHistories())
-        excluded_data_keys = ['zenossenvdata', 'zenosshostdata']
         for name, utilClass in getUtilitiesFor(ICallHomeCollector):
-            if currentVersionIs5xOrLater and name in excluded_data_keys:
-                break
             try:
                 chData = utilClass().generateData()
                 if chData:
@@ -162,8 +152,6 @@ class CallHomeData(object):
                 errors.append(errorObject)
         if self._master:
             for name, utilClass in getUtilitiesFor(IMasterCallHomeCollector):
-                if currentVersionIs5xOrLater and name in excluded_data_keys:
-                    break
                 try:
                     chData = utilClass().generateData(self._dmd)
                     if chData:
@@ -183,8 +171,6 @@ class CallHomeData(object):
         if self._dmd:
             for name, utilClass in getUtilitiesFor(
                                        IVersionHistoryCallHomeCollector):
-                if currentVersionIs5xOrLater and name in excluded_data_keys:
-                    break
                 try:
                     utilClass().addVersionHistory(self._dmd, data)
                 except Exception, e:
