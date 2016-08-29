@@ -481,6 +481,10 @@ class ZenPackCmd(ZenScriptBase):
         fixedSomething = len(sortedPacks) > 0
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
+            # Load zenpacks files before normal installation to avoid
+            # upgrade breaking (ZEN-24274).
+            for packs in sortedPacks:
+                self._loadFiles(packs, zpsToRestore[packs][0])
             # Keep track of all the packs that failed to restore
             self.log.info("Attempting to install packs: %s", ", ".join(sortedPacks))
             sortedPacks[:] = [ pack for pack in sortedPacks if not doRestore(pack) ]
@@ -528,10 +532,20 @@ class ZenPackCmd(ZenScriptBase):
         with open(os.devnull, 'w') as fnull:
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
-    def _restore(self, zenpackID, zenpackVersion, filesOnly):
-        # if the version has a dash, replace with an underscore
-        zenpackVersion = zenpackVersion.replace("-", "_", 1)
-        # look for the egg
+    def _loadFiles(self, zenpackID, zenpackVersion):
+        """
+        Install all zenpacks with '--files-only' flag for preventing
+        DistributionNotFound Error.
+        """
+        zenpack = self._findEggs(zenpackID, zenpackVersion)[0]
+        if zenpack and zenpack.lower().endswith(".egg"):
+            self.log.info("Loading files for %s", zenpack)
+            cmd = ["zenpack", "--files-only", "--install", zenpack]
+            subprocess.check_call(cmd)
+        else:
+            return
+
+    def _findEggs(self, zenpackID, zenpackVersion):
         eggs = []
         for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
             for f in os.listdir(dirpath):
@@ -552,6 +566,13 @@ class ZenPackCmd(ZenScriptBase):
             # no point in checking the other dirpaths if an egg has been found
             if len(eggs) > 0:
                 break
+        return eggs
+
+    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+        # if the version has a dash, replace with an underscore
+        zenpackVersion = zenpackVersion.replace("-", "_", 1)
+        # look for the egg
+        eggs = self._findEggs(zenpackID, zenpackVersion)
         if len(eggs) == 0:
             self.log.info("Could not find install candidate for %s (%s)", zenpackID, zenpackVersion)
             return
