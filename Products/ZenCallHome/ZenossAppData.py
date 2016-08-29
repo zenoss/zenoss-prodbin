@@ -76,8 +76,9 @@ class ZenossAppData(object):
                    "{zenpack.id} {zenpack.version}".format(**locals()))
 
     def all_versions(self):
-        for version in self.dmd.About.getAllVersions():
-            yield version["header"], version["data"]
+        zenoss_version, cc_version = self.dmd.About.getZenossVersion(), self.dmd.About.getControlCenterVersion()
+        yield zenoss_version.name, zenoss_version.full()
+        yield cc_version.name, cc_version.full()
 
     def event_classes(self):
         yield 'Evt Mappings', self.dmd.Events.countInstances()
