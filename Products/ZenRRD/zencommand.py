@@ -40,7 +40,7 @@ from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
-                                             IScheduledTask
+                                             IPausingScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter,\
                                         TaskStates, \
@@ -317,7 +317,7 @@ class SshPerformanceCollectionTask(BaseTask):
     A task that performs periodic performance collection for devices providing
     data via SSH connections.
     """
-    zope.interface.implements(IScheduledTask)
+    zope.interface.implements(IPausingScheduledTask)
 
     STATE_CONNECTING = 'CONNECTING'
     STATE_FETCH_DATA = 'FETCH_DATA'
@@ -668,6 +668,12 @@ class SshPerformanceCollectionTask(BaseTask):
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
+
+    def pause(self):
+        self.cleanup()
+
+    def resume(self):
+        pass
 
 
 if __name__ == '__main__':
