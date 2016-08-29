@@ -28,7 +28,7 @@ import zope.interface
 from twisted.internet import defer, reactor, task
 from twisted.python.failure import Failure
 
-from Products.ZenCollector.interfaces import IScheduler, IScheduledTask
+from Products.ZenCollector.interfaces import IScheduler, IScheduledTask, IPausingScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.Utils import dumpCallbacks
 from Products.ZenUtils.keyedset import KeyedSet
@@ -447,13 +447,15 @@ class Scheduler(object):
         """
         Called whenever the scheduler pauses a task.
         """
-        pass
+        if IPausingScheduledTask.providedBy(taskWrapper.task):
+            taskWrapper.task.pause()
 
     def taskResumed(self, taskWrapper):
         """
         Called whenever the scheduler resumes a task.
         """
-        pass
+        if IPausingScheduledTask.providedBy(taskWrapper.task):
+            taskWrapper.task.resume()
 
     def getTasksForConfig(self, configId):
         """
