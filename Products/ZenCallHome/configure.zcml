@@ -1,11 +1,11 @@
 <!--
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 -->
 
@@ -13,10 +13,6 @@
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
     <include package=".transport"/>
-
-    <utility component="Products.ZenCallHome.callhome.ZenossEnvDataCallHomeCollector"
-             provides="Products.ZenCallHome.IMasterCallHomeCollector"
-             name="zenossenvdata"/>
 
     <utility component="Products.ZenCallHome.callhome.ZenossDataCallHomeCollector"
              provides="Products.ZenCallHome.IMasterCallHomeCollector"
@@ -34,8 +30,6 @@
              name="hostcpudata"/>
     <utility component="Products.ZenCallHome.HostData.MemProcFileData" provides="Products.ZenCallHome.IHostData"
              name="hostmemdata"/>
-    <utility component="Products.ZenCallHome.HostData.PlatformData" provides="Products.ZenCallHome.IHostData"
-             name="hostplatformdata"/>
     <utility component="Products.ZenCallHome.HostData.DfData" provides="Products.ZenCallHome.IHostData"
              name="hostdfdata"/>
     <utility component="Products.ZenCallHome.HostData.HostId" provides="Products.ZenCallHome.IHostData"
