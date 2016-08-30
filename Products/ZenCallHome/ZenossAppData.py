@@ -1,19 +1,21 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import time
-from Products.ZenCallHome import IZenossData, IDeviceResource, IDeviceCpuCount, IDeviceType, IVirtualDeviceType
+from Products.ZenCallHome import (IZenossData, IDeviceResource,
+                                  IDeviceCpuCount, IDeviceType,
+                                  IVirtualDeviceType)
 from zope.interface import implements
 from zope.component import subscribers, getAdapters
 from Products.Zuul import getFacade
-from itertools import *
+from itertools import chain
 
 import logging
 from Products.Zuul.interfaces.tree import ICatalogTool
@@ -22,6 +24,7 @@ from . import IDeviceLink
 
 log = logging.getLogger("zen.callhome")
 
+
 class ZenossAppData(object):
     implements(IZenossData)
 
@@ -29,31 +32,32 @@ class ZenossAppData(object):
         self.dmd = dmd
         self._catalog = ICatalogTool(self.dmd)
         stats = (self.server_key,
-                      self.google_key,
-                      self.version,
-                      self.all_versions,
-                      self.event_classes,
-                      self.event_count,
-                      self.reports,
-                      self.templates,
-                      self.systems,
-                      self.groups,
-                      self.locations,
-                      self.total_collectors,
-                      self.zenpacks,
-                      self.user_count,
-                      self.product_count,
-                      self.product_name)
+                 self.google_key,
+                 self.version,
+                 self.all_versions,
+                 self.event_classes,
+                 self.event_count,
+                 self.reports,
+                 self.templates,
+                 self.systems,
+                 self.groups,
+                 self.locations,
+                 self.total_collectors,
+                 self.zenpacks,
+                 self.user_count,
+                 self.product_count,
+                 self.product_name)
         return chain.from_iterable(map(lambda fn: fn(), stats))
 
     def product_name(self):
         yield "Product", self.dmd.getProductName()
 
     def product_count(self):
-        manufacturers = self.dmd.Manufacturers.objectValues(spec='Manufacturer')
+        manufacturers = self.dmd.Manufacturers.objectValues(
+                        spec='Manufacturer')
         prodCount = 0
         for m in manufacturers:
-           prodCount += m.products.countObjects()
+            prodCount += m.products.countObjects()
 
         yield "Product Count", prodCount
 
@@ -68,11 +72,13 @@ class ZenossAppData(object):
         yield "Google Key", self.dmd.geomapapikey
 
     def version(self):
-        yield "Zenoss Version", "{self.dmd.version}".format(**locals())
+        yield ("Zenoss Version",
+               "{self.dmd.version}".format(**locals()))
 
     def zenpacks(self):
         for zenpack in self.dmd.ZenPackManager.packs():
-            yield "Zenpack", "{zenpack.id} {zenpack.version}".format(**locals())
+            yield ("Zenpack",
+                   "{zenpack.id} {zenpack.version}".format(**locals()))
 
     def all_versions(self):
         for version in self.dmd.About.getAllVersions():
@@ -101,9 +107,10 @@ class ZenossAppData(object):
         yield "Collectors", len(results)
 
     def event_count(self):
-        zep = getFacade('zep')
+        zep = getFacade('zep', self.dmd)
         try:
-            yield "Event Count", zep.countEventsSince(time.time() - 24 * 60 * 60)
+            yield ("Event Count",
+                   zep.countEventsSince(time.time() - 24 * 60 * 60))
         except ZepConnectionError:
             yield "Event Count: last 24hr", "Not Available"
 
@@ -111,8 +118,10 @@ VM_MACS = {"00:0C:29": 'VMware Guest',
            "00:50:56": 'VMware Guest',
            "00:16:3e": 'Xen Guest'}
 
+
 class MacAddressVirtualDeviceType(object):
     implements(IVirtualDeviceType)
+
     def __init__(self, device):
         self._device = device
         self._vmType = None
@@ -123,6 +132,7 @@ class MacAddressVirtualDeviceType(object):
                 if mac and mac[:8] in VM_MACS.keys():
                     self._vmType = VM_MACS[mac[:8]]
         return self._vmType
+
 
 class DeviceType(object):
     implements(IDeviceType)
@@ -151,8 +161,10 @@ class DeviceType(object):
             dType = self._vmType
         return dType
 
+
 class DeviceTypeCounter(object):
     implements(IDeviceResource)
+
     def __init__(self, device):
         self._device = device
 
@@ -170,19 +182,23 @@ class DeviceTypeCounter(object):
         dev = IDeviceType(self._device)
         return dev.type(), dev.isVM()
 
+
 class DeviceClassProductionStateCount(object):
     implements(IDeviceResource)
+
     def __init__(self, device):
         self._device = device
 
     def processDevice(self, stats):
-        key = "%s: %s" % (self._device.getDeviceClassPath(), self._device.getProductionStateString())
+        key = "%s: %s" % (self._device.getDeviceClassPath(),
+                          self._device.getProductionStateString())
         stats.setdefault(key, 0)
         stats[key] += 1
 
 
 class DeviceCpuCounter(object):
     implements(IDeviceCpuCount)
+
     def __init__(self, device):
         self._device = device
 
@@ -191,6 +207,7 @@ class DeviceCpuCounter(object):
         if not dev.isVM():
             return len(self._device.hw.cpus())
         return 0
+
 
 class ZenossResourceData(object):
     implements(IZenossData)
@@ -209,7 +226,7 @@ class ZenossResourceData(object):
     def _process_devices(self):
         stats = {'Device Count': 0,
                  'Decommissioned Devices': 0,
-                 'CPU Cores':0}
+                 'CPU Cores': 0}
         LINKED_DEVICES = "Linked Devices"
         if LINKED_DEVICES not in stats:
             stats[LINKED_DEVICES] = 0
@@ -232,6 +249,4 @@ class ZenossResourceData(object):
                     if not found_linked:
                         stats[LINKED_DEVICES] += 1
                         found_linked = True
-                    
-                
         return stats
