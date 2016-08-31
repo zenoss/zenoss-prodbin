@@ -17,6 +17,8 @@ import urllib
 import urllib2
 
 from cookielib import CookieJar
+from socket import error as socket_error
+from errno import ECONNRESET
 from urlparse import urlunparse
 
 from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
@@ -381,16 +383,23 @@ class ControlPlaneClient(object):
                     detail = detail.replace("Internal Server Error: ", "")
                     raise ControlCenterError(detail)
                 raise
+            #   The CC server resets the connection when an unauthenticated POST requesti is
+            # made.  Depending on when during the request lifecycle the connection is reset,
+            # we can get either an URLError with a socket.error as the reason, or  a naked
+            # socket.error.  In either case, the socket.error.errno indicates that the
+            # connection was reset with an errno of ECONNRESET (104).
+            #   When we get a connection reset exception, assume that the reset was caused
+            # by lack of authentication, login, and retry the request.
             except urllib2.URLError as ex:
-                # In some cases we get a 104 error when we have not authenticated 
-                # and are trying to POST.  Sadly, urllib does not give us a nice 
-                # error code we can check against, so just compare it to a known
-                # string and hope for the best.  In the case where logging in 
-                # does not resolve the problem, we will catch it on the retry and 
-                # eventually raise the error.
-                if str(ex.reason) == '[Errno 104] Connection reset by peer':
+                reason = ex.reason
+                if type(reason) == socket_error and reason.errno == ECONNRESET:
                     self._login()
                     continue
+                raise
+            except socket_error as ex:
+                if ex.errno == ECONNRESET:
+                   self._login()
+                   continue
                 raise
             else:
                 # break the loop so we skip the loop's else clause
