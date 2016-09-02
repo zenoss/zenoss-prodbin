@@ -479,12 +479,19 @@ class ZenPackCmd(ZenScriptBase):
         sortedPacks = toposort_flatten(zpsToSort)
         triedReversing = False
         fixedSomething = len(sortedPacks) > 0
+        # Installing all zenpacks with '--files-only' flag
+        # for preventing DistributionNotFound Error
+        for pack in sortedPacks:
+            candidate = self._findEggs(pack, zpsToRestore[pack][0])
+            try:
+                EggPackCmd.InstallEggAndZenPack(
+                    self.dmd,
+                    candidate[0],
+                    filesOnly=True)
+            except (OSError,) as e:
+                self.log.info('%s could not be installed' % candidate[0])
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
-            # Load zenpacks files before normal installation to avoid
-            # upgrade breaking (ZEN-24274).
-            for packs in sortedPacks:
-                self._loadFiles(packs, zpsToRestore[packs][0])
             # Keep track of all the packs that failed to restore
             self.log.info("Attempting to install packs: %s", ", ".join(sortedPacks))
             sortedPacks[:] = [ pack for pack in sortedPacks if not doRestore(pack) ]
@@ -531,19 +538,6 @@ class ZenPackCmd(ZenScriptBase):
         cmd= ["zenpack", "--link", "--files-only", "--install", zp.eggPath()]
         with open(os.devnull, 'w') as fnull:
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-
-    def _loadFiles(self, zenpackID, zenpackVersion):
-        """
-        Install all zenpacks with '--files-only' flag for preventing
-        DistributionNotFound Error.
-        """
-        zenpack = self._findEggs(zenpackID, zenpackVersion)[0]
-        if zenpack and zenpack.lower().endswith(".egg"):
-            self.log.info("Loading files for %s", zenpack)
-            cmd = ["zenpack", "--files-only", "--install", zenpack]
-            subprocess.check_call(cmd)
-        else:
-            return
 
     def _findEggs(self, zenpackID, zenpackVersion):
         eggs = []
