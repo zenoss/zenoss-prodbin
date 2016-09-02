@@ -485,10 +485,8 @@ class ZenPackCmd(ZenScriptBase):
             candidate = self._findEggs(pack, zpsToRestore[pack][0])
             try:
                 EggPackCmd.InstallEggAndZenPack(
-                    self.dmd,
-                    candidate[0],
-                    filesOnly=True)
-            except (OSError,) as e:
+                    self.dmd, candidate[0], filesOnly=True)
+            except OSError as e:
                 self.log.info('%s could not be installed' % candidate[0])
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
