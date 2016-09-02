@@ -487,7 +487,7 @@ class ZenPackCmd(ZenScriptBase):
                 EggPackCmd.InstallEggAndZenPack(
                     self.dmd, candidate[0], filesOnly=True)
             except OSError as e:
-                self.log.info('%s could not be installed' % candidate[0])
+                self.log.info('%s could not be installed', candidate[0])
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
             # Keep track of all the packs that failed to restore
