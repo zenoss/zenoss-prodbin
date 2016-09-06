@@ -483,11 +483,12 @@ class ZenPackCmd(ZenScriptBase):
         # for preventing DistributionNotFound Error
         for pack in sortedPacks:
             candidate = self._findEggs(pack, zpsToRestore[pack][0])
-            try:
-                EggPackCmd.InstallEggAndZenPack(
-                    self.dmd, candidate[0], filesOnly=True)
-            except OSError as e:
-                self.log.info('%s could not be installed', candidate[0])
+            if candidate:
+                try:
+                    EggPackCmd.InstallEggAndZenPack(
+                        self.dmd, candidate[0], filesOnly=True)
+                except OSError as e:
+                    self.log.info('%s could not be installed', candidate[0])
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
             # Keep track of all the packs that failed to restore
