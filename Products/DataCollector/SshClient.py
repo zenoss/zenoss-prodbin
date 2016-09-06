@@ -398,7 +398,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         # TODO: Would be good to expand to support sending multiple keys.
         if self._key is not None and not self._sent_pk:
             self._sent_pk = True
-            return self._key.blob()
+            return self._key
 
     def getPrivateKey(self):
         """
@@ -407,11 +407,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed)
         @rtype: Twisted deferred object
         """
-        if self._key is None:
-            keyObject = None
-        else:
-            keyObject = self._key.keyObject
-        return defer.succeed(keyObject)
+        return defer.succeed(self._key)
 
     def auth_keyboard_interactive(self, *args, **kwargs):
         # Don't authenticate multiple times with same credentials
