@@ -682,6 +682,28 @@ class TestDevice(ZenModelBaseTest):
                            dev1.renameDevice,
                            testId2 )
 
+    def testProductionState(self):
+    	# test default
+    	self.assertEquals(self.dev.getProductionState(), 1000)
+    	self.assertEquals(self.dev.getPreMWProductionState(), 1000)
+
+    	# test setting
+    	self.dev._setProductionState(400)
+    	self.dev.setPreMWProductionState(100)
+    	self.assertEquals(self.dev.getProductionState(),400)
+        self.assertEquals(self.dev.getPreMWProductionState(), 100)
+
+    def testProductionStateProperty(self):
+        # test default
+        self.assertEquals(self.dev.productionState, 1000)
+
+        # test setting
+        self.dev.productionState = 400
+        self.assertEquals(self.dev.productionState, 400)
+        self.assertEquals(self.dev.getProductionState(), 400)
+	
+	
+
 class GetSnmpConnInfoTest(ZenModelBaseTest):
 
     def runTest(self):

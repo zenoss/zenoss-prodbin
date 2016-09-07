@@ -168,7 +168,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(devId)
         self.devices._setObject(devId, dev)
-        return self.devices._getOb(devId)
+        devInContext = self.devices._getOb(devId)
+        devInContext.resetProductionState() # Sets the default production state so to avoid ProdStateNotSetError later
+        return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
         

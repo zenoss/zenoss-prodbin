@@ -28,8 +28,9 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
-from Products.ZenUtils.productionstate.interfaces import IProdStateManager
+from Products.ZenUtils.productionstate.interfaces import IProdStateManager, ProdStateNotSetError
 from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
+from Acquisition import aq_parent
 
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
@@ -73,16 +74,25 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         return IProdStateManager(self)
 
     def getProductionState(self):
-        return self.getProdStateManager().getProductionState(self)
+        try:
+            return self.getProdStateManager().getProductionState(self)
+        except (ProdStateNotSetError, AttributeError, TypeError):
+            return aq_parent(self).getProductionState()
         
     def _setProductionState(self, state):
         self.getProdStateManager().setProductionState(self, state)
 
     def getPreMWProductionState(self):
-        return self.getProdStateManager().getPreMWProductionState(self)
+        try:
+            return self.getProdStateManager().getPreMWProductionState(self)
+        except (ProdStateNotSetError, AttributeError, TypeError):
+            return aq_parent(self).getPreMWProductionState()
 
     def setPreMWProductionState(self, state):
         self.getProdStateManager().setPreMWProductionState(self, state)
+
+    def resetProductionState(self):
+        self.getProdStateManager().clearProductionState(self)
 
     # In order to maintain backward-compatibility, we need to preserve productionState as a property.
     #  Our getProductionState() method requires acquisition context, so we have to add the property
@@ -90,10 +100,10 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     #  Zope's wrapper. Note that sub-classing sope's wrapper only works because we modified the Acquisition
     #  source code to handle it properly. 
     def __of__(self, ob):
-        
+
         # Call zope's wrapper
         wrappedObject = super(ManagedEntity, self).__of__(ob)
-              
+
         # Get the class and type of the wrapped object
         cls = wrappedObject.__class__
         type_obj = type(wrappedObject)
@@ -101,26 +111,31 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         wrapperSubclassName = cls.__name__ + '_' + type_obj.__name__ + '_prodStateProperty'      
 
         # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
-        #  so wrather than creating a property, we will we need to override __getattribute__ and __setattr__
+        #  so rather than creating a property, we will we need to override __getattribute__, __setattr__, and __delattr__
         def wrappergetattribute(self, name):
             if name=="productionState":
                 return self.getProductionState()
             else:
                 return type_obj.__getattribute__(self, name)
 
-	def wrappersetattr(self, name, value):
-	    if name=="productionState":
-		self._setProductionState(value)
-	    else:
- 		type_obj.__setattr__(self, name, value)
+        def wrappersetattr(self, name, value):
+            if name=="productionState":
+                self._setProductionState(value)
+            else:
+                type_obj.__setattr__(self, name, value)
 
+        def wrapperdelattr(self, name):
+            if name=="productionState":
+                self.resetProductionState()
+            else:
+                type_obj.__delattr__(self, name)
 
-        wrapper_subclass_dict = ( 
-                                '__getattribute__': wrappergetattribute,
-				'__setattr__'	  : wrappersetattr
+        wrapper_subclass_dict = {'__getattribute__': wrappergetattribute,
+                                 '__setattr__'     : wrappersetattr,
+                                 '__delattr__'     : wrapperdelattr
                                 }
-        
-        # create our new wrapper type, subclassing zope's wrapper and overriding the two methods      
+
+        # create our new wrapper type, subclassing zope's wrapper and overriding the three methods
         wrapper_subclass = type(wrapperSubclassName, (type_obj,),wrapper_subclass_dict)
 
         # Wrap the object with our wrapper sub-class

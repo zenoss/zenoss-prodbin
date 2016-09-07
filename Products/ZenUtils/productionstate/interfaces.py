@@ -11,6 +11,10 @@
 from exceptions import Exception
 from zope.interface import Interface
 
+class ProdStateNotSetError(Exception):
+    def __init__(self,*args,**kwargs):
+        Exception.__init__(self,*args,**kwargs)
+
 class IProdStateManager(Interface):
     """
     A utility that can register and look up production states for objects.
@@ -39,4 +43,8 @@ class IProdStateManager(Interface):
         """
         Handle the situation where an object's guid has changed or the
         object has been removed
+        """
+    def clearProductionState(object):
+        """
+        Resets production state to a "not set" state.
         """

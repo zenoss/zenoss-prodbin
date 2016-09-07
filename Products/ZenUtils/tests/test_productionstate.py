@@ -22,7 +22,7 @@ from OFS.SimpleItem import SimpleItem
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.component import provideHandler
 
-from ..productionstate.interfaces import IProdStateManager
+from ..productionstate.interfaces import IProdStateManager, ProdStateNotSetError
 from ..guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 
 class ProductionStateable(SimpleItem):
@@ -64,17 +64,15 @@ class TestProductionState(BaseTestCase):
         # Create a ProdStateManager
         manager = IProdStateManager(self.dmd)
 
-        # Test defaults
-        prodstate = manager.getProductionState(self.ob)
-        premwprodstate = manager.getPreMWProductionState(self.ob)
-        self.assertEqual(prodstate, 1000)
-        self.assertEqual(premwprodstate, 1000)
+        # Test Exception
+        self.assertRaises(ProdStateNotSetError, manager.getProductionState, self.ob)
+        self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, self.ob)
 
         # Test setting production state
         manager.setProductionState(self.ob, 400)
         prodstate = manager.getProductionState(self.ob)
         self.assertEqual(prodstate, 400)
-        self.assertEqual(premwprodstate, 1000)
+        self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, self.ob)
 
         # Test setting Pre-MW production state
         manager.setPreMWProductionState(self.ob, 400)
@@ -86,6 +84,11 @@ class TestProductionState(BaseTestCase):
         # Test getting production state by guid
         guid = IGlobalIdentifier(self.ob).getGUID()
         self.assertEqual(manager.getProductionStateFromGUID(guid), 400)
+
+        # Test clearing production state
+        manager.clearProductionState(self.ob)
+        self.assertRaises(ProdStateNotSetError, manager.getProductionState, self.ob)
+        self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, self.ob)
 
 
     def test_object_remove(self):
@@ -101,11 +104,9 @@ class TestProductionState(BaseTestCase):
         newGuid = IGlobalIdentifier(newob).getGUID()
         self.assertEqual(oldGuid, newGuid)
 
-        # guid should be removed from the table, so values should rever to default
-        prodstate = manager.getProductionState(newob)
-        premwprodstate = manager.getPreMWProductionState(newob)
-        self.assertEqual(prodstate, 1000)
-        self.assertEqual(premwprodstate, 1000)
+        # guid should be removed from the table, so we should get errors trying to access them
+        self.assertRaises(ProdStateNotSetError, manager.getProductionState, newob)
+        self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, newob)
 
 
 def test_suite():

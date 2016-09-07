@@ -84,6 +84,7 @@ from Products.ZenUtils.Search import (
     makeMultiPathIndex
 )
 
+DEFAULT_PRODSTATE = 1000
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -95,7 +96,7 @@ def getNetworkRoot(context, performanceMonitor):
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-            rackSlot="", productionState=1000, comments="",
+            rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
@@ -306,6 +307,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._snmpLastCollection = 0
         self._lastChange = 0
         self._create_componentSearch()
+
+    # Resets the production state to the default value
+    def resetProductionState(self):
+        super(Device, self).resetProductionState()
+        self._setProductionState(DEFAULT_PRODSTATE)
+        self.setPreMWProductionState(DEFAULT_PRODSTATE)
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)
@@ -1186,7 +1193,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def manage_editDevice(self,
                 tag="", serialNumber="",
                 zSnmpCommunity=None, zSnmpPort=161, zSnmpVer=None,
-                rackSlot="", productionState=1000, comments="",
+                rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],

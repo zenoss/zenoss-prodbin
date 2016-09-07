@@ -14,13 +14,12 @@ Keep track of the current and pre-maintenance window production states
 for all ManagedEntity objects.
 """
 from zope.interface import implements
-from .interfaces import IProdStateManager
+from .interfaces import IProdStateManager, ProdStateNotSetError
 
 from BTrees.OOBTree import OOBTree
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 PRODSTATE_TABLE_PATH = '/zport/dmd/prodstate_table'
-DEFAULT_PRODUCTION_STATE = 1000
 
 class ProdState(object):
     def __init__(self, state=None, premwstate=None):
@@ -29,7 +28,6 @@ class ProdState(object):
 
 class ProdStateManager(object):
     implements(IProdStateManager)
-    _default_state = DEFAULT_PRODUCTION_STATE
     _table_path = PRODSTATE_TABLE_PATH
 
     def __init__(self, context):
@@ -51,14 +49,14 @@ class ProdStateManager(object):
     def getProductionStateFromGUID(self, guid):
         pstate = self._getProdStatesFromTable(guid).productionState
         if pstate is None:
-            return self._default_state
+            raise ProdStateNotSetError
         return pstate
 
     def getPreMWProductionState(self, object):
         guid = IGlobalIdentifier(object).getGUID()
         pstate = self._getProdStatesFromTable(guid).preMWProductionState
         if pstate is None:
-            return self._default_state
+            raise ProdStateNotSetError
         return pstate
 
     def setProductionState(self, object, value):
@@ -86,4 +84,9 @@ class ProdStateManager(object):
                 self.table[newGUID] = self.table.get(oldGUID)
 
             del self.table[oldGUID]
+
+    def clearProductionState(self, object):
+        guid = IGlobalIdentifier(object).getGUID()
+        if guid in self.table:
+            del self.table[guid]
 
