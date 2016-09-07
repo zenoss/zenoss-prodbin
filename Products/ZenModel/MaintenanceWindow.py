@@ -554,7 +554,7 @@ class MaintenanceWindow(ZenModelRM):
                     # This takes care of the case where there are still active
                     # maintenance windows.
                     minProdState = minDevProdStates.get(device.id,
-                                                device.preMWProductionState)
+                                                device.getPreMWProductionState())
 
                 elif device.id in minDevProdStates:
                     minProdState = minDevProdStates[device.id]
@@ -567,13 +567,13 @@ class MaintenanceWindow(ZenModelRM):
                     continue
 
                 # ZEN-13197: skip decommissioned devices
-                if device.productionState < 300:
+                if device.getProductionState() < 300:
                         continue
 
                 self._p_changed = 1
                 # Changes the current state for a device, but *not*
                 # the preMWProductionState
-                oldProductionState = self.dmd.convertProdState(device.productionState)
+                oldProductionState = self.dmd.convertProdState(device.getProductionState())
                 newProductionState = self.dmd.convertProdState(minProdState)
                 log.info("MW %s changes %s's production state from %s to %s",
                          self.displayName(), device.id, oldProductionState,

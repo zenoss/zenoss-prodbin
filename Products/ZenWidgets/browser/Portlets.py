@@ -211,7 +211,7 @@ class DeviceIssuesPortletView(BrowserView):
             dev = manager.getObject(uuid)
             if dev and isinstance(dev, Device):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
-                    or dev.productionState < zem.prodStateDashboardThresh
+                    or dev.getProductionState() < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):
                     continue
                 alink = dev.getPrettyLink()

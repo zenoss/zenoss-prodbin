@@ -49,10 +49,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     _properties = (
      {'id':'snmpindex', 'type':'string', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
-     {'id':'productionState', 'type':'keyedselection', 'mode':'w',
-      'select_variable':'getProdStateConversions','setter':'setProdState'},
-     {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
-      'select_variable':'getProdStateConversions','setter':'setProdState'},
     )
 
     _relations = (
@@ -69,6 +65,18 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """Overridden in lower classes if a device relationship exists.
         """
         return None
+    
+    def getProductionState(self):
+        return self._productionState
+
+    def _setProductionState(self, state):
+        self._productionState = state
+
+    def getPreMWProductionState(self):
+        return self._preMWProductionState
+
+    def setPreMWProductionState(self, state):
+        self._preMWProductionState = state
 
     def getProductionStateString(self):
         """
@@ -76,7 +84,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
 
         @rtype: string
         """
-        return str(self.convertProdState(self.productionState))
+        return str(self.convertProdState(self.getProductionState()))
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
@@ -89,13 +97,14 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         @type maintWindowChange: boolean
         @permission: ZEN_CHANGE_DEVICE
         """
-        self.productionState = int(state)
+        self._setProductionState(int(state))
         self.primaryAq().index_object()
         notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
+
         if not maintWindowChange:
             # Saves our production state for use at the end of the
             # maintenance window.
-            self.preMWProductionState = self.productionState
+            self.setPreMWProductionState(self.getProductionState())
 
         if REQUEST:
             IMessageSender(self).sendToBrowser(

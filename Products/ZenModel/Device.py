@@ -210,8 +210,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     relationshipManagerPathRestriction = '/Devices'
     title = ""
     manageIp = ""
-    productionState = 1000
-    preMWProductionState = productionState
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
@@ -308,6 +306,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._snmpLastCollection = 0
         self._lastChange = 0
         self._create_componentSearch()
+        self._setProductionState(1000)
+        self.setPreMWProductionState(1000)
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)
@@ -1143,7 +1143,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if 'productionState' in kwargs:
             # Always set production state, but don't log it if it didn't change.
-            if kwargs['productionState'] != self.productionState:
+            if kwargs['productionState'] != self.getProductionState():
                 prodStateName = self.dmd.convertProdState(int(kwargs['productionState']))
                 log.info("setting productionState to %s" % prodStateName)
             self.setProdState(kwargs["productionState"])
@@ -1245,7 +1245,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: boolean
         """
-        return self.productionState >= self.zProdStateThreshold
+        return self.getProductionState() >= self.zProdStateThreshold
 
 
     def snmpMonitorDevice(self):

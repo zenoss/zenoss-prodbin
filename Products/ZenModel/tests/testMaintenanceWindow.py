@@ -46,7 +46,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         mw = grp.maintenanceWindows._getOb(mwid)
         mw.enabled = True
         mw.begin()
-        self.assert_(dev.productionState==mw.startProductionState)
+        self.assert_(dev.getProductionState()==mw.startProductionState)
         prodstate = dev.getProdState()
         catalog = self.dmd.Devices.deviceSearch
         results = [x.id for x in catalog(getProdState=prodstate)]
@@ -256,19 +256,19 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
         mws.mwObjs[0].end()
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[3])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
         mws.mwObjs[1].end()
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testNestedWindows(self):
@@ -280,22 +280,22 @@ class TestMaintenanceWindows(ZenModelBaseTest):
            [1, 2, state_Test],
         ]
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin nested window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == min(mws.mwObjs[0].startProductionState,
+        self.assert_(mws.dev.getProductionState() == min(mws.mwObjs[0].startProductionState,
                                                     mws.mwObjs[1].startProductionState))
         mws.mwObjs[1].end()
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
         # End of nested window
 
         # Now end last maintenance window
         mws.mwObjs[0].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testOverlappingWindows(self):
@@ -308,22 +308,22 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin nested window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == min(mws.mwObjs[0].startProductionState,
+        self.assert_(mws.dev.getProductionState() == min(mws.mwObjs[0].startProductionState,
                                                     mws.mwObjs[1].startProductionState))
         # End first window
         mws.mwObjs[0].end()
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now end last maintenance window
         mws.mwObjs[1].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testSameWindowEndTime(self):
@@ -339,21 +339,21 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now end all maintenance windows
         mws.mwObjs[1].end()
         mws.mwObjs[0].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testDeleteRunningWindow(self):
@@ -367,26 +367,26 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now delete all maintenance windows
         #r = FakeRequest()
         r = None
         mws.grp.manage_deleteMaintenanceWindow(mws.mwIds[1], REQUEST=r)
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         #r = FakeRequest()
         r = None
         mws.grp.manage_deleteMaintenanceWindow(mws.mwIds[0], REQUEST=r)
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def ftestWindowStateChangeLoad(self):

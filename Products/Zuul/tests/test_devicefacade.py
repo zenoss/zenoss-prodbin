@@ -154,16 +154,16 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         dev = self.dmd.Devices.createInstance('dev')
         dev2 = self.dmd.Devices.createInstance('dev2')
 
-        self.assertEqual(dev.productionState, 1000)
-        self.assertEqual(dev2.productionState, 1000)
+        self.assertEqual(dev.getProductionState(), 1000)
+        self.assertEqual(dev2.getProductionState(), 1000)
 
         zope.component.provideHandler(_indexed)
 
         self.facade.setProductionState((dev.getPrimaryUrlPath(),
                                         dev2.getPrimaryUrlPath()), 500)
 
-        self.assertEqual(dev.productionState, 500)
-        self.assertEqual(dev2.productionState, 500)
+        self.assertEqual(dev.getProductionState(), 500)
+        self.assertEqual(dev2.getProductionState(), 500)
 
         self.assertEqual(len(notified), 2)
 

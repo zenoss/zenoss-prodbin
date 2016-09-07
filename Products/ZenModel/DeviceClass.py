@@ -406,7 +406,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             location = device.getLocationName()
             if not location: location = "Unknown"
             deviceInfo[device.id] = (systemNames, location,
-                                    device.productionState,
+                                    device.getProductionState(),
                                     device.getDeviceClassPath())
         return deviceInfo
 

@@ -294,7 +294,7 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
         return self._context.getMacAddresses()
 
     def productionState(self):
-        return str(self._context.productionState)
+        return str(self._context.getProductionState())
 
     @memoized_in_context
     def searchKeywordsForChildren(self):
