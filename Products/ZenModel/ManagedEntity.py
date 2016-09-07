@@ -98,10 +98,12 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         @permission: ZEN_CHANGE_DEVICE
         """
         self._setProductionState(int(state))
-        self.primaryAq().index_object()
-        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
 
         if not maintWindowChange:
+            # Re-index now
+            notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
+            self.primaryAq().index_object(idxs=('getProdState',))
+
             # Saves our production state for use at the end of the
             # maintenance window.
             self.setPreMWProductionState(self.getProductionState())

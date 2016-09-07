@@ -34,6 +34,9 @@ from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
 
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+
 import transaction
 from ZODB.transact import transact
 
@@ -599,6 +602,12 @@ class MaintenanceWindow(ZenModelRM):
                 processFunc(devices[i:i + batchSize])
         else:
             processFunc(devices)
+
+        # Now re-index all devices
+        for dev in devices:
+            log.info("About to re-index %s", dev.id)
+            notify(IndexingEvent(dev.primaryAq(), ('productionState',), True))
+            dev.primaryAq().index_object(idxs=('getProdState',))
 
 
     def begin(self, now=None, batchSize=None, inTransaction=False):
