@@ -16,35 +16,62 @@ for all ManagedEntity objects.
 from zope.interface import implements
 from .interfaces import IProdStateManager
 
+from BTrees.OOBTree import OOBTree
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+
+PRODSTATE_TABLE_PATH = '/zport/dmd/prodstate_table'
 DEFAULT_PRODUCTION_STATE = 1000
+
+class ProdState(object):
+    def __init__(self, state=None, premwstate=None):
+        self.productionState = state
+        self.preMWProductionState = premwstate
 
 class ProdStateManager(object):
     implements(IProdStateManager)
+    _default_state = DEFAULT_PRODUCTION_STATE
+    _table_path = PRODSTATE_TABLE_PATH
 
     def __init__(self, context):
         self.context = context
-
-
-    def getProductionState(self, object):
+        
+        # Make sure the table exists and create it if not
+        self.traverse = self.context.unrestrictedTraverse
         try:
-            if object._productionState is None:
-                return DEFAULT_PRODUCTION_STATE
-        except AttributeError:
-            return DEFAULT_PRODUCTION_STATE
-
-        return object._productionState
+            self.table = self.traverse(self._table_path)
+        except (AttributeError, KeyError), e:
+            parent, name = self._table_path.rsplit('/', 1)
+            self.table = OOBTree()
+            setattr(self.traverse(parent), name, self.table)
+    
+    def getProductionState(self, object):
+        guid = IGlobalIdentifier(object).getGUID()
+        pstate = self._getProdStatesFromTable(guid).productionState
+        if pstate is None:
+            return self._default_state
+        return pstate
 
     def getPreMWProductionState(self, object):
-        try:
-            if object._preMWProductionState is None:
-                return DEFAULT_PRODUCTION_STATE
-        except AttributeError:
-            return DEFAULT_PRODUCTION_STATE
-
-        return object._preMWProductionState
+        guid = IGlobalIdentifier(object).getGUID()
+        pstate = self._getProdStatesFromTable(guid).preMWProductionState
+        if pstate is None:
+            return self._default_state
+        return pstate
 
     def setProductionState(self, object, value):
-        object._productionState = value
+        guid = IGlobalIdentifier(object).getGUID()
+        pstate = self._getProdStatesFromTable(guid)
+        pstate.productionState = value
+        self.table[guid] = pstate
 
     def setPreMWProductionState(self, object, value):
-        object._preMWProductionState = value
+        guid = IGlobalIdentifier(object).getGUID()
+        pstate = self._getProdStatesFromTable(guid)
+        pstate.preMWProductionState = value
+        self.table[guid] = pstate
+
+    def _getProdStatesFromTable(self, guid):
+        pstate = self.table.get(guid, None)
+        if pstate is None:
+            pstate = ProdState()
+        return pstate
