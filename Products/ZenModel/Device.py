@@ -306,8 +306,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._snmpLastCollection = 0
         self._lastChange = 0
         self._create_componentSearch()
-        self._setProductionState(1000)
-        self.setPreMWProductionState(1000)
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)

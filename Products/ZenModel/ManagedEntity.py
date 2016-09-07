@@ -27,7 +27,7 @@ from .ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
-
+from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
@@ -67,16 +67,16 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         return None
     
     def getProductionState(self):
-        return self._productionState
-
+        return IProdStateManager(self.dmd).getProductionState(self)
+        
     def _setProductionState(self, state):
-        self._productionState = state
+        IProdStateManager(self.dmd).setProductionState(self, state)
 
     def getPreMWProductionState(self):
-        return self._preMWProductionState
+        return IProdStateManager(self.dmd).getPreMWProductionState(self)
 
     def setPreMWProductionState(self, state):
-        self._preMWProductionState = state
+        IProdStateManager(self.dmd).setPreMWProductionState(self, state)
 
     def getProductionStateString(self):
         """
