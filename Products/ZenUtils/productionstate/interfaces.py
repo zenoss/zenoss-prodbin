@@ -19,6 +19,10 @@ class IProdStateManager(Interface):
         """
         Return the current production state of the object.
         """
+    def getProductionStateFromGUID(guid):
+        """
+        Return the current production state of the object with the given guid
+        """
     def getPreMWProductionState(object):
         """
         Return the pre-maintenance window state of the object.

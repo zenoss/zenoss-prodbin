@@ -12,7 +12,7 @@ import re
 import json
 
 from Products.Five.browser import BrowserView
-from Products.AdvancedQuery import Eq, Or
+from Products.AdvancedQuery import Indexed
 
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
@@ -91,16 +91,16 @@ class ProductionStatePortletView(BrowserView):
         devroot = self.context.dmd.Devices
         if isinstance(prodStates, basestring):
             prodStates = [prodStates]
+
         orderby, orderdir = 'id', 'asc'
         catalog = getattr(devroot, devroot.default_catalog)
-        queries = []
-        for state in prodStates:
-            queries.append(Eq('getProdState', state))
-        query = Or(*queries)
+        query = Indexed('id') # Get all the brains
         objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+
         devs = (x.getObject() for x in objects)
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
+            if not dev.getProductionStateString() in prodStates: continue
             if not self.context.checkRemotePerm(ZEN_VIEW, dev): continue
             mydict['data'].append({
                 'Device' : dev.getPrettyLink(),

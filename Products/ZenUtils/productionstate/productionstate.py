@@ -46,6 +46,9 @@ class ProdStateManager(object):
     
     def getProductionState(self, object):
         guid = IGlobalIdentifier(object).getGUID()
+        return self.getProductionStateFromGUID(guid)
+
+    def getProductionStateFromGUID(self, guid):
         pstate = self._getProdStatesFromTable(guid).productionState
         if pstate is None:
             return self._default_state

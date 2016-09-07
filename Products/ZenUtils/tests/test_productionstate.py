@@ -83,17 +83,22 @@ class TestProductionState(BaseTestCase):
         self.assertEqual(prodstate, 400)
         self.assertEqual(premwprodstate, 400)
 
+        # Test getting production state by guid
+        guid = IGlobalIdentifier(self.ob).getGUID()
+        self.assertEqual(manager.getProductionStateFromGUID(guid), 400)
+
+
     def test_object_remove(self):
         newob = ProductionStateable('newprodstateable', self.dmd)
         self.dmd._setObject('newprodstateable', newob)
         manager = IProdStateManager(self.aq_ob)
-        oldGuid = IGlobalIdentifier(newob).guid
+        oldGuid = IGlobalIdentifier(newob).getGUID()
         manager.setProductionState(newob, 400)
         self.assertEqual(manager.getProductionState(newob), 400)
         self.dmd._delObject('newprodstateable')
 
         # make sure guid is still the same before checking that it was removed from the table
-        newGuid = IGlobalIdentifier(newob).guid
+        newGuid = IGlobalIdentifier(newob).getGUID()
         self.assertEqual(oldGuid, newGuid)
 
         # guid should be removed from the table, so values should rever to default

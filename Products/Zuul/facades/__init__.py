@@ -21,7 +21,7 @@ definition of the interface that they implement.
 
 import logging
 import re
-from itertools import imap
+from itertools import imap, islice
 from Acquisition import aq_parent
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
@@ -34,11 +34,13 @@ from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
 )
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
-from Products.Zuul.tree import SearchResults
+from Products.Zuul.tree import SearchResults, StaleResultsException
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
+
+from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 
 log = logging.getLogger('zen.Zuul')
 
@@ -161,6 +163,7 @@ class TreeFacade(ZuulFacade):
         qs = []
         query = None
         globFilters = {}
+        prodStates = None
         if params is None:
             params = {}
         for key, value in params.iteritems():
@@ -181,17 +184,87 @@ class TreeFacade(ZuulFacade):
                     return []
                 qs.append(organizerQuery)
             elif key == 'productionState':
-                qs.append(Or(*[Eq('productionState', str(state))
-                             for state in value]))
+                prodStates = value
             else:
                 globFilters[key] = value
         if qs:
             query = And(*qs)
-        brains = cat.search(
-            'Products.ZenModel.Device.Device', start=start,
-            limit=limit, orderby=sort, reverse=reverse,
-            query=query, globFilters=globFilters, hashcheck=hashcheck
-        )
+        
+        orderby = sort
+        startp = start
+        limitp = limit
+        hashcheckp = hashcheck
+        useProdStates = False
+
+        if sort == "productionState":
+            useProdStates = True
+            orderby = None
+            startp = 0
+            limitp = None
+       
+        if prodStates:
+            hashcheckp = None
+            useProdStates = True
+            startp = 0
+            limitp = None
+
+
+        catbrains = cat.search(
+                'Products.ZenModel.Device.Device', start=startp,
+                limit=limitp, orderby=orderby, reverse=reverse,
+                query=query, globFilters=globFilters, hashcheck=hashcheckp)
+
+        ## Handle Production State separately
+        if useProdStates:
+            psManager = IProdStateManager(self._dmd)
+            # Filter by production state
+            if prodStates:
+                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.uuid) in prodStates]
+                totalCount = len(psFilteredbrains)
+                hash_ = str(totalCount)
+
+                # we've changed the number of results, so check the hash here
+                if hashcheck is not None:
+                    if hash_ != hashcheck:
+                        raise StaleResultsException("Search results do not match")
+            else:
+                psFilteredbrains = catbrains
+                totalCount = catbrains.total
+                hash_ = catbrains.hash_
+
+            # Sort by production state
+            def mergeBuckets(sortedkeys, buckets):
+                for key in sortedkeys:
+                    for item in buckets[key]:
+                        yield item
+
+            if sort == "productionState":
+                productionStates = [conv[1] for conv in self._dmd.getProdStateConversions()]
+                productionStates.sort(reverse=reverse)
+                prodStateBuckets = {}
+                for ps in productionStates:
+                    prodStateBuckets[ps] = []
+
+                for brain in psFilteredbrains:
+                    prodState = psManager.getProductionStateFromGUID(brain.uuid)
+                    prodStateBuckets[prodState].append(brain)
+
+                sortedBrains = list(brain for brain in mergeBuckets(productionStates, prodStateBuckets))
+            else:
+                sortedBrains = psFilteredbrains
+
+            
+            # Pick out the correct range and build the SearchResults object
+            start = max(start, 0)
+            if limit is None:
+                stop = None
+            else:
+                stop = start + limit
+            results = islice(sortedBrains, start, stop)   
+            brains = SearchResults(results, totalCount, hash_, catbrains.areBrains)
+        else:
+            brains = catbrains
+
         return brains
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',

@@ -27,7 +27,9 @@ from .ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
+
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager
+from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
@@ -100,13 +102,12 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         self._setProductionState(int(state))
 
         if not maintWindowChange:
-            # Re-index now
-            notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
-            self.primaryAq().index_object(idxs=('getProdState',))
-
             # Saves our production state for use at the end of the
             # maintenance window.
-            self.setPreMWProductionState(self.getProductionState())
+            self.setPreMWProductionState(self.getProductionState()) 
+
+        publishModified(self, None)
+
 
         if REQUEST:
             IMessageSender(self).sendToBrowser(

@@ -817,7 +817,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
         for idxname in ['id',
-            'getDeviceIp','getDeviceClassPath','getProdState','titleOrId']:
+            'getDeviceIp','getDeviceClassPath','titleOrId']:
             cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
         cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
         cat.addIndex('path', makeMultiPathIndex('path'))
