@@ -31,6 +31,7 @@ from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
 
+
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
     """
@@ -68,17 +69,63 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """
         return None
     
+    def getProdStateManager(self):
+        return IProdStateManager(self)
+
     def getProductionState(self):
-        return IProdStateManager(self.dmd).getProductionState(self)
+        return self.getProdStateManager().getProductionState(self)
         
     def _setProductionState(self, state):
-        IProdStateManager(self.dmd).setProductionState(self, state)
+        self.getProdStateManager().setProductionState(self, state)
 
     def getPreMWProductionState(self):
-        return IProdStateManager(self.dmd).getPreMWProductionState(self)
+        return self.getProdStateManager().getPreMWProductionState(self)
 
     def setPreMWProductionState(self, state):
-        IProdStateManager(self.dmd).setPreMWProductionState(self, state)
+        self.getProdStateManager().setPreMWProductionState(self, state)
+
+    # In order to maintain backward-compatibility, we need to preserve productionState as a property.
+    #  Our getProductionState() method requires acquisition context, so we have to add the property
+    #  onto the wrapped object and not on the ManagedEntity object itself.  We do this by sub-classing 
+    #  Zope's wrapper. Note that sub-classing sope's wrapper only works because we modified the Acquisition
+    #  source code to handle it properly. 
+    def __of__(self, ob):
+        
+        # Call zope's wrapper
+        wrappedObject = super(ManagedEntity, self).__of__(ob)
+              
+        # Get the class and type of the wrapped object
+        cls = wrappedObject.__class__
+        type_obj = type(wrappedObject)
+
+        wrapperSubclassName = cls.__name__ + '_' + type_obj.__name__ + '_prodStateProperty'      
+
+        # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
+        #  so wrather than creating a property, we will we need to override __getattribute__ and __setattr__
+        def wrappergetattribute(self, name):
+            if name=="productionState":
+                return self.getProductionState()
+            else:
+                return type_obj.__getattribute__(self, name)
+
+	def wrappersetattr(self, name, value):
+	    if name=="productionState":
+		self._setProductionState(value)
+	    else:
+ 		type_obj.__setattr__(self, name, value)
+
+
+        wrapper_subclass_dict = ( 
+                                '__getattribute__': wrappergetattribute,
+				'__setattr__'	  : wrappersetattr
+                                }
+        
+        # create our new wrapper type, subclassing zope's wrapper and overriding the two methods      
+        wrapper_subclass = type(wrapperSubclassName, (type_obj,),wrapper_subclass_dict)
+
+        # Wrap the object with our wrapper sub-class
+        result = wrapper_subclass(self, ob)
+        return result
 
     def getProductionStateString(self):
         """
@@ -158,3 +205,4 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         # reindex
         self.index_object()
         notify(IndexingEvent(self, 'path', False))
+
