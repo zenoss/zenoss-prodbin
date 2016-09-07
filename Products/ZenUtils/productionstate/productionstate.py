@@ -75,3 +75,12 @@ class ProdStateManager(object):
         if pstate is None:
             pstate = ProdState()
         return pstate
+
+    # Needed to handle cases where an object is removed or its guid changes
+    def updateGUID(self, oldGUID, newGUID):
+        if oldGUID in self.table:
+            if newGUID:
+                self.table[newGUID] = self.table.get(oldGUID)
+
+            del self.table[oldGUID]
+

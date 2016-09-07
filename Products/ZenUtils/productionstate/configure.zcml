@@ -10,4 +10,6 @@
         factory=".productionstate.ProdStateManager"
         />
 
+    <subscriber handler=".event.updateGUIDToProdStateMapping"/>
+
 </configure>

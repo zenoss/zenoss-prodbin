@@ -31,3 +31,8 @@ class IProdStateManager(Interface):
         """
         Set the pre-maintenance window state of the object.
         """
+    def updateGUID(oldGUID, newGUID):
+        """
+        Handle the situation where an object's guid has changed or the
+        object has been removed
+        """
