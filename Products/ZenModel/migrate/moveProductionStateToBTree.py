@@ -13,7 +13,9 @@ This migration script moves production state for all devices and components into
 ''' 
 
 __version__ = "$Revision$"[11:-2]
-        
+
+import logging
+log = logging.getLogger("zen.migrate")
 from Acquisition import aq_base
 import Migrate
 
@@ -23,19 +25,33 @@ class MoveProductionStateToBTree(Migrate.Step):
 
     def migrateObject(self, obj):
         obj_unwrapped = aq_base(obj)
+        migrated=False
         if hasattr(obj_unwrapped, 'productionState'):
             obj._setProductionState(obj_unwrapped.productionState)
             del obj_unwrapped.productionState
+            migrated=True
         if hasattr(obj_unwrapped, 'preMWProductionState'):
             obj.setPreMWProductionState(obj_unwrapped.preMWProductionState)
             del obj_unwrapped.preMWProductionState
+            migrated=True
+        return migrated
 
     def cutover(self, dmd):
+        log.info("Migrating productionState to lookup table")
+        total=len(dmd.Devices.getSubDevices_recursive())
+        count = 1
         for device in dmd.Devices.getSubDevices_recursive():
-            self.migrateObject(device)
+            log.info("Checking if productionState migration required for device %d of %d (%s)", count, total, device)
+            migrated = self.migrateObject(device)
 
             # migrate components
             for c in device.getDeviceComponents():
-                self.migrateObject(c)
+                cMigrated = self.migrateObject(c)
+                migrated = migrated or cMigrated
+
+            if migrated:
+                log.info("Successfully migrated productionState for %s", device)
+
+        log.info("All devices migrated")
 
 MoveProductionStateToBTree()
