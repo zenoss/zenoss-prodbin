@@ -97,12 +97,14 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     # In order to maintain backward-compatibility, we need to preserve productionState as a property.
     #  Our getProductionState() method requires acquisition context, so we have to add the property
     #  onto the wrapped object and not on the ManagedEntity object itself.  We do this by sub-classing 
-    #  Zope's wrapper. Note that sub-classing sope's wrapper only works because we modified the Acquisition
-    #  source code to handle it properly. 
-    def __of__(self, ob):
+    #  Zope's wrapper. 
+    #  Note that sub-classing sope's wrapper only works because we modified the Acquisition
+    #  source code to handle it properly. The modifications to Acquisition can be seen here:
+    #  https://github.com/zenoss/Acquisition/pull/1
+    def __of__(self, container):
 
         # Call zope's wrapper
-        wrappedObject = super(ManagedEntity, self).__of__(ob)
+        wrappedObject = super(ManagedEntity, self).__of__(container)
 
         # Get the class and type of the wrapped object
         cls = wrappedObject.__class__
@@ -139,7 +141,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         wrapper_subclass = type(wrapperSubclassName, (type_obj,),wrapper_subclass_dict)
 
         # Wrap the object with our wrapper sub-class
-        result = wrapper_subclass(self, ob)
+        result = wrapper_subclass(self, container)
         return result
 
     def getProductionStateString(self):

@@ -12,8 +12,9 @@ from exceptions import Exception
 from zope.interface import Interface
 
 class ProdStateNotSetError(Exception):
-    def __init__(self,*args,**kwargs):
-        Exception.__init__(self,*args,**kwargs)
+    """
+    Error that indicates that production state has not been set for a particular object
+    """
 
 class IProdStateManager(Interface):
     """

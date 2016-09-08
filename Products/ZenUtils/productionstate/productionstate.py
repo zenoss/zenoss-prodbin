@@ -18,10 +18,11 @@ from .interfaces import IProdStateManager, ProdStateNotSetError
 
 from BTrees.OOBTree import OOBTree
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Persistence import Persistent
 
 PRODSTATE_TABLE_PATH = '/zport/dmd/prodstate_table'
 
-class ProdState(object):
+class ProdState(Persistent):
     def __init__(self, state=None, premwstate=None):
         self.productionState = state
         self.preMWProductionState = premwstate
@@ -42,8 +43,8 @@ class ProdStateManager(object):
             self.table = OOBTree()
             setattr(self.traverse(parent), name, self.table)
     
-    def getProductionState(self, object):
-        guid = IGlobalIdentifier(object).getGUID()
+    def getProductionState(self, obj):
+        guid = IGlobalIdentifier(obj).getGUID()
         return self.getProductionStateFromGUID(guid)
 
     def getProductionStateFromGUID(self, guid):
@@ -52,21 +53,21 @@ class ProdStateManager(object):
             raise ProdStateNotSetError
         return pstate
 
-    def getPreMWProductionState(self, object):
-        guid = IGlobalIdentifier(object).getGUID()
+    def getPreMWProductionState(self, obj):
+        guid = IGlobalIdentifier(obj).getGUID()
         pstate = self._getProdStatesFromTable(guid).preMWProductionState
         if pstate is None:
             raise ProdStateNotSetError
         return pstate
 
-    def setProductionState(self, object, value):
-        guid = IGlobalIdentifier(object).getGUID()
+    def setProductionState(self, obj, value):
+        guid = IGlobalIdentifier(obj).getGUID()
         pstate = self._getProdStatesFromTable(guid)
         pstate.productionState = value
         self.table[guid] = pstate
 
-    def setPreMWProductionState(self, object, value):
-        guid = IGlobalIdentifier(object).getGUID()
+    def setPreMWProductionState(self, obj, value):
+        guid = IGlobalIdentifier(obj).getGUID()
         pstate = self._getProdStatesFromTable(guid)
         pstate.preMWProductionState = value
         self.table[guid] = pstate
@@ -85,8 +86,8 @@ class ProdStateManager(object):
 
             del self.table[oldGUID]
 
-    def clearProductionState(self, object):
-        guid = IGlobalIdentifier(object).getGUID()
+    def clearProductionState(self, obj):
+        guid = IGlobalIdentifier(obj).getGUID()
         if guid in self.table:
             del self.table[guid]
 

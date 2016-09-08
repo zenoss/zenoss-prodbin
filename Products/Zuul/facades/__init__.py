@@ -249,7 +249,7 @@ class TreeFacade(ZuulFacade):
                     prodState = psManager.getProductionStateFromGUID(brain.uuid)
                     prodStateBuckets[prodState].append(brain)
 
-                sortedBrains = list(brain for brain in mergeBuckets(productionStates, prodStateBuckets))
+                sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
             else:
                 sortedBrains = psFilteredbrains
 
