@@ -21,6 +21,8 @@ from pprint import pformat
 import logging
 log = logging.getLogger("zen.SshClient")
 import socket
+from tempfile import NamedTemporaryFile
+from subprocess import CalledProcessError, check_output, PIPE
 
 import Globals
 
@@ -38,6 +40,16 @@ import CollectorClient
 
 # NB: Most messages returned back from Twisted are Unicode.
 #     Expect to use str() to convert to ASCII before dumping out. :)
+
+
+def _convert_ssh_key(key):
+    with NamedTemporaryFile() as temp_file:
+        temp_file.file.write("%s %s" % ("ssh-ed25519", key))
+        key = check_output(("ssh-keygen", "-e", "-f", temp_file.name),
+                           stdout=PIPE, stderr=PIPE)
+        temp_file.file.write(key)
+        return check_output(("ssh-keygen", "-i", "-f", temp_file.name),
+                            stdout=PIPE, stderr=PIPE)
 
 
 def sendEvent( self, message="", device='', severity=Event.Error, event_key=None):
@@ -97,7 +109,7 @@ def sendEvent( self, message="", device='', severity=Event.Error, event_key=None
     }
     if event_key:
         error_event['eventKey'] = event_key
-        
+
     # At this point, we don't know what we have
     try:
         if hasattr_path( self, "factory.datacollector.sendEvent" ):
@@ -370,9 +382,16 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         if os.path.exists(keyPath):
             try:
                 data = ''.join(open(keyPath).readlines()).strip()
-                key = Key.fromString(data,
-                               passphrase=self.factory.password)
-            except IOError, ex:
+                # NOTE: Twisted don't support ed25519 key type so we are use the
+                #       workaround to work with them.
+                # TODO: Remove _convert_ssh_key() when Twisted will support
+                #        ed25519 key
+                if "ed25519" in os.path.basename(keyPath):
+                    key = _convert_ssh_key(data)
+                else:
+                    key = Key.fromString(data, passphrase=self.factory.password)
+            # TODO: Remove CalledProcessError catch with _convert_ssh_key()
+            except (IOError, CalledProcessError) as ex:
                 message = "Unable to read the SSH key file because %s" % (
                              str(ex))
                 log.warn(message)
