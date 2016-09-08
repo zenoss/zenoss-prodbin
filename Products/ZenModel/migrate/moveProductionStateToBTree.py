@@ -18,6 +18,9 @@ import logging
 log = logging.getLogger("zen.migrate")
 from Acquisition import aq_base
 import Migrate
+from Products import Zuul
+from Products.Zuul.utils import unbrain
+from Products.ZCatalog.Catalog import CatalogError
 
 class MoveProductionStateToBTree(Migrate.Step):
 
@@ -25,33 +28,56 @@ class MoveProductionStateToBTree(Migrate.Step):
 
     def migrateObject(self, obj):
         obj_unwrapped = aq_base(obj)
-        migrated=False
         if hasattr(obj_unwrapped, 'productionState'):
             obj._setProductionState(obj_unwrapped.productionState)
             del obj_unwrapped.productionState
-            migrated=True
         if hasattr(obj_unwrapped, 'preMWProductionState'):
             obj.setPreMWProductionState(obj_unwrapped.preMWProductionState)
             del obj_unwrapped.preMWProductionState
-            migrated=True
-        return migrated
 
     def cutover(self, dmd):
+        # Move production state to BTree
         log.info("Migrating productionState to lookup table")
-        total=len(dmd.Devices.getSubDevices_recursive())
+
+        # Use device facade to get all devices from the catalog
+        facade = Zuul.getFacade('device', dmd)
+
+        # call getDeviceBrains, because getDevices requires ZEP
+        brains = facade.getDeviceBrains(limit=None)
+        total = brains.total
         count = 1
-        for device in dmd.Devices.getSubDevices_recursive():
-            log.info("Checking if productionState migration required for device %d of %d (%s)", count, total, device)
-            migrated = self.migrateObject(device)
+        devices = (unbrain(b) for b in brains)
+        for device in devices:
+            if count % 100 == 0:
+                log.info("Migrated %d devices of %d", count, total)
+
+            count = count + 1
+
+            self.migrateObject(device)
 
             # migrate components
             for c in device.getDeviceComponents():
-                cMigrated = self.migrateObject(c)
-                migrated = migrated or cMigrated
-
-            if migrated:
-                log.info("Successfully migrated productionState for %s", device)
+                self.migrateObject(c)
 
         log.info("All devices migrated")
+
+        # Remove production state from the global and device catalogs
+        log.info("Removing production state from catalogs")
+        globalCatalog = dmd.getPhysicalRoot().zport.global_catalog
+        deviceCatalog = getattr(dmd.Devices, dmd.Devices.default_catalog)
+
+        try: 
+            globalCatalog.delIndex('productionState')
+        except CatalogError:
+            pass
+
+        try:
+            deviceCatalog.delIndex('getProdState')
+        except CatalogError:
+            pass
+
+        log.info("Production state index removed from global and device catalogs")
+
+
 
 MoveProductionStateToBTree()
