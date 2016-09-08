@@ -79,6 +79,43 @@ Ext.define('Zenoss.component.TplUidNameModel', {
     fields: ['qtip', 'definition', 'hidden', 'leaf', 'description', 'name', 'text', 'id', 'meta_type', 'targetPythonClass', 'inspector_type', 'icon_cls', 'children', 'uid']
 });
 
+// getGraphDef can fetch graph defs and automatically
+// caches them
+var getGraphDef = (function(){
+    var graphDefsCache = {};
+    return function getGraphDef(data, cb, scope){
+        var name = data.uid,
+            cached = graphDefsCache[name];
+
+        // use cached result if available
+        if(cached){
+            // NOTE - result must be cloned because the receiver
+            // can do whatever they want with the referenced object
+            cb.call(scope, Ext.clone(cached.result), cached.event, cached.success);
+            return;
+        }
+
+        // create a new callback that will cache the result,
+        // then call the original callback
+        var callback = function(result, event, success){
+            if(!success){
+                cb.call(scope, result, event, success);
+                return;
+            }
+
+            // cache result
+            graphDefsCache[name] = {
+                result: result,
+                event: event,
+                success: success
+            };
+            cb.call(scope, Ext.clone(result), event, success);
+        };
+
+        Zenoss.remote.DeviceRouter.getGraphDefs(data, callback, scope);
+    };
+})();
+
 Zenoss.nav.register({
     Component: [{
         nodeType: 'subselect',
@@ -91,7 +128,8 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'graphpanel',
                     viewName: 'graphs',
-                    text: _t('Graphs')
+                    text: _t('Graphs'),
+                    directFn: getGraphDef
                 };
 
             if (!Ext.get('graph_panel')) {
