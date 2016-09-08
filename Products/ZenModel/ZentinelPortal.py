@@ -238,6 +238,13 @@ class ZentinelPortal ( PortalObjectBase ):
             </script>
             """
 
+    def sup(self):
+        """
+        Indicates if zport "is up" (aka "'sup") by answering a question
+        only the "real" zport would know, but an imposter wouldn't know
+        """
+        return "'sup"
+
 
 Globals.InitializeClass(ZentinelPortal)
 
