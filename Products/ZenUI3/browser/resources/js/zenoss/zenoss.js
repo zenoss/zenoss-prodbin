@@ -213,22 +213,52 @@ Ext.define('Zenoss.state.PersistentProvider', {
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
     constructor: function() {
         this.callParent(arguments);
-        this.on('statechange', this.save, this);
+        this.on('statechange', this.onStateChange, this);
         this.task = null;
+        this.isDirty = false;
+        this.prevStateString = null;
     },
     setState: function(stateString) {
         var state = Ext.decode(stateString);
         this.state = Ext.isObject(state) ? state : {};
     },
+
+    onStateChange: function(me, key, val){
+        var newStateString = Ext.JSON.encode(this.state);
+
+        // if prev and new state are the same, we done
+        if(this.prevStateString == newStateString){
+            this.isDirty = false;
+            return;
+        }
+
+        // if prevStateString is null, it is the first
+        // time setting state, so skip marking dirty
+        // and saving
+        if(this.prevStateString !== null){
+            this.isDirty = true;
+            this.save();
+        }
+
+        this.prevStateString = newStateString;
+    },
+
     // Private
     save: function() {
+        // no point in savin if things aint changed
+        if(!this.isDirty){
+            return;
+        }
+
         // in the case where we get multiple requests to
         // update the state just send one request
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
                 this.directFn(
-                    {state: Ext.encode(this.state)}
-                );
+                    {state: Ext.encode(this.state)}, 
+                    function(){
+                        this.isDirty = false;
+                    });
             }, this);
         }
         // delay for half a second
@@ -239,6 +269,7 @@ Ext.define('Zenoss.state.PersistentProvider', {
             {state: Ext.encode(this.state)},
             function() {
                 Ext.callback(callback, scope);
+                this.isDirty = false;
             }
         );
     }
