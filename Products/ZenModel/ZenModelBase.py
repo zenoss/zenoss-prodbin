@@ -144,15 +144,6 @@ class ZenModelBase(object):
         @type baseKey: string
         @type extensionIter: iterator
         @rtype: string
-
-        >>> id1 = dmd.Devices.getUnusedId('devices', 'dev')
-        >>> id1
-        'dev'
-        >>> dmd.Devices.createInstance(id1)
-        <Device at /zport/dmd/Devices/devices/dev>
-        >>> id2 = dmd.Devices.getUnusedId('devices', 'dev')
-        >>> id2
-        'dev2'
         """
         import itertools
         if extensionIter is None:
@@ -416,14 +407,6 @@ class ZenModelBase(object):
         @return: Path to object
         @rtype: string
         @permission: ZEN_VIEW
-
-        >>> d = dmd.Devices.Server.createInstance('test')
-        >>> d.getPrimaryDmdId()
-        '/Devices/Server/devices/test'
-        >>> d.getPrimaryDmdId('Devices')
-        '/Server/devices/test'
-        >>> d.getPrimaryDmdId('Devices','devices')
-        '/Server/test'
         """
         path = list(self.getPrimaryPath())
         path = path[path.index(rootName)+1:]
@@ -696,11 +679,6 @@ class ZenModelBase(object):
         @return: Path to icon
         @rtype: string
         @permission: ZEN_VIEW
-
-        >>> dmd.Devices.Server.zIcon = '/zport/dmd/img/icons/server.png'
-        >>> d = dmd.Devices.Server.createInstance('test')
-        >>> d.getIconPath()
-        '/zport/dmd/img/icons/server.png'
         """
         try:
             return self.primaryAq().zIcon
