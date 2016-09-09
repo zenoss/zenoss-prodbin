@@ -498,7 +498,7 @@ class AddDeviceContextAndTagsPipe(EventProcessorPipe):
         if ipAddress:
             evtproxy.ipAddress = ipAddress
 
-        prodState = device.productionState
+        prodState = device.getProductionState()
         if prodState:
             evtproxy.prodState = prodState
 

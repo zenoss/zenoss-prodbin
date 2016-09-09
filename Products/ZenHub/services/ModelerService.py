@@ -96,7 +96,7 @@ class ModelerService(PerformanceConfig):
             if checkStatus and (device.getPingStatus() > 0
                                 or device.getSnmpStatus() > 0):
                 skipModelMsg = "device %s is down skipping modeling" % device.id
-            if (device.productionState <
+            if (device.getProductionState() <
                 device.getProperty('zProdStateThreshold', 0)):
                 skipModelMsg = "device %s is below zProdStateThreshold" % device.id
             if skipModelMsg:
