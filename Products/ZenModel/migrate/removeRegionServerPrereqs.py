@@ -31,7 +31,7 @@ class RemoveRegionServerPrereqs(Migrate.Step):
         regionServers = filter(lambda x: x.name == 'RegionServer', ctx.services)
         commit = False
         for server in regionServers:
-	    server.prereqs = []
+            server.prereqs = []
             commit = True
         if commit:
             log.info("Prereqs for RegionServer updated.")
