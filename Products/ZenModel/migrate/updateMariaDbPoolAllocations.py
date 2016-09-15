@@ -16,7 +16,7 @@ log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
 
 class UpdateMariaDBPoolAlloc(Migrate.Step):
-    version = Migrate.Version(5, 1, 0)
+    version = Migrate.Version(5, 2, 0)
 
     def cutover(self, dmd):
         try:
@@ -33,7 +33,7 @@ class UpdateMariaDBPoolAlloc(Migrate.Step):
             for cf in cfs:
                 lines = cf.content.split('\n')
                 for i, line in enumerate(lines):
-                    if line.startswith("innodb_buffer_pool_size"):
+                    if line.startswith("innodb_buffer_pool_size") and "512M" in line:
                         lines[i] = line.replace("512M", "{{percentScale .RAMCommitment 0.8}}")
                         log.info("Changed MariaDB innodb_buffer_pool_size from 512M (default) to '{{percentScale .RAMCommitment 0.8}}' on line {0}".format(i))
                 cf.content = '\n'.join(lines)
