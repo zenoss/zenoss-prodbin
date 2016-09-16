@@ -30,14 +30,17 @@ class IComponentInfo(IInfo):
     An info adapter that wraps a device component.  Examples of device
     components are OSProcesses, IPServices and WinServices.
     """
+    device = Attribute("Parent Device")
     status = schema.TextLine(title=_t(u"Status"),
                              description=u"Are there any active status events"
                                          u" for this component?", group="Overview",
                              order=1,
                              readonly=True)
-    device = schema.Entity(title=_t(u"Device"),
-                           description=u"Parent Device", group="Overview",
-                           order=2)
+    deviceName = schema.TextLine(title=_t(u"Device"),
+                                 description=u"Parent Device Name/Title",
+                                 group="Overview",
+                                 order=2,
+                                 readonly=True)
     usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
     monitor = Attribute("Has monitoring been enabled on the component")
     monitored = Attribute(u"Is the component being monitored"
