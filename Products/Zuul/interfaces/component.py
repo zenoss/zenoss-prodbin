@@ -36,6 +36,11 @@ class IComponentInfo(IInfo):
                                          u" for this component?", group="Overview",
                              order=1,
                              readonly=True)
+    deviceName = schema.TextLine(title=_t(u"Device"),
+                                 description=u"Parent Device Name/Title",
+                                 group="Overview",
+                                 order=2,
+                                 readonly=True)
     usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
     monitor = Attribute("Has monitoring been enabled on the component")
     monitored = Attribute(u"Is the component being monitored"
