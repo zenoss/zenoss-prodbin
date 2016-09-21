@@ -9,10 +9,10 @@
 
 
 import os
-import unittest
 
 from contextlib import contextmanager
 
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.zenpack import ZenPackCmd
 from Products.ZenUtils.Utils import zenPath
 
@@ -32,7 +32,7 @@ def mockListdir(name, version):
     os.listdir = original
 
 
-class TestFindEggs(unittest.TestCase):
+class TestFindEggs(BaseTestCase):
     """Test the _findEggs routine."""
 
     def test001_WrongName(self):
