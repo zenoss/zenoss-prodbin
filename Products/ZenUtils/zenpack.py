@@ -539,6 +539,8 @@ class ZenPackCmd(ZenScriptBase):
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
     def _findEggs(self, zenpackID, zenpackVersion):
+        # if the version has a dash, replace with an underscore
+        zenpackVersion = zenpackVersion.replace("-", "_", 1)
         eggs = []
         for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
             for f in os.listdir(dirpath):
@@ -562,8 +564,6 @@ class ZenPackCmd(ZenScriptBase):
         return eggs
 
     def _restore(self, zenpackID, zenpackVersion, filesOnly):
-        # if the version has a dash, replace with an underscore
-        zenpackVersion = zenpackVersion.replace("-", "_", 1)
         # look for the egg
         eggs = self._findEggs(zenpackID, zenpackVersion)
         if len(eggs) == 0:
