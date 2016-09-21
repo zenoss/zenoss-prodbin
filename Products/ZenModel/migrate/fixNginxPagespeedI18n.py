@@ -1,0 +1,56 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2016, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+import logging
+import re
+
+log = logging.getLogger("zen.migrate")
+
+import Migrate
+import servicemigration as sm
+sm.require("1.0.0")
+
+class FixNginxPagespeedI18n(Migrate.Step):
+	'''
+	Turn pagespeed on and exclude 'i18n.js' from pagespeed bundles in zproxy-nginx.conf
+	'''
+
+	version = Migrate.Version(5, 2, 0)
+
+	def cutover(self, dmd):
+		try:
+			ctx = sm.ServiceContext()
+		except sm.ServiceMigrationError:
+			log.info("Couldn't generate service context, skipping")
+			return
+
+		commit = False
+		zproxy = ctx.getTopService()
+		log.info("Top-level service is '{}'.".format(zproxy.name))
+		configfiles = zproxy.originalConfigs + zproxy.configFiles
+		for config_file in filter(lambda f: f.name == '/opt/zenoss/zproxy/conf/zproxy-nginx.conf', configfiles):
+			config_text = config_file.content
+
+			pgspeed_setting = re.search("pagespeed (on|off)", config_text)
+			i18n_setting = re.search("Disallow\s+\'\*i18n.\*\'\s+", config_text)
+			if pgspeed_setting is None or i18n_setting is not None:
+				continue
+
+			config_text = re.sub('(pagespeed (on|off));\s+', "pagespeed on;\r\n        Disallow '*i18n.*'\r\n        ", config_text)
+			
+
+			log.info("Turning pagespeed on and excluding i18n.js from pagespeed bundles for {} and {}".format(config_file.name, zproxy.name))
+			config_file.content = config_text
+			commit = True
+
+		if commit:
+			ctx.commit()
+
+
+FixNginxPagespeedI18n()
