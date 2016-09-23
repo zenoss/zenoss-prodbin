@@ -16,7 +16,7 @@ import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
 
-class FixNginxPagespeedI18n(Migrate.Step):
+class EnableNginxPagespeed(Migrate.Step):
 	'''
 	Turn pagespeed on and exclude 'i18n.js' from pagespeed bundles in zproxy-nginx.conf
 	'''
@@ -51,4 +51,4 @@ class FixNginxPagespeedI18n(Migrate.Step):
 			ctx.commit()
 
 
-FixNginxPagespeedI18n()
+EnableNginxPagespeed()
