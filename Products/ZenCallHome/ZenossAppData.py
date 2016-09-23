@@ -228,7 +228,7 @@ class ZenossResourceData(object):
             stats[LINKED_DEVICES] = 0
         for device in self._dmd.Devices.getSubDevicesGen_recursive():
             stats['Device Count'] += 1
-            if device.productionState < 0:
+            if device.getProductionState() < 0:
                 stats["Decommissioned Devices"] += 1
             cpuCount = IDeviceCpuCount(device).cpuCount()
             log.debug("Devices %s has %s cpu cores", device, cpuCount)

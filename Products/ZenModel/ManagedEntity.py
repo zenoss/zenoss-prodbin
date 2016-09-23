@@ -28,6 +28,10 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
+from Products.ZenUtils.productionstate.interfaces import IProdStateManager, ProdStateNotSetError
+from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
+from Acquisition import aq_parent
+
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
@@ -49,10 +53,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     _properties = (
      {'id':'snmpindex', 'type':'string', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
-     {'id':'productionState', 'type':'keyedselection', 'mode':'w',
-      'select_variable':'getProdStateConversions','setter':'setProdState'},
-     {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
-      'select_variable':'getProdStateConversions','setter':'setProdState'},
     )
 
     _relations = (
@@ -69,6 +69,80 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """Overridden in lower classes if a device relationship exists.
         """
         return None
+    
+    def getProdStateManager(self):
+        return IProdStateManager(self)
+
+    def getProductionState(self):
+        try:
+            return self.getProdStateManager().getProductionState(self)
+        except (ProdStateNotSetError, AttributeError, TypeError):
+            return aq_parent(self).getProductionState()
+        
+    def _setProductionState(self, state):
+        self.getProdStateManager().setProductionState(self, state)
+
+    def getPreMWProductionState(self):
+        try:
+            return self.getProdStateManager().getPreMWProductionState(self)
+        except (ProdStateNotSetError, AttributeError, TypeError):
+            return aq_parent(self).getPreMWProductionState()
+
+    def setPreMWProductionState(self, state):
+        self.getProdStateManager().setPreMWProductionState(self, state)
+
+    def resetProductionState(self):
+        self.getProdStateManager().clearProductionState(self)
+
+    # In order to maintain backward-compatibility, we need to preserve productionState as a property.
+    #  Our getProductionState() method requires acquisition context, so we have to add the property
+    #  onto the wrapped object and not on the ManagedEntity object itself.  We do this by sub-classing 
+    #  Zope's wrapper. 
+    #  Note that sub-classing sope's wrapper only works because we modified the Acquisition
+    #  source code to handle it properly. The modifications to Acquisition can be seen here:
+    #  https://github.com/zenoss/Acquisition/pull/1
+    def __of__(self, container):
+
+        # Call zope's wrapper
+        wrappedObject = super(ManagedEntity, self).__of__(container)
+
+        # Get the class and type of the wrapped object
+        cls = wrappedObject.__class__
+        type_obj = type(wrappedObject)
+
+        wrapperSubclassName = cls.__name__ + '_' + type_obj.__name__ + '_prodStateProperty'      
+
+        # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
+        #  so rather than creating a property, we will we need to override __getattribute__, __setattr__, and __delattr__
+        def wrappergetattribute(self, name):
+            if name=="productionState":
+                return self.getProductionState()
+            else:
+                return type_obj.__getattribute__(self, name)
+
+        def wrappersetattr(self, name, value):
+            if name=="productionState":
+                self._setProductionState(value)
+            else:
+                type_obj.__setattr__(self, name, value)
+
+        def wrapperdelattr(self, name):
+            if name=="productionState":
+                self.resetProductionState()
+            else:
+                type_obj.__delattr__(self, name)
+
+        wrapper_subclass_dict = {'__getattribute__': wrappergetattribute,
+                                 '__setattr__'     : wrappersetattr,
+                                 '__delattr__'     : wrapperdelattr
+                                }
+
+        # create our new wrapper type, subclassing zope's wrapper and overriding the three methods
+        wrapper_subclass = type(wrapperSubclassName, (type_obj,),wrapper_subclass_dict)
+
+        # Wrap the object with our wrapper sub-class
+        result = wrapper_subclass(self, container)
+        return result
 
     def getProductionStateString(self):
         """
@@ -76,7 +150,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
 
         @rtype: string
         """
-        return str(self.convertProdState(self.productionState))
+        return str(self.convertProdState(self.getProductionState()))
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
@@ -89,13 +163,15 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         @type maintWindowChange: boolean
         @permission: ZEN_CHANGE_DEVICE
         """
-        self.productionState = int(state)
-        self.primaryAq().index_object()
-        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
+        self._setProductionState(int(state))
+
         if not maintWindowChange:
             # Saves our production state for use at the end of the
             # maintenance window.
-            self.preMWProductionState = self.productionState
+            self.setPreMWProductionState(self.getProductionState()) 
+
+        publishModified(self, None)
+
 
         if REQUEST:
             IMessageSender(self).sendToBrowser(
@@ -146,3 +222,4 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         # reindex
         self.index_object()
         notify(IndexingEvent(self, 'path', False))
+

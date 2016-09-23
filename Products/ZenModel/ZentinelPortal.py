@@ -238,6 +238,13 @@ class ZentinelPortal ( PortalObjectBase ):
             </script>
             """
 
+    def ruok(self):
+        """
+        check if zport is ok by answering a question only the
+        real zport would know, but an imposter wouldn't know
+        """
+        return "imok"
+
 
 Globals.InitializeClass(ZentinelPortal)
 

@@ -479,6 +479,16 @@ class ZenPackCmd(ZenScriptBase):
         sortedPacks = toposort_flatten(zpsToSort)
         triedReversing = False
         fixedSomething = len(sortedPacks) > 0
+        # Installing all zenpacks with '--files-only' flag
+        # for preventing DistributionNotFound Error
+        for pack in sortedPacks:
+            candidate = self._findEggs(pack, zpsToRestore[pack][0])
+            if candidate:
+                try:
+                    EggPackCmd.InstallEggAndZenPack(
+                        self.dmd, candidate[0], filesOnly=True)
+                except OSError as e:
+                    self.log.info('%s could not be installed', candidate[0])
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
             # Keep track of all the packs that failed to restore
@@ -528,10 +538,9 @@ class ZenPackCmd(ZenScriptBase):
         with open(os.devnull, 'w') as fnull:
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
-    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+    def _findEggs(self, zenpackID, zenpackVersion):
         # if the version has a dash, replace with an underscore
         zenpackVersion = zenpackVersion.replace("-", "_", 1)
-        # look for the egg
         eggs = []
         for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
             for f in os.listdir(dirpath):
@@ -552,6 +561,11 @@ class ZenPackCmd(ZenScriptBase):
             # no point in checking the other dirpaths if an egg has been found
             if len(eggs) > 0:
                 break
+        return eggs
+
+    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+        # look for the egg
+        eggs = self._findEggs(zenpackID, zenpackVersion)
         if len(eggs) == 0:
             self.log.info("Could not find install candidate for %s (%s)", zenpackID, zenpackVersion)
             return

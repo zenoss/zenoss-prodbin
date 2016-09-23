@@ -168,6 +168,46 @@ class TestIpInterface(ZenModelBaseTest):
                 self.assertEquals(
                     template_id, self.iface.getRRDTemplates()[0].id)
 
+    def testProductionState(self):
+	    # test acquisition from device
+        self.dev._setProductionState(400)
+        self.assertEquals(self.iface.getProductionState(), 400)
+
+        # test setting directly on the component
+        self.iface._setProductionState(100)
+        self.assertEquals(self.iface.getProductionState(), 100)
+        self.assertEquals(self.dev.getProductionState(), 400)
+
+        # setting it on the component stops it from acquiring from the device
+        self.dev._setProductionState(1000)
+        self.assertEquals(self.iface.getProductionState(), 100)
+
+    	# delete it from the component and it goes back to acquiring
+    	self.iface.resetProductionState()
+    	self.dev._setProductionState(99)
+    	self.assertEquals(self.iface.getProductionState(), 99)
+
+    # Same as testProductionState but use the property instead of the methods
+    def testProductionStateProperty(self):
+        # test acquisition from device
+        self.dev._setProductionState(400)
+        self.assertEquals(self.iface.productionState, 400)
+
+        # test setting directly on the component
+        self.iface.productionState = 100
+        self.assertEquals(self.iface.productionState, 100)
+        self.assertEquals(self.iface.getProductionState(), 100)
+        self.assertEquals(self.dev.getProductionState(), 400)
+
+        # setting it on the component stops it from acquiring from the device
+        self.dev._setProductionState(1000)
+        self.assertEquals(self.iface.productionState, 100)
+
+        # delete it from the component and it goes back to acquiring
+        del self.iface.productionState
+        self.dev._setProductionState(99)
+        self.assertEquals(self.iface.productionState, 99)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
