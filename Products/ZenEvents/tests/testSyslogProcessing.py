@@ -32,6 +32,23 @@ class SyslogProcessingTest(BaseTestCase):
         evt = dict(**base)
         self.assert_(s.buildEventClassKey(evt)['eventClassKey'] == 'component')
 
+    def testProcess(self):
+        long_text_message = "long text message " * 20
+        msg = "2016-08-08T11:07:33.660820-04:00 devname=localhost log_id=98765434 type=component {}".format(long_text_message)
+        ipaddr = "127.0.0.1"
+        host = "8080"
+        rtime = "1416111"
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        s.process(msg, ipaddr, host, rtime)
+        evt = self.sent
+        self.assertEquals(evt.get('device'), host)
+        self.assertEquals(evt.get('ipAddress'), ipaddr)
+        self.assertEquals(evt.get('firstTime'), rtime)
+        self.assertEquals(evt.get('lastTime'), rtime)
+        self.assertEquals(evt.get('eventGroup'), 'syslog')
+        self.assertEquals(evt.get('message'), unicode(msg))
+        self.assertEquals(evt.get('summary'), unicode(msg))
+
     def testCheckFortigate(self):
         """
         Test of Fortigate syslog message parsing
