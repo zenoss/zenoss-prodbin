@@ -6,7 +6,9 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
+__doc__ = """
+Set pagespeed on in zproxy-nginx.conf
+"""
 import logging
 import re
 
@@ -18,7 +20,7 @@ sm.require("1.0.0")
 
 class EnableNginxPagespeed(Migrate.Step):
 	'''
-	Turn pagespeed on and exclude 'i18n.js' from pagespeed bundles in zproxy-nginx.conf
+	Turn pagespeed in zproxy-nginx.conf
 	'''
 
 	version = Migrate.Version(5, 2, 0)
