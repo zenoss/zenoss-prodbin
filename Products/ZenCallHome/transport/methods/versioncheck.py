@@ -16,7 +16,7 @@ import urllib2
 
 from Products.ZenUtils.Version import Version
 
-VERSION_CHECK_URL = 'http://callhome.zenoss.com/callhome/v2/versioncheck'
+VERSION_CHECK_URL = 'https://callhome.zenoss.com/callhome/v2/versioncheck'
 _URL_TIMEOUT = 5
 logger = logging.getLogger('zen.callhome')
 
