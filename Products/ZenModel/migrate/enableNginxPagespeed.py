@@ -19,38 +19,38 @@ import servicemigration as sm
 sm.require("1.0.0")
 
 class EnableNginxPagespeed(Migrate.Step):
-	'''
-	Turn pagespeed in zproxy-nginx.conf
-	'''
+    '''
+    Turn pagespeed in zproxy-nginx.conf
+    '''
 
-	version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(5, 2, 0)
 
-	def cutover(self, dmd):
-		try:
-			ctx = sm.ServiceContext()
-		except sm.ServiceMigrationError:
-			log.info("Couldn't generate service context, skipping")
-			return
+    def cutover(self, dmd):
+        try:
+            ctx = sm.ServiceContext()
+        except sm.ServiceMigrationError:
+            log.info("Couldn't generate service context, skipping")
+            return
 
-		commit = False
-		zproxy = ctx.getTopService()
-		log.info("Top-level service is '{}'.".format(zproxy.name))
-		configfiles = zproxy.originalConfigs + zproxy.configFiles
-		for config_file in filter(lambda f: f.name == '/opt/zenoss/zproxy/conf/zproxy-nginx.conf', configfiles):
-			config_text = config_file.content
+        commit = False
+        zproxy = ctx.getTopService()
+        log.info("Top-level service is '{}'.".format(zproxy.name))
+        configfiles = zproxy.originalConfigs + zproxy.configFiles
+        for config_file in filter(lambda f: f.name == '/opt/zenoss/zproxy/conf/zproxy-nginx.conf', configfiles):
+            config_text = config_file.content
 
-			pgspeed_setting = re.search("pagespeed on", config_text)
-			if pgspeed_setting is not None:
-				continue
+            pgspeed_setting = re.search("pagespeed on", config_text)
+            if pgspeed_setting is not None:
+                continue
 
-			config_text = re.sub('pagespeed off', "pagespeed on", config_text)
+            config_text = re.sub('pagespeed off', "pagespeed on", config_text)
 
-			log.info("Turning pagespeed on for {} and {}".format(config_file.name, zproxy.name))
-			config_file.content = config_text
-			commit = True
+            log.info("Turning pagespeed on for {} and {}".format(config_file.name, zproxy.name))
+            config_file.content = config_text
+            commit = True
 
-		if commit:
-			ctx.commit()
+        if commit:
+            ctx.commit()
 
 
 EnableNginxPagespeed()
