@@ -1,0 +1,4 @@
+# Allows Zenoss to use ping for pinging
+%zenoss ALL=(ALL) NOPASSWD: /usr/bin/ping
+%zenoss ALL=(ALL) NOPASSWD: /usr/bin/ping6
+Defaults:zenoss !requiretty

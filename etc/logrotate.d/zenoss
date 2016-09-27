@@ -1,0 +1,23 @@
+**ZENHOME**/log/event.log **ZENHOME**/log/Z2.log **ZENHOME**/log/zeo.log {
+    missingok
+    daily
+    rotate 14
+    copytruncate
+    compress
+    delaycompress
+    notifempty
+}
+
+**ZENHOME**/log/nginx/*.log {
+    missingok
+    daily
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 640 zenoss zenoss
+    sharedscripts
+    postrotate
+        [ ! -f /opt/zenoss/var/nginx.pid ] || kill -USR1 `cat /opt/zenoss/var/nginx.pid`
+    endscript
+}
