@@ -1,4 +1,5 @@
 VERSION  := 5.2.0
+BUILD_NUMBER ?= DEV
 BRANCH   := develop
 ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
 

@@ -8,5 +8,5 @@
 ##############################################################################
 
 # this is now generated during the build step
-VERSION="5.2.0"
-BUILD_NUMBER="DEV"
+VERSION="%VERSION_STRING%"
+BUILD_NUMBER="%BUILD_NUMBER%"
