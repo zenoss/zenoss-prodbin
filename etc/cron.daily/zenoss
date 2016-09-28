@@ -1,0 +1,44 @@
+#!/bin/bash
+
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2006, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+
+#
+# This script cleans up the temporary files in the renderserver as
+# well as executes the zenbackup.py script, resulting in a database
+# backup file being created.
+#
+
+# location of the shell script that initializes the zenoss environment
+ZENOSS_ENV=~zenoss/.bashrc
+
+
+# print the error message passed and exit with a return code of 1 (error)
+fail() {
+    echo $*
+    exit 1
+}
+
+
+#
+# main script starts here
+#
+
+# set up the environment
+test -f ${ZENOSS_ENV} || fail "Source environment not found"
+. ${ZENOSS_ENV}
+
+
+# delete the renderserver files.  they grow a LOT over time
+test -d /tmp/renderserver && find /tmp/renderserver -name \*.png -exec rm '{}' \; 
+
+
+# run zenbackup to dump the events database as well as ZODB
+#su -c "${ZENHOME}/bin/zenbackup -C ${ZENHOME}/etc/zenbackup.conf < /dev/null" zenoss
