@@ -1,3 +1,0 @@
-# Allows Zenoss to examine hardware information
-%zenoss ALL=(ALL) NOPASSWD: /usr/sbin/dmidecode
-Defaults:zenoss !requiretty

@@ -1,4 +1,0 @@
-# Allows Zenoss to self monitor rabbitmq
-%zenoss ALL=(ALL) NOPASSWD: /bin/ls
-%zenoss ALL=(ALL) NOPASSWD: /usr/sbin/rabbitmqctl
-Defaults:zenoss !requiretty

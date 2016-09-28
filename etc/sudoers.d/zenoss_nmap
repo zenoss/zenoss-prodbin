@@ -1,3 +1,0 @@
-# Allows Zenoss to use nmap for pinging
-%zenoss ALL=(ALL) NOPASSWD: /usr/bin/nmap
-Defaults:zenoss !requiretty
