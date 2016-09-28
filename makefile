@@ -7,7 +7,7 @@ DIST_ROOT := dist
 # Define the name, version and tag name for the docker build image
 # Note that build-tools is derived from zenoss-centos-base which contains JSBuilder
 BUILD_IMAGE = build-tools
-BUILD_VERSION = 0.0.3
+BUILD_VERSION = 0.0.5
 BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 
 UID := $(shell id -u)
