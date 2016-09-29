@@ -168,7 +168,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(devId)
         self.devices._setObject(devId, dev)
-        return self.devices._getOb(devId)
+        devInContext = self.devices._getOb(devId)
+        devInContext.resetProductionState() # Sets the default production state so to avoid ProdStateNotSetError later
+        return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
         
@@ -406,7 +408,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             location = device.getLocationName()
             if not location: location = "Unknown"
             deviceInfo[device.id] = (systemNames, location,
-                                    device.productionState,
+                                    device.getProductionState(),
                                     device.getDeviceClassPath())
         return deviceInfo
 
@@ -817,7 +819,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
         for idxname in ['id',
-            'getDeviceIp','getDeviceClassPath','getProdState','titleOrId']:
+            'getDeviceIp','getDeviceClassPath','titleOrId']:
             cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
         cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
         cat.addIndex('path', makeMultiPathIndex('path'))

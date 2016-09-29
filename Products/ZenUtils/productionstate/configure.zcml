@@ -1,0 +1,15 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+    <meta:provides feature="productionState"/>
+
+    <adapter
+        for="Products.ZenModel.ZenModelRM.ZenModelRM"
+        provides=".interfaces.IProdStateManager"
+        factory=".productionstate.ProdStateManager"
+        />
+
+    <subscriber handler=".event.updateGUIDToProdStateMapping"/>
+
+</configure>

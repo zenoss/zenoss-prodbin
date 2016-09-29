@@ -222,10 +222,10 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
 
     @property
     def productionStateLabel(self):
-        return self._object.convertProdState(self._object.productionState)
+        return self._object.convertProdState(self._object.getProductionState())
 
     def getProductionState(self):
-        return self._object.productionState
+        return self._object.getProductionState()
 
     def setProductionState(self, prodState):
         # prodState gets cast to an integer in the device facade.

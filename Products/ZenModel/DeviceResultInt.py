@@ -76,7 +76,7 @@ class DeviceResultInt:
         if d:
             # since this method is used as a case-insensitive index
             # always return a string
-            return str(self.convertProdState(d.productionState))
+            return str(self.convertProdState(d.getProductionState()))
         return "None"
 
 

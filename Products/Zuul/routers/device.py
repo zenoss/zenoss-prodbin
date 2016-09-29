@@ -784,7 +784,7 @@ class DeviceRouter(TreeRouter):
             for uid in uids:
                 device = facade._getObject(uid)
                 if isinstance(device, Device):
-                    oldStates[uid] = self.context.convertProdState(device.productionState)
+                    oldStates[uid] = self.context.convertProdState(device.getProductionState())
 
             prodStateName = self.context.convertProdState(prodState)
 
