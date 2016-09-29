@@ -146,6 +146,12 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return Version.parse("Zenoss %s" % VERSION)
     security.declarePublic('getZenossVersion')
 
+    @versionmeta("Zenoss", "http://www.zenoss.com")
+    def getZenossVersionAndBuild(self):
+        from Products.ZenModel.ZVersion import VERSION, BUILD_NUMBER
+        return Version.parse("Zenoss %s %s" % (VERSION, BUILD_NUMBER))
+    security.declarePublic('getZenossVersionAndBuild')
+
     def getZenossVersionShort(self):
         return self.getZenossVersion().short()
     security.declarePublic('getZenossVersionShort')
@@ -315,7 +321,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         software.
         """
         versionfuncs = [
-                self.getZenossVersion,
+                self.getZenossVersionAndBuild,
                 self.getOSVersion,
                 self.getZopeVersion,
                 self.getPythonVersion,
