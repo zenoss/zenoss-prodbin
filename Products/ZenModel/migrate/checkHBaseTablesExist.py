@@ -31,9 +31,10 @@ class CheckHBaseTablesExist(Migrate.Step):
             return
 
         # Find the services to edit.
-        # For "lite" services, there is a single opentsdb service; edit that
-        # service.  For "full" services, the opentsdb service is an organizer
-        # with reader and writer subservices.
+        # For "lite" services, there is a single opentsdb service and, it should
+        # not be edited. For "full" services, the opentsdb service is an organizer
+        # with reader and writer subservices. The reader services should be
+        # edited.
         opentsdbs = [i for i in ctx.services if i.name == 'opentsdb' ]
         readers = [i for i in ctx.services if i.name == 'reader' and
                 ctx.getServiceParent(i) in opentsdbs]
