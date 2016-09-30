@@ -287,10 +287,10 @@ class Version(object):
         """
         versionParts = versionString.strip().split()
         name = versionParts.pop(0)
-        #raise str(versionParts)
+
         try:
             # we want to always have a tuple of the right size returned,
-            # regardless of the number of elements in ther 'versions' iterable
+            # regardless of the number of elements in the 'versions' iterable
             major, minor, micro = getVersionTupleFromString(
                 versionParts.pop(0))
             try:
