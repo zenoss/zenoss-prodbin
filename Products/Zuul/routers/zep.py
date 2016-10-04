@@ -647,8 +647,8 @@ class EventsRouter(DirectRouter):
             log.debug('Found specific event ids, adding to params.')
             includeUuids = evids
 
-        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
         exclude_params = self._filterParser.findExclusionParams(params)
+        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
 
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
