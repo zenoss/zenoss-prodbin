@@ -407,7 +407,7 @@ class TrapFilter(object):
                 return True
             return filterDefinition.action == "exclude"
 
-        if genericTrap != "6":
+        if genericTrap != 6:
             log.error("Generic trap '%s' is invalid for V1 event: %s", genericTrap, event)
             return True
 
