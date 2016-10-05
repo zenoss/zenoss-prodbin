@@ -486,7 +486,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertEquals(results, "OID '1.3.6.1.4.*' conflicts with previous definition at line 101")
 
     def testDropV1EventForGenericTrapInclusion(self):
-        genericTrap = "0"
+        genericTrap = 0
         filterDef = GenericTrapFilterDefinition(99, "include", genericTrap)
         filter = TrapFilter()
         filter._v1Traps[genericTrap] = filterDef
@@ -495,7 +495,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertFalse(filter._dropV1Event(event))
 
     def testDropV1EventForGenericTrapForExclusion(self):
-        genericTrap = "1"
+        genericTrap = 1
         filterDef = GenericTrapFilterDefinition(99, "exclude", genericTrap)
         filter = TrapFilter()
         filter._v1Traps[genericTrap] = filterDef
@@ -504,12 +504,12 @@ class TrapFilterTest(BaseTestCase):
         self.assertTrue(filter._dropV1Event(event))
 
     def testDropV1EventForGenericTrapForNoMatch(self):
-        genericTrap = "1"
+        genericTrap = 1
         filterDef = GenericTrapFilterDefinition(99, "exclude", genericTrap)
         filter = TrapFilter()
         filter._v1Traps[genericTrap] = filterDef
 
-        event = {"snmpVersion": "1", "snmpV1GenericTrapType": "2"}
+        event = {"snmpVersion": "1", "snmpV1GenericTrapType": 2}
         self.assertTrue(filter._dropV1Event(event))
 
     def testDropV1EventForEnterpriseSimpleGlobMatch(self):
@@ -520,7 +520,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3.4"
         }
         self.assertTrue(filter._dropV1Event(event))
@@ -541,7 +541,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3.4"
         }
         self.assertFalse(filter._dropV1Event(event))
@@ -581,7 +581,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1"
         }
         self.assertFalse(filter._dropV1Event(event))
@@ -600,7 +600,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1"
         }
         self.assertTrue(filter._dropV1Event(event))
@@ -625,7 +625,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1"
         }
         self.assertTrue(filter._dropV1Event(event))
@@ -669,7 +669,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1"
         }
         self.assertFalse(filter._dropV1Event(event))
@@ -700,7 +700,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "9",
+            "snmpV1GenericTrapType": 9,
             "snmpV1Enterprise": "1.2"
         }
         self.assertTrue(filter._dropV1Event(event))
@@ -725,7 +725,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
         }
         self.assertTrue(filter._dropV1Event(event))
 
@@ -742,7 +742,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": "59"
         }
@@ -770,7 +770,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": "59"
         }
@@ -991,7 +991,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": "59"
         }
@@ -1016,7 +1016,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": filterDef.oid,
             "snmpV1SpecificTrap": filterDef.specificTrap
         }
@@ -1032,7 +1032,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": filterDef.oid,
             "snmpV1SpecificTrap": filterDef.specificTrap
         }
@@ -1070,7 +1070,7 @@ class TrapFilterTest(BaseTestCase):
 
         event = {
             "snmpVersion": "1",
-            "snmpV1GenericTrapType": "6",
+            "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
             "snmpV1SpecificTrap": "59"
         }

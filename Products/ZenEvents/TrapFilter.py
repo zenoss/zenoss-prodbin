@@ -129,7 +129,7 @@ class TrapFilter(object):
         self._daemon = None
         self._eventService = None
 
-        self._genericTraps = frozenset(["0", "1", "2", "3", "4", "5"])
+        self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
 
         # Map of SNMP V1 Generic Trap filters where key is the generic trap number and
         # value is a GenericTrapFilterDefinition
