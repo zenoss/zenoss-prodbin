@@ -32,6 +32,8 @@ class AddHBaseMetricsConfig(Migrate.Step):
             changed = False
             services = filter(lambda s: s.name == serviceName, ctx.services)
 
+            def equal(this, that):
+                return this.name == that.name and this.filename == that.filename and this.owner == that.owner and this.permissions == that.permissions and this.content == that.content
 
             for service in services:
                 newConfig = sm.ConfigFile(
@@ -41,9 +43,21 @@ class AddHBaseMetricsConfig(Migrate.Step):
                     permissions = "0664",
                     content = "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n# sampling period\n*.period=15\n\n# Below are some examples of sinks that could be used\n# to monitor different hbase daemons.\n\nhbase.sink.file-all.class=com.zenoss.hadoop.metrics.ControlCenterSink\nhbase.sink.file-all.includedMetrics=Log\\\\w*,\\\\w*RegionServers\n# hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file0.context=hmaster\n# hbase.sink.file0.filename=master.metrics\n\n# hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file1.context=thrift-one\n# hbase.sink.file1.filename=thrift-one.metrics\n\n# hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file2.context=thrift-two\n# hbase.sink.file2.filename=thrift-one.metrics\n\n# hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file3.context=rest\n# hbase.sink.file3.filename=rest.metrics\n"
                 )
-                service.originalConfigs.append(newConfig)
-                service.configFiles.append(newConfig)
-                changed = True
+
+                # If there's a config with the same name but is different from
+                # the new config, overwrite it.
+                if all([not equal(config, newConfig) for config in service.originalConfigs]):
+                    service.originalConfigs.append(newConfig)
+                    changed = True
+                    log.info("Adding a configuration to OriginalConfigs of %s", service.name)
+
+                # Add this config only if there's no config with the same name.
+                # If there is such config, honor it.
+                if all([not config.name == newConfig.name for config in service.configFiles]):
+                    service.configFiles.append(newConfig)
+                    changed = True
+                    log.info("Adding a configuration to ConfigFiles of %s", service.name)
+
             return changed
 
         changed = False
