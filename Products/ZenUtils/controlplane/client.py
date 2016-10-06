@@ -232,14 +232,17 @@ class ControlPlaneClient(object):
             response = self._dorequest("/services/%s/status" % serviceId)
             body = ''.join(response.readlines())
             response.close()
-            LOG.info(body)
             decoded = ServiceStatusJsonDecoder().decode(body)
-        except urllib2.HTTPError:
-            response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
-            body = ''.join(response.readlines())
-            response.close()
-            LOG.info(body)
-            decoded = ServiceStatusV2JsonDecoder().decode(body)
+        except urllib2.HTTPError as ex:
+            if ex.getcode() == 404:
+                response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
+                body = ''.join(response.readlines())
+                response.close()
+                decoded = ServiceStatusV2JsonDecoder().decode(body)
+                # V2 gives us a list, we need a dict with ID as key
+                decoded = {instance.id: instance for instance in decoded}
+            else:
+                raise ex
 
         LOG.info("Decoded: %s" % str(decoded))
         return decoded

@@ -199,8 +199,6 @@ def _convertToApplicationState(f):
     @wraps(f)
     def wrapper(*args, **kw):
         src = f(*args, **kw)
-        LOG.info("converting src to application state:")
-        LOG.info(src)
         return {
             "scheduled": ApplicationState.STARTING,
             "starting":  ApplicationState.STARTING,
@@ -210,7 +208,7 @@ def _convertToApplicationState(f):
             "running":   ApplicationState.RUNNING,
             "stopping":  ApplicationState.STOPPING,
             "stopped":   ApplicationState.STOPPED
-        }.get(src.lower(), ApplicationState.UNKNOWN)
+        }.get(src["Value"].lower(), ApplicationState.UNKNOWN)
     return wrapper
 
 @implementer(IServiceInstance)
@@ -272,14 +270,24 @@ class ServiceStatus(object):
         return self._data
 
     def __setstate__(self, data):
-        if data.get("State"):
-            self._data = data
-        else:
-            # For V2 compatibility (V2 doesn't have "State")
-            self._data = {"State": data}
+        self._data = data
+
+        # For V2 compatibility (V2 response doesn't have "State" property)
+        if not self._data.get("State"):
+            self._reformV2()
 
     def __init__(self):
         self._data = {}
+
+    def _reformV2(self):
+        # /services/:serviceid/status has an arbitrary 36 char UUID, V2 doesn't
+        # we're replacing this with the first 36 chars of the ContainerID
+        self._data.setdefault("ID", self._data.get("ContainerID")[:36])
+        status = self._data.setdefault("CurrentState")
+        del self._data["CurrentState"]
+        self._data = {"State": self._data}
+        # /services/:serviceid/status has a Key in Status as well, V2 doesn't
+        self._data["Status"] = {"Value": status}
 
     @property
     def id(self):
@@ -305,12 +313,7 @@ class ServiceStatus(object):
     @property
     @_convertToApplicationState
     def status(self):
-        LOG.info("ServiceId: " + str(self.serviceId))
-        LOG.info("Data: " + str(self._data))
-        LOG.info("Status: " + str(self._data.get("Status")))
-        LOG.info("CurrentState: " + str(self._data.get("CurrentState")))
-        return self._data.get("State", {}).get("Status") or\
-               self._data.get("State", {}).get("CurrentState")
+        return self._data.get("Status")
 
 
 class ServiceStatusFactory(Factory):
