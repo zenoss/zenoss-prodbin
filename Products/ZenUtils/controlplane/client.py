@@ -15,7 +15,6 @@ import json
 import logging
 import urllib
 import urllib2
-import ast
 
 from cookielib import CookieJar
 from socket import error as socket_error
