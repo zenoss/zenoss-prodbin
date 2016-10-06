@@ -20,6 +20,7 @@ from twisted.internet import reactor
 from Products.ZenCallHome.transport import CallHome
 from Products.ZenCallHome.transport.methods.directpost import direct_post
 from Products.ZenUtils.Utils import zenPath
+from Products.Zuul.utils import safe_hasattr
 
 # number of seconds between metrics updates
 GATHER_METRICS_INTERVAL = 60*60*24*30
@@ -30,7 +31,11 @@ logger = logging.getLogger('zen.callhome')
 class CallHomeCycler(object):
     def __init__(self, dmd):
         self.dmd = dmd
-        self.callhome = CallHome(dmd).callHome
+        if not safe_hasattr(dmd, 'callHome') or dmd.callHome is None:
+            dmd._p_jar.sync()
+            CallHome(dmd).callHome
+            transaction.commit()
+        self.callhome = dmd.callHome
         self.gatherProtocol = None
 
     def start(self):
