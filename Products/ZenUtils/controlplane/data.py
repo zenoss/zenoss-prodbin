@@ -87,6 +87,7 @@ Application JSON format:
 """
 
 import json
+import logging
 from datetime import datetime
 from functools import wraps
 
@@ -97,6 +98,8 @@ from Products.ZenUtils.application import ApplicationState
 from .interfaces import IServiceDefinition, IServiceInstance, IServiceStatus
 from ..host import IHost
 
+
+LOG = logging.getLogger("zen.controlplane.client")
 
 class _Value(object):
     """
@@ -196,16 +199,18 @@ def _convertToApplicationState(f):
     @wraps(f)
     def wrapper(*args, **kw):
         src = f(*args, **kw)
+        LOG.info("converting src to application state:")
+        LOG.info(src)
         return {
-            "Scheduled": ApplicationState.STARTING,
-            "Starting":  ApplicationState.STARTING,
-            "Pausing":   ApplicationState.STOPPING,
-            "Paused":    ApplicationState.STOPPED,
-            "Resuming":  ApplicationState.STARTING,
-            "Running":   ApplicationState.RUNNING,
-            "Stopping":  ApplicationState.STOPPING,
-            "Stopped":   ApplicationState.STOPPED
-        }.get(src['Value'], ApplicationState.UNKNOWN)
+            "scheduled": ApplicationState.STARTING,
+            "starting":  ApplicationState.STARTING,
+            "pausing":   ApplicationState.STOPPING,
+            "paused":    ApplicationState.STOPPED,
+            "resuming":  ApplicationState.STARTING,
+            "running":   ApplicationState.RUNNING,
+            "stopping":  ApplicationState.STOPPING,
+            "stopped":   ApplicationState.STOPPED
+        }.get(src.lower(), ApplicationState.UNKNOWN)
     return wrapper
 
 @implementer(IServiceInstance)
@@ -267,7 +272,11 @@ class ServiceStatus(object):
         return self._data
 
     def __setstate__(self, data):
-        self._data = data
+        if data.get("State"):
+            self._data = data
+        else:
+            # For V2 compatibility (V2 doesn't have "State")
+            self._data = {"State": data}
 
     def __init__(self):
         self._data = {}
@@ -296,7 +305,12 @@ class ServiceStatus(object):
     @property
     @_convertToApplicationState
     def status(self):
-        return self._data.get("Status")
+        LOG.info("ServiceId: " + str(self.serviceId))
+        LOG.info("Data: " + str(self._data))
+        LOG.info("Status: " + str(self._data.get("Status")))
+        LOG.info("CurrentState: " + str(self._data.get("CurrentState")))
+        return self._data.get("State", {}).get("Status") or\
+               self._data.get("State", {}).get("CurrentState")
 
 
 class ServiceStatusFactory(Factory):
@@ -322,6 +336,24 @@ class ServiceStatusJsonDecoder(json.JSONDecoder):
     def __init__(self, **kwargs):
         kwargs.update({"object_hook": ServiceStatusJsonDecoder._decodeObject})
         super(ServiceStatusJsonDecoder, self).__init__(**kwargs)
+
+
+_serviceStatusV2Keys = {
+    'InstanceID', 'HostID', 'HostName', 'ServiceID', 'ServiceName', 'ContainerID',
+    'ImageSynced', 'DesiredState', 'CurrentState', 'HealthStatus', 'RAMCommitment',
+    'MemoryUsage', 'Scheduled', 'Started', 'Terminated'
+}
+class ServiceStatusV2JsonDecoder(json.JSONDecoder):
+    @staticmethod
+    def _decodeObject(obj):
+        if set(obj.keys()) & _serviceStatusV2Keys == set(obj.keys()):
+            service = createObject("ServiceStatus")
+            service.__setstate__(obj)
+            return service
+        return obj
+    def __init__(self, **kwargs):
+        kwargs.update({"object_hook": ServiceStatusV2JsonDecoder._decodeObject})
+        super(ServiceStatusV2JsonDecoder, self).__init__(**kwargs)
 
 
 @implementer(IServiceDefinition)

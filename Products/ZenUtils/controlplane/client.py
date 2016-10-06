@@ -15,6 +15,7 @@ import json
 import logging
 import urllib
 import urllib2
+import ast
 
 from cookielib import CookieJar
 from socket import error as socket_error
@@ -22,7 +23,7 @@ from errno import ECONNRESET
 from urlparse import urlunparse
 
 from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
-                   ServiceStatusJsonDecoder)
+                   ServiceStatusJsonDecoder, ServiceStatusV2JsonDecoder)
 
 
 
@@ -46,6 +47,8 @@ class _Request(urllib2.Request):
     def get_method(self):
         return self.__method \
             if self.__method else urllib2.Request.get_method(self)
+
+
 
 
 class ControlPlaneClient(object):
@@ -222,12 +225,24 @@ class ControlPlaneClient(object):
 
     def queryServiceStatus(self, serviceId):
         """
-        Returns a sequence of ServiceInstance objects.
+        Returns a sequence of ServiceStatus objects.
         """
-        response = self._dorequest("/services/%s/status" % serviceId)
-        body = ''.join(response.readlines())
-        response.close()
-        return ServiceStatusJsonDecoder().decode(body)
+        LOG.info("Getting instance of %s" % serviceId)
+        try:
+            response = self._dorequest("/services/%s/status" % serviceId)
+            body = ''.join(response.readlines())
+            response.close()
+            LOG.info(body)
+            decoded = ServiceStatusJsonDecoder().decode(body)
+        except urllib2.HTTPError:
+            response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
+            body = ''.join(response.readlines())
+            response.close()
+            LOG.info(body)
+            decoded = ServiceStatusV2JsonDecoder().decode(body)
+
+        LOG.info("Decoded: %s" % str(decoded))
+        return decoded
 
     def queryHosts(self):
         """
