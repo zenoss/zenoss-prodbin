@@ -245,7 +245,7 @@
     template="templates/triggers.pt"
     name="triggers"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:page
