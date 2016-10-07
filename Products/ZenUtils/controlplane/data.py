@@ -87,7 +87,6 @@ Application JSON format:
 """
 
 import json
-import logging
 from datetime import datetime
 from functools import wraps
 
@@ -99,7 +98,6 @@ from .interfaces import IServiceDefinition, IServiceInstance, IServiceStatus
 from ..host import IHost
 
 
-LOG = logging.getLogger("zen.controlplane.client")
 
 class _Value(object):
     """
