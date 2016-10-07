@@ -285,7 +285,7 @@ def extractCredentials(self, request):
 SessionAuthHelper.SessionAuthHelper.extractCredentials = extractCredentials
 
 def updateCredentials(self, request, response, login, new_password):
-    # PAS sends to this methos all credentials provided by user without
+    # PAS sends to this methods all credentials provided by user without
     # checking.  So they need to be validate before session update.
 
     # `admin` user located in another PAS instance.
@@ -318,6 +318,13 @@ def updateCredentials(self, request, response, login, new_password):
                     continue
 
                 user_id, info = uid_and_info
+
+                if auth.acl_users.meta_type == 'LDAPUserFolder':
+                    # update zope's user-group assignments based on LDAP server's info (ZEN-24774)
+                    updateLdapUserInGroupAssignments(
+                        auth,
+                        self.getPhysicalRoot().zport.dmd.ZenUsers,
+                        user_id)
 
             except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
                 log.debug('AuthenticationPlugin %s error', authenticator_id,
@@ -381,6 +388,24 @@ def disable_pas_resources():
     _make_class_private(ZODBGroupManager.ZODBGroupManager)
     _make_class_private(ZODBRoleManager.ZODBRoleManager)
 
+def updateLdapUserInGroupAssignments(auth, user_settings_manager, user_id):
+    """ Associate zope's user-group assignments based on the LDAP server's
+        information (via the auth object).  (ZEN-24774)
+    """
+    user = auth.getUser(user_id)
+    group_id_list = auth.getGroupsForPrincipal(user)
+
+    log.debug("LDAP> user: [%s]" % user_id)
+    log.debug("LDAP> user's groups from LDAP: [%s]" % ",".join(group_id_list))
+
+    for group_id in group_id_list:
+        group_settings = user_settings_manager.getGroupSettings(group_id)
+        log.debug("LDAP> checking group [%s] users list: [%s]" % (group_id, ", ".join(group_settings.getMemberUserIds())))
+        if user_id not in group_settings.getMemberUserIds():
+            log.debug("LDAP> Adding user [%s] to group [%s] based on LDAP information" % (user_id, group_id))
+            group_settings.manage_addUsersToGroup([user_id])
+        else:
+            log.debug("LDAP> User [%s] already exists in group [%s]" % (user_id, group_id))
 
 disable_pas_resources()
 
