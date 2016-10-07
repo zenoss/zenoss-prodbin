@@ -22,7 +22,7 @@ from errno import ECONNRESET
 from urlparse import urlunparse
 
 from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
-                   ServiceStatusJsonDecoder, ServiceStatusV2JsonDecoder)
+                   ServiceStatusJsonDecoder, InstanceV2ToServiceStatusJsonDecoder)
 
 
 
@@ -70,6 +70,8 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
+        self._useV2 = False
+        self._v2loc = "/api/v2"
 
     def queryServices(self, name=None, tags=None, tenantID=None):
         """
@@ -226,25 +228,54 @@ class ControlPlaneClient(object):
         """
         Returns a sequence of ServiceStatus objects.
         """
-        LOG.info("Getting instance of %s" % serviceId)
-        try:
-            response = self._dorequest("/services/%s/status" % serviceId)
-            body = ''.join(response.readlines())
-            response.close()
-            decoded = ServiceStatusJsonDecoder().decode(body)
-        except urllib2.HTTPError as ex:
-            if ex.getcode() == 404:
-                response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
+        if not self._useV2:
+            try:
+                response = self._dorequest("/services/%s/status" % serviceId)
                 body = ''.join(response.readlines())
                 response.close()
-                decoded = ServiceStatusV2JsonDecoder().decode(body)
-                # V2 gives us a list, we need a dict with ID as key
-                decoded = {instance.id: instance for instance in decoded}
-            else:
-                raise ex
+                decoded = ServiceStatusJsonDecoder().decode(body)
+            except urllib2.HTTPError as ex:
+                if ex.getcode() == 404:
+                    self._useV2 = True
+                else:
+                    raise ex
+        if self._useV2:
+            raw = self.queryServiceInstancesV2(serviceId)
+            decoded = self._convertInstancesV2ToStatuses(raw)
 
-        LOG.info("Decoded: %s" % str(decoded))
         return decoded
+
+    def queryServiceInstancesV2(self, serviceId):
+        """
+        Uses the CC V2 api to query the instances of serviceId.
+
+        :param serviceId: The serviceId to get the instances of
+        :type serviceId: string
+
+        :returns: The raw result of the query
+        :rtype: json formatted string
+        """
+        response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def _convertInstancesV2ToStatuses(self, rawV2Instance):
+        """
+        Converts a list of raw Instance (V2) json to a dict of ServiceStatuses.
+        This is for compatibility sake.
+
+        :param rawV2Instance: The result from a call to queryServiceInstancesV2
+        :type rawV2Instance: json formatted string
+
+        :returns: An acceptable output from queryServiceStatus
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        decoded = InstanceV2ToServiceStatusJsonDecoder().decode(rawV2Instance)
+        # V2 gives us a list, we need a dict with ID as key
+        decoded = {instance.id: instance for instance in decoded}
+        return decoded
+
 
     def queryHosts(self):
         """
@@ -295,11 +326,11 @@ class ControlPlaneClient(object):
         log = json.loads(body)
         return str(log["Detail"])
 
-    def killInstance(self, hostId, instanceId):
+    def killInstance(self, hostId, uuid):
         """
         """
         response = self._dorequest(
-            "/hosts/%s/%s" % (hostId, instanceId), method="DELETE"
+            "/hosts/%s/%s" % (hostId, uuid), method="DELETE"
         )
         response.close()
 

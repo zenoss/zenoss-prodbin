@@ -250,7 +250,6 @@ class DeployedApp(object):
         self._runstate = runstate
         self._service = service
         self._status = DeployedApp.UNKNOWN_STATUS
-        LOG.info("Made a 'DeployedApp' object.")
 
     def _initStatus(fn):
         """
@@ -269,7 +268,6 @@ class DeployedApp(object):
         """
         try:
             result = self._client.queryServiceStatus(self._service.id)
-            LOG.info("updateStatus: %s\n" % str(result))
             self._status = next(
                 (i for i in result.itervalues() if i.instanceId == 0), None
             )

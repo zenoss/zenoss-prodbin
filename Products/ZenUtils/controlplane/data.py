@@ -280,9 +280,12 @@ class ServiceStatus(object):
         self._data = {}
 
     def _reformV2(self):
-        # /services/:serviceid/status has an arbitrary 36 char UUID, V2 doesn't
-        # we're replacing this with the first 36 chars of the ContainerID
-        self._data.setdefault("ID", self._data.get("ContainerID")[:36])
+        # /services/:serviceid/status has an arbitrary 36 char UUID
+        # V2 uses hostid-serviceid-instanceid
+        self._data.setdefault("ID",
+        self._data.get("HostID") + "-" +
+        self._data.get("ServiceID") + "-" +
+        str(self._data.get("InstanceID")))
         status = self._data.setdefault("CurrentState")
         del self._data["CurrentState"]
         self._data = {"State": self._data}
@@ -346,7 +349,10 @@ _serviceStatusV2Keys = {
     'ImageSynced', 'DesiredState', 'CurrentState', 'HealthStatus', 'RAMCommitment',
     'MemoryUsage', 'Scheduled', 'Started', 'Terminated'
 }
-class ServiceStatusV2JsonDecoder(json.JSONDecoder):
+class InstanceV2ToServiceStatusJsonDecoder(json.JSONDecoder):
+    """
+    Converts the result of a V2 Service Instance query to a ServiceStatus object
+    """
     @staticmethod
     def _decodeObject(obj):
         if set(obj.keys()) & _serviceStatusV2Keys == set(obj.keys()):
@@ -355,8 +361,10 @@ class ServiceStatusV2JsonDecoder(json.JSONDecoder):
             return service
         return obj
     def __init__(self, **kwargs):
-        kwargs.update({"object_hook": ServiceStatusV2JsonDecoder._decodeObject})
-        super(ServiceStatusV2JsonDecoder, self).__init__(**kwargs)
+        kwargs.update({
+            "object_hook": InstanceV2ToServiceStatusJsonDecoder._decodeObject
+        })
+        super(InstanceV2ToServiceStatusJsonDecoder, self).__init__(**kwargs)
 
 
 @implementer(IServiceDefinition)
