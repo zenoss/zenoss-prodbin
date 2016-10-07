@@ -255,7 +255,8 @@ class ControlPlaneClient(object):
         :returns: The raw result of the query
         :rtype: json formatted string
         """
-        response = self._dorequest("/api/v2/services/%s/instances" % serviceId)
+        response = self._dorequest("%s/services/%s/instances" % (self._v2loc,
+                                                                 serviceId))
         body = ''.join(response.readlines())
         response.close()
         return body
