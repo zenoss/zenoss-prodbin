@@ -108,6 +108,18 @@ class TestProductionState(BaseTestCase):
         self.assertRaises(ProdStateNotSetError, manager.getProductionState, newob)
         self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, newob)
 
+    def test_device_move(self):
+        source = self.dmd.Devices.createOrganizer('source')
+        dest = self.dmd.Devices.createOrganizer('dest')
+        dev = source.createInstance('testdevice')
+        manager = IProdStateManager(self.aq_ob)
+        manager.setProductionState(dev, 1)
+        manager.setPreMWProductionState(dev, 2)
+        source.moveDevices(dest.getOrganizerName(), 'testdevice')
+        newdev = dest.devices.testdevice
+        self.assertEqual(manager.getProductionState(newdev), 1)
+        self.assertEqual(manager.getPreMWProductionState(newdev), 2)
+ 
 
 def test_suite():
     return unittest.makeSuite(TestProductionState)
