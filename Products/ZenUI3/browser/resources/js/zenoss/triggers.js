@@ -150,7 +150,9 @@ Ext.onReady(function () {
         // disable everything in this tab, but then re-enable the tab itself so
         // that we can still view its contents.
         tab.cascade(function(){
-            this.disable();
+            if (Ext.isFunction(this.disable)) {
+                this.disable();
+            }
         });
         tab.setDisabled(false);
     };
@@ -1016,12 +1018,13 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                                 return;
                             }
                             row = rows[0];
-                            panel.setContext(row.data.uid);
-                            panel.disableButtons(false);
+                            panel.setContext(row.data.uid, row.data);
+                            me.deleteButton.setDisabled(!row.data.userWrite);
                             me.customizeButton.setDisabled(false);
                         },
                         deselect: function() {
                             Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
+                            me.deleteButton.setDisabled(true);
                             me.customizeButton.setDisabled(true);
                         }
                     },
@@ -1084,7 +1087,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     iconCls: 'delete',
                     id: 'notifications_panel_delete_button',
                     ref: '../deleteButton',
-                    disabled: Zenoss.Security.doesNotHavePermission("Update Notification"),
+                    disabled: true,
                     handler: function(button) {
                         var rows = button.refOwner.getSelectionModel().getSelection(),
                             row,
@@ -1143,6 +1146,8 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             // notification subscriptions are not context specific
             this.uid = uid;
             this.getStore().load();
+            this.deleteButton.setDisabled(true);
+            this.customizeButton.setDisabled(true);
             Ext.getCmp('schedules_panel_add_button').disable();
             Ext.getCmp('schedules_panel_delete_button').disable();
             Ext.getCmp('schedules_panel_customize_button').disable();
@@ -1201,10 +1206,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 store: Ext.create('Zenoss.triggers.TriggersStore', {}),
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function() {
+                        select: function(record) {
                             // enable/disabled the edit button
-                            var disable = Zenoss.Security.doesNotHavePermission("Update Trigger");
-                            me.deleteButton.setDisabled(disable);
+                            me.deleteButton.setDisabled(!record.lastSelected.data.userWrite);
                             me.customizeButton.setDisabled(false);
                         },
                         deselect: function() {
@@ -1243,7 +1247,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype: 'button',
                         iconCls: 'delete',
                         id: 'delete_old_trigger_button',
-                        disabled: Zenoss.Security.doesNotHavePermission('Manage Trigger'),
+                        disabled: true,
                         ref: '../deleteButton',
                         handler: function() {
                             var rows = me.getSelectionModel().getSelection(),
@@ -1383,10 +1387,12 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
                         select: function() {
-                            var disable = Zenoss.Security.doesNotHavePermission("Update Notification");
+                            var disable = !me.parent.userManage;
+                            me.deleteButton.setDisabled(disable);
                             me.customizeButton.setDisabled(disable);
                         },
                         deselect: function() {
+                            me.deleteButton.setDisabled(true);
                             me.customizeButton.setDisabled(true);
                         }
                     }
@@ -1471,20 +1477,21 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             });
             this.callParent(arguments);
         },
-        setContext: function(uid){
+        setContext: function(uid, parent){
             this.uid = uid;
+            this.parent = parent;
             this.getStore().load({
                 params: {
                     uid: uid
                 }
             });
-            this.disableButtons(false);
-            this.customizeButton.setDisabled(true);
+            this.addButton.setDisabled(!this.parent.userManage);
+            this.disableButtons(true);
         },
         disableButtons: function(bool){
-            var isok = Zenoss.Security.doesNotHavePermission('Manage Trigger');
-            this.addButton.setDisabled(bool || isok);
-            this.deleteButton.setDisabled(bool || isok);
+            var noLocalUserManage = !this.parent.userManage;
+            this.deleteButton.setDisabled(bool || noLocalUserManage);
+            this.customizeButton.setDisabled(bool || noLocalUserManage);
         }
     });
 

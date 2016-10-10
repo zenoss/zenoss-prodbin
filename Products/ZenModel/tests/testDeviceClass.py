@@ -156,6 +156,51 @@ class TestDeviceClass(ZenModelBaseTest):
         path = self.dmd.guid_table.get(newguid, None)
         self.assertEqual(path, '/zport/dmd/Devices/Server/devices/testdev')
 
+    def testMoveDevicesRetainsProductionState(self):
+        self.dev._setProductionState(99)
+        self.dev.setPreMWProductionState(98)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        newProdState = self.dmd.Devices.Server.devices.testdev.getProductionState()
+        newPreMWProdState = self.dmd.Devices.Server.devices.testdev.getPreMWProductionState()
+        self.assertEqual(newProdState, 99)
+        self.assertEqual(newPreMWProdState, 98)
+ 
+    def testMoveDevicesRetainsComponentProductionState(self):
+        self.dev._setProductionState(99)
+        self.dev.setPreMWProductionState(98)
+        self.dev.os.addIpInterface('eth0', True)
+        component = self.dev.os.interfaces()[0]
+        component._setProductionState(49)
+        component.setPreMWProductionState(48)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+ 
+        component = self.dmd.Devices.Server.devices.testdev.os.interfaces()[0]
+        newProdState = component.getProductionState()
+        newPreMWProdState = component.getPreMWProductionState()
+        self.assertEqual(newProdState, 49)
+        self.assertEqual(newPreMWProdState, 48)
+ 
+    def testMoveDevicesRetainsComponentProductionStateAcquisition(self):
+        self.dev._setProductionState(99)
+        self.dev.setPreMWProductionState(98)
+        self.dev.os.addIpInterface('eth0', True)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+         
+        # Component production state is the same (acquired from device)
+        component = self.dmd.Devices.Server.devices.testdev.os.interfaces()[0]
+        newProdState = component.getProductionState()
+        newPreMWProdState = component.getPreMWProductionState()
+        self.assertEqual(newProdState, 99)
+        self.assertEqual(newPreMWProdState, 98)
+ 
+        # Component production state still acquires from device
+        self.dev._setProductionState(59)
+        self.dev.setPreMWProductionState(58)
+        newProdState = component.getProductionState()
+        newPreMWProdState = component.getPreMWProductionState()
+        self.assertEqual(newProdState, 59)
+        self.assertEqual(newPreMWProdState, 58)
+ 
     def testMoveDevicesWithPotentialCaseIssue(self):
         self.dmd.Devices.createInstance( 'TESTDEV' )
         self.dmd.Devices.moveDevices('/Server', 'testdev')
