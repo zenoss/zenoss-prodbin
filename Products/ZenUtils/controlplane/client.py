@@ -70,8 +70,25 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
-        self._useV2 = False
+
+        self._hothOrNewer = False
+        self._checkHothOrNewer()
         self._v2loc = "/api/v2"
+
+    def _checkHothOrNewer(self):
+        """
+        Checks if the client is connecting to Hoth or newer.
+        """
+        # Test our server dict incase someone overwrites in subclass
+        if self._server["host"] in ["localhost", "127.0.0.1"]:
+            # In Hoth, we started using http to localhost
+            try:
+                with urllib2.urlopen("https://127.0.0.1:443") as resp:
+                    pass
+                self._hothOrNewer =  False
+            except urllib2.URLError:
+                self._hothOrNewer =  True
+
 
     def queryServices(self, name=None, tags=None, tenantID=None):
         """
@@ -226,23 +243,39 @@ class ControlPlaneClient(object):
 
     def queryServiceStatus(self, serviceId):
         """
-        Returns a sequence of ServiceStatus objects.
+        CC version-independent call to get the status of a service.
+        Calls queryServiceStatusImpl or queryServiceInstancesV2 to get the
+        status for serviceId.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
         """
-        if not self._useV2:
-            try:
-                response = self._dorequest("/services/%s/status" % serviceId)
-                body = ''.join(response.readlines())
-                response.close()
-                decoded = ServiceStatusJsonDecoder().decode(body)
-            except urllib2.HTTPError as ex:
-                if ex.getcode() == 404:
-                    self._useV2 = True
-                else:
-                    raise ex
-        if self._useV2:
+        if self._hothOrNewer:
             raw = self.queryServiceInstancesV2(serviceId)
             decoded = self._convertInstancesV2ToStatuses(raw)
+        else:
+            decoded = self.queryServiceStatusImpl(serviceId)
 
+        return decoded
+
+    def queryServiceStatusImpl(self, serviceId):
+        """
+        Implementation for queryServiceStatus that uses the
+        /services/:serviceid/status endpoint.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        response = self._dorequest("/services/%s/status" % serviceId)
+        body = ''.join(response.readlines())
+        response.close()
+        decoded = ServiceStatusJsonDecoder().decode(body)
         return decoded
 
     def queryServiceInstancesV2(self, serviceId):
@@ -392,7 +425,8 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("https", self._netloc, uri, "", query, ""))
+        url = urlunparse(("http" if self._hothOrNewer else "https",
+                          self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method
