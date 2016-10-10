@@ -18,9 +18,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             return '<span style="cursor:pointer" title="'+overtext+'" >'+text+'</span>';
         },
         getProdStateValue: function(prodStateName){
-            for (var i in this.productionStates){
-                if (this.productionStates[i].name === prodStateName){
-                    return this.productionStates[i].value;
+            for ( var key in Zenoss.env.PRODUCTION_STATES_MAP) {
+                if (Zenoss.env.PRODUCTION_STATES_MAP[key] === prodStateName){
+                     return parseFloat(key);
                 }
             }
             return false;
@@ -94,14 +94,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
         setComboSleep: function(combo){
             combo.setDisabled(true);
             combo.setValue(combo.store.getAt(-1));
-        },
-        productionStates: [
-            {"value":"1000", "name":"Production"},
-            {"value":"500", "name":"Pre-Production"},
-            {"value":"400", "name":"Test"},
-            {"value":"300", "name":"Maintenance"},
-            {"value":"-1", "name":"Decommissioned"}
-        ]
+        }
     };
 
 // ----------------------------------------------------------------- DIALOGS
@@ -487,12 +480,12 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 },
                                 listeners: {
                                     'afterrender': function(combo){
-                                        combo.setValue(combo.store.getAt(3));
+                                        combo.setValue(combo.store.getAt(0));
                                     }
                                 },
                                 store: Ext.create('Ext.data.Store', {
                                     fields: ['value', 'name'],
-                                    data : Zenoss.devicemanagement.productionStates
+                                    data : Zenoss.env.PRODUCTION_STATES
                                 })
                             }
 
