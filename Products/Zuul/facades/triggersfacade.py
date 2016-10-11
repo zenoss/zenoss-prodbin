@@ -319,8 +319,10 @@ class TriggersFacade(ZuulFacade):
         response, trigger_set = self.triggers_service.getTriggers()
         trigger_set = to_dict(trigger_set)
         triggerList = []
-        if 'triggers' in trigger_set:
-            for t in trigger_set['triggers']:
+        user = getSecurityManager().getUser()
+        for t in trigger_set.get('triggers', []):
+            trigger = self._guidManager.getObject(t['uuid'])
+            if self.triggerPermissions.userCanViewTrigger(user, trigger):
                 triggerList.append(dict(
                     uuid = t['uuid'],
                     name = t['name']
