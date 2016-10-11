@@ -151,8 +151,8 @@ class NginxStaticLocationBlocks(BrowserView):
     """
 
     loc_block_tpl = """
-    pagespeed LoadFromFileMatch "/\+\+resource\+\+{name}/" "{path}/";
-    pagespeed LoadFromFileMatch "/@@/{name}/" "{path}/";
+    pagespeed LoadFromFileMatch "^https?://[^/]+/\+\+resource\+\+{name}/" "{path}/";
+    pagespeed LoadFromFileMatch "^https?://[^/]+/[^/]+/@@/{name}/" "{path}/";
     """
 
     def __call__(self, *args, **kwargs):
