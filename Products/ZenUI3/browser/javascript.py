@@ -12,6 +12,7 @@ import os
 import Globals
 import zope.interface
 import md5
+from urlparse import urljoin
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -25,6 +26,9 @@ from zope.component import getAdapter
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
+
+from .resources import COMPILED_JS_EXISTS
+
 
 dummyRequest = TestRequest()
 
@@ -69,11 +73,9 @@ SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
 
 
-
-
 def getVersionedPath(path):
-    token = getPathModifiedTime(path) or VERSION
-    return '%s?v=%s' % (path, token)
+    return urljoin('/zport/dmd', path)
+
 
 class MainSnippetManager(JavaScriptSnippetManager):
     """
@@ -112,10 +114,9 @@ class JavaScriptSrcViewlet(ViewletBase):
     path = None
 
     def render(self):
-        val = None
-        if self.path:
-            val = SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
-        return val
+        if not self.path:
+            return
+        return SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
 
 
 class JavaScriptSrcBundleViewlet(ViewletBase):
@@ -149,13 +150,23 @@ class ExtDirectViewlet(JavaScriptSrcViewlet):
         path = self.path  + "?v=" + self.directHash
         return SCRIPT_TAG_SRC_TEMPLATE % path
 
+
 class ZenossAllJs(JavaScriptSrcViewlet):
+    """
+    When Zope is in debug mode, we want to use the development JavaScript source
+    files, so we don't have to make changes to a single huge file. If Zope is in
+    production mode and the compressed file is not available, we will use the
+    source files instead of just giving up.
+    """
     zope.interface.implements(IJavaScriptSrcViewlet)
 
-    def render(self):
-        token = getPathModifiedTime("/++resource++zenui/js/deploy/zenoss-compiled.js") or VERSION
-        path = "%s?v=%s" %("zenoss-all.js", token)
-        return SCRIPT_TAG_SRC_TEMPLATE % (path)
+    def update(self):
+        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+            # Use the view that creates concatenated js on the fly from disk
+            self.path = "/zport/dmd/zenoss-all.js"
+        else:
+            # Use the compiled javascript
+            self.path = "/++resource++zenui/js/deploy/zenoss-compiled.js"
 
 
 class ExtAllJs(JavaScriptSrcViewlet):

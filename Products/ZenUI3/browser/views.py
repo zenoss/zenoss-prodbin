@@ -8,13 +8,20 @@
 ##############################################################################
 
 import os
+from urllib import unquote
+from cStringIO import StringIO
+
+from zope.interface import Interface
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
+from zope.component import getGlobalSiteManager
 from Products.Five.browser import BrowserView
+from Products.Five.browser.resource import DirectoryResourceFactory
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+
+from Products import Zuul
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.DataRoot import DataRoot
-from Products import Zuul
-from urllib import unquote
 
 
 class FileUpload(BrowserView):
@@ -125,3 +132,45 @@ class GetDoc(BrowserView):
             self.request.RESPONSE.setHeader('Content-Disposition', 'attachment;filename=' + os.path.basename(filename))
             with open(filename) as f:
                 return f.read()
+
+
+class NginxStaticLocationBlocks(BrowserView):
+    """
+    Builds syntactically correct nginx configuration that, if included in the
+    server block in zproxy's config, will allow it to load static files directly
+    from disk, taking Zope out of the equation.
+
+    We accomplish this by looking up all registered <browser:resourceDirectory/>
+    resources, then generating PageSpeed directives that will notice the URL
+    patterns that map to those views and skip directly to the directories they
+    represent.
+
+    This has the added of benefit of not needing to disable PageSpeed when in
+    development mode. It will notice changes to the files and reload them
+    appropriately.
+    """
+
+    loc_block_tpl = """
+    pagespeed LoadFromFileMatch "^https?://[^/]+/\+\+resource\+\+{name}/" "{path}";
+    pagespeed LoadFromFileMatch "^https?://[^/]+/@@/{name}/" "{path}";
+    """
+
+    def __call__(self, *args, **kwargs):
+        blocks = StringIO()
+
+        # Find all registered DirectoryResourceFactories
+        gsm = getGlobalSiteManager()
+        adapters = [(n, a)
+                    for n, a in gsm.adapters.lookupAll((IDefaultBrowserLayer,), Interface)
+                    if isinstance(a, DirectoryResourceFactory)]
+
+        # Build location blocks
+        for name, drf in adapters:
+            blocks.write(self.loc_block_tpl.format(name=name, path=drf._ResourceFactory__rsrc.path))
+
+        # This is technically unnecessary for the current use case, but hey
+        self.request.response.setHeader('Content-Type', 'application/json')
+
+        # Return that there data
+        return blocks.getvalue()
+
