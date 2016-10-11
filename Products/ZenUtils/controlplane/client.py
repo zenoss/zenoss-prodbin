@@ -22,7 +22,7 @@ from errno import ECONNRESET
 from urlparse import urlunparse
 
 from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
-                   ServiceStatusJsonDecoder)
+                   ServiceStatusJsonDecoder, InstanceV2ToServiceStatusJsonDecoder)
 
 
 
@@ -48,6 +48,8 @@ class _Request(urllib2.Request):
             if self.__method else urllib2.Request.get_method(self)
 
 
+
+
 class ControlPlaneClient(object):
     """
     """
@@ -68,6 +70,25 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
+
+        self._hothOrNewer = False
+        self._checkHothOrNewer()
+        self._v2loc = "/api/v2"
+
+    def _checkHothOrNewer(self):
+        """
+        Checks if the client is connecting to Hoth or newer.
+        """
+        # Test our server dict incase someone overwrites in subclass
+        if self._server["host"] in ["localhost", "127.0.0.1"]:
+            # In Hoth, we started using http to localhost
+            try:
+                with urllib2.urlopen("https://127.0.0.1:443") as resp:
+                    pass
+                self._hothOrNewer =  False
+            except urllib2.URLError:
+                self._hothOrNewer =  True
+
 
     def queryServices(self, name=None, tags=None, tenantID=None):
         """
@@ -222,12 +243,73 @@ class ControlPlaneClient(object):
 
     def queryServiceStatus(self, serviceId):
         """
-        Returns a sequence of ServiceInstance objects.
+        CC version-independent call to get the status of a service.
+        Calls queryServiceStatusImpl or queryServiceInstancesV2 to get the
+        status for serviceId.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        if self._hothOrNewer:
+            raw = self.queryServiceInstancesV2(serviceId)
+            decoded = self._convertInstancesV2ToStatuses(raw)
+        else:
+            decoded = self.queryServiceStatusImpl(serviceId)
+
+        return decoded
+
+    def queryServiceStatusImpl(self, serviceId):
+        """
+        Implementation for queryServiceStatus that uses the
+        /services/:serviceid/status endpoint.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
         """
         response = self._dorequest("/services/%s/status" % serviceId)
         body = ''.join(response.readlines())
         response.close()
-        return ServiceStatusJsonDecoder().decode(body)
+        decoded = ServiceStatusJsonDecoder().decode(body)
+        return decoded
+
+    def queryServiceInstancesV2(self, serviceId):
+        """
+        Uses the CC V2 api to query the instances of serviceId.
+
+        :param serviceId: The serviceId to get the instances of
+        :type serviceId: string
+
+        :returns: The raw result of the query
+        :rtype: json formatted string
+        """
+        response = self._dorequest("%s/services/%s/instances" % (self._v2loc,
+                                                                 serviceId))
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def _convertInstancesV2ToStatuses(self, rawV2Instance):
+        """
+        Converts a list of raw Instance (V2) json to a dict of ServiceStatuses.
+        This is for compatibility sake.
+
+        :param rawV2Instance: The result from a call to queryServiceInstancesV2
+        :type rawV2Instance: json formatted string
+
+        :returns: An acceptable output from queryServiceStatus
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        decoded = InstanceV2ToServiceStatusJsonDecoder().decode(rawV2Instance)
+        # V2 gives us a list, we need a dict with ID as key
+        decoded = {instance.id: instance for instance in decoded}
+        return decoded
+
 
     def queryHosts(self):
         """
@@ -278,11 +360,11 @@ class ControlPlaneClient(object):
         log = json.loads(body)
         return str(log["Detail"])
 
-    def killInstance(self, hostId, instanceId):
+    def killInstance(self, hostId, uuid):
         """
         """
         response = self._dorequest(
-            "/hosts/%s/%s" % (hostId, instanceId), method="DELETE"
+            "/hosts/%s/%s" % (hostId, uuid), method="DELETE"
         )
         response.close()
 
@@ -343,7 +425,8 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("https", self._netloc, uri, "", query, ""))
+        url = urlunparse(("http" if self._hothOrNewer else "https",
+                          self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method
