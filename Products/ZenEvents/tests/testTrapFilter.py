@@ -643,7 +643,7 @@ class TrapFilterTest(BaseTestCase):
         self.assertFalse(filter._dropV1Event(event))
 
         event["snmpV1Enterprise"] = "1.4.5"
-        event["snmpV1SpecificTrap"] = "23"
+        event["snmpV1SpecificTrap"] = 23
         self.assertFalse(filter._dropV1Event(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
@@ -744,11 +744,11 @@ class TrapFilterTest(BaseTestCase):
             "snmpVersion": "1",
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
-            "snmpV1SpecificTrap": "59"
+            "snmpV1SpecificTrap": 59
         }
         self.assertTrue(filter._dropV1Event(event))
 
-        event["snmpV1SpecificTrap"] = "99"
+        event["snmpV1SpecificTrap"] = 99
         self.assertFalse(filter._dropV1Event(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
@@ -772,14 +772,14 @@ class TrapFilterTest(BaseTestCase):
             "snmpVersion": "1",
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
-            "snmpV1SpecificTrap": "59"
+            "snmpV1SpecificTrap": 59
         }
         self.assertFalse(filter._dropV1Event(event))
 
-        event["snmpV1SpecificTrap"] = "60"
+        event["snmpV1SpecificTrap"] = 60
         self.assertFalse(filter._dropV1Event(event))
 
-        event["snmpV1SpecificTrap"] = "1"
+        event["snmpV1SpecificTrap"] = 1
         self.assertTrue(filter._dropV1Event(event))
 
         event["snmpV1Enterprise"] = "1.2.3.4"
@@ -993,7 +993,7 @@ class TrapFilterTest(BaseTestCase):
             "snmpVersion": "1",
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
-            "snmpV1SpecificTrap": "59"
+            "snmpV1SpecificTrap": 59
         }
         self.assertFalse(filter._dropEvent(event))
 
@@ -1072,7 +1072,7 @@ class TrapFilterTest(BaseTestCase):
             "snmpVersion": "1",
             "snmpV1GenericTrapType": 6,
             "snmpV1Enterprise": "1.2.3",
-            "snmpV1SpecificTrap": "59"
+            "snmpV1SpecificTrap": 59
         }
         self.assertEquals(TRANSFORM_CONTINUE, filter.transform(event))
 

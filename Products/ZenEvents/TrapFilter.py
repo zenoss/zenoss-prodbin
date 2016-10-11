@@ -418,7 +418,7 @@ class TrapFilter(object):
 
         specificTrap = event.get("snmpV1SpecificTrap", None)
         if specificTrap != None:
-            key = ''.join([enterpriseOID, "-", specificTrap])
+            key = ''.join([enterpriseOID, "-", str(specificTrap)])
             filterDefinition = self._findFilterByLevel(key, self._v1Filters)
             if filterDefinition != None:
                 log.debug("_dropV1Event: matched definition %s", filterDefinition)
