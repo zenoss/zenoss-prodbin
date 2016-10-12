@@ -81,7 +81,7 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
                 ctx.commit()
         finally:
             if wrote:
-                log.info(("A copy of your existing configuration has been saved to {save_file}."
+                log.info(("A copy of your existing configuration has been saved to %s."
                         " If you had made changes to zproxy-nginx.conf in the Control Center UI, "
                         "please reapply them manually, then restart the service.") % self.save_file)
 
