@@ -13,6 +13,7 @@ ControlPlaneClient
 import fnmatch
 import json
 import logging
+import os
 import urllib
 import urllib2
 
@@ -25,9 +26,10 @@ from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
                    ServiceStatusJsonDecoder, InstanceV2ToServiceStatusJsonDecoder)
 
 
-
-
 LOG = logging.getLogger("zen.controlplane.client")
+
+
+SERVICED_VERSION_ENV = "SERVICED_VERSION"
 
 
 class ControlCenterError(Exception): pass
@@ -46,8 +48,6 @@ class _Request(urllib2.Request):
     def get_method(self):
         return self.__method \
             if self.__method else urllib2.Request.get_method(self)
-
-
 
 
 class ControlPlaneClient(object):
@@ -71,24 +71,30 @@ class ControlPlaneClient(object):
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
 
-        self._hothOrNewer = False
-        self._checkHothOrNewer()
+        self._hothOrNewer = self._checkHothOrNewer()
+        self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
 
     def _checkHothOrNewer(self):
         """
         Checks if the client is connecting to Hoth or newer.
         """
-        # Test our server dict incase someone overwrites in subclass
-        if self._server["host"] in ["localhost", "127.0.0.1"]:
-            # In Hoth, we started using http to localhost
-            try:
-                with urllib2.urlopen("https://127.0.0.1:443") as resp:
-                    pass
-                self._hothOrNewer =  False
-            except urllib2.URLError:
-                self._hothOrNewer =  True
+        hoth_or_newer = False
+        cc_version = os.environ.get(SERVICED_VERSION_ENV)
+        if cc_version: # CC is >= 1.2.0
+            hoth_or_newer =  True
+            LOG.info("Detected CC version >= 1.2.0")
+        return hoth_or_newer
 
+    def _checkUseHttps(self):
+        """
+        Starting in CC 1.2.0, port 443 in the containers does not support https.
+        """
+        use_https = True
+        cc_master = self._server.get("host")
+        if self._hothOrNewer and cc_master in [ "localhost", "127.0.0.1" ]:
+            use_https = False
+        return use_https
 
     def queryServices(self, name=None, tags=None, tenantID=None):
         """
@@ -425,7 +431,7 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("http" if self._hothOrNewer else "https",
+        url = urlunparse(("https" if self._useHttps else "http",
                           self._netloc, uri, "", query, ""))
         args = {}
         if method:
