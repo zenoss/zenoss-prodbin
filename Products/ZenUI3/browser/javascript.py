@@ -73,7 +73,7 @@ SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
 
 
-def getVersionedPath(path):
+def absolutifyPath(path):
     return urljoin('/zport/dmd', path)
 
 
@@ -102,7 +102,7 @@ class CSSSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(LINK_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(LINK_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)
@@ -116,7 +116,7 @@ class JavaScriptSrcViewlet(ViewletBase):
     def render(self):
         if not self.path:
             return
-        return SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
+        return SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(self.path)
 
 
 class JavaScriptSrcBundleViewlet(ViewletBase):
@@ -128,7 +128,7 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)

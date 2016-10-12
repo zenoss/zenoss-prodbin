@@ -50,7 +50,7 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
                 break
 
         if orig_config and orig_config.content != new_content:
-            orig_config.write(new_content)
+            orig_config.content = new_content
             commit = True
 
         if current_config and current_config.content != new_content:
