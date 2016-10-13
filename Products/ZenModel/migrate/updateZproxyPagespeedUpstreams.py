@@ -191,7 +191,7 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
     save_file = "/opt/zenoss/var/ext/zproxy-nginx.conf.orig"
 
     def update_zope_imports(self, zproxy):
-        for endpoint in service.endpoints:
+        for endpoint in zproxy.endpoints:
             if endpoint.application == "zope":
                 if endpoint.purpose == "import":
                     endpoint.purpose == "import_all"
