@@ -16,6 +16,172 @@ import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
 
+new_content = """
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
+worker_processes 2;
+error_log /opt/zenoss/zproxy/logs/error.log error;
+daemon off;
+
+user zenoss;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+
+    access_log off;
+    error_log /opt/zenoss/zproxy/logs/error.log error;
+
+    lua_package_path "./lib/lua/5.1/?.lua;;";
+    lua_package_cpath "./lib/?.so;./lib/lua/5.1/?.so;;";
+    # Backend servers that did not respond
+    lua_shared_dict deads 10m;
+
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Protocol $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+
+    # Force cookies to HTTPOnly
+    proxy_cookie_path / "/; HttpOnly";
+
+    proxy_read_timeout 600;
+    proxy_connect_timeout 10;
+
+    proxy_temp_path /opt/zenoss/var/zproxy/proxy_temp;
+    client_body_temp_path /opt/zenoss/var/zproxy/client_body_temp;
+
+    gzip on;
+    gzip_comp_level 9;
+    gzip_proxied any;
+    gzip_min_length 1000;
+    gzip_buffers 4 32k;
+    gzip_types text/css text/plain application/atom+xml application/x-javascript application/javascript text/javascript;
+    gzip_disable msie6;
+    gzip_vary on;
+
+    resolver 8.8.8.8;
+
+    # this is needed to send the correct content type for things like css
+    include mime.types;
+
+    upstream zopes {
+        least_conn;
+        include zope-upstreams.conf;
+        keepalive 64;
+    }
+
+    pagespeed ListOutstandingUrlsOnError on;
+    pagespeed RewriteDeadlinePerFlushMs 100;
+    pagespeed RateLimitBackgroundFetches off;
+    pagespeed FileCachePath /opt/zenoss/var/zproxy/ngx_pagespeed_cache;
+    pagespeed ImageMaxRewritesAtOnce -1;
+
+    server {
+
+        listen 8080;
+        set $myhost $http_host;
+
+        pagespeed off;
+        pagespeed RewriteLevel CoreFilters;
+        pagespeed EnableFilters add_instrumentation,move_css_above_scripts,move_css_to_head,rewrite_style_attributes,in_place_optimize_for_browser,dedup_inlined_images,prioritize_critical_css;
+        pagespeed RespectXForwardedProto on;
+        pagespeed AvoidRenamingIntrospectiveJavascript off;
+        pagespeed MaxCombinedJsBytes -1;
+        pagespeed JsInlineMaxBytes 102400;
+        pagespeed StatisticsPath "/ngx_pagespeed_statistics";
+
+        # Ensure requests for pagespeed optimized resources go to the pagespeed handler
+        # and no extraneous headers get set.
+        location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+         add_header "" "";
+        }
+        location ~ "^/pagespeed_static/" { }
+        location ~ "^/ngx_pagespeed_beacon$" { }
+        location ~ "^/ngx_pagespeed_statistics" {}
+
+        include zope-static.conf;
+
+        location / {
+            proxy_pass http://zopes;
+            proxy_set_header Host $myhost;
+            proxy_http_version 1.1;
+            add_header X-Frame-Options SAMEORIGIN;
+            add_header X-XSS-Protection "1; mode=block";
+        }
+
+        location ^~ /ping/ {
+            include zenoss-zapp-ping-nginx.cfg;
+            proxy_no_cache 1;
+            proxy_cache_bypass 1;
+            proxy_set_header Host $myhost;
+            proxy_method HEAD;
+        }
+
+        location ^~ /api/controlplane/kibana {
+            set $http_ws true;
+            proxy_pass http://127.0.0.1:5601;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            rewrite /api/controlplane/kibana$ / break;
+            rewrite /api/controlplane/kibana/(.*)$ /$1 break;
+        }
+
+        # Legacy apps that don't do any auth validation
+        # Should 'include zenoss-legacy-nginx.cfg;'
+
+        # /api is for zapp rest APIs
+        location ^~ /api/ {
+            # Zapps do their own auth validation
+            include zenoss-zapp-nginx.cfg;
+            proxy_set_header Host $myhost;
+        }
+
+        # /ws is for zapp websockets
+        location ^~ /ws/ {
+            set $http_ws true;
+            # Zapps do their own auth validation
+            include zenoss-zapp-nginx.cfg;
+            proxy_set_header Host $myhost;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+
+        # /static is for static files
+        location ^~ /static/ {
+            # Static data should always be allowed
+            include zenoss-authenticated-nginx.cfg;
+            proxy_http_version 1.1;
+        }
+
+        # /zauth is for authentication and authorization
+        location ^~ /zauth/ {
+            # ZAuth requests should always be allowed
+            include zenoss-authenticated-nginx.cfg;
+            proxy_set_header Host $myhost;
+            proxy_http_version 1.1;
+            proxy_set_header  Accept-Encoding  "";
+        }
+
+    }
+}
+""".strip()
+
 
 class UpdateZproxyPagespeedUpstreams(Migrate.Step):
 
@@ -35,9 +201,6 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
     def update_config(self, zproxy):
         commit, wrote = False, False
         current_config, orig_config = None, None
-
-        with open(self.config_file) as new_file:
-            new_content = new_file.read()
 
         for cfg in zproxy.configFiles:
             if cfg.filename == self.config_file:
