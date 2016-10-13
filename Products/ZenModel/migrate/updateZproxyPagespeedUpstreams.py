@@ -236,7 +236,7 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
         zproxy = ctx.getTopService()
 
         commit, wrote = self.update_config(zproxy)
-        commit = commit or self.update_zope_imports(zproxy)
+        commit = self.update_zope_imports(zproxy) or commit
 
         try:
             if commit:
