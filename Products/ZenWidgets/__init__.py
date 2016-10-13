@@ -55,11 +55,6 @@ def registerPortlets(event):
     """
     update_portlets(event.app)
 
-# Enable gzip compression of static files
-import FileGzipper
-if 0:
-    FileGzipper = None                  # pyflakes
-
 class ExtJSShortcut(BrowserView):
     def __getitem__(self, name):
         return self.context.unrestrictedTraverse('++resource++extjs')[name]

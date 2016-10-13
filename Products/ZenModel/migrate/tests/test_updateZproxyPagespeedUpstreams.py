@@ -10,11 +10,11 @@
 import common
 import unittest
 
-class test_updateKibanaInZproxyConf(unittest.TestCase, common.ServiceMigrationTestCase):
+class test_updatePagespeedUpstreams(unittest.TestCase, common.ServiceMigrationTestCase):
     """
-    Test updating kibana route in zproxy config
+    Test updating zproxy configuration for zope upstreams
     """
     initial_servicedef = 'zenoss-resmgr-5.1.3.json'
-    expected_servicedef = 'zenoss-resmgr-5.1.3-updateKibanaInZproxyConf.json'
-    migration_module_name = 'updateKibanaInZproxyConf'
-    migration_class_name = 'UpdateKibanaInZproxyConf'
+    expected_servicedef = 'zenoss-resmgr-5.1.3-updateZproxyPagespeedUpstreams.json'
+    migration_module_name = 'updateZproxyPagespeedUpstreams'
+    migration_class_name = 'UpdateZproxyPagespeedUpstreams'

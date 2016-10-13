@@ -382,6 +382,13 @@
     permission="zope2.Public"
     />
 
+<browser:view
+    class=".views.NginxStaticLocationBlocks"
+    name="nginx_static"
+    for="OFS.interfaces.IApplication"
+    permission="zope2.Public"
+    />
+
 <browser:viewlet
     name="zenoss_settings"
     manager=".interfaces.IMainSnippetManager"
