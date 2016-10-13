@@ -194,7 +194,7 @@ class UpdateZproxyPagespeedUpstreams(Migrate.Step):
         for endpoint in service.endpoints:
             if endpoint.application == "zope":
                 if endpoint.purpose == "import":
-                    endpoint.purpose == "import_all"
+                    endpoint.purpose = "import_all"
                     return True
                 return False
 
