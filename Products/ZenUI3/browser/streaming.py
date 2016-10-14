@@ -38,6 +38,7 @@ class StreamingView(BrowserView):
     def __call__(self):
         # tells nginx that we want to stream this text
         self._stream.setHeader('X-Accel-Buffering', 'no')
+        self._stream.setHeader('Cache-Control', 'no-transform')
         header, footer = str(self.tpl()).split('*****CONTENT_TOKEN*****')
         self._stream.write(header)
         try:
