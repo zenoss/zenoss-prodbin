@@ -297,20 +297,28 @@ def InstallEgg(dmd, eggPath, link=False):
         cmd = ('%s setup.py develop ' % binPath('python') +
                 '--site-dirs=%s ' % zenPackDir +
                 '-d %s' % zenPackDir)
-        p = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=True,
-                            cwd=eggPath)
-        out, err = p.communicate()
-        p.wait()
-        if p.returncode:
-            try:
-                DoEasyUninstall(eggPath)
-            except:
-                pass
+        returncode, out, err = None, '', ''
+        for attempt in range(3):
+            p = subprocess.Popen(cmd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                shell=True,
+                                cwd=eggPath)
+            out, err = p.communicate()
+            p.wait()
+            returncode = p.returncode
+            if returncode:
+                log.info("Error installing the egg (%s): %s" %
+                         (returncode, err))
+                try:
+                    DoEasyUninstall(eggPath)
+                except:
+                    pass
+            else:
+                break
+        if returncode:
             raise ZenPackException('Error installing the egg (%s): %s' %
-                                (p.returncode, err))
+                                   (returncode, err))
         zpDists = AddDistToWorkingSet(eggPath)
     else:
         try:
