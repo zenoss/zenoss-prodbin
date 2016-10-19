@@ -5537,7 +5537,7 @@
         "Commands": {}, 
         "ConfigFiles": {
             "/etc/sysconfig/memcached": {
-                "Content": "PORT=\"11211\"\nUSER=\"memcached\"\nMAXCONN=\"1024\"\nCACHESIZE=\"{{.RAMCommitment}}\"\nOPTIONS=\"\"\n", 
+            "Content": "PORT=\"11211\"\nUSER=\"memcached\"\nMAXCONN=\"1024\"\nCACHESIZE=\"{{.RAMCommitment}}\"\n{{ $size := (getContext . \"global.conf.zodb-cache-max-object-size\") }}\nOPTIONS=\"-v -R 4096 -I {{if $size}} {{$size}} {{else}} 1048576 {{end}}\"\n",
                 "Filename": "/etc/sysconfig/memcached", 
                 "Owner": "root:root", 
                 "Permissions": "0644"

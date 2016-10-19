@@ -50,11 +50,17 @@ OPTIONS="-v -R 4096 -I {{if $size}} {{$size}} {{else}} 1048576 {{end}}"'''
         zenoss = ctx.getTopService()
         memcached = filter(lambda x: x.name=="memcached", ctx.services)
         if memcached:
-            config = [ cfg for cfg in memcached[0].originalConfigs if cfg.name == '/etc/sysconfig/memcached' ]
-            if config:
-                if self._update_config(config[0]):
+            memcached = memcached[0]
+            configs = [ cfg for cfg in memcached.originalConfigs if cfg.name == '/etc/sysconfig/memcached' ]
+            if hasattr(memcached, "configFiles"):
+                configs.extend( [ cfg for cfg in memcached.configFiles if cfg.name == '/etc/sysconfig/memcached' ] )
+            commit = False
+            for config in configs:
+                if self._update_config(config):
                     log.info("/etc/sysconfig/memcached updated.")
-                    ctx.commit()
+                    commit = True
+            if commit:
+                ctx.commit()
 
 
 UpdateMemcachedMaxObjectSize()
