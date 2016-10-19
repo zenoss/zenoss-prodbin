@@ -101,7 +101,6 @@
                 interval: 60000
             };
             Ext.TaskManager.start(logKeepaliveTask);
-
         },
         /**
          * This method is responsible for showing the card that
@@ -193,15 +192,26 @@
             return menu;
         },
         showDaemonLogs: function() {
-            document.getElementById("logs-body").innerHTML = [
-                "<iframe style='width:100%; height:100%;' src=",
-                location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : ""),
-                "/api/controlplane/kibana",
-                "/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-15m,mode:quick,to:now))",
-                "&_a=(index:'logstash-*',columns:!(_source),interval:auto,query:(query_string:(analyze_wildcard:!t,query:'*",
-                this.selected.raw.name,
-                "')),sort:!('@timestamp',desc))",
-                "></iframe>"].join('');
+            var baseUrl = location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "");
+            var iframeHtml;
+            if (Zenoss.env.SERVICED_VERSION == "1.1.X") {
+              iframeHtml = ["<iframe style='width:100%; height:100%;' src='",
+                            baseUrl,
+                            "/logview/#/dashboard/file/zenoss.json?query=*",
+                            this.selected.raw.name,
+                            "*&title=",
+                            this.selected.raw.name, " logs","'></iframe>"].join('');
+            } else {
+              iframeHtml = ["<iframe style='width:100%; height:100%;' src=",
+                            baseUrl,
+                            "/api/controlplane/kibana",
+                            "/app/kibana#/discover?_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-15m,mode:quick,to:now))",
+                            "&_a=(index:'logstash-*',columns:!(_source),interval:auto,query:(query_string:(analyze_wildcard:!t,query:'*",
+                            this.selected.raw.name,
+                            "')),sort:!('@timestamp',desc))",
+                            "></iframe>"].join('');
+            }
+            document.getElementById("logs-body").innerHTML = iframeHtml;
         },
         showDaemonConfigurationFiles: function() {
             var selected = this.selected,
