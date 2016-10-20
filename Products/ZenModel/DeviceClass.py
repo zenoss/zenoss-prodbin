@@ -40,7 +40,6 @@ from Products.ZenUtils.Search import (
 )
 from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.ZenUtils.productionstate.interfaces import ProdStateNotSetError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
@@ -232,27 +231,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         exported = False
 
         # Save production states
-        currentProdState = dev.getProductionState()
-        currentPreMWProdState = dev.getPreMWProductionState()
-
-        # Save component production states (if not acquiring)
-        componentProdStates = {}
-        componentPreMWProdStates = {}
-        for c in dev.getDeviceComponents():
-            componentGuid = IGlobalIdentifier(c).getGUID()
-            try:
-                oldProdState = c.getProdStateManager().getProductionState(c)
-                componentProdStates[componentGuid] = oldProdState
-            except ProdStateNotSetError:
-                pass
-
-            try:
-                oldPreMWProdState = c.getProdStateManager().getPreMWProductionState(c)
-                componentPreMWProdStates[componentGuid] = oldPreMWProdState
-            except ProdStateNotSetError:
-                pass
-
-
+        currProdStates = dev.saveCurrentProdStates()
 
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
@@ -364,16 +343,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         dev = target.devices._getOb(devname)
         
         # Restore the production states
-        dev.getProdStateManager().setProductionState(dev, currentProdState)
-        dev.getProdStateManager().setPreMWProductionState(dev, currentPreMWProdState)
-
-        # Restore the component production states
-        for c in dev.getDeviceComponents():
-            componentGuid = IGlobalIdentifier(c).getGUID()
-            if componentGuid in componentProdStates:
-                c.getProdStateManager().setProductionState(c, componentProdStates[componentGuid])
-            if componentGuid in componentPreMWProdStates:
-                c.getProdStateManager().setPreMWProductionState(c, componentPreMWProdStates[componentGuid])
+        dev.restoreCurrentProdStates(currProdStates)
 
         IGlobalIdentifier(dev).guid = guid
         dev.setLastChange()
