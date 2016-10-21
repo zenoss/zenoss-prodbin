@@ -13,6 +13,7 @@ ControlPlaneClient
 import fnmatch
 import json
 import logging
+import os
 import urllib
 import urllib2
 
@@ -20,12 +21,13 @@ from cookielib import CookieJar
 from urlparse import urlunparse
 
 from .data import (ServiceJsonDecoder, ServiceJsonEncoder, HostJsonDecoder,
-                   ServiceStatusJsonDecoder)
-
-
+                   ServiceStatusJsonDecoder, InstanceV2ToServiceStatusJsonDecoder)
 
 
 LOG = logging.getLogger("zen.controlplane.client")
+
+
+SERVICED_VERSION_ENV = "SERVICED_VERSION"
 
 
 class ControlCenterError(Exception): pass
@@ -66,6 +68,35 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
+        self.cc_version = ""
+        self._hothOrNewer = self._checkHothOrNewer()
+        self._useHttps = self._checkUseHttps()
+        self._v2loc = "/api/v2"
+
+    def _checkHothOrNewer(self):
+        """
+        Checks if the client is connecting to Hoth or newer. The cc version
+        is injected in the containers by serviced
+        """
+        hoth_or_newer = False
+        cc_version = os.environ.get(SERVICED_VERSION_ENV)
+        if cc_version: # CC is >= 1.2.0
+            self.cc_version = cc_version
+            hoth_or_newer =  True
+            LOG.info("Detected CC version >= 1.2.0")
+        else:
+            self.cc_version = "1.1.X"
+        return hoth_or_newer
+
+    def _checkUseHttps(self):
+        """
+        Starting in CC 1.2.0, port 443 in the containers does not support https.
+        """
+        use_https = True
+        cc_master = self._server.get("host")
+        if self._hothOrNewer and cc_master in [ "localhost", "127.0.0.1" ]:
+            use_https = False
+        return use_https
 
     def queryServices(self, name=None, tags=None, tenantID=None):
         """
@@ -220,12 +251,73 @@ class ControlPlaneClient(object):
 
     def queryServiceStatus(self, serviceId):
         """
-        Returns a sequence of ServiceInstance objects.
+        CC version-independent call to get the status of a service.
+        Calls queryServiceStatusImpl or queryServiceInstancesV2 to get the
+        status for serviceId.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        if self._hothOrNewer:
+            raw = self.queryServiceInstancesV2(serviceId)
+            decoded = self._convertInstancesV2ToStatuses(raw)
+        else:
+            decoded = self.queryServiceStatusImpl(serviceId)
+
+        return decoded
+
+    def queryServiceStatusImpl(self, serviceId):
+        """
+        Implementation for queryServiceStatus that uses the
+        /services/:serviceid/status endpoint.
+
+        :param serviceId: The serviceId to get the status of
+        :type serviceId: string
+
+        :returns: The result of the query decoded
+        :rtype: dict of ServiceStatus objects with ID as key
         """
         response = self._dorequest("/services/%s/status" % serviceId)
         body = ''.join(response.readlines())
         response.close()
-        return ServiceStatusJsonDecoder().decode(body)
+        decoded = ServiceStatusJsonDecoder().decode(body)
+        return decoded
+
+    def queryServiceInstancesV2(self, serviceId):
+        """
+        Uses the CC V2 api to query the instances of serviceId.
+
+        :param serviceId: The serviceId to get the instances of
+        :type serviceId: string
+
+        :returns: The raw result of the query
+        :rtype: json formatted string
+        """
+        response = self._dorequest("%s/services/%s/instances" % (self._v2loc,
+                                                                 serviceId))
+        body = ''.join(response.readlines())
+        response.close()
+        return body
+
+    def _convertInstancesV2ToStatuses(self, rawV2Instance):
+        """
+        Converts a list of raw Instance (V2) json to a dict of ServiceStatuses.
+        This is for compatibility sake.
+
+        :param rawV2Instance: The result from a call to queryServiceInstancesV2
+        :type rawV2Instance: json formatted string
+
+        :returns: An acceptable output from queryServiceStatus
+        :rtype: dict of ServiceStatus objects with ID as key
+        """
+        decoded = InstanceV2ToServiceStatusJsonDecoder().decode(rawV2Instance)
+        # V2 gives us a list, we need a dict with ID as key
+        decoded = {instance.id: instance for instance in decoded}
+        return decoded
+
 
     def queryHosts(self):
         """
@@ -276,11 +368,11 @@ class ControlPlaneClient(object):
         log = json.loads(body)
         return str(log["Detail"])
 
-    def killInstance(self, hostId, instanceId):
+    def killInstance(self, hostId, uuid):
         """
         """
         response = self._dorequest(
-            "/hosts/%s/%s" % (hostId, instanceId), method="DELETE"
+            "/hosts/%s/%s" % (hostId, uuid), method="DELETE"
         )
         response.close()
 
@@ -341,7 +433,8 @@ class ControlPlaneClient(object):
 
     def _makeRequest(self, uri, method=None, data=None, query=None):
         query = urllib.urlencode(query) if query else ""
-        url = urlunparse(("https", self._netloc, uri, "", query, ""))
+        url = urlunparse(("https" if self._useHttps else "http",
+                          self._netloc, uri, "", query, ""))
         args = {}
         if method:
             args["method"] = method
