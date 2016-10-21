@@ -28,6 +28,7 @@ class DaemonsView(BrowserView):
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.cc_version = ""
 
     def __call__(self):
         return self.render()
@@ -43,6 +44,7 @@ class DaemonsView(BrowserView):
         with CC, and set a cookie in the user's browser.
         """
         cpClient = ControlPlaneClient(**getConnectionSettings())
+        self.cc_version = cpClient.cc_version
         cookies = None
         try:
             cookies = cpClient.cookies()

@@ -27,6 +27,14 @@
             }]
         }],
         layout: 'card',
+        getLogUrl: function() {
+          var baseUrl = location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "");
+          if (Zenoss.env.SERVICED_VERSION == "1.1.X") {
+            return baseUrl + "/logview/#/dashboard/file/zenoss.json";
+          } else {
+            return baseUrl + "/api/controlplane/kibana";
+          }
+        },
         initComponent: function() {
             this.items = [{
                 id: 'graphs',
@@ -74,7 +82,7 @@
                 xtype: 'panel',
                 ref: 'logs',
                 id: 'logs',
-                src: location.protocol + '//' + location.hostname + (location.port ? ":" + location.port : "") + "/logview/#/dashboard/file/zenoss.json",
+                src: this.getLogUrl(),
                 bodyStyle: {
                     overflow: 'hidden'
                 }
