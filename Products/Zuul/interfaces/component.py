@@ -176,9 +176,9 @@ class IIpServiceInfo(IComponentInfo):
     port = schema.Int(title=_t(u"Port"), group="Overview")
     protocol = schema.TextLine(title=_t(u"Protocol"), group="Details")
     ipaddresses = schema.List(title=_t(u"IP Addresses"), group="Details")
-    manageIp = schema.Choice(title=_t(u"Management IP Address"),
-                             vocabulary="serviceIpAddresses",
-                             group="Overview")
+    manageIp = schema.TextLine(title=_t(u"Management IP Address"),
+                               group="Overview", alwaysEditable=True,
+                               xtype="ipaddressfield", vtype="ipaddress")
     discoveryAgent = schema.TextLine(title=_t(u"Discovery Agent"), group="Details")
     failSeverity = schema.Int(title=_t(u"Fail Severity"), xtype="severity",
                               group="Details", alwaysEditable=True)
