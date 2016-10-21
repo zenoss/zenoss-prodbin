@@ -21,7 +21,9 @@ class AddKibanaRouteInZproxyConf(Migrate.Step):
 
     version = Migrate.Version(5,1,9)
 
-    KIBANA_NEW_ROUTE_CONFIG = """location ^~ /api/controlplane/kibana {
+    KIBANA_NEW_ROUTE_CONFIG = """
+
+        location ^~ /api/controlplane/kibana {
             set $http_ws true;
             proxy_pass http://127.0.0.1:5601;
             proxy_http_version 1.1;
@@ -36,6 +38,7 @@ class AddKibanaRouteInZproxyConf(Migrate.Step):
     CONFIG_FILENAME = "/opt/zenoss/zproxy/conf/zproxy-nginx.conf"
 
     OLD_ROUTE_RE="(location\s*\^\~\s*\/logview\/)"
+    NEW_ROUTE_RE="(location\s*\^\~\s*\/api\/controlplane\/kibana)"
 
     def _update_kibana_config(self, zproxy_config, old_route_string):
         """
@@ -62,9 +65,10 @@ class AddKibanaRouteInZproxyConf(Migrate.Step):
         for configs in [zproxy.configFiles, zproxy.originalConfigs]:
             for config in configs:
                 if config.filename == self.CONFIG_FILENAME:
-                    match = re.search(self.OLD_ROUTE_RE, config.content)
-                    if match:
-                        old_route_string = match.groups()[0]
+                    old_match = re.search(self.OLD_ROUTE_RE, config.content)
+                    new_match = re.search(self.NEW_ROUTE_RE, config.content)
+                    if old_match and not new_match:
+                        old_route_string = old_match.groups()[0]
                         self._update_kibana_config(config, old_route_string)
                         commit = True
         if commit:
