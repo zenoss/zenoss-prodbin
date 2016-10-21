@@ -43,10 +43,6 @@
              factory=".ipservice.IpServiceInfo"
              />
 
-    <utility provides="zope.schema.interfaces.IVocabularyFactory"
-             component=".ipservice.serviceIpAddressesVocabulary"
-             name="serviceIpAddresses"/>
-
     <adapter provides="...interfaces.IWinServiceInfo"
              for="Products.ZenModel.WinService.WinService"
              factory=".winservice.WinServiceInfo"
