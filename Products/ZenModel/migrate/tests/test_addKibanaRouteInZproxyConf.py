@@ -17,4 +17,4 @@ class test_updateKibanaInZproxyConf(unittest.TestCase, common.ServiceMigrationTe
     initial_servicedef = 'zenoss-resmgr-5.1.2.json'
     expected_servicedef = 'zenoss-resmgr-5.1.2-addKibanaRouteInZproxyConf.json'
     migration_module_name = 'addKibanaRouteInZproxyConf'
-    migration_class_name = 'addKibanaRouteInZproxyConf'
+    migration_class_name = 'AddKibanaRouteInZproxyConf'
