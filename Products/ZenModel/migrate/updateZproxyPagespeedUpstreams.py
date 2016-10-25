@@ -101,6 +101,11 @@ http {
         pagespeed MaxCombinedJsBytes -1;
         pagespeed JsInlineMaxBytes 102400;
         pagespeed StatisticsPath "/ngx_pagespeed_statistics";
+        pagespeed Disallow "*/api/metrics*";
+        pagespeed Disallow "*/api/performance*";
+        pagespeed Disallow "*/ws/metrics*";
+        pagespeed Disallow "*/ping/status*";
+        pagespeed Disallow "*/static/*";
 
         # Ensure requests for pagespeed optimized resources go to the pagespeed handler
         # and no extraneous headers get set.
