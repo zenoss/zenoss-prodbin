@@ -15,8 +15,8 @@ class test_FixDatapointsFormat(unittest.TestCase, common.ServiceMigrationTestCas
     """
     Test that the zenpop3 and zenmail have correct datapoints format.
     """
-    initial_servicedef = 'zenoss-resmgr-lite-5.1.5.json'
-    expected_servicedef = 'zenoss-resmgr-lite-5.1.5-FixDatapointsFormat.json'
+    initial_servicedef = 'zenoss-resmgr-5.1.5.json'
+    expected_servicedef = 'zenoss-resmgr-5.1.5-FixDatapointsFormat.json'
     migration_module_name = 'FixDatapointsFormat'
     migration_class_name = 'FixDatapointsFormat'
 

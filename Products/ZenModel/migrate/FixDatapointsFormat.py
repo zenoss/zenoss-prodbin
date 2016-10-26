@@ -39,7 +39,7 @@ class FixDatapointsFormat(Migrate.Step):
                     current_format = datapoint._GraphDatapoint__data.get("format")
                     if current_format == incorrect_format:
                         datapoint._GraphDatapoint__data["format"] = correct_format
-                    commit = True
+                        commit = True
 
         # Commit our changes.
         if commit:
