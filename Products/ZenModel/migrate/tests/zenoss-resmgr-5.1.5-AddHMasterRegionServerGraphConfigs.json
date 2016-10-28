@@ -1886,13 +1886,7 @@
          "Owner": "hbase:hbase",
          "Permissions": "0664",
          "Content": "\u003cconfiguration\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.rootdir\u003c/name\u003e\n    \u003cvalue\u003efile:///var/hbase\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.cluster.distributed\u003c/name\u003e\n    \u003cvalue\u003etrue\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.zookeeper.quorum\u003c/name\u003e\n      \u003cvalue\u003ezk1,zk2,zk3\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.master.wait.on.regionservers.mintostart\u003c/name\u003e\n      \u003cvalue\u003e2\u003c/value\u003e\n  \u003c/property\u003e\n\u003c/configuration\u003e"
-       },
-       "/opt/hbase/conf/hadoop-metrics2-hbase.properties": {
-         "Filename": "/opt/hbase/conf/hadoop-metrics2-hbase.properties",
-         "Owner": "hbase:hbase",
-         "Permissions": "0664",
-         "Content": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n# sampling period\n*.period=15\n\n# Below are some examples of sinks that could be used\n# to monitor different hbase daemons.\n\nhbase.sink.file-all.class=com.zenoss.hadoop.metrics.ControlCenterSink\nhbase.sink.file-all.includedMetrics=Log\\\\w*,\\\\w*RegionServers\n# hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file0.context=hmaster\n# hbase.sink.file0.filename=master.metrics\n\n# hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file1.context=thrift-one\n# hbase.sink.file1.filename=thrift-one.metrics\n\n# hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file2.context=thrift-two\n# hbase.sink.file2.filename=thrift-one.metrics\n\n# hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file3.context=rest\n# hbase.sink.file3.filename=rest.metrics\n"
-        }
+       }
      },
      "ConfigFiles": {
        "/etc/hbase-env.sh": {
@@ -1906,12 +1900,6 @@
          "Owner": "hbase:hbase",
          "Permissions": "0664",
          "Content": "\u003cconfiguration\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.rootdir\u003c/name\u003e\n    \u003cvalue\u003efile:///var/hbase\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.cluster.distributed\u003c/name\u003e\n    \u003cvalue\u003etrue\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.zookeeper.quorum\u003c/name\u003e\n      \u003cvalue\u003ezk1,zk2,zk3\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.master.wait.on.regionservers.mintostart\u003c/name\u003e\n      \u003cvalue\u003e2\u003c/value\u003e\n  \u003c/property\u003e\n\u003c/configuration\u003e"
-       },
-       "/opt/hbase/conf/hadoop-metrics2-hbase.properties": {
-         "Filename": "/opt/hbase/conf/hadoop-metrics2-hbase.properties",
-         "Owner": "hbase:hbase",
-         "Permissions": "0664",
-         "Content": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n# sampling period\n*.period=15\n\n# Below are some examples of sinks that could be used\n# to monitor different hbase daemons.\n\nhbase.sink.file-all.class=com.zenoss.hadoop.metrics.ControlCenterSink\nhbase.sink.file-all.includedMetrics=Log\\\\w*,\\\\w*RegionServers\n# hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file0.context=hmaster\n# hbase.sink.file0.filename=master.metrics\n\n# hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file1.context=thrift-one\n# hbase.sink.file1.filename=thrift-one.metrics\n\n# hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file2.context=thrift-two\n# hbase.sink.file2.filename=thrift-one.metrics\n\n# hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file3.context=rest\n# hbase.sink.file3.filename=rest.metrics\n"
        }
      },
      "Instances": 1,
@@ -2124,8 +2112,216 @@
        }
      ],
      "MonitoringProfile": {
-       "MetricConfigs": [],
-       "GraphConfigs": [],
+       "MetricConfigs": [
+          {
+            "ID": "HMaster",
+            "Name": "HMaster internal metrics",
+            "Description": "HMaster internal metrics",
+            "Query": {
+              "RequestURI": "",
+              "Method": "POST",
+              "Headers": {
+              }
+            },
+            "Metrics": [
+              {
+                "ID": "LogFatal",
+                "Name": "Total number of fatal log events",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "LogError",
+                "Name": "Total number of error log events",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "LogWarn",
+                "Name": "Total number of warn log events",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "numRegionServers",
+                "Name": "Total number of live regions servers",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "numDeadRegionServers",
+                "Name": "Total number of dead regions servers",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              }
+            ]
+          }
+       ],
+       "GraphConfigs": [
+          {
+            "id": "logStats",
+            "name": "Log Stats",
+            "footer": false,
+            "format": "",
+            "returnset": "EXACT",
+            "type": "line",
+            "tags": {
+
+            },
+            "miny": 0,
+            "maxy": null,
+            "yAxisLabel": "events",
+            "description": "Log Stats",
+            "range": {
+              "start": "10s-ago",
+              "end": "0s-ago"
+            },
+            "datapoints": [
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": false,
+                "format": "%d",
+                "legend": "Total number of fatal log events",
+                "metric": "LogFatal",
+                "metricSource": "HMaster",
+                "id": "LogFatal",
+                "name": "Total number of fatal log events",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Total number of error log events",
+                "metric": "LogError",
+                "metricSource": "HMaster",
+                "id": "LogError",
+                "name": "Total number of error log events",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Total number of warn log events",
+                "metric": "LogWarn",
+                "metricSource": "HMaster",
+                "id": "LogWarn",
+                "name": "Total number of warn log events",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              }
+            ],
+            "builtin": false,
+            "units": "",
+            "base": 0
+          },
+          {
+            "id": "regionServers",
+            "name": "Region Servers",
+            "footer": false,
+            "format": "",
+            "returnset": "EXACT",
+            "type": "line",
+            "tags": {
+
+            },
+            "miny": 0,
+            "maxy": null,
+            "yAxisLabel": "servers",
+            "description": "Region Servers",
+            "range": {
+              "start": "10s-ago",
+              "end": "0s-ago"
+            },
+            "datapoints": [
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Total number of live regions servers",
+                "metric": "numRegionServers",
+                "metricSource": "HMaster",
+                "id": "numRegionServers",
+                "name": "Total number of live regions servers",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Total number of dead regions servers",
+                "metric": "numDeadRegionServers",
+                "metricSource": "HMaster",
+                "id": "numDeadRegionServers",
+                "name": "Total number of dead regions servers",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              }
+            ],
+            "builtin": false,
+            "units": "",
+            "base": 0
+          }
+       ],
        "ThresholdConfigs": []
      },
      "MemoryLimit": 0,
@@ -2156,12 +2352,6 @@
          "Owner": "hbase:hbase",
          "Permissions": "0664",
          "Content": "\u003cconfiguration\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.rootdir\u003c/name\u003e\n    \u003cvalue\u003efile:///var/hbase\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.cluster.distributed\u003c/name\u003e\n    \u003cvalue\u003etrue\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.zookeeper.quorum\u003c/name\u003e\n      \u003cvalue\u003e{{ with $zks := (child (parent .) \"ZooKeeper\").Instances }}{{range (each $zks) }}zk{{plus 1 .}}{{if ne (plus 1 .) $zks}},{{end}}{{end}}{{end}}\u003c/value\u003e\n  \u003c/property\u003e\n\u003c/configuration\u003e"
-       },
-       "/opt/hbase/conf/hadoop-metrics2-hbase.properties": {
-         "Filename": "/opt/hbase/conf/hadoop-metrics2-hbase.properties",
-         "Owner": "hbase:hbase",
-         "Permissions": "0664",
-         "Content": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n# sampling period\n*.period=15\n\n# Below are some examples of sinks that could be used\n# to monitor different hbase daemons.\n\nhbase.sink.file-all.class=com.zenoss.hadoop.metrics.ControlCenterSink\nhbase.sink.file-all.includedMetrics=numCallsInGeneralQueue,numCallsIn\\\\w*Queue,\\\\w*QueueLength,\\\\w*Count,\\\\w+RequestCount\n# hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file0.context=hmaster\n# hbase.sink.file0.filename=master.metrics\n\n# hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file1.context=thrift-one\n# hbase.sink.file1.filename=thrift-one.metrics\n\n# hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file2.context=thrift-two\n# hbase.sink.file2.filename=thrift-one.metrics\n\n# hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file3.context=rest\n# hbase.sink.file3.filename=rest.metrics\n"
        }
      },
      "ConfigFiles": {
@@ -2176,12 +2366,6 @@
          "Owner": "hbase:hbase",
          "Permissions": "0664",
          "Content": "\u003cconfiguration\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.rootdir\u003c/name\u003e\n    \u003cvalue\u003efile:///var/hbase\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n    \u003cname\u003ehbase.cluster.distributed\u003c/name\u003e\n    \u003cvalue\u003etrue\u003c/value\u003e\n  \u003c/property\u003e\n  \u003cproperty\u003e\n      \u003cname\u003ehbase.zookeeper.quorum\u003c/name\u003e\n      \u003cvalue\u003e{{ with $zks := (child (parent .) \"ZooKeeper\").Instances }}{{range (each $zks) }}zk{{plus 1 .}}{{if ne (plus 1 .) $zks}},{{end}}{{end}}{{end}}\u003c/value\u003e\n  \u003c/property\u003e\n\u003c/configuration\u003e"
-       },
-       "/opt/hbase/conf/hadoop-metrics2-hbase.properties": {
-         "Filename": "/opt/hbase/conf/hadoop-metrics2-hbase.properties",
-         "Owner": "hbase:hbase",
-         "Permissions": "0664",
-         "Content": "# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n# sampling period\n*.period=15\n\n# Below are some examples of sinks that could be used\n# to monitor different hbase daemons.\n\nhbase.sink.file-all.class=com.zenoss.hadoop.metrics.ControlCenterSink\nhbase.sink.file-all.includedMetrics=numCallsInGeneralQueue,numCallsIn\\\\w*Queue,\\\\w*QueueLength,\\\\w*Count,\\\\w+RequestCount\n# hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file0.context=hmaster\n# hbase.sink.file0.filename=master.metrics\n\n# hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file1.context=thrift-one\n# hbase.sink.file1.filename=thrift-one.metrics\n\n# hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file2.context=thrift-two\n# hbase.sink.file2.filename=thrift-one.metrics\n\n# hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink\n# hbase.sink.file3.context=rest\n# hbase.sink.file3.filename=rest.metrics\n"
        }
      },
      "Instances": 3,
@@ -2389,8 +2573,385 @@
        }
      ],
      "MonitoringProfile": {
-       "MetricConfigs": [],
-       "GraphConfigs": [],
+       "MetricConfigs": [
+          {
+            "ID": "RegionServer",
+            "Name": "RegionServer internal metrics",
+            "Description": "RegionServer internal metrics",
+            "Query": {
+              "RequestURI": "",
+              "Method": "POST",
+              "Headers": {
+              }
+            },
+            "Metrics": [
+              {
+                "ID": "numCallsInGeneralQueue",
+                "Name": "Current depth of the User Requests",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "numCallsInPriorityQueue",
+                "Name": "Current depth of the Internal Housekeeping Requests queue",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "flushQueueLength",
+                "Name": "Current depth of the memstore flush queue",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "compactionQueueLength",
+                "Name": "Current depth of the compaction request queue",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "slowAppendCount",
+                "Name": "The number of slow append operations",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "slowDeleteCount",
+                "Name": "The number of slow delete operations",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "slowGetCount",
+                "Name": "The number of slow get operations",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "slowIncrementCount",
+                "Name": "The number of slow increment operations",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "totalRequestCount",
+                "Name": "The total number of requests received",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "readRequestCount",
+                "Name": "The total number of read requests received",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              },
+              {
+                "ID": "writeRequestCount",
+                "Name": "The total number of write requests received",
+                "Description": "",
+                "Counter": false,
+                "ResetValue": 0,
+                "Unit": "",
+                "BuiltIn": false
+              }
+            ]
+          }
+       ],
+       "GraphConfigs": [
+          {
+            "id": "QueueLength",
+            "name": "Queue Length",
+            "footer": false,
+            "format": "",
+            "returnset": "EXACT",
+            "type": "line",
+            "tags": {
+            },
+            "miny": 0,
+            "maxy": null,
+            "yAxisLabel": "Blocks of items",
+            "description": "Queue Length",
+            "range": {
+              "start": "10s-ago",
+              "end": "0s-ago"
+            },
+            "datapoints": [
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": false,
+                "format": "%d",
+                "legend": "Current depth of the User Requests",
+                "metric": "numCallsInGeneralQueue",
+                "metricSource": "RegionServer",
+                "id": "numCallsInGeneralQueue",
+                "name": "Current depth of the User Requests",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Current depth of the Internal Housekeeping Requests queue",
+                "metric": "numCallsInPriorityQueue",
+                "metricSource": "RegionServer",
+                "id": "numCallsInPriorityQueue",
+                "name": "Current depth of the Internal Housekeeping Requests queue",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Current depth of the memstore flush queue",
+                "metric": "flushQueueLength",
+                "metricSource": "RegionServer",
+                "id": "flushQueueLength",
+                "name": "Current depth of the memstore flush queue",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "Current depth of the compaction request queue",
+                "metric": "compactionQueueLength",
+                "metricSource": "RegionServer",
+                "id": "compactionQueueLength",
+                "name": "Current depth of the compaction request queue",
+                "rate": false,
+                "rateOptions": {
+                  "counter": true,
+                  "counterMax": null,
+                  "resetThreshold": 1048576
+                },
+                "type": "line"
+              }
+            ],
+            "builtin": false,
+            "units": "",
+            "base": 0
+          },
+          {
+            "id": "slowOps",
+            "name": "Slow Operations",
+            "footer": false,
+            "format": "",
+            "returnset": "EXACT",
+            "type": "line",
+            "tags": {
+
+            },
+            "miny": 0,
+            "maxy": null,
+            "yAxisLabel": "Operations",
+            "description": "Slow Operations",
+            "range": {
+              "start": "10s-ago",
+              "end": "0s-ago"
+            },
+            "datapoints": [
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The number of slow append operations",
+                "metric": "slowAppendCount",
+                "metricSource": "RegionServer",
+                "id": "slowAppendCount",
+                "name": "The number of slow append operations",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The number of slow delete operations",
+                "metric": "slowDeleteCount",
+                "metricSource": "RegionServer",
+                "id": "slowDeleteCount",
+                "name": "The number of slow delete operations",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The number of slow get operations",
+                "metric": "slowGetCount",
+                "metricSource": "RegionServer",
+                "id": "slowGetCount",
+                "name": "The number of slow get operations",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The number of slow increment operations",
+                "metric": "slowIncrementCount",
+                "metricSource": "RegionServer",
+                "id": "slowIncrementCount",
+                "name": "The number of slow increment operations",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              }
+            ],
+            "builtin": false,
+            "units": "",
+            "base": 0
+          },
+          {
+            "id": "opcounts",
+            "name": "Operation Counts",
+            "footer": false,
+            "format": "",
+            "returnset": "EXACT",
+            "type": "line",
+            "tags": {
+
+            },
+            "miny": 0,
+            "maxy": null,
+            "yAxisLabel": "Operations",
+            "description": "Slow Operations",
+            "range": {
+              "start": "10s-ago",
+              "end": "0s-ago"
+            },
+            "datapoints": [
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The total number of requests received",
+                "metric": "totalRequestCount",
+                "metricSource": "RegionServer",
+                "id": "totalRequestCount",
+                "name": "The total number of requests received",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The total number of read requests received",
+                "metric": "readRequestCount",
+                "metricSource": "RegionServer",
+                "id": "readRequestCount",
+                "name": "The total number of read requests received",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              },
+              {
+                "aggregator": "zimsum",
+                "color": "",
+                "dataFormat": "",
+                "expression": "",
+                "fill": true,
+                "format": "%d",
+                "legend": "The total number of write requests received",
+                "metric": "writeRequestCount",
+                "metricSource": "RegionServer",
+                "id": "writeRequestCount",
+                "name": "The total number of write requests received",
+                "rate": false,
+                "rateOptions": null,
+                "type": "line"
+              }
+            ],
+            "builtin": false,
+            "units": "",
+            "base": 0
+          }
+       ],
        "ThresholdConfigs": []
      },
      "MemoryLimit": 0,
