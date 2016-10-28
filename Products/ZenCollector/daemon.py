@@ -584,6 +584,10 @@ class CollectorDaemon(RRDDaemon):
             # all pending tasks have completed
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
+        # put tasks on pause after configuration update to prevent unnecessary collections ZEN-25463
+        if configId in self._unresponsiveDevices:
+            self.log.debug("Pausing tasks for device %s", configId)
+            self._scheduler.pauseTasksForConfig(configId)
 
         return True
 
