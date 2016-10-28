@@ -45,7 +45,6 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
             mcs = hmService.monitoringProfile.metricConfigs
             if not filter(lambda x: x.graphID == 'logStats', gcs):
                 log.info("No logStats graph found; creating.")
-                commit = True
                 gcs.append(
                     GraphConfig(
                         graphID='logStats',
@@ -112,12 +111,12 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("logStats graph found; skipping.")
 
             if not filter(lambda x: x.graphID == 'regionServers', gcs):
                 log.info("No regionServers graph found; creating.")
-                commit = True
                 gcs.append(
                     GraphConfig(
                         graphID='regionServers',
@@ -168,12 +167,12 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("regionServers graph found; skipping.")
 
             if not filter(lambda x: x.ID == 'HMaster', mcs):
                 log.info("No HMaster internal metrics found; creating.")
-                commit = True
                 mcs.append(
                     MetricConfig(
                         ID='HMaster',
@@ -203,6 +202,7 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("HMaster internal metrics found; skipping.")
 
@@ -211,7 +211,6 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
             mcs = rsService.monitoringProfile.metricConfigs
             if not filter(lambda x: x.graphID == 'QueueLength', gcs):
                 log.info("No QueueLength graph found; creating.")
-                commit = True
                 gcs.append(
                     GraphConfig(
                         graphID='QueueLength',
@@ -295,12 +294,12 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("QueueLength graph found; skipping.")
 
             if not filter(lambda x: x.graphID == 'slowOps', gcs):
                 log.info("No slowOps graph found; creating.")
-                commit = True
                 gcs.append(
                     GraphConfig(
                         graphID='slowOps',
@@ -363,12 +362,12 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("slowOps graph found; skipping.")
 
             if not filter(lambda x: x.graphID == 'opcounts', gcs):
                 log.info("No opcounts graph found; creating.")
-                commit = True
                 gcs.append(
                     GraphConfig(
                         graphID='opcounts',
@@ -420,12 +419,12 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("opcounts graph found; skipping.")
 
             if not filter(lambda x: x.ID == 'RegionServer', mcs):
                 log.info("No RegionServer internal metrics found; creating.")
-                commit = True
                 mcs.append(
                     MetricConfig(
                         ID='RegionServer',
@@ -479,6 +478,7 @@ class AddHMasterRegionServerGraphConfigs(Migrate.Step):
                         ]
                     )
                 )
+                commit = True
             else:
                 log.info("RegionServer internal metrics found; skipping.")
 
