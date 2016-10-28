@@ -10,18 +10,18 @@
 import logging
 import requests
 import json
+import os
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 
 _ZPROXY_URL = 'http://127.0.0.1:8080'
 _ZAUTH_LOGIN_URI = '/zauth/api/login'
-_CC_URL = 'https://127.0.0.1'
 _CC_LOGIN_URI = '/login'
 _ELASTIC_URI = '/api/controlplane/elastic'
 
 log = logging.getLogger("zen.elastic.client")
-
+SERVICED_VERSION_ENV = "SERVICED_VERSION"
 
 class ElasticClientException(Exception):
     pass
@@ -38,7 +38,26 @@ class ElasticClient(object):
         used across all requests that the client makes.
         """
         self.session = None
+        self.cc_version = ""
+        if self._checkHothOrNewer():
+            self.ccURL = 'http://127.0.0.1:443'
+        else:
+            self.ccURL = 'https://127.0.0.1'
         self.login()
+
+    def _checkHothOrNewer(self):
+        """
+        Checks if the client is connecting to Hoth or newer. The cc version
+        is injected in the containers by serviced
+        """
+        hoth_or_newer = False
+        cc_version = os.environ.get(SERVICED_VERSION_ENV)
+        if cc_version: # CC is >= 1.2.0
+            self.cc_version = cc_version
+            hoth_or_newer =  True
+        else:
+            self.cc_version = "1.1.X"
+        return hoth_or_newer
 
     def login(self):
         """
@@ -67,7 +86,7 @@ class ElasticClient(object):
              }
         )
         self.session.verify = False
-        resp = self.session.post(_CC_URL + _CC_LOGIN_URI, data=ccLoginBody)
+        resp = self.session.post(self.ccURL + _CC_LOGIN_URI, data=ccLoginBody)
         if resp.status_code != 200:
             raise ElasticClientException('Unable to authenticate with Control Center', resp)
 
@@ -87,9 +106,15 @@ class ElasticClient(object):
         Accepts all kwargs that a requests.Session.request() call would.
         Returns the JSON body data as a python object using json.loads()
         """
-        return self._handleResponse(
+
+        if self._checkHothOrNewer:
+            return self._handleResponse(
+                self.session.request(method, self.ccURL + _ELASTIC_URI + uri, **kwargs)
+            )
+        else:
+            return self._handleResponse(
             self.session.request(method, _ZPROXY_URL + _ELASTIC_URI + uri, **kwargs)
-        )
+            )
 
     def getIndexes(self):
         """

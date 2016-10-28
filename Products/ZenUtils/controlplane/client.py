@@ -419,9 +419,18 @@ class ControlPlaneClient(object):
         """
         Get all the running services and return raw json
         """
-        response = self._dorequest("/running")
-        body = ''.join(response.readlines())
-        response.close()
+        body = ''
+        if not self._hothOrNewer :
+            response = self._dorequest("/running")
+            body = ''.join(response.readlines())
+            response.close()
+        else:
+            hostsData = self.queryHosts()
+            for hostID in hostsData :
+                response = self._dorequest("/hosts/%s/running" %(hostID))
+                body = body + ''.join(response.readlines())
+                response.close()
+
         return body
 
     def getStorageData(self):
