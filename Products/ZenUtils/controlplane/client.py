@@ -49,7 +49,6 @@ class _Request(urllib2.Request):
         return self.__method \
             if self.__method else urllib2.Request.get_method(self)
 
-
 class ControlPlaneClient(object):
     """
     """
@@ -71,11 +70,11 @@ class ControlPlaneClient(object):
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
         self.cc_version = ""
-        self._hothOrNewer = self._checkHothOrNewer()
+        self._hothOrNewer = self.checkHothOrNewer()
         self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
 
-    def _checkHothOrNewer(self):
+    def checkHothOrNewer(self):
         """
         Checks if the client is connecting to Hoth or newer. The cc version
         is injected in the containers by serviced

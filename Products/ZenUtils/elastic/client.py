@@ -10,8 +10,8 @@
 import logging
 import requests
 import json
-import os
 
+from Products.ZenUtils.controlplane import ControlPlaneClient
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 
@@ -39,25 +39,13 @@ class ElasticClient(object):
         """
         self.session = None
         self.cc_version = ""
-        if self._checkHothOrNewer():
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        self._hothOrNewer = cpClient.checkHothOrNewer()
+        if self._hothOrNewer:
             self.ccURL = 'http://127.0.0.1:443'
         else:
             self.ccURL = 'https://127.0.0.1'
         self.login()
-
-    def _checkHothOrNewer(self):
-        """
-        Checks if the client is connecting to Hoth or newer. The cc version
-        is injected in the containers by serviced
-        """
-        hoth_or_newer = False
-        cc_version = os.environ.get(SERVICED_VERSION_ENV)
-        if cc_version: # CC is >= 1.2.0
-            self.cc_version = cc_version
-            hoth_or_newer =  True
-        else:
-            self.cc_version = "1.1.X"
-        return hoth_or_newer
 
     def login(self):
         """
@@ -107,7 +95,7 @@ class ElasticClient(object):
         Returns the JSON body data as a python object using json.loads()
         """
 
-        if self._checkHothOrNewer:
+        if self._hothOrNewer:
             return self._handleResponse(
                 self.session.request(method, self.ccURL + _ELASTIC_URI + uri, **kwargs)
             )
