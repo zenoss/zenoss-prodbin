@@ -11,7 +11,7 @@ import logging
 import requests
 import json
 
-from Products.ZenUtils.controlplane import ControlPlaneClient
+from Products.ZenUtils.controlplane.client import checkHothOrNewer
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 
@@ -39,8 +39,7 @@ class ElasticClient(object):
         """
         self.session = None
         self.cc_version = ""
-        cpClient = ControlPlaneClient(**getConnectionSettings())
-        self._hothOrNewer = cpClient.checkHothOrNewer()
+        self._hothOrNewer = checkHothOrNewer()
         if self._hothOrNewer:
             self.ccURL = 'http://127.0.0.1:443'
         else:

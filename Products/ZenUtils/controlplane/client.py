@@ -30,7 +30,18 @@ LOG = logging.getLogger("zen.controlplane.client")
 
 
 SERVICED_VERSION_ENV = "SERVICED_VERSION"
-
+    
+def checkHothOrNewer():
+    """
+    Checks if the client is connecting to Hoth or newer. The cc version
+    is injected in the containers by serviced
+    """
+    hoth_or_newer = False
+    cc_version = os.environ.get(SERVICED_VERSION_ENV)
+    if cc_version: # CC is >= 1.2.0
+        hoth_or_newer =  True
+        LOG.info("Detected CC version >= 1.2.0")
+    return hoth_or_newer
 
 class ControlCenterError(Exception): pass
 
@@ -70,24 +81,10 @@ class ControlPlaneClient(object):
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
         self.cc_version = ""
-        self._hothOrNewer = self.checkHothOrNewer()
+        self._hothOrNewer = checkHothOrNewer()
         self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
 
-    def checkHothOrNewer(self):
-        """
-        Checks if the client is connecting to Hoth or newer. The cc version
-        is injected in the containers by serviced
-        """
-        hoth_or_newer = False
-        cc_version = os.environ.get(SERVICED_VERSION_ENV)
-        if cc_version: # CC is >= 1.2.0
-            self.cc_version = cc_version
-            hoth_or_newer =  True
-            LOG.info("Detected CC version >= 1.2.0")
-        else:
-            self.cc_version = "1.1.X"
-        return hoth_or_newer
 
     def _checkUseHttps(self):
         """
