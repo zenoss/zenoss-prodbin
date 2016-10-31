@@ -41,7 +41,9 @@ def checkHothOrNewer():
     if cc_version: # CC is >= 1.2.0
         hoth_or_newer =  True
         LOG.info("Detected CC version >= 1.2.0")
-    return hoth_or_newer
+    else:
+        cc_version = "1.1.X"
+    return hoth_or_newer,cc_version
 
 class ControlCenterError(Exception): pass
 
@@ -80,8 +82,7 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
-        self.cc_version = ""
-        self._hothOrNewer = checkHothOrNewer()
+        self._hothOrNewer , self.cc_version = checkHothOrNewer()
         self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
 
