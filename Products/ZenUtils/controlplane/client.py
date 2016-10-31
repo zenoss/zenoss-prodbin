@@ -30,7 +30,20 @@ LOG = logging.getLogger("zen.controlplane.client")
 
 
 SERVICED_VERSION_ENV = "SERVICED_VERSION"
-
+    
+def checkHothOrNewer():
+    """
+    Checks if the client is connecting to Hoth or newer. The cc version
+    is injected in the containers by serviced
+    """
+    hoth_or_newer = False
+    cc_version = os.environ.get(SERVICED_VERSION_ENV)
+    if cc_version: # CC is >= 1.2.0
+        hoth_or_newer =  True
+        LOG.info("Detected CC version >= 1.2.0")
+    else:
+        cc_version = "1.1.X"
+    return hoth_or_newer,cc_version
 
 class ControlCenterError(Exception): pass
 
@@ -48,7 +61,6 @@ class _Request(urllib2.Request):
     def get_method(self):
         return self.__method \
             if self.__method else urllib2.Request.get_method(self)
-
 
 class ControlPlaneClient(object):
     """
@@ -70,25 +82,10 @@ class ControlPlaneClient(object):
         }
         self._creds = {"username": user, "password": password}
         self._netloc = "%(host)s:%(port)s" % self._server
-        self.cc_version = ""
-        self._hothOrNewer = self._checkHothOrNewer()
+        self._hothOrNewer , self.cc_version = checkHothOrNewer()
         self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
 
-    def _checkHothOrNewer(self):
-        """
-        Checks if the client is connecting to Hoth or newer. The cc version
-        is injected in the containers by serviced
-        """
-        hoth_or_newer = False
-        cc_version = os.environ.get(SERVICED_VERSION_ENV)
-        if cc_version: # CC is >= 1.2.0
-            self.cc_version = cc_version
-            hoth_or_newer =  True
-            LOG.info("Detected CC version >= 1.2.0")
-        else:
-            self.cc_version = "1.1.X"
-        return hoth_or_newer
 
     def _checkUseHttps(self):
         """
@@ -419,9 +416,18 @@ class ControlPlaneClient(object):
         """
         Get all the running services and return raw json
         """
-        response = self._dorequest("/running")
-        body = ''.join(response.readlines())
-        response.close()
+        body = ''
+        if not self._hothOrNewer :
+            response = self._dorequest("/running")
+            body = ''.join(response.readlines())
+            response.close()
+        else:
+            hostsData = self.queryHosts()
+            for hostID in hostsData :
+                response = self._dorequest("/hosts/%s/running" %(hostID))
+                body = body + ''.join(response.readlines())
+                response.close()
+
         return body
 
     def getStorageData(self):
