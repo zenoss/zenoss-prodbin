@@ -20,7 +20,7 @@ class DefaultBeakerToSecure(Migrate.Step):
     Set beaker session.secure to true in config
     """
 
-    version = Migrate.Version(5, 1, 3)
+    version = Migrate.Version(101, 0, 0)
 
     def cutover(self, dmd):
         try:

@@ -21,7 +21,7 @@ class CheckHBaseTablesExist(Migrate.Step):
     See ZEN-24094
     """
 
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
         try:

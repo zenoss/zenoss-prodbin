@@ -10,7 +10,7 @@ class UpdateZepLogbackConfig(Migrate.Step):
     """ 
     Removing zeneventserver metrics logging inside container.
     """
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(107, 0, 0)
 
     UPDATED_LOGBACK_CONFIG = """<?xml version="1.0" encoding="UTF-8"?>
 <!--

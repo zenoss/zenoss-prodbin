@@ -17,7 +17,7 @@ sm.require("1.0.0")
 class FixDatapointsFormat(Migrate.Step):
     """ Fix printf format for zenpop3 and zenmail datapoints format """
 
-    version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
         try:

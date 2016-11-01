@@ -24,7 +24,7 @@ class UpdateZodbConfigFiles(Migrate.Step):
     - For Zauth, we need to update the above files to be built from global.conf
     """
 
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(107, 0, 0)
 
     ZODB_MAIN_CFG_CONTENT = """
     <mysql>
