@@ -1223,6 +1223,66 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
 };
 
 /**
+ * @class Zenoss.DateRange
+ * @extends Ext.form.field.Date
+ * A DateRange
+ */
+Ext.define("Zenoss.DateRange", {
+    extend: "Ext.form.field.Date",
+    alias: ['widget.DateRange'],
+    xtype: "daterange",
+    getErrors: function(value) {
+        var errors = new Array();
+        if (value == "") {
+            return errors;
+        }
+        //Look first for invalid characters, fail fast
+        if (/[^0-9TO :-]/.test(value)) {
+            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
+            return errors;
+        }
+        if (value.indexOf("TO") === -1) {
+            if (!Zenoss.date.regex.ISO8601Long.test(value)) {
+                errors.push("Date is formatted incorrectly - format should be " + Zenoss.date.ISO8601Long);
+                return errors;
+            }
+        }
+        else {
+            if (!Zenoss.date.regex.ISO8601LongRange.test(value)) {
+                errors.push("Date range is formatted incorrectly - format should be " + Zenoss.date.ISO8601LongRange.replace(/\\/g, ''));
+                return errors;
+            }
+        }
+        return errors;
+    },
+    getValue: function() {
+        // Counting on getErrors() to sanitize input before executing this code
+        var value = this.getRawValue();
+        if (!value) {
+            return "";
+        }
+        var has_TO = (value.indexOf("TO") === -1);
+        if (has_TO) {
+            var retVal = value.replace(" TO ", "/");
+            return retVal.replace(" ", "T");
+        }
+        else {
+            return value.replace(" ", "T");
+        }
+    },
+    parseDate: function(value) {
+        var newVal = Ext.form.field.Date.prototype.parseDate.call(this, value);
+        Ext.iterate(Zenoss.date.regex, function(key, regex) {
+            if (regex.test(value)) {
+                newVal = value;
+                return false;
+            }
+        });
+        return newVal;
+    }
+});
+
+/**
 * Used in BaseGrid.js by onFocus() and onResize() events.
  * Fixes misalignment between filter and header of a column in IE9.
  */
@@ -1294,7 +1354,13 @@ Ext.apply(Zenoss.date, {
     LongTime: "g:i:s A",
     SortableDateTime: "Y-m-d\\TH:i:s",
     UniversalSortableDateTime: "Y-m-d H:i:sO",
-    YearMonth: "F, Y"
+    YearMonth: "F, Y",
+    ISO8601LongRange: "Y-m-d H:i:s \\T\\O Y-m-d H:i:s",
+    LongRangeAndDefault: Ext.form.field.Date.prototype.altFormats + '|' + Zenoss.date.ISO8601LongRange,
+    regex: {
+        ISO8601LongRange: /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]) TO (19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/,
+        ISO8601Long: /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/
+    }
 });
 
 
