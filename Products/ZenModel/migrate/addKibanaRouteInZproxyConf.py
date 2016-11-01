@@ -19,7 +19,7 @@ sm.require("1.0.0")
 
 class AddKibanaRouteInZproxyConf(Migrate.Step):
 
-    version = Migrate.Version(5,1,9)
+    version = Migrate.Version(105, 0, 0)
 
     KIBANA_NEW_ROUTE_CONFIG = """
 
