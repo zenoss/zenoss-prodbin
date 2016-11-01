@@ -486,6 +486,8 @@ class ZenPropertyManager(object, PropertyManager):
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """Save all ZenProperties found in the REQUEST.form object.
         """
+        oldValues = {}
+        newValues = {}
         maskFields=[]
         for name, value in REQUEST.form.items():
             if pfilt(name):
@@ -493,15 +495,18 @@ class ZenPropertyManager(object, PropertyManager):
                     maskFields.append(name)
                     if self._onlystars(value):
                         continue
+                oldValues[name] = self.getProperty(name)
                 if name == 'zCollectorPlugins':
                     if tuple(getattr(self, name, ())) != tuple(value):
                         self.setZenProperty(name, value)
                 else:
                     self.setZenProperty(name, value)
+                newValues[name] = self.getProperty(name)
 
         if REQUEST:
-            audit(('UI', getDisplayType(self), 'EditProperties'), self, data_=REQUEST.form,
-                    skipFields_=['savezenproperties','zenscreenname'], maskFields_=maskFields)
+            audit(('UI', getDisplayType(self), 'EditProperties'), self,
+                  data_=newValues, oldData_=oldValues,
+                  maskFields_=maskFields)
             IMessageSender(self).sendToBrowser(
                 'Configuration Propeties Updated',
                 'Configuration properties have been updated.'
