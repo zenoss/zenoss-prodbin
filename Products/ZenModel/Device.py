@@ -31,6 +31,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
+from Products.ZenUtils.productionstate.interfaces import ProdStateNotSetError
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
@@ -1303,6 +1304,38 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return str(self.convertStatus(result))
         return "Down"
 
+    def saveCurrentProdStates(self):
+        currentProdState = self.getProductionState()
+        currentPreMWProdState = self.getPreMWProductionState()
+        # Save component production states (if not acquiring)
+        componentProdStates = {}
+        componentPreMWProdStates = {}
+        for cp in self.getDeviceComponents():
+            componentGuid = IGlobalIdentifier(cp).getGUID()
+            try:
+                oldProdState = cp.getProdStateManager().getProductionState(cp)
+                componentProdStates[componentGuid] = oldProdState
+            except ProdStateNotSetError:
+                pass
+            try:
+                oldPreMWProdState = cp.getProdStateManager().getPreMWProductionState(cp)
+                componentPreMWProdStates[componentGuid] = oldPreMWProdState
+            except ProdStateNotSetError:
+                pass
+        return currentProdState, currentPreMWProdState, componentProdStates, componentPreMWProdStates
+
+    def restoreCurrentProdStates(self, prodStates):
+        currentProdState, currentPreMWProdState, componentProdStates, componentPreMWProdStates = prodStates
+        self.getProdStateManager().setProductionState(self, currentProdState)
+        self.getProdStateManager().setPreMWProductionState(self, currentPreMWProdState)
+        # Restore the component production states
+        for c in self.getDeviceComponents():
+            componentGuid = IGlobalIdentifier(c).getGUID()
+            if componentGuid in componentProdStates:
+                c.getProdStateManager().setProductionState(c, componentProdStates[componentGuid])
+            if componentGuid in componentPreMWProdStates:
+                c.getProdStateManager().setPreMWProductionState(c, componentPreMWProdStates[componentGuid])
+
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
         """
@@ -1848,6 +1881,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
+        currProdStates = self.saveCurrentProdStates()
         if newId is None:
             return path
 
@@ -1874,6 +1908,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.title:
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
+            self.restoreCurrentProdStates(currProdStates)
             self.setLastChange()
             return self.absolute_url_path()
 
