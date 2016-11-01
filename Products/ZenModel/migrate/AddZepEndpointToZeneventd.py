@@ -21,7 +21,7 @@ sm.require("1.0.0")
 class AddZepEndpointToZeneventd(Migrate.Step):
     "Add zep endpoint to zeneventd services"
 
-    version = Migrate.Version(5, 1, 2)
+    version = Migrate.Version(100, 0, 0)
 
     def cutover(self, dmd):
         try:

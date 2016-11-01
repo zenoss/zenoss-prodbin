@@ -22,7 +22,7 @@ class FixZauthHealthCheck(Migrate.Step):
     Use different curl request to prevent `authentication failed` spam in audit.log
     """
 
-    version = Migrate.Version(5,1,2)
+    version = Migrate.Version(100, 0, 0)
 
     def cutover(self, dmd):
 
