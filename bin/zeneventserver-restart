@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. ~/.bashrc
+. $ZENHOME/bin/zenfunctions
+
+LOG=$ZENHOME/log/zep-restart.log
+
+echo "==========================================================" >> $LOG
+echo "`date` Restarting zep because of OutOfMemoryError " >> $LOG
+
+#Setting ZENOSS_STARTUP_TIMEOUT = 0 to kill zeneventserver process
+export ZENOSS_STARTUP_TIMEOUT=0
+zeneventserver stop >> $LOG 2>&1
+#Unsetting ZENOSS_STARTUP_TIMEOUT to default
+unset ZENOSS_STARTUP_TIMEOUT
+### Starting zeneventserver 
+zeneventserver start >> $LOG 2>&1
+echo "zeneventserver status" >> $LOG
+/opt/zenoss/bin/zeneventserver status >> $LOG
+echo "==========================================================" >> $LOG
+
+### Sending event to zenoss resoure manager
+
+zensendevent -d "`hostname`" -s Warn  "zeneventserver has restarted for OutOfMemoryError"
