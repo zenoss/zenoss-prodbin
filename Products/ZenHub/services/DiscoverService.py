@@ -185,7 +185,9 @@ class DiscoverService(ModelerService):
                 return dev, True
             except DeviceExistsError, e:
                 # Update device with latest info from zendisc
-                e.dev.setManageIp(kw['manageIp'])
+                # (if necessary)
+                if not e.dev.getManageIp():
+                    e.dev.setManageIp(kw['manageIp'])
 
                 # only overwrite title if it has not been set
                 if not e.dev.title or isip(e.dev.title):
