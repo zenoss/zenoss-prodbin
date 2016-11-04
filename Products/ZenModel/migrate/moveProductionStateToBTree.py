@@ -24,7 +24,7 @@ from Products.ZCatalog.Catalog import CatalogError
 
 class MoveProductionStateToBTree(Migrate.Step):
 
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(107, 0, 0)
 
     def migrateObject(self, obj):
         obj_unwrapped = aq_base(obj)

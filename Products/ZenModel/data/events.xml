@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2016-01-05 19:31:27.704769
+    Zenoss RelationshipManager export completed on 2016-11-04 20:31:57.747394
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.0.70]" export_date="2016-01-05 19:31:27.704769" zenoss_server="196719ab575a" >
+<objects version="[Zenoss, version 5.2.0]" export_date="2016-11-04 20:31:57.747394" zenoss_server="ade5488a941d" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -602,7 +602,7 @@ Updated timestamp for job `cron.daily' to 2005-12-13
 defaultmapping
 </property>
 <property type="int" id="sequence" mode="w" >
-5
+6
 </property>
 <property type="string" id="regex" mode="w" >
 message repeated \d+ times
@@ -1208,7 +1208,7 @@ MARK
 defaultmapping
 </property>
 <property type="int" id="sequence" mode="w" >
-4
+5
 </property>
 <property type="string" id="regex" mode="w" >
 -- MARK --
@@ -2440,7 +2440,7 @@ Task ran for 7797 msec (0/0), process = IP SNMP, PC = 80235E3C.
 defaultmapping
 </property>
 <property type="int" id="sequence" mode="w" >
-3
+4
 </property>
 <property type="string" id="rule" mode="w" >
 getattr(evt,'facility',False)=='local7' and evt.summary.find('Traceback')&gt;-1
@@ -5184,7 +5184,7 @@ Archive Eventlog events that have severity == debug(1)
 defaultmapping
 </property>
 <property type="int" id="sequence" mode="w" >
-6
+7
 </property>
 <property type="string" id="rule" mode="w" >
 getattr(evt,"component",False)=="FileMaker Server 7"
