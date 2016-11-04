@@ -400,14 +400,11 @@ class EmailAction(IActionBase, TargetableAction):
         Take timezone from user property to convert a event time in
         notification and also group targets emails by those timezones.
         """
-        targets_by_timezones = {}
+        tz_targets = {}
         for user in dmd.ZenUsers.getAllUserSettings():
             if user.email in targets:
-                if targets_by_timezones.get(user.timezone):
-                    targets_by_timezones[user.timezone].add(user.email)
-                else:
-                    targets_by_timezones[user.timezone] = set([user.email])
-        return targets_by_timezones
+                tz_targets.setdefault(user.timezone, set()).add(user.email)
+        return tz_targets
 
     def _adjustToTimezone(self, millis, timezone):
         """
@@ -420,11 +417,11 @@ class EmailAction(IActionBase, TargetableAction):
     def executeBatch(self, notification, signal, targets):
         log.debug("Executing %s action for targets: %s", self.name, targets)
         self.setupAction(notification.dmd)
-        targets_by_timezones = self._targetsByTz(notification.dmd, targets)
+        tz_targets = self._targetsByTz(notification.dmd, targets)
         original_lst = signal.event.last_seen_time
         original_fst = signal.event.first_seen_time
         original_sct = signal.event.status_change_time
-        for target_timezone, targets in targets_by_timezones.iteritems():
+        for target_timezone, targets in tz_targets.iteritems():
             # Convert timestamp to user timezone
             signal.event.last_seen_time = self._adjustToTimezone(
                 original_lst, target_timezone)
@@ -452,6 +449,10 @@ class EmailAction(IActionBase, TargetableAction):
                 body = processTalSource(notification.content['body_format'], **data)
 
             log.debug('Sending this subject: %s', subject)
+
+            # Find all time strings in body and add timezone to it
+            body = re.sub(r'(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})',
+                          r'\1 ({})'.format(target_timezone), body)
 
             plain_body = self._encodeBody(self._stripTags(body))
 
