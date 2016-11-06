@@ -126,6 +126,14 @@ _definitionKeys = set([
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
+# The set of keys found in a service details JSON object.
+# Used to identify such objects.
+_detailsKeys = set([
+    "ID", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
+    "RAMCommitment", "HasChildren", "InstanceLimits", "Startup", "Instances", "DeploymentID",
+    "DesiredState", "Tags", "ImageID"
+])
+
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
@@ -141,6 +149,11 @@ _hostKeys = set([
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
     if foundKeys == _definitionKeys:
+        service = createObject("ServiceDefinition")
+        service.__setstate__(obj)
+        return service
+    foundKeys = _detailsKeys & set(obj.keys())
+    if foundKeys == _detailsKeys:
         service = createObject("ServiceDefinition")
         service.__setstate__(obj)
         return service
