@@ -87,6 +87,7 @@ class ControlPlaneClient(object):
         self._hothOrNewer = False if self.cc_version == "1.1.X" else True
         self._useHttps = self._checkUseHttps()
         self._v2loc = "/api/v2"
+        self._servicesEndpoint = "%s/services" % self._v2loc
 
     def _checkUseHttps(self):
         """
@@ -115,7 +116,7 @@ class ControlPlaneClient(object):
             query["tags"] = ','.join(tags)
         if tenantID:
             query["tenantID"] = tenantID
-        response = self._dorequest("/services", query=query)
+        response = self._dorequest(self._servicesEndpoint, query=query)
         body = ''.join(response.readlines())
         response.close()
         decoded = ServiceJsonDecoder().decode(body)
@@ -141,13 +142,30 @@ class ControlPlaneClient(object):
         :param age: How far back to look, in milliseconds, for changes.
         """
         query = {"since": age}
-        response = self._dorequest("/services", query=query)
+        response = self._dorequest(self._servicesEndpoint, query=query)
         body = ''.join(response.readlines())
         response.close()
         decoded = ServiceJsonDecoder().decode(body)
         if decoded is None:
             decoded = []
         return decoded
+
+    def updateServiceProperty(self, service, prop):
+        """
+        Updates the launch property of a service.
+
+        :param ServiceDefinition service: The modified definition
+        """
+        oldService = self.getService(service.id)
+        oldService._data[prop] = service._data[prop]
+        body = ServiceJsonEncoder().encode(oldService)
+        LOG.info("Updating prop '%s' for service '%s':%s resourceId=%s", prop, service.name, service.id, service.resourceId)
+        LOG.debug("Updating service %s", body)
+        response = self._dorequest(
+            service.resourceId, method="PUT", data=body
+        )
+        body = ''.join(response.readlines())
+        response.close()
 
     def updateService(self, service):
         """

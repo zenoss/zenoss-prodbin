@@ -300,7 +300,7 @@ class DeployedApp(object):
     @description.setter
     def description(self, desc):
         self._service.description = desc
-        self._client.updateService(self._service)
+        self._client.updateServiceProperty(self._service, "Description")
 
     @property
     @_initStatus
@@ -339,7 +339,7 @@ class DeployedApp(object):
         value = self._service.LAUNCH_MODE.AUTO \
             if bool(value) else self._service.LAUNCH_MODE.MANUAL
         self._service.launch = value
-        self._client.updateService(self._service)
+        self._client.updateServiceProperty(self._service, "Launch")
 
     @property
     def configurations(self):
@@ -357,7 +357,7 @@ class DeployedApp(object):
         for config in configs:
             newConfigs[config.filename] = config._config
         self._service.configFiles = newConfigs
-        self._client.updateService(self._service)
+        self._client.updateServiceProperty(self._service, "ConfigFiles")
 
     @_initStatus
     def start(self):
@@ -418,6 +418,8 @@ class _DeployedAppConfigList(Sequence):
 
     def __init__(self, service, client):
         self._service = service
+        if not service._data.has_key("ConfigFiles"):
+            service._data["ConfigFiles"] = client.getService(service.id)._data["ConfigFiles"]
         self._client = client
 
     def __getitem__(self, index):
