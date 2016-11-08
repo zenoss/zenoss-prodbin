@@ -453,12 +453,12 @@
             this.grid.store.proxy.extraParams.params = values;
             // ZEN-23418 Convert firstSeen and lastSeen filter params to UTC before making query request
             if (this.grid.store.proxy.extraParams.params.firstTime) {
-                var timeRange = this.grid.store.proxy.extraParams.params.firstTime;
-                this.grid.store.proxy.extraParams.params.firstTime = moment(timeRange).utc().format("YYYY-MM-DD hh:mm:ss");
+                var timeParam = this.grid.store.proxy.extraParams.params.firstTime;
+                this.grid.store.proxy.extraParams.params.firstTime = moment(timeParam).utc().format("YYYY-MM-DD hh:mm:ss");
             }
             if (this.grid.store.proxy.extraParams.params.lastTime) {
-                var timeRange = this.grid.store.proxy.extraParams.params.lastTime;
-                this.grid.store.proxy.extraParams.params.lastTime = moment(timeRange).utc().format("YYYY-MM-DD hh:mm:ss");
+                var timeParam = this.grid.store.proxy.extraParams.params.lastTime;
+                this.grid.store.proxy.extraParams.params.lastTime = moment(timeParam).utc().format("YYYY-MM-DD hh:mm:ss");
             }
 
             // reset their scrolling when the filters change
