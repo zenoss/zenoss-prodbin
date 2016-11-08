@@ -856,10 +856,20 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         objects = []
         for inst in obj.getSubInstances(relName):
-          if inst.isLocal(propname) and inst not in objects:
-            objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            if inst.isLocal(propname) and inst not in objects:
+                proptype = inst.getPropertyType(propname)
+                objects.append({
+                    'devicelink':inst.getPrimaryDmdId(),
+                    'props':"******" if proptype == 'password' else getattr(inst, propname),
+                    'proptype':proptype
+                })
         for inst in obj.getOverriddenObjects(propname):
-          objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            proptype = inst.getPropertyType(propname)
+            objects.append({
+                'devicelink':inst.getPrimaryDmdId(),
+                'props':"******" if proptype == 'password' else getattr(inst, propname),
+                'proptype':proptype
+            })
         return objects
 
     def getOverriddenObjectsParent(self, uid, propname=''):
@@ -991,4 +1001,3 @@ class DeviceFacade(TreeFacade):
                     'protocol': ptcl,
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
-
