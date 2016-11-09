@@ -366,7 +366,7 @@ class InstanceV2ToServiceStatusJsonDecoder(json.JSONDecoder):
     """
     @staticmethod
     def _decodeObject(obj):
-        if set(obj.keys()) & _serviceStatusV2Keys == set(obj.keys()):
+        if (set(obj.keys()) & _serviceStatusV2Keys) == _serviceStatusV2Keys:
             service = createObject("ServiceStatus")
             service.__setstate__(obj)
             return service
