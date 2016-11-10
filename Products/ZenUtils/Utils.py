@@ -37,10 +37,11 @@ import httplib
 import shlex
 from decimal import Decimal
 import asyncore
+import base64
 import copy
 from functools import partial
 from decorator import decorator
-from itertools import chain
+from itertools import chain, izip, cycle
 from subprocess import check_call, call, PIPE, STDOUT, Popen
 from ZODB.POSException import ConflictError
 log = logging.getLogger("zen.Utils")
@@ -2196,3 +2197,13 @@ def executeSshCommand(device, cmd, writefunc):
     # or [] when cmd was not executed in some reasons (e.g. wrong path)
     for x in connection.getResults():
         [writefunc(y) for y in x if y]
+
+
+def xorCryptString(data, key='ZfTvVlYWCs5JAUW1z', encode=False, decode=False):
+    if decode:
+        data = base64.decodestring(data)
+    xored = ''.join(chr(ord(x) ^ ord(y)) for (x,y) in izip(data, cycle(key)))
+    if encode:
+        return base64.encodestring(xored).strip()
+    return xored
+
