@@ -446,20 +446,29 @@
                 return;
             }
             var values = this.getSearchValues();
+            // ZEN-23418 Convert firstSeen and/or lastSeen date filter params to UTC before making query request
+            var timeParams = ["firstTime", "lastTime"];
+            timeParams.forEach(function(paramKey){
+                if (values[paramKey]) {
+                    var timeParam = values[paramKey];
+                    // The param is a Date range, so convert each date to UTC
+                    // and re-build Date range string
+                    if (timeParam.indexOf(" TO ") != -1) {
+                        var dateValues = timeParam.split(" TO ");
+                        values[paramKey] = dateValues.map(function(rangeValue){
+                            return moment(rangeValue).utc().format("YYYY-MM-DD HH:mm:ss")
+                        }).join(" TO ");
+                    }
+                    else {
+                        values[paramKey] = moment(timeParam).utc().format("YYYY-MM-DD HH:mm:ss")
+                    }
+                }
+            });
             if (!this.grid.store.proxy.extraParams) {
                 this.grid.store.proxy.extraParams = {};
             }
             // this will make sure that all subsequent buffer loads have the parameters
             this.grid.store.proxy.extraParams.params = values;
-            // ZEN-23418 Convert firstSeen and lastSeen filter params to UTC before making query request
-            if (this.grid.store.proxy.extraParams.params.firstTime) {
-                var timeParam = this.grid.store.proxy.extraParams.params.firstTime;
-                this.grid.store.proxy.extraParams.params.firstTime = moment(timeParam).utc().format("YYYY-MM-DD hh:mm:ss");
-            }
-            if (this.grid.store.proxy.extraParams.params.lastTime) {
-                var timeParam = this.grid.store.proxy.extraParams.params.lastTime;
-                this.grid.store.proxy.extraParams.params.lastTime = moment(timeParam).utc().format("YYYY-MM-DD hh:mm:ss");
-            }
 
             // reset their scrolling when the filters change
             this.grid.scrollToTop();
