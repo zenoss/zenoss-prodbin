@@ -412,13 +412,18 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.resolution = ""
 
     def _updateProperty(self, id, value):
+        resequence = False
         if id == 'sequence':
             for mapping in self.sameKey():
                 if mapping.sequence == value:
-                    raise ValueError('EventClass Mapping Instance "%s" '
-                                     'has duplicated sequence' % self.id)
+                    # We have a sequence conflict. Allow it to proceed, but
+                    # resequence afterwards to deal with overlaps and holes.
+                    resequence = True
+                    break
         super(EventClassInst, self)._updateProperty(id, value)
-
+        if resequence:
+            for i, mapping in enumerate(self.sameKey()):
+                mapping.sequence = i
 
     def getStatus(self, **kwargs):
         """Return the status number for this device of class statClass.
