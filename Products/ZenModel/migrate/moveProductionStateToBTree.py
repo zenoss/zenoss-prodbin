@@ -18,6 +18,7 @@ import logging
 log = logging.getLogger("zen.migrate")
 from Acquisition import aq_base
 import Migrate
+import transaction
 from Products import Zuul
 from Products.Zuul.utils import unbrain
 from Products.ZCatalog.Catalog import CatalogError
@@ -50,6 +51,10 @@ class MoveProductionStateToBTree(Migrate.Step):
         for device in devices:
             if count % 100 == 0:
                 log.info("Migrated %d devices of %d", count, total)
+
+            if count % 1000 == 0:
+                log.info("Committing transaction for 1000 devices")
+                transaction.commit()
 
             count = count + 1
 
