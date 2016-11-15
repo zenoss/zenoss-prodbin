@@ -113,8 +113,19 @@ class ZenTableState:
             self.batchSize = self.defaultBatchSize
             self.start=0
             self.filter = ''
+
+        # 'tableName' will be empty on GET requests, therefore we check for the 'showAll' option here
+        if request.get("showAll", False) or "showAll=true" in request.get("QUERY_STRING") or request.get("adapt", False or "adapt=false" in request.get("QUERY_STRING")):
+            self.showAll = True
+            self.start = 0
+            self.batchSize = 0
+            # the batch size needs to be set to the total object/result count.
+            # we don't have the objects here, so we will set the batchSize
+            # where we do have the objects -- see buildPageNavigation() below.
+
         if request.get('tableName', None) != self.tableName:
             return
+
         for attname in self.requestAtts:
             if request.has_key(attname):
                 self.setTableState(attname, int(request[attname]) if attname == 'start' else request[attname], request=request)
@@ -132,13 +143,6 @@ class ZenTableState:
             pp = self.start - self.batchSize
             if pp < 0: self.start = 0
             else: self.start = pp
-        elif request.get("showAll", False):
-            self.showAll = True
-            self.start = 0
-            self.batchSize = 0
-            # the batch size needs to be set to the total object/result count.
-            # we don't have the objects here, so we will set the batchSize
-            # where we do have the objects -- see buildPageNavigation() below.
         ourl = "/".join((request.URL,request.get("zenScreenName","")))
         if self.resetStart or (self.URL != request.URL and self.URL != ourl):
             self.start = 0
