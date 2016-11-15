@@ -1,3 +1,4 @@
+# benign comment to test PR builder on support/5.2.x
 VERSION  ?= 5.2.0
 BUILD_NUMBER ?= DEV
 BRANCH   := develop
