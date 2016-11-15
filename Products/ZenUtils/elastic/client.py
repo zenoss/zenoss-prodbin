@@ -13,10 +13,10 @@ import json
 
 from Products.ZenUtils.GlobalConfig import globalConfToDict
 from Products.ZenUtils.controlplane.application import getConnectionSettings
+from Products.ZenUtils.controlplane.client import getCCVersion
 
 _ZPROXY_URL = 'http://127.0.0.1:8080'
 _ZAUTH_LOGIN_URI = '/zauth/api/login'
-_CC_URL = 'https://127.0.0.1'
 _CC_LOGIN_URI = '/login'
 _ELASTIC_URI = '/api/controlplane/elastic'
 
@@ -38,6 +38,12 @@ class ElasticClient(object):
         used across all requests that the client makes.
         """
         self.session = None
+
+        self._hothOrNewer = False if getCCVersion() == '1.1.X' else True
+        if not self._hothOrNewer:
+            self.ccURL = 'https://127.0.0.1'
+        else:
+            self.ccURL = 'http://127.0.0.1:443'
         self.login()
 
     def login(self):
@@ -67,7 +73,7 @@ class ElasticClient(object):
              }
         )
         self.session.verify = False
-        resp = self.session.post(_CC_URL + _CC_LOGIN_URI, data=ccLoginBody)
+        resp = self.session.post( self.ccURL + _CC_LOGIN_URI, data=ccLoginBody)
         if resp.status_code != 200:
             raise ElasticClientException('Unable to authenticate with Control Center', resp)
 
@@ -87,10 +93,14 @@ class ElasticClient(object):
         Accepts all kwargs that a requests.Session.request() call would.
         Returns the JSON body data as a python object using json.loads()
         """
-        return self._handleResponse(
-            self.session.request(method, _ZPROXY_URL + _ELASTIC_URI + uri, **kwargs)
-        )
-
+        if not self._hothOrNewer:
+            return self._handleResponse(
+                self.session.request(method, _ZPROXY_URL + _ELASTIC_URI + uri, **kwargs)
+            )
+        else:
+            return self._handleResponse(
+                self.session.request(method, self.ccURL + _ELASTIC_URI + uri, **kwargs)
+            )
     def getIndexes(self):
         """
         Return a dictionary of indexes and their aliases.  It will be of the form:

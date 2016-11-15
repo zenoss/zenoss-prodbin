@@ -245,7 +245,7 @@
     template="templates/triggers.pt"
     name="triggers"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:page
@@ -379,6 +379,13 @@
     class=".views.GetDoc"
     name="getDoc"
     for="*"
+    permission="zope2.Public"
+    />
+
+<browser:view
+    class=".views.NginxStaticLocationBlocks"
+    name="nginx_static"
+    for="OFS.interfaces.IApplication"
     permission="zope2.Public"
     />
 

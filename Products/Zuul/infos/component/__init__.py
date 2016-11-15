@@ -28,6 +28,10 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadM
         return self._object.device()
 
     @property
+    def deviceName(self):
+        return self._object.device().titleOrId()
+
+    @property
     def usesMonitorAttribute(self):
         return True
 

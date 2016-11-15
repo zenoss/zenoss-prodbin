@@ -293,9 +293,6 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
     def macAddresses(self):
         return self._context.getMacAddresses()
 
-    def productionState(self):
-        return str(self._context.productionState)
-
     @memoized_in_context
     def searchKeywordsForChildren(self):
         o = self._context
@@ -317,7 +314,7 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
             o.getHWManufacturerName(), o.getHWProductName(),
             o.getOSProductName(), o.getOSManufacturerName(),
             o.getHWSerialNumber(), o.getPerformanceServerName(),
-            o.getProductionStateString(), o.getPriorityString(),
+            o.getPriorityString(),
             o.getLocationName(),
             o.monitorDevice() and "monitored" or "unmonitored",
             ) \
@@ -471,7 +468,6 @@ def initializeGlobalCatalog(catalog):
     catalog.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
     catalog.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
     catalog.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
-    catalog.addIndex('productionState', makeCaseSensitiveFieldIndex('productionState'))
     catalog.addIndex('monitored', makeCaseSensitiveFieldIndex('monitored'))
     catalog.addIndex('path', makeMultiPathIndex('path'))
     catalog.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
@@ -484,7 +480,6 @@ def initializeGlobalCatalog(catalog):
     catalog.addColumn('name')
     catalog.addColumn('meta_type')
     catalog.addColumn('monitored')
-    catalog.addColumn('productionState')
     catalog.addColumn('collectors')
     catalog.addColumn('zProperties')
     catalog.addColumn('searchIcon')

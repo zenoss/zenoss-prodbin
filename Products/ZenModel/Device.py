@@ -31,6 +31,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
+from Products.ZenUtils.productionstate.interfaces import ProdStateNotSetError
 from Products.ZenModel.interfaces import IIndexed
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
@@ -84,6 +85,7 @@ from Products.ZenUtils.Search import (
     makeMultiPathIndex
 )
 
+DEFAULT_PRODSTATE = 1000
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -95,7 +97,7 @@ def getNetworkRoot(context, performanceMonitor):
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-            rackSlot="", productionState=1000, comments="",
+            rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
@@ -210,8 +212,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     relationshipManagerPathRestriction = '/Devices'
     title = ""
     manageIp = ""
-    productionState = 1000
-    preMWProductionState = productionState
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
@@ -308,6 +308,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._snmpLastCollection = 0
         self._lastChange = 0
         self._create_componentSearch()
+
+    # Resets the production state to the default value
+    def resetProductionState(self):
+        super(Device, self).resetProductionState()
+        self._setProductionState(DEFAULT_PRODSTATE)
+        self.setPreMWProductionState(DEFAULT_PRODSTATE)
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)
@@ -1143,7 +1149,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if 'productionState' in kwargs:
             # Always set production state, but don't log it if it didn't change.
-            if kwargs['productionState'] != self.productionState:
+            if kwargs['productionState'] != self.getProductionState():
                 prodStateName = self.dmd.convertProdState(int(kwargs['productionState']))
                 log.info("setting productionState to %s" % prodStateName)
             self.setProdState(kwargs["productionState"])
@@ -1188,7 +1194,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def manage_editDevice(self,
                 tag="", serialNumber="",
                 zSnmpCommunity=None, zSnmpPort=161, zSnmpVer=None,
-                rackSlot="", productionState=1000, comments="",
+                rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
@@ -1245,7 +1251,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: boolean
         """
-        return self.productionState >= self.zProdStateThreshold
+        return self.getProductionState() >= self.zProdStateThreshold
 
 
     def snmpMonitorDevice(self):
@@ -1297,6 +1303,38 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if result <= 0:
             return str(self.convertStatus(result))
         return "Down"
+
+    def saveCurrentProdStates(self):
+        currentProdState = self.getProductionState()
+        currentPreMWProdState = self.getPreMWProductionState()
+        # Save component production states (if not acquiring)
+        componentProdStates = {}
+        componentPreMWProdStates = {}
+        for cp in self.getDeviceComponents():
+            componentGuid = IGlobalIdentifier(cp).getGUID()
+            try:
+                oldProdState = cp.getProdStateManager().getProductionState(cp)
+                componentProdStates[componentGuid] = oldProdState
+            except ProdStateNotSetError:
+                pass
+            try:
+                oldPreMWProdState = cp.getProdStateManager().getPreMWProductionState(cp)
+                componentPreMWProdStates[componentGuid] = oldPreMWProdState
+            except ProdStateNotSetError:
+                pass
+        return currentProdState, currentPreMWProdState, componentProdStates, componentPreMWProdStates
+
+    def restoreCurrentProdStates(self, prodStates):
+        currentProdState, currentPreMWProdState, componentProdStates, componentPreMWProdStates = prodStates
+        self.getProdStateManager().setProductionState(self, currentProdState)
+        self.getProdStateManager().setPreMWProductionState(self, currentPreMWProdState)
+        # Restore the component production states
+        for c in self.getDeviceComponents():
+            componentGuid = IGlobalIdentifier(c).getGUID()
+            if componentGuid in componentProdStates:
+                c.getProdStateManager().setProductionState(c, componentProdStates[componentGuid])
+            if componentGuid in componentPreMWProdStates:
+                c.getProdStateManager().setPreMWProductionState(c, componentPreMWProdStates[componentGuid])
 
     security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
@@ -1843,6 +1881,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
+        currProdStates = self.saveCurrentProdStates()
         if newId is None:
             return path
 
@@ -1869,6 +1908,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if self.title:
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
+            self.restoreCurrentProdStates(currProdStates)
             self.setLastChange()
             return self.absolute_url_path()
 

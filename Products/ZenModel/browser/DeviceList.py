@@ -45,7 +45,6 @@ class AdvancedQueryDeviceList(object):
             MatchRegexp('id', filter),
             MatchRegexp('titleOrId', filter),
             MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getProdState', filter),
             MatchRegexp('getDeviceClassPath', filter)
         )
         query = Eq('getPhysicalPath', context.absolute_url_path()
@@ -184,7 +183,6 @@ class DeviceBatch(BrowserView):
             MatchRegexp('id', filter),
             MatchRegexp('titleOrId', filter),
             MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getProdState', filter),
             MatchRegexp('getDeviceClassPath', filter)
         )
         query = Eq('getPhysicalPath', self.context.absolute_url_path()) & idquery

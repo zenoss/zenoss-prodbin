@@ -1,4 +1,5 @@
-VERSION  := 5.2.0
+VERSION  ?= 5.2.0
+BUILD_NUMBER ?= DEV
 BRANCH   := develop
 ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
 
@@ -7,7 +8,7 @@ DIST_ROOT := dist
 # Define the name, version and tag name for the docker build image
 # Note that build-tools is derived from zenoss-centos-base which contains JSBuilder
 BUILD_IMAGE = build-tools
-BUILD_VERSION = 0.0.3
+BUILD_VERSION = 0.0.5
 BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 
 UID := $(shell id -u)
@@ -38,7 +39,7 @@ mk-dist:
 #     - build the zenoss-version wheel, which is copied into dist
 #
 build: mk-dist build-javascript build-zensocket build-zenoss-version
-	tar cvfz $(ARTIFACT) Products bin dist
+	tar cvfz $(ARTIFACT) Products bin dist etc share legacy/sitecustomize.py
 
 clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)

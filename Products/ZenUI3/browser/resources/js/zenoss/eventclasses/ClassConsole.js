@@ -130,12 +130,14 @@ Ext.onReady(function(){
                         var parentNode = n.parentNode;
                         var xfclass = value.hasTransform ? 'hastransform' : 'sanstransform';
                         var xfdesc  = value.hasTransform ? 'Has Transform' : 'Has no Transform';
+                        var safeText = Ext.String.htmlEncode(value.text);
+                        var safeDescription = Ext.String.htmlEncode(value.description);
 
                         var xform = Ext.String.format(" <span class='{0}' title='{1}'></span>", xfclass,xfdesc);
                         if(parentNode.data.root === true){
-                            return Ext.String.format("{2}<span title='{0}' class='rootNode'>{1}</span>", value.description, value.text, xform);
+                            return Ext.String.format("{2}<span title='{0}' class='rootNode'>{1}</span>", safeDescription, safeText, xform);
                         }else{
-                            return Ext.String.format("{2}<span title='{0}' class='subNode'>{1}</span>", value.description, value.text, xform);
+                            return Ext.String.format("{2}<span title='{0}' class='subNode'>{1}</span>", safeDescription, safeText, xform);
                         }
                     }
                 }

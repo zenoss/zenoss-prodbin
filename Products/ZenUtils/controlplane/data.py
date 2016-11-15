@@ -98,6 +98,7 @@ from .interfaces import IServiceDefinition, IServiceInstance, IServiceStatus
 from ..host import IHost
 
 
+
 class _Value(object):
     """
     Helper class for creating objects that can behave as named
@@ -125,6 +126,14 @@ _definitionKeys = set([
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
+# The set of keys found in a service details JSON object.
+# Used to identify such objects.
+_detailsKeys = set([
+    "ID", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
+    "RAMCommitment", "HasChildren", "InstanceLimits", "Startup", "Instances", "DeploymentID",
+    "DesiredState", "Tags", "ImageID"
+])
+
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
@@ -140,6 +149,11 @@ _hostKeys = set([
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
     if foundKeys == _definitionKeys:
+        service = createObject("ServiceDefinition")
+        service.__setstate__(obj)
+        return service
+    foundKeys = _detailsKeys & set(obj.keys())
+    if foundKeys == _detailsKeys:
         service = createObject("ServiceDefinition")
         service.__setstate__(obj)
         return service
@@ -197,15 +211,15 @@ def _convertToApplicationState(f):
     def wrapper(*args, **kw):
         src = f(*args, **kw)
         return {
-            "Scheduled": ApplicationState.STARTING,
-            "Starting":  ApplicationState.STARTING,
-            "Pausing":   ApplicationState.STOPPING,
-            "Paused":    ApplicationState.STOPPED,
-            "Resuming":  ApplicationState.STARTING,
-            "Running":   ApplicationState.RUNNING,
-            "Stopping":  ApplicationState.STOPPING,
-            "Stopped":   ApplicationState.STOPPED
-        }.get(src['Value'], ApplicationState.UNKNOWN)
+            "scheduled": ApplicationState.STARTING,
+            "starting":  ApplicationState.STARTING,
+            "pausing":   ApplicationState.STOPPING,
+            "paused":    ApplicationState.STOPPED,
+            "resuming":  ApplicationState.STARTING,
+            "running":   ApplicationState.RUNNING,
+            "stopping":  ApplicationState.STOPPING,
+            "stopped":   ApplicationState.STOPPED
+        }.get(src["Value"].lower(), ApplicationState.UNKNOWN)
     return wrapper
 
 @implementer(IServiceInstance)
@@ -269,8 +283,25 @@ class ServiceStatus(object):
     def __setstate__(self, data):
         self._data = data
 
+        # For V2 compatibility (V2 response doesn't have "State" property)
+        if not self._data.get("State"):
+            self._reformV2()
+
     def __init__(self):
         self._data = {}
+
+    def _reformV2(self):
+        # /services/:serviceid/status has an arbitrary 36 char UUID
+        # V2 uses hostid-serviceid-instanceid
+        self._data.setdefault("ID",
+        self._data.get("HostID") + "-" +
+        self._data.get("ServiceID") + "-" +
+        str(self._data.get("InstanceID")))
+        status = self._data.setdefault("CurrentState")
+        del self._data["CurrentState"]
+        self._data = {"State": self._data}
+        # /services/:serviceid/status has a Key in Status as well, V2 doesn't
+        self._data["Status"] = {"Value": status}
 
     @property
     def id(self):
@@ -322,6 +353,29 @@ class ServiceStatusJsonDecoder(json.JSONDecoder):
     def __init__(self, **kwargs):
         kwargs.update({"object_hook": ServiceStatusJsonDecoder._decodeObject})
         super(ServiceStatusJsonDecoder, self).__init__(**kwargs)
+
+
+_serviceStatusV2Keys = {
+    'InstanceID', 'HostID', 'HostName', 'ServiceID', 'ServiceName', 'ContainerID',
+    'ImageSynced', 'DesiredState', 'CurrentState', 'HealthStatus', 'RAMCommitment',
+    'MemoryUsage', 'Scheduled', 'Started', 'Terminated'
+}
+class InstanceV2ToServiceStatusJsonDecoder(json.JSONDecoder):
+    """
+    Converts the result of a V2 Service Instance query to a ServiceStatus object
+    """
+    @staticmethod
+    def _decodeObject(obj):
+        if (set(obj.keys()) & _serviceStatusV2Keys) == _serviceStatusV2Keys:
+            service = createObject("ServiceStatus")
+            service.__setstate__(obj)
+            return service
+        return obj
+    def __init__(self, **kwargs):
+        kwargs.update({
+            "object_hook": InstanceV2ToServiceStatusJsonDecoder._decodeObject
+        })
+        super(InstanceV2ToServiceStatusJsonDecoder, self).__init__(**kwargs)
 
 
 @implementer(IServiceDefinition)

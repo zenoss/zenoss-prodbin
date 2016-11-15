@@ -710,6 +710,10 @@
                 return;
             }
 
+            if (isAdjusted === undefined) {
+                isAdjusted = true;
+            }
+
             var adjustedTime;
 
             // if someone is using a date object, get
@@ -738,7 +742,7 @@
         getValue: function(){
             // clear any previous offsets and return just the UTC
             // time since epoch
-            return this.value.getTime() - this.TZOffsetMS - this.TZLocalMS;
+            return +moment.tz(this.value, this.displayTZ).utc().toDate();
         },
 
         beforeBlur : function(){

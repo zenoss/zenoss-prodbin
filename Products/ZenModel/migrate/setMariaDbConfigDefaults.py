@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class SetMariaDbConfigDefaults(Migrate.Step):
     """Setting MariaDB buffer pool size default"""
 
-    version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
 
@@ -41,11 +41,7 @@ class SetMariaDbConfigDefaults(Migrate.Step):
 
             # Buffer Pool Instances
             chk  = "innodb_buffer_pool_instances = {{.CPUCommitment}}"
-            repl = """{{with $coresless1 := plus (uintToInt .CPUCommitment) -1 }}
-innodb_buffer_pool_instances = {{$coresless1}}
-{{else}}
-innodb_buffer_pool_instances = 1
-{{end}}"""
+            repl = "innodb_buffer_pool_instances = 3"
             for cnf in maria.originalConfigs:
                 if cnf.name != '/etc/my.cnf':
                     continue

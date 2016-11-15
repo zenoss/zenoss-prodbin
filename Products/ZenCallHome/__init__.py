@@ -1,14 +1,15 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 from zope.interface import Interface
+
 
 class ICallHomeCollector(Interface):
     """
@@ -18,9 +19,13 @@ class ICallHomeCollector(Interface):
     def generateData(self):
         """
         Generate data to be sent via call home
-        @return: dictionary of data to be sent
+        @return: dictionary of data to be sent.
+                 values keyed by "_ERRORS_" should
+                 be objects that will be attached
+                 at the top level.
         @rtype: dict
         """
+
 
 class IMasterCallHomeCollector(Interface):
     """
@@ -32,8 +37,25 @@ class IMasterCallHomeCollector(Interface):
         Generate data to be sent via call home
         @param dmd: databse connection
         @return: dictionary of data to be sent
+                 values keyed by "_ERRORS_" should
+                 be objects that will be attached
+                 at the top level.
         @rtype: dict
         """
+
+
+class IVersionHistoryCallHomeCollector(Interface):
+    """
+    Implementers provide version history records
+    """
+
+    def addVersionHistory(self, dmd, callHomeData):
+        """
+        Create records to be added to version history
+        @param the callhome data that will be modified
+               then sent
+        """
+
 
 class IHostData(Interface):
     """
@@ -75,16 +97,17 @@ class IZenossEnvData(Interface):
 class IDeviceLink(Interface):
     """
     Subscription Adapter to determine if a device is linked to
-    another resource (such as a VM component). The adapter name of this interface
-    is used for the call home key: Linked Devices - %s, where %s is 
-    the name of the adapter.
+    another resource (such as a VM component). The adapter name of this
+    interface is used for the call home key: Linked Devices - %s, where
+    %s is the name of the adapter.
     """
 
     def linkedDevice(self):
         """
         Return a linked object, if it exists.
-        @return: A linked object of ZenModelRM type or None 
+        @return: A linked object of ZenModelRM type or None
         """
+
 
 class IDeviceResource(Interface):
     """
@@ -93,7 +116,8 @@ class IDeviceResource(Interface):
 
     def processDevice(self, stats):
         """
-        Determine any resource metrics about the device and add or update the passed in stats dictionary
+        Determine any resource metrics about the device and add or update
+        the passed in stats dictionary
         @param: stats - statistics about the device
         @type: dictionary
         @return: None
@@ -102,7 +126,8 @@ class IDeviceResource(Interface):
 
 class IDeviceType(Interface):
     """
-    Adapter to determine the type of device. examples: Xen, VMware, Physical etc...
+    Adapter to determine the type of device. examples: Xen, VMware,
+    Physical etc...
     """
 
     def type(self):
@@ -120,12 +145,13 @@ class IDeviceType(Interface):
 
 class IVirtualDeviceType(Interface):
     """
-    Subscription adapter. Determine the virtual machine type of a device if any. More than one impl can be
-    registered per Device
+    Subscription adapter. Determine the virtual machine type of a device
+    if any. More than one impl can be registered per Device
     """
     def vmType(self):
         """
-        @return the type of virtual machine or None if not a virtual machine or it cannot be determined
+        @return the type of virtual machine or None if not a virtual
+                machine or it cannot be determined
         """
 
 

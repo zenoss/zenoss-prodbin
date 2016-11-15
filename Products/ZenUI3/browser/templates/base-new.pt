@@ -20,34 +20,35 @@
             </tal:block>
         </title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <link rel="icon" href="/zport/dmd/favicon.ico?v=3" type="image/x-icon"/>
-        <link rel="shortcut icon" href="/zport/dmd/favicon.ico?v=3" type="image/x-icon"/>
 
-        <link rel="stylesheet" type="text/css"
-              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
-            />
-        <link rel="stylesheet" type="text/css"
-              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenoss.css')"
-            />
+        <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
 
-        <link rel="stylesheet" type="text/css"
-              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenui3.css')"
-            />
-        <link rel="stylesheet" type="text/css"
-              tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++extjs/examples/ux/css/CheckHeader.css')"
-            />
+        <!-- Static stylesheets -->
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++extjs/examples/ux/css/CheckHeader.css" />
+        <link rel="stylesheet" type="text/css" href="/++resource++zenui/js/codemirror/codemirror.css" />
+
+        <!-- Dynamic stylesheets -->
+        <tal:block tal:content="structure provider:all-css"/>
+
+        <!-- Static javascript -->
+        <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
+        <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
-        <tal:block tal:content="structure provider:all-css"/>
+
+        <!-- Dynamic javascript -->
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
+        <tal:block tal:content="structure provider:jssnippets"/>
+
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
-        <tal:block tal:content="structure provider:jssnippets"/>
-        <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
-        <link rel="stylesheet" href="/++resource++zenui/js/codemirror/codemirror.css" />
-        <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
+
     </head>
 
     <body>
@@ -193,7 +194,7 @@ Ext.onReady(function(){
 </tal:block>
 
 <!-- Load tooltips for this screen -->
-<script type="text/javascript" src="tooltips.js"></script>
+<script type="text/javascript" tal:attributes="src python:context.getPrimaryUrlPath() + '/tooltips.js'"></script>
 
 <!-- Fields required for history management -->
 <form id="history-form" class="x-hidden" action="">

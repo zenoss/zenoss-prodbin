@@ -14408,7 +14408,6 @@
            "Protocol": ""
          },
          "VHosts": null,
-         "VHostList": null,
          "AddressAssignment": {
            "ID": "",
            "AssignmentType": "",

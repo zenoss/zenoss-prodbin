@@ -12,6 +12,7 @@ import os
 import Globals
 import zope.interface
 import md5
+from urlparse import urljoin
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -25,6 +26,9 @@ from zope.component import getAdapter
 from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
+
+from .resources import COMPILED_JS_EXISTS
+
 
 dummyRequest = TestRequest()
 
@@ -69,11 +73,9 @@ SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
 
 
+def absolutifyPath(path):
+    return urljoin('/zport/dmd', path)
 
-
-def getVersionedPath(path):
-    token = getPathModifiedTime(path) or VERSION
-    return '%s?v=%s' % (path, token)
 
 class MainSnippetManager(JavaScriptSnippetManager):
     """
@@ -100,7 +102,7 @@ class CSSSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(LINK_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(LINK_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)
@@ -112,10 +114,9 @@ class JavaScriptSrcViewlet(ViewletBase):
     path = None
 
     def render(self):
-        val = None
-        if self.path:
-            val = SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
-        return val
+        if not self.path:
+            return
+        return SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(self.path)
 
 
 class JavaScriptSrcBundleViewlet(ViewletBase):
@@ -127,7 +128,7 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)
@@ -149,13 +150,23 @@ class ExtDirectViewlet(JavaScriptSrcViewlet):
         path = self.path  + "?v=" + self.directHash
         return SCRIPT_TAG_SRC_TEMPLATE % path
 
+
 class ZenossAllJs(JavaScriptSrcViewlet):
+    """
+    When Zope is in debug mode, we want to use the development JavaScript source
+    files, so we don't have to make changes to a single huge file. If Zope is in
+    production mode and the compressed file is not available, we will use the
+    source files instead of just giving up.
+    """
     zope.interface.implements(IJavaScriptSrcViewlet)
 
-    def render(self):
-        token = getPathModifiedTime("/++resource++zenui/js/deploy/zenoss-compiled.js") or VERSION
-        path = "%s?v=%s" %("zenoss-all.js", token)
-        return SCRIPT_TAG_SRC_TEMPLATE % (path)
+    def update(self):
+        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+            # Use the view that creates concatenated js on the fly from disk
+            self.path = "/zport/dmd/zenoss-all.js"
+        else:
+            # Use the compiled javascript
+            self.path = "/++resource++zenui/js/deploy/zenoss-compiled.js"
 
 
 class ExtAllJs(JavaScriptSrcViewlet):
@@ -226,13 +237,11 @@ class ZenossData(JavaScriptSnippet):
         priorities = [dict(name=s[0],
                            value=int(s[1])) for s in
                       self.context.dmd.getPriorityConversions()]
-        priorities.append({'name': 'None', 'value': "\"\""})
 
         # production states
         productionStates = [dict(name=s[0],
                                  value=int(s[1])) for s in
                             self.context.dmd.getProdStateConversions()]
-        productionStates.append({'name': 'None', 'value': "\"\""})
 
         # timezone
         # to determine the timezone we look in the following order

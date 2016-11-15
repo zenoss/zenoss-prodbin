@@ -1490,15 +1490,22 @@
             this.refresh();
         },
         restoreURLState: function() {
-            var qs = window.location.search.replace(/^\?/, ''),
-            state = Ext.urlDecode(qs).state;
-            if (state) {
+            var qs = window.location.search.replace(/^\?/, ''), state;
+            var decoded = Ext.urlDecode(qs);
+
+            if (decoded.state) {
                 try {
-                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
-                    this.applyState(state);
-                    this.filterRow.storeSearch();
+                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(decoded.state)));
                 } catch(e) { }
+            //in case parameters are not encoded
+            } else {
+                state = {"filters": decoded};
             }
+
+            this.clearFilters();
+            this.applyState(state);
+            this.filterRow.storeSearch();
+            
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));

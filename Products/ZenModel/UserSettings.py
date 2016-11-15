@@ -227,6 +227,10 @@ class UserSettingsManager(ZenModelRM):
         """ Store a user's portlets and layout. If userid is not passed
             set the state for the current user.
         """
+        # Return False in case we are trying to set dashboard state
+        # for a user which doesn't exist.
+        if userid and userid not in self.getAllUserSettingsNames():
+            return False
         user = self.getUserSettings(userid)
         posted = Utils.extractPostContent(REQUEST)
         if posted:
@@ -1243,7 +1247,7 @@ class UserSettings(ZenModelRM):
         """
         Call before deleting a user or group this will
         remove this user/group from the list of admin objects for
-        everything that the object adminstered before. This
+        everything that the object administered before. This
         prevents broken relationships
         """
         for role in self.getAllAdminRoles():
@@ -1285,7 +1289,7 @@ class GroupSettings(UserSettings):
 
     def hasNoGlobalRoles(self):
         """This is a group we never have roles. This is set to false so that
-        fuctionality that would normally be taken away for a restricted user is
+        functionality that would normally be taken away for a restricted user is
         left in.
         """
         return False
@@ -1299,7 +1303,12 @@ class GroupSettings(UserSettings):
         if isinstance(userids, basestring):
             userids = [userids]
         for userid in userids:
-            self._getG().addPrincipalToGroup( userid, self.id )
+            # see if this group's already exists in the ZODB group manager.
+            # if it doesn't - add it.
+            group_ids = self._getG().listGroupIds()
+            if self.id not in group_ids:
+                self._getG().addGroup(self.id)
+            self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)
         if REQUEST:

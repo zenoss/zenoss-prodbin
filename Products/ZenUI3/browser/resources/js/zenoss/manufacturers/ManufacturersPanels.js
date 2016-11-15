@@ -445,7 +445,7 @@ Ext.onReady(function(){
                         flex: 1,
                         sortable: true,
                         renderer: function(e){
-                            return e.toString().replace(",",",  ");
+                            return Ext.htmlEncode(e.toString().replace(",",",  "));
                         },
                         filter: []
                     },{
@@ -534,7 +534,7 @@ Ext.onReady(function(){
                         flex: 1,
                         sortable: true,
                         renderer: function(name, row, record) {
-                            return Zenoss.render.Device(record.data.uid, name);
+                            return Zenoss.render.link(null,record.raw.uid, name);
                         }
                     },{
                         header: _t('Name'),

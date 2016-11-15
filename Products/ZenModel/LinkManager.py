@@ -336,7 +336,12 @@ class LinkManager(Folder):
         cat = getToolByName(self, 'layer3_catalog')
         for net, locs in locations_per_network.iteritems():
             if len(locs) > 1:
-                if not getattr(self.dmd.unrestrictedTraverse(net), 'zDrawMapLinks', True):
+                draw_maps = False
+                try:
+                    draw_maps = getattr(self.dmd.unrestrictedTraverse(net), 'zDrawMapLinks', True)
+                except KeyError:
+                    pass
+                if not draw_maps:
                     continue
                 results = defaultdict(list)
                 layer3_brains = set(cat.evalAdvancedQuery(Eq('networkId', net)))

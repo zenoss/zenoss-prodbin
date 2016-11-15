@@ -82,8 +82,6 @@
     };
 
     Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
-
-
     Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, clickToEditConfig(Zenoss.ClickToEditField));
     Ext.reg('clicktoedit', "Zenoss.ClickToEditField");
 
@@ -92,6 +90,96 @@
                                    clickToEditConfig(Zenoss.ClickToEditNoLink));
     Ext.reg('clicktoeditnolink', "Zenoss.ClickToEditNoLink");
 
+    // waits till user clicks to fetch and display
+    // link info
+    Ext.define("Zenoss.form.ClickToDisplayField", {
+        extend: "Zenoss.form.LinkField",
+        alias: ['widget.clicktodisplay'],
+        constructor: function(config){
+            this.getContext = config.getContext;
+            this.callParent([config]);
+        },
+        initComponent: function() {
+            this.callParent(arguments);
+
+            // set up the "Show Links" link
+            var a = document.createElement("a");
+            a.href = "#";
+            a.innerText = "Show Links";
+            this.displayLinkEl = new Ext.Element(a);
+            this.displayLinkEl.on("click", this.fetchLinks.bind(this));
+
+            // set up loading spinner
+            var spinner = document.createElement("div");
+            spinner.innerHTML = "<img style='height: 20px;' src='img/spinning_wheel_throbber.gif'>";
+            this.spinnerEl = new Ext.Element(spinner);
+
+            this.on("afterrender", function(){
+                this.bodyEl.appendChild(this.displayLinkEl);
+                this.bodyEl.appendChild(this.spinnerEl);
+                this.hideLinkList();
+                this.hideSpinner();
+            });
+
+            // get a reference to getInfo, and make sure
+            // it doesnt get batched
+            this.getInfo = Zenoss.util.isolatedRequest(REMOTE.getInfo);
+        },
+
+        // show and hide the "Show Links" link
+        showFetchLink: function(){
+            this.displayLinkEl.show();
+        },
+        hideFetchLink: function(){
+            this.displayLinkEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.displayLinkEl.hide();
+        },
+
+        showSpinner: function(){
+            this.spinnerEl.show();
+        },
+        hideSpinner: function(){
+            this.spinnerEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.spinnerEl.hide();
+        },
+
+        // show and hide the list of links
+        showLinkList: function(){
+            this.inputEl.show();
+        },
+        hideLinkList: function(){
+            // make inputEl hide using display
+            // rather than visibility
+            this.inputEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.inputEl.hide();
+        },
+
+        // fetch the list of links
+        fetchLinks: function(){
+            var contextUid = this.getContext();
+            if(!contextUid){
+                Zenoss.message.error("Unable to fetch links: cannot determine context uid");
+                return;
+            }
+
+            this.showSpinner();
+            this.hideFetchLink();
+
+            this.getInfo({keys: ["links"], uid: contextUid}, function(results){
+                this.hideSpinner();
+
+                if(!results.success){
+                    Zenoss.message.error("Unable to fetch links: "+ results.msg);
+                    this.showFetchLink();
+                    return;
+                }
+
+                var links = results.data ? results.data.links : "";
+                this.setValue(links);
+                this.showLinkList();
+            }.bind(this));
+        }
+    });
 
     function editManuInfo (vals, uid) {
         function name(uid) {
@@ -1020,9 +1108,11 @@
                             name: 'location',
                             id: 'location-editlink'
                         },{
+                            xtype: 'clicktodisplay',
                             fieldLabel: _t('Links'),
                             name: 'links',
-                            id: 'links-label'
+                            id: 'links-label',
+                            getContext: function(){ return this.contextUid; }.bind(this)
                         },{
                             xtype: 'textarea',
                             grow: true,
@@ -1133,9 +1223,9 @@
                 }
                 this.setValues(D);
 
-                // load zLinks and uptime in a separate request since they
+                // load uptime in a separate request since it
                 // can be very expensive
-                var opts = Ext.apply({keys:['links', 'uptime']}, this.baseParams);
+                var opts = Ext.apply({keys:['uptime']}, this.baseParams);
                 this.api.load(opts, function(results){
                     this.setValues(results.data);
                 }, this);

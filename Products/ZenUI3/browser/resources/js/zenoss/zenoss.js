@@ -213,22 +213,52 @@ Ext.define('Zenoss.state.PersistentProvider', {
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
     constructor: function() {
         this.callParent(arguments);
-        this.on('statechange', this.save, this);
+        this.on('statechange', this.onStateChange, this);
         this.task = null;
+        this.isDirty = false;
+        this.prevStateString = null;
     },
     setState: function(stateString) {
         var state = Ext.decode(stateString);
         this.state = Ext.isObject(state) ? state : {};
     },
+
+    onStateChange: function(me, key, val){
+        var newStateString = Ext.JSON.encode(this.state);
+
+        // if prev and new state are the same, we done
+        if(this.prevStateString == newStateString){
+            this.isDirty = false;
+            return;
+        }
+
+        // if prevStateString is null, it is the first
+        // time setting state, so skip marking dirty
+        // and saving
+        if(this.prevStateString !== null){
+            this.isDirty = true;
+            this.save();
+        }
+
+        this.prevStateString = newStateString;
+    },
+
     // Private
     save: function() {
+        // no point in savin if things aint changed
+        if(!this.isDirty){
+            return;
+        }
+
         // in the case where we get multiple requests to
         // update the state just send one request
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
                 this.directFn(
-                    {state: Ext.encode(this.state)}
-                );
+                    {state: Ext.encode(this.state)}, 
+                    function(){
+                        this.isDirty = false;
+                    });
             }, this);
         }
         // delay for half a second
@@ -239,6 +269,7 @@ Ext.define('Zenoss.state.PersistentProvider', {
             {state: Ext.encode(this.state)},
             function() {
                 Ext.callback(callback, scope);
+                this.isDirty = false;
             }
         );
     }
@@ -1192,25 +1223,6 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
 };
 
 /**
-* Used in BaseGrid.js by onFocus() and onResize() events.
- * Fixes misalignment between filter and header of a column in IE9.
- */
-Zenoss.util.refreshScrollPosition = function(me) {
-    if (me.grid.view.getEl().dom.children[1]) {
-        if (me.grid.view.getHeight() < parseFloat(me.grid.view.getEl().dom.children[1].scrollHeight)){
-            me.view.el.dom.scrollTop += 1;
-            me.view.el.dom.scrollTop -= 1;
-        } else if (me.grid.view.getWidth() < parseFloat(me.grid.view.getEl().dom.children[1].style.width)){
-            me.view.el.dom.scrollLeft += 1;
-            me.view.el.dom.scrollLeft -= 1;
-        } else if (me.grid.columns[0].filterField) {
-            me.grid.columns[0].filterField.focus();
-        }
-    }
-};
-
-
- /**
  * @class Zenoss.DateRange
  * @extends Ext.form.field.Date
  * A DateRange
@@ -1249,7 +1261,7 @@ Ext.define("Zenoss.DateRange", {
         if (!value) {
             return "";
         }
-        var has_TO = (value.indexOf("TO") === -1) ? false : true;
+        var has_TO = (value.indexOf("TO") === -1);
         if (has_TO) {
             var retVal = value.replace(" TO ", "/");
             return retVal.replace(" ", "T");
@@ -1270,6 +1282,23 @@ Ext.define("Zenoss.DateRange", {
     }
 });
 
+/**
+* Used in BaseGrid.js by onFocus() and onResize() events.
+ * Fixes misalignment between filter and header of a column in IE9.
+ */
+Zenoss.util.refreshScrollPosition = function(me) {
+    if (me.grid.view.getEl().dom.children[1]) {
+        if (me.grid.view.getHeight() < parseFloat(me.grid.view.getEl().dom.children[1].scrollHeight)){
+            me.view.el.dom.scrollTop += 1;
+            me.view.el.dom.scrollTop -= 1;
+        } else if (me.grid.view.getWidth() < parseFloat(me.grid.view.getEl().dom.children[1].style.width)){
+            me.view.el.dom.scrollLeft += 1;
+            me.view.el.dom.scrollLeft -= 1;
+        } else if (me.grid.columns[0].filterField) {
+            me.grid.columns[0].filterField.focus();
+        }
+    }
+};
 
 /**
  * Used by classes to validate config options that

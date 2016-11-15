@@ -7,6 +7,6 @@
 # 
 ##############################################################################
 
-# If you change this, also change legacy/zenoss-version/setup.py
-#  in the zenoss/platform-build repository.
+# this is now generated during the build step
 VERSION="5.2.0"
+BUILD_NUMBER="DEV"

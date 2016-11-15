@@ -129,7 +129,7 @@ class TrapFilter(object):
         self._daemon = None
         self._eventService = None
 
-        self._genericTraps = frozenset(["0", "1", "2", "3", "4", "5"])
+        self._genericTraps = frozenset([0, 1, 2, 3, 4, 5])
 
         # Map of SNMP V1 Generic Trap filters where key is the generic trap number and
         # value is a GenericTrapFilterDefinition
@@ -407,7 +407,7 @@ class TrapFilter(object):
                 return True
             return filterDefinition.action == "exclude"
 
-        if genericTrap != "6":
+        if genericTrap != 6:
             log.error("Generic trap '%s' is invalid for V1 event: %s", genericTrap, event)
             return True
 
@@ -418,7 +418,7 @@ class TrapFilter(object):
 
         specificTrap = event.get("snmpV1SpecificTrap", None)
         if specificTrap != None:
-            key = ''.join([enterpriseOID, "-", specificTrap])
+            key = ''.join([enterpriseOID, "-", str(specificTrap)])
             filterDefinition = self._findFilterByLevel(key, self._v1Filters)
             if filterDefinition != None:
                 log.debug("_dropV1Event: matched definition %s", filterDefinition)

@@ -128,7 +128,7 @@ class AuthXmlRpcService(XmlRpcService):
         @param request: the request for this xmlrpc call.
         @return: NOT_DONE_YET
         """
-        auth = request.received_headers.get('authorization', None)
+        auth = request.getHeader('authorization')
         if not auth:
             self.unauthorized(request)
         else:

@@ -8,19 +8,19 @@
 ##############################################################################
 
 import logging
-log = logging.getLogger("zen.migrate")
-
 import Migrate
+import re
 import servicemigration as sm
-sm.require("1.0.0")
 
+log = logging.getLogger("zen.migrate")
+sm.require("1.0.0")
 
 class BeakerHTTPOnly(Migrate.Step):
     """
     Set beaker session.httponly to true in config
     """
 
-    version = Migrate.Version(5, 1, 4)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
         try:
@@ -40,7 +40,12 @@ class BeakerHTTPOnly(Migrate.Step):
             if cookie_rewrite in config_text:
                 continue
 
-            insert_point = config_text.find('    proxy_read_timeout 600;\r\n')
+            insert_point = re.search('[ \t]+proxy_read_timeout[ \t]+', config_text)
+            if not insert_point:
+                log.info("Couldn't add zproxy setting to force cookies to HTTPOnly, skipping.")
+                return
+
+            insert_point = insert_point.start()
             config_text = config_text[:insert_point] + cookie_rewrite + config_text[insert_point:]
 
             log.info("Adding cookie httponly rewrite rule to %s for '%s'." % (configfile.name, zproxy.name))
@@ -48,6 +53,7 @@ class BeakerHTTPOnly(Migrate.Step):
             commit = True
         if commit:
             ctx.commit()
+
 
 BeakerHTTPOnly()
 

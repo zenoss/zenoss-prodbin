@@ -248,7 +248,7 @@ class MibRouter(TreeRouter):
 
     def addOidMapping(self, uid, id, oid, nodetype='node'):
 
-        if not _validateOid(oid):
+        if not self._validateOid(oid):
             msg = "Invalid OID value %s" % oid
             return DirectResponse.fail(msg)
 
@@ -262,7 +262,7 @@ class MibRouter(TreeRouter):
 
     def addTrap(self, uid, id, oid, nodetype='notification'):
 
-        if not _validateOid(oid):
+        if not self._validateOid(oid):
             msg = "Invalid OID value %s" % oid
             return DirectResponse.fail(msg)
 

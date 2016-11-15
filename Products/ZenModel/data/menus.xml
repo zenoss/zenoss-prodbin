@@ -1,7 +1,4 @@
-<?xml version="1.0"?>
-<objects>
-<object id='/zport/dmd' module='Products.ZenModel.DataRoot' class='DataRoot'>
-<tomanycont id='zenMenus'>
+<?xml version="1.0"?><objects><object id='/zport/dmd' module='Products.ZenModel.DataRoot' class='DataRoot'><tomanycont id='zenMenus'>
 <object id='Add' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addFileSystem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>

@@ -205,8 +205,8 @@ class ZentinelPortal ( PortalObjectBase ):
         return self.About.getZenossVersionShort()
 
     def getVersionedResourcePath(self, path):
-        from Products.ZenUI3.browser.javascript import getVersionedPath
-        return getVersionedPath(path)
+        from Products.ZenUI3.browser.javascript import absolutifyPath
+        return absolutifyPath(path)
 
     def getLoginButton(self):
         return """<input id="loginButton" type="submit" name="submitbutton"
@@ -237,6 +237,13 @@ class ZentinelPortal ( PortalObjectBase ):
             newform.submit()
             </script>
             """
+
+    def ruok(self):
+        """
+        check if zport is ok by answering a question only the
+        real zport would know, but an imposter wouldn't know
+        """
+        return "imok"
 
 
 Globals.InitializeClass(ZentinelPortal)

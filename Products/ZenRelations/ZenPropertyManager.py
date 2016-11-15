@@ -351,14 +351,6 @@ class ZenPropertyManager(object, PropertyManager):
         the ValueError returned from the field2* converters in the class
         Converters.py
         """
-        if id == 'sequence' and hasattr(self, 'eventClassKey'):
-            for insts in self.dmd.Events.getInstances():
-                if (insts.id == self.id and
-                    insts.sequence == value and
-                        insts.eventClass().getEventClass() !=
-                        self.eventClass().getEventClass()):
-                    raise ValueError('EventClass Mapping Instance "%s" '
-                                     'has duplicated sequence' % self.id)
         try:
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:
@@ -486,6 +478,8 @@ class ZenPropertyManager(object, PropertyManager):
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """Save all ZenProperties found in the REQUEST.form object.
         """
+        oldValues = {}
+        newValues = {}
         maskFields=[]
         for name, value in REQUEST.form.items():
             if pfilt(name):
@@ -493,15 +487,18 @@ class ZenPropertyManager(object, PropertyManager):
                     maskFields.append(name)
                     if self._onlystars(value):
                         continue
+                oldValues[name] = self.getProperty(name)
                 if name == 'zCollectorPlugins':
                     if tuple(getattr(self, name, ())) != tuple(value):
                         self.setZenProperty(name, value)
                 else:
                     self.setZenProperty(name, value)
+                newValues[name] = self.getProperty(name)
 
         if REQUEST:
-            audit(('UI', getDisplayType(self), 'EditProperties'), self, data_=REQUEST.form,
-                    skipFields_=['savezenproperties','zenscreenname'], maskFields_=maskFields)
+            audit(('UI', getDisplayType(self), 'EditProperties'), self,
+                  data_=newValues, oldData_=oldValues,
+                  maskFields_=maskFields)
             IMessageSender(self).sendToBrowser(
                 'Configuration Propeties Updated',
                 'Configuration properties have been updated.'

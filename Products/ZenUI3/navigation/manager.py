@@ -18,9 +18,13 @@ from Products.Five.viewlet.manager import ViewletManagerBase
 from interfaces import IPrimaryNavigationMenu, ISecondaryNavigationMenu
 
 
-def getWeight((name, viewlet)):
+def viewletSortKey((name, viewlet)):
+    """
+    Creates a sort key for this viewlet. Primary sort is viewlet weight, and
+    secondary is viewlet name, guaranteeing the same order on each call.
+    """
     try:
-        return float(viewlet.weight)
+        return (float(viewlet.weight), name)
     except (AttributeError, ValueError):
         return 0
 
@@ -29,7 +33,7 @@ class WeightOrderedViewletManager(ViewletManagerBase):
     """Weight ordered viewlet managers."""
 
     def sort(self, viewlets):
-        return sorted(viewlets, key=getWeight)
+        return sorted(viewlets, key=viewletSortKey)
 
 
 

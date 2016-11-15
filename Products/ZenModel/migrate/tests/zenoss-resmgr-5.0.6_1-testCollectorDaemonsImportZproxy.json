@@ -174,7 +174,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -2681,7 +2680,6 @@
            "Protocol" : ""
         },
         "VHosts": null,
-        "VHostList": null,
         "AddressAssignment": {
           "ID": "",
           "AssignmentType": "",
@@ -3038,7 +3036,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -3683,7 +3680,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -4948,7 +4944,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -5565,7 +5560,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -6153,7 +6147,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -6528,7 +6521,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -7243,7 +7235,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -7729,7 +7720,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -8345,7 +8335,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -8962,7 +8951,6 @@
           "Protocol" : ""
        },
        "VHosts": null,
-       "VHostList": null,
        "AddressAssignment": {
          "ID": "",
          "AssignmentType": "",
@@ -9578,7 +9566,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -10195,7 +10182,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -10812,7 +10798,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -12610,7 +12595,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -13856,7 +13840,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",
@@ -17218,7 +17201,6 @@
          "Protocol" : ""
       },
       "VHosts": null,
-      "VHostList": null,
       "AddressAssignment": {
         "ID": "",
         "AssignmentType": "",

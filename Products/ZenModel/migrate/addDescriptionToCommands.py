@@ -20,7 +20,7 @@ sm.require("1.0.0")
 
 class AddDescriptionToCommands(Migrate.Step):
 
-    version = Migrate.Version(5, 1, 70)
+    version = Migrate.Version(106, 0, 0)
 
     def cutover(self, dmd):
         try:

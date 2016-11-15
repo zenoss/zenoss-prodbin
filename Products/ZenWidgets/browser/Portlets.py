@@ -12,7 +12,7 @@ import re
 import json
 
 from Products.Five.browser import BrowserView
-from Products.AdvancedQuery import Eq, Or
+from Products.AdvancedQuery import Eq
 
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
@@ -20,6 +20,7 @@ from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
 from zenoss.protocols.services import ServiceException
 from zenoss.protocols.services.zep import ZepConnectionError
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
 from Products.ZenWidgets import messaging
@@ -88,17 +89,24 @@ class ProductionStatePortletView(BrowserView):
                 {'Device':'<a href=/>', 'Prod State':'Maintenance'},
             ]}"
         """
-        devroot = self.context.dmd.Devices
         if isinstance(prodStates, basestring):
             prodStates = [prodStates]
+
+        def getProdStateInt(prodStateString):
+            for t in self.context.getProdStateConversions():
+                if t[0] == prodStateString:
+                    return t[1]
+
+        numericProdStates = [getProdStateInt(p) for p in prodStates]
+
         orderby, orderdir = 'id', 'asc'
-        catalog = getattr(devroot, devroot.default_catalog)
-        queries = []
-        for state in prodStates:
-            queries.append(Eq('getProdState', state))
-        query = Or(*queries)
+        catalog = self.context.getPhysicalRoot().zport.global_catalog
+        query = Eq('objectImplements', 'Products.ZenModel.Device.Device')
         objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
-        devs = (x.getObject() for x in objects)
+
+        psManager = IProdStateManager(self.context)
+        results = (x for x in objects if psManager.getProductionStateFromGUID(x.uuid) in numericProdStates)
+        devs = (x.getObject() for x in results)
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
             if not self.context.checkRemotePerm(ZEN_VIEW, dev): continue
@@ -211,7 +219,7 @@ class DeviceIssuesPortletView(BrowserView):
             dev = manager.getObject(uuid)
             if dev and isinstance(dev, Device):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
-                    or dev.productionState < zem.prodStateDashboardThresh
+                    or dev.getProductionState() < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):
                     continue
                 alink = dev.getPrettyLink()

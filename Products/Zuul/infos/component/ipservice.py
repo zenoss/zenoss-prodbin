@@ -13,10 +13,7 @@ from Products.Zuul.interfaces import IIpServiceInfo
 from Products.Zuul.infos.component import ComponentInfo, ServiceMonitor
 from Products.Zuul.infos import ProxyProperty
 from Products.Zuul.decorators import info
-from zope.schema.vocabulary import SimpleVocabulary
 
-def serviceIpAddressesVocabulary(context):
-    return SimpleVocabulary.fromValues(context.ipaddresses)
 
 class IpServiceInfo(ComponentInfo):
     implements(IIpServiceInfo)

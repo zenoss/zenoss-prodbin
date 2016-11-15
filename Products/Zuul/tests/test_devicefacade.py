@@ -143,31 +143,52 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(location="test1"))
         self.assertEquals(1, results.total)
 
-    def test_setProductionState(self):
-        notified = []
-        @zope.component.adapter(IIndexingEvent)
-        def _indexed(event):
-            self.assertEqual(event.idxs, ('productionState',))
-            self.assertEqual(event.update_metadata, True)
-            notified.append(event)
+    def test_deviceSearchByProdState(self):
+        from Products.ZenModel.ZDeviceLoader import JobDeviceLoader
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devMaintenance.setProdState(400)
+        devProduction.setProdState(1000)
 
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[400]))
+        self.assertEquals(1, results.total)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 400)
+
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[1000]))
+        self.assertEquals(1, results.total)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 1000)
+
+    def test_deviceSortByProdState(self):
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devMaintenance.setProdState(400)
+        devProduction.setProdState(1000)
+
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState')
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
+
+        # descending order
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', dir='DESC')
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+
+    def test_setProductionState(self):
         dev = self.dmd.Devices.createInstance('dev')
         dev2 = self.dmd.Devices.createInstance('dev2')
 
-        self.assertEqual(dev.productionState, 1000)
-        self.assertEqual(dev2.productionState, 1000)
-
-        zope.component.provideHandler(_indexed)
+        self.assertEqual(dev.getProductionState(), 1000)
+        self.assertEqual(dev2.getProductionState(), 1000)
 
         self.facade.setProductionState((dev.getPrimaryUrlPath(),
                                         dev2.getPrimaryUrlPath()), 500)
 
-        self.assertEqual(dev.productionState, 500)
-        self.assertEqual(dev2.productionState, 500)
-
-        self.assertEqual(len(notified), 2)
-
-        zope.component.getGlobalSiteManager().unregisterHandler(_indexed)
+        self.assertEqual(dev.getProductionState(), 500)
+        self.assertEqual(dev2.getProductionState(), 500)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(DeviceFacadeTest),))
