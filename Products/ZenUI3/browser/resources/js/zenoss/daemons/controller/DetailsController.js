@@ -62,6 +62,9 @@
                         {id: 'details', name: _t('Details')},
                         {id: 'configs', name: _t('Configuration Files')},
                         {id: 'logs', name: _t('Logs')}
+                    ],
+                    group: [
+                        {id: 'details', name: _t('Details')},
                     ]
                 },
                 actions: {
@@ -78,6 +81,9 @@
                         details: this.setDaemonDetailsPanel,
                         configs: this.showDaemonConfigurationFiles,
                         logs: this.showDaemonLogs
+                    },
+                    group: {
+                        details: this.setDaemonDetailsPanel
                     }
                 }
             };

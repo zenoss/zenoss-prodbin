@@ -9,7 +9,7 @@
 
 from datetime import datetime
 from zope.interface import implementer
-from Products.Zuul.interfaces import IApplicationInfo, IApplicationConfigurationInfo
+from Products.Zuul.interfaces import IApplicationInfo, IGroupInfo, IApplicationConfigurationInfo
 from Products.Zuul.decorators import info
 from Products.ZenUtils.application import ApplicationState
 
@@ -95,6 +95,64 @@ class ApplicationInfo(object):
                 return configFile
         # unable to find a config file by that name
         return None
+
+
+@implementer(IGroupInfo)
+class GroupInfo(object):
+    """
+    Info object for the application groups returned from the control
+    plane.
+    """
+
+    def __init__(self, app):
+        """
+        Initialize an instance of GroupInfo.
+
+        :param IApplication application: The application.
+        """
+        self._object = app
+        self._children = []
+
+    @property
+    def id(self):
+        return self._object.id
+
+    uid = id
+
+    @property
+    def name(self):
+        return self._object.name
+
+    text = name
+
+    @property
+    def hostId(self):
+        return self._object.hostId
+
+    @property
+    def type(self):
+        return "group"
+
+    @property
+    def description(self):
+        return self._object.description
+
+    qtip = description
+
+    @property
+    def autostart(self):
+        return self._object.autostart
+
+    @property
+    def leaf(self):
+        return len(self.children) == 0
+
+    def addChild(self, child):
+        self._children.append(child)
+
+    @property
+    def children(self):
+        return self._children
 
 
 @implementer(IApplicationConfigurationInfo)
