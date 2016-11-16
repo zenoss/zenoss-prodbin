@@ -87,7 +87,6 @@
                 'daemonslist': {
                     select: this.setupDetails,
                     load: function() {
-                        this.getTreegrid().expandAll();
                         this.deepLinkFromHistory();
                     }
                 },
