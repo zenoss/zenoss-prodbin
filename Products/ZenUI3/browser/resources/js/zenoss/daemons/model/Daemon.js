@@ -33,7 +33,7 @@
         proxy: {
             simpleSortMode: true,
             type: 'direct',
-            directFn: appRouter.getTree,
+            directFn: appRouter.asyncGetTree,
             paramOrder: ['uid']
         },
         isCollector: function() {
