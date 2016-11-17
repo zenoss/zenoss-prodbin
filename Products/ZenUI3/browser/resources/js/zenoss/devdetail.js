@@ -395,8 +395,8 @@ Zenoss.EventActionManager.configure({
             commandsMenu: false,
             enableColumnHide: false,
             store: dev_detail_store,
-            columns: Zenoss.env.getColumnDefinitionsToRender('device_events'),
-            uid: Zenoss.env.device_uid
+            columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
+            //columns: Zenoss.env.getColumnDefinitions(['device'])
         });
 
         if (re_attach_to_container === true)
