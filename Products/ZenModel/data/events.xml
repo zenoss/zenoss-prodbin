@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2016-11-04 20:31:57.747394
+    Zenoss RelationshipManager export completed on 2016-11-17 21:41:49.616317
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.2.0]" export_date="2016-11-04 20:31:57.747394" zenoss_server="ade5488a941d" >
+<objects version="[Zenoss, version 5.2.0]" export_date="2016-11-17 21:41:49.616317" zenoss_server="947a2b071297" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
@@ -2599,7 +2599,7 @@ Interface FastEthernet0/48, changed state to down
 LINK-3-UPDOWN
 </property>
 <property type="int" id="sequence" mode="w" >
-0
+1
 </property>
 <property type="string" id="regex" mode="w" >
 Interface (?P&lt;component&gt;.+), changed state to Administrative Shutdown
