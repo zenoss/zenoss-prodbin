@@ -38,7 +38,6 @@ class MoveProductionStateToBTree(Migrate.Step):
         # Use device facade to get all devices from the catalog
         facade = Zuul.getFacade('device', dmd)
 
-
         # call getDeviceBrains, because getDevices requires ZEP
         brains = facade.getDeviceBrains(limit=None)
         total = brains.total
@@ -46,11 +45,11 @@ class MoveProductionStateToBTree(Migrate.Step):
 
         for count, device in enumerate(devices):
 
-            if count % 100 == 0:
+            if count and count % 100 == 0:
                 log.info("Migrated %d devices of %d", count, total)
 
-            if count % 1000 == 0:
-                log.info("Committing transaction for 1000 devices")
+            if count and count % 1000 == 0:
+                log.info("Committing transaction for %d devices")
                 transaction.commit()
 
             mgr.migrateObject(device)
@@ -64,6 +63,13 @@ class MoveProductionStateToBTree(Migrate.Step):
                 for c in cmps:
                     mgr.migrateObject(c)
 
+        # Tidy up whatever's in the last 1000 that didn't get committed
+        if count % 100:
+            log.info("Migrated %d devices of %d", total, total)
+        if count % 1000:
+            log.info("Committing transaction for %d devices", count % 1000)
+            transaction.commit()
+
         log.info("All devices migrated")
 
         # Remove production state from the global and device catalogs
@@ -71,7 +77,7 @@ class MoveProductionStateToBTree(Migrate.Step):
         globalCatalog = dmd.getPhysicalRoot().zport.global_catalog
         deviceCatalog = getattr(dmd.Devices, dmd.Devices.default_catalog)
 
-        try: 
+        try:
             globalCatalog.delIndex('productionState')
         except CatalogError:
             pass
