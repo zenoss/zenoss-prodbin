@@ -24,11 +24,18 @@ from Products.Zuul.utils import unbrain
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 from Products.ZCatalog.Catalog import CatalogError
 
+MIGRATED_FLAG = "_migrated_prodstates"
+
 class MoveProductionStateToBTree(Migrate.Step):
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
+
+        if getattr(dmd, MIGRATED_FLAG, False):
+            # No need to do it again
+            return
+
         # Move production state to BTree
         log.info("Migrating productionState to lookup table")
 
@@ -87,6 +94,7 @@ class MoveProductionStateToBTree(Migrate.Step):
         except CatalogError:
             pass
 
+        setattr(dmd, MIGRATED_FLAG, True)
         log.info("Production state index removed from global and device catalogs")
 
 
