@@ -49,6 +49,7 @@ class MoveProductionStateToBTree(Migrate.Step):
         brains = facade.getDeviceBrains(limit=None)
         total = brains.total
         devices = (unbrain(b) for b in brains)
+        count = 0
 
         for count, device in enumerate(devices):
 
