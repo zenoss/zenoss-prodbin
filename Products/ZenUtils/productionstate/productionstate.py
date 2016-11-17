@@ -16,6 +16,7 @@ for all ManagedEntity objects.
 from zope.interface import implements
 from .interfaces import IProdStateManager, ProdStateNotSetError
 
+from Acquisition import aq_base
 from BTrees.OOBTree import OOBTree
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Persistence import Persistent

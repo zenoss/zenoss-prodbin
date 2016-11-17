@@ -49,7 +49,7 @@ class MoveProductionStateToBTree(Migrate.Step):
                 log.info("Migrated %d devices of %d", count, total)
 
             if count and count % 1000 == 0:
-                log.info("Committing transaction for %d devices")
+                log.info("Committing transaction for 1000 devices")
                 transaction.commit()
 
             mgr.migrateObject(device)
