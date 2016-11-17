@@ -60,9 +60,14 @@ class MoveProductionStateToBTree(Migrate.Step):
 
             self.migrateObject(device)
 
-            # migrate components
-            for c in device.getDeviceComponents():
-                self.migrateObject(c)
+            # migrate components, if any
+            try:
+                cmps = device.getDeviceComponents()
+            except AttributeError:
+                pass
+            else:
+                for c in cmps:
+                    self.migrateObject(c)
 
         log.info("All devices migrated")
 
