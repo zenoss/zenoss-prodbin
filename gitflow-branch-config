@@ -1,0 +1,3 @@
+[gitflow "branch"]
+	master = master-5.2.x
+	develop = support/5.2.x
