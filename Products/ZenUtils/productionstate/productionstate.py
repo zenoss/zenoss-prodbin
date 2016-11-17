@@ -33,7 +33,7 @@ class ProdStateManager(object):
 
     def __init__(self, context):
         self.context = context
-        
+
         # Make sure the table exists and create it if not
         self.traverse = self.context.unrestrictedTraverse
         try:
@@ -42,10 +42,16 @@ class ProdStateManager(object):
             parent, name = self._table_path.rsplit('/', 1)
             self.table = OOBTree()
             setattr(self.traverse(parent), name, self.table)
-    
+
     def getProductionState(self, obj):
         guid = IGlobalIdentifier(obj).getGUID()
-        return self.getProductionStateFromGUID(guid)
+        try:
+            return self.getProductionStateFromGUID(guid)
+        except ProdStateNotSetError:
+            # Migrate the object's prod state and try again, in case this is
+            # a pre-migrate scenario
+            self.migrateObject(obj)
+            return self.getProductionStateFromGUID(guid)
 
     def getProductionStateFromGUID(self, guid):
         pstate = self._getProdStatesFromTable(guid).productionState
@@ -57,7 +63,13 @@ class ProdStateManager(object):
         guid = IGlobalIdentifier(obj).getGUID()
         pstate = self._getProdStatesFromTable(guid).preMWProductionState
         if pstate is None:
-            raise ProdStateNotSetError
+            # Migrate the object's prod state and try again, in case this is
+            # a pre-migrate scenario
+            self.migrateObject(obj)
+            pstate = self._getProdStatesFromTable(guid).preMWProductionState
+            if pstate is None:
+                # Nope, really not there
+                raise ProdStateNotSetError
         return pstate
 
     def setProductionState(self, obj, value):
@@ -91,3 +103,15 @@ class ProdStateManager(object):
         if guid in self.table:
             del self.table[guid]
 
+    def migrateObject(self, obj):
+        """
+        Migrate an object's production states from object attributes to the
+        central btree.
+        """
+        obj_unwrapped = aq_base(obj)
+        if hasattr(obj_unwrapped, 'productionState'):
+            self.setProductionState(obj, obj_unwrapped.productionState)
+            del obj_unwrapped.productionState
+        if hasattr(obj_unwrapped, 'preMWProductionState'):
+            self.setPreMWProductionState(obj, obj_unwrapped.preMWProductionState)
+            del obj_unwrapped.preMWProductionState
