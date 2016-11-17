@@ -87,7 +87,6 @@
                 'daemonslist': {
                     select: this.setupDetails,
                     load: function() {
-                        this.getTreegrid().expandAll();
                         this.deepLinkFromHistory();
                     }
                 },
@@ -272,9 +271,27 @@
         onRefresh: function() {
             var store = this.getTreegrid().getStore(),
                 method = store.getProxy().directFn,
+                expandedIds = [],
+                rootNode = store.getRootNode(),
+                rootId = rootNode.get("id"),
                 nodes = {};
+            expandedIds.push(rootId);
+            var getExpandedChildren = function(n) {
+                var i, currentNode;
+                if (!n.hasChildNodes()) {
+                    return;
+                }
+                for (i=0; i<n.childNodes.length; i++) {
+                    currentNode = n.childNodes[i];
+                    if (currentNode.isExpanded()) {
+                        expandedIds.push(currentNode.get('id'));
+                        getExpandedChildren(currentNode);
+                    }
+                }
+            };
+            getExpandedChildren(rootNode);
             method({
-                id: store.getRootNode().get("id")
+                id: expandedIds
             }, function(result){
                 // this was an invalid resposne
                 if (Ext.isDefined(result.success) && result.success === false) {
@@ -299,14 +316,14 @@
                         }
                     }
                 };
-                getChildren(result, store.getRootNode().get('id'));
+                getChildren(result['children'], rootId);
                 var nodeHash = store.tree.nodeHash, i, key, toRemove = [];
 
                 // iterate through all the nodes in the store and make sure they
                 // exits in the "nodes" struct
                 for (key in nodeHash) {
                     if (nodeHash.hasOwnProperty(key) && !Ext.isDefined(nodes[key])) {
-                        if (store.getNodeById(key).get('id') !== "root") {
+                        if (store.getNodeById(key).get('id') !== rootId) {
                             toRemove.push(store.getNodeById(key));
                         }
                     }
@@ -315,7 +332,12 @@
                 // remove all the nodes that were previously in the list but were not in the latest
                 // refresh request
                 for (i=0;i<toRemove.length;i++) {
+                    var parentNode = toRemove[i].parentNode;
                     toRemove[i].remove();
+                    // loaded=false to force reload node from router on next expansion
+                    if (!parentNode.hasChildNodes()) {
+                        parentNode.set({loaded: false});
+                    }
                 }
             });
         },
