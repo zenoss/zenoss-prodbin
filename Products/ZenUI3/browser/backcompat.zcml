@@ -70,14 +70,14 @@
     template="../../ZenModel/skins/zenmodel/editSettings.pt"
     name="editSettings"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
     template="../../ZenModel/skins/zenmodel/dataRootManage.pt"
     name="dataRootManage"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:defaultView
@@ -108,7 +108,7 @@
     template="../../ZenModel/skins/zenmodel/viewZenPacks.pt"
     name="viewZenPacks"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:defaultView
@@ -141,28 +141,28 @@
     template="../../ZenWidgets/skins/zenui/editPortletPerms.pt"
     name="editPortletPerms"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
     template="../../ZenEvents/skins/zenevents/zepConfig.pt"
     name="eventConfig"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
     template="templates/userInterfaceConfig.pt"
     name="userInterfaceConfig"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
     template="../../ZenModel/skins/zenmodel/zenossInfo.pt"
     name="zenossInfo"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
@@ -197,7 +197,7 @@
     template="../../ZenModel/skins/zenmodel/zenossVersions.pt"
     name="zenossVersions"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <adapter
@@ -228,7 +228,7 @@
     template="../../ZenModel/skins/zenmodel/mibOrganizerOverview.pt"
     name="mibOrganizerOverview"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:page
