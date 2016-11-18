@@ -11,13 +11,13 @@
 '''
 Note that this is meant to be run from zopecctl using the "test" option. If you
 would like to run these tests from python, simply to the following:
-
-    python ZenUtils/Version.py
+python ZenUtils/Version.py
 '''
 import unittest
 from zope.interface import implements
 from Products.Five import zcml
 
+from Acquisition import aq_base
 from OFS.SimpleItem import SimpleItem
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from zope.component import provideHandler
@@ -119,7 +119,27 @@ class TestProductionState(BaseTestCase):
         newdev = dest.devices.testdevice
         self.assertEqual(manager.getProductionState(newdev), 1)
         self.assertEqual(manager.getPreMWProductionState(newdev), 2)
- 
+
+    def test_fallback_migrate(self):
+
+        # Create a ProdStateManager
+        manager = IProdStateManager(self.dmd)
+
+        # Test Exception when nothing set
+        self.assertRaises(ProdStateNotSetError, manager.getProductionState, self.ob)
+        self.assertRaises(ProdStateNotSetError, manager.getPreMWProductionState, self.ob)
+
+        # Set old-style prod state and preMW prod state
+        aq_base(self.ob).productionState = 400
+        aq_base(self.ob).preMWProductionState = 500
+
+        # Should be no more exception
+        self.assertEqual(manager.getProductionState(self.ob), 400)
+        self.assertEqual(manager.getPreMWProductionState(self.ob), 500)
+
+        # Old attributes should be gone
+        self.assertEqual(getattr(aq_base(self.ob), 'productionState', None), None)
+        self.assertEqual(getattr(aq_base(self.ob), 'preMWProductionState', None), None)
 
 def test_suite():
     return unittest.makeSuite(TestProductionState)
