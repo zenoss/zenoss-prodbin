@@ -1,7 +1,8 @@
 VERSION  ?= 5.2.0
 BUILD_NUMBER ?= DEV
 BRANCH   ?= develop
-ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
+REVISION ?= 2
+ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(BRANCH).tar.gz
 
 DIST_ROOT := dist
 
