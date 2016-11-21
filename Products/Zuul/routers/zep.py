@@ -518,12 +518,13 @@ class EventsRouter(DirectRouter):
                 'message': params.get('message'),
             }
             parsed_params = self._filterParser.parseParams(params)
+            # ZEN23418: Add 1 sec to last_seen range filter,
+            # so that it includes {events: event['last_seen'] <= params['lastTime']}
             filter_params.update(parsed_params)
-
+            
             parsed_details = self._filterParser.parseDetails(details)
-            if len(parsed_details) > 0:
-                filter_params['details'].update(parsed_details)
-
+            if filter_params['last_seen'] is not None and len(filter_params['last_seen']) == 2:
+                filter_params['last_seen'][1] = filter_params['last_seen'][1]+1000
             event_filter = self.zep.createEventFilter(**filter_params)
             log.debug('Found params for building filter, ended up building  the following:')
             log.debug(event_filter)
