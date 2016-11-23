@@ -75,6 +75,7 @@ LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link
 
 def absolutifyPath(path):
     return urljoin('/zport/dmd', path)
+getVersionedPath = absolutifyPath
 
 
 class MainSnippetManager(JavaScriptSnippetManager):
