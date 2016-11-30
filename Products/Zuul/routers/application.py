@@ -17,8 +17,16 @@ from Products.Zuul.routers import TreeRouter
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.interfaces import IInfo, ITreeNode
+from Products.Zuul.marshalling import Marshaller
 
 log = logging.getLogger('zen.ApplicationRouter')
+
+_monkeys = ['ccbacked', 'leaf', 'name', 'text', 'devcount', 'path',
+            'type', 'id', 'uid']
+_appkeys = ['hostId', 'description', 'text', 'children', 'uid',
+            'qtip', 'uptime', 'leaf', 'name', 'isRestarting',
+            'id', 'state', 'autostart', 'type']
+_monitorprefix = '.zport.dmd.Monitors.Performance.'
 
 
 class ApplicationRouter(TreeRouter):
@@ -30,6 +38,72 @@ class ApplicationRouter(TreeRouter):
 
     def _monitorFacade(self):
         return Zuul.getFacade('monitors', self.context)
+
+    def asyncGetTree(self, id):
+        """
+        Returns the tree structure of the application and collector
+        hierarchy.
+
+        @type  id: string
+        @param id: Id of the root node of the tree to be returned
+        @rtype:   [dictionary]
+        @return:  Object representing the tree
+        """
+        try:
+            if not hasattr(id, '__iter__'):
+                return self._getOneTree(id)
+
+            trees = {i: self._getOneTree(i) for i in id}
+            treeKeys = self._getParentTreeKeys(trees)
+
+            # replace any children with expanded tree
+            for key in treeKeys:
+                children = trees[key]['children']
+                for i in range(len(children)):
+                    currentChild = children[i]
+                    if trees.has_key(currentChild['id']):
+                        children[i] = trees[currentChild['id']]
+
+            return trees['root']
+
+        except URLError as e:
+            log.exception(e)
+            return DirectResponse.fail(
+                "Error fetching daemons list: " + str(e.reason)
+            )
+
+    def _getParentTreeKeys(self, trees):
+        return ['root']
+
+    def _getOneTree(self, id):
+        if id.startswith(_monitorprefix):
+            return self._getMonitorTree(id)
+
+        appfacade = self._getFacade()
+        monitorfacade = Zuul.getFacade("monitors", self.context)
+
+        roots = []
+        monitors = [ITreeNode(m) for m in monitorfacade.query()]
+        for monitor in monitors:
+            monitordict = Marshaller(monitor).marshal(_monkeys)
+            if not appfacade.queryMonitorDaemons(monitor.name):
+                monitordict['children'] = []
+            roots.append(monitordict)
+        apps = [
+            IInfo(a) for a in appfacade.queryMasterDaemons()
+        ]
+        roots.extend([Marshaller(app).marshal(_appkeys) for app in apps])
+        return {'id': 'root', 'children': roots}
+
+    def _getMonitorTree(self, id):
+        appfacade = self._getFacade()
+        monitorfacade = Zuul.getFacade("monitors", self.context)
+        m = monitorfacade.getMonitor(id[len(_monitorprefix):])
+        monitor = ITreeNode(m)
+        apps = appfacade.queryMonitorDaemons(monitor.name)
+        for app in apps:
+            monitor.addChild(IInfo(app))
+        return Zuul.marshal(monitor)
 
     def getTree(self, id):
         """

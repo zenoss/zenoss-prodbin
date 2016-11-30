@@ -609,7 +609,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             keys: {}
         };
 
-        if (Zenoss.Security.hasPermission('Manage Device')) {
+        if (Zenoss.Security.hasPermission('Define Commands Edit')) {
             dialog = new Zenoss.SmartFormDialog(config);
             dialog.show();
         }else{ return false; }
@@ -1096,8 +1096,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'add',
                     tooltip: _t('Add a User Command'),
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Define Commands Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Define Commands Edit'),
                     ref: 'addButton',
                         handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid");
@@ -1107,8 +1107,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         xtype: 'button',
                         iconCls: 'delete',
                         tooltip: _t('Delete selected User Command'),
-                        requiredPermission: 'Maintenance Windows Edit', // change the line below as well
-                        disabled: Zenoss.Security.doesNotHavePermission('Maintenance Windows Edit'),
+                        requiredPermission: 'Define Commands Edit', // change the line below as well
+                        disabled: Zenoss.Security.doesNotHavePermission('Define Commands Edit'),
                         handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid"),
                                 data,
@@ -1144,8 +1144,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     xtype: 'button',
                     iconCls: 'customize',
                     tooltip: _t('Edit selected User Command'),
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Define Commands Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Define Commands Edit'),
                     ref: 'customizeButton',
                         handler: function() {
                             var grid = Ext.getCmp("deviceCommandsGrid"),
@@ -1164,8 +1164,8 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     iconCls: 'export',
                     tooltip: _t('Add selected User Command to ZenPack'),
                     ref: '../refreshButton',
-                    requiredPermission: 'Manage Device', // change the line below as well
-                    disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    requiredPermission: 'Define Commands Edit', // change the line below as well
+                    disabled: Zenoss.Security.doesNotHavePermission('Define Commands Edit'),
                     handler: function() {
                         var grid = Ext.getCmp("deviceCommandsGrid");
                         var zp_dialog = Ext.create('Zenoss.AddToZenPackWindow', {});
