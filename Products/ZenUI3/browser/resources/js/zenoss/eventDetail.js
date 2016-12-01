@@ -304,6 +304,8 @@ Ext.onReady(function() {
                         fieldDefaults: {
                             labelWidth: 1
                         },
+                        referenceHolder: true,
+                        defaultButton: 'addLogButton',
                         items: [{
                             id: 'detail-logform-evid',
                             xtype: 'hidden',
@@ -319,6 +321,7 @@ Ext.onReady(function() {
                             xtype: 'button',
                             type: 'submit',
                             name: 'add',
+                            reference: 'addLogButton',
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                             text: 'Add',
                             handler: function(btn, e) {
