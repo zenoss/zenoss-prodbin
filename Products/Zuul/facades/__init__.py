@@ -189,7 +189,7 @@ class TreeFacade(ZuulFacade):
                 globFilters[key] = value
         if qs:
             query = And(*qs)
-        
+
         orderby = sort
         startp = start
         limitp = limit
@@ -201,7 +201,7 @@ class TreeFacade(ZuulFacade):
             orderby = None
             startp = 0
             limitp = None
-       
+
         if prodStates:
             hashcheckp = None
             useProdStates = True
@@ -253,14 +253,14 @@ class TreeFacade(ZuulFacade):
             else:
                 sortedBrains = psFilteredbrains
 
-            
+
             # Pick out the correct range and build the SearchResults object
             start = max(start, 0)
             if limit is None:
                 stop = None
             else:
                 stop = start + limit
-            results = islice(sortedBrains, start, stop)   
+            results = islice(sortedBrains, start, stop)
             brains = SearchResults(results, totalCount, hash_, catbrains.areBrains)
         else:
             brains = catbrains
@@ -331,17 +331,16 @@ class TreeFacade(ZuulFacade):
         to move the organizer
         @param string organizerUid: unique id of the ogranizer we are moving
         """
-
         organizer = self._getObject(organizerUid)
         parent = organizer.getPrimaryParent()
         parent.moveOrganizer(targetUid, [organizer.id])
         target = self._getObject(targetUid)
-        # reindex all the devices under the organizer
+        # Get a list of the organizer's child objects to reindex
         childObjects = []
-        if isinstance(parent, DeviceOrganizer):
-            childObjects = parent.getSubDevices()
-        elif isinstance(parent, ComponentOrganizer):
-            childObjects = parent.getSubComponents()
+        if isinstance(organizer, DeviceOrganizer):
+            childObjects = organizer.getSubDevices()
+        elif isinstance(organizer, ComponentOrganizer):
+            childObjects = organizer.getSubComponents()
 
         for dev in childObjects:
             dev.index_object()
