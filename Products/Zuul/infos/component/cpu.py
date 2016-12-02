@@ -24,6 +24,7 @@ class CPUInfo(ComponentInfo):
     voltage = ProxyProperty('voltage')
     cacheSizeL1 = ProxyProperty('cacheSizeL1')
     cacheSizeL2 = ProxyProperty('cacheSizeL2')
+    cacheSizeL3 = ProxyProperty('cacheSizeL3')
 
     @property
     @info

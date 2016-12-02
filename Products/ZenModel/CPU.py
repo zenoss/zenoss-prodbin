@@ -36,6 +36,7 @@ class CPU(HWComponent):
     voltage = 0
     cacheSizeL1 = 0
     cacheSizeL2 = 0
+    cacheSizeL3 = 0
 
     _properties = (
          {'id':'socket', 'type':'int', 'mode':'w'},
@@ -44,6 +45,7 @@ class CPU(HWComponent):
          {'id':'voltage', 'type':'int', 'mode':'w'},        #Millivolts
          {'id':'cacheSizeL1', 'type':'int', 'mode':'w'},    #KBytes
          {'id':'cacheSizeL2', 'type':'int', 'mode':'w'},    #KBytes
+         {'id':'cacheSizeL3', 'type':'int', 'mode':'w'},    #KBytes
     )    
     
     _relations = HWComponent._relations + (
