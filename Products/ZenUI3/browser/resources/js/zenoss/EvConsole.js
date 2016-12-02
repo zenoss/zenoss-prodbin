@@ -114,7 +114,8 @@ Ext.onReady(function(){
         grid.on('recreateGrid', function (grid) {
             var container_panel = Ext.getCmp('master_panel');
             container_panel.remove(grid.id, true);
-            createEventConsoleGrid();
+            var new_grid = createEventConsoleGrid();
+            new_grid.on('afterrender', master_panel.fireEvent('events_grid_reloaded'));
         });
 
         hideEventDetail();
