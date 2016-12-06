@@ -147,7 +147,8 @@ class ManufacturersFacade(TreeFacade):
             if filt.lower() in instance.getDeviceName().lower():
                 instances.append({
                        'id': id,
-                        'device':instance.getDeviceName()
+                        'device':instance.getDeviceName(),
+                        'uid':instance.getDeviceUrl()
                 })
         return instances
 
