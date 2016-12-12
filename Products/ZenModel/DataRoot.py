@@ -861,7 +861,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         if prop == "emailFrom":
                             value = self.getEmailFrom()
                         elif prop == "smtpPort":
-                            notif_value = int(notif_value)
+                            try:
+                                notif_value = int(notif_value)
+                            except ValueError:
+                                # ZEN-26409: port is not convertible to an int,
+                                # so don't bother trying to make it equal value.
+                                pass
 
                         if notif_value != value:
                             notif_uses_system_props = False
