@@ -107,20 +107,18 @@
 </form>
 <br />
 
+<tal:block tal:define="tableName string:graphdeflist;
+        objects here/getGraphDefs;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='getId');
+        tabletitle string:Graph Definitions;
+		menu_id string:Graph_list_noseq">
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
                 name string:graphList">
     <input type="hidden" name="zenScreenName" 
         value="editMultiGraphReport" /> 
     <input type="hidden" name="redirect" value="true" />
-
-
-        <tal:block tal:define="tableName string:graphdeflist; 
-        objects here/getGraphDefs;
-        batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='getId'); 
-        tabletitle string:Graph Definitions;
-		menu_id string:Graph_list_noseq">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -168,20 +166,33 @@
         <td valign="top" tal:content="graph/height"/>
         <td valign="top" tal:content="graph/width"/>
     </tr>
-    <tr>
-        <td colspan="6" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
-        </td>
-    </tr>
     </tal:block>
 
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
         </tal:block>
-        </tal:block>
-        
+
 </form>
+
+    <table class="zentable">
+    <tr>
+        <td colspan="6" class="tableheader">
+            <form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphList">
+                <input type="hidden" name="zenScreenName"
+                    value="editMultiGraphReport" />
+                <input type="hidden" name="redirect" value="true" />
+                <input type='hidden' name='tableName' tal:attributes="value tableName" />
+                <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+            </form>
+        </td>
+    </tr>
+    </table>
+
+</tal:block>
+
 <br />
 
 
@@ -252,7 +263,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 </form>
 
 
