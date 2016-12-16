@@ -30,16 +30,19 @@ class AddZenossdbpackCmd(Migrate.Step):
             return
 
         # Update the zope service commands.
+        changed = False
         zopes = filter(lambda s: s.name == "Zope", ctx.services)
         log.info("Found %i services named 'Zope'." % len(zopes))
         if len(zopes) == 1:
             temp = commandListDict(zopes[0].commands)
             if not temp.has_key('zenossdbpack'):
                 temp.update(zenossdbpackCommand)
+                changed = True
             zopes[0].commands = commandDictList(temp)
             log.info("Updated Zope command list.")
         # Commit our changes.
-        ctx.commit()
+        if changed:
+            ctx.commit()
 
 
 AddZenossdbpackCmd()
