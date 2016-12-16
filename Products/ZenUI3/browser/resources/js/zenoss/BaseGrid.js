@@ -333,6 +333,9 @@
                 if (!col.isHidden() &&
                     Ext.isDefined(state[col.filterKey]) &&
                     !Ext.isEmpty(state[col.filterKey])) {
+                        if (col.filter.xtype == "daterange") {
+                            state[col.filterKey] = state[col.filterKey].replace("T", " ");
+                        }
                         col.filterField.setValue(state[col.filterKey]);
                 }
             });
