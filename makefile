@@ -1,8 +1,12 @@
-VERSION  ?= 5.2.0
+VERSION  ?= 5.2.1
 BUILD_NUMBER ?= DEV
-BRANCH   ?= develop
-REVISION ?= 3
-ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(BRANCH).tar.gz
+BRANCH   ?= support/5.2.x
+#
+# Use REVISION if you need to do something like a hotfix release.
+#
+# REVISION ?= 1
+# ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(BRANCH).tar.gz
+ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
 
 DIST_ROOT := dist
 
