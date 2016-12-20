@@ -854,15 +854,16 @@ class ZenMib(ZCmdBase):
             if dmdMibDict is not None and mibName in dmdMibDict: 
                 dmdMibPath = dmdMibDict[mibName] 
                 self.log.warn('MIB definition %s is already ' 
-                    'loaded at %s. Will reload it.' % (mibName, dmdMibPath)) 
-                self.dmd.Mibs.getOrganizer(dmdMibPath).removeMibModules([mibName]) 
+                    'loaded at %s. Will update it.' % (mibName, dmdMibPath)) 
+                mibModule = self.dmd.Mibs.mibs.findObjectsById(mibName)[0] 
 
             # Create the container for the MIBs and define meta-data.
             # In the DMD this creates another container class which
             # contains mibnodes.  These data types are found in
             # Products.ZenModel.MibModule and Products.ZenModel.MibNode
-            mibModule = self.dmd.Mibs.createMibModule(
-                mibName, dmdMibPath)
+            else:
+                mibModule = self.dmd.Mibs.createMibModule(
+                    mibName, dmdMibPath)
 
             def gen():
                 for key, val in pythonMib[mibName].iteritems():
