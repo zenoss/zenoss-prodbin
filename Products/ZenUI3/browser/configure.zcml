@@ -398,7 +398,8 @@
 
 <browser:viewlet
     name="zenoss_data"
-    manager=".interfaces.IMainSnippetManager"
+    weight="3"
+    manager=".interfaces.IJavaScriptSrcManager"
     class=".javascript.ZenossData"
     permission="zope2.Public"
     />
