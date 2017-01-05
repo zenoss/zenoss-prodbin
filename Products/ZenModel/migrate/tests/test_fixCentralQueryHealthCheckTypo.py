@@ -9,7 +9,7 @@ import common
 
 class Test_FixCentralQueryHealthCheckTypo(unittest.TestCase, common.ServiceMigrationTestCase):
     """
-    Test that CentralQuery HealthCheck typo, 'anwering' -> 'answering' has been fixed.
+    Test that credentials are updated for centralquery and metricconsumer
     """
     initial_servicedef = 'zenoss-resmgr-lite-5.1.0.json'
     expected_servicedef = 'zenoss-resmgr-lite-5.1.0-fixCentralQueryHealthCheckTypo.json'
