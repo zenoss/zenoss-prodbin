@@ -1,6 +1,21 @@
-VERSION  ?= 5.2.0
+#
+# The values of these 3 variables may be overriden by the calling job.
+# For instance, BUILD_NUMBER is typically set by the Jenkins job.
+#
+# Note that BRANCH is only used as modifier in the name of the ARTIFACT; it
+# is NOT an actual branch name and MUST be part of a valid file. For instance,
+# a value like "support/5.2.x" is NOT valid because it will result in an
+# incorrect file name when full value of ARTIFACT is expanded by make.
+#
+VERSION  ?= 5.2.1
 BUILD_NUMBER ?= DEV
-BRANCH   ?= develop
+BRANCH ?= support-5.2.x
+
+#
+# Use REVISION if you need to do something like a hotfix release.
+#
+# REVISION ?= 1
+# ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(BRANCH).tar.gz
 ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
 
 DIST_ROOT := dist

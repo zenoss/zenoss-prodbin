@@ -14,6 +14,7 @@ Operations for Device Organizers and Devices.
 Available at:  /zport/dmd/device_router
 """
 import logging
+from cgi import escape
 from itertools import islice
 from AccessControl import Unauthorized
 from Products.ZenUtils.Ext import DirectResponse
@@ -391,7 +392,7 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
-        result = [{'name':dev.name,
+        result = [{'name':escape(dev.name),
                    'uuid':IGlobalIdentifier(dev._object).getGUID()}
                   for dev in devices]
 
@@ -399,7 +400,7 @@ class DeviceRouter(TreeRouter):
             guidManager = IGUIDManager(self.context.dmd)
             device = guidManager.getObject(uuid)
             if device:
-                result.append({'name':device.name(), 'uuid':uuid})
+                result.append({'name':escape(device.name()), 'uuid':uuid})
 
         return DirectResponse.succeed(data=result)
 
