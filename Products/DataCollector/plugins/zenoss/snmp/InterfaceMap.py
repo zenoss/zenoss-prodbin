@@ -57,6 +57,9 @@ class InterfaceMap(SnmpPlugin):
         GetTableMap('ipAddressIfIndex', '.1.3.6.1.2.1.4.34.1.3.2',
                  {'.16': 'ifindex',}
         ),
+        GetTableMap('ipAddressPrefix', '.1.3.6.1.2.1.4.34.1.5.2',
+                 {'.16': 'netmaskv6'}
+        ),
         # Use the ipNetToMediaTable as a backup to the ipAddrTable
         GetTableMap('ipNetToMediaTable', '.1.3.6.1.2.1.4.22.1',
                 {'.1': 'ifindex',
@@ -104,7 +107,10 @@ class InterfaceMap(SnmpPlugin):
 
         # Add in IPv6 info
         ipv6table = tabledata.get("ipAddressIfIndex")
-        if ipv6table:
+        ipv6netmasktable = tabledata.get("ipAddressPrefix")
+        if ipv6table and ipv6netmasktable:
+            for key in ipv6table.keys():
+                ipv6table[key].update(ipv6netmasktable[key])
             iptable.update(ipv6table)
 
         iftable = tabledata.get("iftable")
@@ -189,6 +195,8 @@ class InterfaceMap(SnmpPlugin):
                 ip = row['ipAddress']
             if 'netmask' in row:
                 ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
+            if 'netmaskv6' in row:
+                ip = ip +"/"+ row['netmaskv6'].split('.')[-1]
 
             # Ignore IP addresses with a 0.0.0.0 netmask.
             if ip.endswith("/0"):
