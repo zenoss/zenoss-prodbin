@@ -218,6 +218,29 @@
             </script>
           </td>
         </tr>
+        <tr>
+          <td class="tableheader" align="left">Date format</td>
+          <td class="tablevalues">
+            <select id="user_settings_dateformat" name="dateFormat"></select>
+            <script tal:content='string:
+                 Zenoss.env.CURRENT_USER_DATE_FORMAT = "${context/dateFormat}" || Zenoss.USER_DATE_FORMAT;
+             '></script>
+            <script>
+              // build a select list with the current date format selected.
+              // Zenoss.data.timeZones comes from moment-timezone-data.js and
+              Ext.onReady(function() {
+                  var select = Ext.get('user_settings_dateformat').dom, formats = ['MM/DD/YY', 'DD/MM/YY', 'YY/MM/DD'], format, i;
+                  for (i = 0; i < formats.length; i++) {
+                      format = formats[i];
+                      select.options[i] = new Option(format, format);
+                      if (format === Zenoss.env.CURRENT_USER_DATE_FORMAT) {
+                          select.options[i].selected = true;
+                      }
+                  }
+             });
+            </script>
+          </td>
+        </tr>
 
         <tr>
             <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
