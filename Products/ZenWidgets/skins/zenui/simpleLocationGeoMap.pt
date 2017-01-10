@@ -20,7 +20,7 @@ v\:* {
         tal:condition="here/dmd/geomapapikey"
         tal:define="apikey here/dmd/geomapapikey"
         tal:attributes="
-            src string:https://maps.googleapis.com/maps/api/js?key=${apikey}&sensor=false"></script>
+            src string:https://maps.googleapis.com/maps/api/js?key=${apikey}"></script>
     <script tal:content="string:
         var eventsdb=true,
             geocodecache = ${here/getGeoCache};
