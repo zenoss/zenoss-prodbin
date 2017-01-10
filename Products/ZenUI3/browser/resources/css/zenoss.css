@@ -285,11 +285,9 @@ a:link, a:visited {
   text-align: right;
 }
 
-
-
-
-
-
+.time {
+  white-space: nowrap;
+}
 
 
 .no-events {
@@ -1771,7 +1769,6 @@ img.europaGraphGear {
     margin-left: 10px;
 }
 .message {
-  width: 100%;
   height: 40%;
 
 }
