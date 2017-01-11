@@ -22,7 +22,7 @@ class UpdateOpenTsdbCreateTables(Migrate.Step):
     See ZEN-22929
     """
 
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
         try:

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import time
@@ -18,11 +18,13 @@ class TestTime(BaseTestCase):
     """
 
     def testConvertingTime(self):
-        stamp = time.time()
-        chicago_time = Time.convertTimestampToTimeZone(stamp, "America/Chicago", "%H")
-        new_york_time = Time.convertTimestampToTimeZone(stamp, "America/New_York", "%H")
-        if int(chicago_time) != 12:
-            self.assertEquals(int(new_york_time), int(chicago_time) +1)
+        stamp = 1478592000 # This is November 8, 2016 at 8:00:00 AM UTC
+
+        chicago_time = Time.convertTimestampToTimeZone(stamp, "America/Chicago")
+        self.assertEquals('2016/11/08 02:00:00', chicago_time)
+
+        new_york_time = Time.convertTimestampToTimeZone(stamp, "America/New_York")
+        self.assertEquals('2016/11/08 03:00:00', new_york_time)
 
     def testInvalidTimeZoneGivesServerTime(self):
         """
@@ -32,8 +34,8 @@ class TestTime(BaseTestCase):
         current_time = Time.convertTimestampToTimeZone(stamp, "pepe", fmt="%H")
         server_time = Time.isoDateTime(stamp, fmt="%H")
         self.assertEquals(current_time, server_time)
-        
-        
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

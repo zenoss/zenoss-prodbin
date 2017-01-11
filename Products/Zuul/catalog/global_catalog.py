@@ -8,6 +8,7 @@
 ##############################################################################
 
 
+from cgi import escape
 from itertools import ifilterfalse, chain
 
 import zExceptions
@@ -258,7 +259,7 @@ class SearchableMixin(object):
         return self.searchKeywordsForChildren() + (o.meta_type,)
 
     def searchExcerpt(self):
-        return self._context.titleOrId()
+        return escape(self._context.titleOrId())
 
     def searchIcon(self):
         return self._context.getIconPath()
@@ -284,7 +285,7 @@ class ComponentWrapper(SearchableMixin,IndexableWrapper):
     def searchExcerpt(self):
         o = self._context
         return '%s <span style="font-size:smaller">(%s)</span>' % (
-            o.name(), o.device().titleOrId())
+            escape(o.name()), escape(o.device().titleOrId()))
 
 
 class DeviceWrapper(SearchableMixin,IndexableWrapper):
@@ -326,9 +327,9 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
         o = self._context
         if o.manageIp:
             return '%s <span style="font-size:smaller">(%s)</span>' % (
-                o.titleOrId(), o.manageIp)
+                escape(o.titleOrId()), o.manageIp)
         else:
-            return o.titleOrId()
+            return escape(o.titleOrId())
 
 
 class IpInterfaceWrapper(ComponentWrapper):
@@ -357,9 +358,9 @@ class IpInterfaceWrapper(ComponentWrapper):
         """
         How the results are displayed in the search drop-down
         """
-        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + ' '.join([
+        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + escape(' '.join([
                self._context.description,
-               ])
+               ]))
 
 
 class FileSystemWrapper(ComponentWrapper):
@@ -377,7 +378,7 @@ class DeviceOrganizerWrapper(SearchableMixin, IndexableWrapper):
         return (obj.getOrganizerName(), str(obj.description))
 
     def searchExcerpt(self):
-        return self._context.getOrganizerName()
+        return escape(self._context.getOrganizerName())
 
     def searchIcon(self):
         return "/zport/dmd/img/icons/folder.png"

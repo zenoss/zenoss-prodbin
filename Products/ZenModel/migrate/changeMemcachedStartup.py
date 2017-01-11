@@ -19,7 +19,7 @@ sm.require("1.0.0")
 class ChangeMemcachedStartup(Migrate.Step):
     "Change memcached startup to respect config file and update config file"
 
-    version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(107, 0, 0)
 
     def _update_config(self, config):
         USER_RE = r'USER="\w+"'
