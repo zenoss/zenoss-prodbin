@@ -1382,7 +1382,7 @@ Zenoss.date.renderWithTimeZone = function (value, format) {
 
 Zenoss.date.renderDateColumn = function(format) {
     return function(v) {
-        return Zenoss.date.renderWithTimeZone(v, format);
+        return Zenoss.date.renderWithTimeZone(v, format||Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
     };
 };
 
