@@ -9270,7 +9270,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   display: block !important;
   float: none !important;
   clear: both;
-  width: 480px !important; }
+  width: 100% !important; }
 
 #evdetail-sep {
   left: 35px !important; }
@@ -10454,7 +10454,7 @@ CORE TRIGGER PAGE STUFF
   text-decoration: none; }
 
 #evdetail_props .event_message, .proptable_value div {
-  width: 300px;
+  width: 100%;
   word-wrap: break-word; }
 
 /* ========================== */
