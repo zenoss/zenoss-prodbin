@@ -313,6 +313,13 @@ Ext.onReady(function() {
                             width: 300,
                             xtype: 'textfield',
                             name: 'message',
+                            listeners: {
+                                specialkey: function(formEl, e){
+                                    if (e.getCharCode() == Ext.EventObject.ENTER) {
+                                        this.up('form').down('button').handler()
+                                    }
+                                }
+                            },
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                             id: 'detail-logform-message'
                         },{
