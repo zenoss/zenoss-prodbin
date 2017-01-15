@@ -558,15 +558,19 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
+            var s_cookies = Ext.JSON.decode(Ext.util.Cookies.get("evDetailSectionsState"), true) || {};
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
             if (el.dom.style.display === "none") {
                 el.dom.style.display = "block";
+                s_cookies[section_id] = "expanded";
             }
             else {
                 el.dom.style.display = "none";
+                s_cookies[section_id] = "collapsed";
             }
-            
+            Ext.util.Cookies.set("evDetailSectionsState", Ext.JSON.encode(s_cookies));
+
             this.getBody().doLayout();
         },
 
@@ -772,10 +776,20 @@ Ext.onReady(function() {
                 }
             }, this);
         },
+        expandSections: function () {
+            var s_cookies = Ext.JSON.decode(Ext.util.Cookies.get("evDetailSectionsState"), true) || {};
+            Ext.each(this.sections, function(section) {
+                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
+                var section_state = (section.id in s_cookies) ? s_cookies[section.id] : null;
+                if (el && section_state == "expanded") {
+                    el.dom.style.display = "block";
+                }
+            }, this);
+        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
-                this.expandAll();
+                this.expandSections();
                 this.refresh();
             }
         },
