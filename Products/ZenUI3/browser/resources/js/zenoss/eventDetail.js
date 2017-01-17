@@ -625,7 +625,7 @@ Ext.onReady(function() {
             if (this.renderers.hasOwnProperty(key)) {
                 data = this.renderers[key](value, sourceData);
             }
-            else if (value) {
+            else if (value || typeof(value) == 'number') {
                 data = value;
             }
             else {
