@@ -558,15 +558,18 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
             if (el.dom.style.display === "none") {
                 el.dom.style.display = "block";
+                state[section_id] = true;
             }
             else {
                 el.dom.style.display = "none";
+                state[section_id] = false;
             }
-            
+            Ext.state.Manager.set("evDetailSectionsState", state);
             this.getBody().doLayout();
         },
 
@@ -772,10 +775,20 @@ Ext.onReady(function() {
                 }
             }, this);
         },
+        expandSections: function () {
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
+            Ext.each(this.sections, function(section) {
+                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
+                var section_state = (section.id in state) ? state[section.id] : false;
+                if (el && section_state) {
+                    el.dom.style.display = "block";
+                }
+            }, this);
+        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
-                this.expandAll();
+                this.expandSections();
                 this.refresh();
             }
         },
