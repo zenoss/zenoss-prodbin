@@ -252,6 +252,7 @@ class ZenossData(JavaScriptSnippet):
         user = self.context.dmd.ZenUsers.getUserSettings()
         timezone = user.timezone
         date_fmt = user.dateFormat
+        time_fmt = user.timeFormat
         snippet = """
           (function(){
             Ext.namespace('Zenoss.env');
@@ -261,8 +262,9 @@ class ZenossData(JavaScriptSnippet):
             Zenoss.env.productionStates = %r;
             Zenoss.USER_TIMEZONE = "%s" || jstz.determine().name();
             Zenoss.USER_DATE_FORMAT = "%s" || "MM/DD/YY";
+            Zenoss.USER_TIME_FORMAT = "%s" || "HH:mm:ss";
           })();
-        """ % ( collectors, priorities, productionStates, timezone, date_fmt )
+        """ % ( collectors, priorities, productionStates, timezone, date_fmt, time_fmt )
         return SCRIPT_TAG_TEMPLATE % snippet
 
 class BrowserState(JavaScriptSnippet):
