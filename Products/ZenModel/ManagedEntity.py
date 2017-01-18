@@ -30,7 +30,29 @@ from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager, ProdStateNotSetError
 from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
-from Acquisition import aq_parent
+from Acquisition import aq_parent, ImplicitAcquisitionWrapper
+
+class ImplicitAcquisitionWrapper_ManagedEntity(ImplicitAcquisitionWrapper):
+    # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
+    #  so rather than creating a property, we will we need to override __getattribute__, __setattr__, and __delattr__
+    def __getattribute__(self, name):
+        if name=="productionState":
+            return self.getProductionState()
+        else:
+            return super(ImplicitAcquisitionWrapper_ManagedEntity, self).__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        if name=="productionState":
+            self._setProductionState(value)
+        else:
+            super(ImplicitAcquisitionWrapper_ManagedEntity, self).__setattr__(name, value)
+
+    def __delattr__(self, name):
+        if name=="productionState":
+            self.resetProductionState()
+        else:
+            super(ImplicitAcquisitionWrapper_ManagedEntity, self).__delattr__(name)
+
 
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
@@ -102,47 +124,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     #  source code to handle it properly. The modifications to Acquisition can be seen here:
     #  https://github.com/zenoss/Acquisition/pull/1
     def __of__(self, container):
-
-        # Call zope's wrapper
-        wrappedObject = super(ManagedEntity, self).__of__(container)
-
-        # Get the class and type of the wrapped object
-        cls = wrappedObject.__class__
-        type_obj = type(wrappedObject)
-
-        wrapperSubclassName = cls.__name__ + '_' + type_obj.__name__ + '_prodStateProperty'      
-
-        # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
-        #  so rather than creating a property, we will we need to override __getattribute__, __setattr__, and __delattr__
-        def wrappergetattribute(self, name):
-            if name=="productionState":
-                return self.getProductionState()
-            else:
-                return type_obj.__getattribute__(self, name)
-
-        def wrappersetattr(self, name, value):
-            if name=="productionState":
-                self._setProductionState(value)
-            else:
-                type_obj.__setattr__(self, name, value)
-
-        def wrapperdelattr(self, name):
-            if name=="productionState":
-                self.resetProductionState()
-            else:
-                type_obj.__delattr__(self, name)
-
-        wrapper_subclass_dict = {'__getattribute__': wrappergetattribute,
-                                 '__setattr__'     : wrappersetattr,
-                                 '__delattr__'     : wrapperdelattr
-                                }
-
-        # create our new wrapper type, subclassing zope's wrapper and overriding the three methods
-        wrapper_subclass = type(wrapperSubclassName, (type_obj,),wrapper_subclass_dict)
-
-        # Wrap the object with our wrapper sub-class
-        result = wrapper_subclass(self, container)
-        return result
+        return ImplicitAcquisitionWrapper_ManagedEntity(self, container)
 
     def getProductionStateString(self):
         """
