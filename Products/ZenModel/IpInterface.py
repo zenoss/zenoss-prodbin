@@ -333,7 +333,7 @@ class IpInterface(OSComponent, Layer2Linkable):
                 # is a primary id /zport/dmd/Networks... etc
                 # and we are looking for just the IP part
                 # we used the full id later when deleting the IPs
-                rawip = ipFromIpMask(ip)
+                rawip = ipFromIpMask(ipwrap(ip))
                 ipmatch = filter(lambda x: x.find(rawip) > -1, ipids)
                 if not ipmatch:
                     try:
