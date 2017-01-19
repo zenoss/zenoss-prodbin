@@ -96,13 +96,11 @@ class HRFileSystemMap(SnmpPlugin):
                 log.debug('Switching mount from %s to %s', fs['mount'], rmount)
                 fs['storageDevice'] = rmount
 
-            totalBlocks = fs['totalBlocks']
-
-            # This may now be a redundant check. Candidate for removal.
-            #   http://dev.zenoss.org/trac/ticket/4556
-            if totalBlocks < 0:
+            # Large file systems can report as an unsigned integer
+            if fs['totalBlocks'] < 0:
                 fs['totalBlocks'] = unsigned(totalBlocks)
 
+            totalBlocks = fs['totalBlocks']            
             size = long(fs['blockSize'] * totalBlocks)
             if size <= 0:
                 log.info("Skipping %s. 0 total blocks.", fs['mount'])
