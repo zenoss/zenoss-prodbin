@@ -11,6 +11,7 @@
 from twisted.internet import defer
 from twisted.spread import pb
 import logging
+import hashlib
 
 from Acquisition import aq_parent
 from zope import component
@@ -263,6 +264,20 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
         return deviceConfigs
+
+    @translateError
+    def remote_getEncryptionKey(self):
+        # Get or create an encryption key for this collector
+        try:
+            key = self._prefs._encryption_key
+        except AttributeError:
+            key = self._prefs._encryption_key = Fernet.generate_key()
+        # Hash the key with the daemon identifier to get unique key per collector daemon
+        s = hashlib.sha256()
+        s.update(key)
+        s.update(self.__class__.__name__)
+        s.update(instance)
+        return s.hexdigest()
 
     def _postCreateDeviceProxy(self, deviceConfigs):
         pass
