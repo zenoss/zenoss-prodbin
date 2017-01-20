@@ -22,7 +22,7 @@ creds = """zenossCredentials:
 """
 
 
-class FixConsumerQueryCreds(Migrate.Step):
+class FixConsumerAndQueryCreds(Migrate.Step):
     """Fix the credentials for consumer and query services"""
 
     version = Migrate.Version(108, 0, 0)
@@ -57,4 +57,4 @@ class FixConsumerQueryCreds(Migrate.Step):
         ctx.commit()
 
 
-FixConsumerQueryCreds()
+FixConsumerAndQueryCreds()
