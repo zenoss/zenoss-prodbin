@@ -18,7 +18,7 @@ import Migrate
 
 class addzCommandUserCommandTimeout(Migrate.Step):
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
         if not hasattr(dmd.Devices, 'zCommandUserCommandTimeout'):

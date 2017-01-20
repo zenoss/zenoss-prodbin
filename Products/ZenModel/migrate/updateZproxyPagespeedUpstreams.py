@@ -190,7 +190,7 @@ http {
 
 class UpdateZproxyPagespeedUpstreams(Migrate.Step):
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     config_file = "/opt/zenoss/zproxy/conf/zproxy-nginx.conf"
     save_file = "/opt/zenoss/var/ext/zproxy-nginx.conf.orig"

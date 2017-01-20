@@ -22,7 +22,7 @@ class FixMariadbHealthCheck(Migrate.Step):
     Use different curl request to prevent `authentication failed` spam in audit.log
     """
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
 
