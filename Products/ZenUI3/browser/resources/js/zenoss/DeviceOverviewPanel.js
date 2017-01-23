@@ -1221,6 +1221,7 @@
                 } else {
                     Ext.getCmp('device-connection-editlink').show();
                 }
+                D.deviceConnectionInfo = Ext.String.htmlEncode(D.deviceConnectionInfo);
                 this.setValues(D);
 
                 // load uptime in a separate request since it
