@@ -18,7 +18,7 @@ sm.require("1.0.0")
 
 class AddHBaseMetricsConfig(Migrate.Step):
     """ Set metrics reporting frequency to 15 secs. See ZEN-25317 """
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
         try:
