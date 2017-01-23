@@ -38,11 +38,11 @@
 
     function isSingleComponentChart(pts){
 
-        let allTheSame = true;
-        let first = true;
-        let componentName = "";
+        var allTheSame = true;
+        var first = true;
+        var componentName = "";
         pts.forEach(function(pt){
-            let cname = pt.legend.substr(0,pt.legend.indexOf(" "));
+            var cname = pt.legend.substr(0,pt.legend.indexOf(" "));
             allTheSame = allTheSame && ( componentName === cname || first );
             componentName = cname;
             first = false;
@@ -53,7 +53,7 @@
     function removeRepeatedComponent(pts) {
         // Remove repeated component name from beginning of all strings
         pts.forEach(function (pt) {
-            let componentName = pt.name.substr(0,pt.name.indexOf(' '));
+            var componentName = pt.name.substr(0,pt.name.indexOf(' '));
             pt.legend = pt.legend.substr(componentName.length).trim();
             // also trim off any leading "- " strings
             if (pt.legend.substr(0, 2) === "- ") {
@@ -79,7 +79,7 @@
                 pt.legend = pt.legend.replace(u, truncd);
             }, this);
             // remove used redundancy
-            let usedused = pt.legend.indexOf('usedBlocks Used');
+            var usedused = pt.legend.indexOf('usedBlocks Used');
             if ( usedused > 0) {
                 pt.legend = pt.legend.substr(0, usedused) + "Used";
             }
