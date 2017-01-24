@@ -15,13 +15,15 @@ and builds the nessesary DEF and CDEF statements for it.
 """
 
 from Products.ZenModel import RRDDataSource
+from Products.ZenModel.Commandable import Commandable
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, xorCryptString
 from Products.ZenWidgets import messaging
 from copy import copy
+import base64
 import cgi, time
 
 snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
@@ -46,8 +48,9 @@ class SnmpCommand(object):
     '''
     def __init__(self, snmpinfo):
         self.snmpinfo = snmpinfo
+        self.command, self.display = self._getCommand()
 
-    def getCommand(self):
+    def _getCommand(self):
         command = snmptemplate % self.snmpinfo
 
         if self.snmpinfo['zSnmpVer'] != 'v3':
@@ -71,8 +74,19 @@ class SnmpCommand(object):
 
         return (command, display)
 
+class RemoteSshCommand(object):
+    def __init__(self, command, device):
+        self._template = "/opt/zenoss/bin/runRemoteSsh.py --cmd='{}' --device_name={} --host={} --username={}\
+                         --password={} --port={} --login_tries={} --search_path={} --existance_test='{}'\
+                         --login_timeout={} --command_timeout={} --key_path={} --concurrent_sessions={}"
+        self.command = self._template.format(command, device.title, device.manageIp,
+                           xorCryptString(device.zCommandUsername, encode=True),
+                           xorCryptString(device.zCommandPassword, encode=True),
+                           device.zCommandPort, device.zCommandLoginTries,
+                           device.zCommandSearchPath, device.zCommandExistanceTest, device.zCommandLoginTimeout,
+                           device.zCommandCommandTimeout, device.zKeyPath, device.zSshConcurrentSessions)
 
-class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
+class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
 
     __pychecker__='no-override'
 
@@ -198,15 +212,18 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         command = None
         if self.sourcetype=='COMMAND':
             # to prevent command injection, get these from self rather than the browser REQUEST
-            command = self.getCommand(device, self.get('commandTemplate'))
-            displayCommand = command
+            self.command = self.getCommand(device, self.get('commandTemplate'))
+            displayCommand = self.command
+            command = self.compile(self, device)
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
-            command, displayCommand = SnmpCommand(snmpinfo).getCommand()
+            snmpCommand = SnmpCommand(snmpinfo)
+            displayCommand = snmpCommand.display
+            command = self.compile(snmpCommand, device)
         else:
             errorLog(
                 'Test Failed',
@@ -232,9 +249,14 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
         write('')
         start = time.time()
+        remoteCollector = device.getPerformanceServer().id != 'localhost'
         try:
             if self.usessh:
-                executeSshCommand(device, command, write)
+                if remoteCollector:
+                    command = self.compile(RemoteSshCommand(self.command, device), device)
+                    executeStreamCommand(command, write)
+                else: 
+                    executeSshCommand(device, self.command, write)
             else:
                 executeStreamCommand(command, write)
         except:
