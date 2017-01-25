@@ -277,13 +277,9 @@ for a ZenPack.
         try:
             if id.startswith('/'):
                 obj = getObjByPath2(self.app, id)
-            # Checks whether this mib exists in our system
-            elif attrs.get('class') in ['MibNode', 'MibNotification']:
-                obj = self.dmd.getDmdRoot("Mibs").mibSearch(
-                    id=attrs.get('id'))[0].getObject()
             else:
                 obj = self.context()._getOb(id)
-        except (KeyError, AttributeError, IndexError, NotFound):
+        except (KeyError, AttributeError, NotFound):
             pass
 
         if obj is None:
