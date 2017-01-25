@@ -669,12 +669,21 @@ Ext.onReady(function() {
             // the log form.
             Ext.getCmp('detail-logform-evid').setValue(eventData.evid);
 
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             // Update the data sections
             Ext.each(this.sections, function(section) {
                 var cmp = Ext.getCmp(section.id),
-                    html;
+                    html, el = cmp.getEl();
                 html = section.generateHtml(renderedData, eventData);
                 cmp.update(html);
+                var section_state = (section.id in state) ? state[section.id] : false;
+                if (el) {
+                   if (section_state) {
+                       el.dom.style.display = "block";
+                   } else {
+                       el.dom.style.display = "none";
+                   }
+               }
             }, this);
 
             // Update Logs
@@ -767,28 +776,9 @@ Ext.onReady(function() {
         wipe: function() {
             // hook to perform clean up actions when the panel is closed
         },
-        expandAll: function() {
-            Ext.each(this.sections, function(section) {
-                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
-                if (el) {
-                    el.dom.style.display = "block";
-                }
-            }, this);
-        },
-        expandSections: function () {
-            var state = Ext.state.Manager.get("evDetailSectionsState", {});
-            Ext.each(this.sections, function(section) {
-                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
-                var section_state = (section.id in state) ? state[section.id] : false;
-                if (el && section_state) {
-                    el.dom.style.display = "block";
-                }
-            }, this);
-        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
-                this.expandSections();
                 this.refresh();
             }
         },
