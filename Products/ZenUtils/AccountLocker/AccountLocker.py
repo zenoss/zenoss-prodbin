@@ -31,9 +31,7 @@ log = logging.getLogger('AccountLocker')
 
 TOOL = 'AccountLocker'
 PLUGIN_ID = 'account_locker_plugin'
-PLUGIN_TITLE = 'Disable account after failed login attempts plugin.'
-
-
+PLUGIN_TITLE = 'Lock an account after numerous failed login attempts'
 
 class Locked(Exception):
     pass
@@ -286,4 +284,44 @@ classImplements(AccountLocker,
 
 
 InitializeClass(AccountLocker)
+
+def setup(context):
+
+    def activatePluginForInterfaces(pas, plugin, selected_interfaces):
+        plugin_obj = pas[plugin]
+        activatable = []
+        for info in plugin_obj.plugins.listPluginTypeInfo():
+            interface = info['interface']
+            interface_name = info['id']
+            if plugin_obj.testImplements(interface) and \
+                    interface_name in selected_interfaces:
+                    activatable.append(interface_name)
+
+        plugin_obj.manage_activateInterfaces(activatable)
+
+
+    def movePluginToTop(pas, plugin_id, interface_name):
+        plugin_registry = pas.plugins
+        interface = plugin_registry._getInterfaceFromName(interface_name)
+        while plugin_registry.listPlugins(interface)[0][0] != plugin_id:
+            plugin_registry.movePluginsUp(interface, [plugin_id])
+
+
+    app = context.getPhysicalRoot()
+    zport = app.zport
+    
+    app_acl = getToolByName(app, 'acl_users')
+    zport_acl = getToolByName(zport, 'acl_users')
+
+    context_interfaces = {app_acl:('IAuthenticationPlugin', 'IAnonymousUserFactoryPlugin'),
+                zport_acl:('IAuthenticationPlugin',)}
+
+    for context in context_interfaces:
+        manage_addAccountLocker(context, PLUGIN_ID, PLUGIN_TITLE)
+
+    for context, interfaces in context_interfaces.iteritems():
+        activatePluginForInterfaces(context, PLUGIN_ID, interfaces)
+
+    for context in context_interfaces:
+        movePluginToTop(context, PLUGIN_ID, 'IAuthenticationPlugin')
 

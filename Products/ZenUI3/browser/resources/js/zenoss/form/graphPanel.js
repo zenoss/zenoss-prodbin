@@ -36,62 +36,6 @@
         });
     }
 
-    function isSingleComponentChart(pts){
-
-        var allTheSame = true;
-        var first = true;
-        var componentName = "";
-        pts.forEach(function(pt){
-            var cname = pt.legend.substr(0,pt.legend.indexOf(" "));
-            allTheSame = allTheSame && ( componentName === cname || first );
-            componentName = cname;
-            first = false;
-        });
-        return allTheSame;
-    }
-
-    function removeRepeatedComponent(pts) {
-        // Remove repeated component name from beginning of all strings
-        pts.forEach(function (pt) {
-            var componentName = pt.name.substr(0,pt.name.indexOf(' '));
-            pt.legend = pt.legend.substr(componentName.length).trim();
-            // also trim off any leading "- " strings
-            if (pt.legend.substr(0, 2) === "- ") {
-                pt.legend = pt.legend.substr(2);
-            }
-        });
-    }
-    
-    function truncateLongLegends(pts) {
-        var uRex1 = /[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/gi;
-        var uRex2 = /[0-9a-f]{64}/gi;
-
-        pts.forEach(function (pt) {
-            // ZEN-26498 truncate UUIDs when present. 
-            var uDashed = pt.legend.match(uRex1) || [];
-            uDashed.forEach(function (u) {
-                var trunc = u.substr(0, 2) + ".." + u.substr(31);
-                pt.legend = pt.legend.replace(u, trunc);
-            }, this);
-            var uHexed = pt.legend.match(uRex2) || [];
-            uHexed.forEach(function (u) {
-                var truncd = u.substr(0, 2) + ".." + u.substr(59);
-                pt.legend = pt.legend.replace(u, truncd);
-            }, this);
-            // remove used redundancy
-            var usedused = pt.legend.indexOf('usedBlocks Used');
-            if ( usedused > 0) {
-                pt.legend = pt.legend.substr(0, usedused) + "Used";
-            }
-            // Now impose 40 characters max length but keep last word
-            if (pt.legend.length > 40) {
-                var allWords = pt.legend.split(' ');
-                var lastWord = allWords[allWords.length-1];
-                pt.legend = pt.legend.substr(0,40-lastWord.length) + "..." + lastWord;
-            }
-        });
-    }
-    
     var router = Zenoss.remote.DeviceRouter,
 
         CURRENT_TIME = "0s-ago",
@@ -328,13 +272,6 @@
 
         },
         initChart: function() {
-            if(isSingleComponentChart(this.datapoints)) {
-                [this.datapoints, this.thresholds].forEach(function (datapts) {
-                    removeRepeatedComponent(datapts);
-                }, this);
-            }
-            truncateLongLegends(this.datapoints);
-
             // these assume that the graph panel has already been rendered
             var height = this.getEl().getHeight();
             var visconfig = {

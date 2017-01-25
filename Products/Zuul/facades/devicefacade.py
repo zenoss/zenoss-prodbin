@@ -948,10 +948,6 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
-            # ZEN-26498 Identify Docker containers by name
-            if meta_type == 'DockerContainer':
-                for docker in components:
-                    docker.id = docker.name()
             return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
 
         graphs = []
