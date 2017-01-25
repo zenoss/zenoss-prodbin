@@ -22,7 +22,7 @@ from Products.ZenUtils.AccountLocker.AccountLocker import setup
 
 class AddAccountLocker(Migrate.Step):
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(109, 0, 0)
 
     def cutover(self, dmd):
         
