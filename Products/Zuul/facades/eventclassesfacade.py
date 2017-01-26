@@ -163,6 +163,41 @@ class EventClassesFacade(TreeFacade):
         })
         return transforms
 
+    def isTransformEnabled(self, uid):
+        """
+        Returns True if transform is enabled, False if disabled.
+        """
+        obj = self._getObject(uid)
+        return obj.transformEnabled
+
+    def setTransformEnabled(self, uid, enabled):
+        """
+        Enables or disables transforms on the given event class.
+        When disabled transforms are enabled again, bad_transform events are cleared.
+        """
+        obj = self._getObject(uid)
+        obj.transformEnabled = bool(enabled)
+
+        if obj.transformEnabled:
+            # clear events about disabled transform
+            zem = self._dmd.ZenEventManager
+            prefix = '/zport/dmd/Events'
+            if uid.startswith(prefix):
+                eventclass_name = uid[len(prefix):]
+            else:
+                eventclass_name = uid
+            evt = dict(
+                summary='Clear event about failed/disabled transform.',
+                eventClass='/App/Zenoss',
+                eventKey='transform_failed',
+                device=zem.host,
+                severity=0,
+                component=eventclass_name
+            )
+            zem.sendEvent(evt)
+            evt['eventKey'] = 'transform_disabled'
+            zem.sendEvent(evt)
+        return obj.transformEnabled
 
     def editEventClassDescription(self, uid, description):
         """
