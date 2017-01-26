@@ -14,15 +14,14 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
+from servicemigration import HealthCheck
 sm.require("1.0.0")
 
 
-class FixZauthHealthCheck(Migrate.Step):
-    """
-    Use different curl request to prevent `authentication failed` spam in audit.log
-    """
+class AddWebSocketHealthCheck(Migrate.Step):
+    """Add `websocket_opened` healthcheck to MetricShipper service"""
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(108,0,0)
 
     def cutover(self, dmd):
 
@@ -32,14 +31,18 @@ class FixZauthHealthCheck(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        zauths = filter(lambda s: s.name == "Zauth", ctx.services)
-        for zauth in zauths:
-            healthChecks = filter(lambda hc: hc.name == "answering", zauth.healthChecks)
-            for check in healthChecks:
-                check.script = "curl -o /dev/null -w '%{redirect_url}' -s http://localhost:9180/zport/dmd | grep -q acl_users"
-                log.info("Updated 'answering' healthcheck.")
+        websocket_opened_healthcheck = HealthCheck(
+            name="websocket_opened",
+            interval=10.0,
+            script="/opt/zenoss/bin/healthchecks/MetricShipper/websocket_opened"
+        )
+
+        MetricShipper_service = filter(lambda s: s.name == "MetricShipper", ctx.services)[0]
+
+        if not filter(lambda c: c.name == 'websocket_opened', MetricShipper_service.healthChecks):
+            MetricShipper_service.healthChecks.append(websocket_opened_healthcheck)
 
         ctx.commit()
 
+AddWebSocketHealthCheck()
 
-FixZauthHealthCheck()

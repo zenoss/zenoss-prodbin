@@ -610,6 +610,8 @@ class UserSettings(ZenModelRM):
     zenossNetUser = ''
     zenossNetPassword = ''
     timezone = ''
+    dateFormat = ''
+    timeFormat = ''
 
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
@@ -626,6 +628,8 @@ class UserSettings(ZenModelRM):
         {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
         {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
         {'id':'timezone', 'type':'string', 'mode':'w'},
+        {'id':'dateFormat', 'type':'string', 'mode':'w'},
+        {'id':'timeFormat', 'type':'string', 'mode':'w'},
     )
 
 
