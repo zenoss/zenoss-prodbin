@@ -245,6 +245,10 @@ class CollectorDaemon(RRDDaemon):
         self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
+        # Used in resmgr. True once we have finished loading the configs
+        # for the first time after a restart
+        self.firstConfigLoadDone = False
+
     def buildOptions(self):
         """
         Method called by CmdBase.__init__ to build all of the possible
