@@ -37,3 +37,6 @@ zendev devimg --clean
 
 echo Running tests...
 zendev test --no-tty -- --no-zenpacks || echo "Test failed.";exit 1
+
+echo Building the artifact
+cdz ${REPO_NAME};make clean build
