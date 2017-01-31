@@ -39,12 +39,19 @@ from twisted.internet import defer
 from Products.ZenHub.interfaces import ICollectorEventTransformer
 
 from Products.ZenCollector.daemon import CollectorDaemon
-from Products.ZenCollector.interfaces import ICollector, ICollectorPreferences, \
-    IEventService, \
-    IScheduledTask, IStatisticsService
-from Products.ZenCollector.tasks import SimpleTaskFactory,\
-                                        SimpleTaskSplitter,\
-                                        BaseTask, TaskStates
+from Products.ZenCollector.interfaces import (
+    ICollector,
+    ICollectorPreferences,
+    IEventService,
+    IScheduledTask,
+    IStatisticsService
+)
+from Products.ZenCollector.tasks import (
+    SimpleTaskFactory,
+    SimpleTaskSplitter,
+    BaseTask,
+    TaskStates
+)
 from Products.ZenUtils.observable import ObservableMixin
 
 
@@ -52,13 +59,12 @@ from pynetsnmp import netsnmp, twistedsnmp
 
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
-from Products.ZenUtils.Utils import unused
 from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
 from Products.ZenEvents.ZenEventClasses import Clear, Critical, Error
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
-unused(Globals, DeviceProxy, User)
+unused(Globals, DeviceProxy, User, Error, zenPath)
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
@@ -68,11 +74,13 @@ family = [('family', c.c_ushort)]
 if sys.platform == 'darwin':
     family = [('len', c.c_ubyte), ('family', c.c_ubyte)]
 
+
 class sockaddr_in(c.Structure):
     _fields_ = family + [
         ('port', c.c_ubyte * 2),     # need to decode from net-byte-order
         ('addr', c.c_ubyte * 4),
-        ]
+    ]
+
 
 class sockaddr_in6(c.Structure):
     _fields_ = family + [
@@ -80,7 +88,7 @@ class sockaddr_in6(c.Structure):
         ('flow', c.c_ubyte * 4),
         ('addr', c.c_ubyte * 16),
         ('scope_id', c.c_ubyte * 4),
-        ]
+    ]
 
 _pre_parse_factory = c.CFUNCTYPE(c.c_int,
                                  c.POINTER(netsnmp.netsnmp_session),
@@ -95,6 +103,7 @@ netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
 SNMPv1 = 0
 SNMPv2 = 1
 SNMPv3 = 3
+
 
 class FakePacket(object):
     """
@@ -113,8 +122,8 @@ class SnmpTrapPreferences(CaptureReplay):
         provides default values for needed attributes.
         """
         self.collectorName = 'zentrap'
-        self.configCycleInterval = 20 # minutes
-        self.cycleInterval = 5 * 60 # seconds
+        self.configCycleInterval = 20  # minutes
+        self.cycleInterval = 5 * 60  # seconds
 
         # The configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
@@ -123,7 +132,7 @@ class SnmpTrapPreferences(CaptureReplay):
         # Will be filled in based on buildOptions
         self.options = None
 
-        self.configCycleInterval = 20*60
+        self.configCycleInterval = 20 * 60
         self.task = None
 
     def postStartupTasks(self):
@@ -139,20 +148,29 @@ class SnmpTrapPreferences(CaptureReplay):
             TRAP_PORT = socket.getservbyname('snmptrap', 'udp')
         except socket.error:
             pass
-        parser.add_option('--trapport', '-t',
-            dest='trapport', type='int', default=TRAP_PORT,
-            help="Listen for SNMP traps on this port rather than the default")
-        parser.add_option('--useFileDescriptor',
-                               dest='useFileDescriptor',
-                               type='int',
-                               help=("Read from an existing connection "
-                                     " rather than opening a new port."),
-                               default=None)
-        parser.add_option('--trapFilterFile',
-                          dest='trapFilterFile',
-                          type='string',
-                          help=("File that contains trap oids to keep, should be in $ZENHOME/etc."),
-                          default=None)
+        parser.add_option(
+            '--trapport', '-t',
+            dest='trapport',
+            type='int',
+            default=TRAP_PORT,
+            help="Listen for SNMP traps on this port rather than the default"
+        )
+        parser.add_option(
+            '--useFileDescriptor',
+            dest='useFileDescriptor',
+            type='int',
+            help=("Read from an existing connection "
+                  "rather than opening a new port."),
+            default=None
+        )
+        parser.add_option(
+            '--trapFilterFile',
+            dest='trapFilterFile',
+            type='string',
+            help=("File that contains trap oids to keep, "
+                  "should be in $ZENHOME/etc."),
+            default=None
+        )
 
         self.buildCaptureReplayOptions(parser)
 
@@ -164,6 +182,7 @@ class SnmpTrapPreferences(CaptureReplay):
         statService = zope.component.queryUtility(IStatisticsService)
         statService.addStatistic("events", "COUNTER")
 
+
 def ipv6_is_enabled():
     "test if ipv6 is enabled"
 
@@ -172,11 +191,12 @@ def ipv6_is_enabled():
 
     try:
         socket.socket(socket.AF_INET6, socket.SOCK_DGRAM, 0)
-    except socket.error, e:
+    except socket.error as e:
         if e.errno == errno.EAFNOSUPPORT:
             return False
         raise
     return True
+
 
 class TrapTask(BaseTask, CaptureReplay):
     """
@@ -188,7 +208,7 @@ class TrapTask(BaseTask, CaptureReplay):
     def __init__(self, taskName, configId,
                  scheduleIntervalSeconds=3600, taskConfig=None):
         BaseTask.__init__(self, taskName, configId,
-                 scheduleIntervalSeconds, taskConfig)
+                          scheduleIntervalSeconds, taskConfig)
         self.log = log
 
         # Needed for interface
@@ -208,14 +228,19 @@ class TrapTask(BaseTask, CaptureReplay):
 
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
-        self.session=None
+        self.session = None
         self._replayStarted = False
         if not self.options.replayFilePrefix:
             trapPort = self._preferences.options.trapport
             if not self._preferences.options.useFileDescriptor and trapPort < 1024:
                 listen_ip = "ipv6" if ipv6_is_enabled() else "0.0.0.0"
-                # Makes call to zensocket here (does an exec* so it never returns)
-                self._daemon.openPrivilegedPort('--listen', '--proto=udp', '--port=%s:%d' % (listen_ip, trapPort))
+                # Makes call to zensocket here
+                # does an exec* so it never returns
+                self._daemon.openPrivilegedPort(
+                    '--listen',
+                    '--proto=udp',
+                    '--port=%s:%d' % (listen_ip, trapPort)
+                )
                 self.log("Unexpected return from openPrivilegedPort. Exiting.")
                 sys.exit(1)
 
@@ -232,7 +257,10 @@ class TrapTask(BaseTask, CaptureReplay):
                 fileno = -1
             self._pre_parse_callback = _pre_parse_factory(self._pre_parse)
             debug = self.log.isEnabledFor(logging.DEBUG)
-            self.session.awaitTraps(listening_address, fileno, self._pre_parse_callback, debug)
+            self.session.awaitTraps(listening_address,
+                                    fileno,
+                                    self._pre_parse_callback,
+                                    debug)
             self.session.callback = self.receiveTrap
             twistedsnmp.updateReactor()
 
@@ -243,7 +271,7 @@ class TrapTask(BaseTask, CaptureReplay):
         """
         if self.options.replayFilePrefix and not self._replayStarted:
             log.debug("Replay starting...")
-            self._replayStarted=True
+            self._replayStarted = True
             self.replayAll()
             log.debug("Replay done...")
             return
@@ -268,7 +296,7 @@ class TrapTask(BaseTask, CaptureReplay):
             "Convert a pointer to an array of longs to an OID"
             return '.'.join([str(ptr[i]) for i in range(length)])
 
-        if hasattr(pdu, "fake"): # Replaying a packet
+        if hasattr(pdu, "fake"):  # Replaying a packet
             enterprise = pdu.enterprise
         else:
             enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
@@ -283,7 +311,7 @@ class TrapTask(BaseTask, CaptureReplay):
         @return: variables from the PDU or Fake packet
         @rtype: dictionary
         """
-        if hasattr(pdu, "fake"): # Replaying a packet
+        if hasattr(pdu, "fake"):  # Replaying a packet
             variables = pdu.variables
         else:
             variables = netsnmp.getResult(pdu)
@@ -299,7 +327,7 @@ class TrapTask(BaseTask, CaptureReplay):
         @rtype: string
         """
         community = ''
-        if hasattr(pdu, "fake"): # Replaying a packet
+        if hasattr(pdu, "fake"):  # Replaying a packet
             community = pdu.community
         elif pdu.community_len:
                 community = c.string_at(pdu.community, pdu.community_len)
@@ -328,7 +356,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # Here's where we start to encounter differences between packet types
         if pdu.version == SNMPv1:
             # SNMPv1 can't be received via IPv6
-            packet.agent_addr =  [pdu.agent_addr[i] for i in range(4)]
+            packet.agent_addr = [pdu.agent_addr[i] for i in range(4)]
             packet.trap_type = pdu.trap_type
             packet.specific_type = pdu.specific_type
             packet.enterprise = self.getEnterpriseString(pdu)
@@ -383,20 +411,32 @@ class TrapTask(BaseTask, CaptureReplay):
 
         return oid
 
-    def _pre_parse(self, session, transport, transport_data, transport_data_length):
+    def _pre_parse(self, session, transport, transport_data,
+                   transport_data_length):
         """Called before the net-snmp library parses the PDU. In the case
         where a v3 trap comes in with unkwnown credentials, net-snmp silently
         discards the packet. This method gives zentrap a way to log that these
         packets were received to help with troubleshooting."""
         if self.log.isEnabledFor(logging.DEBUG):
-            ipv6_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in6)).contents
+            ipv6_socket_address = c.cast(transport_data,
+                                         c.POINTER(sockaddr_in6)
+                                         ).contents
             if ipv6_socket_address.family == socket.AF_INET6:
-                self.log.debug("pre_parse: IPv6 %s" % (socket.inet_ntop(socket.AF_INET6, ipv6_socket_address.addr)))
+                self.log.debug("pre_parse: IPv6 %s",
+                               socket.inet_ntop(socket.AF_INET6,
+                                                ipv6_socket_address.addr)
+                               )
             elif ipv6_socket_address.family == socket.AF_INET:
-                ipv4_socket_address = c.cast(transport_data, c.POINTER(sockaddr_in)).contents
-                self.log.debug("pre_parse: IPv4 %s" % socket.inet_ntop(socket.AF_INET, ipv4_socket_address.addr))
+                ipv4_socket_address = c.cast(transport_data,
+                                             c.POINTER(sockaddr_in)
+                                             ).contents
+                self.log.debug("pre_parse: IPv4 %s",
+                               socket.inet_ntop(socket.AF_INET,
+                                                ipv4_socket_address.addr)
+                               )
             else:
-                self.log.debug("pre_parse: unexpected address family: %s" % ipv6_socket_address.family)
+                self.log.debug("pre_parse: unexpected address family: %s",
+                               ipv6_socket_address.family)
         return 1
 
     def receiveTrap(self, pdu):
@@ -414,24 +454,31 @@ class TrapTask(BaseTask, CaptureReplay):
             self.log.error("PDU does not contain transport data")
             return
 
-        ipv6_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in6)).contents
+        ipv6_socket_address = c.cast(pdu.transport_data,
+                                     c.POINTER(sockaddr_in6)
+                                     ).contents
         if ipv6_socket_address.family == socket.AF_INET6:
             if pdu.transport_data_length < c.sizeof(sockaddr_in6):
-                self.log.error("PDU transport data is too small for sockaddr_in6 struct.")
+                self.log.error("PDU transport data is too small "
+                               "for sockaddr_in6 struct.")
                 return
             ip_address = self.getPacketIp(ipv6_socket_address.addr)
         elif ipv6_socket_address.family == socket.AF_INET:
             if pdu.transport_data_length < c.sizeof(sockaddr_in):
-                self.log.error("PDU transport data is too small for sockaddr_in struct.")
+                self.log.error("PDU transport data is too small "
+                               "for sockaddr_in struct.")
                 return
-            ipv4_socket_address = c.cast(pdu.transport_data, c.POINTER(sockaddr_in)).contents
+            ipv4_socket_address = c.cast(pdu.transport_data,
+                                         c.POINTER(sockaddr_in)
+                                         ).contents
             ip_address = '.'.join(str(i) for i in ipv4_socket_address.addr)
         else:
-            self.log.error("Got a packet with unrecognized network family: %s", ipv6_socket_address.family)
+            self.log.error("Got a packet with unrecognized network family: %s",
+                           ipv6_socket_address.family)
             return
 
         port = socket.ntohs(ipv6_socket_address.port)
-        self.log.debug( "Received packet from %s at port %s" % (ip_address, port) )
+        self.log.debug("Received packet from %s at port %s", ip_address, port)
         self.processPacket(ip_address, port, pdu, time.time())
         # update our total events stats
         totalTime, totalEvents, maxTime = self.stats.report()
@@ -488,7 +535,10 @@ class TrapTask(BaseTask, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(dup)
             return result
 
-        d = defer.maybeDeferred(self.asyncHandleTrap, (ip_address, port), dup.contents, ts)
+        d = defer.maybeDeferred(self.asyncHandleTrap,
+                                (ip_address, port),
+                                dup.contents,
+                                ts)
         d.addBoth(cleanup)
 
     def _value_from_dateandtime(self, value):
@@ -514,8 +564,9 @@ class TrapTask(BaseTask, CaptureReplay):
         if value[8:] == '\x00\x00\x00':
             value = value[:8]
         vallen = len(value)
-        if vallen == 8 or (vallen == 11 and value[8] in ('+','-')):
-            (year, mon, day, hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
+        if vallen == 8 or (vallen == 11 and value[8] in ('+', '-')):
+            (year, mon, day,
+             hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
             # Ensure valid date representation
             if mon < 1 or mon > 12:
                 return None
@@ -541,8 +592,9 @@ class TrapTask(BaseTask, CaptureReplay):
                     utc_dir = '+'
                 utc_hours = tz_mins / 60
                 utc_mins = tz_mins % 60
-            return "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (year,
-                mon, day, hour, mins, secs, dsecs, utc_dir, utc_hours, utc_mins)
+            return "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (
+                year, mon, day, hour, mins, secs,
+                dsecs, utc_dir, utc_hours, utc_mins)
 
     def _convert_value(self, value):
         # Check if values is OID (SNMP object id)
@@ -636,7 +688,8 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
-        result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
+        result.update({name: ','.join(vals)
+                       for name, vals in vb_result.iteritems()})
         return eventType, result
 
     def decodeSnmpv2(self, addr, pdu):
@@ -651,11 +704,13 @@ class TrapTask(BaseTask, CaptureReplay):
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
                 result["oid"] = vb_value
-                eventType = self.oid2name(
-                        vb_value, exactMatch=False, strip=False)
+                eventType = self.oid2name(vb_value,
+                                          exactMatch=False,
+                                          strip=False)
             else:
                 self._add_varbind_detail(vb_result, vb_oid, vb_value)
-        result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
+        result.update({name: ','.join(vals)
+                       for name, vals in vb_result.iteritems()})
 
         if eventType in ["linkUp", "linkDown"]:
             eventType = "snmp_" + eventType
@@ -682,7 +737,8 @@ class TrapTask(BaseTask, CaptureReplay):
         # PDU contains an SNMPv1 trap if the enterprise_length is greater
         # than zero in addition to the PDU version being 0.
         if pdu.version == SNMPv1 or pdu.enterprise_length > 0:
-            self.log.debug("SNMPv1 trap, Addr: %s PDU Agent Addr: %s", str(addr), str(pdu.agent_addr))
+            self.log.debug("SNMPv1 trap, Addr: %s PDU Agent Addr: %s",
+                           str(addr), str(pdu.agent_addr))
             eventType, result = self.decodeSnmpv1(addr, pdu)
         elif pdu.version in (SNMPv2, SNMPv3):
             self.log.debug("SNMPv2 or v3 trap, Addr: %s", str(addr))
@@ -690,7 +746,8 @@ class TrapTask(BaseTask, CaptureReplay):
         else:
             self.log.error("Unable to handle trap version %d", pdu.version)
             return
-        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s", eventType, result['oid'], result['snmpVersion'])
+        self.log.debug("asyncHandleTrap: eventType=%s oid=%s snmpVersion=%s",
+                       eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
         self.sendTrapEvent(result, community, eventType,
@@ -721,9 +778,8 @@ class TrapTask(BaseTask, CaptureReplay):
 
     def displayStatistics(self):
         totalTime, totalEvents, maxTime = self.stats.report()
-        display = "%d events processed in %.2f seconds" % (
-                      totalEvents,
-                      totalTime)
+        display = "%d events processed in %.2f seconds" % (totalEvents,
+                                                           totalTime)
         if totalEvents > 0:
             display += """
 %.5f average seconds per event
@@ -770,6 +826,15 @@ class TrapDaemon(CollectorDaemon):
 
     _frameworkFactoryName = "nosip"
 
+    def __init__(self, *args, **kwargs):
+        self._trapFilter = TrapFilter()
+        zope.component.provideUtility(
+            self._trapFilter,
+            ICollectorEventTransformer
+        )
+        kwargs["initializationCallback"] = self._initializeTrapFilter
+        super(TrapDaemon, self).__init__(*args, **kwargs)
+
     def _initializeTrapFilter(self):
         try:
             self._trapFilter.initialize()
@@ -799,12 +864,6 @@ class TrapDaemon(CollectorDaemon):
             self.setExitCode(1)
             self.stop()
 
-    def __init__(self, *args, **kwargs):
-        self._trapFilter = TrapFilter()
-        zope.component.provideUtility(self._trapFilter, ICollectorEventTransformer)
-        kwargs["initializationCallback"] = self._initializeTrapFilter
-        super(TrapDaemon, self).__init__(*args, **kwargs)
-
     def runPostConfigTasks(self, result=None):
         # 1) super sets self._prefs.task with the call to postStartupTasks
         # 2) call remote createAllUsers
@@ -812,7 +871,8 @@ class TrapDaemon(CollectorDaemon):
         CollectorDaemon.runPostConfigTasks(self, result)
         if not isinstance(result, Failure) and self._prefs.task is not None:
             service = self.getRemoteConfigServiceProxy()
-            log.debug('TrapDaemon.runPostConfigTasks callRemote createAllUsers')
+            log.debug('TrapDaemon.runPostConfigTasks '
+                      'callRemote createAllUsers')
             d = service.callRemote("createAllUsers")
             d.addCallback(self._createUsers)
 
@@ -829,7 +889,7 @@ class TrapDaemon(CollectorDaemon):
             self._prefs.task.session.create_users(users)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     myPreferences = SnmpTrapPreferences()
     myTaskFactory = SimpleTaskFactory(MibConfigTask)
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
