@@ -273,6 +273,8 @@
                           {property : 'devicelink', direction: 'ASC'}
                       ],
                       fields: [
+                          {name: 'objtype'},
+                          {name: 'name'},
                           {name: 'devicelink'},
                           {name: 'props'},
                           {name: 'proptype'}
@@ -283,8 +285,12 @@
                         dataIndex: 'devicelink',
                         width: 340,
                         sortable: true,
-                        renderer: function(e){
-                            return Zenoss.render.DeviceClass(e.substring(8));
+                        renderer: function(val, meta, record) {
+                            if (record.get('objtype') == 'devices') {
+                                return Zenoss.render.Device(val, record.get('name'));
+                            } else {
+                                return Zenoss.render.DeviceClass(val.substring(8));
+                            }
                         }
                     },{
                         dataIndex: 'props',
