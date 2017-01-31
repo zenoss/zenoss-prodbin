@@ -750,6 +750,13 @@ class TrapTask(BaseTask, CaptureReplay):
                        eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
+
+        # Catch IP from original source:
+        if 'snmpTrapAddress' in result:
+            self.log.debug("Found IP for original device @%s",
+                           result['snmpTrapAddress'])
+            result['device'] = result['snmpTrapAddress']
+
         self.sendTrapEvent(result, community, eventType,
                            startProcessTime)
 
