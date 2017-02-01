@@ -863,6 +863,12 @@ class DeviceFacade(TreeFacade):
                     'props':"******" if proptype == 'password' else getattr(inst, propname),
                     'proptype':proptype
                 })
+                if relName == 'devices':
+                    objects[-1].update({
+                        'objtype':relName,
+                        'name':inst.titleOrId(),
+                        'devicelink':inst.getPrimaryUrlPath()
+                    })
         for inst in obj.getOverriddenObjects(propname):
             proptype = inst.getPropertyType(propname)
             objects.append({
