@@ -275,6 +275,9 @@ Ext.apply(Zenoss.render, {
         if (url && name) {
             return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
         }
+        if (url) {
+           return url;
+        }
     },
 
     default_uid_renderer: function(uid, name) {
@@ -477,6 +480,12 @@ Ext.apply(Zenoss.render, {
         }
         return Zenoss.render.link(null, url, name);
     },
+
+    HyperlinkTag : function(uid, name) {
+        //When we get hyperlink tag return it back
+        return Zenoss.render.link(null, uid, null);
+    },
+
     eventSummaryRow:function (data, metadata, record){
         var msg = record.data.message;
         if (!msg || msg === "None" ) {
