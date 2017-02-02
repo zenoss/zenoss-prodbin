@@ -967,8 +967,7 @@ class ZenHub(ZCmdBase):
         self.log.debug("Starting %s", ' '.join(args))
         prot = WorkerRunningProtocol(self)
         proc = reactor.spawnProcess(prot, exe, args, os.environ)
-        spawn_time = time.time()
-        proc.spawn_time = spawn_time
+        proc.spawn_time = time.time()
         self.workerprocessmap[proc.pid] = proc
         self.worker_processes.add(prot)
 
