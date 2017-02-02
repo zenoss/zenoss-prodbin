@@ -133,8 +133,12 @@ class ConfigurationProxy(object):
         if self._cipher_suite is None:
             self._collector = zope.component.queryUtility(ICollector)
             proxy = self._collector.getRemoteConfigServiceProxy()
-            key = yield proxy.callRemote("getEncryptionKey")
-            self._cipher_suite = Fernet(key)
+            try:
+                key = yield proxy.callRemote("getEncryptionKey")
+                self._cipher_suite = Fernet(key)
+            except Exception as e:
+                log.warn("Remote exception: {}".format(e))
+                self._cipher_suite = None
         defer.returnValue(self._cipher_suite)
 
     @defer.inlineCallbacks
@@ -143,7 +147,10 @@ class ConfigurationProxy(object):
         Encrypt data using a key from zenhub.
         """
         cipher_suite = yield self._get_cipher_suite()
-        defer.returnValue(cipher_suite.encrypt(data))
+        encrypted_data = None
+        if cipher_suite:
+            encrypted_data  = yield cipher_suite.encrypt(data)
+        defer.returnValue(encrypted_data)
 
     @defer.inlineCallbacks
     def decrypt(self, data):
@@ -151,7 +158,10 @@ class ConfigurationProxy(object):
         Decrypt data using a key from zenhub.
         """
         cipher_suite = yield self._get_cipher_suite()
-        defer.returnValue(cipher_suite.decrypt(data))
+        decrypted_data = None
+        if cipher_suite:
+            decrypted_data = yield cipher_suite.decrypt(data)
+        defer.returnValue(decrypted_data)
 
 
 class ConfigurationLoaderTask(ObservableMixin):
@@ -293,7 +303,7 @@ class ConfigurationLoaderTask(ObservableMixin):
 
     @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
-        log.info("PACO: received {0} configs: {1}".format(len(configs), [cfg.id for cfg in configs] ))
+        log.info("PACO: received {0} configs. purgeOmmited {1}".format(len(configs), purgeOmitted))
         if self.options.device:
             configs = [cfg for cfg in configs \
                             if self.options.device in (cfg.id, cfg.configId)]
