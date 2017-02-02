@@ -184,22 +184,23 @@
 </form>
 <br />
 
+<tal:block tal:define="tableName string:graphGroupList;
+        objects here/getGraphGroups;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence');
+        tabletitle string:Graph Groups;
+		menu_id string:GraphGroup_list">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="zentablecontents">
 
+    <tal:block>
 <form method="POST" name="graphGroupForm"
     tal:attributes="action here/absolute_url_path">
     <input type="hidden" name="zenScreenName" 
         value="editMultiGraphReport" /> 
     <input type="hidden" name="redirect" value="true" />
-    <tal:block tal:define="tableName string:graphGroupList; 
-        objects here/getGraphGroups;
-        batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='sequence'); 
-        tabletitle string:Graph Groups;
-		menu_id string:GraphGroup_list">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-    <tal:block metal:fill-slot="zentablecontents">
-            
+
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
@@ -249,11 +250,21 @@
         </td>
     </tr>
 
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
 </form>
+        <form tal:attributes="method string:get; action request/URL;">
+          <input type="hidden" name="zenScreenName" value="editMultiGraphReport" />
+          <input type="hidden" name="redirect" value="true" />
+          <input type='hidden' name='tableName' tal:attributes="value tableName" />
+          <tr>
+             <td colspan="4" class="tableheader">
+               <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+            </td>
+          </tr>
+        </form>
+    </tal:block>
+    </tal:block>
+    </tal:block>
+</tal:block>
 
 
 </tal:block>
