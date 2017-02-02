@@ -450,6 +450,7 @@
             config.height = window.outerHeight * 0.75;
             config.width = Math.min(window.outerWidth * 0.80, config.height * 1.6180339887);
             config.maxWidth = 2000;
+            config.autoScroll = true;
             delete config.html;
 
             var win = Ext.create('Zenoss.dialog.BaseWindow', {
