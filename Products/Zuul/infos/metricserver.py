@@ -243,6 +243,10 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     def type(self):
         return self._object.lineType.lower()
 
+    @property
+    def displayFullValue(self):
+        return self._object.skipCalc
+
     def _getDataPoint(self):
         dp = None
         dpName = self._object.dpName
