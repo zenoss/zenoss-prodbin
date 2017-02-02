@@ -54,8 +54,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
 
     def __init__(self):
+        signal.signal(signal.SIGUSR2, signal.SIG_IGN)
         ZCmdBase.__init__(self)
-
         self.current = IDLE
         self.currentStart = 0
         self.numCalls = 0
@@ -93,7 +93,10 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         pass
 
     def sighandler_USR2(self, *args):
-        self.reportStats()
+        try:
+            self.reportStats()
+        except:
+            pass
 
     def reportStats(self):
         now = time.time()
