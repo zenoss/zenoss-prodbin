@@ -111,9 +111,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                 svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
                 for method,stats in sorted(svcob.callStats.items()):
                     loglines.append(" - %-48s %-32s %8d %12.2f %8.2f %s" %
-                                    (svc, method, 
-                                     stats.numoccurrences, 
-                                     stats.totaltime, 
+                                    (svc, method,
+                                     stats.numoccurrences,
+                                     stats.totaltime,
                                      stats.totaltime/stats.numoccurrences if stats.numoccurrences else 0.0,
                                      isoDateTime(stats.lasttime)))
             self.log.debug('\n'.join(loglines))
@@ -121,8 +121,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             self.log.debug("no service activity statistics")
 
     def gotPerspective(self, perspective):
-        "Once we are connected to zenhub, register ourselves"
-        d = perspective.callRemote('reportingForWork', self)
+        """Once we are connected to zenhub, register ourselves"""
+        d = perspective.callRemote('reportingForWork', self, pid=self.pid)
         def reportProblem(why):
             self.log.error("Unable to report for work: %s", why)
             reactor.stop()
