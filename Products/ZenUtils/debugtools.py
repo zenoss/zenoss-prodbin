@@ -11,6 +11,8 @@
 import cProfile
 import pstats
 import tempfile
+import os
+import time
 
 class Profiler(object):
 
@@ -65,3 +67,44 @@ def rpdb_set_trace(log=None):
     debugger = rpdb.Rpdb(ip, port)
     debugger.set_trace()
 
+class ContinuousProfiler(object):
+    def __init__(self, process_identifier='', log=None):
+        self.__profile = cProfile.Profile()
+        self.__isRunning = False
+        self.process_identifier=process_identifier
+        self.log = log
+
+    @property
+    def isRunning(self):
+        return self.__isRunning
+
+    def start(self):
+        if not self.__isRunning:
+            self.__profile.enable()
+            self.__isRunning = True
+            if self.log:
+                self.log.debug("Profiling started")
+
+    def stop(self):
+        if self.__isRunning:
+            self.__profile.disable()
+            self.__isRunning = False
+            if self.log:
+                self.log.debug("Profiling stopped")
+
+    def dump_stats(self, filename=None, tmpdir=None):
+        if filename is not None:
+            stats_filename = filename
+        else:
+            datetime_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+            stats_filename = "{}-{}{}.profile".format(datetime_stamp, os.getpid(), self.process_identifier)
+
+        if tmpdir is not None:
+            stats_filepath = os.path.join(tmpdir, stats_filename)
+        else:
+            stats_filepath = os.path.join(tempfile.gettempdir(), stats_filename)
+
+        self.__profile.dump_stats(stats_filepath)
+        if self.log:
+            self.log.debug("pStats file created at {}".format(stats_filepath))
+        return stats_filepath
