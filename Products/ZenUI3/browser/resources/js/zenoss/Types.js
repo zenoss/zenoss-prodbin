@@ -10,7 +10,8 @@ var _tm = {
     'DeviceClass':      ["^/zport/dmd/Devices(/(?!devices)[^/]+)*/?$"],
     'EventClass':       ["^/zport/dmd/Events(/[A-Za-z][^/]*)*/?$"],
     'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
-    'Process':          ["^/zport/dmd/Processes(.*)$"]
+    'Process':          ["^/zport/dmd/Processes(.*)$"],
+    'HyperlinkTag':     ["href=[\"\'](.*?)[\"\']"]
 };
 
 var T = Ext.ns('Zenoss.types');
