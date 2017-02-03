@@ -66,7 +66,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         self.numCalls = 0
         try:
             self.log.debug("establishing SIGUSR1 signal handler")
-            signal.signal(signal.SIGUSR2, self.sighandler_USR1)
+            signal.signal(signal.SIGUSR1, self.sighandler_USR1)
             self.log.debug("establishing SIGUSR2 signal handler")
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
         except ValueError:
