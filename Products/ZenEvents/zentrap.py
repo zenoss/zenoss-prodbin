@@ -224,6 +224,7 @@ class TrapTask(BaseTask, CaptureReplay):
         self.options = self._daemon.options
 
         self.oidMap = self._daemon.oidMap
+
         self.stats = Stats()
 
         # Command-line argument sanity checking
@@ -708,13 +709,21 @@ class TrapTask(BaseTask, CaptureReplay):
                 eventType = self.oid2name(vb_value,
                                           exactMatch=False,
                                           strip=False)
+            elif vb_oid.startswith('1.3.6.1.6.3.18.1.3'):
+                self.log.debug("found snmpTrapAddress OID: %s = %s",
+                               vb_oid, vb_value)
+                result['snmpTrapAddress'] = vb_value
+                result['device'] = vb_value
             else:
                 self._add_varbind_detail(vb_result, vb_oid, vb_value)
-        result.update({name: ','.join(vals)
-                       for name, vals in vb_result.iteritems()})
+
+        result.update(
+            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
+        )
 
         if eventType in ["linkUp", "linkDown"]:
             eventType = "snmp_" + eventType
+
         return eventType, result
 
     def asyncHandleTrap(self, addr, pdu, startProcessTime):
@@ -751,12 +760,6 @@ class TrapTask(BaseTask, CaptureReplay):
                        eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
-
-        # Catch IP from original source:
-        if 'snmpTrapAddress' in result:
-            self.log.debug("Found IP for original device @%s",
-                           result['snmpTrapAddress'])
-            result['device'] = result['snmpTrapAddress']
 
         self.sendTrapEvent(result, community, eventType,
                            startProcessTime)
