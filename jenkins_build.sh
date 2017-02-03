@@ -1,24 +1,31 @@
 #!/bin/bash
-set -ex
 
-# Required parameters
-# REPO_NAME: the name of the repo this job will checkout
-# BRANCH: the branch of the repo this job will use
-# ZENDEV_REPO: the zendev repo
-# ZENDEV_BRANCH: the zendev branch this job will use
-# ZENDEV_VER: the zendev version
-# GO_VER: the go version
+# Required Parameters
+#
+# The following parameters are set by Jenkins if you initiate the job
+# in the Jenkins project. If you wish to run this script in the
+# command line, feed the following parameters to the script.
+#
+# WORKSPACE: the absolute path of the directory assigned to the build
+#            as a workspace.
+# JOB_BASE_NAME: the last segment of $WORKSPACE, such as "foo" for
+#                "/bar/foo".
+
+set -ex
 
 check_var() {
     if [ -z "$1" ]; then
-        echo Undefined variable
+        echo ERROR: undefined variable
         exit 1
     fi
 }
 
+# REPO_NAME: the name of the repo this job will checkout
 REPO_NAME=zenoss-prodbin
+# BRANCH: the branch of the repo this job will use
 BRANCH=develop
 ZENDEV_REPO=git@github.com:zenoss/zendev.git
+# ZENDEV_BRANCH: the zendev branch this job will use
 ZENDEV_BRANCH=zendev2
 ZENDEV_VER=0.2.0
 GO_VER=1.7.4
@@ -31,13 +38,15 @@ ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}
 # inside zendev.
 REPO_PATH=$WORKSPACE/${ZENDEV_ENV}/src/github.com/zenoss/${REPO_NAME}
 
-# Check if all required parameters are defined.
-echo REPO_NAME;check_var $REPO_NAME;echo OK
-echo BRANCH;check_var $BRANCH;echo OK
-echo ZENDEV_REPO;check_var $ZENDEV_REPO;echo OK
-echo ZENDEV_BRANCH;check_var $ZENDEV_BRANCH;echo OK
-echo ZENDEV_VER;check_var $ZENDEV_VER;echo OK
-echo GO_VER;check_var $GO_VER;echo OK
+# Check if all parameters are defined.
+echo checking WORKSPACE;check_var $WORKSPACE;echo OK
+echo checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
+echo checking REPO_NAME;check_var $REPO_NAME;echo OK
+echo checking BRANCH;check_var $BRANCH;echo OK
+echo checking ZENDEV_REPO;check_var $ZENDEV_REPO;echo OK
+echo checking ZENDEV_BRANCH;check_var $ZENDEV_BRANCH;echo OK
+echo checking ZENDEV_VER;check_var $ZENDEV_VER;echo OK
+echo checking GO_VER;check_var $GO_VER;echo OK
 
 echo Creating a virtual env...
 virtualenv venv
@@ -46,13 +55,21 @@ git clone ${ZENDEV_REPO} zendev
 cd zendev;git checkout ${ZENDEV_BRANCH}
 pip install -e .
 zendev version | grep ${ZENDEV_VER} # Check zendev version
+ZENDEV_VER_ACTUAL=`zendev version`
+if [ "${ZENDEV_VER_ACTUAL}" != "${ZENDEV_VER}" ]; then
+    echo "ERROR: expected zendev version ${ZENDEV_VER}, but found ${ZENDEV_VER_ACTUAL}"
+    exit 1
+fi
 echo Use zendev version ${ZENDEV_VER}
 
 source $GVM_ROOT/scripts/gvm
 gvm use go${GO_VER}
 echo Use go version ${GO_VER}
 
+echo Installing jig...
 GOPATH=$WORKSPACE/goworld go get github.com/iancmcc/jig
+
+echo Boostraping zendev...
 source $(zendev bootstrap)
 
 echo Creating a zendev environment...
