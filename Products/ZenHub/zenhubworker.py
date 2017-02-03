@@ -32,6 +32,8 @@ import time
 import signal
 import os
 
+from Products.ZenUtils.debugtools import ContinuousProfiler
+
 IDLE = "None/None"
 class _CumulativeWorkerStats(object):
     """
@@ -56,10 +58,15 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
     def __init__(self):
         signal.signal(signal.SIGUSR2, signal.SIG_IGN)
         ZCmdBase.__init__(self)
+        if self.options.profiling:
+            self.profiler = ContinuousProfiler('zenhubworker', log=self.log)
+            self.profiler.start()
         self.current = IDLE
         self.currentStart = 0
         self.numCalls = 0
         try:
+            self.log.debug("establishing SIGUSR1 signal handler")
+            signal.signal(signal.SIGUSR2, self.sighandler_USR1)
             self.log.debug("establishing SIGUSR2 signal handler")
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
         except ValueError:
@@ -91,6 +98,14 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         zenhubworkers restart all the time, it is not necessary to audit log it.
         """
         pass
+
+    def sighandler_USR1(self, *args):
+        try:
+            if self.options.profiling:
+                self.profiler.dump_stats()
+            super(zenhubworker, self).sighandler_USR1(signum, frame)
+        except:
+            pass
 
     def sighandler_USR2(self, *args):
         try:
@@ -234,6 +249,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         self.log.info("Shutting down")
         self.reportStats()
         self.log.info("Stopping reactor")
+        if self.options.profiling:
+            self.profiler.stop()
         try:
             reactor.stop()
         except error.ReactorNotRunning:
@@ -266,6 +283,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                type='int',
                                help="Maximum number of remote calls before restarting worker",
                                default=200)
+        self.parser.add_option('--profiling', dest='profiling',
+                               action='store_true', default=False,
+                               help="Run with profiling on")
 
 if __name__ == '__main__':
     zhw = zenhubworker()

@@ -926,6 +926,7 @@ class ZenHub(ZCmdBase):
             workerfd.write("logseverity %s\n" % self.options.logseverity)
             workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
             workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
+            workerfd.write("profiling %s\n" % self.options.profiling)
 
     def createWorker(self):
         """Start a worker subprocess
