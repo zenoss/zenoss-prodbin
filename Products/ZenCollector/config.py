@@ -271,7 +271,7 @@ class ConfigurationLoaderTask(ObservableMixin):
                 self.state = TaskStates.STATE_COMPLETED
         return result
 
-    def _fetchPropertyItems(self):
+    def _fetchPropertyItems(self, previous_cb_result=None):
         return defer.maybeDeferred(self._configProxy.getPropertyItems, self._prefs)
 
     def _fetchThresholdClasses(self, previous_cb_result):
