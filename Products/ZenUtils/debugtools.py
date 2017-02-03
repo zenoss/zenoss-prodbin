@@ -97,7 +97,8 @@ class ContinuousProfiler(object):
             stats_filename = filename
         else:
             datetime_stamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-            stats_filename = "{}-{}{}.profile".format(datetime_stamp, os.getpid(), self.process_identifier)
+            stats_filename = "{}-{}{}.pstats".format(datetime_stamp, os.getpid(), 
+                                                     '-'+self.process_identifier if self.process_identifier else '')
 
         if tmpdir is not None:
             stats_filepath = os.path.join(tmpdir, stats_filename)

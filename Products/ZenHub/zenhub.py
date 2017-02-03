@@ -89,6 +89,9 @@ from Products.ZenHub import PB_PORT
 from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
 
+
+from Products.ZenUtils.debugtools import ContinuousProfiler
+
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
 LastCallReturnValue = collections.namedtuple('LastCallReturnValue', 'returnvalue')
@@ -432,6 +435,10 @@ class ZenHub(ZCmdBase):
         load_config("hub.zcml", Products.ZenHub)
         notify(HubWillBeCreatedEvent(self))
 
+        if self.options.profiling:
+            self.profiler = ContinuousProfiler('zenhub', log=self.log)
+            self.profiler.start()
+
         #Worker selection handler
         self.workerselector = WorkerSelector(self.options)
         self.workList.log = self.log
@@ -519,6 +526,9 @@ class ZenHub(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         #handle it ourselves
+        if self.options.profiling:
+            self.profiler.dump_stats()
+
         super(ZenHub, self).sighandler_USR1(signum, frame)
 
         # send SIGUSR1 signal to all workers
@@ -1041,6 +1051,8 @@ class ZenHub(ZCmdBase):
         if workerconfig and os.path.exists(workerconfig):
             os.unlink(self.workerconfig)
         getUtility(IEventPublisher).close()
+        if self.options.profiling:
+            self.profiler.stop()
 
     def buildOptions(self):
         """
@@ -1079,6 +1091,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--invalidation-poll-interval',
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
+        self.parser.add_option('--profiling', dest='profiling',
+            action='store_true', default=False,
+            help="Run with profiling on")
 
         notify(ParserReadyForOptionsEvent(self.parser))
 
