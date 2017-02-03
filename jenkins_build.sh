@@ -20,41 +20,40 @@ check_var() {
     fi
 }
 
-# REPO_NAME: the name of the repo this job will checkout
-REPO_NAME=zenoss-prodbin
-# BRANCH: the branch of the repo this job will use
-BRANCH=develop
-ZENDEV_REPO=git@github.com:zenoss/zendev.git
-# ZENDEV_BRANCH: the zendev branch this job will use
-ZENDEV_BRANCH=zendev2
-ZENDEV_VER=0.2.0
-GO_VER=1.7.4
+# Check if all required parameters are defined.
+echo Checking WORKSPACE;check_var $WORKSPACE;echo OK
+echo Checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
 
+# The name of the repo this job will checkout
+REPO_NAME=zenoss-prodbin
+# The branch of the repo this job will use
+if [ -z "${BRANCH}" ]; then BRANCH=develop; fi
+ZENDEV_REPO=git@github.com:zenoss/zendev.git
+# The zendev branch this job will use
+if [ -z "${ZENDEV_BRANCH}" ]; then ZENDEV_BRANCH=zendev2; fi
+if [ -z "${ZENDEV_VER}" ]; then ZENDEV_VER=0.2.0; fi
+if [ -z "${GO_VER}" ]; then GO_VER=1.7.4; fi
 # The name of the zendev environment that will be created.
 # This name will be used as the devimg tag as well.
 ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}
-
 # The repo that is checked out will be copied to this path
 # inside zendev.
 REPO_PATH=$WORKSPACE/${ZENDEV_ENV}/src/github.com/zenoss/${REPO_NAME}
 
-# Check if all parameters are defined.
-echo checking WORKSPACE;check_var $WORKSPACE;echo OK
-echo checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
-echo checking REPO_NAME;check_var $REPO_NAME;echo OK
-echo checking BRANCH;check_var $BRANCH;echo OK
-echo checking ZENDEV_REPO;check_var $ZENDEV_REPO;echo OK
-echo checking ZENDEV_BRANCH;check_var $ZENDEV_BRANCH;echo OK
-echo checking ZENDEV_VER;check_var $ZENDEV_VER;echo OK
-echo checking GO_VER;check_var $GO_VER;echo OK
+# Check if all other parameters are defined.
+echo Checking REPO_NAME;check_var $REPO_NAME;echo OK
+echo Checking BRANCH;check_var $BRANCH;echo OK
+echo Checking ZENDEV_REPO;check_var $ZENDEV_REPO;echo OK
+echo Checking ZENDEV_BRANCH;check_var $ZENDEV_BRANCH;echo OK
+echo Checking ZENDEV_VER;check_var $ZENDEV_VER;echo OK
+echo Checking GO_VER;check_var $GO_VER;echo OK
 
 echo Creating a virtual env...
-virtualenv venv
+if [ ! -d venv ]; then virtualenv venv; fi
 source venv/bin/activate
-git clone ${ZENDEV_REPO} zendev
+if [ ! -d zendev ]; then git clone ${ZENDEV_REPO} zendev; fi
 cd zendev;git checkout ${ZENDEV_BRANCH}
 pip install -e .
-zendev version | grep ${ZENDEV_VER} # Check zendev version
 ZENDEV_VER_ACTUAL=`zendev version`
 if [ "${ZENDEV_VER_ACTUAL}" != "${ZENDEV_VER}" ]; then
     echo "ERROR: expected zendev version ${ZENDEV_VER}, but found ${ZENDEV_VER_ACTUAL}"
