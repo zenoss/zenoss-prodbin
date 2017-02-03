@@ -541,6 +541,9 @@
             if (graphPanel && Ext.isNumber(graphPanel.drange)) {
                 drange = graphPanel.drange;
             }
+            else if(graph.graph_params && Ext.isNumber(graph.graph_params.drange)) {
+                drange = graph.graph_params.drange;
+            }
 
             // create a new window that will later be
             // redirected to the graph url
