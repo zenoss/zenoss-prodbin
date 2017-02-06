@@ -487,6 +487,8 @@ class ZenHub(ZCmdBase):
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
             pass
+        # ZEN-26671 Wait at least this duration in secs before signaling a worker process
+        self.SIGUSR_TIMEOUT = 5
 
     def setKeepAlive(self, sock):
         import socket
@@ -502,9 +504,13 @@ class ZenHub(ZCmdBase):
         self._workerStats()
 
         # send SIGUSR2 signal to all workers
+        now = time.time()
         for worker in self.workerprocessmap.values():
             try:
-                worker.signalProcess(signal.SIGUSR2)
+                elapsed_since_spawn = now - worker.spawn_time
+                self.log.debug('{} secs elapsed since this worker proc was spawned'.format(elapsed_since_spawn))
+                if elapsed_since_spawn >= self.SIGUSR_TIMEOUT:
+                    worker.signalProcess(signal.SIGUSR2)
                 time.sleep(0.5)
             except Exception:
                 pass
@@ -939,9 +945,11 @@ class ZenHub(ZCmdBase):
 
             def processEnded(self, reason):
                 self.parent.worker_processes.discard(self)
-                self.parent.workerprocessmap.pop(self.pid, None)
-                self.log.warning("Worker (%d) exited with status: %d (%s)",
+                ended_proc = self.parent.workerprocessmap.pop(self.pid, None)
+                ended_proc_age = time.time() - ended_proc.spawn_time
+                self.log.warning("Worker (%d), age %f secs, exited with status: %d (%s)",
                                  self.pid,
+                                 ended_proc_age,
                                   reason.value.exitCode or -1,
                                   getExitMessage(reason.value.exitCode))
                 # if not shutting down, restart a new worker
@@ -959,6 +967,7 @@ class ZenHub(ZCmdBase):
         self.log.debug("Starting %s", ' '.join(args))
         prot = WorkerRunningProtocol(self)
         proc = reactor.spawnProcess(prot, exe, args, os.environ)
+        proc.spawn_time = time.time()
         self.workerprocessmap[proc.pid] = proc
         self.worker_processes.add(prot)
 

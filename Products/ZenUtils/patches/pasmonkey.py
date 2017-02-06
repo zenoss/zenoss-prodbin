@@ -53,7 +53,8 @@ from Products.PluggableAuthService.plugins import SessionAuthHelper
 from Products.PluggableAuthService.utils import createViewName, createKeywords
 from Products.ZenUtils.AccountLocker.AccountLocker import Locked
 
-
+import logging
+log = logging.getLogger('PAS Patches')
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
 # actually apply the patch, first -- support may have been added at some point
