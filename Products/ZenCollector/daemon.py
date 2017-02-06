@@ -316,9 +316,15 @@ class CollectorDaemon(RRDDaemon):
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
         d.addCallback( self._startConfigCycle )
+        d.addCallback( self._initEncryptionKey )
         d.addCallback( self._startMaintenance )
         d.addErrback( self._errorStop )
         return d
+
+    def _initEncryptionKey(self, prv_cb_result=None):
+        # encrypt dummy msg in order to initialize the encryption key
+        self._configProxy.encrypt("Hello")
+        self.log.info("Daemon's encryption key initialized")
 
     def watchdogCycleTime(self):
         """
