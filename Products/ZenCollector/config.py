@@ -286,24 +286,24 @@ class ConfigurationLoaderTask(ObservableMixin):
                                    self._prefs, devices)
 
     def _processPropertyItems(self, propertyItems):
-        log.info("PACO: GOT PROPERTY ITEMS {0}".format(propertyItems))
+        log.debug("Processing received property items")
         self.state = self.STATE_FETCH_MISC_CONFIG
         if propertyItems:
             self._daemon._setCollectorPreferences(propertyItems)
 
     def _processThresholdClasses(self, thresholdClasses):
-        log.info("PACO: GOT THRESHOLD CLASSES {0}".format(thresholdClasses))
+        log.debug("Processing received threshold classes")
         if thresholdClasses:
             self._daemon._loadThresholdClasses(thresholdClasses)
 
     def _processThresholds(self, thresholds):
-        log.info("PACO: GOT THRESHOLDS {0}".format(thresholds))
+        log.debug("Processing received thresholds")
         if thresholds:
             self._daemon._configureThresholds(thresholds)
 
     @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
-        log.info("PACO: received {0} configs. purgeOmmited {1}".format(len(configs), purgeOmitted))
+        log.debug("Processing {0} received device configs".format(len(configs)))
         if self.options.device:
             configs = [cfg for cfg in configs \
                             if self.options.device in (cfg.id, cfg.configId)]
