@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -88,6 +88,9 @@ from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
 from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
+
+
+from Products.ZenUtils.debugtools import ContinuousProfiler
 
 HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
 WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
@@ -195,7 +198,7 @@ class HubAvitar(pb.Avatar):
                 service.addListener(listener, options)
             return service
 
-    def perspective_reportingForWork(self, worker):
+    def perspective_reportingForWork(self, worker, pid=None):
         """
         Allow a worker register for work.
 
@@ -204,6 +207,8 @@ class HubAvitar(pb.Avatar):
         @return None
         """
         worker.busy = False
+        if pid is not None:
+            worker.pid = pid
         self.hub.workers.append(worker)
 
         def removeWorker(worker):
@@ -383,7 +388,7 @@ class ZenHub(ZCmdBase):
 
     ZenHub also provides an XmlRPC interface to some common services
     to support collectors written in other languages.
-    
+
     ZenHub does very little work in its own process, but instead dispatches
     the work to a pool of zenhubworkers, running zenhubworker.py. zenhub
     manages these workers with 3 data structures:
@@ -394,10 +399,10 @@ class ZenHub(ZCmdBase):
     Callbacks and handlers that detect worker shutdown update these
     structures automatically. ONLY ONE HANDLER must take care of restarting
     new workers, to avoid accidentally spawning too many workers. This
-    handler also verifies that zenhub is not in the process of shutting 
+    handler also verifies that zenhub is not in the process of shutting
     down, so that callbacks triggered during daemon shutdown don't keep
     starting new workers.
-    
+
     TODO: document invalidation workers
     """
 
@@ -429,6 +434,10 @@ class ZenHub(ZCmdBase):
         import Products.ZenHub
         load_config("hub.zcml", Products.ZenHub)
         notify(HubWillBeCreatedEvent(self))
+
+        if self.options.profiling:
+            self.profiler = ContinuousProfiler('zenhub', log=self.log)
+            self.profiler.start()
 
         #Worker selection handler
         self.workerselector = WorkerSelector(self.options)
@@ -511,6 +520,9 @@ class ZenHub(ZCmdBase):
 
     def sighandler_USR1(self, signum, frame):
         #handle it ourselves
+        if self.options.profiling:
+            self.profiler.dump_stats()
+
         super(ZenHub, self).sighandler_USR1(signum, frame)
 
         # send SIGUSR1 signal to all workers
@@ -883,14 +895,18 @@ class ZenHub(ZCmdBase):
         lines.append('\nWorker Stats:')
         for wId, worker in enumerate(self.workers):
             stat = self.workTracker.get(wId, None)
-            linePattern = '\t%d:%s\t[%s%s]\t%.3fs'
+            linePattern = '\t%d(pid=%s):%s\t[%s%s]\t%.3fs'
             lines.append(linePattern % (
                 wId,
+                '{}'.format(worker.pid),
                 'Busy' if worker.busy else 'Idle',
                 '%s %s' % (stat.status, stat.description) if stat else 'No Stats',
                 ' Idle:%.3fs' % stat.previdle if stat and stat.previdle else '',
                 now - stat.lastupdate if stat else 0
             ))
+            if stat:
+                if (worker.busy and stat.status is 'Idle') or (not worker.busy and stat.status is 'Busy'):
+                    self.log.warn('worker.busy: {} and stat.status: {} do not match!'.format(worker.busy, stat.status))
         self.log.info('\n'.join(lines))
 
     def _createWorkerConf(self):
@@ -904,6 +920,7 @@ class ZenHub(ZCmdBase):
             workerfd.write("logseverity %s\n" % self.options.logseverity)
             workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
             workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
+            workerfd.write("profiling %s\n" % self.options.profiling)
 
     def createWorker(self):
         """Start a worker subprocess
@@ -1026,6 +1043,8 @@ class ZenHub(ZCmdBase):
         if workerconfig and os.path.exists(workerconfig):
             os.unlink(self.workerconfig)
         getUtility(IEventPublisher).close()
+        if self.options.profiling:
+            self.profiler.stop()
 
     def buildOptions(self):
         """
@@ -1061,9 +1080,12 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--worker-call-limit', dest='worker_call_limit',
             type='int', default=200,
             help="Maximum number of remote calls a worker can run before restarting")
-        self.parser.add_option('--invalidation-poll-interval', 
+        self.parser.add_option('--invalidation-poll-interval',
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
+        self.parser.add_option('--profiling', dest='profiling',
+            action='store_true', default=False,
+            help="Run with profiling on")
 
         notify(ParserReadyForOptionsEvent(self.parser))
 
