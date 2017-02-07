@@ -19,7 +19,9 @@ single device or other monitored object.
 
 import logging
 import math
+import os
 import signal
+import sys
 import time
 from StringIO import StringIO
 
@@ -30,6 +32,7 @@ from twisted.python.failure import Failure
 
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask, IPausingScheduledTask
 from Products.ZenCollector.tasks import TaskStates
+from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import dumpCallbacks
 from Products.ZenUtils.keyedset import KeyedSet
 
@@ -130,6 +133,17 @@ class CallableTask(object):
         """
         Called whenever this task is being run.
         """
+        try:
+            if hasattr(self.task, 'missed'):
+                self.task._eventService.sendEvent(
+                    {'eventClass': '/Perf/MissedRuns',
+                     'component': os.path.basename(sys.argv[0]).replace('.py', ''),},
+                    device=self.task._devId,
+                    summary="Task `{}` is being run.".format(self.task.name),
+                    severity=Event.Clear, eventKey=self.task.name)
+                del self.task.missed
+        except Exception:
+            pass        
         self.taskStats.totalRuns += 1
 
     def logTwistedTraceback(self, reason):
@@ -154,7 +168,17 @@ class CallableTask(object):
         """
         Called whenever this task is late and missed its scheduled run time.
         """
-        # TODO: report an event
+        try:
+            # send event only for missed runs on devices.
+            self.task._eventService.sendEvent(
+                {'eventClass': '/Perf/MissedRuns',
+                 'component': os.path.basename(sys.argv[0]).replace('.py', ''),},
+                device=self.task._devId,
+                summary="Missed run: {}".format(self.task.name),
+                severity=Event.Warning, eventKey=self.task.name)
+            self.task.missed = True
+        except Exception:
+            pass
         self.taskStats.missedRuns += 1
 
 
@@ -728,3 +752,4 @@ class Scheduler(object):
                               TaskStates.STATE_PAUSED,
                               TaskStates.STATE_COMPLETED,
                               TaskStates.STATE_CONNECTING)
+
