@@ -44,3 +44,4 @@ build: mk-dist build-javascript build-zensocket build-zenoss-version
 clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)
 	rm -rf $(DIST_ROOT)
+#
