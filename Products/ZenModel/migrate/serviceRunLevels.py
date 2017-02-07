@@ -1,7 +1,7 @@
 # The keys are the service names, and the values the (EmergencyShutdown,
 # StartLevel) tuples.
 serviceRunLevels = {"HMaster": (0, 1),
-          "RegionServe": (1, 1),
+          "RegionServer": (1, 1),
           "ZooKeeper": (3, 1),
           "RabbitMQ": (2, 1),
           "mariadb": (1, 1),
