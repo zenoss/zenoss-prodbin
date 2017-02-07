@@ -863,6 +863,12 @@ class DeviceFacade(TreeFacade):
                     'props':"******" if proptype == 'password' else getattr(inst, propname),
                     'proptype':proptype
                 })
+                if relName == 'devices':
+                    objects[-1].update({
+                        'objtype':relName,
+                        'name':inst.titleOrId(),
+                        'devicelink':inst.getPrimaryUrlPath()
+                    })
         for inst in obj.getOverriddenObjects(propname):
             proptype = inst.getPropertyType(propname)
             objects.append({
@@ -948,10 +954,9 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
-            # ZEN-26498 Identify Docker containers by name
-            if meta_type == 'DockerContainer':
-                for docker in components:
-                    docker.id = docker.name()
+            # ZEN-26498 identify by name to match individual charts
+            for comp in components:
+                comp.id = comp.name()
             return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
 
         graphs = []
