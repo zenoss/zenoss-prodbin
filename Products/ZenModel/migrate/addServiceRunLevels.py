@@ -14,16 +14,16 @@ import Migrate
 import servicemigration as sm
 sm.require("1.1.5")
 
-from levels import levels
+from serviceRunLevels import serviceRunLevels
 
 
-class AddEmergencyShutdownLevel(Migrate.Step):
+class AddServiceRunLevels(Migrate.Step):
     """
     Add the emergency shutdown and startup levels to service definitions.
     See ZEN-23931.
     """
 
-    version = Migrate.Version(5,2,0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
         try:
@@ -35,7 +35,7 @@ class AddEmergencyShutdownLevel(Migrate.Step):
         changed = False
 
         for service in ctx.services:
-            emergencyShutdownLevel, startLevel = levels.get(service.name, (0, 0))
+            emergencyShutdownLevel, startLevel = serviceRunLevels.get(service.name, (0, 0))
             if not service.emergencyShutdownLevel == emergencyShutdownLevel:
                 before = service.emergencyShutdownLevel
                 service.emergencyShutdownLevel = emergencyShutdownLevel
@@ -52,4 +52,4 @@ class AddEmergencyShutdownLevel(Migrate.Step):
         else:
             log.info('Nothing to change in this migration step.')
 
-AddEmergencyShutdownLevel()
+AddServiceRunLevels()

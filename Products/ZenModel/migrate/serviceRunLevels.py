@@ -1,6 +1,6 @@
 # The keys are the service names, and the values the (EmergencyShutdown,
 # StartLevel) tuples.
-levels = {"HMaster": (0, 1),
+serviceRunLevels = {"HMaster": (0, 1),
           "RegionServe": (1, 1),
           "ZooKeeper": (3, 1),
           "RabbitMQ": (2, 1),
@@ -27,5 +27,6 @@ levels = {"HMaster": (0, 1),
           "Zenoss.resmgr": (0, 2),
           "nfvi": (0, 2),
           "ucspm.lite": (0, 2),
-          "ucspm": (0, 2)
+          "ucspm": (0, 2),
+          "Impact": (1, 1)
 }
