@@ -28,7 +28,8 @@ echo Checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
 REPO_NAME=zenoss-prodbin
 # The branch of the repo this job will use
 if [ -z "${BRANCH}" ]; then BRANCH=develop; fi
-ZENDEV_REPO=git@github.com:zenoss/zendev.git
+#ZENDEV_REPO=git@github.com:zenoss/zendev.git
+ZENDEV_REPO=https://github.com/zenoss/zendev.git
 # The zendev branch this job will use
 if [ -z "${ZENDEV_BRANCH}" ]; then ZENDEV_BRANCH=zendev2; fi
 if [ -z "${ZENDEV_VER}" ]; then ZENDEV_VER=0.2.0; fi
