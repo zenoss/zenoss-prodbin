@@ -35,19 +35,23 @@ from zope.event import notify
 from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
 from Products.PluggableAuthService.PluggableAuthService import \
-        _SWALLOWABLE_PLUGIN_EXCEPTIONS
-from Products.PluggableAuthService.plugins import CookieAuthHelper
-from Products.PluggableAuthService.plugins import (ZODBUserManager, ZODBGroupManager,
+        _SWALLOWABLE_PLUGIN_EXCEPTIONS, DumbHTTPExtractor
+from Products.PluggableAuthService.plugins import (CookieAuthHelper, 
+                                                   ZODBUserManager, 
+                                                   ZODBGroupManager,
                                                    ZODBRoleManager)
 from Products.PluggableAuthService.interfaces.authservice import _noroles
 from Products.PluggableAuthService.interfaces.plugins import \
-        IAuthenticationPlugin
+        IAuthenticationPlugin, IExtractionPlugin
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
 
 from Products.PluggableAuthService.plugins import ZODBUserManager
 from Products.PluggableAuthService.plugins import SessionAuthHelper
+
+from Products.PluggableAuthService.utils import createViewName, createKeywords
+from Products.ZenUtils.AccountLocker.AccountLocker import Locked
 
 import logging
 log = logging.getLogger('PAS Patches')
@@ -330,6 +334,8 @@ def updateCredentials(self, request, response, login, new_password):
                 log.debug('AuthenticationPlugin %s error', authenticator_id,
                           exc_info=True)
                 continue
+            except Locked:
+                break
 
             if user_id is not None:
                 break
@@ -340,6 +346,122 @@ def updateCredentials(self, request, response, login, new_password):
 
 SessionAuthHelper.SessionAuthHelper.updateCredentials = updateCredentials
 
+def _extractUserIds( self, request, plugins ):
+    """ request -> [ validated_user_id ]
+
+    o For each set of extracted credentials, try to authenticate
+    a user;  accumulate a list of the IDs of such users over all
+    our authentication and extraction plugins.
+    """
+    try:
+        extractors = plugins.listPlugins( IExtractionPlugin )
+    except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+        log.info('Extractor plugin listing error', exc_info=True)
+        extractors = ()
+
+    if not extractors:
+        extractors = ( ( 'default', DumbHTTPExtractor() ), )
+
+    try:
+        authenticators = plugins.listPlugins( IAuthenticationPlugin )
+    except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+        log.info('Authenticator plugin listing error', exc_info=True)
+        authenticators = ()
+
+    result = []
+
+    for extractor_id, extractor in extractors:
+
+        try:
+            credentials = extractor.extractCredentials( request )
+        except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+            log.info( 'ExtractionPlugin %s error' % extractor_id
+                        , exc_info=True
+                        )
+            continue
+
+        if credentials:
+            try:
+                credentials[ 'extractor' ] = extractor_id # XXX: in key?
+                # Test if ObjectCacheEntries.aggregateIndex would work
+                items = credentials.items()
+                items.sort()
+            except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                log.info( 'Credentials error: %s' % credentials
+                            , exc_info=True
+                            )
+                continue
+
+            # First try to authenticate against the emergency
+            # user and return immediately if authenticated
+            user_id, name = self._tryEmergencyUserAuthentication(
+                                                        credentials )
+
+            if user_id is not None:
+                return [ ( user_id, name ) ]
+
+            # Now see if the user ids can be retrieved from the cache
+            view_name = createViewName('_extractUserIds', credentials.get('login'))
+            keywords = createKeywords(**credentials)
+           
+            user_ids = None
+            account_locker = getattr(self, 'account_locker_plugin', None)
+            if not account_locker:
+                user_ids = self.ZCacheable_get( view_name=view_name
+                                              , keywords=keywords
+                                              , default=None
+                                              )
+
+            else:
+                if account_locker.isLocked(credentials.get('login')):         
+                    user_ids = self.ZCacheable_get( view_name=view_name
+                                                  , keywords=keywords
+                                                  , default=None
+                                                  )
+
+            if user_ids is None:
+                user_ids = []
+
+                for authenticator_id, auth in authenticators:
+
+                    try:
+                        uid_and_info = auth.authenticateCredentials(
+                            credentials )
+
+                        if uid_and_info is None:
+                            continue
+
+                        user_id, info = uid_and_info
+
+                    except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                        msg = 'AuthenticationPlugin %s error' % (
+                                authenticator_id, )
+                        log.info(msg, exc_info=True)
+                        continue
+                    except Locked:
+                        break
+
+                    if user_id is not None:
+                        user_ids.append( (user_id, info) )
+
+                if user_ids:
+                    self.ZCacheable_set( user_ids
+                                       , view_name=view_name
+                                       , keywords=keywords
+                                       )
+
+            result.extend( user_ids )
+
+    # Emergency user via HTTP basic auth always wins
+    user_id, name = self._tryEmergencyUserAuthentication(
+            DumbHTTPExtractor().extractCredentials( request ) )
+
+    if user_id is not None:
+        return [ ( user_id, name ) ]
+
+    return result
+
+pas._extractUserIds = _extractUserIds
 
 def resetCredentials(self, request, response):
     request.SESSION.set('__ac_logged_as', '')
