@@ -2133,6 +2133,8 @@
    {
      "ID": "8c8sfpsq0nv8kk8ktonve2wow",
      "Name": "RegionServer",
+     "EmergencyShutdownLevel": 1,
+     "StartLevel": 1,
      "Title": "",
      "Version": "",
      "Context": null,
