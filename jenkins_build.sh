@@ -68,8 +68,9 @@ echo Use go version ${GO_VER}
 
 echo Installing jig...
 GOPATH=$WORKSPACE/goworld go get github.com/iancmcc/jig
+export PATH=$GOPATH/bin:$PATH
+echo $PATH
 echo $(which jig)
-#export PATH="$GOPATH/bin:$PATH"
 
 echo Boostraping zendev...
 source $(zendev bootstrap)
