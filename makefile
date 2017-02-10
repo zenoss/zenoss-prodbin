@@ -12,12 +12,12 @@ BUILD_NUMBER ?= DEV
 BRANCH ?= support-5.2.x
 
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
+ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 #
 # Use REVISION if you need to do something like a hotfix release.
 #
 # REVISION ?= 1
 # ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(ARTIFACT_TAG).tar.gz
-ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
 DIST_ROOT := dist
 
