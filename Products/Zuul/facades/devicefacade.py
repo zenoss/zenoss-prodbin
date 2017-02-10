@@ -939,28 +939,29 @@ class DeviceFacade(TreeFacade):
         else:
             components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
 
-        graphDef = None
-
+        graphDefault = None
+        graphDict = {}
         # get the graph def
         for comp in components:
             # find the first instance
             for graph, ctx in comp.getGraphObjects():
                 if graph.id == graphId:
-                    graphDef = graph
+                    if not graphDefault:
+                        graphDefault = graph
+                    graphDict[comp.id] = graph
                     break
-            if graphDef:
-                break
-        if not graphDef:
+        if not graphDefault:
             return []
 
         if allOnSame:
             # ZEN-26498 identify by name to match individual charts
             for comp in components:
                 comp.id = comp.name()
-            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+            return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
 
         graphs = []
         for comp in components:
+            graph = graphDict.get(comp.id, graphDefault)
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
