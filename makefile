@@ -1,7 +1,8 @@
 VERSION  ?= 5.3.0
 BUILD_NUMBER ?= DEV
 BRANCH   ?= develop
-ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
+ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
+ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
 DIST_ROOT := dist
 
