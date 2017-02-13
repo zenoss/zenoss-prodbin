@@ -941,9 +941,8 @@ class DeviceFacade(TreeFacade):
 
         graphDefault = None
         graphDict = {}
-        # get the graph def
+        # find the graph for each component and a default graph for components without one
         for comp in components:
-            # find the first instance
             for graph, ctx in comp.getGraphObjects():
                 if graph.id == graphId:
                     if not graphDefault:
