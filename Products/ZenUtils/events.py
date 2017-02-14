@@ -9,6 +9,7 @@
 from contextlib import contextmanager
 from collections import defaultdict
 
+from AccessControl import ClassSecurityInfo
 from uuid import uuid1
 from zope.interface import implements, Interface, Attribute
 from zope.event import notify
@@ -19,6 +20,8 @@ from ZODB.transact import transact
 from Products.PluggableAuthService.interfaces.events import IUserLoggedInEvent
 from Products.PluggableAuthService.interfaces.events import IUserLoggedOutEvent
 from Products.PluggableAuthService.events import PASEvent
+from Products.PluggableAuthService.plugins import (ZODBUserManager, ZODBGroupManager,
+                                                   ZODBRoleManager)
 
 GSM = getGlobalSiteManager()
 
@@ -76,6 +79,23 @@ def registerUUID(event):
     try:
         if getattr(event.app.zport.dmd, "uuid", None) is None:
            event.app.zport.dmd.uuid = str(uuid1())
+    except AttributeError:
+        pass
+
+def disablePasResources(event):
+    """Disable access to users/groups/roles management PAS plugins from browser
+    as they have no protection from CSRF attacks.
+    """
+    try:
+        zport = getattr(event.app, 'zport', None)
+        if not zport or getattr(zport.dmd, 'allowManageAccess', False):
+            return
+        for class_ in (ZODBUserManager.ZODBUserManager,
+                       ZODBGroupManager.ZODBGroupManager,
+                       ZODBRoleManager.ZODBRoleManager):
+            security = ClassSecurityInfo()
+            security.declareObjectPrivate()
+            security.apply(class_)
     except AttributeError:
         pass
 

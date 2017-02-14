@@ -62,6 +62,11 @@
             handler=".events.registerUUID"
             />
 
+    <subscriber
+            for=".events.IZopeApplicationOpenedEvent"
+            handler=".events.disablePasResources"
+            />
+
     <!-- advertize that Zenoss provides pre/post backup events -->
     <meta:provides feature="PrePostBackupEvents" /> 
 
