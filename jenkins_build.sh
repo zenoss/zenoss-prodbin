@@ -10,6 +10,7 @@
 #            as a workspace.
 # JOB_BASE_NAME: the last segment of $WORKSPACE, such as "foo" for
 #                "/bar/foo".
+# BRANCH: the branch of the repo that the build job will use.
 
 set -ex
 
@@ -23,11 +24,10 @@ check_var() {
 # Check if all required parameters are defined.
 echo Checking WORKSPACE;check_var $WORKSPACE;echo OK
 echo Checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
+echo Checking BRANCH;check_var $BRANCH;echo OK
 
 # The name of the repo this job will checkout
 REPO_NAME=zenoss-prodbin
-# The branch of the repo this job will use
-if [ -z "${BRANCH}" ]; then BRANCH=develop; fi
 ZENDEV_REPO=git@github.com:zenoss/zendev.git
 # The zendev branch this job will use
 if [ -z "${ZENDEV_BRANCH}" ]; then ZENDEV_BRANCH=zendev2; fi
@@ -66,7 +66,11 @@ gvm use go${GO_VER}
 echo Use go version ${GO_VER}
 
 echo Installing jig...
-GOPATH=$WORKSPACE/goworld go get github.com/iancmcc/jig
+GOPATH=$WORKSPACE/goworld
+go get github.com/iancmcc/jig
+export PATH=$GOPATH/bin:$PATH
+JIG="$(which jig)"
+echo Checking JIG; check_var $JIG; echo OK
 
 echo Boostraping zendev...
 source $(zendev bootstrap)
