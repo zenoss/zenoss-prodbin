@@ -19,6 +19,7 @@ Ext.define("Zenoss.IFramePanel", {
         config = Ext.applyIf(config || {}, {
             timeout: 5000, // Wait 5s for iframe to initialize before failing
             pollInterval: 50,
+            processed: true,
             loadMask: _t('Loading...'),
             src: config.url || 'about:blank',
             ignoreClassName: false
@@ -144,7 +145,9 @@ Ext.define("Zenoss.BackCompatPanel", {
                 }, this);
             }
         }, this);
-
+        this.on('load', function(){
+            this.processed = true;
+        }); 
         // the frame is not finished loading until Ext is ready
         this.on('isReady', function(win){
             return Ext.isDefined(win.Ext) && Ext.isDefined(win.Ext.onReady);
