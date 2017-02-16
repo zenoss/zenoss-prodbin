@@ -64,7 +64,7 @@ from Products.ZenEvents.ZenEventClasses import Clear, Critical, Error
 from Products.ZenUtils.Utils import unused, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
-unused(Globals, DeviceProxy, User, Error, zenPath)
+unused(Globals, DeviceProxy, User)  # , Error)
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
@@ -423,18 +423,18 @@ class TrapTask(BaseTask, CaptureReplay):
                                          c.POINTER(sockaddr_in6)
                                          ).contents
             if ipv6_socket_address.family == socket.AF_INET6:
-                self.log.debug("pre_parse: IPv6 %s",
-                               socket.inet_ntop(socket.AF_INET6,
-                                                ipv6_socket_address.addr)
-                               )
+                self.log.debug(
+                    "pre_parse: IPv6 %s",
+                    socket.inet_ntop(socket.AF_INET6, ipv6_socket_address.addr)
+                )
             elif ipv6_socket_address.family == socket.AF_INET:
                 ipv4_socket_address = c.cast(transport_data,
                                              c.POINTER(sockaddr_in)
                                              ).contents
-                self.log.debug("pre_parse: IPv4 %s",
-                               socket.inet_ntop(socket.AF_INET,
-                                                ipv4_socket_address.addr)
-                               )
+                self.log.debug(
+                    "pre_parse: IPv4 %s",
+                    socket.inet_ntop(socket.AF_INET, ipv4_socket_address.addr)
+                )
             else:
                 self.log.debug("pre_parse: unexpected address family: %s",
                                ipv6_socket_address.family)
