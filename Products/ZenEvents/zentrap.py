@@ -621,8 +621,8 @@ class TrapTask(BaseTask, CaptureReplay):
         eventType = {
             0: 'coldStart',
             1: 'warmStart',
-            2: 'linkDown',
-            3: 'linkUp',
+            2: 'snmp_linkDown',
+            3: 'snmp_linkUp',
             4: 'authenticationFailure',
             5: 'egpNeighorLoss',
             6: name,
@@ -657,6 +657,8 @@ class TrapTask(BaseTask, CaptureReplay):
                 self._add_varbind_detail(vb_result, vb_oid, vb_value)
         result.update({name:','.join(vals) for name, vals in vb_result.iteritems()})
 
+        if eventType in ["linkUp", "linkDown"]:
+            eventType = "snmp_" + eventType
         return eventType, result
 
     def asyncHandleTrap(self, addr, pdu, startProcessTime):
