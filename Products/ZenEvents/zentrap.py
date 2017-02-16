@@ -545,17 +545,21 @@ class TrapTask(BaseTask, CaptureReplay):
                 mon, day, hour, mins, secs, dsecs, utc_dir, utc_hours, utc_mins)
 
     def _convert_value(self, value):
-        if not isinstance(value, basestring):
-            return value
-        try:
-            value.decode('utf8')
-            return value
-        except UnicodeDecodeError:
-            # Try converting to a date
-            decoded = self._value_from_dateandtime(value)
-            if not decoded:
-                decoded = 'BASE64:' + base64.b64encode(value)
-            return decoded
+        # Check if values is OID (SNMP object id)
+        if isinstance(value, tuple) and len(value) > 2:
+            if value[0] in [0, 1, 2] and all(isinstance(i, int) for i in value):
+                return '.'.join(map(str, value))
+        elif isinstance(value, basestring):
+            try:
+                value.decode('utf8')
+                return value
+            except UnicodeDecodeError:
+                # Try converting to a date
+                decoded = self._value_from_dateandtime(value)
+                if not decoded:
+                    decoded = 'BASE64:' + base64.b64encode(value)
+                return decoded
+        return value
 
     def snmpInform(self, addr, pdu):
         """
@@ -584,11 +588,6 @@ class TrapTask(BaseTask, CaptureReplay):
         # Add a detail for the variable binding.
         detail_name = self.oid2name(oid, exactMatch=False, strip=False)
         result[detail_name].append(str(value))
-
-        # Add a detail for the index-stripped variable binding.
-        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
-        if detail_name_stripped != detail_name:
-            result[detail_name_stripped].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
         result = {"snmpVersion": "1"}
@@ -620,12 +619,12 @@ class TrapTask(BaseTask, CaptureReplay):
         # Look for the standard trap types and decode them without
         # relying on any MIBs being loaded.
         eventType = {
-            0: 'snmp_coldStart',
-            1: 'snmp_warmStart',
+            0: 'coldStart',
+            1: 'warmStart',
             2: 'snmp_linkDown',
             3: 'snmp_linkUp',
-            4: 'snmp_authenticationFailure',
-            5: 'snmp_egpNeighorLoss',
+            4: 'authenticationFailure',
+            5: 'egpNeighorLoss',
             6: name,
         }.get(generic, name)
 
@@ -651,7 +650,7 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
-                result["oid"] = '.'.join(map(str, vb_value))
+                result["oid"] = vb_value
                 eventType = self.oid2name(
                         vb_value, exactMatch=False, strip=False)
             else:
