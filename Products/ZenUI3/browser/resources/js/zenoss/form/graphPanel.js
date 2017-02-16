@@ -61,13 +61,13 @@
             }
         });
     }
-    
+
     function truncateLongLegends(pts) {
         var uRex1 = /[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/gi;
         var uRex2 = /[0-9a-f]{64}/gi;
 
         pts.forEach(function (pt) {
-            // ZEN-26498 truncate UUIDs when present. 
+            // ZEN-26498 truncate UUIDs when present.
             var uDashed = pt.legend.match(uRex1) || [];
             uDashed.forEach(function (u) {
                 var trunc = u.substr(0, 2) + ".." + u.substr(31);
@@ -91,7 +91,7 @@
             }
         });
     }
-    
+
     var router = Zenoss.remote.DeviceRouter,
 
         CURRENT_TIME = "0s-ago",
@@ -138,7 +138,7 @@
         return new Date(this.valueOf()-(secs*1000));
     };
 
-
+    // TODO: Lock controls on refresh
     Ext.define("Zenoss.EuropaGraph", {
         alias:['widget.europagraph'],
         extend: "Ext.Panel",
@@ -386,6 +386,14 @@
                         chart.resize();
                     }
                 };
+                chart.onUpdate = function(p1){
+                    var delement = Ext.query(".europaGraphGear", self.getEl().dom)[0];
+                    // start gear spinning
+                    delement.classList.add("spinnerino");
+                    p1.always(function(){
+                        delement.classList.remove("spinnerino");
+                    });
+                };
             });
 
         },
@@ -397,7 +405,7 @@
                 exclusions = ["dockedItems"];
 
             // shallow clone initialConfig object as long as the
-            // key being copied is no in the exclusions list.
+            // key being copied is not in the exclusions list.
             // This is useful because the final JSON string needs
             // to be as small as possible!
             for(var i in this.initialConfig){
@@ -980,7 +988,7 @@
             }
         }];
 
-
+    // TODO: Lock controls on refresh
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
@@ -1018,7 +1026,7 @@
             this.toolbar.insert(0, [{
                 xtype: 'tbtext',
                 text: config.tbarTitle || _t('Performance Graphs')
-            },, '-', {
+            }, '-', {
                 text: '&lt;',
                 width: 40,
                 handler: Ext.bind(function(btn, e) {
@@ -1134,7 +1142,7 @@
                 i;
 
             // load graphs until we have either completed the page or
-            // we ran out of graphs
+            // we've run out of graphs
             for (i=start; i < Math.min(end, data.length); i++) {
                 graph = data[i];
                 graphId = Ext.id();
