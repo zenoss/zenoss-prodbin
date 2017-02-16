@@ -111,6 +111,13 @@ class FileSystem(OSComponent):
 
 
     def getTotalBlocks(self):
+        availBlocks = self.cacheRRDValue('availBlocks', None)
+        usedBlocks = self.usedBlocks()
+        if availBlocks and hasattr(self, 'snmpindex_dct') and '1.3.6.1.4.1.2021.9.1' in self.snmpindex_dct:
+             availBlocks = availBlocks / 4
+             nonRootTotalBlocks = availBlocks + usedBlocks
+             return nonRootTotalBlocks
+
         offset = getattr(self.primaryAq(), 'zFileSystemSizeOffset', 1.0)
         return int(self.totalBlocks) * offset
 
@@ -223,6 +230,8 @@ class FileSystem(OSComponent):
         Return the number of available blocks stored in the filesystem's rrd file
         """
         blocks = self.cacheRRDValue('availBlocks', default)
+        if blocks and hasattr(self, 'snmpindex_dct') and '1.3.6.1.4.1.2021.9.1' in self.snmpindex_dct:
+            blocks = blocks / 4
         if blocks is not None and not isnan(blocks):
             return long(blocks)
         usedBlocks = self.usedBlocks()
