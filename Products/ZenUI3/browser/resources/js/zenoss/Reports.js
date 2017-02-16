@@ -26,6 +26,7 @@ report_panel = Ext.create('Ext.panel.Panel', {
     }, {
         xtype: 'panel',
         ref: 'graph_reports',
+        graphs_added: true,
         bodyStyle: {
             overflow: 'auto'
         }
@@ -46,6 +47,7 @@ report_panel = Ext.create('Ext.panel.Panel', {
         });
         graphs.setContext(attrs.uid);
         this.graph_reports.add(graphs);
+        this.graph_reports.graphs_added = true;
     },
     renderGraphReport: function(attrs) {
         this._renderReport(attrs,
@@ -192,15 +194,19 @@ Ext.define('Zenoss.ReportTreePanel', {
 treesm = new Zenoss.TreeSelectionModel({
     listeners: {
         'selectionchange': function (sm, newnode) {
-            if (newnode === null) {
+            if (newnode === null || !report_panel.backcompat.processed
+                || !report_panel.graph_reports.graphs_added) {
                 return;
             }
             var attrs = newnode[0].data;
             if (attrs.isGraphReport) {
+                report_panel.graph_reports.graphs_added = false;
                 report_panel.renderGraphReport(attrs);
             } else if (attrs.isMultiGraphReport) {
+                report_panel.graph_reports.graphs_added = false;
                 report_panel.renderMultiGraphReport(attrs);
             } else {
+                report_panel.backcompat.processed = false;
                 report_panel.setContext(attrs.leaf ? Ext.urlAppend(attrs.uid, 'adapt=false') : '');
             }
 
