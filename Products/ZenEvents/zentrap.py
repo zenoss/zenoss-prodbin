@@ -644,11 +644,18 @@ class TrapTask(BaseTask, CaptureReplay):
             result[detail_name_stripped].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
+
         result = {"snmpVersion": "1"}
+        result["device"] = addr[0]
 
         variables = self.getResult(pdu)
 
-        result["device"] = addr[0]
+        self.log.debug("SNMPv1 pdu has agent_addr: %s",
+                       str(hasattr(pdu, 'agent_addr')))
+
+        if hasattr(pdu, 'agent_addr'):
+            origin = '.'.join([str(i) for i in pdu.agent_addr])
+            result["device"] = origin
 
         enterprise = self.getEnterpriseString(pdu)
         generic = pdu.trap_type
@@ -690,8 +697,9 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
-        result.update({name: ','.join(vals)
-                       for name, vals in vb_result.iteritems()})
+        result.update(
+            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
+        )
         return eventType, result
 
     def decodeSnmpv2(self, addr, pdu):
