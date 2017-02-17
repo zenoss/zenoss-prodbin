@@ -21,7 +21,7 @@ class filesystems( AliasPlugin ):
                  Column('device_url', PythonColumnHandler( 'device.getDeviceUrl()' )),
                  Column( 'mount', PythonColumnHandler( 'component.mount' ) ),
                  Column( 'usedBytes', RRDColumnHandler( 'usedFilesystemSpace__bytes' ) ),
-                 Column( 'totalBytes', PythonColumnHandler( 'component.totalBytes()' ) ) ]
+                 Column( 'totalBytes', PythonColumnHandler( 'component.totalBlocks * component.blockSize ' ) ) ]
 
     def getCompositeColumns(self):
         return [ Column( 'availableBytes', PythonColumnHandler('totalBytes - usedBytes if totalBytes is not None and usedBytes is not None else 0') ),

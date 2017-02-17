@@ -110,11 +110,23 @@ class FileSystem(OSComponent):
         )
 
 
+    def getNoneRootTotalBlocks(self):
+        availBlocks = self.cacheRRDValue('availBlocks', None)
+        usedBlocks = self.usedBlocks()
+        if availBlocks and usedBlocks:
+            nonRootTotalBlocks = availBlocks + usedBlocks
+            return nonRootTotalBlocks
+
+
     def getTotalBlocks(self):
+        noneRootTotalBlocks = self.getNoneRootTotalBlocks()
+        if noneRootTotalBlocks:
+            return noneRootTotalBlocks
+
         offset = getattr(self.primaryAq(), 'zFileSystemSizeOffset', 1.0)
         return int(self.totalBlocks) * offset
 
-
+    
     def totalBytes(self):
         """
         Return the total bytes of a filesytem
