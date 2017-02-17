@@ -313,6 +313,9 @@ def setup(context):
     app_acl = getToolByName(app, 'acl_users')
     zport_acl = getToolByName(zport, 'acl_users')
 
+    if hasattr(app_acl, 'account_locker_plugin'):
+        return
+
     context_interfaces = {app_acl:('IAuthenticationPlugin', 'IAnonymousUserFactoryPlugin'),
                 zport_acl:('IAuthenticationPlugin',)}
 

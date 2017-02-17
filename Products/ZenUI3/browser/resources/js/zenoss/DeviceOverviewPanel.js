@@ -1211,6 +1211,9 @@
                 } else {
                     D.memory = 'Unknown/Unknown';
                 }
+                if (D.snmpCommunity) {
+                   D.snmpCommunity = Ext.String.htmlEncode(D.snmpCommunity);
+                }
                 D.comments = Ext.htmlDecode(D.comments);
                 D.tagNumber = Ext.htmlDecode(D.tagNumber);
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);

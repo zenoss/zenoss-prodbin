@@ -37,9 +37,7 @@ from Products.PluggableAuthService import PluggableAuthService
 from Products.PluggableAuthService.PluggableAuthService import \
         _SWALLOWABLE_PLUGIN_EXCEPTIONS, DumbHTTPExtractor
 from Products.PluggableAuthService.plugins import (CookieAuthHelper, 
-                                                   ZODBUserManager, 
-                                                   ZODBGroupManager,
-                                                   ZODBRoleManager)
+                                                   ZODBUserManager)
 from Products.PluggableAuthService.interfaces.authservice import _noroles
 from Products.PluggableAuthService.interfaces.plugins import \
         IAuthenticationPlugin, IExtractionPlugin
@@ -47,7 +45,6 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
 
-from Products.PluggableAuthService.plugins import ZODBUserManager
 from Products.PluggableAuthService.plugins import SessionAuthHelper
 
 from Products.PluggableAuthService.utils import createViewName, createKeywords
@@ -494,22 +491,6 @@ def termsCheck(self):
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
 
 
-def _make_class_private(class_):
-    """Restrics access to specified class."""
-    security = ClassSecurityInfo()
-    security.declareObjectPrivate()
-
-    security.apply(class_)
-
-
-def disable_pas_resources():
-    """Disable access to users/groups/roles management PAS plugins from browser
-    as they have no protection from CSRF attacks.
-    """
-    _make_class_private(ZODBUserManager.ZODBUserManager)
-    _make_class_private(ZODBGroupManager.ZODBGroupManager)
-    _make_class_private(ZODBRoleManager.ZODBRoleManager)
-
 def updateLdapUserInGroupAssignments(auth, user_settings_manager, user_id):
     """ Associate zope's user-group assignments based on the LDAP server's
         information (via the auth object).  (ZEN-24774)
@@ -528,6 +509,4 @@ def updateLdapUserInGroupAssignments(auth, user_settings_manager, user_id):
             group_settings.manage_addUsersToGroup([user_id])
         else:
             log.debug("LDAP> User [%s] already exists in group [%s]" % (user_id, group_id))
-
-disable_pas_resources()
 
