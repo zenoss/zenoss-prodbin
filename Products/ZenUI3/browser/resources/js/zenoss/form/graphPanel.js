@@ -138,7 +138,6 @@
         return new Date(this.valueOf()-(secs*1000));
     };
 
-    // TODO: Lock controls on refresh
     Ext.define("Zenoss.EuropaGraph", {
         alias:['widget.europagraph'],
         extend: "Ext.Panel",
@@ -386,16 +385,20 @@
                         chart.resize();
                     }
                 };
+                // Here we set an onUpdate function for the chart, which takes a promise as an argument (the update
+                // ajax request) and disables the controls until the promise is either fulfilled or it fails.
                 chart.onUpdate = function(p1){
                     // start gear spinning
                     var delement = Ext.query(".europaGraphGear", self.getEl().dom)[0];
                     delement.classList.add("spinnerino");
 
-                    // set the graph panel to 'updating'
+                    // set the graph panel to 'updating'. This will disable controls for combined graphs
                     var graphPanel = self.up("graphpanel");
                     if(graphPanel){
                         graphPanel.updateStart();
                     }
+
+                    // disable the controls for europa graphs which are not combined, such as component graphs
                     var items = self.dockedItems.items;
                     var disableTimer = setTimeout(function(){
                         items.forEach(function(item){
@@ -404,6 +407,8 @@
                             }
                         });
                     }, 1000);
+
+                    // regardless of whether the promise is fulfilled or it fails, we will re-enable controls for both types of graphs
                     p1.always(function(){
                         if (graphPanel){
                             graphPanel.updateEnd();
@@ -1009,7 +1014,6 @@
             }
         }];
 
-    // TODO: Lock controls on refresh
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
@@ -1042,6 +1046,7 @@
 
             this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
             this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            // this variable stores the number of current graphs which are actively loading or refreshing
             this.graphBusy = 0;
             // add title to toolbar
             this.toolbar.insert(0, [{
@@ -1340,10 +1345,13 @@
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
         },
         updateStart: function(){
+            // indicate to the panel that a graph is loading
             this.graphBusy++;
             this.disableControls();
         },
         updateEnd: function(){
+            // indicate to the panel that a graph has completed loading / refreshing. Note that the controls should
+            // only be re-enabled when all graphs are ready
             this.graphBusy--;
             if(this.graphBusy <= 0){
                 this.graphBusy = 0;
@@ -1353,8 +1361,10 @@
             }
         },
         disableControls: function() {
+            // this function disables controls for combined graphs with a single panel
             var items = this.getDockedItems()[0].items.items;
             if(this.controlsDisableTimer){
+                // if a timer is already set, clear it and start a new one
                 clearTimeout(this.controlsDisableTimer);
             }
             var disableTimer = setTimeout(function(){
@@ -1367,6 +1377,7 @@
             this.controlsDisableTimer = disableTimer;
         },
         enableControls: function(){
+            // re-enable controls for combined graphs with a single panel
             clearTimeout(this.controlsDisableTimer);
             var items = this.getDockedItems()[0].items.items;
             items.forEach(function(item){
