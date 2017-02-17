@@ -387,11 +387,32 @@
                     }
                 };
                 chart.onUpdate = function(p1){
-                    var delement = Ext.query(".europaGraphGear", self.getEl().dom)[0];
                     // start gear spinning
+                    var delement = Ext.query(".europaGraphGear", self.getEl().dom)[0];
                     delement.classList.add("spinnerino");
+
+                    // set the graph panel to 'updating'
+                    var graphPanel = self.up("graphpanel");
+                    if(graphPanel){
+                        graphPanel.updateStart();
+                    }
+                    var items = self.dockedItems.items;
+                    var disableTimer = setTimeout(function(){
+                        items.forEach(function(item){
+                            if(item.disable){
+                                item.disable();
+                            }
+                        });
+                    }, 1000);
                     p1.always(function(){
+                        if (graphPanel){
+                            graphPanel.updateEnd();
+                        }
+                        clearTimeout(disableTimer);
                         delement.classList.remove("spinnerino");
+                        items.forEach(function(item){
+                            item.enable();
+                        });
                     });
                 };
             });
@@ -1021,7 +1042,7 @@
 
             this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
             this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-
+            this.graphBusy = 0;
             // add title to toolbar
             this.toolbar.insert(0, [{
                 xtype: 'tbtext',
@@ -1317,6 +1338,42 @@
         hideDatePicker: function(){
             // hide date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
+        },
+        updateStart: function(){
+            this.graphBusy++;
+            this.disableControls();
+        },
+        updateEnd: function(){
+            this.graphBusy--;
+            if(this.graphBusy <= 0){
+                this.graphBusy = 0;
+            }
+            if(this.graphBusy === 0){
+                this.enableControls();
+            }
+        },
+        disableControls: function() {
+            var items = this.getDockedItems()[0].items.items;
+            if(this.controlsDisableTimer){
+                clearTimeout(this.controlsDisableTimer);
+            }
+            var disableTimer = setTimeout(function(){
+                items.forEach(function(item){
+                    if(item.disable){
+                        item.disable();
+                    }
+                });
+            }, 1000);
+            this.controlsDisableTimer = disableTimer;
+        },
+        enableControls: function(){
+            clearTimeout(this.controlsDisableTimer);
+            var items = this.getDockedItems()[0].items.items;
+            items.forEach(function(item){
+                if(item.enable){
+                    item.enable();
+                }
+            });
         }
     });
 
