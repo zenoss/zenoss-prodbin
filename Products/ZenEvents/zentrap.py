@@ -64,7 +64,7 @@ from Products.ZenEvents.ZenEventClasses import Clear, Critical
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
-unused(Globals, DeviceProxy, User)  # , Error)
+unused(Globals, DeviceProxy, User)
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
 
