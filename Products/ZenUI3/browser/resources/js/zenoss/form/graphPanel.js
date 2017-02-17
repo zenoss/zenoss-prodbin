@@ -732,7 +732,7 @@
             if(!isAdjusted){
                 // take provided time, offset with local timezone, then
                 // offset with displayTZ
-                adjustedTime = ms + this.TZOffsetMS + this.TZLocalMS;
+                adjustedTime = ms + this.TZOffsetMS - this.TZLocalMS;
             } else {
                 adjustedTime = ms;
             }
@@ -746,7 +746,7 @@
         getValue: function(){
             // clear any previous offsets and return just the UTC
             // time since epoch
-            return +moment.tz(this.value, this.displayTZ).utc().toDate();
+            return +moment.utc(this.value - this.TZOffsetMS + this.TZLocalMS).toDate();
         },
 
         beforeBlur : function(){
@@ -1230,12 +1230,12 @@
         // but forced to be treated as UTC to prevent additional timezone offset
         updateStartDatePicker: function(){
             this.startDatePicker.suspendEvents();
-            this.startDatePicker.setValue(this.start.valueOf());
+            this.startDatePicker.setValue(this.start.valueOf(), false);
             this.startDatePicker.resumeEvents(false);
         },
         updateEndDatePicker: function(){
             this.endDatePicker.suspendEvents();
-            this.endDatePicker.setValue(this.end.valueOf());
+            this.endDatePicker.setValue(this.end.valueOf(), false);
             this.endDatePicker.resumeEvents(false);
         },
 
