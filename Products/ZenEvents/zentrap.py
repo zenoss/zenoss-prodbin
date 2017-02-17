@@ -60,14 +60,13 @@ from pynetsnmp import netsnmp, twistedsnmp
 from Products.ZenUtils.captureReplay import CaptureReplay
 from Products.ZenEvents.EventServer import Stats
 from Products.ZenEvents.TrapFilter import TrapFilter, TrapFilterError
-from Products.ZenEvents.ZenEventClasses import Clear, Critical, Error
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenEvents.ZenEventClasses import Clear, Critical #, Error
+from Products.ZenUtils.Utils import unused #, zenPath
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenHub.services.SnmpTrapConfig import User
 unused(Globals, DeviceProxy, User)  # , Error)
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_WARNING
-
 
 # This is what struct sockaddr_in {} looks like
 family = [('family', c.c_ushort)]
@@ -653,7 +652,7 @@ class TrapTask(BaseTask, CaptureReplay):
                        str(hasattr(pdu, 'agent_addr')))
 
         if hasattr(pdu, 'agent_addr'):
-            origin = '.'.join([str(i) for i in pdu.agent_addr])
+            origin = '.'.join(str(i) for i in pdu.agent_addr)
             result["device"] = origin
 
         enterprise = self.getEnterpriseString(pdu)
@@ -712,7 +711,7 @@ class TrapTask(BaseTask, CaptureReplay):
             vb_oid = '.'.join(map(str, vb_oid))
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
-                result["oid"] = '.'.join(map(str, vb_value))
+                result["oid"] = vb_value
                 eventType = self.oid2name(vb_value,
                                           exactMatch=False,
                                           strip=False)
