@@ -51,11 +51,15 @@ class DataPointGraphPoint(ComplexGraphPoint):
     #          http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
     cFunc = 'AVERAGE'
 
+    #skipCalc: Flag used for disabling magnitude calculation in graphs footer
+    skipCalc = False
+
     _properties = ComplexGraphPoint._properties + (
         {'id':'limit', 'type':'long', 'mode':'w'},
         {'id':'rpn', 'type':'string', 'mode':'w'},
         {'id':'dpName', 'type':'string', 'mode':'w'},
         {'id':'cFunc', 'type':'string', 'mode':'w'},
+        {'id':'skipCalc', 'type':'boolean', 'mode':'w'},
         )
 
     def getDescription(self):
