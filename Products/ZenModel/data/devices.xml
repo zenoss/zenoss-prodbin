@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-02-14 08:47:59.295823
+    Zenoss RelationshipManager export completed on 2017-02-16 08:42:28.239597
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.3.0]" export_date="2017-02-14 08:47:59.295823" zenoss_server="ba4919f1b388" >
+<objects version="[Zenoss, version 5.3.0]" export_date="2017-02-16 08:42:28.239597" zenoss_server="fab3328da980" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -4185,6 +4185,42 @@ Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 Products.ZenModel.FileSystem
 </property>
 <tomanycont id='datasources'>
+<object id='availBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+SNMP
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="string" id="eventClass" mode="w" >
+/Cmd/Fail
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="int" id="cycletime" mode="w" >
+300
+</property>
+<property type="string" id="oid" mode="w" >
+1.3.6.1.4.1.2021.9.1.7
+</property>
+<property type="boolean" id="usessh" mode="w" >
+False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
+<tomanycont id='datapoints'>
+<object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property id='zendoc' type='string'>
 Amount of blocks used on the database.
