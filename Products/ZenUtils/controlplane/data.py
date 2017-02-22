@@ -218,7 +218,14 @@ def _convertToApplicationState(f):
             "resuming":  ApplicationState.STARTING,
             "running":   ApplicationState.RUNNING,
             "stopping":  ApplicationState.STOPPING,
-            "stopped":   ApplicationState.STOPPED
+            "stopped":   ApplicationState.STOPPED,
+            "started":   ApplicationState.RUNNING,
+            "pulling":   ApplicationState.STARTING,
+            "resuming":  ApplicationState.STARTING,
+            "resumed":   ApplicationState.RUNNING,
+            "pending_restart": ApplicationState.STARTING,
+            "emergency_stopping": ApplicationState.STOPPING,
+            "emergency_stopped": ApplicationState.STOPPED,
         }.get(src["Value"].lower(), ApplicationState.UNKNOWN)
     return wrapper
 
