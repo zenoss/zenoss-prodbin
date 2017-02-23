@@ -131,6 +131,24 @@ class EventClassesRouter(TreeRouter):
         data = facade.getTransformTree(uid)
         return DirectResponse(data=Zuul.marshal(data) )
 
+    def isTransformEnabled(self, uid):
+        """
+        Returns True if transform is enabled, False if disabled.
+        """
+        facade = self._getFacade()
+        data = facade.isTransformEnabled(uid)
+        return DirectResponse(data=Zuul.marshal(data) )
+
+    @require('Manage DMD')
+    def setTransformEnabled(self, uid, enabled):
+        """
+        Enables or disables transforms on the given event class.
+        When disabled transforms are enabled again, bad_transform events are cleared.
+        """
+        facade = self._getFacade()
+        data = facade.setTransformEnabled(uid, enabled)
+        return DirectResponse(data=Zuul.marshal(data) )
+
     @require('Manage DMD')
     def editEventClassDescription(self, uid, description):
         """
