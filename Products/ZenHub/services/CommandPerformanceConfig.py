@@ -52,7 +52,7 @@ class CommandPerformanceConfig(CollectorConfigService):
         """
         parser = ploader.create()
         points = []          
-        component_name = ds.getComponent(comp)
+        component_name = ds.getComponent(comp, device=device)
         for dp in ds.getRRDDataPoints():
             dpc = DataPointConfig()
             dpc.id = dp.id
@@ -131,7 +131,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.useSsh = useSsh
                 cmd.name = "%s/%s" % (templ.id, ds.id)
                 cmd.cycleTime = self._getDsCycleTime(comp, templ, ds)
-                cmd.component = ds.getComponent(comp)
+                cmd.component = ds.getComponent(comp, device=device)
                 cmd.eventClass = ds.eventClass
                 cmd.eventKey = ds.eventKey or ds.id
                 cmd.severity = ds.severity
@@ -155,7 +155,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.env = getattr(ds, 'env', None)
 
                 try:
-                    cmd.command = ds.getCommand(comp)
+                    cmd.command = ds.getCommand(comp, device=device)
                 except Exception as ex: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)
