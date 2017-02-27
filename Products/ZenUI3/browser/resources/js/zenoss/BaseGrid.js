@@ -1075,9 +1075,6 @@
                         if (real_page_end > store.totalCount) {
                             real_page_end = store.totalCount;
                         }
-                        if ( end > real_page_end) {
-                            end = real_page_end;
-                        }
                     }
                 }
                 msg = Ext.String.format(this.displayMsg, start + 1, end, store.totalCount);
