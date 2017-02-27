@@ -192,8 +192,9 @@ class MetricMixin(object):
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
-    def getMetricMetadata(self):
-        dev = self.device()
+    def getMetricMetadata(self, dev=None):
+        if dev is None:
+            dev = self.device()
         return {
                 'type': 'METRIC_DATA',
                 'contextKey': self.getResourceKey(dev),

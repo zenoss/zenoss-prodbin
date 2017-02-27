@@ -42,10 +42,11 @@ class CommandPerformanceConfig(CollectorConfigService):
         CollectorConfigService.__init__(self, dmd, instance, 
                                         deviceProxyAttributes)
 
+
     # Use case: create a dummy device to act as a placeholder to execute commands
     #           So don't filter out devices that don't have IP addresses.
 
-    def _getDsDatapoints(self, comp, ds, ploader, perfServer):
+    def _getDsDatapoints(self, device, comp, ds, ploader, perfServer):
         """
         Given a component a data source, gather its data points
         """
@@ -62,7 +63,7 @@ class CommandPerformanceConfig(CollectorConfigService):
             dpc.rrdMin = dp.rrdmin
             dpc.rrdMax = dp.rrdmax
             dpc.data = parser.dataForParser(comp, dp)
-            dpc.metadata = comp.getMetricMetadata()
+            dpc.metadata = comp.getMetricMetadata(device)
             points.append(dpc)
 
         return points
@@ -136,7 +137,7 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.severity = ds.severity
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
-                cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
+                cmd.points = self._getDsDatapoints(device, comp, ds, ploader, perfServer)
 
                 if isinstance(comp, OSProcess):
                     # save off the regex's specified in the UI to later run
