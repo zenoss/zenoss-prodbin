@@ -503,10 +503,5 @@ def updateLdapUserInGroupAssignments(auth, user_settings_manager, user_id):
 
     for group_id in group_id_list:
         group_settings = user_settings_manager.getGroupSettings(group_id)
-        log.debug("LDAP> checking group [%s] users list: [%s]" % (group_id, ", ".join(group_settings.getMemberUserIds())))
-        if user_id not in group_settings.getMemberUserIds():
-            log.debug("LDAP> Adding user [%s] to group [%s] based on LDAP information" % (user_id, group_id))
-            group_settings.manage_addUsersToGroup([user_id])
-        else:
-            log.debug("LDAP> User [%s] already exists in group [%s]" % (user_id, group_id))
+        group_settings.manage_addUsersToGroup([user_id])
 
