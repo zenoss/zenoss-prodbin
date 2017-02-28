@@ -984,7 +984,9 @@
             handler: function(btn) {
                 if (btn) {
                     var panel = btn.up("graphpanel");
-                    panel.refresh();
+                    if(panel && panel.isVisible()){
+                        panel.refresh();
+                    }
                 }
             }
         },
