@@ -135,8 +135,14 @@ class MinMaxThreshold(ThresholdClass):
                 evaluated = talesEval(express, context)
                 value = evaluated
             except:
+                nodeName = context.getNodeName()
+                if nodeName == 'Device':
+                    location = '{} of Device {}'.format(self.dsnames, context.id)
+                else:
+                    location = '{} of {} {} in Device {}'.format(self.dsnames, nodeName, context.id, context.device().id)
+
                 msg= "User-supplied Python expression (%s) for %s caused error: %s" % (
-                           value, readablePropName, self.dsnames)
+                           value, readablePropName, location)
                 log.error(msg)
                 raise pythonThresholdException(msg)
                 value = None
