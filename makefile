@@ -7,16 +7,17 @@
 # a value like "support/5.2.x" is NOT valid because it will result in an
 # incorrect file name when full value of ARTIFACT is expanded by make.
 #
-VERSION  ?= 5.2.1
+VERSION  ?= 5.2.2
 BUILD_NUMBER ?= DEV
 BRANCH ?= support-5.2.x
 
+ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
+ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 #
 # Use REVISION if you need to do something like a hotfix release.
 #
 # REVISION ?= 1
-# ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(BRANCH).tar.gz
-ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
+# ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(ARTIFACT_TAG).tar.gz
 
 DIST_ROOT := dist
 

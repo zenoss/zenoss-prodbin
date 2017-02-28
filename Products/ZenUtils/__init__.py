@@ -25,6 +25,12 @@ from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
                                              manage_addMultiPathIndexForm
 
+from Products.PluggableAuthService import registerMultiPlugin
+from AccessControl.Permissions import add_user_folders
+from AccountLocker.AccountLocker import AccountLocker
+from AccountLocker.AccountLocker import manage_addAccountLocker
+from AccountLocker.AccountLocker import manage_addAccountLockerForm
+
 def initialize(context):
     context.registerClass(
         MultiPathIndex,
@@ -32,6 +38,16 @@ def initialize(context):
         constructors=(manage_addMultiPathIndexForm, manage_addMultiPathIndex),
         #icon="www/index.gif",
         visibility=None)
+
+
+    registerMultiPlugin(AccountLocker.meta_type)
+
+    context.registerClass(AccountLocker,
+                        permission=add_user_folders,
+                        constructors=(manage_addAccountLockerForm, manage_addAccountLocker),
+                        visibility=None,
+                        )
+
 
 def safeTuple(arg):
     """

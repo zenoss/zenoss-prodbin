@@ -1211,6 +1211,9 @@
                 } else {
                     D.memory = 'Unknown/Unknown';
                 }
+                if (D.snmpCommunity) {
+                   D.snmpCommunity = Ext.String.htmlEncode(D.snmpCommunity);
+                }
                 D.comments = Ext.htmlDecode(D.comments);
                 D.tagNumber = Ext.htmlDecode(D.tagNumber);
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);
@@ -1221,6 +1224,7 @@
                 } else {
                     Ext.getCmp('device-connection-editlink').show();
                 }
+                D.deviceConnectionInfo = Ext.String.htmlEncode(D.deviceConnectionInfo);
                 this.setValues(D);
 
                 // load uptime in a separate request since it
