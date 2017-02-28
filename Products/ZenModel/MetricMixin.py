@@ -180,24 +180,27 @@ class MetricMixin(object):
         """
         return json.dumps(self.getMetricMetadata(), sort_keys=True)
 
-    def getResourceKey(self):
+    def getResourceKey(self, d=None):
         """
         Formerly RRDView.GetRRDPath, this value is still used as the key for the
         device or component in OpenTSDB.
         """
-        d = self.device()
+        if d is None:
+            d = self.device()
         if not d:
             return "Devices/" + self.id
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
-    def getMetricMetadata(self):
+    def getMetricMetadata(self, dev=None):
+        if dev is None:
+            dev = self.device()
         return {
                 'type': 'METRIC_DATA',
-                'contextKey': self.getResourceKey(),
-                'deviceId': self.device().id,
+                'contextKey': self.getResourceKey(dev),
+                'deviceId': dev.id,
                 'contextId': self.id,
-                'deviceUUID': self.device().getUUID(),
+                'deviceUUID': dev.getUUID(),
                 'contextUUID': self.getUUID()
                 }
 

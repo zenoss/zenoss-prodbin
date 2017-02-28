@@ -174,7 +174,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return newGps
 
 
-    def getCommand(self, context, cmd=None):
+    def getCommand(self, context, cmd=None, device=None):
         """Return localized command target.
         """
         # Perform a TALES eval on the expression using self
@@ -183,7 +183,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         if not cmd.startswith('string:') and not cmd.startswith('python:'):
             cmd = 'string:%s' % cmd
         compiled = talesCompile(cmd)
-        d = context.device()
+        d = device if device is not None else context.device()
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
@@ -201,7 +201,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return res
         
 
-    def getComponent(self, context, component=None):
+    def getComponent(self, context, component=None, device=None):
         """Return localized component.
         """
         if component is None:
@@ -210,7 +210,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                 not component.startswith('python:'):
             component = 'string:%s' % component
         compiled = talesCompile(component)
-        d = context.device()
+        d = device if device is not None else context.device()
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
