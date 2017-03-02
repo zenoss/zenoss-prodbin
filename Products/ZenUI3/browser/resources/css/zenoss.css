@@ -1708,7 +1708,10 @@ a.z-entity:hover{
 .nodata:before {
   content: "No Data Available";
 }
-
+.timeout:before {
+  content: "Request Timeout";
+}
+.timeout,
 .nodata {
   display: block;
   position: relative;
@@ -1729,7 +1732,22 @@ div.europagraph {
 img.europaGraphGear {
     float:right;
     opacity:.5;
-    cursor:pointer
+    cursor:pointer;
+}
+img.europaGraphGear.spinnerino {
+    animation-name: spin;
+    animation-duration: 1500ms;
+    animation-iteration-count: infinite;
+}
+@keyframes spin {
+    from { opacity: .5; }
+    25% { opacity: .25; }
+    50% { opacity: .5; }
+    75% { opacity: .25; }
+    to {
+        transform: rotate(360deg);
+        opacity: .5;
+    }
 }
 
 /* make graph points visible */
