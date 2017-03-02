@@ -1502,7 +1502,7 @@
                 state = {"filters": decoded};
             }
 
-            Ext.state.Manager.set(this.stateId, state)
+            Ext.state.Manager.set(this.stateId, state);
             this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
