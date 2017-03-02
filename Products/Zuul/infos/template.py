@@ -488,6 +488,8 @@ class DataPointInfo(InfoBase):
             if self._object.isCounter():
                 rateOptions['counter'] = True
                 rateOptions["resetThreshold"] = 1
+            else:
+                rateOptions['counter'] = False
             if self._object.rrdmax is not None:
                 rateOptions['counterMax'] = self._object.rrdmax
                 # a safe and large threshold to reduce counter wrapping noise
