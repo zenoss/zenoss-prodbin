@@ -488,6 +488,9 @@ class DataPointInfo(InfoBase):
             if self._object.isCounter():
                 rateOptions['counter'] = True
                 rateOptions["resetThreshold"] = 1
+            if self._object.rrdtype == "DERIVE" and str(self.rrdmin) != '0':
+                # to show down spikes on DERIVE
+                rateOptions['counter'] = False
             if self._object.rrdmax is not None:
                 rateOptions['counterMax'] = self._object.rrdmax
                 # a safe and large threshold to reduce counter wrapping noise
