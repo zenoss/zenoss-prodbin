@@ -113,6 +113,8 @@ class ZenModeler(PBDaemon):
         self.devicegen = None
         self.counters = collections.Counter()
         self.configFilter = None
+        # ZEN-26637 - did we collect during collector loop?
+        self.didCollect = False
 
         # Make sendEvent() available to plugins
         zope.component.provideUtility(self, IEventService)
@@ -833,6 +835,8 @@ class ZenModeler(PBDaemon):
         if self.start:
             runTime = time.time() - self.start
             self.start = None
+            if not self.didCollect:
+                self.log.info("Did not collect during collector loop")
             self.log.info("Scan time: %0.2f seconds", runTime)
             devices = len(self.finished)
             timedOut = len([c for c in self.finished if c.timedOut])
@@ -861,6 +865,7 @@ class ZenModeler(PBDaemon):
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
+                    self.didCollect = True
                     d = devices[0]
                     if d.skipModelMsg:
                         self.log.info(d.skipModelMsg)
@@ -1110,10 +1115,10 @@ class ZenModeler(PBDaemon):
         if self.clients:
             self.log.error("Modeling cycle taking too long")
             return
-
+        self.didCollect = False
         self.start = time.time()
 
-        self.log.debug("Starting collector loop...")
+        self.log.info("Starting collector loop...")
         yield self.getDeviceList()
         deviceList = driver.next()
         self.log.debug("getDeviceList returned %s devices", len(deviceList))
