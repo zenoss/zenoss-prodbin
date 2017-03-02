@@ -1502,10 +1502,8 @@
                 state = {"filters": decoded};
             }
 
-            this.clearFilters();
-            this.applyState(state);
-            this.filterRow.storeSearch();
-            
+            Ext.state.Manager.set(this.stateId, state)
+            this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
