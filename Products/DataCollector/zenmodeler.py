@@ -113,8 +113,6 @@ class ZenModeler(PBDaemon):
         self.devicegen = None
         self.counters = collections.Counter()
         self.configFilter = None
-        # ZEN-26637 - did we collect during collector loop?
-        self.didCollect = False
 
         # Make sendEvent() available to plugins
         zope.component.provideUtility(self, IEventService)
@@ -1115,6 +1113,8 @@ class ZenModeler(PBDaemon):
         if self.clients:
             self.log.error("Modeling cycle taking too long")
             return
+
+        # ZEN-26637 - did we collect during collector loop?
         self.didCollect = False
         self.start = time.time()
 
