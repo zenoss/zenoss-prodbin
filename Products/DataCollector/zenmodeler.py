@@ -74,6 +74,7 @@ from Products.DataCollector import DeviceProxy
 from Products.DataCollector import Plugins
 unused(DeviceProxy, Plugins)
 
+import pprint
 
 class ZenModeler(PBDaemon):
     """
@@ -819,7 +820,7 @@ class ZenModeler(PBDaemon):
                 self.devicegen = chain([first], self.devicegen)
         return result
 
-    def checkStop(self, unused = None):
+    def checkStop(self, unused = None, caller=None):
         """
         Check to see if there's anything to do.
         If there isn't, report our statistics and exit.
@@ -831,6 +832,8 @@ class ZenModeler(PBDaemon):
         if self._devicegen_has_items: return
 
         if self.start:
+            if caller:
+                self.log.info("ZenModeler.checkStop() called from {}".format(caller))
             runTime = time.time() - self.start
             self.start = None
             if not self.didCollect:
@@ -881,7 +884,7 @@ class ZenModeler(PBDaemon):
             self.log.info('Running %d clients', update)
         else:
             self.log.debug('Running %d clients', update)
-        self.checkStop()
+        self.checkStop(caller='fillCollectionSlots')
 
     def timeMatches(self):
         """
@@ -1045,7 +1048,7 @@ class ZenModeler(PBDaemon):
         reactor.callLater(1, self.timeoutClients)
         self._timeoutClients()
         d = drive(self.fillCollectionSlots)
-        d.addCallback(self.checkStop)
+        d.addCallback(self.checkStop,caller='timeoutClientsCB')
         d.addErrback(self.fillError)
 
     def reactorLoop(self):
