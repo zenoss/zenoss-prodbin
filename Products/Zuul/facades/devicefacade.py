@@ -954,6 +954,9 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
+            # ZEN-26741 identify by name to match individual charts
+            for comp in components:
+                comp.id = comp.name()
             return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
 
         graphs = []
