@@ -292,8 +292,15 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         return self
 
     def getEventKey(self, point):
-        # fetch datapoint name from filename path and add it to the event key
-        return self.eventKey + '|' + point.rrdPath.split('/')[-1]
+        # get datapoint name and add it to the event key
+        dpName = point.rrdPath.split('/')[-1]
+        if dpName == '':
+            try:
+                dpName = point.dpName
+            except AttributeError:
+                dpName = ''
+
+        return self.eventKey + '|' + dpName
 
     def commandKey(self):
         "Provide a value that establishes the uniqueness of this command"
