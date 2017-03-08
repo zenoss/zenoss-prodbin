@@ -136,6 +136,9 @@ class ZenModeler(PBDaemon):
         # load performance counters
         self.loadCounters()
 
+        # ZEN-26637
+        self.collectorLoopIteration = 0
+
     def reportError(self, error):
         """
         Log errors that have occurred
@@ -303,6 +306,7 @@ class ZenModeler(PBDaemon):
             self.wmiCollect(device, ip, timeout)
         else:
             self.log.info("skipping WMI-based collection, PySamba zenpack not installed")
+        self.log.info("Collect on device {} for collector loop #{:03d}".format(device.id, self.collectorLoopIteration))
         self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
@@ -714,6 +718,7 @@ class ZenModeler(PBDaemon):
                 self.log.debug("Client %s not found in in the list"
                               " of active clients",
                               device.id)
+            self.log.info("Finished processing client within collector loop #{0:03d}".format(self.collectorLoopIteration))
             d = drive(self.fillCollectionSlots)
             d.addErrback(self.fillError)
 
@@ -829,13 +834,15 @@ class ZenModeler(PBDaemon):
         """
         if self.pendingNewClients or self.clients: return
         if self._devicegen_has_items: return
+        if not self.mainLoopGotDeviceList: return # ZEN-26637 to prevent race between checkStop and mainLoop
 
         if self.start:
             runTime = time.time() - self.start
             self.start = None
             if not self.didCollect:
                 self.log.info("Did not collect during collector loop")
-            self.log.info("Scan time: %0.2f seconds", runTime)
+            self.log.info("Scan time: %0.2f seconds for collector loop #%03d", runTime, self.collectorLoopIteration)
+            self.log.info("Scanned %d of %d devices during collector loop #%03d", self.processedDevicesCount, self.iterationDeviceCount, self.collectorLoopIteration)
             devices = len(self.finished)
             timedOut = len([c for c in self.finished if c.timedOut])
             self.rrdStats.gauge('cycleTime', runTime)
@@ -863,6 +870,8 @@ class ZenModeler(PBDaemon):
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
+                    self.processedDevicesCount = self.processedDevicesCount + 1
+                    self.log.info("Filled collection slots for %d of %d devices during collector loop #%03d", self.processedDevicesCount, self.iterationDeviceCount, self.collectorLoopIteration) #TODO should this message be logged at debug level?
                     self.didCollect = True
                     d = devices[0]
                     if d.skipModelMsg:
@@ -1116,16 +1125,22 @@ class ZenModeler(PBDaemon):
 
         # ZEN-26637 - did we collect during collector loop?
         self.didCollect = False
+        self.mainLoopGotDeviceList = False
         self.start = time.time()
+        self.collectorLoopIteration = self.collectorLoopIteration + 1
 
-        self.log.info("Starting collector loop...")
+        self.log.info("Starting collector loop #{:03d}...".format(self.collectorLoopIteration))
         yield self.getDeviceList()
         deviceList = driver.next()
         self.log.debug("getDeviceList returned %s devices", len(deviceList))
         self.log.debug("getDeviceList returned %s devices", deviceList)
         self.devicegen = iter(deviceList)
+        self.iterationDeviceCount = len(deviceList)
+        self.processedDevicesCount = 0
+        self.log.info("Got %d devices to be scanned during collector loop #%03d", self.iterationDeviceCount, self.collectorLoopIteration)
         d = drive(self.fillCollectionSlots)
         d.addErrback(self.fillError)
+        self.mainLoopGotDeviceList = True
         yield d
         driver.next()
         self.log.debug("Collection slots filled")
