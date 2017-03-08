@@ -153,6 +153,11 @@ class DashboardStateManager(object):
     def load_available_dashboards(self):
         self._dashboards = {}
         self._dashboard_users = defaultdict(set)
+
+        if not hasattr(self._dmd.ZenUsers, "dashboards"): # Dashboard ZP not installed
+            log.error("Dashboard ZenPack not installed")
+            return
+
         for user in self._dmd.ZenUsers.getAllUserSettings():
             user_dashboards = []
             # 1. Global Dashboards
@@ -208,7 +213,7 @@ class DashboardStateManager(object):
         return filename, saved, not_found
 
     def get_dashboard_states_from_file(self, filename, dashboard_names=None):
-        """ Get the requested dashboards states from zodb """
+        """ Get the requested dashboards states from file """
         dashboards_states = {}
         try:
             with open(filename, "rb") as f:
