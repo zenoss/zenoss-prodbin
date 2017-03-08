@@ -24,6 +24,7 @@ import zope.interface
 from zope.interface import implements
 from twisted.internet import defer
 from twisted.python.failure import Failure
+from cryptography.fernet import Fernet
 
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
@@ -45,6 +46,8 @@ class ConfigurationProxy(object):
     service proxy as specified by the collector's configuration.
     """
     zope.interface.implements(IConfigurationProxy)
+
+    _cipher_suite = None
 
     def getPropertyItems(self, prefs):
         if not ICollectorPreferences.providedBy(prefs):
@@ -122,6 +125,34 @@ class ConfigurationProxy(object):
             return names
         d.addCallback(printNames)
         return d
+
+    @defer.inlineCallbacks
+    def _get_cipher_suite(self):
+        """
+        Fetch the encryption key for this collector from zenhub.
+        """
+        if self._cipher_suite is None:
+            self._collector = zope.component.queryUtility(ICollector)
+            proxy = self._collector.getRemoteConfigServiceProxy()
+            key = yield proxy.callRemote("getEncryptionKey")
+            self._cipher_suite = Fernet(key)
+        defer.returnValue(self._cipher_suite)
+
+    @defer.inlineCallbacks
+    def encrypt(self, data):
+        """
+        Encrypt data using a key from zenhub.
+        """
+        cipher_suite = yield self._get_cipher_suite()
+        defer.returnValue(cipher_suite.encrypt(data))
+
+    @defer.inlineCallbacks
+    def decrypt(self, data):
+        """
+        Decrypt data using a key from zenhub.
+        """
+        cipher_suite = yield self._get_cipher_suite()
+        defer.returnValue(cipher_suite.decrypt(data))
 
 
 class ConfigurationLoaderTask(ObservableMixin):
