@@ -11,9 +11,14 @@
 from twisted.internet import defer
 from twisted.spread import pb
 import logging
+import hashlib
+import base64
 
 from Acquisition import aq_parent
 from zope import component
+from ZODB.transact import transact
+
+from cryptography.fernet import Fernet
 from Products.ZenHub.HubService import HubService
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenHub.services.Procrastinator import Procrastinate
@@ -263,6 +268,28 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
         return deviceConfigs
+
+    @transact
+    def _create_encryption_key(self):
+        # Double-check to make sure somebody else hasn't created it
+        collector = self.getPerformanceMonitor()
+        key = getattr(collector, "_encryption_key", None)
+        if key is None:
+            key = collector._encryption_key = Fernet.generate_key()
+        return key
+
+    @translateError
+    def remote_getEncryptionKey(self):
+        # Get or create an encryption key for this collector
+        collector = self.getPerformanceMonitor()
+        key = getattr(self.getPerformanceMonitor(), "_encryption_key", self._create_encryption_key())
+
+        # Hash the key with the daemon identifier to get unique key per collector daemon
+        s = hashlib.sha256()
+        s.update(key)
+        s.update(self.__class__.__name__)
+        s.update(self.instance)
+        return base64.urlsafe_b64encode(s.digest())
 
     def _postCreateDeviceProxy(self, deviceConfigs):
         pass
