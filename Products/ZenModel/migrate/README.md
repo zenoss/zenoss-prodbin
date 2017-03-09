@@ -112,7 +112,7 @@ The first tests that applying the named migration script on `initial_servicedef`
 As these are unittest TestCases, they can be discovered and run via `python -m unittest discover`.
 Any additional `test_*` functions added to the class will also be discovered and run by unittest.
 
-The service migration tests have also been added to zendev, so they can be invoked with `zendev test --zenoss-devimg unit Products.ZenModel.migrate`.
+The service migration tests have also been added to zendev, so they can be invoked with `zendev test unit Products.ZenModel.migrate`.
 
 ### Running a migration manually
 
