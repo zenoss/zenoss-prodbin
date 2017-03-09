@@ -430,6 +430,15 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         @rtype: dictionary
         """
 
+        # If nocommit is set, tell the DistributedCollector not to modify the controlplane services
+        if self.options.nocommit:
+            try:
+                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                ExtendedControlPlaneClient.readonly = True
+            except ImportError:
+                pass
+
+
         processed = {'processed':0, 'errors':0, 'no_IP':0}
 
         @transactional
@@ -506,6 +515,15 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 _model(self, devobj)
 
         processed['total'] = len(device_list)
+
+        # This should be unnecessary, but just to be safe:
+        if self.options.nocommit:
+            try:
+                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                ExtendedControlPlaneClient.readonly = False
+            except ImportError:
+                pass
+
         return processed
 
     def validDeviceSpec(self, processed, device_specs):
