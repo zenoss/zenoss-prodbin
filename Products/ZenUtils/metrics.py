@@ -24,7 +24,7 @@ def ensure_prefix(metadata, metric):
         log.warn("ensure_prefix() called with string, please use metadata style calls.")
         prefix = metadata
     elif metadata.get('metricPrefix', False):
-            prefix = metadata['metricPrefix']
+        prefix = metadata['metricPrefix']
     else:
         prefix = metadata['deviceId']
 
