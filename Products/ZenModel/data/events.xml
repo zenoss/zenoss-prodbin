@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-02-14 10:15:15.896434
+    Zenoss RelationshipManager export completed on 2017-03-10 10:52:27.925492
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.2.0]" export_date="2017-02-14 10:15:15.896434" zenoss_server="f2dbc5288d8c" >
+<objects version="[Zenoss, version 5.2.0]" export_date="2017-03-10 10:52:27.925492" zenoss_server="7f8519bdf1ac" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="lines" id="zEventClearClasses" >
 []
 </property>
@@ -28,17 +31,35 @@ status
 <property visible="True" type="int" id="zFlappingSeverity" >
 4
 </property>
+<property visible="True" type="int" id="zEventMaxTransformFails" >
+10
+</property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Ping' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/Status/Wmi/Conn']
 </property>
 </object>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='WinService' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Service Control Manager_7000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Service Control Manager_7000
 </property>
@@ -57,6 +78,9 @@ Check the Username and Password on the specified service to make sure it is corr
 </property>
 </object>
 <object id='Service Control Manager_7038' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Service Control Manager_7038
 </property>
@@ -82,20 +106,44 @@ Check the Username and Password on the specified service to make sure it is corr
 </tomanycont>
 </object>
 <object id='IpService' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Wmi' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='zenwinmodeler' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Nagios' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="text" id="transform" mode="w" >
@@ -109,20 +157,44 @@ if component is not None and evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperSt
             component.operStatus=operStatus
         updateDb()
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Capacity' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Security' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Login' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
@@ -131,6 +203,9 @@ history
 </property>
 <tomanycont id='instances'>
 <object id='MSExchangeIS Mailbox Store_1009' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1009
 </property>
@@ -151,6 +226,9 @@ status
 </property>
 </object>
 <object id='MSExchangeIS Mailbox Store_1011' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1011
 </property>
@@ -171,6 +249,9 @@ status
 </property>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -189,11 +270,17 @@ defaultmapping
 </object>
 </tomanycont>
 <object id='BadPass' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
@@ -208,6 +295,9 @@ bad password attempt for 'root'
 </property>
 </object>
 <object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sshd
 </property>
@@ -224,11 +314,17 @@ Failed password for username from 10.1.2.3 port 53529 ssh2
 </tomanycont>
 </object>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='MSFTPSVC_100' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSFTPSVC_100
 </property>
@@ -245,6 +341,9 @@ For additional information specific to this message please visit the Microsoft O
 </property>
 </object>
 <object id='W3SVC_100' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 W3SVC_100
 </property>
@@ -261,6 +360,9 @@ For additional information specific to this message please visit the Microsoft O
 </property>
 </object>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
@@ -275,6 +377,9 @@ exit before auth (user 'root', 3 fails): Max auth tries reached - user root
 </property>
 </object>
 <object id='remote(pam_unix)' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 remote(pam_unix)
 </property>
@@ -289,11 +394,17 @@ bad username []
 </object>
 </object>
 <object id='Sudo' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
 <object id='sudo' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sudo
 </property>
@@ -310,12 +421,21 @@ edahl : TTY=pts/4 ; PWD=/home/edahl ; USER=root ; COMMAND=/bin/su -
 </tomanycont>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Open' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
@@ -333,6 +453,9 @@ history
 </property>
 </object>
 <object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sshd(pam_unix)
 </property>
@@ -347,6 +470,9 @@ session opened for user edahl by (uid=500)
 </property>
 </object>
 <object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ultravnc_1
 </property>
@@ -363,11 +489,17 @@ ultravnc_1
 </tomanycont>
 </object>
 <object id='Close' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/Security/Connection/Open']
 </property>
 <tomanycont id='instances'>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
@@ -382,6 +514,9 @@ exit before auth (user 'root', 1 fails): Exited normally
 </property>
 </object>
 <object id='dropbear_reset' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dropbear
 </property>
@@ -396,6 +531,9 @@ exit before auth: error reading: Connection reset by peer
 </property>
 </object>
 <object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sshd(pam_unix)
 </property>
@@ -410,6 +548,9 @@ session closed for user edahl
 </property>
 </object>
 <object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ultravnc_3
 </property>
@@ -427,8 +568,14 @@ ultravnc_3
 </object>
 </object>
 <object id='Virus' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Symantec AntiVirus_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec AntiVirus_4
 </property>
@@ -443,6 +590,9 @@ history
 </property>
 </object>
 <object id='Symantec AntiVirus_46' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec AntiVirus_46
 </property>
@@ -457,6 +607,9 @@ Security Risk Found!Threat: Trojan.Dropper in File: D:\AHSInstall\TouchWorks 10.
 </property>
 </object>
 <object id='Symantec AntiVirus_5' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec AntiVirus_5
 </property>
@@ -471,6 +624,9 @@ Threat Found!Threat: Trojan.Dropper in File: c:\speedtest\touchworks 10.1.1 cd.p
 </property>
 </object>
 <object id='Symantec AntiVirus_51' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec AntiVirus_51
 </property>
@@ -487,11 +643,17 @@ Security Risk Found!Threat: Trojan.Dropper in File: G:\AHSInstall\TouchWorks 10.
 </tomanycont>
 </object>
 <object id='Auth' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='CiscoAAA_5' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CiscoAAA_5
 </property>
@@ -506,6 +668,9 @@ CSMon Message: Service CSAuth has been suspended for a configured function to pr
 </property>
 </object>
 <object id='SNMP-3-AUTHFAIL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SNMP-3-AUTHFAIL
 </property>
@@ -520,6 +685,9 @@ Authentication failure for SNMP req from host 10.120.100.10
 </property>
 </object>
 <object id='snmp_authenticationFailure' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_authenticationFailure
 </property>
@@ -537,11 +705,17 @@ snmp trap snmp_authenticationFailure from 10.115.100.22
 </object>
 </object>
 <object id='Ignore' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
 <tomanycont id='instances'>
 <object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CROND
 </property>
@@ -556,6 +730,9 @@ CROND
 </property>
 </object>
 <object id='RadOncNS5XP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 RadOncNS5XP
 </property>
@@ -567,6 +744,9 @@ evt.priority&gt;4
 </property>
 </object>
 <object id='Server Agents_1126' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1126
 </property>
@@ -584,6 +764,9 @@ Chassis: '0'
 </property>
 </object>
 <object id='anacron' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 anacron
 </property>
@@ -598,6 +781,9 @@ Updated timestamp for job `cron.daily' to 2005-12-13
 </property>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -612,6 +798,9 @@ message repeated 2 times
 </property>
 </object>
 <object id='defaultmapping_local7' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -623,6 +812,9 @@ getattr(evt, 'facility', None)=="local7" and getattr(evt, 'priority', 0)&gt;4
 </property>
 </object>
 <object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 kernel
 </property>
@@ -634,6 +826,9 @@ evt.priority&gt;4
 </property>
 </object>
 <object id='kernel_capture_card' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 kernel
 </property>
@@ -648,6 +843,9 @@ Setting full NTSC height
 </property>
 </object>
 <object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sendmail
 </property>
@@ -659,6 +857,9 @@ evt.priority&gt;5
 </property>
 </object>
 <object id='syslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 syslog
 </property>
@@ -674,8 +875,14 @@ Time update: 20051208 18:13:13
 </object>
 </tomanycont>
 <object id='Win' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Autoenrollment_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Autoenrollment_13
 </property>
@@ -687,6 +894,9 @@ Automatic certificate enrollment for local system failed to enroll for one Domai
 </property>
 </object>
 <object id='ClusSvc_1123' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1123
 </property>
@@ -698,6 +908,9 @@ The node lost communication with cluster node 'HOSTNAME' on network 'private'.
 </property>
 </object>
 <object id='DirXML Remote Loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DirXML Remote Loader_1
 </property>
@@ -715,6 +928,9 @@ Message : Code(-9039) Element &amp;lt;parent&gt; does not have a valid associati
 </property>
 </object>
 <object id='FileMaker Server 7_94' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_94
 </property>
@@ -726,6 +942,9 @@ Client "CLIENTNAME" opening database "DATABASENAME" as "USERNAME".
 </property>
 </object>
 <object id='Kerberos_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Kerberos_3
 </property>
@@ -737,6 +956,9 @@ A Kerberos Error Message was received: on logon session Client Time: Server Time
 </property>
 </object>
 <object id='Kerberos_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Kerberos_4
 </property>
@@ -748,6 +970,9 @@ The kerberos client received a KRB_AP_ERR_MODIFIED error from the server SERVERN
 </property>
 </object>
 <object id='MSExchangeDSAccess_2110' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeDSAccess_2110
 </property>
@@ -759,6 +984,9 @@ Process STORE.EXE (PID=2456). Could not bind to DS server smmhsdc1.mhs.med, erro
 </property>
 </object>
 <object id='MSExchangeDSAccess_2115' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeDSAccess_2115
 </property>
@@ -770,6 +998,9 @@ Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Dom
 </property>
 </object>
 <object id='MSExchangeIS Mailbox Store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1173
 </property>
@@ -781,6 +1012,9 @@ Error 0x6bb deleting unused restricted view from folder 1-C8EA27F on database "F
 </property>
 </object>
 <object id='MSExchangeTransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeTransport_3005
 </property>
@@ -792,6 +1026,9 @@ A non-delivery report with a status code of 4.4.6 was generated for recipient rf
 </property>
 </object>
 <object id='MetaframeEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MetaframeEvents_1106
 </property>
@@ -803,6 +1040,9 @@ Client printer auto-creation failed.  The driver could not be installed. Possibl
 </property>
 </object>
 <object id='NETLOGON_5722' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5722
 </property>
@@ -811,6 +1051,9 @@ NETLOGON_5722
 </property>
 </object>
 <object id='NETLOGON_5723' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5723
 </property>
@@ -822,6 +1065,9 @@ The session setup from computer 'PAY-DOC1-D785' failed because the security data
 </property>
 </object>
 <object id='NETLOGON_5805' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5805
 </property>
@@ -833,6 +1079,9 @@ The session setup from the computer HLTHMDXTRAIN failed to authenticate. The fol
 </property>
 </object>
 <object id='NETLOGON_5807' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5807
 </property>
@@ -844,6 +1093,9 @@ During the past 4.00 hours there have been 12 connections to this Domain Control
 </property>
 </object>
 <object id='Print_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_2
 </property>
@@ -855,6 +1107,9 @@ NT AUTHORITY\SYSTEM Printer Client\DOMAIN-client#\Color Printer - 10.1.2.3 was c
 </property>
 </object>
 <object id='Print_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_20
 </property>
@@ -866,6 +1121,9 @@ Printer Driver HP LaserJet 4000 Series PCL for Windows NT x86 Version-3 was adde
 </property>
 </object>
 <object id='Print_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_3
 </property>
@@ -877,6 +1135,9 @@ NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1
 </property>
 </object>
 <object id='Print_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_4
 </property>
@@ -888,6 +1149,9 @@ NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1
 </property>
 </object>
 <object id='Print_8' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_8
 </property>
@@ -899,6 +1163,9 @@ NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1
 </property>
 </object>
 <object id='Remote Storage_3037' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Remote Storage_3037
 </property>
@@ -910,6 +1177,9 @@ Remote Storage failed to recall file &lt;\\AMICASARCH\F$\DICOMImageArchive\2005\
 </property>
 </object>
 <object id='Removable Storage Service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Removable Storage Service_102
 </property>
@@ -921,6 +1191,9 @@ Unable to register COM class objects.
 </property>
 </object>
 <object id='Symantec AntiVirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec AntiVirus_6
 </property>
@@ -932,6 +1205,9 @@ Could not scan 492 files inside D:\Symantec SMTP 4.x\Symantec_Mail_Security_for_
 </property>
 </object>
 <object id='Symantec Mail Security for SMTP_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Symantec Mail Security for SMTP_2
 </property>
@@ -943,6 +1219,9 @@ Error 0 receiving data from remote host. (80.69.58.237)
 </property>
 </object>
 <object id='TermServDevices_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 TermServDevices_1106
 </property>
@@ -954,6 +1233,9 @@ The printer could not be installed.
 </property>
 </object>
 <object id='TermServDevices_1111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 TermServDevices_1111
 </property>
@@ -965,6 +1247,9 @@ Driver ActiveTouch Document Loader required for printer ActiveTouch Document Loa
 </property>
 </object>
 <object id='dirxml remote loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 dirxml remote loader_1
 </property>
@@ -976,6 +1261,9 @@ dirxml remote loader_1
 </property>
 </object>
 <object id='excdo_8206' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 excdo_8206
 </property>
@@ -987,6 +1275,9 @@ Calendaring agent failed with error code 0x80070057 while saving appointment.   
 </property>
 </object>
 <object id='excdo_8230' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 excdo_8230
 </property>
@@ -998,6 +1289,9 @@ An inconsistency was detected in username@domain.com: /Calendar/OR 9 Progress Me
 </property>
 </object>
 <object id='excdo_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 excdo_8263
 </property>
@@ -1009,6 +1303,9 @@ The recurring appointment expansion in mailbox O'Connor, Sr Aine has taken too l
 </property>
 </object>
 <object id='general_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 general_1173
 </property>
@@ -1020,6 +1317,9 @@ NT AUTHORITY\ANONYMOUS LOGON  Internal event: Active Directory has encountered t
 </property>
 </object>
 <object id='msexchangeactivesyncnotify_10306' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangeactivesyncnotify_10306
 </property>
@@ -1031,6 +1331,9 @@ OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd
 </property>
 </object>
 <object id='msexchangeis_9554' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangeis_9554
 </property>
@@ -1042,6 +1345,9 @@ Unable to update Mailbox SD in the DS. Mailbox Guid: 5e727f25-357b-4cd9-9714-d71
 </property>
 </object>
 <object id='msexchangeis_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangeis_9646
 </property>
@@ -1053,6 +1359,9 @@ Mapi session "/o=My Organization/ou=DOMAIN/cn=Recipients/cn=username"  exceeded 
 </property>
 </object>
 <object id='msexchangesa_5008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangesa_5008
 </property>
@@ -1064,6 +1373,9 @@ The message tracking log file G:\Program Files\Exchsrvr\MHSMAILlog\20060120.log 
 </property>
 </object>
 <object id='msexchangesa_9040' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangesa_9040
 </property>
@@ -1075,6 +1387,9 @@ NSPI Proxy encountered an error while receiving a packet. The target Domain Cont
 </property>
 </object>
 <object id='msexchangesa_9234' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangesa_9234
 </property>
@@ -1086,6 +1401,9 @@ Referral Interface was not able to find an msExchExchangeServer object with lega
 </property>
 </object>
 <object id='msexchangetransport_327' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangetransport_327
 </property>
@@ -1097,6 +1415,9 @@ The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147
 </property>
 </object>
 <object id='norton antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 norton antivirus_6
 </property>
@@ -1108,6 +1429,9 @@ Scan could not access path C:\pagefile.sys
 </property>
 </object>
 <object id='replication_1232' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 replication_1232
 </property>
@@ -1119,6 +1443,9 @@ NT AUTHORITY\ANONYMOUS LOGON  Active Directory attempted to perform a remote pro
 </property>
 </object>
 <object id='service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 service_102
 </property>
@@ -1130,6 +1457,9 @@ Unable to register COM class objects.
 </property>
 </object>
 <object id='smtp_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 smtp_2
 </property>
@@ -1138,6 +1468,9 @@ smtp_2
 </property>
 </object>
 <object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 smtpsvc_5000
 </property>
@@ -1149,6 +1482,9 @@ The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_609ee2d701
 </property>
 </object>
 <object id='store_1025' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 store_1025
 </property>
@@ -1160,6 +1496,9 @@ An error occurred on database "First Storage Group\Public Folder Store (MHSMAIL1
 </property>
 </object>
 <object id='store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 store_1173
 </property>
@@ -1171,6 +1510,9 @@ Error 0x6bb deleting unused restricted view from folder 1-C604C2D on database "F
 </property>
 </object>
 <object id='store_1211' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 store_1211
 </property>
@@ -1185,11 +1527,17 @@ User username@domain.com used ROWLIST_REPLACE to delete all rules in folder 1-8B
 </object>
 </object>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="None" id="zEvent_timeout" >
 1400
 </property>
 <tomanycont id='instances'>
 <object id='MARK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MARK
 </property>
@@ -1204,6 +1552,9 @@ MARK
 </property>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -1221,6 +1572,9 @@ defaultmapping
 </property>
 </object>
 <object id='evtsys' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 evtsys
 </property>
@@ -1237,9 +1591,18 @@ evtsys
 </tomanycont>
 </object>
 <object id='App' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Zenoss' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/App/Stop']
 </property>
@@ -1248,6 +1611,9 @@ evtsys
 </property>
 <tomanycont id='instances'>
 <object id='FileMaker Server 7_408' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_408
 </property>
@@ -1262,6 +1628,9 @@ FileMaker Database Engine started.
 </property>
 </object>
 <object id='FileMaker Server 7_418' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_418
 </property>
@@ -1276,6 +1645,9 @@ Opening database "DATABASENAME"...
 </property>
 </object>
 <object id='FileMaker Server 7_486' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_486
 </property>
@@ -1290,6 +1662,9 @@ FileMaker Server started.
 </property>
 </object>
 <object id='SNMP Informant_0' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SNMP Informant_0
 </property>
@@ -1304,6 +1679,9 @@ SNMP Informant Standard SNMP agent started
 </property>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ntsyslog_0
 </property>
@@ -1320,11 +1698,17 @@ Service started.
 </tomanycont>
 </object>
 <object id='Stop' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='FileMaker Server 7_140' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_140
 </property>
@@ -1339,6 +1723,9 @@ Closing database "DATABASENAME"...
 </property>
 </object>
 <object id='FileMaker Server 7_168' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_168
 </property>
@@ -1353,6 +1740,9 @@ Database "DATABASENAME" closed.
 </property>
 </object>
 <object id='FileMaker Server 7_412' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_412
 </property>
@@ -1367,6 +1757,9 @@ FileMaker Database Engine stopped.
 </property>
 </object>
 <object id='FileMaker Server 7_490' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_490
 </property>
@@ -1381,6 +1774,9 @@ FileMaker Server stopped.
 </property>
 </object>
 <object id='Service Control Manager_7034' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Service Control Manager_7034
 </property>
@@ -1392,6 +1788,9 @@ Service Control Manager_7034
 </property>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ntsyslog_0
 </property>
@@ -1408,8 +1807,14 @@ Service shutdown.
 </tomanycont>
 </object>
 <object id='Failed' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Active Server Pages_9' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Active Server Pages_9
 </property>
@@ -1424,6 +1829,9 @@ Warning: IIS log failed to write entry,   Script timed out. The maximum amount o
 </property>
 </object>
 <object id='Application Error_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Application Error_1000
 </property>
@@ -1438,6 +1846,9 @@ Faulting application inserverD.exe, version 5.41.2.0, faulting module ntdll.dll,
 </property>
 </object>
 <object id='Application Hang_1002' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Application Hang_1002
 </property>
@@ -1452,6 +1863,9 @@ Hanging application Copy of WorkRules.exe, version 1.0.0.7, hang module hungapp,
 </property>
 </object>
 <object id='Application Popup_26' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Application Popup_26
 </property>
@@ -1472,6 +1886,9 @@ Place Media "MHS805" into drive or library unit
 </property>
 </object>
 <object id='BROWSER_8032' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 BROWSER_8032
 </property>
@@ -1487,6 +1904,9 @@ The backup browser is stopping.
 </property>
 </object>
 <object id='Cloudmark Server Edition_2011' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Cloudmark Server Edition_2011
 </property>
@@ -1506,6 +1926,9 @@ Zanti, Debra
 </property>
 </object>
 <object id='EventLog_6000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 EventLog_6000
 </property>
@@ -1520,6 +1943,9 @@ The Application log file is full.
 </property>
 </object>
 <object id='MisysReports' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MisysReports
 </property>
@@ -1531,6 +1957,9 @@ tsm: /dev/tty0: 3004-034 TSM: All possible term settings tried unsuccessfully.
 </property>
 </object>
 <object id='MultiView License Manager_114' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MultiView License Manager_114
 </property>
@@ -1545,6 +1974,9 @@ The Slave License Manager (CTXPS03) did not respond within the specified timeout
 </property>
 </object>
 <object id='NETLOGON_5719' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5719
 </property>
@@ -1574,6 +2006,9 @@ in the specified domain.
 </property>
 </object>
 <object id='Norton AntiVirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Norton AntiVirus_6
 </property>
@@ -1585,6 +2020,9 @@ Scan could not access path C:\RECYCLER\S-1-5-21-1953108385-1836779210-1757479407
 </property>
 </object>
 <object id='Remote Storage_4002' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Remote Storage_4002
 </property>
@@ -1599,6 +2037,9 @@ Media &lt;MHS809/RS-AMICASARCH-8&gt; cannot be mounted into a drive. Media is no
 </property>
 </object>
 <object id='Remote Storage_6021' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Remote Storage_6021
 </property>
@@ -1613,6 +2054,9 @@ An error was detected doing Data Transfer for &lt;Demand Recall&gt; on AMICASARC
 </property>
 </object>
 <object id='Server Agents_1562' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1562
 </property>
@@ -1628,6 +2072,9 @@ Cause: The System Information Agent only operates on ProLiant systems.
 </property>
 </object>
 <object id='Service Control Manager_7031' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Service Control Manager_7031
 </property>
@@ -1642,6 +2089,9 @@ The SNMP Service service terminated unexpectedly.  It has done this 1 time(s).  
 </property>
 </object>
 <object id='Srv_2022' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Srv_2022
 </property>
@@ -1659,6 +2109,9 @@ in the registry.
 </property>
 </object>
 <object id='USER32_1073' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 USER32_1073
 </property>
@@ -1673,6 +2126,9 @@ The attempt by user DOMAIN\username to restart/shutdown computer COMPUTER failed
 </property>
 </object>
 <object id='W3SVC_101' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 W3SVC_101
 </property>
@@ -1686,6 +2142,9 @@ For additional information specific to this message please visit the Microsoft O
 </property>
 </object>
 <object id='Winlogon_1218' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Winlogon_1218
 </property>
@@ -1703,6 +2162,9 @@ Domain: DOMAIN
 </property>
 </object>
 <object id='Winlogon_1219' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Winlogon_1219
 </property>
@@ -1720,8 +2182,14 @@ Error: The RPC server is unavailable.
 </tomanycont>
 </object>
 <object id='Reload' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='postfix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 postfix
 </property>
@@ -1738,11 +2206,17 @@ succeeded
 </tomanycont>
 </object>
 <object id='Log' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
 <object id='CROND' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CROND
 </property>
@@ -1760,6 +2234,9 @@ CROND
 </property>
 </object>
 <object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 pmta
 </property>
@@ -1768,6 +2245,9 @@ pmta
 </property>
 </object>
 <object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 postfix/smtpd
 </property>
@@ -1782,6 +2262,9 @@ warning: 68.33.51.29: hostname pcp0010796240pcs.anapol01.md.comcast.net verifica
 </property>
 </object>
 <object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 procmail
 </property>
@@ -1801,8 +2284,14 @@ Descriptor 1 was not open
 </tomanycont>
 </object>
 <object id='Email' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='EXCDO_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 EXCDO_8263
 </property>
@@ -1817,6 +2306,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeIS Mailbox Store_1029' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1029
 </property>
@@ -1835,6 +2327,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeIS Mailbox Store_1032' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS Mailbox Store_1032
 </property>
@@ -1852,6 +2347,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeSA_9320' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeSA_9320
 </property>
@@ -1869,6 +2367,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeSA_9323' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeSA_9323
 </property>
@@ -1885,6 +2386,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 smtpsvc_5000
 </property>
@@ -1900,8 +2404,14 @@ The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801
 </object>
 </tomanycont>
 <object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='msexchangetransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 msexchangetransport_3005
 </property>
@@ -1919,8 +2429,14 @@ A non-delivery report with a status code of 4.4.6 was generated for recipient rf
 </object>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='FileMaker Server 7_30' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_30
 </property>
@@ -1935,6 +2451,9 @@ Client "CLIENTNAME" no longer responding; connection closed. (10.1.23.45)
 </property>
 </object>
 <object id='FileMaker Server 7_518' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_518
 </property>
@@ -1949,6 +2468,9 @@ Administrator connected: "administrator" (10.120.100.230).
 </property>
 </object>
 <object id='FileMaker Server 7_520' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_520
 </property>
@@ -1963,6 +2485,9 @@ Administrator disconnected: "administrator".
 </property>
 </object>
 <object id='MSFTPSVC_10' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSFTPSVC_10
 </property>
@@ -1975,11 +2500,17 @@ User gbyam at host 68.50.179.209 has timed-out after 900 seconds of inactivity.
 </object>
 </tomanycont>
 <object id='Max' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='TermService_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 TermService_1013
 </property>
@@ -1994,6 +2525,9 @@ The terminal server has exceeded the maximum number of allowed connections.
 </property>
 </object>
 <object id='termservice_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 termservice_1013
 </property>
@@ -2008,8 +2542,14 @@ The terminal server has exceeded the maximum number of allowed connections.
 </object>
 </object>
 <object id='Citrix' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='IMAService_3615' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 IMAService_3615
 </property>
@@ -2021,6 +2561,9 @@ Presentation Server Failed to Connect to DataStore
 </property>
 </object>
 <object id='IMAService_3622' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 IMAService_3622
 </property>
@@ -2036,6 +2579,9 @@ An unknown failure occurred while connecting to the database.
 </property>
 </object>
 <object id='MetaFrameEvents_1103' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MetaFrameEvents_1103
 </property>
@@ -2053,6 +2599,9 @@ Printer driver: (Microsoft Office Document Image Writer Driver)
 </property>
 </object>
 <object id='MetaFrameEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MetaFrameEvents_1106
 </property>
@@ -2075,11 +2624,17 @@ Printer driver: (HP LaserJet 4000 PCL 5e)
 </tomanycont>
 </object>
 <object id='Job' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
 <tomanycont id='instances'>
 <object id='MSSQLSERVER_17055' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSSQLSERVER_17055
 </property>
@@ -2095,6 +2650,9 @@ BACKUP failed to complete the command BACKUP LOG datarepo WITH NO_LOG
 </property>
 </object>
 <object id='MSSQLSERVER_17177' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSSQLSERVER_17177
 </property>
@@ -2109,6 +2667,9 @@ This instance of SQL Server has been using a process id of 1104 since 5/11/2006 
 </property>
 </object>
 <object id='SQLSERVERAGENT_208' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SQLSERVERAGENT_208
 </property>
@@ -2126,6 +2687,9 @@ SQL Server Scheduled Job Failed
 </property>
 </object>
 <object id='WUSyncService_104' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WUSyncService_104
 </property>
@@ -2159,8 +2723,14 @@ For more information about administering a server running Software Update Servic
 </object>
 </tomanycont>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Ntfs_50' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Ntfs_50
 </property>
@@ -2177,6 +2747,9 @@ This error may be caused by a failure of your computer hardware or network conne
 </property>
 </object>
 <object id='Print_6161' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_6161
 </property>
@@ -2191,6 +2764,9 @@ The document Default Report Title owned by USERNAME failed to print on printer C
 </property>
 </object>
 <object id='SQLSERVERAGENT_322' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SQLSERVERAGENT_322
 </property>
@@ -2205,6 +2781,9 @@ The data portion of event 19002 from MSSQLSERVER is invalid.
 </property>
 </object>
 <object id='Schedule_7901' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Schedule_7901
 </property>
@@ -2220,8 +2799,14 @@ General access denied error
 </object>
 </object>
 <object id='Info' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='.NET Runtime Optimization Service_1102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 .NET Runtime Optimization Service_1102
 </property>
@@ -2238,8 +2823,14 @@ General access denied error
 </tomanycont>
 </object>
 <object id='VNC' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='WinVNC4_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WinVNC4_1
 </property>
@@ -2253,8 +2844,14 @@ SConnection: Assuming compatibility with version 3.3
 </tomanycont>
 </object>
 <object id='Print' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Print_10' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_10
 </property>
@@ -2269,6 +2866,9 @@ Document 199, Microsoft Word - May_4[1]._2006.doc owned by ed2 was printed on ED
 </property>
 </object>
 <object id='Print_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_13
 </property>
@@ -2280,6 +2880,9 @@ Document 116, Remote Downlevel Document owned by fnigrin was deleted on BARUB1.
 </property>
 </object>
 <object id='Print_15' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_15
 </property>
@@ -2294,6 +2897,9 @@ Form 8x13 was added.
 </property>
 </object>
 <object id='Print_42' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_42
 </property>
@@ -2305,6 +2911,9 @@ Printer HP DeskJet 830C/832C (from IT-LAPT-A098) in session 1 was successfully u
 </property>
 </object>
 <object id='Print_47' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_47
 </property>
@@ -2316,6 +2925,9 @@ The Printer represented by PrintQueue LDAP://CN=Kyocera Mita KM-5035 KX,CN=COMPU
 </property>
 </object>
 <object id='Print_9' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Print_9
 </property>
@@ -2332,8 +2944,14 @@ Printer printername/Session 2 was set.
 </tomanycont>
 </object>
 <object id='Install' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='WSH_0' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WSH_0
 </property>
@@ -2351,8 +2969,14 @@ LaunchMediSpan.vbs: Medi-Span update completed.
 </object>
 </object>
 <object id='Net' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='C4K_EBM-4-HOSTFLAPPING' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C4K_EBM-4-HOSTFLAPPING
 </property>
@@ -2367,6 +2991,9 @@ Host 00:12:F0:77:75:83 in vlan 5 is flapping between port Fa3/5 and port Fa3/2
 </property>
 </object>
 <object id='CDP-4-DUPLEX_MISMATCH' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CDP-4-DUPLEX_MISMATCH
 </property>
@@ -2381,6 +3008,9 @@ duplex mismatch discovered on FastEthernet0/1 (not half duplex), with COMPUTER F
 </property>
 </object>
 <object id='Microsoft ISA Server Control_15104' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Microsoft ISA Server Control_15104
 </property>
@@ -2392,6 +3022,9 @@ ISA Server detected a well-known port scan attack from Internet Protocol (IP) ad
 </property>
 </object>
 <object id='Microsoft ISA Server Control_15105' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Microsoft ISA Server Control_15105
 </property>
@@ -2408,6 +3041,9 @@ For more information about this event, see ISA Server Help.
 </property>
 </object>
 <object id='SNMP-3-CPUHOG' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SNMP-3-CPUHOG
 </property>
@@ -2422,6 +3058,9 @@ Processing GetBulk of ciscoFlashPartitionEntry.5.1.1
 </property>
 </object>
 <object id='SYS-3-CPUHOG' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SYS-3-CPUHOG
 </property>
@@ -2436,6 +3075,9 @@ Task ran for 7797 msec (0/0), process = IP SNMP, PC = 80235E3C.
 </property>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -2454,8 +3096,14 @@ getattr(evt,'facility',False)=='local7' and evt.summary.find('Traceback')&gt;-1
 </object>
 </tomanycont>
 <object id='Dhcp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='DhcpServer_1020' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DhcpServer_1020
 </property>
@@ -2470,6 +3118,9 @@ Scope, 10.120.75.0, is 83 percent full with only 31 IP addresses remaining.
 </property>
 </object>
 <object id='DhcpServer_1041' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DhcpServer_1041
 </property>
@@ -2487,11 +3138,17 @@ addresses, or there are no active interfaces.
 </object>
 </tomanycont>
 <object id='Ack' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/Net/Dhcp/Request']
 </property>
 <tomanycont id='instances'>
 <object id='udhcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 udhcpd
 </property>
@@ -2508,8 +3165,14 @@ sending ACK of 10.2.1.100 to 00:0d:93:7e:96:7f
 </tomanycont>
 </object>
 <object id='Request' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='udhcpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 udhcpd
 </property>
@@ -2526,8 +3189,14 @@ received REQUEST for 10.2.1.100 from 00:0d:93:7e:96:7f
 </tomanycont>
 </object>
 <object id='Obtained' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='udhcpc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 udhcpc
 </property>
@@ -2544,11 +3213,20 @@ Lease of 68.33.51.29 obtained, lease time 343822
 </tomanycont>
 </object>
 <object id='Inform' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Time' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='W32Time_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 W32Time_22
 </property>
@@ -2562,11 +3240,17 @@ The time provider NtpServer encountered an error while digitally signing the  NT
 </tomanycont>
 </object>
 <object id='Link' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
 <tomanycont id='instances'>
 <object id='CPQTeamMP_449' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQTeamMP_449
 </property>
@@ -2578,6 +3262,9 @@ CPQTeamMP_449
 </property>
 </object>
 <object id='LINK-3-UPDOWN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 LINK-3-UPDOWN
 </property>
@@ -2595,6 +3282,9 @@ Interface FastEthernet0/48, changed state to down
 </property>
 </object>
 <object id='LINK-3-UPDOWN_ADMIN_DOWN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 LINK-3-UPDOWN
 </property>
@@ -2612,6 +3302,9 @@ Interface Foreign Exchange Station 0/2/0, changed state to Administrative Shutdo
 </property>
 </object>
 <object id='LINK-3-UPDOWN_UP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 LINK-3-UPDOWN
 </property>
@@ -2629,6 +3322,9 @@ Interface FastEthernet0/48, changed state to up
 </property>
 </object>
 <object id='NIC Agents_1285' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NIC Agents_1285
 </property>
@@ -2640,6 +3336,9 @@ NIC Agents_1285
 </property>
 </object>
 <object id='q57w2k_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 q57w2k_4
 </property>
@@ -2662,6 +3361,9 @@ if if_index_str is not None and device is not None:
         if interface.ifindex == if_index:
             evt.component = interface.id
             break
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkDown
@@ -2686,6 +3388,9 @@ if if_index_str is not None and device is not None:
             evt.component = interface.id
             break
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkUp
 </property>
@@ -2705,8 +3410,14 @@ has key for ifIndex for all traps.
 </tomanycont>
 </object>
 <object id='Conflict' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Dhcp_1005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Dhcp_1005
 </property>
@@ -2718,6 +3429,9 @@ IP Address is already in use on network - Duplicate Ips
 </property>
 </object>
 <object id='NetBT_4319' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NetBT_4319
 </property>
@@ -2734,8 +3448,14 @@ A duplicate name has been detected on the TCP network. The IP address of the mac
 </tomanycont>
 </object>
 <object id='NS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='DNS_3000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DNS_3000
 </property>
@@ -2747,6 +3467,9 @@ The DNS server has encountered numerous run-time events. To determine the initia
 </property>
 </object>
 <object id='DNS_6525' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DNS_6525
 </property>
@@ -2761,6 +3484,9 @@ A zone transfer request for the secondary zone domain.com was refused by the mas
 </property>
 </object>
 <object id='DNS_6527' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DNS_6527
 </property>
@@ -2775,6 +3501,9 @@ Zone domain.com expired before it could obtain a successful zone transfer or upd
 </property>
 </object>
 <object id='DNS_9999' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DNS_9999
 </property>
@@ -2792,6 +3521,9 @@ status
 </property>
 </object>
 <object id='NETLOGON_5789' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NETLOGON_5789
 </property>
@@ -2809,6 +3541,9 @@ The parameter is incorrect.
 </property>
 </object>
 <object id='Wins_4102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Wins_4102
 </property>
@@ -2825,8 +3560,14 @@ The connection was aborted by the remote WINS. Remote WINS may not be configured
 </tomanycont>
 </object>
 <object id='SpanTree' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='SPANTREE_VLAN_SW-2-MAX_INSTANCE' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SPANTREE_VLAN_SW-2-MAX_INSTANCE
 </property>
@@ -2841,12 +3582,21 @@ Platform limit of 64 STP instances exceeded. No instance created for VLAN71 (por
 </object>
 </object>
 <object id='Win' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='NetBios' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='AutoEnrollment_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 AutoEnrollment_13
 </property>
@@ -2861,6 +3611,9 @@ Automatic certificate enrollment for local system failed to enroll for one Domai
 </property>
 </object>
 <object id='BROWSER_8021' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 BROWSER_8021
 </property>
@@ -2875,6 +3628,9 @@ history
 </property>
 </object>
 <object id='Userenv_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Userenv_1000
 </property>
@@ -2888,8 +3644,14 @@ Windows cannot obtain the domain controller name for your computer network. Retu
 </tomanycont>
 </object>
 <object id='Exchange' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Cloudmark Server Edition_2007' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Cloudmark Server Edition_2007
 </property>
@@ -2904,6 +3666,9 @@ Cloudmark Server Edition cannot establish a connection to the Exchange server.
 </property>
 </object>
 <object id='MSExchangeIS_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS_9646
 </property>
@@ -2921,6 +3686,9 @@ Mapi session "/o=My Organization/ou=DOMAIN/cn=Recipients/cn=username" exceeded t
 </property>
 </object>
 <object id='MSExchangeIS_9665' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS_9665
 </property>
@@ -2932,6 +3700,9 @@ The memory settings for this server are not optimal for Exchange. For more infor
 </property>
 </object>
 <object id='MSExchangeMGMT_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeMGMT_3
 </property>
@@ -2948,11 +3719,17 @@ The Microsoft Exchange Management service has started
 </tomanycont>
 </object>
 <object id='evtsys' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='evtsys' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 evtsys
 </property>
@@ -2972,8 +3749,14 @@ All evtsys log messages except heartbeat go here
 </tomanycont>
 </object>
 <object id='AD' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='AD WebManager_0' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 AD WebManager_0
 </property>
@@ -2993,6 +3776,9 @@ history
 </property>
 </object>
 <object id='DirXML Remote Loader_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DirXML Remote Loader_2
 </property>
@@ -3011,6 +3797,9 @@ This error has been reported 1980 times in a row since first logged.
 </property>
 </object>
 <object id='MRxSmb_8003' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MRxSmb_8003
 </property>
@@ -3027,6 +3816,9 @@ history
 </property>
 </object>
 <object id='MSExchangeAL_8270' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeAL_8270
 </property>
@@ -3051,6 +3843,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeIS_9548' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSExchangeIS_9548
 </property>
@@ -3068,6 +3863,9 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='Userenv_1006' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Userenv_1006
 </property>
@@ -3082,6 +3880,9 @@ Windows cannot bind to DOMAIN domain. (Invalid Credentials). Group Policy proces
 </property>
 </object>
 <object id='Userenv_1030' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Userenv_1030
 </property>
@@ -3098,11 +3899,17 @@ Windows cannot query for the list of Group Policy objects. Check the event log f
 </tomanycont>
 </object>
 <object id='PWMgr' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
 <object id='Password Manager_100' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Password Manager_100
 </property>
@@ -3117,6 +3924,9 @@ User Enrolled in Password Recovery Service The user account DOMAIN\user has been
 </property>
 </object>
 <object id='Password Manager_200' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Password Manager_200
 </property>
@@ -3130,8 +3940,14 @@ Password changed There were errors changing the password for the user account DO
 </tomanycont>
 </object>
 <object id='SharePoint' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Windows SharePoint Services 2.0_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Windows SharePoint Services 2.0_1000
 </property>
@@ -3148,8 +3964,14 @@ drop
 </tomanycont>
 </object>
 <object id='DCOM' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='DCOM_10016' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 DCOM_10016
 </property>
@@ -3168,9 +3990,18 @@ history
 </tomanycont>
 </object>
 <object id='WindowsUpdate' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Success' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Exchange Server 2003_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Exchange Server 2003_4377
 </property>
@@ -3185,6 +4016,9 @@ Security Update for Exchange Server 2003 (KB916803) was installed.
 </property>
 </object>
 <object id='MDAC_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MDAC_4377
 </property>
@@ -3199,6 +4033,9 @@ MDAC 2.71 Hotfix KB911562 was installed.
 </property>
 </object>
 <object id='NtServicePack_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 NtServicePack_4377
 </property>
@@ -3213,6 +4050,9 @@ Windows Server 2003 Hotfix KB911567 was installed.
 </property>
 </object>
 <object id='OutlookExpress6_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 OutlookExpress6_4377
 </property>
@@ -3227,6 +4067,9 @@ Windows 2000 Hotfix KB911567-OE6SP1-20060316.165634 was installed.
 </property>
 </object>
 <object id='Windows Update Agent_19' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Windows Update Agent_19
 </property>
@@ -3241,6 +4084,9 @@ Installation Successful: Windows successfully installed the following update: Wi
 </property>
 </object>
 <object id='WindowsUpdateAgent_19' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WindowsUpdateAgent_19
 </property>
@@ -3257,8 +4103,14 @@ Installation Successful: Windows successfully installed the following update: Se
 </tomanycont>
 </object>
 <object id='Failure' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='WUSyncService_101' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WUSyncService_101
 </property>
@@ -3291,6 +4143,9 @@ For troubleshooting information, see the Microsoft Software Update Services Depl
 </property>
 </object>
 <object id='Windows Update Agent_16' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Windows Update Agent_16
 </property>
@@ -3305,6 +4160,9 @@ Unable to Connect: Windows is unable to connect to the automatic updates service
 </property>
 </object>
 <object id='Windows Update Agent_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Windows Update Agent_20
 </property>
@@ -3319,6 +4177,9 @@ Installation Failure: Windows failed to install the following update with error 
 </property>
 </object>
 <object id='WindowsUpdateAgent_16' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WindowsUpdateAgent_16
 </property>
@@ -3333,6 +4194,9 @@ Unable to Connect: Windows is unable to connect to the automatic updates service
 </property>
 </object>
 <object id='WindowsUpdateAgent_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WindowsUpdateAgent_20
 </property>
@@ -3349,8 +4213,14 @@ Installation Failure: Windows failed to install the following update with error 
 </tomanycont>
 </object>
 <object id='Pending' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='WindowsUpdateAgent_18' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 WindowsUpdateAgent_18
 </property>
@@ -3368,11 +4238,17 @@ Installation Ready: The following updates are downloaded and ready for installat
 </object>
 </object>
 <object id='Userenv' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 status
 </property>
 <tomanycont id='instances'>
 <object id='Userenv_1517' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Userenv_1517
 </property>
@@ -3390,6 +4266,9 @@ history
 </property>
 </object>
 <object id='Userenv_1524' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Userenv_1524
 </property>
@@ -3406,8 +4285,14 @@ history
 </tomanycont>
 </object>
 <object id='Shell' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Winlogon_1002' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Winlogon_1002
 </property>
@@ -3425,8 +4310,14 @@ The shell stopped unexpectedly and Explorer.exe was restarted.
 </object>
 </object>
 <object id='License' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='exchange_292' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 exchange_292
 </property>
@@ -3443,8 +4334,14 @@ Virus definition and content license for Symantec Mail Security for Microsoft Ex
 </tomanycont>
 </object>
 <object id='HW' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Server Administrator_1306' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1306
 </property>
@@ -3453,6 +4350,9 @@ Server Administrator_1306
 </property>
 </object>
 <object id='Server Agents_1090' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1090
 </property>
@@ -3473,8 +4373,14 @@ again.
 </object>
 </tomanycont>
 <object id='Store' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='CPQCISSE_24598' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQCISSE_24598
 </property>
@@ -3519,6 +4425,9 @@ Status Codes:
 </property>
 </object>
 <object id='CPQCISSE_24625' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQCISSE_24625
 </property>
@@ -3533,6 +4442,9 @@ Physical Drive inserted, on Box 1 and Bay 5 of Embedded Controller.
 </property>
 </object>
 <object id='CPQCISSE_24644' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQCISSE_24644
 </property>
@@ -3548,6 +4460,9 @@ Failure Code: 0x07.
 </property>
 </object>
 <object id='QDLT32_7' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 QDLT32_7
 </property>
@@ -3562,6 +4477,9 @@ The device, \Device\Tape0, has a bad block.
 </property>
 </object>
 <object id='Server Administrator_2048' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2048
 </property>
@@ -3576,6 +4494,9 @@ Device failed:  Array Disk 0:1 Controller 0, Channel 0
 </property>
 </object>
 <object id='Server Administrator_2049' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2049
 </property>
@@ -3590,6 +4511,9 @@ Array disk removed:  Array Disk 0:1 Controller 0, Channel 0
 </property>
 </object>
 <object id='Server Administrator_2057' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2057
 </property>
@@ -3604,6 +4528,9 @@ Virtual disk degraded: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 </property>
 </object>
 <object id='Server Administrator_2083' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2083
 </property>
@@ -3618,6 +4545,9 @@ Array disk Rebuild failed: Array Disk 0:1 Controller 0, Channel 0
 </property>
 </object>
 <object id='Server Administrator_2094' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2094
 </property>
@@ -3632,6 +4562,9 @@ Predictive Failure reported:  Array Disk 0:1 Controller 0, Channel 0
 </property>
 </object>
 <object id='Server Administrator_2123' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2123
 </property>
@@ -3646,6 +4579,9 @@ Redundancy lost: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 </property>
 </object>
 <object id='Server Administrator_2124' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_2124
 </property>
@@ -3660,6 +4596,9 @@ Redundancy normal: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 </property>
 </object>
 <object id='Storage Agents_1145' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Storage Agents_1145
 </property>
@@ -3682,6 +4621,9 @@ CPQFCA.MIB]
 </property>
 </object>
 <object id='Storage Agents_1146' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Storage Agents_1146
 </property>
@@ -3701,6 +4643,9 @@ status values: 1=other, 2=unconfigured, 3=ok, 4=threshExceeded,
 </property>
 </object>
 <object id='cpqcissm_11' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqcissm_11
 </property>
@@ -3716,8 +4661,14 @@ The driver detected a controller error on \Device\Scsi\cpqcissm1.
 </object>
 </tomanycont>
 <object id='FiberChannel' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='StorageAgents_1215' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 StorageAgents_1215
 </property>
@@ -3738,6 +4689,9 @@ Fail the Supervisor over to the Standby sup.  To do this, Login to the Switch th
 </property>
 </object>
 <object id='StorageAgents_1215_up' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 StorageAgents_1215
 </property>
@@ -3758,11 +4712,17 @@ Fibre Channel Controller Status Change. The Fibre Channel Controller in Slot 3 h
 </object>
 </object>
 <object id='Power' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
 <tomanycont id='instances'>
 <object id='C6KPWR-SP-2-PSFAIL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KPWR-SP-2-PSFAIL
 </property>
@@ -3774,6 +4734,9 @@ power supply 1 output failed.
 </property>
 </object>
 <object id='C6KPWR-SP-4-PSREDUNDANTBOTHSUPPLY' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KPWR-SP-4-PSREDUNDANTBOTHSUPPLY
 </property>
@@ -3788,6 +4751,9 @@ in power-redundancy mode, system is operating on both power supplies.
 </property>
 </object>
 <object id='Server Administrator_1304' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1304
 </property>
@@ -3802,6 +4768,9 @@ Redundancy regained Redundancy unit: BMC PS Redundancy Chassis location: Main Sy
 </property>
 </object>
 <object id='Server Administrator_1352' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1352
 </property>
@@ -3816,6 +4785,9 @@ Power supply returned to normal Sensor location: PS 1 Status Chassis location: M
 </property>
 </object>
 <object id='Server Administrator_1354' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1354
 </property>
@@ -3832,6 +4804,9 @@ Power Supply state: Presence detected, Failure detected, AC lost
 </property>
 </object>
 <object id='Server Agents_1118' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1118
 </property>
@@ -3851,6 +4826,9 @@ Chassis: '0'; Bay: '2'
 </property>
 </object>
 <object id='Server Agents_1125' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1125
 </property>
@@ -3862,6 +4840,9 @@ System Information Agent: Health: The Fault Tolerant Power Supply Sub-system is 
 </property>
 </object>
 <object id='configChangeSNMP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 configChangeSNMP
 </property>
@@ -3876,6 +4857,9 @@ snmp trap configChangeSNMP from 10.1.2.3
 </property>
 </object>
 <object id='cpqasm2_4154' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4154
 </property>
@@ -3887,6 +4871,9 @@ The power sub-system is no longer redundant.
 </property>
 </object>
 <object id='cpqasm2_4157' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4157
 </property>
@@ -3901,6 +4888,9 @@ The power sub-system is now in a redundant state.
 </property>
 </object>
 <object id='cpqasm2_4173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4173
 </property>
@@ -3912,6 +4902,9 @@ Power supply #2 has failed.
 </property>
 </object>
 <object id='cpqasm_4157' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm_4157
 </property>
@@ -3927,10 +4920,16 @@ The Compaq System Management Driver has detected that the power sub-system is re
 </object>
 </tomanycont>
 <object id='UPS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='accessViolationHTTP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 accessViolationHTTP
@@ -3943,6 +4942,9 @@ snmp trap accessViolationHTTP from 10.1.2.3
 </property>
 </object>
 <object id='noBatteries' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 noBatteries
 </property>
@@ -3954,6 +4956,9 @@ snmp trap noBatteries from 10.1.2.3
 </property>
 </object>
 <object id='passwordChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 passwordChange
 </property>
@@ -3971,6 +4976,9 @@ snmp trap passwordChange from 10.1.2.3
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 powerRestored
 </property>
@@ -3985,6 +4993,9 @@ snmp trap powerRestored from 10.1.2.3
 </property>
 </object>
 <object id='upsBatteryNeedsReplacement' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsBatteryNeedsReplacement
 </property>
@@ -4001,6 +5012,9 @@ snmp trap upsBatteryNeedsReplacement from 10.1.2.3
 <object id='upsBatteryReplaced' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 upsBatteryReplaced
@@ -4019,6 +5033,9 @@ UPS: Bad battery condition cleared.
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsDiagnosticsFailed
 </property>
@@ -4035,6 +5052,9 @@ UPS: Failed internal diagnostic self-test.
 <object id='upsDiagnosticsPassed' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 upsDiagnosticsPassed
@@ -4053,6 +5073,9 @@ UPS: Passed internal self-test.
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsOnBattery
 </property>
@@ -4067,6 +5090,9 @@ snmp trap upsOnBattery from 10.1.2.3
 </property>
 </object>
 <object id='xupstdOnBattery' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 xupstdOnBattery
 </property>
@@ -4079,8 +5105,14 @@ xupstdOnBattery
 </object>
 </tomanycont>
 <object id='SmartBoost' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='smartBoostOff' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 smartBoostOff
 </property>
@@ -4095,6 +5127,9 @@ snmp trap smartBoostOff from 10.1.2.3
 </property>
 </object>
 <object id='smartBoostOn' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 smartBoostOn
 </property>
@@ -4112,8 +5147,14 @@ snmp trap smartBoostOn from 10.1.2.3
 </object>
 </object>
 <object id='PowerLoss' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='C6KPWR-SP-4-PSFAIL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KPWR-SP-4-PSFAIL
 </property>
@@ -4125,6 +5166,9 @@ power supply 1 output failed.
 </property>
 </object>
 <object id='C6KPWR-SP-4-PSOK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KPWR-SP-4-PSOK
 </property>
@@ -4139,6 +5183,9 @@ power supply 1 turned on.
 </property>
 </object>
 <object id='C6KPWR-SP-4-PSREDUNDANTONESUPPLY' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KPWR-SP-4-PSREDUNDANTONESUPPLY
 </property>
@@ -4153,8 +5200,14 @@ in power-redundancy mode, system is operating on one power supply.
 </object>
 </object>
 <object id='Network' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='iANSMiniport_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_22
 </property>
@@ -4169,6 +5222,9 @@ Primary Adapter does not sense any Probes: Intel(R) PRO/1000 MT Network Connecti
 </property>
 </object>
 <object id='iANSMiniport_42' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_42
 </property>
@@ -4184,6 +5240,9 @@ The adapter cannot process the remote management features and be a member of a n
 </property>
 </object>
 <object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 kernel
 </property>
@@ -4195,6 +5254,9 @@ mtrr: type mismatch for f0000000,1000000 old: write-back new: write-combining
 </property>
 </object>
 <object id='system-config-network' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 system-config-network
 </property>
@@ -4210,8 +5272,14 @@ ln //etc/sysconfig/networking/devices//ifcfg-eth1 //etc/sysconfig/networking/pro
 </object>
 </tomanycont>
 <object id='TeamDown' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='iANSMiniport_16' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_16
 </property>
@@ -4226,6 +5294,9 @@ Team #0: The last adapter has lost link.  Team network connection has been lost.
 </property>
 </object>
 <object id='iANSMiniport_17' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_17
 </property>
@@ -4242,8 +5313,14 @@ Team #0: An adapter has re-established link. Team network connection has been re
 </tomanycont>
 </object>
 <object id='AdapterDown' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='CPQTeamMP_434' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQTeamMP_434
 </property>
@@ -4265,6 +5342,9 @@ in that configuration.
 </property>
 </object>
 <object id='CPQTeamMP_436' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQTeamMP_436
 </property>
@@ -4279,6 +5359,9 @@ HP Network Team #1: A previously failed Network Link's receive status has been r
 </property>
 </object>
 <object id='iANSMiniport_11' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_11
 </property>
@@ -4293,6 +5376,9 @@ Adapter link down: Intel(R) PRO/1000 MB Dual Port Network Connection
 </property>
 </object>
 <object id='iANSMiniport_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_13
 </property>
@@ -4307,6 +5393,9 @@ The Intel(R) PRO/1000 MB Dual Port Network Connectio... has been deactivated fro
 </property>
 </object>
 <object id='iANSMiniport_14' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_14
 </property>
@@ -4321,6 +5410,9 @@ Secondary Adapter has rejoined the Team: Intel(R) PRO/1000 MT Network Connection
 </property>
 </object>
 <object id='iANSMiniport_15' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 iANSMiniport_15
 </property>
@@ -4338,8 +5430,14 @@ Adapter link up: Intel(R) PRO/1000 MB Dual Port Network Connection
 </object>
 </object>
 <object id='Temperature' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Server Administrator_1052' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1052
 </property>
@@ -4358,6 +5456,9 @@ Temperature sensor value (in Degrees Celsius): 11.0
 </property>
 </object>
 <object id='Server Administrator_1053' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1053
 </property>
@@ -4376,6 +5477,9 @@ Temperature sensor value (in Degrees Celsius): 10.0
 </property>
 </object>
 <object id='Server Agents_1091' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1091
 </property>
@@ -4392,6 +5496,9 @@ a thermal anomaly and has just become operational again.
 </property>
 </object>
 <object id='cpqasm2_4111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4111
 </property>
@@ -4408,8 +5515,14 @@ either resulting from the system overheating, or from the loss of cooling.
 </object>
 </tomanycont>
 <object id='Fan' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='C6KENV-SP-4-PSFANFAILED' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KENV-SP-4-PSFANFAILED
 </property>
@@ -4424,6 +5537,9 @@ the fan in power supply 1 has failed
 </property>
 </object>
 <object id='C6KENV-SP-4-PSFANOK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 C6KENV-SP-4-PSFANOK
 </property>
@@ -4438,6 +5554,9 @@ the fan in power supply 1 is OK
 </property>
 </object>
 <object id='Server Agents_1130' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Agents_1130
 </property>
@@ -4458,6 +5577,9 @@ Chassis: '0'; Fan: '1'
 </property>
 </object>
 <object id='cpqasm2_4118' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 cpqasm2_4118
 </property>
@@ -4476,8 +5598,14 @@ A required processor fan (fan #1) has failed.  Environment Abnormality Auto Shut
 </object>
 </object>
 <object id='Management' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Dell - System Update_6049' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Dell - System Update_6049
 </property>
@@ -4496,6 +5624,9 @@ Exit code = 1 (Failure)
 </property>
 </object>
 <object id='hplopts_5' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 hplopts_5
 </property>
@@ -4512,8 +5643,14 @@ iLO interface not responding. Restarting interface.
 </tomanycont>
 </object>
 <object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Server Administrator_1404' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Server Administrator_1404
 </property>
@@ -4532,10 +5669,16 @@ Possible memory module event cause:Single bit error logging disabled
 </tomanycont>
 </object>
 <object id='Blade' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='alertDrscAuthError' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.summary=evt.drsAlertMessage
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscAuthError
@@ -4553,6 +5696,9 @@ Message: Web login fail.
 <object id='alertDrscSEL80percentFull' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.summary=evt.drsAlertMessage
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSEL80percentFull
@@ -4572,6 +5718,9 @@ Message: The DRAC/MC system event log is 80% full.
 evt.summary=evt.drsAlertMessage
 evt.component=evt.split()[0]
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELCritical
 </property>
@@ -4589,6 +5738,9 @@ DRAC/MC-2 module sensor detected a nonrecoverable event.
 <property type="text" id="transform" mode="w" >
 evt.summary=evt.drsAlertMessage
 evt.component=evt.split()[0]
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELNormal
@@ -4608,6 +5760,9 @@ DRAC/MC-2 module sensor presence was detected.
 evt.summary=evt.drsAlertMessage
 evt.component=evt.split()[0]
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELWarning
 </property>
@@ -4624,11 +5779,17 @@ Server-10 module sensor was removed.
 </tomanycont>
 </object>
 <object id='Backup' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 <tomanycont id='instances'>
 <object id='avrd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 avrd
 </property>
@@ -4643,6 +5804,9 @@ daemon.error
 </property>
 </object>
 <object id='avrd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 avrd
 </property>
@@ -4654,6 +5818,9 @@ drop
 </property>
 </object>
 <object id='bptm_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 bptm
 </property>
@@ -4665,6 +5832,9 @@ drop
 </property>
 </object>
 <object id='ltid_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ltid
 </property>
@@ -4676,6 +5846,9 @@ drop
 </property>
 </object>
 <object id='tldcd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 tldcd
 </property>
@@ -4687,6 +5860,9 @@ drop
 </property>
 </object>
 <object id='vmd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 vmd
 </property>
@@ -4707,6 +5883,9 @@ PROBLEM REGEX (was empty) -- limit this to just error events
 </property>
 </object>
 <object id='vmd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 vmd
 </property>
@@ -4719,8 +5898,14 @@ drop
 </object>
 </tomanycont>
 <object id='Tape Drive' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='ltid' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ltid
 </property>
@@ -4740,8 +5925,14 @@ daemon.error
 </tomanycont>
 </object>
 <object id='Tape Media' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='tldcd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 tldcd
 </property>
@@ -4761,8 +5952,14 @@ daemon.error.*MEDIUM NOT PRESENT
 </tomanycont>
 </object>
 <object id='Robot' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='tldcd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 tldcd
 </property>
@@ -4780,6 +5977,9 @@ daemon.error
 </property>
 </object>
 <object id='tldd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 tldd
 </property>
@@ -4799,8 +5999,14 @@ daemon.error
 </tomanycont>
 </object>
 <object id='SCSI' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='bptm' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 bptm
 </property>
@@ -4822,8 +6028,14 @@ daemon.error
 </object>
 </object>
 <object id='Cisco' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='LINK-2-BADVCALL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 LINK-2-BADVCALL
 </property>
@@ -4839,8 +6051,14 @@ Interface FastEthernet3/6, undefined entry point
 </object>
 </tomanycont>
 <object id='FW' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -4858,6 +6076,9 @@ defaultmapping
 </object>
 </object>
 <object id='Config' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
@@ -4866,6 +6087,9 @@ history
 </property>
 <tomanycont id='instances'>
 <object id='SYS-5-CONFIG_I' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 SYS-5-CONFIG_I
 </property>
@@ -4880,6 +6104,9 @@ Configured from console by username onvty1 (1.1.1.1)
 </property>
 </object>
 <object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 sendmail
 </property>
@@ -4896,8 +6123,14 @@ unable to qualify my own domain name (MisysReports) -- using short name
 </tomanycont>
 </object>
 <object id='DB' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='MSSQLSERVER_17052' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MSSQLSERVER_17052
 </property>
@@ -4913,11 +6146,17 @@ Fatal DB Error
 </object>
 </tomanycont>
 <object id='Filemaker' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
 <tomanycont id='instances'>
 <object id='FileMaker Server 7_190' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_190
 </property>
@@ -4935,6 +6174,9 @@ history
 </property>
 </object>
 <object id='FileMaker Server 7_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_22
 </property>
@@ -4949,6 +6191,9 @@ history
 </property>
 </object>
 <object id='FileMaker Server 7_601' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_601
 </property>
@@ -4963,6 +6208,9 @@ history
 </property>
 </object>
 <object id='FileMaker Server 7_98' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 FileMaker Server 7_98
 </property>
@@ -4980,11 +6228,17 @@ history
 </object>
 </object>
 <object id='Storage' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
 <tomanycont id='instances'>
 <object id='CPQCISSE_24597' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 CPQCISSE_24597
 </property>
@@ -5000,6 +6254,9 @@ Failure Code: 0x0d.
 </property>
 </object>
 <object id='Storage Agents_1202' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Storage Agents_1202
 </property>
@@ -5008,6 +6265,9 @@ Storage Agents_1202
 </property>
 </object>
 <object id='VxSvc_PercPro_509' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 VxSvc_PercPro_509
 </property>
@@ -5019,6 +6279,9 @@ PERC 3/DC Controller, Virtual Disk degraded
 </property>
 </object>
 <object id='VxSvc_PercPro_580' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 VxSvc_PercPro_580
 </property>
@@ -5034,11 +6297,17 @@ PERC 3/Di Controller 0 , battery low.
 </object>
 </tomanycont>
 <object id='Full' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
 <tomanycont id='instances'>
 <object id='Remote Storage_6027' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Remote Storage_6027
 </property>
@@ -5053,6 +6322,9 @@ An attempt was made to start or restart the job &lt;Remote Storage Validate F&gt
 </property>
 </object>
 <object id='Srv_2013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Srv_2013
 </property>
@@ -5069,8 +6341,14 @@ The C: disk is at or near capacity.  You may need to delete some files.
 </tomanycont>
 </object>
 <object id='SAN' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='EmcpBase_100' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 EmcpBase_100
 </property>
@@ -5082,6 +6360,9 @@ Fiber Channel Bus is Dead
 </property>
 </object>
 <object id='EmcpBase_106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 EmcpBase_106
 </property>
@@ -5096,8 +6377,14 @@ Killing Fiber Channel Bus
 </object>
 </object>
 <object id='OS' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='MisysReports' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 MisysReports
 </property>
@@ -5113,8 +6400,14 @@ syslog: Cannot send broadcast packet
 </object>
 </tomanycont>
 <object id='Reboot' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='EventLog_6008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 EventLog_6008
 </property>
@@ -5128,8 +6421,14 @@ Previous Shutdown was unexpected
 </tomanycont>
 </object>
 <object id='Pagefile' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='Srv_2019' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Srv_2019
 </property>
@@ -5144,6 +6443,9 @@ The server was unable to allocate from the system nonpaged pool because the pool
 </property>
 </object>
 <object id='Srv_2020' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 Srv_2020
 </property>
@@ -5161,11 +6463,17 @@ The server was unable to allocate from the system paged pool because the pool wa
 </object>
 </object>
 <object id='Archive' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <tomanycont id='instances'>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -5180,6 +6488,9 @@ Archive Eventlog events that have severity == debug(1)
 </property>
 </object>
 <object id='defaultmapping_FileMaker' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping
 </property>
@@ -5199,13 +6510,28 @@ By Default map all FileMaker events to Archive and set severity = 2
 </tomanycont>
 </object>
 <object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='CPU' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Interface' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="text" id="transform" mode="w" >
@@ -5246,17 +6572,32 @@ if device and evt.eventKey:
 
         break
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='MissedRuns' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Environ' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='diagnostic-alarm-trap-node' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.eventKey=getattr(evt,"ims-trap-chan","")
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 diagnostic-alarm-trap-node
@@ -5276,6 +6617,9 @@ snmp trap diagnostic-alarm-trap-node from 10.1.2.3
 evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
 evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
 </property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 environment-alarm-trap-major
 </property>
@@ -5293,6 +6637,9 @@ snmp trap environment-alarm-trap-major from 10.1.2.3
 <property type="text" id="transform" mode="w" >
 evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
 evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
+</property>
+<property type="bool" id="transformEnabled" mode="w" >
+True
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 environment-alarm-trap-normal
@@ -5313,8 +6660,14 @@ These traps dedup on ims4000 channel name plus sensor type.  There are only two 
 </tomanycont>
 </object>
 <object id='Cluster' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='ClusSvc_1135' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1135
 </property>
@@ -5333,8 +6686,14 @@ server cluster nodes.
 </object>
 </tomanycont>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <tomanycont id='instances'>
 <object id='ClusSvc_1125' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1125
 </property>
@@ -5349,6 +6708,9 @@ The interface for cluster node 'CFEMARCL2' on network 'Private' is operational (
 </property>
 </object>
 <object id='ClusSvc_1126' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1126
 </property>
@@ -5371,6 +6733,9 @@ hubs, switches, or bridges.
 </property>
 </object>
 <object id='ClusSvc_1128' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1128
 </property>
@@ -5386,6 +6751,9 @@ attached to the network can communicate using it.
 </property>
 </object>
 <object id='ClusSvc_1130' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 ClusSvc_1130
 </property>
@@ -5408,36 +6776,81 @@ the nodes to the network.
 </object>
 </object>
 <object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
 <object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 </object>
 <object id='Cmd' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Ok' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 <object id='Users' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 <object id='Conn' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
 </object>
 </object>
 </object>
