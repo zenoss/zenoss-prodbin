@@ -116,6 +116,17 @@
             tal:content="here/base"/>
     </tr>
     <tr>
+        <td class="tableheader">Show full device title</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="base:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.showFullTitle"/>
+        </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/showFullTitle"/>
+    </tr>
+    <tr>
         <td class="tableheader">Min Y</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="miny" size="30"

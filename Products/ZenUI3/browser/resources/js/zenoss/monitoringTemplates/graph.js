@@ -561,6 +561,10 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             fieldLabel: _t('Base 1024'),
             name: 'base'
         },{
+            xtype: 'checkbox',
+            fieldLabel: _t('Show full device title'),
+            name: 'showFullTitle'
+        },{
             xtype: 'numberfield',
             fieldLabel: _t('Min Y'),
             name: 'miny'
