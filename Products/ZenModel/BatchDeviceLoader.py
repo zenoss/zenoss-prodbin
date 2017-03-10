@@ -448,7 +448,6 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
 
 
             loaderName = device_specs.get('loader')
-            # import pdb; pdb.set_trace()
             if loaderName is not None:
                 try:
                     orgName = device_specs['devicePath']
