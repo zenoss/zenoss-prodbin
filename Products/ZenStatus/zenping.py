@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
-# 
+#
+#
 # Copyright (C) Zenoss, Inc. 2007, 2010, 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
-##############################################################################
+#
+#
 
 
 __doc__ = """zenping
@@ -25,7 +25,7 @@ import zope.interface
 import zope.component
 
 from Products import ZenStatus
-from Products.ZenCollector import daemon 
+from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector import tasks
 from Products.ZenUtils import IpUtil
 from Products.ZenUtils.FileCache import FileCache
@@ -42,11 +42,20 @@ unused(Globals)
 COLLECTOR_NAME = "zenping"
 CONFIG_SERVICE = 'Products.ZenHub.services.PingPerformanceConfig'
 
+
+class PingDaemon(CollectorDaemon):
+
+    def runPostConfigTasks(self, result=None):
+        CollectorDaemon.runPostConfigTasks(self, result=result)
+        self.preferences.runPostConfigTasks()
+
+
 class PerIpAddressTaskSplitter(tasks.SubConfigurationTaskSplitter):
     subconfigName = 'monitoredIps'
 
     def makeConfigKey(self, config, subconfig):
         return config.id, subconfig.cycleTime, IpUtil.ipunwrap(subconfig.ip)
+
 
 def getConfigOption(filename, option, default):
     """
@@ -55,7 +64,7 @@ def getConfigOption(filename, option, default):
     if not os.path.exists(filename):
         return default
     with open(filename, 'r') as f:
-        lines = [ line.strip() for line in f.readlines() if not line.startswith('#') and line ]
+        lines = [line.strip() for line in f.readlines() if not line.startswith('#') and line]
         for line in reversed(lines):
             parts = line.split()
             if len(parts):
@@ -64,6 +73,7 @@ def getConfigOption(filename, option, default):
                         return True
                     return parts[1]
     return default
+
 
 def getCmdOption(option, default):
     """
@@ -75,12 +85,13 @@ def getCmdOption(option, default):
         optionStrEq = "--%s=" % option
         for i, arg in enumerate(sys.argv):
             if arg == optionStr:
-                return sys.argv[i+1]
+                return sys.argv[i + 1]
             elif arg.startswith(optionStrEq):
                 return arg.split('=', 1)[1]
     except IndexError:
         pass
     return default
+
 
 def getPingBackend():
     """
@@ -110,10 +121,12 @@ if __name__ == '__main__':
     zcml.load_site()
     pingBackend = getPingBackend()
 
-    myPreferences = zope.component.getUtility(ZenStatus.interfaces.IPingCollectionPreferences, pingBackend)
+    myPreferences = zope.component.getUtility(
+        ZenStatus.interfaces.IPingCollectionPreferences, pingBackend)
     myTaskFactory = zope.component.getUtility(ZenStatus.interfaces.IPingTaskFactory, pingBackend)
     myTaskSplitter = PerIpAddressTaskSplitter(myTaskFactory)
-    myDaemon = daemon.CollectorDaemon(
+
+    myDaemon = PingDaemon(
         myPreferences,
         myTaskSplitter,
         stoppingCallback=myPreferences.preShutdown,
