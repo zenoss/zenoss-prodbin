@@ -124,7 +124,7 @@ class GraphReport(BaseReport):
             # NOTE: There is no much sense to use component, which missed on
             #       device, so we filred components to use only related to
             #       device ones.
-            for cPath in filter(lambda path: devId in path, componentPaths):
+            for cPath in filter(lambda path: dev.id in path, componentPaths) or ['']:
                 try:
                     thing = getObjByPath(dev, cPath)
                 except KeyError:
