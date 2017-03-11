@@ -31,3 +31,17 @@ def ensure_prefix(metadata, metric):
     if metric.startswith(prefix + SEPARATOR_CHAR):
         return metric
     return "%s%s%s" % (prefix, SEPARATOR_CHAR, metric)
+
+def ensure_metadata_prefix(metadata, metric):
+    """
+    Make sure that a metric name starts with a given prefix, joined by
+    a separator. Returns the prefixed metric name.
+
+    New method to allow zenpacks to remain backward compatible and use metric metadata on newer installs
+    Added 5.3.0
+
+    :param metadata: dict, the metric metadata as returned from metricmixin
+    :param metric: str, metric name to be prefixed
+    :return: str, modified or unmodified metricname
+    """
+    return ensure_prefix(metadata, metric)

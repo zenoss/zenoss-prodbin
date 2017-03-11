@@ -193,7 +193,7 @@ class MetricMixin(object):
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
-    def getMetricNameContext(self, dev=None):
+    def getMetricNameContext(self):
         """
         Used in conjuction with the 'contextMetric' property. If 'contexMetric' is True,
         this method will be called to get additional context for the metricname.
@@ -221,8 +221,8 @@ class MetricMixin(object):
                 }
 
         if self.contextMetric:
-                metricContext = self.getMetricNameContext()
-                mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
+            metricContext = self.getMetricNameContext()
+            mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
 
         return mdata
 
