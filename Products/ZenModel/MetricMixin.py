@@ -200,7 +200,6 @@ class MetricMixin(object):
         """
         return self.id
 
-    @property
     def contextMetric(self):
         """
         If true the metric name prefix will contain value returned by 'getMetricNameContext'
@@ -210,7 +209,7 @@ class MetricMixin(object):
     def getMetricMetadata(self, dev=None):
         if dev is None:
             dev = self.device()
-
+            
         mdata = {
                 'type': 'METRIC_DATA',
                 'contextKey': self.getResourceKey(dev),
@@ -220,7 +219,7 @@ class MetricMixin(object):
                 'contextUUID': self.getUUID()
                 }
 
-        if self.contextMetric:
+        if self.contextMetric():
             metricContext = self.getMetricNameContext()
             mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
 
