@@ -462,8 +462,7 @@ class EmailAction(IActionBase, TargetableAction):
                 email_message = MIMEMultipart('related')
                 email_message_alternative = MIMEMultipart('alternative')
                 email_message_alternative.attach(plain_body)
-
-                html_body = self._encodeBody(body.replace('\n', '<br />\n'))
+                html_body = self._encodeBody(body)
                 html_body.set_type('text/html')
                 email_message_alternative.attach(html_body)
 
@@ -1065,4 +1064,3 @@ class SyslogAction(IActionBase):
         PRI = int(facility) * 8 + int(priority)
         timestamp = strftime("%b %e %T", localtime(dt))
         return ("<%d>%s %s %s" % (PRI, timestamp, host, msg))[:1023] + "\n"
-
