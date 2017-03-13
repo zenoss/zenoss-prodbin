@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-02-14 10:15:19.283146
+    Zenoss RelationshipManager export completed on 2017-03-10 10:52:31.326897
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.2.0]" export_date="2017-02-14 10:15:19.283146" zenoss_server="f2dbc5288d8c" >
+<objects version="[Zenoss, version 5.2.0]" export_date="2017-03-10 10:52:31.326897" zenoss_server="7f8519bdf1ac" >
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
 <object id='ATI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
