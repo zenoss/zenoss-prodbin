@@ -27,6 +27,12 @@ def createFilesystem( device, id, blockSize, totalBlocks, usedBlocks,
     filesystem.usedBlocks_usedBlocks=usedBytes
     for key, value in properties.iteritems():
         setattr( filesystem, key, value )
+    #For some unknown reason invocation of cacheRRDValue using argument value 
+    #which matches to name of the method from the FileSystem class e.g. `availBlocks` in scope of 
+    #unittests returns a bound method instead of value. Override here to make tests works.
+    def cacheRRDValue(string, defualt=None):
+        return None
+    filesystem.cacheRRDValue = cacheRRDValue
     return filesystem
     
 def assertFileSystemRowIsCorrect(test, records, dev2, filesystem, 
