@@ -138,6 +138,7 @@ class ZenModeler(PBDaemon):
 
         # ZEN-26637
         self.collectorLoopIteration = 0
+        self.mainLoopGotDeviceList = False
 
     def reportError(self, error):
         """
