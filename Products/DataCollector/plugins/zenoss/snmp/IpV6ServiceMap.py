@@ -44,7 +44,7 @@ class IpV6ServiceMap(SnmpPlugin):
         # ignore localhost designations
         # 127.0.0.0/8
         # ::1
-        return addr in ['::1'] or addr.startswith('127.0.0')
+        return addr in ['::1'] or addr.startswith('127.')
 
     def _extractAddressAndPort(self, oid):
         try:
