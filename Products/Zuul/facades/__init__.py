@@ -198,7 +198,7 @@ class TreeFacade(ZuulFacade):
 
         if sort == "productionState":
             useProdStates = True
-            orderby = None
+            orderby = 'name'
             startp = 0
             limitp = None
 
@@ -207,7 +207,6 @@ class TreeFacade(ZuulFacade):
             useProdStates = True
             startp = 0
             limitp = None
-
 
         catbrains = cat.search(
                 'Products.ZenModel.Device.Device', start=startp,
@@ -219,7 +218,7 @@ class TreeFacade(ZuulFacade):
             psManager = IProdStateManager(self._dmd)
             # Filter by production state
             if prodStates:
-                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.uuid) in prodStates]
+                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.getUUID()) in prodStates]
                 totalCount = len(psFilteredbrains)
                 hash_ = str(totalCount)
 
@@ -246,13 +245,13 @@ class TreeFacade(ZuulFacade):
                     prodStateBuckets[ps] = []
 
                 for brain in psFilteredbrains:
-                    prodState = psManager.getProductionStateFromGUID(brain.uuid)
+                    import pdb; pdb.set_trace()
+                    prodState = psManager.getProductionStateFromGUID(brain.getUUID())
                     prodStateBuckets[prodState].append(brain)
 
                 sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
             else:
                 sortedBrains = psFilteredbrains
-
 
             # Pick out the correct range and build the SearchResults object
             start = max(start, 0)
