@@ -613,7 +613,6 @@ class GraphInfo(InfoBase):
     sequence = ProxyProperty('sequence')
     autoscale = ProxyProperty('autoscale')
     ceiling = ProxyProperty('ceiling')
-    showFullTitle = ProxyProperty('showFullTitle')
 
     @property
     def description(self):

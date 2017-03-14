@@ -75,11 +75,11 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         """
         For the reports we need the context in the title.
         """
-        if self._object.showFullTitle:
-            title = self._context.device().deviceClass().getOrganizerName() + \
-                    "/" + self._context.device().titleOrId()
-        else:
-            title =  self._context.device().titleOrId()
+        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        # truncate if getOrganizerName() is too long
+        if title.count("/") > 4:
+            titleList = title.split("/")
+            title = "/" + titleList[1] + "/.../" + titleList[-1]
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
         return "%s - %s" % (self.titleGroup, title)
@@ -399,11 +399,13 @@ class OSProcessMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        if self._object.showFullTitle:
-            deviceTitle = self._context.device().deviceClass().getOrganizerName() + \
+        deviceTitle = self._context.device().deviceClass().getOrganizerName() + \
                           "/" + self._context.device().titleOrId()
-        else:
-            deviceTitle =  self._context.device().titleOrId()
+        # truncate if getOrganizerName() is too long
+        if deviceTitle.count("/") > 4:
+            titleList = deviceTitle.split("/")
+            deviceTitle = "/" + titleList[1] + "/.../" + titleList[-1]
+
         return "{graphTitle} - {deviceTitle} - {componentTitle}".format(
             graphTitle=self._object.titleOrId(),
             deviceTitle=deviceTitle,

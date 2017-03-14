@@ -89,7 +89,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     autoscale = None
     ceiling = None
     description = ""
-    showFullTitle = True
 
     _properties = (
         {'id':'height', 'type':'int', 'mode':'w'},
@@ -106,7 +105,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         {'id':'hasSummary', 'type':'boolean', 'mode':'w'},
         {'id':'sequence', 'type':'long', 'mode':'w'},
         {'id':'description', 'type':'string', 'mode':'w'},
-        {'id':'showFullTitle', 'type':'boolean', 'mode':'w'},
         )
 
     _relations =  (
