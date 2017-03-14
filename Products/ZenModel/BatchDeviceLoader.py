@@ -44,6 +44,14 @@ from Products.ZenUtils.IpUtil import isip
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
+def transactional(f):
+    def wrapper(*args):
+        if args[0].options.nocommit:
+            f.__call__(*args)
+        else:
+            transact(f).__call__(*args)
+    return wrapper
+
 class BatchDeviceLoader(ZCmdBase):
     """
     Base class wrapping around dmd.DeviceLoader
@@ -150,7 +158,6 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
 #   setGroups
 #   setSystems
 """
-
     def __init__(self, *args, **kwargs):
         ZCmdBase.__init__(self, *args, **kwargs)
         self.defaults = {}
@@ -307,7 +314,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             except BadRequest:
                 pass
 
-    @transact
+    @transactional
     def addOrganizer(self, device_specs):
         """
         Add any organizers as required, and apply zproperties to them.
@@ -325,10 +332,10 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         except KeyError:
             try:
                 self.log.info("Creating organizer %s", path)
-                @transact
-                def inner():
+                @transactional
+                def inner(self):
                     base.manage_addOrganizer(path)
-                inner()
+                inner(self)
                 org = base.getDmdObj(path)
             except IOError:
                 self.log.error("Unable to create organizer! Is Rabbit up and configured correctly?")
@@ -350,18 +357,19 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         internalVars = [
            'deviceName', 'devicePath', 'loader', 'loader_arg_keys',
         ]
-        @transact
-        def setNamedProp(org, name, description):
+        @transactional
+        def setNamedProp(self, org, name, description):
             setattr(org, name, description)
 
         for functor, value in device_specs.items():
+
             if iszprop(functor) or iscustprop(functor) or functor in internalVars:
                continue
 
             # Special case for organizers which can take a description
             if functor in ('description', 'address', 'comments', 'rackSlot'):
                 if hasattr(device, functor):
-                    setNamedProp(device, functor, value)
+                    setNamedProp(self, device, functor, value)
                 continue
 
             try:
@@ -422,15 +430,22 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         @rtype: dictionary
         """
 
-        def transactional(f):
-            return f if self.options.nocommit else transact(f)
+        # If nocommit is set, tell the DistributedCollector not to modify the controlplane services
+        if self.options.nocommit:
+            try:
+                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                ExtendedControlPlaneClient.readonly = True
+            except ImportError:
+                pass
+
 
         processed = {'processed':0, 'errors':0, 'no_IP':0}
 
         @transactional
-        def _process(device_specs):
+        def _process(self, device_specs):
             # Get the latest bits
             self.dmd.zport._p_jar.sync()
+
 
             loaderName = device_specs.get('loader')
             if loaderName is not None:
@@ -471,14 +486,14 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             return devobj
 
         @transactional
-        def _snmp_community(device_specs, devobj):
+        def _snmp_community(self, device_specs, devobj):
             # Discover the SNMP community if it isn't explicitly set.
             if 'zSnmpCommunity' not in device_specs:
                 self.log.debug('Discovering SNMP version and community')
                 devobj.manage_snmpCommunity()
 
         @transactional
-        def _model(devobj):
+        def _model(self, devobj):
             try:
                 devobj.collectDevice(setlog=self.options.showModelOutput)
             except ConflictError:
@@ -490,15 +505,24 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             processed['processed'] += 1
 
         for device_specs in device_list:
-            devobj = _process(device_specs)
+            devobj = _process(self, device_specs)
 
             # We need to commit in order to model, so don't bother
             # trying to model unless we can do both
             if devobj and not self.options.nocommit and not self.options.nomodel:
-                _snmp_community(device_specs, devobj)
-                _model(devobj)
+                _snmp_community(self, device_specs, devobj)
+                _model(self, devobj)
 
         processed['total'] = len(device_list)
+
+        # This should be unnecessary, but just to be safe:
+        if self.options.nocommit:
+            try:
+                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                ExtendedControlPlaneClient.readonly = False
+            except ImportError:
+                pass
+
         return processed
 
     def validDeviceSpec(self, processed, device_specs):
