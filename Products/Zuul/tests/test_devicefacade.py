@@ -151,11 +151,11 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
 
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[400]))
         self.assertEquals(1, results.total)
-        self.assertEquals(iter(results).next().getProductionState(), 400)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 400)
 
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[1000]))
         self.assertEquals(1, results.total)
-        self.assertEquals(iter(results).next().getProductionState(), 1000)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 1000)
 
     def test_deviceSortByProdState(self):
         devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
@@ -166,15 +166,15 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState')
         resultIter = iter(results)
         self.assertEquals(2, results.total)
-        self.assertEquals(resultIter.next().getProductionState(), 400)
-        self.assertEquals(resultIter.next().getProductionState(), 1000)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
 
         # descending order
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', dir='DESC')
         resultIter = iter(results)
         self.assertEquals(2, results.total)
-        self.assertEquals(resultIter.next().getProductionState(), 1000)
-        self.assertEquals(resultIter.next().getProductionState(), 400)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
 
     def test_deviceSearchByProdStateAndLocationReturnsCorrectDevices(self):
         manage_addLocation(self.dmd.Locations, "test1")
@@ -195,14 +195,14 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[400], location="test1"))
         self.assertEquals(1, results.total)
         device = iter(results).next()
-        self.assertEquals(device.getProductionState(), 400)
-        self.assertEquals(device.location.getRelatedId(), "test1")
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        self.assertEquals(device.getObject().location.getRelatedId(), "test1")
 
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[1000], location="test1"))
         self.assertEquals(1, results.total)
         device = iter(results).next()
-        self.assertEquals(device.getProductionState(), 1000)
-        self.assertEquals(device.location.getRelatedId(), "test1")
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+        self.assertEquals(device.getObject().location.getRelatedId(), "test1")
 
     def test_deviceSortByProdStateWithLocationFilterReturnsCorrectDevicesAndSortsCorrectly(self):
         manage_addLocation(self.dmd.Locations, "test1")
@@ -226,22 +226,22 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         resultIter = iter(results)
         self.assertEquals(2, results.total)
         device = resultIter.next()
-        self.assertEquals(device.getProductionState(), 400)
-        self.assertEquals(device.location.getRelatedId(), 'test1')
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
         device = resultIter.next()
-        self.assertEquals(device.getProductionState(), 1000)
-        self.assertEquals(device.location.getRelatedId(), 'test1')
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
 
         # test sort in descending order with location filter
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', dir='DESC', params=dict(location="test1"))
         resultIter = iter(results)
         self.assertEquals(2, results.total)
         device = resultIter.next()
-        self.assertEquals(device.getProductionState(), 1000)
-        self.assertEquals(device.location.getRelatedId(), 'test1')
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
         device = resultIter.next()
-        self.assertEquals(device.getProductionState(), 400)
-        self.assertEquals(device.location.getRelatedId(), 'test1')
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
 
     def test_setProductionState(self):
         dev = self.dmd.Devices.createInstance('dev')

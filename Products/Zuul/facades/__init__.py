@@ -247,7 +247,6 @@ class TreeFacade(ZuulFacade):
                     prodStateBuckets[ps] = []
 
                 for brain in psFilteredbrains:
-                    import pdb; pdb.set_trace()
                     prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(brain).getGUID())
                     prodStateBuckets[prodState].append(brain)
 
