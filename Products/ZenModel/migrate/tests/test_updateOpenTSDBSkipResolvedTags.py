@@ -16,7 +16,6 @@ class Test_UpdateOpenTSDBSkipResolvedTags(unittest.TestCase, common.ServiceMigra
     migration_module_name = 'updateOpenTSDBSkipUnresolvedTags'
     migration_class_name = 'UpdateOpenTSDBSkipUnresolvedTags'
 
-
 if __name__ == '__main__':
     unittest.main()
 
