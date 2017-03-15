@@ -21,7 +21,7 @@ class UpdateOpenTSDBSkipUnresolvedTags(Migrate.Step):
     """ Enable OpenTSDB option to skip unresolved tags.
 
         This migration step iterates through services that have opentsdb.conf as an original
-        configuration file.  For each of these services both original and latest config fles
+        configuration file.  For each of these services both original and latest config files
         are checked to see to see they have the parameter 'tsd.query.skip_unresolved_tagvs'.
         - If the parameter does not exist, then the parameter is added and set to True (enabled).
         - If the parameter already exists, then no change is made to the config file.
