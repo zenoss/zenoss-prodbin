@@ -45,11 +45,11 @@ from Products.ZenUtils.IpUtil import isip
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
 
 def transactional(f):
-    def wrapper(*args):
-        if args[0].options.nocommit:
-            f.__call__(*args)
+    def wrapper(obj, *args, **kwargs):
+        if obj.options.nocommit:
+            return f.__call__(obj, *args, **kwargs)
         else:
-            transact(f).__call__(*args)
+            return transact(f).__call__(obj, *args, **kwargs)
     return wrapper
 
 class BatchDeviceLoader(ZCmdBase):
