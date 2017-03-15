@@ -273,7 +273,6 @@ Ext.define('Zenoss.templates.AddDataSourceDialog', {
                     xtype: 'idfield',
                     ref: 'dataSourceName',
                     fieldLabel: _t('Name'),
-                    maskRe: /[A-Za-z0-9]/,
                     allowBlank: false,
                     blankText: _t('Name is a required field')
                 }, {
