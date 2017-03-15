@@ -29,6 +29,8 @@ from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
@@ -218,7 +220,7 @@ class TreeFacade(ZuulFacade):
             psManager = IProdStateManager(self._dmd)
             # Filter by production state
             if prodStates:
-                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.getUUID()) in prodStates]
+                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(IGlobalIdentifier(brain).getGUID()) in prodStates]
                 totalCount = len(psFilteredbrains)
                 hash_ = str(totalCount)
 
@@ -246,7 +248,7 @@ class TreeFacade(ZuulFacade):
 
                 for brain in psFilteredbrains:
                     import pdb; pdb.set_trace()
-                    prodState = psManager.getProductionStateFromGUID(brain.getUUID())
+                    prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(brain).getGUID())
                     prodStateBuckets[prodState].append(brain)
 
                 sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
