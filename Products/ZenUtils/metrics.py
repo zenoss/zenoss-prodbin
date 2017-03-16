@@ -6,15 +6,28 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 # 
 ##############################################################################
+import logging
 
 SEPARATOR_CHAR = "/"
+log = logging.getLogger("zen.metrics")
 
-
-def ensure_prefix(prefix, metric):
+def ensure_prefix(metadata, metric):
     """
     Make sure that a metric name starts with a given prefix, joined by
     a separator. Returns the prefixed metric name.
     """
+
+    if not metadata:
+        return metric
+
+    if isinstance(metadata, basestring):
+        log.warn("ensure_prefix() called with string, please use metadata style calls.")
+        prefix = metadata
+    elif metadata.get('metricPrefix', False):
+            prefix = metadata['metricPrefix']
+    else:
+        prefix = metadata['deviceId']
+
     if metric.startswith(prefix + SEPARATOR_CHAR):
         return metric
     return "%s%s%s" % (prefix, SEPARATOR_CHAR, metric)
