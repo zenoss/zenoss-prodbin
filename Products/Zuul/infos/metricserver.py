@@ -75,7 +75,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         """
         For the reports we need the context in the title.
         """
-        title = self._context.device().deviceClass().getOrganizerName() + "/" + self._context.device().titleOrId()
+        title = self._context.device().deviceClass().getOrganizerName() + " - " + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
         return "%s - %s" % (self.titleGroup, title)
@@ -395,7 +395,7 @@ class OSProcessMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        return "{graphTitle} - {organizerName}/{deviceTitle} - {componentTitle}".format(
+        return "{graphTitle} - {organizerName} - {deviceTitle} - {componentTitle}".format(
             graphTitle=self._object.titleOrId(),
             organizerName=self._context.device().deviceClass().getOrganizerName(),
             deviceTitle=self._context.device().titleOrId(),
