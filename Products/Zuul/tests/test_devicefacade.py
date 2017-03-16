@@ -9,8 +9,6 @@
 
 
 import unittest
-import zope.component
-from Products.Zuul.catalog.interfaces import IIndexingEvent
 from zope.interface.verify import verifyClass
 from zope.event import notify
 from Products import Zuul
@@ -80,7 +78,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         test_device.setGroups(groupNames)
 
         groups = test_device.groups()
-        
+
         # verify all our groups are there before removing one
         self.assertTrue(red_org in groups)
         self.assertTrue(orange_org in groups)
@@ -176,35 +174,9 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
         self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
 
-    def test_deviceSearchByProdStateAndLocationReturnsCorrectDevices(self):
-        manage_addLocation(self.dmd.Locations, "test1")
-
-        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
-        devMaintenance.setLocation("/test1")
-        devMaintenance.setProdState(400)
-
-        devProduction = self.dmd.Devices.createInstance('devProduction')
-        devProduction.setLocation("/test1")
-        devProduction.setProdState(1000)
-
-        # this device should never be returned
-        devOther = self.dmd.Devices.createInstance('devOther')
-        devOther.setLocation("/test1")
-        devOther.setProdState(1)
-
-        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[400], location="test1"))
-        self.assertEquals(1, results.total)
-        device = iter(results).next()
-        self.assertEquals(device.getObject().getProductionState(), 400)
-        self.assertEquals(device.getObject().location.getRelatedId(), "test1")
-
-        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[1000], location="test1"))
-        self.assertEquals(1, results.total)
-        device = iter(results).next()
-        self.assertEquals(device.getObject().getProductionState(), 1000)
-        self.assertEquals(device.getObject().location.getRelatedId(), "test1")
-
-    def test_deviceSortByProdStateWithLocationFilterReturnsCorrectDevicesAndSortsCorrectly(self):
+    def test_deviceSortByNonIndexedFieldWithProdStateFilterReturnsCorrectDevices(self):
+        # This test specifically verifies the fix for ZEN-26901 sorting by a non-indexed
+        # field while filtering on productionState caused a ProdStateNotSetError.
         manage_addLocation(self.dmd.Locations, "test1")
         manage_addLocation(self.dmd.Locations, "test2")
 
@@ -221,7 +193,95 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         devOther.setLocation("/test2")
         devOther.setProdState(300)
 
-        # test sort in ascending order with location filter
+        # sort by location (non-indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='location', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+
+    def test_deviceSortByIndexedFieldWithProdStateFilterReturnsCorrectDevices(self):
+        manage_addLocation(self.dmd.Locations, "test1")
+        manage_addLocation(self.dmd.Locations, "test2")
+
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setPerformanceMonitor('localhost')
+        devMaintenance.setLocation("/test1")
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setLocation("/test1")
+        devProduction.setProdState(1000)
+
+        # this device should never be returned
+        devOther = self.dmd.Devices.createInstance('devOther')
+        devOther.setLocation("/test2")
+        devOther.setProdState(300)
+
+        # sort by collector (indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='collector', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+
+    def test_deviceSortByProdStateWithIndexedFieldFilterReturnsCorrectDevices(self):
+        # This test specifically verifies the fix for ZEN-26901 sorting productionState
+        # while filtering on an indexed field caused a ProdStateNotSetError.
+        manage_addLocation(self.dmd.Locations, "test1")
+
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setPerformanceMonitor('localhost')
+        devMaintenance.setLocation("/test1")
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setPerformanceMonitor('localhost')
+        devProduction.setLocation("/test1")
+        devProduction.setProdState(1000)
+
+        # this device should never be returned
+        devOther = self.dmd.Devices.createInstance('devOther')
+        devOther.setLocation("/test2")
+        devOther.setProdState(300)
+
+        # sort by productionState with collector (indexed) filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort="productionState", params=dict(collector="l"))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.location.getRelatedId(), 'test1')
+
+    def test_deviceSortByProdStateWithNonIndexedFieldFilterReturnsCorrectDevices(self):
+        manage_addLocation(self.dmd.Locations, "test1")
+        manage_addLocation(self.dmd.Locations, "test2")
+
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setLocation("/test1")
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setLocation("/test1")
+        devProduction.setProdState(1000)
+
+        # this device should never be returned
+        devOther = self.dmd.Devices.createInstance('devOther')
+        devOther.setLocation("/test2")
+        devOther.setProdState(300)
+
+        # sort by productionState with location (non-indexed) filter
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', params=dict(location="test1"))
         resultIter = iter(results)
         self.assertEquals(2, results.total)
@@ -230,17 +290,6 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
         device = resultIter.next()
         self.assertEquals(device.getObject().getProductionState(), 1000)
-        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
-
-        # test sort in descending order with location filter
-        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', dir='DESC', params=dict(location="test1"))
-        resultIter = iter(results)
-        self.assertEquals(2, results.total)
-        device = resultIter.next()
-        self.assertEquals(device.getObject().getProductionState(), 1000)
-        self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
-        device = resultIter.next()
-        self.assertEquals(device.getObject().getProductionState(), 400)
         self.assertEquals(device.getObject().location.getRelatedId(), 'test1')
 
     def test_setProductionState(self):
