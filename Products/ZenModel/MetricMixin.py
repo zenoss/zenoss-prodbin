@@ -17,6 +17,7 @@ log = logging.getLogger("zen.MetricMixin")
 
 from Acquisition import aq_chain
 from Products.ZenUtils import Map
+from Products.ZenUtils.metrics import SEPARATOR_CHAR
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
@@ -192,10 +193,24 @@ class MetricMixin(object):
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
+    def getMetricNameContext(self):
+        """
+        Used in conjuction with the 'contextMetric' property. If 'contexMetric' is True,
+        this method will be called to get additional context for the metricname.
+        """
+        return self.id
+
+    def contextMetric(self):
+        """
+        If true the metric name prefix will contain value returned by 'getMetricNameContext'
+        """
+        return False
+    
     def getMetricMetadata(self, dev=None):
         if dev is None:
             dev = self.device()
-        return {
+            
+        mdata = {
                 'type': 'METRIC_DATA',
                 'contextKey': self.getResourceKey(dev),
                 'deviceId': dev.id,
@@ -203,6 +218,12 @@ class MetricMixin(object):
                 'deviceUUID': dev.getUUID(),
                 'contextUUID': self.getUUID()
                 }
+
+        if self.contextMetric():
+            metricContext = self.getMetricNameContext()
+            mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
+
+        return mdata
 
     def getRRDContextData(self, context):
         return context
