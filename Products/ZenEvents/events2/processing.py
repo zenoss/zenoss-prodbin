@@ -757,9 +757,14 @@ class TransformAndReidentPipe(EventProcessorPipe):
             if eventContext.eventProxy.component != original_component:
                 eventContext.setComponentObject(None)
 
+            original_prodState = eventContext.eventProxy.prodState
+
             # rerun any pipes necessary to reidentify event
             for pipe in self.reidentpipes:
                 eventContext = pipe(eventContext)
+
+            if not eventContext.eventProxy.prodState:
+                eventContext.eventProxy.prodState = original_prodState
 
         return eventContext
 

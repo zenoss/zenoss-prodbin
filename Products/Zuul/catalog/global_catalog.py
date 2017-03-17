@@ -54,6 +54,11 @@ def _allowedRoles(user):
     return roles
 
 
+def _escape(s, quote=None):
+    """Wrapper around `cgi.escape` to return empty string on `None` or empty string"""
+    return escape(s, quote=quote) if s else ""
+
+
 @contextmanager
 def catalog_caching():
     """
@@ -259,7 +264,7 @@ class SearchableMixin(object):
         return self.searchKeywordsForChildren() + (o.meta_type,)
 
     def searchExcerpt(self):
-        return escape(self._context.titleOrId())
+        return _escape(self._context.titleOrId())
 
     def searchIcon(self):
         return self._context.getIconPath()
@@ -285,7 +290,7 @@ class ComponentWrapper(SearchableMixin,IndexableWrapper):
     def searchExcerpt(self):
         o = self._context
         return '%s <span style="font-size:smaller">(%s)</span>' % (
-            escape(o.name()), escape(o.device().titleOrId()))
+            _escape(o.name()), _escape(o.device().titleOrId()))
 
 
 class DeviceWrapper(SearchableMixin,IndexableWrapper):
@@ -327,9 +332,9 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
         o = self._context
         if o.manageIp:
             return '%s <span style="font-size:smaller">(%s)</span>' % (
-                escape(o.titleOrId()), o.manageIp)
+                _escape(o.titleOrId()), o.manageIp)
         else:
-            return escape(o.titleOrId())
+            return _escape(o.titleOrId())
 
 
 class IpInterfaceWrapper(ComponentWrapper):
@@ -358,7 +363,7 @@ class IpInterfaceWrapper(ComponentWrapper):
         """
         How the results are displayed in the search drop-down
         """
-        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + escape(' '.join([
+        return super(IpInterfaceWrapper, self).searchExcerpt() + ' ' + _escape(' '.join([
                self._context.description,
                ]))
 
@@ -378,7 +383,7 @@ class DeviceOrganizerWrapper(SearchableMixin, IndexableWrapper):
         return (obj.getOrganizerName(), str(obj.description))
 
     def searchExcerpt(self):
-        return escape(self._context.getOrganizerName())
+        return _escape(self._context.getOrganizerName())
 
     def searchIcon(self):
         return "/zport/dmd/img/icons/folder.png"
