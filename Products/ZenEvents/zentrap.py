@@ -609,7 +609,10 @@ class TrapTask(BaseTask, CaptureReplay):
                 # Try converting to a date
                 decoded = self._value_from_dateandtime(value)
                 if not decoded:
-                    decoded = 'BASE64:' + base64.b64encode(value)
+                    decoded = ''.join(
+                        ['Failed to decode: converted to BASE64:"',
+                         base64.b64encode(value),
+                         '"'])
                 return decoded
         return value
 
