@@ -18,6 +18,7 @@ from Products.ZenModel import RRDDataSource
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
+from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
 from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
 from Products.ZenWidgets import messaging
@@ -46,8 +47,9 @@ class SnmpCommand(object):
     '''
     def __init__(self, snmpinfo):
         self.snmpinfo = snmpinfo
+        self.command, self.display = self._getCommand()
 
-    def getCommand(self):
+    def _getCommand(self):
         command = snmptemplate % self.snmpinfo
 
         if self.snmpinfo['zSnmpVer'] != 'v3':
@@ -72,7 +74,7 @@ class SnmpCommand(object):
         return (command, display)
 
 
-class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
+class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
 
     __pychecker__='no-override'
 
@@ -198,15 +200,20 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         command = None
         if self.sourcetype=='COMMAND':
             # to prevent command injection, get these from self rather than the browser REQUEST
-            command = self.getCommand(device, self.get('commandTemplate'))
-            displayCommand = command
+            self.command = self.getCommand(device, self.get('commandTemplate'))
+            displayCommand = self.command
+            # modify ssh command to be run with zminion
+            command = self.compile(self, device)
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
-            command, displayCommand = SnmpCommand(snmpinfo).getCommand()
+            snmpCommand = SnmpCommand(snmpinfo)
+            displayCommand = snmpCommand.display
+            # modify snmp command to be run with zminion
+            command = self.compile(snmpCommand, device)
         else:
             errorLog(
                 'Test Failed',
@@ -232,9 +239,18 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
         write('')
         start = time.time()
+        remoteCollector = device.getPerformanceServer().id != 'localhost'
         try:
             if self.usessh:
-                executeSshCommand(device, command, write)
+                if remoteCollector:
+                    # if device is on remote collector modify command to be run via zenhub
+                    self.command = "/opt/zenoss/bin/zentestds run --device {} --cmd '{}'".format(
+                        device.manageIp, self.command)
+                    command = self.compile(self, device)
+                    # zminion executes call back to zenhub
+                    executeStreamCommand(command, write)
+                else:
+                    executeSshCommand(device, self.command, write)
             else:
                 executeStreamCommand(command, write)
         except:
