@@ -9,6 +9,7 @@
 
 
 import logging
+import re
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
@@ -34,6 +35,8 @@ from Products.ZenModel.DeviceClass import DeviceClass
 
 
 log = logging.getLogger('zen.TemplateFacade')
+pattern = re.compile("^\w+$")
+
 
 class TemplateFacade(ZuulFacade):
     implements(ITemplateFacade)
@@ -255,6 +258,8 @@ class TemplateFacade(ZuulFacade):
         newId = None
         if 'newId' in data:
             newId = data['newId']
+            if not pattern.match(newId):
+                raise Exception("Don't use special characters in data source/data point names")
             del data['newId']
             info.rename(newId)
 
@@ -292,6 +297,8 @@ class TemplateFacade(ZuulFacade):
         @param string dataSourceUid unique identifier of a datasource
         @parma string name
         """
+        if not pattern.match(name):
+            raise Exception("Don't use special characters in data point names")
         datasource = self._getObject(dataSourceUid)
         return datasource.manage_addRRDDataPoint(str(name))
 
@@ -302,6 +309,8 @@ class TemplateFacade(ZuulFacade):
         @param string name name of our datasource
         @param string type must be a valid datasource type (see RRDTemplate getDataSourceOptions)
         """
+        if not pattern.match(name):
+            raise Exception("Don't use special characters in data source names")
         template = self._getObject(templateUid)
 
         # get our option information based on the string type inputed
