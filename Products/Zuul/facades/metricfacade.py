@@ -23,6 +23,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
+from Products.ZenUtils.deprecated import deprecated
 
 DEFAULT_METRIC_URL = 'http://localhost:8080/'
 Z_AUTH_TOKEN = 'ZAuthToken'
@@ -204,6 +205,8 @@ class MetricFacade(ZuulFacade):
 
     def getMultiValues(self, contexts, metrics, start=None, end=None, returnSet="LAST", downsample=None):
         """
+        Callers of this method should consider using `getMetricsForContexts` instead.
+
         Use this method when you need one or more metrics on multiple contexts.
 
         Returns all the values for the given contexts and the given metrics over the date range specified by start to end
@@ -393,9 +396,8 @@ class MetricFacade(ZuulFacade):
         key = self._get_key_from_tags(tags)
         search = _devname_pattern.match(key)
         if search:
-            prefix = search.groups()[0]
-            metricname = metrics.ensure_prefix(prefix, metricname)
-            name = context.getResourceKey() + "|" + dp.name()
+            metricname = metrics.ensure_prefix(context.getMetricMetadata(), metricname)
+        name = context.getResourceKey() + "|" + dp.name()
         metric = dict(
             metric=metricname,
             aggregator=agg,
@@ -427,11 +429,13 @@ class MetricFacade(ZuulFacade):
         return t.strftime(DATE_FORMAT)
 
     def _buildWildCardMetrics(self, device, metricName, cf='avg', isRate=False, format="%.2lf"):
-
+        """
+        method only works with 
+        """
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         metric = dict(
-            metric=device.id + "/" + metricName,
+            metric=ensure_prefix(device.id, metricName),
             aggregator=agg,
             format=format,
             tags={'contextUUID': ['*']},
@@ -440,11 +444,15 @@ class MetricFacade(ZuulFacade):
         )
         return metric
 
+    @deprecated
     def getMetricsByDevice(self, device, metrics, start=None,
                            end=None, format="%.2lf", cf="avg", returnSet="LAST",
                            downsample=None, timeout=10, isRate=False):
         """
-        Gets a set of metrics for every component under a device.
+        @deprecated see getMetricsForContexts
+
+        Gets a set of metrics for every component under a device.  Warning: only works
+        with component metrics that do not include context information in the metricname.
         """
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
         if isinstance(metrics, basestring):
@@ -480,10 +488,90 @@ class MetricFacade(ZuulFacade):
 
         return None
 
+    def getMetricsForContexts(self, contexts, metricNames, start=None,
+                                 end=None, format="%.2lf", cf="avg",
+                                 downsample=None, timeout=10, isRate=False):
+        """
+        getMetricsForContexts returns the metrics for all the contexts given
+        :param contexts: the device or component with metrics, only needs to have the getMetricMetadata method
+        :param metricNames: names of the metrics to be fetched for each context
+        :param start: timestamp
+        :param end: timestamp
+        :param format:
+        :param cf:
+        :param downsample: eg. 5m-avg, no downsample by default
+        :param timeout: timeout for request
+        :param isRate: if the metric should be returned as a rate, False by default
+        :returns map with keys of resource key (FQN of context) to map that contains metric name keys to list of
+        datapoints, datapoints is a map with 'timestamp' and 'value' keys.
+        """
+        # series is the fully qualified metric name (with device[component] prefix)
+        # this map tracks all the different contexts(device/component) with the same series name.
+        seriesToCtxKey =  defaultdict(list)
+
+        # each series name maps back to the original metricName requested
+        seriesToMetricNames = {}
+        for ctx in contexts:
+            mData = ctx.getMetricMetadata()
+            for mName in metricNames:
+                seriesName = metrics.ensure_prefix(mData, mName)
+                seriesToCtxKey[seriesName].append(mData['contextKey'])
+                seriesToMetricNames[seriesName] = mName
+
+        agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
+        metricRequests = []
+        for seriesName, ctxKeys in seriesToCtxKey.items():
+            contextKeys=ctxKeys
+            #if we have a bunch just do a wildcard.
+            if len(ctxKeys) > 200:
+                contextKeys=['*']
+
+            metricReq = dict(
+                metric=seriesName,
+                aggregator=agg,
+                format=format,
+                tags={'key': contextKeys},
+                rate=isRate
+            )
+            metricRequests.append(metricReq)
+
+        # Only EXACT resultsets are supported yet.
+        returnSet = 'EXACT'
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
+        request = self._buildRequest([], metricRequests, start, end, returnSet, downsample)
+        request['queries'] = request['metrics']
+        del request['metrics']
+
+        content = self._metrics_connection.request(WILDCARD_URL_PATH,
+                                                   request,
+                                                   timeout=timeout)
+        if content is None:
+            return {}
+
+        # check for bad status and log what happened
+        for status in content['statuses']:
+            if status['status'] == u'ERROR' and u'No such name' not in status['message']:
+                log.error(status['message'])
+
+        results = {}
+        for row in content['series']:
+            mName = seriesToMetricNames[row['metric']]
+            key = row['tags']['key']
+            if key not in results:
+                results[key] = defaultdict(list)
+            for ts, value in row.get('datapoints', []):
+                if value is not None and value != u'NaN':
+                    results[key][mName].append(dict(timestamp=ts, value=value))
+
+        return results
+
+    #Should not be used as it won't always work and is very inefficent.
+    @deprecated
     def getMetricsForDevices(self, devices, metrics, start=None,
                              end=None, format="%.2lf", cf="avg",
                              downsample=None, timeout=10, isRate=False):
         """
+        @deprecated see getMetricsForContexts
         Gets a set of metrics for every component under a each device.
         """
         # Only EXACT resultsets are supported yet.
