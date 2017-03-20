@@ -48,7 +48,7 @@ class TrapTaskUnitTest(BaseTestCase):
         value = '\xde\xad\xbe\xef\xfe\xed\xfa\xce'
         self.assertEqual(
             trap_task._convert_value(value),
-            'Failed to decode: converted to BASE64:"3q2+7/7t+s4="'
+            'BASE64:3q2+7/7t+s4='
         )
 
 
