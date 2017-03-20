@@ -472,7 +472,7 @@ class PerformanceConf(Monitor, StatusColor):
 
     def _getZenDiscCommand(
             self, deviceName, devicePath,
-            performanceMonitor, productionState, REQUEST=None):
+            performanceMonitor, productionState, REQUEST=None, max_seconds=None):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = [
