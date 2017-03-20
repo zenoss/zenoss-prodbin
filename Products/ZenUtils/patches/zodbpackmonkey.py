@@ -41,7 +41,6 @@ def set_up_logger():
     console.setFormatter(logging.Formatter(log_format))
     logging.getLogger('').addHandler(console)
 
-set_up_logger()
 
 log = logging.getLogger("zenoss.zodbpack.monkey")
 

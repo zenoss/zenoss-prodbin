@@ -63,6 +63,7 @@ def pack_database(config):
             cmd.append("--prepack")
         if not options.legacy:
             from Products.ZenUtils.patches import zodbpackmonkey
+            zodbpackmonkey.set_up_logger()
             if options.buildTablesOnly or options.workers >0:
                 print("zenossdbpack will only build internal tables. Pack phase will be skipped.")
                 zodbpackmonkey.set_external_option("BUILD_TABLES_ONLY")
