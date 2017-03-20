@@ -112,6 +112,7 @@ def set_up_logger():
     log.setLevel(logging.INFO)
     log.propagate = False
     return log
+
 log = set_up_logger()
 
 
@@ -142,13 +143,17 @@ class DashboardStateManager(object):
         return self._dashboard_users
 
     def _get_user_groups(self, user):
-        user_id = user.getId()
-        ap = self._dmd.zport.acl_users.manage_getUserRolesAndPermissions(user_id)
-        if ZEN_MANAGE_DMD in ap.get('allowed_permissions', {}):
-            groups_names = user.getAllGroupSettingsNames()
-        else:
-            groups_names = user.getUserGroupSettingsNames()
-        return groups_names
+        group_names = []
+        try:
+            user_id = user.getId()
+            ap = self._dmd.zport.acl_users.manage_getUserRolesAndPermissions(user_id)
+            if ZEN_MANAGE_DMD in ap.get('allowed_permissions', {}):
+                group_names = user.getAllGroupSettingsNames()
+            else:
+                group_names = user.getUserGroupSettingsNames()
+        except Exception as e:
+            log.warn("Could not retrieve user {}'s groups: {}".format(user, e))
+        return group_names
 
     def load_available_dashboards(self):
         self._dashboards = {}
@@ -165,8 +170,8 @@ class DashboardStateManager(object):
             # 2. user dashboards
             user_dashboards.extend(user.dashboards())
             # 3. Dashboards defined on user groups or all groups (if I'm manager)
-            groups_names = self._get_user_groups(user)
-            for name in groups_names:
+            group_names = self._get_user_groups(user)
+            for name in group_names:
                 group = self._dmd.ZenUsers.getGroupSettings(name)
                 user_dashboards.extend(group.dashboards())
             # Add the user to the dashboards he has access
