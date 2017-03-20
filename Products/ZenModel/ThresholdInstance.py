@@ -31,6 +31,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     information from the Model."""
 
     def __init__(self, context):
+        self.metricMetaData = {}
         if isinstance(context, MonitorClass):
             self.deviceName = "{context.id} hub".format(context=context)
             self.componentName = ''
@@ -51,6 +52,8 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
             if self.componentName == self.deviceName:
                 self.componentName = ''
             self._contextKey = context.getUUID()
+            self.metricMetaData = context.getMetricMetadata()
+
         self._contextUid = context.getPrimaryId()
 
 
