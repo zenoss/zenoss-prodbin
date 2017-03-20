@@ -1,0 +1,114 @@
+#! /opt/zenoss/bin/python
+##############################################################################
+# 
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+# 
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+# 
+##############################################################################
+
+from twisted.internet import reactor
+from twisted.internet.defer import inlineCallbacks
+
+import Globals
+
+from Products.DataCollector import DeviceProxy
+from Products.DataCollector.SshClient import SshClient
+from Products.DataCollector.TelnetClient import buildOptions as TCbuildOptions
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
+
+
+class DummyPlugin(CommandPlugin):
+
+    command = None
+
+    def process(self, device, results, log):
+        pass
+
+
+class ZenTestDS(PBDaemon):
+
+    name = 'zentestds'
+    initialServices = PBDaemon.initialServices + ['DiscoverService']
+
+    def __init__(self):
+        PBDaemon.__init__(self)
+        self.plugin = DummyPlugin()
+        self.plugin.command = self.options.cmd
+
+    def config(self):
+        return self.services.get('DiscoverService', FakeRemote())
+
+    def clientFinished(self, connection):
+        """
+        Callback that processes the return values from a device.
+        """            
+        try:
+            _, results = connection.getResults()[0]
+            if not results:
+                self.log.warn("The command returned no results.")
+            else:
+                print('\n' + results)            
+        except IndexError:
+            self.log.warn("Please check device up and running.")
+        self.stop()
+
+    def buildOptions(self):
+        PBDaemon.buildOptions(self)
+
+        self.parser.add_option(
+            '--cmd', dest='cmd', help="Command to test")
+        self.parser.add_option(
+            '--device', dest='device', help="Device name")
+
+        TCbuildOptions(self.parser, self.usage)
+
+    def reactorLoop(self):
+        """
+        Twisted main loop
+        """    
+        reactor.startRunning()
+        while reactor.running:
+            try:
+                while reactor.running:
+                    reactor.runUntilCurrent()
+                    timeout = reactor.timeout()
+                    reactor.doIteration(timeout)
+            except Exception:
+                if reactor.running:
+                    self.log.exception("Unexpected error in main loop.")
+
+    @inlineCallbacks
+    def connected(self):
+        """
+        Called after connected to the zenhub service
+        """    
+        config = yield self.config().callRemote('getDeviceConfig', [self.options.device])
+        device = config[0]
+        self.runCmd(device)
+
+    def runCmd(self, device):
+        """
+        Run SSH command
+        """
+        plugins = [self.plugin]
+        commandPort = getattr(device, 'zCommandPort', 22)
+        try:
+            connection = SshClient(
+                device.id, device.manageIp, commandPort,
+                options=self.options,
+                plugins=plugins,
+                device=device,
+                datacollector=self)
+            connection.run()
+        except:
+            self.log.exception("Error opening connection.") 
+
+
+if __name__ == '__main__':
+    dm = ZenTestDS()
+    reactor.run = dm.reactorLoop
+    dm.run()
+

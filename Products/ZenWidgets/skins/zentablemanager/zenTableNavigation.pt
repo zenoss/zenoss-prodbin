@@ -18,6 +18,9 @@
     <div style="padding-left: 10px; float: left; text-align:left;">
     <tal:block tal:condition="python: showNav">
         <span tal:replace="python:ts.start+1 if ts.totalobjs>0 else 0" />
+        -
+        <span tal:replace="python:ts.start+ts.batchSize if (ts.start+ts.batchSize<=ts.totalobjs and
+         ts.start+ts.batchSize != 0) else ts.totalobjs" />
         of
         <span tal:replace="ts/totalobjs" />
         &nbsp;&nbsp;

@@ -381,7 +381,6 @@ class CollectorDaemon(RRDDaemon):
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId
-            metric_name = metrics.ensure_prefix(deviceId, metric_name)
 
         # write the raw metric to Redis
         yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
@@ -410,10 +409,14 @@ class CollectorDaemon(RRDDaemon):
             contextId = metadata['contextId']
             deviceId = metadata['deviceId']
             contextUUID = metadata['contextUUID']
+            if metadata:
+                metric_name = metrics.ensure_prefix(metadata, metric)
+            else:
+                metric_name = metric
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
         deviceUUID = metadata.get('deviceUUID')
-        return self.writeMetric(key, metric, value, metricType, contextId,
+        return self.writeMetric(key, metric_name, value, metricType, contextId,
                 timestamp, min, max, threshEventData, deviceId, contextUUID,
                 deviceUUID)
 
