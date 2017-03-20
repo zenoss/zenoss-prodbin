@@ -682,10 +682,10 @@ class AutoDiscoveryJob(SubprocessJob):
         # Store zProperties on the job
         if zProperties:
             self.setProperties(**zProperties)
-        # Build the zendisc command
+        # Build the zendisc command setting zminion timeout to 6 hours.
+        max_seconds = 6*60*60
         cmd = self.dmd.Monitors.getPerformanceMonitor(collector)._getZenDiscCommand(
-            '', '/Discovered', collector, 1000
-            )
+            '', '/Discovered', collector, 1000, max_seconds=max_seconds)
         # strip out the device option since we are discovering for a network
         cmd = [c.replace(" -d ", "") for c in cmd if c != '-d']
         cmd.extend([
