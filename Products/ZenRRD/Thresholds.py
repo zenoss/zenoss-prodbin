@@ -20,7 +20,7 @@ class Thresholds:
         self.byDevice = {}
 
     def _contextKey(self, contextKey, dp):
-        return '%s/%s' % (contextKey, dp)
+        return '%s/%s' % (contextKey, dp.rsplit("/", 1)[-1])
 
 
     def remove(self, threshold):
