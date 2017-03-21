@@ -633,9 +633,7 @@ class EventsRouter(DirectRouter):
                     # ZEN-26417/ZEN-663 TODO: should this call be name() instead?
                     organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
                 else:
-                    has_permissions_on_events_in_request = self._resolvePermissions(evids, ZEN_MANAGE_EVENTS)
-                    log.info('_resolvePermissions(): {}'.format(has_permissions_on_events_in_request))
-                    return has_permissions_on_events_in_request
+                    return self._resolvePermissions(evids, ZEN_MANAGE_EVENTS)
             except (AttributeError, KeyError):
                 return False
 
