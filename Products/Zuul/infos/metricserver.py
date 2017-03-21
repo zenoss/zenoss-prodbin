@@ -236,7 +236,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
 
     @property
     def metric(self):
-        return metrics.ensure_prefix(self._context.device().id,
+        return metrics.ensure_prefix(self._context.getMetricMetadata(),
                 self._object.dpName)
 
     @property
