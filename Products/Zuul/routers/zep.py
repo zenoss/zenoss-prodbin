@@ -38,6 +38,11 @@ from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
 from lxml.html.clean import clean_html
+import pprint
+from functools import reduce
+import json
+from Products.Zuul.utils import get_dmd
+from Products.ZenUI3.security.security import permissionsForContext
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
@@ -593,18 +598,64 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
+    def _resolvePermissions(self, evids, permission):
+        # log.info("EventSummaries: ")
+        has_permission_for_events_list = []
+        device_objs = []
+        try:
+            for evid in evids:
+                event_summary = self.zep.getEventSummary(evid)
+                # log.info(pprint.pformat(event_summary))
+                event_summary_details_dict = {}
+                for detail in event_summary['occurrence'][0]['details']:
+                    if detail['name'] == u'rrdPath':
+                        event_summary_details_dict[detail['name']] = json.loads(detail['value'][0])
+                    else:
+                        event_summary_details_dict[detail['name']] = detail['value'][0] or detail['value']
+                # log.info(pprint.pformat(event_summary_details_dict))
+                device_class = event_summary_details_dict[u'zenoss.device.device_class']
+                device_id = event_summary['occurrence'][0]['actor']['element_identifier']
+                device_path = "/zport/dmd/Devices{}/devices/{}".format(device_class, device_id)
+                # log.info(device_path)
+                device_obj = get_dmd().getObjByPath(device_path)
+                # log.info(device_obj)
+                device_objs.append(device_obj)
+        except Exception as exc:
+            # log.info(exc)
+            return False
+        for dev in device_objs:
+            has_permission_for_events_list.append(permissionsForContext(dev)[permission.lower()] or False)
+        # log.info(pprint.pformat(has_permission_for_events_list))
+        return reduce(lambda a, b: a and b, has_permission_for_events_list)
+
     def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+        # log.info('Arguments for Manage Events')
+        # log.info(pprint.pformat({"evids": evids, "excludeIds": excludeIds, "params": params, "uid": uid, "asof": asof, "limit": limit, "timeout": timeout}))
         user = self.context.dmd.ZenUsers.getUserSettings()
+        # log.info(pprint.pformat({'context': self.context}))
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
+            # log.info("RETURN: Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context): TRUE!!!")
             return True
         if params.get('excludeNonActionables'):
+            # log.info("RETURN: Zuul.checkPermission('ZenCommon', self.context): {}".format(Zuul.checkPermission('ZenCommon', self.context)))
             return Zuul.checkPermission('ZenCommon', self.context)
         if user.hasNoGlobalRoles():
+            # log.info("{} has no global roles!".format(user))
             try:
-                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                if uid is not None:
+                    # ZEN-26417/ZEN-663 TODO: should this call be name() instead?
+                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                else:
+                    has_permissions_on_events_in_request = self._resolvePermissions(evids, ZEN_MANAGE_EVENTS)
+                    log.info('_resolvePermissions(): {}'.format(has_permissions_on_events_in_request))
+                    return has_permissions_on_events_in_request
             except (AttributeError, KeyError):
+                # log.info("No organizer for uid: {}".format(uid))
                 return False
+
             manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+            # log.info(pprint.pformat({"manage_events_for": [d for d in manage_events_for]}))
+            # log.info("organizer_name: {} in manage_events_for: {} \n\t {}".format(organizer_name, [d for d in manage_events_for],  organizer_name in manage_events_for))
             return organizer_name in manage_events_for
         return False
 
@@ -799,6 +850,8 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
+        # log.info('Arguments for Acknowledge')
+        # log.info(pprint.pformat((evids, excludeIds, params, uid, asof, limit, timeout)))
 
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
