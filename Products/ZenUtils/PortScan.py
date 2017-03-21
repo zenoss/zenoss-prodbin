@@ -97,10 +97,10 @@ class Scanner(object):
 
     def doFactory(self, host, port):
         factory = ScanFactory()
-        reactor.connectTCP(host, port, factory, timeout=self.timeout)
         d = factory.deferred
         d.addCallback(self.recordConnection, host, port)
         d.addErrback(self.recordFailure, host, port)
+        reactor.connectTCP(host, port, factory, timeout=self.timeout)
         return d
 
     def recordConnection(self, unused, host, port):
