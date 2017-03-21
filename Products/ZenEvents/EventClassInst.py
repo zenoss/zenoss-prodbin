@@ -49,6 +49,7 @@ from Products.ZenUtils.daemonconfig import IDaemonConfig
 from zenoss.protocols.jsonformat import to_dict
 
 MAX_TRANSFORM_TIME = 2.0
+MAX_TRANSFORM_FAILS = 'zEventMaxTransformFails'
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -85,9 +86,14 @@ def transformsavepoint(errorCallback=lambda :None):
 class EventClassPropertyMixin(object):
 
     transform = ''
+    transformEnabled = True
+
+    # dictionary to store counter of bad_transforms for all EventClasses
+    _badtransform = {}
 
     _properties = (
         {'id':'transform', 'type':'text', 'mode':'w'},
+        {'id': 'transformEnabled', 'type': 'bool', 'mode': 'w'},
         )
 
     def applyValues(self, evt):
@@ -195,10 +201,10 @@ Transform:
         # Now send an event
         zem = self.getDmd().ZenEventManager
         badEvt = dict(
-            dedupid='|'.join([transformName,zem.host]),
             # Don't send the *same* event class or we trash and
             # and crash endlessly
-            eventClass='/',
+            eventClass='/App/Zenoss',
+            eventKey='transform_failed',
             device=zem.host,
             component=transformName,
             summary=summary,
@@ -215,7 +221,45 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-    def pickleFailedEvent(self, evt):     
+        transform_enabled = eventclass.transformEnabled
+        if transform_enabled:
+            disableEvt = self._updateBadTransformCounter(evt, eventclass)
+            if disableEvt:
+                disable_msg = "Transform for Event Class %s is disabled due to %d attempts to apply it: line %d, %s, " \
+                              "exception %s" % (
+                    evt.eventClass, eventclass.getProperty(MAX_TRANSFORM_FAILS), badLineNo, badLineText, exceptionText)
+                disableTransformEvt = dict(
+                    eventClass='/App/Zenoss',
+                    eventKey='transform_disabled',
+                    device=zem.host,
+                    component=evt.eventClass,
+                    summary=disable_msg,
+                    severity=4,
+                    message='Transform can be enabled again in Event Classes settings.'
+                )
+                zem.sendEvent(disableTransformEvt)
+                self.setTransformEnabled(eventclass, False)
+                self._resetBadTransformCounter(evt.eventClass)
+
+    def _updateBadTransformCounter(self, evt, eventclass):
+        name = evt.eventClass
+        if not self._badtransform.get(name):
+            self._badtransform[name] = 1
+        else:
+            self._badtransform[name] += 1
+        if self._badtransform[name] >= eventclass.getProperty(MAX_TRANSFORM_FAILS):
+            return True
+        return False
+
+    def _resetBadTransformCounter(self, eventclass_name):
+        self._badtransform[eventclass_name] = 0
+
+    @transact
+    def setTransformEnabled(self, eventclass, enabled):
+        # Enables or disables transform on the given event class.
+        eventclass.transformEnabled = bool(enabled)
+
+    def pickleFailedEvent(self, evt):
         obj = zope.component.getUtility(IDaemonConfig, 'zeneventd_config')
         config = obj.getConfig()
         # By default there are 100 pickle files in failed_transformed_events folder.
@@ -411,6 +455,19 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.explanation = ""
         self.resolution = ""
 
+    def _updateProperty(self, id, value):
+        resequence = False
+        if id == 'sequence':
+            for mapping in self.sameKey():
+                if mapping.sequence == value:
+                    # We have a sequence conflict. Allow it to proceed, but
+                    # resequence afterwards to deal with overlaps and holes.
+                    resequence = True
+                    break
+        super(EventClassInst, self)._updateProperty(id, value)
+        if resequence:
+            for i, mapping in enumerate(self.sameKey()):
+                mapping.sequence = i
 
     def getStatus(self, **kwargs):
         """Return the status number for this device of class statClass.

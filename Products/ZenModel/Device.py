@@ -904,11 +904,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return ip
 
     def _isDuplicateIp(self, ip):
-        ipMatch = self.getNetworkRoot().findIp(ip)
-        if ipMatch:
-            dev = ipMatch.device()
-            if dev and self.id != dev.id:
-                return True
+        dev = self.getDmdRoot("Devices").findDeviceByIdOrIp(ip)
+        if dev and self.id != dev.id:
+            return True
         return False
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')
@@ -1349,6 +1347,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         # Set production state on all components that inherit from this device
         ret = super(Device, self).setProdState(state, maintWindowChange, REQUEST)
+        self._p_changed = True
         if REQUEST:
             audit('UI.Device.Edit', self, productionState=state,
                   maintenanceWindowChange=maintWindowChange)

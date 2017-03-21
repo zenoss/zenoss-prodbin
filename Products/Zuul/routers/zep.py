@@ -518,7 +518,13 @@ class EventsRouter(DirectRouter):
                 'message': params.get('message'),
             }
             parsed_params = self._filterParser.parseParams(params)
+            # ZEN23418: Add 1 sec to first_seen and last_seen range filters,
+            # so that it includes {events: event['{first|last}_seen'] <= params['{firstTime|lastTime}']}
             filter_params.update(parsed_params)
+            if filter_params['first_seen'] is not None and len(filter_params['first_seen']) == 2:
+                filter_params['first_seen'][1] = filter_params['first_seen'][1]+1000
+            if filter_params['last_seen'] is not None and len(filter_params['last_seen']) == 2:
+                filter_params['last_seen'][1] = filter_params['last_seen'][1]+1000
 
             parsed_details = self._filterParser.parseDetails(details)
             if len(parsed_details) > 0:

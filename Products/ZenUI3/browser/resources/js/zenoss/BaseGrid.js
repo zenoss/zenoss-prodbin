@@ -333,6 +333,9 @@
                 if (!col.isHidden() &&
                     Ext.isDefined(state[col.filterKey]) &&
                     !Ext.isEmpty(state[col.filterKey])) {
+                        if (col.filter.xtype == "daterange") {
+                            state[col.filterKey] = state[col.filterKey].replace("T", " ");
+                        }
                         col.filterField.setValue(state[col.filterKey]);
                 }
             });
@@ -446,6 +449,24 @@
                 return;
             }
             var values = this.getSearchValues();
+            // ZEN-23418 Convert firstSeen and/or lastSeen date filter params to UTC before making query request
+            var timeParams = ["firstTime", "lastTime"];
+            timeParams.forEach(function(paramKey){
+                if (values[paramKey]) {
+                    var timeParam = values[paramKey];
+                    // The param is a Date range, so convert each date to UTC
+                    // and re-build Date range string
+                    if (timeParam.indexOf(" TO ") != -1) {
+                        var dateValues = timeParam.split(" TO ");
+                        values[paramKey] = dateValues.map(function(rangeValue){
+                            return moment(rangeValue).utc().format("YYYY-MM-DD HH:mm:ss")
+                        }).join(" TO ");
+                    }
+                    else {
+                        values[paramKey] = moment(timeParam).utc().format("YYYY-MM-DD HH:mm:ss")
+                    }
+                }
+            });
             if (!this.grid.store.proxy.extraParams) {
                 this.grid.store.proxy.extraParams = {};
             }
@@ -1053,9 +1074,6 @@
                         var real_page_end = current_page * page_size;
                         if (real_page_end > store.totalCount) {
                             real_page_end = store.totalCount;
-                        }
-                        if ( end > real_page_end) {
-                            end = real_page_end;
                         }
                     }
                 }

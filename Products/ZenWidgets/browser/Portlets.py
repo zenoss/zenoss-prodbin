@@ -19,7 +19,7 @@ from Products.Zuul import getFacade
 from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
 from zenoss.protocols.services import ServiceException
 from zenoss.protocols.services.zep import ZepConnectionError
-from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
@@ -105,7 +105,7 @@ class ProductionStatePortletView(BrowserView):
         objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
 
         psManager = IProdStateManager(self.context)
-        results = (x for x in objects if psManager.getProductionStateFromGUID(x.uuid) in numericProdStates)
+        results = (x for x in objects if psManager.getProductionStateFromGUID(IGlobalIdentifier(x).getGUID()) in numericProdStates)
         devs = (x.getObject() for x in results)
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:

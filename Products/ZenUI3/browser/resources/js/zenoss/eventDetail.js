@@ -313,6 +313,13 @@ Ext.onReady(function() {
                             width: 300,
                             xtype: 'textfield',
                             name: 'message',
+                            listeners: {
+                                specialkey: function(formEl, e){
+                                    if (e.getCharCode() == Ext.EventObject.ENTER) {
+                                        this.up('form').down('button').handler()
+                                    }
+                                }
+                            },
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                             id: 'detail-logform-message'
                         },{
@@ -551,15 +558,18 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
             if (el.dom.style.display === "none") {
                 el.dom.style.display = "block";
+                state[section_id] = true;
             }
             else {
                 el.dom.style.display = "none";
+                state[section_id] = false;
             }
-            
+            Ext.state.Manager.set("evDetailSectionsState", state);
             this.getBody().doLayout();
         },
 
@@ -615,7 +625,7 @@ Ext.onReady(function() {
             if (this.renderers.hasOwnProperty(key)) {
                 data = this.renderers[key](value, sourceData);
             }
-            else if (value) {
+            else if (value || typeof(value) == 'number') {
                 data = value;
             }
             else {
@@ -659,12 +669,21 @@ Ext.onReady(function() {
             // the log form.
             Ext.getCmp('detail-logform-evid').setValue(eventData.evid);
 
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             // Update the data sections
             Ext.each(this.sections, function(section) {
                 var cmp = Ext.getCmp(section.id),
-                    html;
+                    html, el = cmp.getEl();
                 html = section.generateHtml(renderedData, eventData);
                 cmp.update(html);
+                var section_state = (section.id in state) ? state[section.id] : false;
+                if (el) {
+                   if (section_state) {
+                       el.dom.style.display = "block";
+                   } else {
+                       el.dom.style.display = "none";
+                   }
+               }
             }, this);
 
             // Update Logs
@@ -757,18 +776,9 @@ Ext.onReady(function() {
         wipe: function() {
             // hook to perform clean up actions when the panel is closed
         },
-        expandAll: function() {
-            Ext.each(this.sections, function(section) {
-                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
-                if (el) {
-                    el.dom.style.display = "block";
-                }
-            }, this);
-        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
-                this.expandAll();
                 this.refresh();
             }
         },

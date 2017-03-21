@@ -794,6 +794,7 @@ Ext.onReady(function(){
         },
         setContext: function(uid){
             var me = this;
+
             Zenoss.remote.EventClassesRouter.getTransformTree({'uid':uid}, function(response){
                 if(response.success){
                     var data = response.data;
@@ -824,6 +825,54 @@ Ext.onReady(function(){
                         xtype: 'label',
                         cls: 'transform-headers',
                         text: 'Current Transform:'
+                    });
+                    me.add({
+                        xtype: 'panel',
+                        region:'left',
+                        hidden: true,
+                        margin: '0 0 5 5',
+                        layout: {
+                            type: 'hbox',
+                            align: 'middle',
+                            pack: 'left'
+                        },
+                        listeners : {
+                            beforerender: function(el) {
+                                if(Zenoss.Security.doesNotHavePermission('Manage DMD') === false) {
+                                    Zenoss.remote.EventClassesRouter.isTransformEnabled({'uid':uid}, function(response){
+                                        if(response.success){
+                                            if(response.data === false){
+                                                el.setVisible(true);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        items: [{
+                            xtype: 'label',
+                            text: 'Transformation is currently disabled due to several failed tries to apply it.'
+                        },{
+                            xtype: 'button',
+                            text: 'Re-activate transform',
+                            margin: '0 0 0 5',
+                            handler : function(el) {
+                                if(!el.disabled){
+                                    Zenoss.remote.EventClassesRouter.setTransformEnabled({'uid':uid, 'enabled': true}, function(response){
+                                         if(response.success){
+                                             if(response.data === true){
+                                                 Zenoss.message.info(_t('State changed. Transform is now enabled.'));
+                                                 var panel = el.findParentByType('panel');
+                                                 panel.setVisible(false)
+                                             }
+                                             else{
+                                                 Zenoss.message.info(_t('State not changed. Transform is still disabled. Try again.'));
+                                             }
+                                         }
+                                    });
+                                }
+                            }
+                        }]
                     });
                     // add the current context transform
                     me.add({
@@ -928,7 +977,6 @@ Ext.onReady(function(){
             }
             return str;
         }
-
     });
 
 });

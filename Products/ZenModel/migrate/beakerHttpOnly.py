@@ -20,7 +20,7 @@ class BeakerHTTPOnly(Migrate.Step):
     Set beaker session.httponly to true in config
     """
 
-    version = Migrate.Version(5, 2, 0)
+    version = Migrate.Version(107, 0, 0)
 
     def cutover(self, dmd):
         try:

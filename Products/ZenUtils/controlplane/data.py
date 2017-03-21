@@ -126,6 +126,14 @@ _definitionKeys = set([
     "DesiredState", "Tags", "ConfigFiles"
 ])
 
+# The set of keys found in a service details JSON object.
+# Used to identify such objects.
+_detailsKeys = set([
+    "ID", "Name", "ParentServiceID", "PoolID", "Description", "Launch",
+    "RAMCommitment", "HasChildren", "InstanceLimits", "Startup", "Instances", "DeploymentID",
+    "DesiredState", "Tags", "ImageID"
+])
+
 # The set of keys found in a service instance JSON object.
 # Used to identify such objects.
 _instanceKeys = set([
@@ -141,6 +149,11 @@ _hostKeys = set([
 def _decodeServiceJsonObject(obj):
     foundKeys = _definitionKeys & set(obj.keys())
     if foundKeys == _definitionKeys:
+        service = createObject("ServiceDefinition")
+        service.__setstate__(obj)
+        return service
+    foundKeys = _detailsKeys & set(obj.keys())
+    if foundKeys == _detailsKeys:
         service = createObject("ServiceDefinition")
         service.__setstate__(obj)
         return service
@@ -205,7 +218,14 @@ def _convertToApplicationState(f):
             "resuming":  ApplicationState.STARTING,
             "running":   ApplicationState.RUNNING,
             "stopping":  ApplicationState.STOPPING,
-            "stopped":   ApplicationState.STOPPED
+            "stopped":   ApplicationState.STOPPED,
+            "started":   ApplicationState.RUNNING,
+            "pulling":   ApplicationState.STARTING,
+            "resuming":  ApplicationState.STARTING,
+            "resumed":   ApplicationState.RUNNING,
+            "pending_restart": ApplicationState.STARTING,
+            "emergency_stopping": ApplicationState.STOPPING,
+            "emergency_stopped": ApplicationState.STOPPED,
         }.get(src["Value"].lower(), ApplicationState.UNKNOWN)
     return wrapper
 
@@ -353,7 +373,7 @@ class InstanceV2ToServiceStatusJsonDecoder(json.JSONDecoder):
     """
     @staticmethod
     def _decodeObject(obj):
-        if set(obj.keys()) & _serviceStatusV2Keys == set(obj.keys()):
+        if (set(obj.keys()) & _serviceStatusV2Keys) == _serviceStatusV2Keys:
             service = createObject("ServiceStatus")
             service.__setstate__(obj)
             return service

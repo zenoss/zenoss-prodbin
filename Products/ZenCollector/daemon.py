@@ -245,6 +245,10 @@ class CollectorDaemon(RRDDaemon):
         self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
+        # Used in resmgr. True once we have finished loading the configs
+        # for the first time after a restart
+        self.firstConfigLoadDone = False
+
     def buildOptions(self):
         """
         Method called by CmdBase.__init__ to build all of the possible
@@ -312,9 +316,15 @@ class CollectorDaemon(RRDDaemon):
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
         d.addCallback( self._startConfigCycle )
+        d.addCallback( self._initEncryptionKey )
         d.addCallback( self._startMaintenance )
         d.addErrback( self._errorStop )
         return d
+
+    def _initEncryptionKey(self, prv_cb_result=None):
+        # encrypt dummy msg in order to initialize the encryption key
+        self._configProxy.encrypt("Hello")
+        self.log.info("Daemon's encryption key initialized")
 
     def watchdogCycleTime(self):
         """
@@ -371,7 +381,6 @@ class CollectorDaemon(RRDDaemon):
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId
-            metric_name = metrics.ensure_prefix(deviceId, metric_name)
 
         # write the raw metric to Redis
         yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
@@ -400,10 +409,14 @@ class CollectorDaemon(RRDDaemon):
             contextId = metadata['contextId']
             deviceId = metadata['deviceId']
             contextUUID = metadata['contextUUID']
+            if metadata:
+                metric_name = metrics.ensure_prefix(metadata, metric)
+            else:
+                metric_name = metric
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
         deviceUUID = metadata.get('deviceUUID')
-        return self.writeMetric(key, metric, value, metricType, contextId,
+        return self.writeMetric(key, metric_name, value, metricType, contextId,
                 timestamp, min, max, threshEventData, deviceId, contextUUID,
                 deviceUUID)
 

@@ -18,7 +18,7 @@ sm.require("1.0.0")
 class TemplatizeCollectorEndpoints(Migrate.Step):
     "Use templated names for collector endpoints"
 
-    version = Migrate.Version(5,1,2)
+    version = Migrate.Version(100, 0, 0)
 
     def cutover(self, dmd):
         try:

@@ -24,6 +24,7 @@ import zope.interface
 from zope.interface import implements
 from twisted.internet import defer
 from twisted.python.failure import Failure
+from cryptography.fernet import Fernet
 
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
@@ -37,7 +38,6 @@ from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenHub.PBDaemon import HubDown
 
-
 class ConfigurationProxy(object):
     """
     This implementation of IConfigurationProxy provides basic configuration
@@ -45,6 +45,8 @@ class ConfigurationProxy(object):
     service proxy as specified by the collector's configuration.
     """
     zope.interface.implements(IConfigurationProxy)
+
+    _cipher_suite = None
 
     def getPropertyItems(self, prefs):
         if not ICollectorPreferences.providedBy(prefs):
@@ -123,6 +125,44 @@ class ConfigurationProxy(object):
         d.addCallback(printNames)
         return d
 
+    @defer.inlineCallbacks
+    def _get_cipher_suite(self):
+        """
+        Fetch the encryption key for this collector from zenhub.
+        """
+        if self._cipher_suite is None:
+            self._collector = zope.component.queryUtility(ICollector)
+            proxy = self._collector.getRemoteConfigServiceProxy()
+            try:
+                key = yield proxy.callRemote("getEncryptionKey")
+                self._cipher_suite = Fernet(key)
+            except Exception as e:
+                log.warn("Remote exception: {}".format(e))
+                self._cipher_suite = None
+        defer.returnValue(self._cipher_suite)
+
+    @defer.inlineCallbacks
+    def encrypt(self, data):
+        """
+        Encrypt data using a key from zenhub.
+        """
+        cipher_suite = yield self._get_cipher_suite()
+        encrypted_data = None
+        if cipher_suite:
+            encrypted_data  = yield cipher_suite.encrypt(data)
+        defer.returnValue(encrypted_data)
+
+    @defer.inlineCallbacks
+    def decrypt(self, data):
+        """
+        Decrypt data using a key from zenhub.
+        """
+        cipher_suite = yield self._get_cipher_suite()
+        decrypted_data = None
+        if cipher_suite:
+            decrypted_data = yield cipher_suite.decrypt(data)
+        defer.returnValue(decrypted_data)
+
 
 class ConfigurationLoaderTask(ObservableMixin):
     """
@@ -193,10 +233,11 @@ class ConfigurationLoaderTask(ObservableMixin):
         """
         Load the configuration that doesn't depend on loading devices.
         """
-        d = defer.maybeDeferred(self._configProxy.getPropertyItems,
-                                self._prefs)
+        d = self._fetchPropertyItems()
         d.addCallback(self._processPropertyItems)
+        d.addCallback(self._fetchThresholdClasses)
         d.addCallback(self._processThresholdClasses)
+        d.addCallback(self._fetchThresholds)
         d.addCallback(self._processThresholds)
         return d
 
@@ -208,6 +249,9 @@ class ConfigurationLoaderTask(ObservableMixin):
         d.addCallback(self._processConfig)
 
     def _notifyConfigLoaded(self, result):
+        # This method is prematuraly called in enterprise bc
+        # _splitConfiguration calls defer.succeed after creating
+        # a new task for incremental loading
         self._daemon.runPostConfigTasks()
         return defer.succeed("Configuration loaded")
 
@@ -227,31 +271,39 @@ class ConfigurationLoaderTask(ObservableMixin):
                 self.state = TaskStates.STATE_COMPLETED
         return result
 
-    def _processThresholds(self, thresholds):
-        self._daemon._configureThresholds(thresholds)
+    def _fetchPropertyItems(self, previous_cb_result=None):
+        return defer.maybeDeferred(self._configProxy.getPropertyItems, self._prefs)
 
-    def _processThresholdClasses(self, thresholdClasses):
-        self._daemon._loadThresholdClasses(thresholdClasses)
+    def _fetchThresholdClasses(self, previous_cb_result):
+        return defer.maybeDeferred(self._configProxy.getThresholdClasses, self._prefs)
 
-        d = defer.maybeDeferred(self._configProxy.getThresholds,
-                                self._prefs)
-        return d
-
-    def _processPropertyItems(self, propertyItems):
-        self.state = self.STATE_FETCH_MISC_CONFIG
-        self._daemon._setCollectorPreferences(propertyItems)
-
-        d = defer.maybeDeferred(self._configProxy.getThresholdClasses,
-                                self._prefs)
-        return d
+    def _fetchThresholds(self, previous_cb_result):
+        return defer.maybeDeferred(self._configProxy.getThresholds, self._prefs)
 
     def _fetchConfig(self, result, devices):
         self.state = self.STATE_FETCH_DEVICE_CONFIG
         return defer.maybeDeferred(self._configProxy.getConfigProxies,
                                    self._prefs, devices)
 
+    def _processPropertyItems(self, propertyItems):
+        log.debug("Processing received property items")
+        self.state = self.STATE_FETCH_MISC_CONFIG
+        if propertyItems:
+            self._daemon._setCollectorPreferences(propertyItems)
+
+    def _processThresholdClasses(self, thresholdClasses):
+        log.debug("Processing received threshold classes")
+        if thresholdClasses:
+            self._daemon._loadThresholdClasses(thresholdClasses)
+
+    def _processThresholds(self, thresholds):
+        log.debug("Processing received thresholds")
+        if thresholds:
+            self._daemon._configureThresholds(thresholds)
+
     @defer.inlineCallbacks
     def _processConfig(self, configs, purgeOmitted=True):
+        log.debug("Processing {0} received device configs".format(len(configs)))
         if self.options.device:
             configs = [cfg for cfg in configs \
                             if self.options.device in (cfg.id, cfg.configId)]

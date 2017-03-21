@@ -11,6 +11,7 @@
 import Globals
 import zope.component
 import zope.interface
+from cryptography.fernet import Fernet
 
 from twisted.internet import defer
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -35,6 +36,9 @@ class MyCollector(object):
         def remote_getDeviceConfigs(self, devices=[]):
             return defer.succeed(['hmm', 'foo', 'bar'])
 
+        def remote_getEncryptionKey(self):
+            return defer.succeed(Fernet.generate_key())
+
         def callRemote(self, methodName, *args, **kwargs):
             if methodName is 'getConfigProperties':
                 return self.remote_propertyItems()
@@ -44,6 +48,8 @@ class MyCollector(object):
                 return self.remote_getCollectorThresholds()
             elif methodName is 'getDeviceConfigs':
                 return self.remote_getDeviceConfigs(args)
+            elif methodName is 'getEncryptionKey':
+                return self.remote_getEncryptionKey()
 
     def getRemoteConfigServiceProxy(self):
         return MyCollector.MyConfigServiceProxy()
@@ -115,6 +121,25 @@ class TestConfig(BaseTestCase):
         d = cfgService.getConfigProxies(prefs)
         d.addBoth(validate)
         return d
+
+    def testCrypt(self):
+        cfgService = ConfigurationProxy()
+
+        s = "this is a string I wish to encrypt"
+
+        def validate_encrypt(result):
+            self.assertTrue(result != s)
+            return result
+
+        def validate_decrypt(result):
+            self.assertTrue(result == s)
+            return result
+
+        d = cfgService.encrypt(s)
+        d.addBoth(validate_encrypt)
+        d.addCallback(cfgService.decrypt)
+        d.addBoth(validate_decrypt)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

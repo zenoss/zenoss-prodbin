@@ -14,7 +14,6 @@ Given a list of events to export, format them
 appropriately and then return back a string
 """
 
-import itertools
 import json
 import logging
 from datetime import datetime
@@ -28,7 +27,7 @@ from interfaces import IEventManagerProxy
 
 log = logging.getLogger('zen.eventexport')
 
-CSV_MAX_COLUMNS = 16000
+DETAILS_KEY = "details"
 
 class EventsExporter(BrowserView):
     def __call__(self):
@@ -47,6 +46,33 @@ class EventsExporter(BrowserView):
         import transaction
         transaction.abort()
 
+    def _get_event_fields(self, event, requested_fields):
+        """
+            Returns the fields present in the event placing
+            requested_events first, details last and rest of
+            the fiels in alphabetic order
+        """
+        returned_fields = set(event.keys())
+        header = []
+        # Lets put the requested fields first
+        if requested_fields:
+            for field in requested_fields:
+                if field in returned_fields:
+                    returned_fields.remove(field)
+                header.append(field)
+        # returned_fields has the fields that have not been explicitely requested
+        # lets append them ensuring details are at the end
+        show_details = False
+        if DETAILS_KEY in returned_fields:
+            returned_fields.remove(DETAILS_KEY)
+            show_details = True
+        not_requested_fields = list(sorted(returned_fields, key=lambda(x): x.lower() ))
+        if show_details:
+            not_requested_fields.append(DETAILS_KEY)
+        header.extend(not_requested_fields)
+
+        return header
+
     def _query(self, archive, uid=None, fields=None, sort=None, dir=None, evids=None, excludeIds=None, params=None):
         jsonParams = params
         if isinstance(jsonParams, dict):
@@ -55,7 +81,7 @@ class EventsExporter(BrowserView):
         summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort, dir=dir,
                                                  evids=evids, excludeIds=excludeIds,
                                                  params=jsonParams, uid=uid, detailFormat=True)
-        field_names = []
+        header = []
         for event in summaryEvents:
             # default values for fields some optional fields in ZEP events
             if isinstance(event.get('DeviceClass'), dict):
@@ -63,40 +89,35 @@ class EventsExporter(BrowserView):
             if 'device_uuid' in event:
                 del event['device_uuid']
 
-            details = {detail['key']:detail['value'] for detail in event['details'] if detail['key'] not in event}
-            event.update(details)
+            parsed_details = {detail['key']:detail['value'] for detail in event[DETAILS_KEY] if detail['key'] not in event}
+            event[DETAILS_KEY] = parsed_details
 
-            del event['details']
             del event['log']
-            if not field_names:
-                field_names.extend(event.keys())
-            yield field_names, event
+            if not header:
+                header = self._get_event_fields(event, fields)
 
+            yield header, event
 
     def csv(self, response, archive, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
         response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
         from csv import writer
         writer = writer(response)
-        events = [dict((k, v) for k, v in evt.iteritems() if v) for _, evt in
-                  self._query(archive, **params)]
-        keys = (x.iterkeys() for x in events)
-        fields = list({item for item in itertools.chain.from_iterable(keys)})
-        if len(fields) > CSV_MAX_COLUMNS:
-            fields = fields[:CSV_MAX_COLUMNS]
-            writer.writerow(['WARNING',
-                'Data is too big. First {} non empty columns are shown.'.format(
-                    CSV_MAX_COLUMNS)])
+
         wroteHeader = False
-        for evt in events:
+        for fields, evt in self._query(archive, **params):
+            data = []
             if not wroteHeader:
                 writer.writerow(fields)
                 wroteHeader = True
-            data = []
             for field in fields:
                 val = evt.get(field, '')
                 if field in ("lastTime", "firstTime") and val:
                     val = datetime.utcfromtimestamp(val).isoformat()
+                elif field == DETAILS_KEY and val:
+                    # add all details in one column, otherwise for events with lots of details
+                    # the number of columns in the csv can get too large (ZEN-23871)
+                    val = json.dumps(val)
                 data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
             writer.writerow(data)
 
@@ -131,6 +152,11 @@ class EventsExporter(BrowserView):
             response.write('\t<dedupid>%s</dedupid>\n' % escape(str(evt.pop('dedupid', ''))))
             response.write('\t<summary>%s</summary>\n' % escape(str(evt.pop('summary', ''))))
             response.write('\t<message>%s</message>\n' % escape(str(evt.pop('message', ''))))
+
+            details = evt.get(DETAILS_KEY)
+            if details:
+                evt.update(details)
+                del evt[DETAILS_KEY]
 
             for key, value in evt.iteritems():
                 if value is not None:

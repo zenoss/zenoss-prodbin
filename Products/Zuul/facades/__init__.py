@@ -29,6 +29,7 @@ from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
@@ -189,7 +190,7 @@ class TreeFacade(ZuulFacade):
                 globFilters[key] = value
         if qs:
             query = And(*qs)
-        
+
         orderby = sort
         startp = start
         limitp = limit
@@ -198,16 +199,15 @@ class TreeFacade(ZuulFacade):
 
         if sort == "productionState":
             useProdStates = True
-            orderby = None
+            orderby = 'name'
             startp = 0
             limitp = None
-       
+
         if prodStates:
             hashcheckp = None
             useProdStates = True
             startp = 0
             limitp = None
-
 
         catbrains = cat.search(
                 'Products.ZenModel.Device.Device', start=startp,
@@ -219,7 +219,7 @@ class TreeFacade(ZuulFacade):
             psManager = IProdStateManager(self._dmd)
             # Filter by production state
             if prodStates:
-                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.uuid) in prodStates]
+                psFilteredbrains = [b for b in catbrains if psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID()) in prodStates]
                 totalCount = len(psFilteredbrains)
                 hash_ = str(totalCount)
 
@@ -245,22 +245,21 @@ class TreeFacade(ZuulFacade):
                 for ps in productionStates:
                     prodStateBuckets[ps] = []
 
-                for brain in psFilteredbrains:
-                    prodState = psManager.getProductionStateFromGUID(brain.uuid)
-                    prodStateBuckets[prodState].append(brain)
+                for b in psFilteredbrains:
+                    prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID())
+                    prodStateBuckets[prodState].append(b)
 
                 sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
             else:
                 sortedBrains = psFilteredbrains
 
-            
             # Pick out the correct range and build the SearchResults object
             start = max(start, 0)
             if limit is None:
                 stop = None
             else:
                 stop = start + limit
-            results = islice(sortedBrains, start, stop)   
+            results = islice(sortedBrains, start, stop)
             brains = SearchResults(results, totalCount, hash_, catbrains.areBrains)
         else:
             brains = catbrains
@@ -331,17 +330,16 @@ class TreeFacade(ZuulFacade):
         to move the organizer
         @param string organizerUid: unique id of the ogranizer we are moving
         """
-
         organizer = self._getObject(organizerUid)
         parent = organizer.getPrimaryParent()
         parent.moveOrganizer(targetUid, [organizer.id])
         target = self._getObject(targetUid)
-        # reindex all the devices under the organizer
+        # Get a list of the organizer's child objects to reindex
         childObjects = []
-        if isinstance(parent, DeviceOrganizer):
-            childObjects = parent.getSubDevices()
-        elif isinstance(parent, ComponentOrganizer):
-            childObjects = parent.getSubComponents()
+        if isinstance(organizer, DeviceOrganizer):
+            childObjects = organizer.getSubDevices()
+        elif isinstance(organizer, ComponentOrganizer):
+            childObjects = organizer.getSubComponents()
 
         for dev in childObjects:
             dev.index_object()

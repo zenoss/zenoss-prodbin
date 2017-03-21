@@ -856,10 +856,26 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         objects = []
         for inst in obj.getSubInstances(relName):
-          if inst.isLocal(propname) and inst not in objects:
-            objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            if inst.isLocal(propname) and inst not in objects:
+                proptype = inst.getPropertyType(propname)
+                objects.append({
+                    'devicelink':inst.getPrimaryDmdId(),
+                    'props':"******" if proptype == 'password' else getattr(inst, propname),
+                    'proptype':proptype
+                })
+                if relName == 'devices':
+                    objects[-1].update({
+                        'objtype':relName,
+                        'name':inst.titleOrId(),
+                        'devicelink':inst.getPrimaryUrlPath()
+                    })
         for inst in obj.getOverriddenObjects(propname):
-          objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            proptype = inst.getPropertyType(propname)
+            objects.append({
+                'devicelink':inst.getPrimaryDmdId(),
+                'props':"******" if proptype == 'password' else getattr(inst, propname),
+                'proptype':proptype
+            })
         return objects
 
     def getOverriddenObjectsParent(self, uid, propname=''):
@@ -923,25 +939,28 @@ class DeviceFacade(TreeFacade):
         else:
             components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
 
-        graphDef = None
-
-        # get the graph def
+        graphDefault = None
+        graphDict = {}
+        # find the graph for each component and a default graph for components without one
         for comp in components:
-            # find the first instance
             for graph, ctx in comp.getGraphObjects():
                 if graph.id == graphId:
-                    graphDef = graph
+                    if not graphDefault:
+                        graphDefault = graph
+                    graphDict[comp.id] = graph
                     break
-            if graphDef:
-                break
-        if not graphDef:
+        if not graphDefault:
             return []
 
         if allOnSame:
-            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+            # ZEN-26498 identify by name to match individual charts
+            for comp in components:
+                comp.id = comp.name()
+            return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
 
         graphs = []
         for comp in components:
+            graph = graphDict.get(comp.id, graphDefault)
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
@@ -991,4 +1010,3 @@ class DeviceFacade(TreeFacade):
                     'protocol': ptcl,
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
-

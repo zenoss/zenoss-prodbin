@@ -17,6 +17,7 @@ log = logging.getLogger("zen.MetricMixin")
 
 from Acquisition import aq_chain
 from Products.ZenUtils import Map
+from Products.ZenUtils.metrics import SEPARATOR_CHAR
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
@@ -180,26 +181,49 @@ class MetricMixin(object):
         """
         return json.dumps(self.getMetricMetadata(), sort_keys=True)
 
-    def getResourceKey(self):
+    def getResourceKey(self, d=None):
         """
         Formerly RRDView.GetRRDPath, this value is still used as the key for the
         device or component in OpenTSDB.
         """
-        d = self.device()
+        if d is None:
+            d = self.device()
         if not d:
             return "Devices/" + self.id
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
-    def getMetricMetadata(self):
-        return {
+    def getMetricNameContext(self):
+        """
+        Used in conjuction with the 'contextMetric' property. If 'contexMetric' is True,
+        this method will be called to get additional context for the metricname.
+        """
+        return self.id
+
+    def contextMetric(self):
+        """
+        If true the metric name prefix will contain value returned by 'getMetricNameContext'
+        """
+        return False
+    
+    def getMetricMetadata(self, dev=None):
+        if dev is None:
+            dev = self.device()
+            
+        mdata = {
                 'type': 'METRIC_DATA',
-                'contextKey': self.getResourceKey(),
-                'deviceId': self.device().id,
+                'contextKey': self.getResourceKey(dev),
+                'deviceId': dev.id,
                 'contextId': self.id,
-                'deviceUUID': self.device().getUUID(),
+                'deviceUUID': dev.getUUID(),
                 'contextUUID': self.getUUID()
                 }
+
+        if self.contextMetric():
+            metricContext = self.getMetricNameContext()
+            mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
+
+        return mdata
 
     def getRRDContextData(self, context):
         return context

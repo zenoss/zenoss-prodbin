@@ -1,7 +1,8 @@
-VERSION  ?= 5.2.0
+VERSION  ?= 5.3.0
 BUILD_NUMBER ?= DEV
-BRANCH   := develop
-ARTIFACT := prodbin-$(VERSION)-$(BRANCH).tar.gz
+BRANCH   ?= develop
+ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
+ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
 DIST_ROOT := dist
 
@@ -44,3 +45,4 @@ build: mk-dist build-javascript build-zensocket build-zenoss-version
 clean: clean-javascript clean-zensocket clean-zenoss-version
 	rm -f $(ARTIFACT)
 	rm -rf $(DIST_ROOT)
+#
