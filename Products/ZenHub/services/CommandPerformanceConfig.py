@@ -25,6 +25,8 @@ from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
 from Products.ZenModel.OSProcess import OSProcess
 
+from inspect import getargspec
+
 _ZCOMMAND_USERNAME_NOT_SET = 'zCommandUsername is not set so SSH-based commands will not run'
 
 class CommandPerformanceConfig(CollectorConfigService):
@@ -155,7 +157,15 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.env = getattr(ds, 'env', None)
 
                 try:
-                    cmd.command = ds.getCommand(comp, device=device)
+                    # Since 5.2.3 (ZEN-26606) we pass the device to avoid calling
+                    # device() on the component all the time. This can break some
+                    # zenpacks (ZEN-27076). To avoid having to update a bunch of zps
+                    # we use inpect to figure out if the method accepts the device
+                    # as argument
+                    if "device" in getargspec(ds.getCommand).args:
+                        cmd.command = ds.getCommand(comp, device=device)
+                    else:
+                        cmd.command = ds.getCommand(comp)
                 except Exception as ex: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)
