@@ -40,6 +40,13 @@ class IpV6ServiceMap(SnmpPlugin):
                     {'.1':'v4', '.2':'v6'}),
     )
 
+
+    def ignoredAddr(self, addr):
+        # ignore localhost designations
+        # 127.0.0.0/8
+        # ::1
+        return addr in ['::1'] or addr.startswith('127.0.0')
+
     def _extractAddressAndPort(self, oid):
         try:
             oid_parts = oid.split('.')
@@ -56,7 +63,11 @@ class IpV6ServiceMap(SnmpPlugin):
                 return []
 
             addr = IpUtil.bytesToCanonIp(addr_parts)
-            result.append((addr, port))
+            if not self.ignoredAddr(addr):
+                log.debug("Adding addr: %s" % addr)
+                result.append((addr, port))
+            else:
+                log.debug("Ignoring addr: %s" % addr)
 
             # Any IPv6 address is inclusive of any IPv4 addresses as well
             if addr == IpUtil.IPV6_ANY_ADDRESS:
