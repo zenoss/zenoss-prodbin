@@ -62,6 +62,7 @@ class MetricServiceRequest(object):
         if isinstance(dpNames, basestring):
             dpNames = [dpNames]
         for dpName in dpNames:
+            # TODO find callers
             name = ensure_prefix(deviceId, dpName)
             metrics.append(dict(
                 metric=name,
