@@ -215,5 +215,14 @@ Ext.onReady(function(){
         grid.restoreURLState();
     }
 
+    // ZEN-26417
+    grid.on("selectionchange", updateEventContext);
+    function updateEventContext() {
+        var selectionModel = this.getSelectionModel()
+        var selection = selectionModel.getSelection()
+        selection.forEach(function(sel) {
+            Zenoss.Security.setContext(sel.data.device.uid)
+            });
+    }
 
 });
