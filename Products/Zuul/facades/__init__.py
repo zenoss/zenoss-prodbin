@@ -29,6 +29,7 @@ from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
@@ -198,7 +199,7 @@ class TreeFacade(ZuulFacade):
 
         if sort == "productionState":
             useProdStates = True
-            orderby = None
+            orderby = 'name'
             startp = 0
             limitp = None
 
@@ -207,7 +208,6 @@ class TreeFacade(ZuulFacade):
             useProdStates = True
             startp = 0
             limitp = None
-
 
         catbrains = cat.search(
                 'Products.ZenModel.Device.Device', start=startp,
@@ -219,7 +219,7 @@ class TreeFacade(ZuulFacade):
             psManager = IProdStateManager(self._dmd)
             # Filter by production state
             if prodStates:
-                psFilteredbrains = [brain for brain in catbrains if psManager.getProductionStateFromGUID(brain.uuid) in prodStates]
+                psFilteredbrains = [b for b in catbrains if psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID()) in prodStates]
                 totalCount = len(psFilteredbrains)
                 hash_ = str(totalCount)
 
@@ -245,14 +245,13 @@ class TreeFacade(ZuulFacade):
                 for ps in productionStates:
                     prodStateBuckets[ps] = []
 
-                for brain in psFilteredbrains:
-                    prodState = psManager.getProductionStateFromGUID(brain.uuid)
-                    prodStateBuckets[prodState].append(brain)
+                for b in psFilteredbrains:
+                    prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID())
+                    prodStateBuckets[prodState].append(b)
 
                 sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
             else:
                 sortedBrains = psFilteredbrains
-
 
             # Pick out the correct range and build the SearchResults object
             start = max(start, 0)

@@ -9,8 +9,6 @@
 
 
 import unittest
-import zope.component
-from Products.Zuul.catalog.interfaces import IIndexingEvent
 from zope.interface.verify import verifyClass
 from zope.event import notify
 from Products import Zuul
@@ -80,7 +78,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         test_device.setGroups(groupNames)
 
         groups = test_device.groups()
-        
+
         # verify all our groups are there before removing one
         self.assertTrue(red_org in groups)
         self.assertTrue(orange_org in groups)
@@ -144,7 +142,6 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertEquals(1, results.total)
 
     def test_deviceSearchByProdState(self):
-        from Products.ZenModel.ZDeviceLoader import JobDeviceLoader
         devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
         devProduction = self.dmd.Devices.createInstance('devProduction')
         devMaintenance.setProdState(400)
@@ -176,6 +173,84 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertEquals(2, results.total)
         self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
         self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+
+    def test_deviceSortByNonIndexedFieldWithProdStateFilterReturnsCorrectDevices(self):
+        # This test specifically verifies the fix for ZEN-26901 sorting by a non-indexed
+        # field while filtering on productionState caused a ProdStateNotSetError.
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setPerformanceMonitor('localhost')
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setPerformanceMonitor('localhost')
+        devProduction.setProdState(1000)
+
+        # sort by collector (non-indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='collector', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+
+    def test_deviceSortByIndexedFieldWithProdStateFilterReturnsCorrectDevices(self):
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setProdState(1000)
+
+        # sort by name (indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='name', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+
+    def test_deviceSortByProdStateWithIndexedFieldFilterReturnsCorrectDevices(self):
+        # This test specifically verifies the fix for ZEN-26901 sorting productionState
+        # while filtering on an indexed field caused a ProdStateNotSetError.
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setProdState(1000)
+
+        # sort by productionState with name (indexed) filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort="productionState", params=dict(name="dev"))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        self.assertEquals(device.getObject().getDeviceName(), 'devMaintenance')
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+        self.assertEquals(device.getObject().getDeviceName(), 'devProduction')
+
+    def test_deviceSortByProdStateWithNonIndexedFieldFilterReturnsCorrectDevices(self):
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setPerformanceMonitor("localhost")
+        devMaintenance.setProdState(400)
+
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setPerformanceMonitor("localhost")
+        devProduction.setProdState(1000)
+
+        # sort by productionState with collector (non-indexed) filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', params=dict(collector="local"))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
 
     def test_setProductionState(self):
         dev = self.dmd.Devices.createInstance('dev')
