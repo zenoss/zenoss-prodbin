@@ -106,6 +106,7 @@ class ZenModeler(PBDaemon):
         if self.options.device:
             self.single = True
         self.modelerCycleInterval = self.options.cycletime
+        # get the minutes and convert to fraction of a day
         self.collage = float( self.options.collage ) / 1440.0
         self.pendingNewClients = False
         self.clients = []
@@ -582,11 +583,11 @@ class ZenModeler(PBDaemon):
 
         @param device: device to collect against
         @type device: string
-        @return: is the SNMP status number > 0 and is the last collection time + collage older than now?
+        @return: is the SNMP status number > 0 or is the last collection time + collage older than now?
         @type: boolean
         """
-        age = device.getSnmpLastCollection() + self.collage
-        if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
+        delay = device.getSnmpLastCollection() + self.collage
+        if device.getSnmpStatusNumber() > 0 or delay >= float(DateTime.DateTime()):
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
