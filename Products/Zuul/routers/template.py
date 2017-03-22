@@ -696,12 +696,12 @@ class TemplateRouter(TreeRouter):
         """
         uid = data['uid']
         del data['uid']
-        for int_attr in ('miny', 'maxy'):
+        for axis_vals in ('miny', 'maxy'):
             try:
-                x = int(data[int_attr])
+                x = float(data[axis_vals])
             except (ValueError, KeyError):
                 x = -1
-            data[int_attr] = x
+            data[axis_vals] = x
         obj = self._getFacade()._getObject(uid)
         oldData = self._getInfoData(obj, data)
         self._getFacade().setInfo(uid, data)
