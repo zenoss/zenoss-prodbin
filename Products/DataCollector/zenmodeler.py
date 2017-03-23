@@ -402,6 +402,10 @@ class ZenModeler(PBDaemon):
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
 
+            # don't even create a client if we shouldn't collect/model yet
+            if not self.checkCollection(device):
+                return
+
             if protocol == "ssh":
                 client = SshClient(hostname, ip, commandPort,
                                    options=self.options,
