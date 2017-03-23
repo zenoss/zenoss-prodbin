@@ -106,6 +106,7 @@ class ZenModeler(PBDaemon):
         if self.options.device:
             self.single = True
         self.modelerCycleInterval = self.options.cycletime
+        # get the minutes and convert to fraction of a day
         self.collage = float( self.options.collage ) / 1440.0
         self.pendingNewClients = False
         self.clients = []
@@ -401,6 +402,10 @@ class ZenModeler(PBDaemon):
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
 
+            # don't even create a client if we shouldn't collect/model yet
+            if not self.checkCollection(device):
+                return
+
             if protocol == "ssh":
                 client = SshClient(hostname, ip, commandPort,
                                    options=self.options,
@@ -582,11 +587,11 @@ class ZenModeler(PBDaemon):
 
         @param device: device to collect against
         @type device: string
-        @return: is the SNMP status number > 0 and is the last collection time + collage older than now?
+        @return: is the last collection time + collage older than now or is the SNMP status number > 0 ?
         @type: boolean
         """
-        age = device.getSnmpLastCollection() + self.collage
-        if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
+        delay = device.getSnmpLastCollection() + self.collage
+        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
