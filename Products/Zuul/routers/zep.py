@@ -33,16 +33,13 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.utils import get_dmd
 from Products.ZenUI3.browser.eventconsole.grid import column_config
+from Products.ZenUI3.security.security import permissionsForContext
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
 from lxml.html.clean import clean_html
-import pprint
-from functools import reduce
-import json
-from Products.Zuul.utils import get_dmd
-from Products.ZenUI3.security.security import permissionsForContext
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
@@ -598,28 +595,24 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
-    def _resolvePermissions(self, evids, permission):
-        has_permission_for_events_list = []
-        device_objs = []
+    def _hasPermissionsForAllEvents(self, permission, evids):
         try:
-            for evid in evids:
-                event_summary = self.zep.getEventSummary(evid)
-                event_summary_details_dict = {}
-                for detail in event_summary['occurrence'][0]['details']:
-                    if detail['name'] == u'rrdPath':
-                        event_summary_details_dict[detail['name']] = json.loads(detail['value'][0])
-                    else:
-                        event_summary_details_dict[detail['name']] = detail['value'][0] or detail['value']
-                device_class = event_summary_details_dict[u'zenoss.device.device_class']
-                device_id = event_summary['occurrence'][0]['actor']['element_identifier']
-                device_path = "/zport/dmd/Devices{}/devices/{}".format(device_class, device_id)
-                device_obj = get_dmd().getObjByPath(device_path)
-                device_objs.append(device_obj)
-        except Exception:
+            dmd = get_dmd()
+            target_permission = permission.lower()
+            events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
+            event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
+            devices = set()
+            for summary in event_summaries['events']:
+                d = EventCompatInfo(self.context.dmd, summary)
+                dev_obj = dmd.getObjByPath(d.device['uid'])
+                devices.add(dev_obj)
+            for device in devices:
+                if not permissionsForContext(device)[target_permission]:
+                    return False
+            return True
+        except Exception as e:
+            log.debug(e)
             return False
-        for dev in device_objs:
-            has_permission_for_events_list.append(permissionsForContext(dev)[permission.lower()] or False)
-        return reduce(lambda a, b: a and b, has_permission_for_events_list)
 
     def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         user = self.context.dmd.ZenUsers.getUserSettings()
@@ -632,7 +625,7 @@ class EventsRouter(DirectRouter):
                 if uid is not None:
                     organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
                 else:
-                    return self._resolvePermissions(evids, ZEN_MANAGE_EVENTS)
+                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
             except (AttributeError, KeyError):
                 return False
             manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
