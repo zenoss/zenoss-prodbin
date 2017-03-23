@@ -178,6 +178,8 @@ Ext.define('Zenoss.templates.AddDataPointDialog', {
                     ref: 'metricName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
+                    regex: Zenoss.env.textMasks.allowedDataSourceNameText,
+                    regexText: Zenoss.env.textMasks.allowedDataSourceNameTextFeedback,
                     blankText: _t('Name is a required field')
                 }],
                 buttons: [{
@@ -274,6 +276,8 @@ Ext.define('Zenoss.templates.AddDataSourceDialog', {
                     ref: 'dataSourceName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
+                    regex: Zenoss.env.textMasks.allowedDataSourceNameText,
+                    regexText: Zenoss.env.textMasks.allowedDataSourceNameTextFeedback,
                     blankText: _t('Name is a required field')
                 }, {
                     xtype: 'combo',
@@ -474,10 +478,34 @@ function editDataSourceOrPoint() {
         uid: data.uid
     };
 
+    function findSubObject(keyObj, array) {
+        var p, key, val, ret;
+        for (p in keyObj) {
+            if (keyObj.hasOwnProperty(p)) {
+                key = p;
+                val = keyObj[p];
+            }
+        }
+        for (p in array) {
+            if (p == key) {
+                if (array[p] == val) {
+                    return array;
+                }
+            } else if (array[p] instanceof Object) {
+                if (array.hasOwnProperty(p)) {
+                    ret = findSubObject(keyObj, array[p]);
+                    if (ret) {
+                        return ret;
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
     // callback for the router request
     function displayEditDialog(response) {
-        var win,
-        config = {};
+        var win, newId, config = {};
 
         config.record = response.record;
         config.items = response.form;
@@ -486,6 +514,14 @@ function editDataSourceOrPoint() {
         config.title = _t('Edit Data Source');
         config.directFn = router.setInfo;
         config.width = 800;
+
+        newId = findSubObject({name:"newId"}, config)
+        if (newId) {
+            newId.inputAttrTpl = null;
+            newId.regex = Zenoss.env.textMasks.allowedDataSourceNameText;
+            newId.regexText = Zenoss.env.textMasks.allowedDataSourceNameTextFeedback;
+        }
+
         if (isDataPoint) {
             config.title = _t('Edit Data Point');
             config.directFn = submitDataPointForm;
