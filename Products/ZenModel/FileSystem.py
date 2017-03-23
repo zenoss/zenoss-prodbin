@@ -110,18 +110,7 @@ class FileSystem(OSComponent):
         )
 
 
-    def _getTotalBlocksAsSum(self):
-        availBlocks = self.cacheRRDValue('availBlocks', None)
-        usedBlocks = self.usedBlocks()
-        if availBlocks is not None and usedBlocks is not None:
-            nonRootTotalBlocks = availBlocks + usedBlocks
-            return nonRootTotalBlocks
-
-
     def getTotalBlocks(self):
-        totalBlocks = self._getTotalBlocksAsSum()
-        if totalBlocks:
-            return totalBlocks
 
         offset = getattr(self.primaryAq(), 'zFileSystemSizeOffset', 1.0)
         return int(self.totalBlocks) * offset
