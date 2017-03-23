@@ -509,7 +509,10 @@ Ext.create('Zenoss.dialog.BaseWindow', {
                 base: false
             });
             basicForm.api.submit(params, function() {
-                Ext.getCmp('graphGrid').refresh();
+                var gGrid = Ext.getCmp('graphGrid');
+                if (gGrid !== undefined) {
+                    gGrid.refresh();
+                }
             });
         }
     },{
@@ -562,11 +565,17 @@ Ext.create('Zenoss.dialog.BaseWindow', {
             name: 'base'
         },{
             xtype: 'numberfield',
+            allowDecimals: true,
+            decimalPrecision: 3,
             fieldLabel: _t('Min Y'),
+            hideTrigger: true,
             name: 'miny'
         },{
             xtype: 'numberfield',
+            allowDecimals: true,
+            decimalPrecision: 3,
             fieldLabel: _t('Max Y'),
+            hideTrigger: true,
             name: 'maxy'
         },{
             xtype: 'textarea',
