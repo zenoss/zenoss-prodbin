@@ -583,11 +583,11 @@ class ZenModeler(PBDaemon):
 
         @param device: device to collect against
         @type device: string
-        @return: is the SNMP status number > 0 or is the last collection time + collage older than now?
+        @return: is the last collection time + collage older than now or is the SNMP status number > 0 ?
         @type: boolean
         """
         delay = device.getSnmpLastCollection() + self.collage
-        if device.getSnmpStatusNumber() > 0 or delay >= float(DateTime.DateTime()):
+        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
