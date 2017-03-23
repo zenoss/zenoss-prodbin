@@ -210,7 +210,7 @@ class JobManager(ZenModelRM):
         _dispatchTask(task)
 
         # Clear out old jobs
-        self.deleteUntil(datetime.now() - timedelta(hours=24))
+        self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
 
         return records
 
@@ -245,7 +245,7 @@ class JobManager(ZenModelRM):
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
 
         # Clear out old jobs
-        self.deleteUntil(datetime.now() - timedelta(hours=24))
+        self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
 
         return jobrecord
 
@@ -386,7 +386,6 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
-        return
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
