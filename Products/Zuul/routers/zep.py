@@ -630,13 +630,11 @@ class EventsRouter(DirectRouter):
         if user.hasNoGlobalRoles():
             try:
                 if uid is not None:
-                    # ZEN-26417/ZEN-663 TODO: should this call be name() instead?
                     organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
                 else:
                     return self._resolvePermissions(evids, ZEN_MANAGE_EVENTS)
             except (AttributeError, KeyError):
                 return False
-
             manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
             return organizer_name in manage_events_for
         return False
@@ -832,8 +830,6 @@ class EventsRouter(DirectRouter):
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
-        # log.info('Arguments for Acknowledge')
-        # log.info(pprint.pformat((evids, excludeIds, params, uid, asof, limit, timeout)))
 
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
 
