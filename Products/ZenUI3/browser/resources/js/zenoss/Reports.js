@@ -199,10 +199,10 @@ treesm = new Zenoss.TreeSelectionModel({
                 return;
             }
             var attrs = newnode[0].data;
-            if (attrs.isGraphReport) {
+            if (attrs.isGraphReport && attrs.uid) {
                 report_panel.graph_reports.graphs_added = false;
                 report_panel.renderGraphReport(attrs);
-            } else if (attrs.isMultiGraphReport) {
+            } else if (attrs.isMultiGraphReport && attrs.uid) {
                 report_panel.graph_reports.graphs_added = false;
                 report_panel.renderMultiGraphReport(attrs);
             } else {
