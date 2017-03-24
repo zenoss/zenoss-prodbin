@@ -43,10 +43,15 @@ ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}-${BUILD_ID}
 REPO_PATH=$WORKSPACE/${ZENDEV_ENV}/src/github.com/zenoss/${REPO_NAME}
 
 cleanup() {
-    zendev drop ${ZENDEV_ENV}
+    RC="$?"
+    if [[ $RC == 0 ]]; then
+        zendev drop ${ZENDEV_ENV}
+        docker rmi zenoss/devimg:${ZENDEV_ENV} zenoss/devimg-base:${ZENDEV_ENV}
+        rm -rf $WORKSPACE/${ZENDEV_ENV}
+    fi
 }
 
-trap cleanup EXIT
+trap cleanup INT TERM EXIT
 
 # Check if all other parameters are defined.
 echo Checking REPO_NAME;check_var $REPO_NAME;echo OK
