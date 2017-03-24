@@ -61,6 +61,8 @@ class testTransforms(BaseTestCase):
             def sync(self):
                 pass
         self.dmd._p_jar = MockConnection()
+        self.dmd.Events.createOrganizer('/Perf/Filesystem')
+        self.dmd.Events.Perf.Filesystem.transform = perfFilesystemTransform
 
         self.processor = EventPipelineProcessor(self.dmd)
 
@@ -68,13 +70,11 @@ class testTransforms(BaseTestCase):
         # Don't return a sub-message from a C++ protobuf class - can crash as the parent is GC'd
         return self.processor.processMessage(event)
     
-    def testPerfFileSystemTransform(self):
+    def testPerfFileSystemTransformPerfFS(self):
         """
         Test to make sure that the standard transform on the /Perf/Filesystem
         event class works properly for stock performance templates.
         """
-        self.dmd.Events.createOrganizer('/Perf/Filesystem')
-        self.dmd.Events.Perf.Filesystem.transform = perfFilesystemTransform
         
         # Test an example event from a standard SNMP device.
         device = self.dmd.Devices.createInstance('snmpdevice')
@@ -97,6 +97,7 @@ class testTransforms(BaseTestCase):
         processed = self._processEvent(event)
         self.assertEquals(processed.event.summary, 'disk space threshold: 80.3% used (21.9GB free)')
         
+    def testPerfFileSystemTransformPerfmon(self):
         # Test an example event from a standard Perfmon device.
         device = self.dmd.Devices.createInstance('perfmondevice')
         device.os.addFileSystem('C', False)
@@ -118,6 +119,7 @@ class testTransforms(BaseTestCase):
         processed = self._processEvent(event)
         self.assertEquals(processed.event.summary, 'disk space threshold: 49.2% used (4.1GB free)')
     
+    def testPerfFileSystemTransformSSH(self):
         # Test an example event from a standard SSH device.
         device = self.dmd.Devices.createInstance('sshdevice')
         device.os.addFileSystem('/', False)
