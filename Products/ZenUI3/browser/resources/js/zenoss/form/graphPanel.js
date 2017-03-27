@@ -97,7 +97,7 @@
         CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
             ["1h-ago", _t('Last Hour')],
-            ["1d-ago", _t('Yesterday')],
+            ["1d-ago", _t('Last 24 Hours')],
             ["7d-ago", _t('Last Week')],
             ["30d-ago", _t('Last 30 days')],
             ["1y-ago", _t('Last Year')]
