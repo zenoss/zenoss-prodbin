@@ -33,7 +33,9 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.utils import get_dmd
 from Products.ZenUI3.browser.eventconsole.grid import column_config
+from Products.ZenUI3.security.security import permissionsForContext
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
@@ -593,6 +595,25 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
+    def _hasPermissionsForAllEvents(self, permission, evids):
+        try:
+            dmd = get_dmd()
+            target_permission = permission.lower()
+            events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
+            event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
+            devices = set()
+            for summary in event_summaries['events']:
+                d = EventCompatInfo(self.context.dmd, summary)
+                dev_obj = dmd.getObjByPath(d.device['uid'])
+                devices.add(dev_obj)
+            for device in devices:
+                if not permissionsForContext(device)[target_permission]:
+                    return False
+            return True
+        except Exception as e:
+            log.debug(e)
+            return False
+
     def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
@@ -601,7 +622,10 @@ class EventsRouter(DirectRouter):
             return Zuul.checkPermission('ZenCommon', self.context)
         if user.hasNoGlobalRoles():
             try:
-                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                if uid is not None:
+                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                else:
+                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
             except (AttributeError, KeyError):
                 return False
             manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
