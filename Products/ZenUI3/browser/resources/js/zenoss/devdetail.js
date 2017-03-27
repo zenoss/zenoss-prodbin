@@ -506,6 +506,16 @@ Ext.define('Zenoss.DeviceDetailNav', {
         }
     },
     doLoadComponentTree: function(data) {
+        // Sorting all components alphabetically
+        data.sort(function (a,b){
+            var first = Zenoss.component.displayName(a.text.text);
+            var second = Zenoss.component.displayName(b.text.text);
+            if (first<second)
+                return -1
+            if (first>second)
+                return 1
+            return 0
+        });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {
@@ -590,7 +600,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             this.doLoadComponentTree(Zenoss.env.componentTree);
             delete Zenoss.env.componentTree;
         } else {
-            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID, sorting_dict:Zenoss.component.nameMap}, this.doLoadComponentTree, this);
+            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
         }
     },
     filterNav: function(navpanel, config){
