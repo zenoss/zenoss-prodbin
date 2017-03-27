@@ -10,6 +10,8 @@
 #            as a workspace.
 # JOB_BASE_NAME: the last segment of $WORKSPACE, such as "foo" for
 #                "/bar/foo".
+# BUILD_ID: the id of the current build job. It will be used in the name of
+#           zendev environment, which the build job will create.
 # BRANCH: the branch of the repo that the build job will use.
 
 set -ex
@@ -35,10 +37,21 @@ if [ -z "${ZENDEV_VER}" ]; then ZENDEV_VER=0.2.0; fi
 if [ -z "${GO_VER}" ]; then GO_VER=1.7.4; fi
 # The name of the zendev environment that will be created.
 # This name will be used as the devimg tag as well.
-ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}
+ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}-${BUILD_ID}
 # The repo that is checked out will be copied to this path
 # inside zendev.
 REPO_PATH=$WORKSPACE/${ZENDEV_ENV}/src/github.com/zenoss/${REPO_NAME}
+
+cleanup() {
+    RC="$?"
+    if [[ $RC == 0 ]]; then
+        zendev drop ${ZENDEV_ENV}
+        docker rmi zendev/devimg:${ZENDEV_ENV} zendev/devimg-base:${ZENDEV_ENV}
+        rm -r $WORKSPACE/${ZENDEV_ENV}
+    fi
+}
+
+trap cleanup INT TERM EXIT
 
 # Check if all other parameters are defined.
 echo Checking REPO_NAME;check_var $REPO_NAME;echo OK
