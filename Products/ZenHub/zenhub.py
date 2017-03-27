@@ -326,21 +326,27 @@ class _ZenHubWorklist(object):
     def __len__(self):
         return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
 
-    def pop(self):
+    def pop(self, allowADM=True):
         """
         Select a single task to be distributed to a worker. We prioritize tasks as follows:
             sendEvents > configuration service calls > applyDataMaps
         To prevent starving any queue in an event storm, we randomize the task selection,
         preferring tasks according to the above priority.
+
+        allowADM controls whether we should allow popping jobs from the applyDataMaps list,
+        this should be False while models are changing (like during a zenpack install)
         """
         eventchain = filter(None, self.eventPriorityList)
         otherchain = filter(None, self.otherPriorityList)
         applychain = filter(None, self.applyPriorityList)
-        seq = choice([eventchain]*4 +
-                      [otherchain]*2 +
-                      [applychain]
-                                 )
-        return heapq.heappop(seq[0])
+
+        # choose a job to pop based on weighted random
+        choice_list = [eventchain]*4 + [otherchain]*2
+        # only include applyDataMap jobs if allowed
+        if allowADM:
+            choice_list.append(applychain)
+
+        return heapq.heappop(choice(choice_list)[0])
 
     def push(self, job):
         heapq.heappush(self[job.method], job)
@@ -367,7 +373,8 @@ def metricWriter():
             return AggregateMetricWriter( [metric_writer, internal_metric_writer])
 
     return metric_writer
-        
+
+
 class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
@@ -845,7 +852,8 @@ class ZenHub(ZCmdBase):
                 yield wait(0.1)
                 break
 
-            job = self.workList.pop()
+            allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
+            job = self.workList.pop(allowADM)
             candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
             for i in candidateWorkers:
                 worker = self.workers[i]
@@ -1086,6 +1094,9 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--profiling', dest='profiling',
             action='store_true', default=False,
             help="Run with profiling on")
+        self.parser.add_option('--modeling-pause-timeout',
+            type='int', default=3600,
+            help="Maximum number of seconds to pause modeling during ZenPack install/upgrade (default: %default)")
 
         notify(ParserReadyForOptionsEvent(self.parser))
 

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -167,6 +167,33 @@ class TestWorklist(BaseTestCase):
         self.assertEqual(len(worklist.otherworklist), 0)
         self.assertEqual(len(worklist), 0)
 
+    def testPopNoADM(self):
+        # test that applyworklist items don't get popped when allowADM=False
+        worklist = _ZenHubWorklist()
+        for i in range(10):
+            worklist.push(MockHubWorklistItem(method='test', value=i))
+        for i in range(10,20):
+            worklist.push(MockHubWorklistItem(method='sendEvents', value=i))
+        for i in range(20,30):
+            worklist.push(MockHubWorklistItem(method='applyDataMaps', value=i))
+        for i in range(20):
+            job = worklist.pop(False)
+            self.assertIsInstance(job, MockHubWorklistItem)
+            self.assertTrue(job.method != 'applyDataMaps', True)
+            self.assertTrue(0 <= job.value < 20)
+
+        self.assertEqual(len(worklist.applyworklist), 10)
+
+        for i in range(10):
+            job = worklist.pop(True)
+            self.assertIsInstance(job, MockHubWorklistItem)
+            self.assertTrue(job.method == 'applyDataMaps', True)
+            self.assertTrue(20 <= job.value < 30)
+
+        self.assertEqual(len(worklist.eventworklist), 0)
+        self.assertEqual(len(worklist.otherworklist), 0)
+        self.assertEqual(len(worklist.applyworklist), 0)
+        self.assertEqual(len(worklist), 0)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
