@@ -33,6 +33,7 @@ from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
+from ZODB.transact import transact
 from Commandable import Commandable
 from datetime import datetime
 import os
@@ -925,14 +926,16 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Gets time in seconds since pauseADMStart
         """
-        return (datetime.now() - self.pauseADMStart).total_seconds()
+        return (datetime.utcnow() - self.pauseADMStart).total_seconds()
 
+    @transact
     def startPauseADM(self):
         """
         Sets pauseADMStart to the current time
         """
-        self.pauseADMStart = datetime.now()
+        self.pauseADMStart = datetime.utcnow()
 
+    @transact
     def stopPauseADM(self):
         """
         Sets pauseADMStart to the min datetime
