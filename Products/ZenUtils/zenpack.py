@@ -693,7 +693,6 @@ class ZenPackCmd(ZenScriptBase):
                 zp = self.dmd.ZenPackManager.packs._getOb(packName)
                 self.log.info('Upgrading %s' % packName)
                 self.dmd.startPauseADM()
-                transaction.commit()
                 zp.upgrade(self.app)
             except AttributeError:
                 try:
@@ -721,7 +720,6 @@ class ZenPackCmd(ZenScriptBase):
             transaction.abort()
         finally:
             self.dmd.stopPauseADM()
-            transaction.commit()
 
     def extract(self, fname):
         """Unpack a ZenPack, and return the name"""
