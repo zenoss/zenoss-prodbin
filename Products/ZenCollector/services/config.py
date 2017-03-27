@@ -288,7 +288,6 @@ class CollectorConfigService(HubService, ThresholdMixin):
         s = hashlib.sha256()
         s.update(key)
         s.update(self.__class__.__name__)
-        s.update(self.instance)
         return base64.urlsafe_b64encode(s.digest())
 
     def _postCreateDeviceProxy(self, deviceConfigs):
