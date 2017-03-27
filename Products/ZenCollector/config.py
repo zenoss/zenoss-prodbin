@@ -149,7 +149,10 @@ class ConfigurationProxy(object):
         cipher_suite = yield self._get_cipher_suite()
         encrypted_data = None
         if cipher_suite:
-            encrypted_data  = yield cipher_suite.encrypt(data)
+            try:
+                encrypted_data  = yield cipher_suite.encrypt(data)
+            except Exception as e:
+                log.warn("Exception encrypting data {}".format(e))
         defer.returnValue(encrypted_data)
 
     @defer.inlineCallbacks
@@ -160,7 +163,10 @@ class ConfigurationProxy(object):
         cipher_suite = yield self._get_cipher_suite()
         decrypted_data = None
         if cipher_suite:
-            decrypted_data = yield cipher_suite.decrypt(data)
+            try:
+                decrypted_data = yield cipher_suite.decrypt(data)
+            except Exception as e:
+                log.warn("Exception decrypting data {}".format(e))
         defer.returnValue(decrypted_data)
 
 
