@@ -288,21 +288,25 @@ class ZenPackCmd(ZenScriptBase):
             return EggPackCmd.ExportZenPack(
                 self.dmd, self.options.exportPack)
         elif self.options.removePackName:
-            pack = self.dmd.ZenPackManager.packs._getOb(
-                                        self.options.removePackName, None)
+            try:
+                self.dmd.startPauseADM()
+                pack = self.dmd.ZenPackManager.packs._getOb(
+                                            self.options.removePackName, None)
 
-            if not pack:
-                if not self.options.ifinstalled:
-                    self.log.info('ZenPack %s is not installed.' %
-                                            self.options.removePackName)
-                    return False
-            else:
-                if pack:
-                    removeZenPackQueuesExchanges(pack.path())
-                    if pack.isEggPack():
-                        return EggPackCmd.RemoveZenPack(
-                                self.dmd, self.options.removePackName)
-                RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+                if not pack:
+                    if not self.options.ifinstalled:
+                        self.log.info('ZenPack %s is not installed.' %
+                                                self.options.removePackName)
+                        return False
+                else:
+                    if pack:
+                        removeZenPackQueuesExchanges(pack.path())
+                        if pack.isEggPack():
+                            return EggPackCmd.RemoveZenPack(
+                                    self.dmd, self.options.removePackName)
+                    RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+            finally:
+                self.dmd.stopPauseADM()
 
         elif self.options.list:
             for zpId in self.dmd.ZenPackManager.packs.objectIds():
