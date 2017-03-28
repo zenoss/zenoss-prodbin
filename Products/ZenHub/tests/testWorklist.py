@@ -178,16 +178,23 @@ class TestWorklist(BaseTestCase):
             worklist.push(MockHubWorklistItem(method='applyDataMaps', value=i))
         for i in range(20):
             job = worklist.pop(False)
+            self.assertIsNotNone(job)
             self.assertIsInstance(job, MockHubWorklistItem)
-            self.assertTrue(job.method != 'applyDataMaps', True)
+            self.assertTrue(job.method != 'applyDataMaps', "Got an applyDataMaps job!")
             self.assertTrue(0 <= job.value < 20)
 
         self.assertEqual(len(worklist.applyworklist), 10)
+        self.assertEqual(len(worklist), 10)
+
+        # Another pop with allowADM=False should return None
+        job = worklist.pop(False)
+        self.assertIsNone(job)
 
         for i in range(10):
             job = worklist.pop(True)
+            self.assertIsNotNone(job)
             self.assertIsInstance(job, MockHubWorklistItem)
-            self.assertTrue(job.method == 'applyDataMaps', True)
+            self.assertTrue(job.method == 'applyDataMaps', "job.method was %s, expected 'applyDataMaps'" % job.method)
             self.assertTrue(20 <= job.value < 30)
 
         self.assertEqual(len(worklist.eventworklist), 0)
