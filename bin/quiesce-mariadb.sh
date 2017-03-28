@@ -241,7 +241,7 @@ function main()
 }
 
 
-if [[ "$(basename $0)" == "quiesce-mysql.sh" ]]; then
+if [[ "$(basename $0)" == "quiesce-mariadb.sh" ]]; then
     if [[ $(whoami) == "root" ]]; then
         FULLPATH="$(cd $(dirname $0); pwd -P)"
         exec su - zenoss -c "$FULLPATH/$(basename $0) $*"
