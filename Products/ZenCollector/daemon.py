@@ -245,10 +245,13 @@ class CollectorDaemon(RRDDaemon):
         self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
-        # Used in resmgr. True once we have finished loading the configs
-        # for the first time after a restart
+        ''' Variables used by enterprise collector in resmgr '''
+        # flag that indicates we have finished loading the configs for the first time after a restart
         self.firstConfigLoadDone = False
+        # flag that indicates the daemon has received the encryption key from zenhub
         self.encryptionKeyInitialized = False
+        # flag that indicates the daemon is loading the cached configs
+        self.loadingCachedConfigs = False
 
     def buildOptions(self):
         """
