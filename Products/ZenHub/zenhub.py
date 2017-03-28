@@ -336,17 +336,18 @@ class _ZenHubWorklist(object):
         allowADM controls whether we should allow popping jobs from the applyDataMaps list,
         this should be False while models are changing (like during a zenpack install)
         """
-        eventchain = filter(None, self.eventPriorityList)
-        otherchain = filter(None, self.otherPriorityList)
-        applychain = filter(None, self.applyPriorityList)
+        eventchain = filter(None, self.eventPriorityList if allowADM else [self.eventworklist, self.otherworklist])
+        otherchain = filter(None, self.otherPriorityList if allowADM else [self.otherworklist, self.eventworklist])
+        applychain = filter(None, self.applyPriorityList if allowADM else [self.eventworklist, self.otherworklist])
 
         # choose a job to pop based on weighted random
-        choice_list = [eventchain]*4 + [otherchain]*2
-        # only include applyDataMap jobs if allowed
-        if allowADM:
-            choice_list.append(applychain)
-
-        return heapq.heappop(choice(choice_list)[0])
+        choice_list = [eventchain]*4 + [otherchain]*2 + [applychain]
+        chosen_list = choice(choice_list)
+        if len(chosen_list) > 0:
+            item = heapq.heappop(chosen_list[0])
+            return item
+        else:
+            return None
 
     def push(self, job):
         heapq.heappush(self[job.method], job)
@@ -860,6 +861,11 @@ class ZenHub(ZCmdBase):
 
             allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
             job = self.workList.pop(allowADM)
+            if job is None:
+                self.log.info("Got None from the job worklist.  ApplyDataMaps may be paused for zenpack install/upgrade.")
+                yield wait(0.1)
+                break
+
             candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
             for i in candidateWorkers:
                 worker = self.workers[i]
