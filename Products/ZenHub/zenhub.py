@@ -336,6 +336,8 @@ class _ZenHubWorklist(object):
         allowADM controls whether we should allow popping jobs from the applyDataMaps list,
         this should be False while models are changing (like during a zenpack install/upgrade/removal)
         """
+        # the priority lists have eventworklist, otherworklist, and applyworklist
+        # when we don't want to allow ApplyDataMaps, we should exclude the possibility of popping from applyworklist
         eventchain = filter(None, self.eventPriorityList if allowADM else [self.eventworklist, self.otherworklist])
         otherchain = filter(None, self.otherPriorityList if allowADM else [self.otherworklist, self.eventworklist])
         applychain = filter(None, self.applyPriorityList if allowADM else [self.eventworklist, self.otherworklist])
