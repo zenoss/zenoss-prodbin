@@ -510,11 +510,14 @@ Ext.define('Zenoss.DeviceDetailNav', {
         data.sort(function (a,b){
             var first = Zenoss.component.displayName(a.text.text);
             var second = Zenoss.component.displayName(b.text.text);
-            if (first<second)
+            if (first<second) {
                 return -1
-            if (first>second)
+            } elif {
+            if (first>second) {
                 return 1
-            return 0
+            } else {
+                return 0
+            }
         });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
