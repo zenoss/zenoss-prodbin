@@ -334,7 +334,7 @@ class _ZenHubWorklist(object):
         preferring tasks according to the above priority.
 
         allowADM controls whether we should allow popping jobs from the applyDataMaps list,
-        this should be False while models are changing (like during a zenpack install)
+        this should be False while models are changing (like during a zenpack install/upgrade/removal)
         """
         eventchain = filter(None, self.eventPriorityList if allowADM else [self.eventworklist, self.otherworklist])
         otherchain = filter(None, self.otherPriorityList if allowADM else [self.otherworklist, self.eventworklist])
@@ -862,7 +862,7 @@ class ZenHub(ZCmdBase):
             allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
             job = self.workList.pop(allowADM)
             if job is None:
-                self.log.info("Got None from the job worklist.  ApplyDataMaps may be paused for zenpack install/upgrade.")
+                self.log.info("Got None from the job worklist.  ApplyDataMaps may be paused for zenpack install/upgrade/removal.")
                 yield wait(0.1)
                 break
 
@@ -1111,7 +1111,7 @@ class ZenHub(ZCmdBase):
             help="Run with profiling on")
         self.parser.add_option('--modeling-pause-timeout',
             type='int', default=3600,
-            help="Maximum number of seconds to pause modeling during ZenPack install/upgrade (default: %default)")
+            help="Maximum number of seconds to pause modeling during ZenPack install/upgrade/removal (default: %default)")
 
         notify(ParserReadyForOptionsEvent(self.parser))
 
