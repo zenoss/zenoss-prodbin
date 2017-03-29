@@ -33,7 +33,9 @@ from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
+from ZODB.transact import transact
 from Commandable import Commandable
+from datetime import datetime
 import os
 import sys
 import string
@@ -100,6 +102,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     userAuthType = AUTH_TYPE_SESSION
     pauseHubNotifications = False
     zendmdStartupCommands = []
+    pauseADMStart = datetime.min
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -128,6 +131,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
+        {'id':'pauseADMStart', 'type': 'datetime', 'mode':'w'},
         )
 
     _relations =  (
@@ -622,7 +626,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         $ZENHOME/backups.
         """
         import stat
-        import datetime
         import operator
 
         def FmtFileSize(size):
@@ -647,7 +650,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         'size': info[stat.ST_SIZE],
                         'sizeFormatted': FmtFileSize(info[stat.ST_SIZE]),
                         'modDate': info[stat.ST_MTIME],
-                        'modDateFormatted': datetime.datetime.fromtimestamp(
+                        'modDateFormatted': datetime.fromtimestamp(
                                 info[stat.ST_MTIME]).strftime(
                                 '%c'),
                         })
@@ -918,5 +921,25 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def removeZendmdStartupCommand(self, command):
         self.zendmdStartupCommands = PersistentList([x for x in self.zendmdStartupCommands if x != command])
+
+    def getPauseADMLife(self):
+        """
+        Gets time in seconds since pauseADMStart
+        """
+        return (datetime.utcnow() - self.pauseADMStart).total_seconds()
+
+    @transact
+    def startPauseADM(self):
+        """
+        Sets pauseADMStart to the current time
+        """
+        self.pauseADMStart = datetime.utcnow()
+
+    @transact
+    def stopPauseADM(self):
+        """
+        Sets pauseADMStart to the min datetime
+        """
+        self.pauseADMStart = datetime.min
 
 InitializeClass(DataRoot)
