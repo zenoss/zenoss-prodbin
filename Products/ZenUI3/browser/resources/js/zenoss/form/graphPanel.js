@@ -47,14 +47,15 @@
             componentName = cname;
             first = false;
         });
-        return allTheSame;
+        return allTheSame ? componentName : '';
     }
 
-    function removeRepeatedComponent(pts) {
+    function removeRepeatedComponent(pts, cname) {
         // Remove repeated component name from beginning of all strings
         pts.forEach(function (pt) {
-            var componentName = pt.name.substr(0,pt.name.indexOf(' '));
-            pt.legend = pt.legend.substr(componentName.length).trim();
+            if (pt.legend.substr(0, cname.length) === cname) {
+                pt.legend = pt.legend.substr(cname.length).trim();
+            }
             // also trim off any leading "- " strings
             if (pt.legend.substr(0, 2) === "- ") {
                 pt.legend = pt.legend.substr(2);
@@ -80,13 +81,16 @@
             }, this);
             // remove used redundancy
             var usedused = pt.legend.indexOf('usedBlocks Used');
-            if ( usedused > 0) {
+            if ( usedused > -1) {
                 pt.legend = pt.legend.substr(0, usedused) + "Used";
             }
             // Now impose 40 characters max length but keep last word
             if (pt.legend.length > 40) {
                 var allWords = pt.legend.split(' ');
                 var lastWord = allWords[allWords.length-1];
+                if (lastWord.length > 30) {
+                    lastWord = lastWord.substr(lastWord.length -8);
+                }
                 pt.legend = pt.legend.substr(0,40-lastWord.length) + "..." + lastWord;
             }
         });
@@ -327,9 +331,11 @@
 
         },
         initChart: function() {
-            if(isSingleComponentChart(this.datapoints)) {
+            var cname = isSingleComponentChart(this.datapoints);
+            // returns repeated legend name if all legends share same component
+            if(cname.length > 0) {
                 [this.datapoints, this.thresholds].forEach(function (datapts) {
-                    removeRepeatedComponent(datapts);
+                    removeRepeatedComponent(datapts, cname);
                 }, this);
             }
             truncateLongLegends(this.datapoints);

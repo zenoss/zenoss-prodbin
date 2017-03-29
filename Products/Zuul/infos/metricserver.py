@@ -196,7 +196,9 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
         if self._multiContext:
-            if legend not in self.id:
+            if hasattr(self._context,'dockerContainerName'):
+                legend = self._context.dockerContainerName
+            elif legend not in self.id:
                 legend = self.id + " " + legend
             else:
                legend = self.id
