@@ -954,12 +954,6 @@ class DeviceFacade(TreeFacade):
             return []
 
         if allOnSame:
-            # ZEN-26498 ZEN-27126 get docker legends to match individual graphs
-            for comp in components:
-                if (hasattr(comp,'docker_host')):
-                    for graph, ctx in comp.getGraphObjects():
-                        graph.dockerContainerName = copy.copy(comp.name())
-                        ctx.dockerContainerName = copy.copy(comp.name())
             return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
 
         graphs = []

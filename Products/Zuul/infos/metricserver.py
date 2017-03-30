@@ -170,9 +170,9 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         if self._multiContext:
             dev = self._context.device()
             if dev and dev.id != self._context.id:
-                return "%s %s" % (dev.id, self._context.id)
+                return "%s %s" % (dev.titleOrId(), self._context.titleOrId())
             else:
-                return "%s" % (self._context.id)
+                return "%s" % (self._context.titleOrId())
         return None
 
     def setMultiContext(self):
@@ -196,9 +196,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
         if self._multiContext:
-            if hasattr(self._context,'dockerContainerName'):
-                legend = self._context.dockerContainerName
-            elif legend not in self.id:
+            if legend not in self.id:
                 legend = self.id + " " + legend
             else:
                legend = self.id
