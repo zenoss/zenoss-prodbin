@@ -551,7 +551,7 @@ class EventsRouter(DirectRouter):
 
         context_uuids = []
         for context in contexts:
-            if context and context.id not in ('Events', 'dmd'):
+            if context and context.id not in ('Events', 'Devices', 'dmd'):
                 try:
                     # make a specific instance of tag_filter just for the context tag.
                     if not context_uuids:
