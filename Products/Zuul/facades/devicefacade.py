@@ -11,7 +11,6 @@
 import socket
 import re
 import os
-import copy
 import logging
 import subprocess
 from itertools import imap
