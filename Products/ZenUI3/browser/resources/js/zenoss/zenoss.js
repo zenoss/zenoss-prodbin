@@ -198,8 +198,6 @@ Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,
         allowedNameTextFeedback: 'Only letters, numbers, underscores and spaces allowed',
-        allowedDataSourceNameText: /^\w+$/,
-        allowedDataSourceNameTextFeedback: 'Allowed text: letters, numbers, underscores',
         allowedNameTextMaskDash: /[\w\s\-]/i,
         allowedNameTextDash: /^[\w\s\-]+$/,
         allowedNameTextFeedbackDash: 'Only letters, numbers, underscores, dashes and spaces allowed',
