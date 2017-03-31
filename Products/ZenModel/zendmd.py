@@ -177,7 +177,6 @@ def _customStuff():
     """
 
     import socket
-    from transaction import commit
     from pprint import pprint
     from Products.ZenUtils.Utils import setLogLevel
     from Products.Zuul import getFacade, listFacades
@@ -231,6 +230,11 @@ def _customStuff():
         cmds = sorted(filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF))
         for cmd in cmds:
             print cmd
+
+    def commit():
+        audit.audit('Shell.Script.Commit')
+        from transaction import commit
+        commit()
 
     def grepdir(obj, regex=""):
         if regex:
@@ -577,6 +581,7 @@ if __name__=="__main__":
         allVars.update(vars_)
         execfile(opts.script, allVars)
         if opts.commit:
+            audit.audit('Shell.Script.Commit')
             from transaction import commit
             commit()
         else:
