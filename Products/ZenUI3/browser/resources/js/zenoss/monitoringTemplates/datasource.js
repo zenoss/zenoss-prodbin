@@ -178,8 +178,8 @@ Ext.define('Zenoss.templates.AddDataPointDialog', {
                     ref: 'metricName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedDataSourceNameText,
-                    regexText: Zenoss.env.textMasks.allowedDataSourceNameTextFeedback,
+                    regex: Zenoss.env.textMasks.allowedNameTextDash,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
                     blankText: _t('Name is a required field')
                 }],
                 buttons: [{
@@ -276,8 +276,8 @@ Ext.define('Zenoss.templates.AddDataSourceDialog', {
                     ref: 'dataSourceName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedDataSourceNameText,
-                    regexText: Zenoss.env.textMasks.allowedDataSourceNameTextFeedback,
+                    regex: Zenoss.env.textMasks.allowedNameTextDash,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
                     blankText: _t('Name is a required field')
                 }, {
                     xtype: 'combo',
@@ -518,8 +518,8 @@ function editDataSourceOrPoint() {
         newId = findSubObject({name:"newId"}, config)
         if (newId) {
             newId.inputAttrTpl = null;
-            newId.regex = Zenoss.env.textMasks.allowedDataSourceNameText;
-            newId.regexText = Zenoss.env.textMasks.allowedDataSourceNameTextFeedback;
+            newId.regex = Zenoss.env.textMasks.allowedNameTextDash;
+            newId.regexText = Zenoss.env.textMasks.allowedNameTextFeedbackDash;
         }
 
         if (isDataPoint) {
