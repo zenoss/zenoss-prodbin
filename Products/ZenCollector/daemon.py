@@ -329,9 +329,10 @@ class CollectorDaemon(RRDDaemon):
     @defer.inlineCallbacks
     def _initEncryptionKey(self, prv_cb_result=None):
         # encrypt dummy msg in order to initialize the encryption key
-        yield self._configProxy.encrypt("Hello") # block until we get the key
-        self.encryptionKeyInitialized = True
-        self.log.info("Daemon's encryption key initialized")
+        data = yield self._configProxy.encrypt("Hello") # block until we get the key
+        if data: # encrypt returns None if an exception is raised
+            self.encryptionKeyInitialized = True
+            self.log.info("Daemon's encryption key initialized")
 
     def watchdogCycleTime(self):
         """
