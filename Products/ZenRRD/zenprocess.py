@@ -486,7 +486,6 @@ class ZenProcessTask(ObservableMixin):
                                          device=self._devId,
                                          summary=summary,
                                          message=message,
-                                         component=pConfig.originalName,
                                          eventKey=pConfig.processClass,
                                          severity=pConfig.severity)
             log.info("(%s) %s" % (self._devId, message))
@@ -503,7 +502,6 @@ class ZenProcessTask(ObservableMixin):
                                          device=self._devId,
                                          summary=summary,
                                          message=message,
-                                         component=processStat._config.originalName,
                                          eventKey=processStat._config.processClass,
                                          severity=Event.Clear)
             log.debug("(%s) %s" % (self._devId, message))
@@ -542,7 +540,6 @@ class ZenProcessTask(ObservableMixin):
                                              device=self._devId,
                                              summary=summary,
                                              message=message,
-                                             component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
             log.warning("(%s) %s" % (self._devId, message))
