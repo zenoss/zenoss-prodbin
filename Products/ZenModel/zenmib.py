@@ -678,6 +678,14 @@ class ZenMib(ZCmdBase):
         smiMibDelim = 'MIB = {'
         mibCodeParts = pythonCode.split(smiMibDelim)
         mibDicts = []
+        # Check for a TRAP-TYPE in the mib file, since smidump parse it with
+        # extra zero in Trap OID
+        if "TRAP-TYPE" in pythonCode and not self.options.removemiddlezeros:
+            self.log.warn("This MIB file contains a type of OID (TRAP-TYPE) "
+                          "that, when parsed, inserts an extra zero into "
+                          "the OID causing SNMP trap lookups to fail. "
+                          "Please run zenmib with the '--removemiddlezeros' "
+                          "flag option to avoid this problem.")
         if len(mibCodeParts) > 1:
             for mibCodePart in mibCodeParts[1:]:
                 mibDict = executePythonCode(smiMibDelim + mibCodePart, name)
@@ -766,12 +774,13 @@ class ZenMib(ZCmdBase):
 
         for name, values in pythonMib[leafType].items():
 
-            if not self.options.keep_middle_zeros:
-                # smidump sometimes adds zeroes into OIDs 
+            if self.options.removemiddlezeros:
+                # smidump add zeros according to SMIv2
                 oid = values['oid']
                 if '.0.' in oid:
                     values['oid'] = oid.replace('.0.', '.')
-                    self.log.warn("Found a zero index  in OID '%s' -- converting to '%s'",
+                    self.log.warn("Found a zero index in OID"
+                                  " '%s' -- converting to '%s'",
                                   oid, values['oid'])
             
             try:
@@ -1010,9 +1019,10 @@ class ZenMib(ZCmdBase):
                            default=[], action='append',
                            help="Execute the Python code previously generated" \
                                 " and saved.")
-        self.parser.add_option('--keepMiddleZeros', dest='keep_middle_zeros',
-                           default=False, action='store_true',
-                           help="Does not remove zeros found in the middle of the oid.")
+        self.parser.add_option('--removemiddlezeros', dest='removemiddlezeros',
+                            default=False, action='store_true',
+                            help="Remove zeros found in the middle of the oid.")
+
 
 if __name__ == '__main__':
     zm = ZenMib()
