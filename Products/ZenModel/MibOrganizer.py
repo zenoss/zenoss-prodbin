@@ -182,7 +182,10 @@ class MibOrganizer(Organizer, ZenPackable):
         """
         if not moveTarget or not ids: return self()
         if isinstance(ids, basestring): ids = (ids,)
-        target = self.getChildMoveTarget(moveTarget)
+            if moveTarget == '/zport/dmd/Mibs': #handle resolving top level organizer
+                target = self.unrestrictedTraverse(moveTarget)
+            else:
+                target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.mibs._getOb(id)
             rec._operation = 1 # moving object state
