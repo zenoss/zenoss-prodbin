@@ -33,6 +33,12 @@ class ITreeSpanningComponent(Interface):
         Return the device associated with this component.
         """
 
+    def get_indexable_peers():
+        """
+        return the other tree object/objects that need to be indexed when this
+         spanning component is updated
+        """
+
         
 class IDeviceOrganizer(Interface):
     """
@@ -86,3 +92,12 @@ class IComponentFieldSpec(Interface):
         """
         Returns the fields associated with this type.
         """
+
+
+class IModelCatalog(Interface):
+    """ Marker Interface to register an utility for the model catalog """
+
+
+class IModelCatalogTool(Interface):
+    """ Marker interface for the model catalog search tool """
+

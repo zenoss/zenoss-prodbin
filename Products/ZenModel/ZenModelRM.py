@@ -33,7 +33,10 @@ from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenModel.ZenossSecurity import *
 
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
+from Products.Zuul.catalog.indexable import BaseIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseIndexable):
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
@@ -55,8 +58,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     security.declareProtected(ZEN_MANAGE_DMD, 'setTitle')
     def setTitle(self, title):
         self.title = title
-        from Products.Zuul.interfaces import ICatalogTool
-        ICatalogTool(self).update(self)
+        IModelCatalogTool(self).update(self)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'rename')
     def rename(self, newId, REQUEST=None):

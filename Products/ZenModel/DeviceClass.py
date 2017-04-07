@@ -43,7 +43,7 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.Exceptions import DeviceExistsError
 
 import RRDTemplate
@@ -82,7 +82,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     portal_type = meta_type = event_key = "DeviceClass"
 
-    default_catalog = 'deviceSearch'
+    default_catalog = ''
 
     _properties = DeviceOrganizer._properties + (
                     {'id':'devtypes', 'type':'lines', 'mode':'w'},
@@ -348,9 +348,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         IGlobalIdentifier(dev).guid = guid
         dev.setLastChange()
         dev.setAdminLocalRoles()
-        dev.index_object()
-        notify(IndexingEvent(dev, idxs=('path', 'searchKeywords'),
-                             update_metadata=True))
+        notify(IndexingEvent(dev))
 
         return exported
 
@@ -473,11 +471,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Search device summary index and return device objects
         """
-        if not query: return []
-        zcatalog = self._getCatalog()
-        if not zcatalog: return []
-        results = zcatalog({'summary':query})
-        return self._convertResultsToObj(results)
+        # @TODO delete?
+        # deviceSearch catalog does not have a summary index nor metadata
+        return []
 
 
     security.declareProtected('View', 'searchInterfaces')
@@ -510,17 +506,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         @rtype: list of brains
         """
-        idIpQuery = Or( MatchGlob('id', devicename),
-                        Eq('getDeviceIp', devicename) )
+        ors = [ MatchGlob('id', devicename), MatchGlob('text_ipAddress', devicename) ]
+
         if useTitle:
-            titleOrIdQuery = MatchGlob('titleOrId', devicename)
-            query = Or( idIpQuery, titleOrIdQuery )
-            rankSort = RankByQueries_Max( ( idIpQuery, 16 ),
-                                          ( titleOrIdQuery, 8 ) )
-            devices = self._getCatalog().evalAdvancedQuery(query, (rankSort,))
-        else:
-            devices = self._getCatalog().evalAdvancedQuery(idIpQuery)
-        return devices
+            ors.append(MatchGlob('name', devicename))
+
+        query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
+
+        search_results = IModelCatalogTool(self).search(query=query)
+        return list(search_results.results)
 
     def findDevicePath(self, devicename):
         """
@@ -528,7 +522,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         ret = self._findDevice(devicename)
         if not ret: return ""
-        return ret[0].getPrimaryId
+        return ret[0].getPath()
 
     def findDevice(self, devicename):
         """
@@ -551,8 +545,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Look up device in catalog and return it.  devicename
         must match device id exactly
         """
-        for brains in self._getCatalog()(id=devicename):
-            dev = brains.getObject()
+        query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
+        search_results = IModelCatalogTool(self).search(query=query)
+        for brain in search_results.results:
+            dev = brain.getObject()
             if dev.id == devicename:
                 return dev
 
@@ -568,7 +564,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Return generator of components, by meta_type if specified
         """
-        catalog = ICatalogTool(self)
+        catalog = IModelCatalogTool(self)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         monitorq, typeq = None, None
         if monitored:
@@ -813,44 +809,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             )
             return self.callZenScreen(REQUEST)
 
-
-    security.declareProtected(ZEN_ADD, 'createCatalog')
-    def createCatalog(self):
-        """
-        Make the catalog for device searching
-        """
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-        # Make catalog for Devices
-        manage_addZCatalog(self, self.default_catalog,
-            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        for idxname in ['id',
-            'getDeviceIp','getDeviceClassPath','titleOrId']:
-            cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
-        cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
-        cat.addIndex('path', makeMultiPathIndex('path'))
-        zcat.addColumn('getPrimaryId')
-        zcat.addColumn('id')
-        zcat.addColumn('path')
-
     security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """
         Go through all devices in this tree and reindex them.
         """
-        zcat = getToolByName(self, self.default_catalog)
-        zcat.manage_catalogClear()
         for dev in self.getSubDevicesGen_recursive():
             if dev.hasObject('componentSearch'):
                 dev._delObject('componentSearch')
             dev._create_componentSearch()
-            dev.index_object()
             notify(IndexingEvent(dev))
             for comp in dev.getDeviceComponentsNoIndexGen():
                 notify(IndexingEvent(comp))
-
 
     def buildDeviceTreeProperties(self):
         """

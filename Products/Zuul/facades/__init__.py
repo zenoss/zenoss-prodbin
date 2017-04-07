@@ -13,7 +13,7 @@ Zuul facades are part of the Python API.  The main functions of facades are
 objects representing objects related to the retrieved object, and (2) given an
 info object bind its properties to a ZenModel object and save it. The UID is
 typically an acquisition path, e.g. '/zport/dmd/Devices'. Facades use an
-ICatalogTool to search for the ZenModel object using the UID.
+IModelCatalogTool to search for the ZenModel object using the UID.
 
 Documentation for the classes and methods in this module can be found in the
 definition of the interface that they implement.
@@ -28,11 +28,11 @@ from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
-    ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
+    ITreeFacade, IInfo, IOrganizerInfo
 )
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults, StaleResultsException
@@ -40,6 +40,7 @@ from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from Products.ZenUtils.productionstate.interfaces import IProdStateManager
 
@@ -138,7 +139,7 @@ class TreeFacade(ZuulFacade):
         raise NotImplementedError
 
     def deviceCount(self, uid=None):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
     def validRegex(self, r):
@@ -150,16 +151,19 @@ class TreeFacade(ZuulFacade):
 
     def findMatchingOrganizers(self, organizerClass, organizerPath, userFilter):
         filterRegex = '(?i)^%s.*%s.*' % (organizerPath, userFilter)
+        filterRegex = '/zport/dmd/{0}*{1}*'.format(organizerPath, userFilter)
         if self.validRegex(filterRegex):
             orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
                         MatchRegexp('uid', filterRegex))
-            paths = [b.getPath() for b in ICatalogTool(self._dmd).search(query=orgquery)]
+            paths = [ "{0}/*".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
             if paths:
-                return Generic('path', {'query':paths})
+                return In('path', paths)
 
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
-        cat = ICatalogTool(self._getObject(uid))
+
+        cat = IModelCatalogTool(self._getObject(uid))
+
         reverse = bool(dir == 'DESC')
         qs = []
         query = None
@@ -177,7 +181,7 @@ class TreeFacade(ZuulFacade):
                 else:
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('ipAddress', str(minip), str(maxip)))
+                        qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
@@ -295,7 +299,7 @@ class TreeFacade(ZuulFacade):
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
                      dir='ASC', params=None):
         # do the catalog search
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = bool(dir == 'DESC')
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)

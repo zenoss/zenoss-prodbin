@@ -32,7 +32,6 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
                                      ipunwrap, getHostByName
 from Products.ZenUtils.productionstate.interfaces import ProdStateNotSetError
-from Products.ZenModel.interfaces import IIndexed
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 # base classes for device
@@ -76,6 +75,8 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.indexable import DeviceIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
@@ -86,6 +87,7 @@ from Products.ZenUtils.Search import (
 )
 
 DEFAULT_PRODSTATE = 1000
+
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -196,18 +198,18 @@ addDevice = DTMLFile('dtml/addDevice',globals())
 class NoNetMask(Exception): pass
 
 class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
-             AdministrativeRoleable, ZenMenuable):
+             AdministrativeRoleable, ZenMenuable, DeviceIndexable):
     """
     Device is a base class that represents the idea of a single computer system
     that is made up of software running on hardware. It currently must be IP
     enabled but maybe this will change.
     """
 
-    implements(IEventView, IIndexed, IGloballyIdentifiable)
+    implements(IEventView, IGloballyIdentifiable)
 
     event_key = portal_type = meta_type = 'Device'
 
-    default_catalog = "deviceSearch" #device ZCatalog
+    default_catalog = ""
 
     relationshipManagerPathRestriction = '/Devices'
     title = ""
@@ -554,6 +556,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         # otherwise it will not appear in the list of components.
         if len(self.componentSearch):
             self.componentSearch()[0].getObject().index_object()
+
+    def getDeviceComponents_from_model_catalog(self, monitored=None, collector=None, type=None):
+        """
+        Return list of all DeviceComponents on this device extracted from model catalog. not used for now
+
+        @type monitored: boolean
+        @type collector: string
+        @type type: string
+        @permission: ZEN_VIEW
+        @rtype: list
+        """
+        query = {"objectImplements": "Products.ZenModel.DeviceComponent.DeviceComponent"}
+        if collector is not None:
+            query['collectors'] = collector
+        if monitored is not None:
+            query['monitored'] = monitored
+        if type is not None:
+            query['meta_type'] = type
+
+        cat = IModelCatalogTool(self)
+        search_results = cat.search(query=query)
+        results = []
+        if search_results.total > 0:
+            results = [ brain.getObject() for brain in search_results.results ]
+        return results
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
@@ -954,7 +981,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             else:
                 self.manageIp = ip
-                self.index_object(idxs=('getDeviceIp',), noips=True)
                 notify(IndexingEvent(self, ('ipAddress',), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
@@ -1185,7 +1211,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.setPerformanceMonitor(kwargs["performanceMonitor"])
 
         self.setLastChange()
-        self.index_object()
         notify(IndexingEvent(self))
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_editDevice')
@@ -1240,7 +1265,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Changes the title to newTitle and reindexes the object
         """
         super(Device, self).setTitle(newTitle)
-        self.index_object()
         notify(IndexingEvent(self, ('name',), True))
 
     def monitorDevice(self):
@@ -1503,7 +1527,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
             self.addRelation("location", locobj)
         self.setAdminLocalRoles()
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
         if REQUEST:
             action = 'SetLocation' if locationPath else 'RemoveFromLocation'
@@ -1550,7 +1573,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
         self.setLastChange()
-        self.index_object()
         notify(IndexingEvent(self))
 
         if REQUEST:
@@ -1572,7 +1594,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Groups").createOrganizer
         self._setRelations("groups", objGetter, groupPaths)
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
 
 
@@ -1605,7 +1626,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Systems").createOrganizer
         self._setRelations("systems", objGetter, systemPaths)
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
 
 
@@ -1917,34 +1937,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
         """
-        Override so ips get indexed on move.
+        Override so ips get indexed on move.  DEPRECATED
         """
-        super(Device, self).index_object(idxs)
-        if noips: return
-        for iface in self.os.interfaces():
-            for ip in iface.ipaddresses():
-                ip.index_object()
-
+        pass
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'unindex_object')
     def unindex_object(self):
         """
-        Override so ips get unindexed as well.
+        Override so ips get unindexed as well.  DEPRECATED
         """
-        self.unindex_ips()
-        super(Device, self).unindex_object()
-
-
-    security.declareProtected(ZEN_CHANGE_DEVICE, 'unindex_ips')
-    def unindex_ips(self):
-        """
-        IpAddresses aren't contained underneath Device, so manage_beforeDelete
-        won't propagate. Thus we must remove those links explicitly.
-        """
-        cat = self.dmd.ZenLinkManager._getCatalog(layer=3)
-        brains = cat(deviceId=self.id)
-        for brain in brains:
-            brain.getObject().unindex_links()
+        pass
 
     def getUserCommandTargets(self):
         """

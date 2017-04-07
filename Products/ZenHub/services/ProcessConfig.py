@@ -21,7 +21,7 @@ from Products.ZenEvents import Event
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenHub.zodb import onUpdate
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 unused(DeviceProxy)
 
 from twisted.spread import pb
@@ -166,7 +166,7 @@ class ProcessConfig(CollectorConfigService):
 
     @onUpdate(OSProcessOrganizer)
     def processOrganizerUpdated(self, object, event):
-        catalog = ICatalogTool(object.primaryAq())
+        catalog = IModelCatalogTool(object.primaryAq())
         results = catalog.search(OSProcessClass)
         if not results.total:
             return

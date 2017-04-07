@@ -12,14 +12,14 @@ from itertools import izip, count, imap
 from zope.event import notify
 from Acquisition import aq_parent
 from zope.interface import implements
-from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IProcessFacade, ITreeFacade
 from Products.Zuul.utils import unbrain
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.tree import SearchResults
 from zope.container.contained import ObjectMovedEvent
 from Products.ZenModel.OSProcessMatcher import OSProcessClassDataMatcher 
@@ -69,7 +69,7 @@ class ProcessFacade(TreeFacade):
 
         # reindex all the devices and processes underneath this guy and the target
         for org in (obj.getPrimaryParent().getPrimaryParent(), target):
-            catalog = ICatalogTool(org)
+            catalog = IModelCatalogTool(org)
             brainsCollection.append(catalog.search(OSProcess))
 
         if isinstance(obj, OSProcessClass):
@@ -88,7 +88,6 @@ class ProcessFacade(TreeFacade):
             objs = imap(unbrain, brains)
             for item in objs:
                 notify(ObjectMovedEvent(item, item.os(), item.id, item.os(), item.id))
-
 
         return newObj.getPrimaryPath()
 
@@ -195,17 +194,11 @@ class ProcessFacade(TreeFacade):
     def _processSearch(self, limit=None, start=None, sort='name', dir='ASC',
               params=None, uid=None, criteria=()):
         ob = self._getObject(uid) if isinstance(uid, basestring) else uid
-        cat = ICatalogTool(ob)
-
+        cat = IModelCatalogTool(ob)
+        query = {}
+        if params and params.get('name'):
+            query['name'] = "*{0}*".format(params.get('name'))
         reverse = dir=='DESC'
-        qs = []
-        query = None
-        if params:
-            if 'name' in params:
-                qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
-        if qs:
-            query = And(*qs)
-
         return cat.search("Products.ZenModel.OSProcessClass.OSProcessClass",
                           start=start, limit=limit, orderby=sort,
                           reverse=reverse, query=query)

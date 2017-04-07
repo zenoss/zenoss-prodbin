@@ -10,7 +10,7 @@
 import logging
 
 from Products.ZenUtils import Time
-from Products.Zuul.interfaces.tree import  ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.AdvancedQuery import MatchGlob, And
 
 log = logging.getLogger("zen.Utilization")
@@ -56,7 +56,7 @@ def filteredDevices(context, args, *types):
 
     query = And(*filter) if filter else None
 
-    results = ICatalogTool(context).search(types, paths=organizer,
+    results = IModelCatalogTool(context).search(types, paths=organizer,
         query=query)
 
     for brain in results:
