@@ -57,7 +57,7 @@ class addReportingZopesSvcDef(Migrate.Step):
                         content = zopeconf.content.replace('9080', '9290')
                     ))
         # Remove the zope Endpoints entry, add one for zenreports
-        zenreports_svc.endpoints = filter(lambda x: x.name != "zope", svc.endpoints)
+        zenreports_svc.endpoints = filter(lambda x: x.name != "zope", zenreports_svc.endpoints)
         zenreports_svc.endpoints.append(sm.Endpoint(
             name = "zenreports",
             application = "zenreports",
@@ -66,7 +66,7 @@ class addReportingZopesSvcDef(Migrate.Step):
             purpose = "export"
         ))
         # Change the answering.script entry in HealthChecks
-        answering = filter(lambda x: x.name == "answering", zenreports_svc)[0]
+        answering = filter(lambda x: x.name == "answering", zenreports_svc.healthChecks)[0]
         answering.script = answering.script.replace('9080', '9290')
         # Change Instances.default and Instances.min
         zenreports_svc.instanceLimits.minimum = 0
@@ -76,7 +76,7 @@ class addReportingZopesSvcDef(Migrate.Step):
         ctx.services.append(zenreports_svc)
         return True
 
-    def _insert_zenreport_nginx_incls(self, zprox_conf):
+    def _insert_zenreport_nginx_incls(self, zproxy_conf):
         # Insert zenreports upstreams server decl
         zopereports_upstreams_decl = "\n\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }"
         mimetypes_match = re.search(r"include mime.types;\r\n", zproxy_conf.content)
@@ -125,9 +125,9 @@ class addReportingZopesSvcDef(Migrate.Step):
         ))
 
         #Modify zproxy configs for zenreports
-        zproxy_conf_orig = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.originalConfigs)
-        zproxy_conf = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.configFiles)
-        return self._insert_zenreport_nginx_incls(zprox_conf_orig) and self._insert_zenreport_nginx_incls(zprox_conf)
+        zproxy_conf_orig = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.originalConfigs)[0]
+        zproxy_conf = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.configFiles)[0]
+        return self._insert_zenreport_nginx_incls(zproxy_conf_orig) and self._insert_zenreport_nginx_incls(zproxy_conf)
 
     def cutover(self, dmd):
         try:
@@ -139,7 +139,7 @@ class addReportingZopesSvcDef(Migrate.Step):
         did_add_zenreports = self.add_zenreports_svc(ctx)
 
         zproxy = ctx.getTopService()
-        did_update_zproxy_configs = update_zproxy_configs(zproxy)
+        did_update_zproxy_configs = self.update_zproxy_configs(zproxy)
 
         # Commit our changes
         if did_add_zenreports and did_update_zproxy_configs:
