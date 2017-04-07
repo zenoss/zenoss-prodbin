@@ -26,13 +26,13 @@ from ZenMenuable import ZenMenuable
 from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.CMFCore.utils import getToolByName
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenWidgets.interfaces import IMessageSender
 
 from ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD, ZEN_COMMON, ZEN_CHANGE_DEVICE_PRODSTATE
-from Products.ZenUtils.Utils import unused, getObjectsFromCatalog
+from Products.ZenUtils.Utils import unused, getObjectsFromModelCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
 from Products.Jobber.zenmodel import DeviceSetLocalRolesJob
@@ -86,6 +86,17 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
        )
 
+    def _getSubdevices(self, brains=False):
+        """ Helper method to search for devices/devices brains under the current organizer """
+        catalog = IModelCatalogTool(self.dmd.Devices)
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.Device.Device"
+        query["path"] = "{0}*".format("/".join(self.getPhysicalPath()))
+        if not brains:
+            return getObjectsFromModelCatalog(catalog, query, LOG)
+        else:
+            return catalog.search(query=query).results
+
     security.declareProtected(ZEN_COMMON, "getSubDevices")
     def getSubDevices(self, devfilter=None):
         """
@@ -97,32 +108,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         @rtype: list
 
         """
-        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
-
-        if not 'path' in catalog.indexes():
-            LOG.warn('Please run zenmigrate to create device path indexes.')
-            return self.getSubDevices_recursive(devfilter)
-
-        devices = getObjectsFromCatalog(catalog, {
-            'path': "/".join(self.getPhysicalPath())}, LOG)
-        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
-                          devices)
+        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev), self._getSubdevices())
         devices = ifilter(devfilter, devices)
         return list(devices)
 
     security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
     def getSubDevicesGen(self, devfilter=None):
-        """get all the devices under and instance of a DeviceGroup"""
-        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
-
-        if not 'path' in catalog.indexes():
-            LOG.warn('Please run zenmigrate to create device path indexes.')
-            yield self.getSubDevicesGen_recursive(devfilter=None)
-
-        devices = getObjectsFromCatalog(catalog, {
-            'path': "/".join(self.getPhysicalPath())}, LOG)
-        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
-                          devices)
+        """ get all the devices under and instance of a DeviceGroup """
+        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev), self._getSubdevices())
         if devfilter:
             devices = ifilter(devfilter, devices)
         for device in devices:
@@ -431,8 +424,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         threshold = getattr(self.dmd.UserInterfaceSettings, "deviceMoveJobThreshold", 5)
 
         # find out how many devices we have by just looking at the brains
-        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
-        brains = catalog({ 'path' : path})
+        brains = list(self._getSubdevices(brains=True))
 
         if len(brains) > threshold:
             job = self.dmd.JobManager.addJob(

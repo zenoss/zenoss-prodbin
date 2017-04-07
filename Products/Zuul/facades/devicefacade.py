@@ -24,7 +24,8 @@ from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.catalog.component_catalog import get_component_field_spec, pad_numeric_values_for_indexing
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Jobber.jobs import SubprocessJob
 from Products.Zuul.tree import SearchResults
@@ -199,6 +200,19 @@ class DeviceFacade(TreeFacade):
                     r.setWorstEventSeverity(severities[r.uuid])
             return SearchResults(iter(comps), total, hash_, False)
 
+    # Get components from model catalog. Not used for now
+    def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
+        """ """
+        model_catalog = IModelCatalogTool(self.context.dmd)
+        query = {}
+        if meta_type:
+            query["meta_type"] = meta_type
+        query["objectImplements"] = "Products.ZenModel.DeviceComponent.DeviceComponent"
+        query["deviceId"] = uid
+        model_query_results = model_catalog.search(query=query)
+        brains = [ brain for brain in model_query_results.results ]
+        return brains
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
         if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
@@ -302,16 +316,37 @@ class DeviceFacade(TreeFacade):
                 for key, val in record.iteritems():
                     info.setBulkLoadProperty(key, val)
 
-    def getComponentTree(self, uid):
-        from Products.ZenEvents.EventManagerBase import EventManagerBase
+    # Get component types from model catalog. Not used for now
+    def _get_component_types_from_model_catalog(self, uid):
+        """ """
         componentTypes = {}
         uuidMap = {}
+        model_catalog = IModelCatalogTool(self.context.dmd)
+        model_query = Eq('objectImplements', "Products.ZenModel.DeviceComponent.DeviceComponent")
+        model_query = And(model_query, Eq("deviceId", uid))
+        model_query_results = model_catalog.search(query=model_query, fields=["uuid", "meta_type"])
 
+        for brain in model_query_results.results:
+            uuidMap[brain.uuid] = brain.meta_type
+            compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
+            compType['count'] += 1
+        return (componentTypes, uuidMap)
+
+    def _get_component_types_from_zcatalog(self, uid):
+        """ """
+        componentTypes = {}
+        uuidMap = {}
         dev = self._getObject(uid)
         for brain in dev.componentSearch():
             uuidMap[brain.getUUID] = brain.meta_type
             compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
             compType['count'] += 1
+        return (componentTypes, uuidMap)
+
+    def getComponentTree(self, uid):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+
+        componentTypes, uuidMap = self._get_component_types_from_zcatalog(uid)
 
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
@@ -336,7 +371,7 @@ class DeviceFacade(TreeFacade):
         return result
 
     def getDeviceUids(self, uid):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
 
     def deleteComponents(self, uids):
@@ -571,10 +606,11 @@ class DeviceFacade(TreeFacade):
                     return self.context.Devices.findDeviceByIdExact(deviceName)
 
         # find a device with the same ip on the same collector
-        query = Eq('getDeviceIp', ipAddress)
-        cat = self.context.Devices.deviceSearch
-        brains = cat.evalAdvancedQuery(query)
-        for brain in brains:
+        cat = IModelCatalogTool(self.context.Devices)
+        query = Eq('text_ipAddress', ipAddress)
+        search_results = cat.search(query=query)
+
+        for brain in search_results.results:
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
@@ -906,7 +942,7 @@ class DeviceFacade(TreeFacade):
         This clears the geocode cache by reseting the latlong property of
         all locations.
         """
-        results = ICatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
+        results = IModelCatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
         for brain in results:
             try:
                 brain.getObject().latlong = None

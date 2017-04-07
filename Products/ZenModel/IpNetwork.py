@@ -28,6 +28,7 @@ from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.interfaces import IObjectEventsSubscriber
 
 from Products.ZenUtils.IpUtil import *
 from Products.ZenRelations.RelSchema import *
@@ -41,10 +42,16 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
-from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused, zenPath, unpublished
+from Products.ZenUtils.Utils import unused, zenPath, unpublished, edgesToXML
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
+
+from zope.event import notify
+from zope.interface import implements
+
+from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.catalog.indexable import IpNetworkIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
@@ -68,15 +75,17 @@ addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 # into class A->B->C network tree
 defaultNetworkTree = (32,)
 
-class IpNetwork(DeviceOrganizer):
+class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     """IpNetwork object"""
+
+    implements(IObjectEventsSubscriber)
 
     isInTree = True
 
     buildLinks = True
 
     # Index name for IP addresses
-    default_catalog = 'ipSearch'
+    default_catalog = ''
 
     portal_type = meta_type = 'IpNetwork'
 
@@ -275,7 +284,7 @@ class IpNetwork(DeviceOrganizer):
         """
 
         # If we can find the IP in the catalog, use it. This is fast.
-        brains = self.ipSearch(id=ip)
+        brains = self._search_ip_in_catalog(ip)
         path = self.getPrimaryUrlPath()
         for brain in brains:
             bp = brain.getPath()
@@ -297,6 +306,14 @@ class IpNetwork(DeviceOrganizer):
                 else:
                     return net
 
+    def _search_ip_in_catalog(self, ip):
+        """ Return list of brains that match ip """
+        cat = IModelCatalogTool(self.getNetworkRoot())
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.IpAddress.IpAddress"
+        query["id"] = ipwrap(ip)
+        search_result = cat.search(query=query)
+        return [ brain for brain in search_result.results ]
 
     security.declareProtected(ZEN_ADD, 'createIp')
     def createIp(self, ip, netmask=24):
@@ -490,12 +507,11 @@ class IpNetwork(DeviceOrganizer):
     def findIp(self, ip):
         """Find an ipAddress.
         """
-        searchCatalog = self.getNetworkRoot().ipSearch
-        ret = searchCatalog(dict(id=ipwrap(ip)))
-        if not ret: return None
-        if len(ret) > 1:
+        brains = self._search_ip_in_catalog(ip)
+        if not brains: return None
+        if len(brains) > 1:
             raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
-        return ret[0].getObject()
+        return brains[0].getObject()
 
     security.declareProtected(ZEN_MANAGE_DMD, 'buildZProperties')
     def buildZProperties(self):
@@ -513,32 +529,18 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zPreferSnmpNaming", False, type="boolean")
         nets._setProperty("zSnmpStrictDiscovery", False, type="boolean")
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
-        zcat = self._getCatalog()
-        zcat.manage_catalogClear()
         for net in self.getSubNetworks():
             for ip in net.ipaddresses():
-                ip.index_object()
-
+                notify(IndexingEvent(ip))
 
     security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """make the catalog for device searching"""
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-        # XXX convert to ManagableIndex
-        manage_addZCatalog(self, self.default_catalog,
-                            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
-
-        zcat._catalog.addIndex('ipAddressAsInt',  makeCaseSensitiveFieldIndex('ipAddressAsInt'))
-        zcat._catalog.addIndex('path', makeMultiPathIndex('path'))
-
+        # DEPRECATED
+        pass
 
     security.declareProtected(ZEN_ADD, 'discoverNetwork')
     def discoverNetwork(self, REQUEST=None):

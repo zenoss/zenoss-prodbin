@@ -11,7 +11,6 @@
 import logging
 import re
 from zope.interface import implements
-from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.IpServiceClass import IpServiceClass
 from Products.ZenModel.WinServiceClass import WinServiceClass
@@ -20,8 +19,8 @@ from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import unbrain, UncataloguedObjectException
 from Products.Zuul.utils import safe_hasattr
 from Products.Zuul.decorators import info
-from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo, ITreeFacade, IServiceFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.service import ServiceOrganizerNode
 from Acquisition import aq_base, aq_parent
 
@@ -75,30 +74,25 @@ class ServiceFacade(TreeFacade):
         return info
 
     def _serviceSearch(self, limit=None, start=None, sort='name', dir='ASC',
-              params=None, uid=None, criteria=()):
-        cat = ICatalogTool(self._getObject(uid))
+              params=None, uid=None, criteria=(), fields=None):
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
-
-        qs = []
-        query = None
+        query = {}
         if params:
-            if 'name' in params:
-                qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
-            if 'port' in params:
-                qs.append(MatchRegexp('port', '(?i).*%s.*' % params['port']))
-        if qs:
-            query = And(*qs)
+            for param in [ 'name', 'port' ]:
+                if params.get(param):
+                    query[param] = "*{0}*".format(params.get(param))
 
         return cat.search("Products.ZenModel.ServiceClass.ServiceClass",
                           start=start, limit=limit, orderby=sort,
-                          reverse=reverse, query=query)
+                          reverse=reverse, query=query, fields=fields)
 
     def getClassNames(self, uid=None, query=None):
         params = None
         if query:
             params = {'name':query}
         data = []
-        brains = self._serviceSearch(uid=uid, params=params)
+        brains = self._serviceSearch(uid=uid, params=params, fields=["uid", "name"])
         for klass in brains:
             value = klass.getPath().lstrip('/zport/dmd/Services')
             path = re.sub(r'/serviceclasses/.*', r'/', value)+klass.name

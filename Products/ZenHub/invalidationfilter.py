@@ -22,7 +22,7 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.Software import Software
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
 
@@ -73,7 +73,7 @@ class BaseOrganizerFilter(object):
 
     def initialize(self, context):
         root = self.getRoot(context)
-        brains = ICatalogTool(root).search(self._types)
+        brains = IModelCatalogTool(root).search(self._types)
         results = {}
         for brain in brains:
             try:
