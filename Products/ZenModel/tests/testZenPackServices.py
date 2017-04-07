@@ -24,7 +24,7 @@ class _MockControlPlaneClient(object):
         return self
     def __init__(self, services=[], **kwargs):
         self._services = services
-        self._added, self._deleted = [], []
+        self._added, self._deleted, self._stopped = [], [], []
     def queryServices(self, query):
         return self._services
     def deployService(self, parent, service):
@@ -33,12 +33,17 @@ class _MockControlPlaneClient(object):
         self._services.append(_MockService(svcDict['Id'], parent, svcDict['Tags']))
     def deleteService(self, serviceId):
         self._deleted.append(serviceId)
+    def stopService(self, serviceId):
+        self._stopped.append(serviceId)
     @property
     def added(self):
         return self._added
     @property
     def deleted(self):
         return self._deleted
+    @property
+    def stopped(self):
+        return self._stopped
 
 class _MockServiceMigrationContext(object):
     def __call__(self, *args, **kwargs):
@@ -199,13 +204,33 @@ class TestZenpackServices(ZenModelBaseTest):
                 "Tags": ["2"]
             }])
 
+    def testStopNoCurrentServiceId(self):
+        moduleName = "Zenpacks.zenoss.Test"
+        services = _services + [_MockService('me','hub1',[moduleName])]
+        client = _MockControlPlaneClient(services=services)
+        with setControlPlaneClient(client):
+            ZenPack("id").doServiceAction(moduleName, 'stop')
+        self.assertEquals(client.deleted, [])
+
     def testRemoveNoCurrentServiceId(self):
         moduleName = "Zenpacks.zenoss.Test"
         services = _services + [_MockService('me','hub1',[moduleName])]
         client = _MockControlPlaneClient(services=services)
         with setControlPlaneClient(client):
-            ZenPack("id").removeServices(moduleName)
-        self.assertEquals(client.deleted, [])
+            ZenPack("id").doServiceAction(moduleName, 'delete')
+        self.assertEquals(client.deleted, [])      
+
+    def testStopServices(self):
+        tag =  'MyZenPack'
+        services = _services + [
+            _MockService('alpha', 'zenoss', [tag]),
+            _MockService('beta', 'hub1', [tag]),
+        ]
+        expected = ['alpha', 'beta']
+        client = _MockControlPlaneClient(services=services)
+        with setControlPlaneClient(client), setCurrentService('zope'):
+            ZenPack("id").doServiceAction(tag, 'stop')
+        self.assertEquals(sorted(client.stopped), sorted(expected)) 
 
     def testRemoveServices(self):
         tag =  'MyZenPack'
@@ -216,7 +241,7 @@ class TestZenpackServices(ZenModelBaseTest):
         expected = ['alpha', 'beta']
         client = _MockControlPlaneClient(services=services)
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").removeServices(tag)
+            ZenPack("id").doServiceAction(tag, 'delete')
         self.assertEquals(sorted(client.deleted), sorted(expected))
 
     def testInstallFromFiles(self):
@@ -351,6 +376,24 @@ class TestZenpackServices(ZenModelBaseTest):
         self.assertIn("SVC1", [s["Name"] for s in root["Services"]])
         self.assertIn("SVC2", [s["Name"] for s in root["Services"]])
 
+    def testNestedStop(self):
+        tag = 'zp'
+        _services = [
+            _MockService('zenoss', '', []),
+            _MockService('zope', 'zenoss', ['daemon']),
+            _MockService('svc1', 'root', [tag]),
+            _MockService('root', 'zenoss', [tag]),
+            _MockService('svc2', 'root', [tag]),
+        ]
+        client = _MockControlPlaneClient(services=_services)
+        with setControlPlaneClient(client), setCurrentService('zope'):
+            ZenPack("id").doServiceAction(tag, 'stop')
+        expected = ['root', 'svc1', 'svc2']
+        self.assertEquals(sorted(client.stopped), sorted(expected))
+        # Confirm child services stopped before parent
+        self.assertLess(client.stopped.index('svc1'), client.stopped.index('root'))
+        self.assertLess(client.stopped.index('svc2'), client.stopped.index('root'))
+
     def testNestedRemove(self):
         tag = 'zp'
         _services = [
@@ -362,7 +405,7 @@ class TestZenpackServices(ZenModelBaseTest):
         ]
         client = _MockControlPlaneClient(services=_services)
         with setControlPlaneClient(client), setCurrentService('zope'):
-            ZenPack("id").removeServices(tag)
+            ZenPack("id").doServiceAction(tag, 'delete')
         expected = ['root', 'svc1', 'svc2']
         self.assertEquals(sorted(client.deleted), sorted(expected))
         # Confirm child services deleted before parent
