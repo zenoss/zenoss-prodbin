@@ -20,7 +20,7 @@ import re
 
 sm.require("1.1.6")
 
-class addReportingZopesSvcDef(Migrate.Step):
+class AddReportingZopesSvcDef(Migrate.Step):
     """Adds a threshold for missedRuns for collector services"""
 
     version = Migrate.Version(111,0,0)
@@ -145,4 +145,4 @@ class addReportingZopesSvcDef(Migrate.Step):
         if did_add_zenreports and did_update_zproxy_configs:
             ctx.commit()
 
-addReportingZopesSvcDef()
+AddReportingZopesSvcDef()
