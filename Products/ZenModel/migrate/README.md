@@ -114,6 +114,8 @@ Any additional `test_*` functions added to the class will also be discovered and
 
 The service migration tests have also been added to zendev. In the original version of zendev (circa RM 5.0 and 5.1), the tests can be invoked with `zendev test unit Products.ZenModel.migrate`.  In later versions (circa RM 5.2 and higher), the tests can be invokced with `zendev test -- --type=unit --name=Products.ZenModel.migrate -v`
 
+Guidelines for running RM unit-test in general (not just service migrations) is available in the zendev [README](https://github.com/zenoss/zendev/tree/zendev2#testing-with-devimg). 
+
 ### Running a migration manually
 
 Instructions for running a migration manually are available on the engineering site [here](https://sites.google.com/a/zenoss.com/engineering/home/faq/work-with-rm/howtorunzenmigrate).
