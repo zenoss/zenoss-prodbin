@@ -13,7 +13,7 @@
 is_ready()
 {
     status_url=$1
-    timeout 3 curl -w %{http_code} -s -XHEAD ${status_url}
+    timeout 3 curl -A 'Query_answering is_ready' -w %{http_code} -s -XHEAD ${status_url}
 }
 
 http_code=$(is_ready http://localhost:8080/ping/status/performance)
