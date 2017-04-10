@@ -105,6 +105,7 @@ class SnmpClient(BaseClient):
             driver.next()
         except TimeoutError:
             log.info("Device timed out: " + self.connInfo.summary())
+            self._sendStatusEvent('Device timed out '+self.connInfo.summary(), eventKey='zenmodeler_fail',severity=Event.Critical)
             if self.options.discoverCommunity:
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
@@ -125,9 +126,11 @@ class SnmpClient(BaseClient):
                 return
         except Snmpv3Error:
             log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            self._sendStatusEvent('Unable to model using snmp: Cannot connect to SNMP agent '+self.connInfo.summary(), eventKey='zenmodeler_fail',severity=Event.Critical)
             return
         except Exception:
             log.exception("Unable to talk: " + self.connInfo.summary())
+            self._sendStatusEvent('Unable to model using snmp: Exception'+self.connInfo.summary(), eventKey='zenmodeler_fail',severity=Event.Critical)
             return
 
         changed = True
