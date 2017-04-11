@@ -196,7 +196,12 @@ class ManufacturersFacade(TreeFacade):
         """
         edit the information for a given manufacturer
         """
-        manufacturer = self._getObject("/zport/dmd/Manufacturers/"+params['oldname'])
+        # 'oldname' is not in params when this method is called while adding a
+        # new manufacturer. In such case, get an object with params['name']
+        # instead of params['oldname'].
+        manufacturer = self._getObject(
+                "/zport/dmd/Manufacturers/" +
+                params.get('oldname', params['name']))
         manufacturer.url = params['URL']
         manufacturer.supportNumber = params['phone']
         manufacturer.address1 = params['address1']

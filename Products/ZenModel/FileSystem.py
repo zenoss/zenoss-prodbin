@@ -111,10 +111,11 @@ class FileSystem(OSComponent):
 
 
     def getTotalBlocks(self):
+
         offset = getattr(self.primaryAq(), 'zFileSystemSizeOffset', 1.0)
         return int(self.totalBlocks) * offset
 
-
+    
     def totalBytes(self):
         """
         Return the total bytes of a filesytem

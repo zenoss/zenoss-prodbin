@@ -25,6 +25,8 @@ from Products.DataCollector.Plugins import getParserLoader
 from Products.ZenEvents.ZenEventClasses import Error, Clear, Cmd_Fail
 from Products.ZenModel.OSProcess import OSProcess
 
+from inspect import getargspec
+
 _ZCOMMAND_USERNAME_NOT_SET = 'zCommandUsername is not set so SSH-based commands will not run'
 
 class CommandPerformanceConfig(CollectorConfigService):
@@ -42,16 +44,17 @@ class CommandPerformanceConfig(CollectorConfigService):
         CollectorConfigService.__init__(self, dmd, instance, 
                                         deviceProxyAttributes)
 
+
     # Use case: create a dummy device to act as a placeholder to execute commands
     #           So don't filter out devices that don't have IP addresses.
 
-    def _getDsDatapoints(self, comp, ds, ploader, perfServer):
+    def _getDsDatapoints(self, device, comp, ds, ploader, perfServer):
         """
         Given a component a data source, gather its data points
         """
         parser = ploader.create()
         points = []          
-        component_name = ds.getComponent(comp)
+        component_name = ds.getComponent(comp, device=device)
         for dp in ds.getRRDDataPoints():
             dpc = DataPointConfig()
             dpc.id = dp.id
@@ -62,7 +65,7 @@ class CommandPerformanceConfig(CollectorConfigService):
             dpc.rrdMin = dp.rrdmin
             dpc.rrdMax = dp.rrdmax
             dpc.data = parser.dataForParser(comp, dp)
-            dpc.metadata = comp.getMetricMetadata()
+            dpc.metadata = comp.getMetricMetadata(device)
             points.append(dpc)
 
         return points
@@ -130,13 +133,13 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.useSsh = useSsh
                 cmd.name = "%s/%s" % (templ.id, ds.id)
                 cmd.cycleTime = self._getDsCycleTime(comp, templ, ds)
-                cmd.component = ds.getComponent(comp)
+                cmd.component = ds.getComponent(comp, device=device)
                 cmd.eventClass = ds.eventClass
                 cmd.eventKey = ds.eventKey or ds.id
                 cmd.severity = ds.severity
                 cmd.parser = ploader
                 cmd.ds = ds.titleOrId()
-                cmd.points = self._getDsDatapoints(comp, ds, ploader, perfServer)
+                cmd.points = self._getDsDatapoints(device, comp, ds, ploader, perfServer)
 
                 if isinstance(comp, OSProcess):
                     # save off the regex's specified in the UI to later run
@@ -154,7 +157,15 @@ class CommandPerformanceConfig(CollectorConfigService):
                 cmd.env = getattr(ds, 'env', None)
 
                 try:
-                    cmd.command = ds.getCommand(comp)
+                    # Since 5.2.3 (ZEN-26606) we pass the device to avoid calling
+                    # device() on the component all the time. This can break some
+                    # zenpacks (ZEN-27076). To avoid having to update a bunch of zps
+                    # we use inpect to figure out if the method accepts the device
+                    # as argument
+                    if "device" in getargspec(ds.getCommand).args:
+                        cmd.command = ds.getCommand(comp, device=device)
+                    else:
+                        cmd.command = ds.getCommand(comp)
                 except Exception as ex: # TALES error
                     msg = "TALES error for device %s datasource %s" % (
                                device.id, ds.id)

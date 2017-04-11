@@ -757,9 +757,14 @@ class TransformAndReidentPipe(EventProcessorPipe):
             if eventContext.eventProxy.component != original_component:
                 eventContext.setComponentObject(None)
 
+            original_prodState = eventContext.eventProxy.prodState
+
             # rerun any pipes necessary to reidentify event
             for pipe in self.reidentpipes:
                 eventContext = pipe(eventContext)
+
+            if not eventContext.eventProxy.prodState:
+                eventContext.eventProxy.prodState = original_prodState
 
         return eventContext
 
@@ -797,10 +802,16 @@ class TransformPipe(EventProcessorPipe):
 
     def __call__(self, eventContext):
         eventContext.log.debug('Mapping and Transforming event')
-        apply_transforms = getattr(eventContext.event, 'apply_transforms', True)
-        if not apply_transforms:
-            eventContext.log.debug('Not applying transforms, regexes or zProperties because apply_transforms was false')
         evtclass = self._manager.lookupEventClass(eventContext)
+        transform_enabled = evtclass.transformEnabled
+        if transform_enabled:
+            apply_transforms = getattr(eventContext.event, 'apply_transforms', True)
+            if not apply_transforms:
+                eventContext.log.debug('Not applying transforms, regexes or zProperties because apply_transforms'
+                                       ' was false')
+        else:
+            eventContext.log.debug('Not applying transforms, transformEnabled is set to False.')
+            apply_transforms = False
         if evtclass:
             self._tagEventClasses(eventContext, evtclass)
 
