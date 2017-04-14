@@ -91,7 +91,7 @@ class ReportFacade(TreeFacade):
         graphs = []
         for graphDef in obj.getDefaultGraphDefs():
             if  graphDef['separateGraphs']:
-                info = getMultiAdapter((graphDef['graphDef'], graphDef['context']), IMetricServiceGraphDefinition)
+                info = getMultiAdapter((graphDef['graphDef'], graphDef['context'], graphDef['collection']), IMetricServiceGraphDefinition)
             else:
                 # specialized adapter for combined graph groups
                 info = MultiContextMetricServiceGraphDefinition(graphDef['graphDef'], graphDef['context'])
