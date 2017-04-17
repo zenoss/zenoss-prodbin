@@ -18793,15 +18793,13 @@
        "Content": "\u003cmysql\u003e\n    host    {{getContext . \"global.conf.zodb-host\"}}\n    port    {{getContext . \"global.conf.zodb-port\"}}\n    user    {{getContext . \"global.conf.zodb-user\"}}\n    passwd  {{getContext . \"global.conf.zodb-password\"}}\n    db      zodb_session\n\u003c/mysql\u003e\n"
      }
    },
-   "Instances": 1,
    "InstanceLimits": {
      "Min": 1,
      "Max": 0,
      "Default": 1
    },
    "ChangeOptions": null,
-   "ImageID": "enhp62t9jpbyk00ioj8wyfdmz/devimg:latest",
-   "PoolID": "default",
+   "ImageID": "18uq2marth4xinbw4iezt5tad/resmgr_5.1:latest",
    "DesiredState": 1,
    "CurrentState": "started",
    "HostPolicy": "",

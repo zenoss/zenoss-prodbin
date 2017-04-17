@@ -118,6 +118,14 @@ class AddReportingZopesSvcDef(Migrate.Step):
         commit = False
 
         did_add_zenreports = self._add_zenreports_service(ctx)
+        if did_add_zenreports:
+            try:
+                zope_svc = filter(lambda x: x.name == "Zope", ctx.services)[0]
+                zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)[0]
+                zenreports_svc.imageID = zope_svc.imageID
+            except:
+                log.error("Error updating zenreports service")
+
         zproxy = ctx.getTopService()
         did_update_zproxy = self.update_zproxy_configs(zproxy)
         commit = did_add_zenreports and did_update_zproxy
