@@ -27,6 +27,7 @@ class ExportGraph(BrowserView):
         end = self.request.form.get('end', "Unknown")
         uid = self.request.form.get('uid', None)
         plots = self.request.form.get('plots')
+        units = 'Units: {0}'.format(self.request.form.get('units'))
         # come up with the title
         if uid:
             obj = self.context.unrestrictedTraverse(uid)
@@ -53,7 +54,7 @@ class ExportGraph(BrowserView):
         # write the device information
 
         # construct the labels, Time will always be first
-        labels = ['Time'] + [p['key'] for p in plots]
+        labels = ['Time'] + [p['key'] for p in plots] + [units]
 
         # timestamps is a dictionary of values indexed by the time. This is to
         # make sure we have a row for every unique timestamp in our csv, even if
@@ -66,7 +67,7 @@ class ExportGraph(BrowserView):
                 if not timestamps.get(time):
                     timestamps[time] = dict()
                 timestamps[time][p['key']] = value['y']
-        ordered_timestamps = OrderedDict(sorted(timestamps.items()))
+        ordered_timestamps = OrderedDict(sorted(timestamps.items(), reverse=True))
 
         # writeExportRows works best with a dictionary of
         # data will looks something like this [{u'15 Minute': 0.72, u'5 Minute': 0.8, u'1 Minute': 0.88, 'Time': '2013/10/04 13:43:20.000'}, ...]
