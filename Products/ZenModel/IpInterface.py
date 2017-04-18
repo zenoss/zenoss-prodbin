@@ -287,7 +287,9 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         networks = self.device().getNetworkRoot()
         ip, netmask = self._prepIp(ip, netmask)
         #see if ip exists already and link it to interface
-        ipobj = networks.findIp(ip)
+        if not netmask:
+            netmask = get_default_netmask(ip)
+        ipobj = networks.findIp(ip, netmask)
         if ipobj:
             dev = ipobj.device()
             if dev and dev != self.device():
