@@ -36,16 +36,19 @@ def indexAfterAddOrMove(ob, event):
 def onBeforeObjectDeleted(ob, event):
     """ Subscriber for IObjectEventsSubscriber + IObjectWillBeMovedEvent """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        ob.before_object_deleted_handler()
+        if hasattr(ob, "before_object_deleted_handler"):
+            ob.before_object_deleted_handler()
 
 
 def onAfterObjectAddedOrMoved(ob, event):
     """ Subscriber for IObjectEventsSubscriber + IObjectMovedEvent """
     if not IObjectRemovedEvent.providedBy(event):
-        ob.after_object_added_or_moved_handler()
+        if hasattr(ob, "before_object_deleted_handler"):
+            ob.before_object_deleted_handler()
 
 
 def onObjectAdded(ob, event):
     """ """
-    ob.object_added_handler()
+    if hasattr(ob, "object_added_handler"):
+        ob.object_added_handler()
 
