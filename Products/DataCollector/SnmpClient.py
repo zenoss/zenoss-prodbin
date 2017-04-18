@@ -112,7 +112,7 @@ class SnmpClient(BaseClient):
                     log.error(
                         'Failed to rediscover the SNMP connection info for %s',
                         self.device.manageIp)
-                    return
+                    raise
                 if snmp_config.version:
                     self.connInfo.zSnmpVer = snmp_config.version
                 if snmp_config.port:
@@ -122,13 +122,13 @@ class SnmpClient(BaseClient):
                 self.connInfo.changed = True
                 self.initSnmpProxy()
             else:
-                return
+                raise
         except Snmpv3Error:
             log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
-            return
+            raise
         except Exception:
             log.exception("Unable to talk: " + self.connInfo.summary())
-            return
+            raise
 
         changed = True
         # FIXME: cleanup --force option #2660
@@ -237,11 +237,13 @@ class SnmpClient(BaseClient):
                             "your SNMP settings correct?", self.hostname)
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
-                self._sendStatusEvent(summary, eventKey='agent_down')
             elif isinstance(result.value, Snmpv3Error):
                 log.error("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                summary = "SNMP v3 specific error during SNMP collection"
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)
+                summary = "Exception during SNMP collection"
+            self._sendStatusEvent(summary, eventKey='agent_down')
         else:
             self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
         try:
