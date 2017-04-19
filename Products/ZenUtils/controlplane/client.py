@@ -201,7 +201,7 @@ class ControlPlaneClient(object):
 
         :param string ServiceId: The service to stop
         """
-        LOG.info("Stopping service '%s", serviceId)
+        LOG.info("Stopping service %s", serviceId)
         response = self._dorequest("/services/%s/stopService" % serviceId,
                                    method='PUT')
         body = ''.join(response.readlines())
