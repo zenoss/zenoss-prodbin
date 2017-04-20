@@ -344,6 +344,7 @@
                     fields:Zenoss.model.BASE_TREE_FIELDS.concat(config.extraFields || [])
                 });
                 config.store = new Ext.create('Ext.data.TreeStore', {
+                    clearOnLoad: false,
                     model:modelId,
                     nodeParam:'uid',
                     defaultRootId:root.uid,
@@ -833,13 +834,19 @@
             return orgPieces[3] === targetPieces[3];
         },
         refresh:function (callback, scope) {
+            // Disable “Loading…” mask during the request
+            this.view.loadMask.disabled = true;
             this.getStore().load({
                 scope:this,
-                callback:function () {
-                    this.getRootNode().expand();
-                    Ext.callback(callback, scope || this);
-                    if (this.getRootNode().childNodes.length) {
-                        this.getRootNode().childNodes[0].expand();
+                callback:function (records, opts, success) {
+                    if (success) {
+                        var childNodes = opts.response.result[0];
+                        // Remove old records and update root node with the fresh data
+                        this.getRootNode().removeAll();
+                        this.getRootNode().appendChild(childNodes);
+                        if (this.getRootNode().childNodes.length) {
+                            this.getRootNode().childNodes[0].expand();
+                        }
                     }
                 }
             });
