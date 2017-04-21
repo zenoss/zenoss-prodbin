@@ -602,7 +602,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
             this.doLoadComponentTree(Zenoss.env.componentTree);
             delete Zenoss.env.componentTree;
         } else {
-            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
+            Zenoss.remote.DeviceRouter.getComponentTree({uid: UID}, this.doLoadComponentTree, this);
+        }
     },
     filterNav: function(navpanel, config){
         //nav items to be excluded
