@@ -81,6 +81,12 @@ class ModelCatalogHelper(object):
         query = Eq("objectImplements", "Products.ZenModel.Device.Device")
         return self._search(query, return_paths)
 
+    def get_device_components(self, device, return_paths=True):
+        query = []
+        query.append(Eq("objectImplements", "Products.ZenModel.DeviceComponent.DeviceComponent"))
+        query.append(Eq("deviceId", "/".join(device.getPrimaryPath())))
+        return self._search(And(*query), return_paths)
+
 
 
 

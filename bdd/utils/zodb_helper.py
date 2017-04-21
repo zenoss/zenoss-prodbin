@@ -1,4 +1,8 @@
 
+from transaction import commit
+
+from Products.ZenModel.ZDeviceLoader import JobDeviceLoader
+from Products.ZenHub.services.ModelerService import ModelerService
 
 class ZodbHelper(object):
     """
@@ -128,10 +132,17 @@ class ZodbHelper(object):
             devices = [ self.ppath(d) for d in devices ]
         return devices
 
+    def create_device_from_maps(self, ip, device_class, maps):
+        device = JobDeviceLoader(self.dmd).load_device(ip, device_class, 'none', 'localhost', manageIp=ip)
+        commit()
+        ms = ModelerService(self.dmd, "localhost")
+        for m in maps:
+            ms.remote_applyDataMaps(ip, m, devclass=device_class)
+        return device
 
-
-
-
+    def get_device_components(self, device, return_paths=True):
+        component_brains = device.componentSearch()
+        return [ b.getPath() if return_paths else b.getObject() for b in component_brains  ]
 
 
 
