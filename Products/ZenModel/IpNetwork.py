@@ -298,10 +298,12 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     #----------------------------------------------------------
 
     def before_object_deleted_handler(self):
-        self.get_network_cache().delete_net_obj(self)
+        if not self.id.endswith("Networks"):
+            self.get_network_cache().delete_net_obj(self)
 
     def after_object_added_or_moved_handler(self):
-        self.get_network_cache().add_net(self)
+        if not self.id.endswith("Networks"):
+            self.get_network_cache().add_net(self)
 
     def object_added_handler(self):
         pass
