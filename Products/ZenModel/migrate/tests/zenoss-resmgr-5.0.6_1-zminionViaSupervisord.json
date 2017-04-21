@@ -6010,9 +6010,9 @@
      "DisableImage": false,
      "LogConfigs": [
        {
-         "path": "/opt/zenoss/log/zminion.log",
-         "type": "zminion",
-         "filters": [],
+         "Path": "/opt/zenoss/log/zminion.log",
+         "Type": "zminion",
+         "Filters": [],
          "LogTags": []
        }
      ],
