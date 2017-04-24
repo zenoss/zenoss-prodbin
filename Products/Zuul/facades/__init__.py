@@ -280,7 +280,7 @@ class TreeFacade(ZuulFacade):
         if not brains:
             return SearchResults([], 0, [])
 
-        devices = list(imap(IInfo, imap(unbrain, brains)))
+        devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
