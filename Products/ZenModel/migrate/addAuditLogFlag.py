@@ -33,7 +33,8 @@ class AddAuditLogFlag(Migrate.Step):
                 continue
 
             for config in service.logConfigs:
-                if config.path == "/opt/zenoss/log/audit.log":
+                if config.path == "/opt/zenoss/log/audit.log" and \
+                   not config.isAudit:
                     config.isAudit = True
                     changed = True
 
