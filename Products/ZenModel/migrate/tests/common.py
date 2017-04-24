@@ -11,6 +11,8 @@ from itertools import chain
 import Globals
 from servicemigration import context, service
 
+import logging
+log = logging.getLogger("zen.migrate")
 
 def fakeContextFromFile(jsonfile):
     jsonfile = os.path.join(os.path.dirname(__file__), jsonfile)
@@ -97,6 +99,7 @@ def compare(this, that, path=None):
             return False, path, compare.Diff(this, that)
         if any ('\n' in i for i in (this, that)):
             diff = difflib.unified_diff(this.split('\n'), that.split('\n'))
+            log.info("NO I FAILED HERE!!!")
             return False, path, diff
         else:
             return False, path, compare.Diff(this, that)
@@ -106,6 +109,7 @@ def compare(this, that, path=None):
     for i, (a, b) in iab:
         r, p, n = compare(a, b, path + [i])
         if not r:
+            log.info("HERE!!!")
             return False, p, n
     return True, None, None
 compare.Diff = namedtuple('Diff', ['actual', 'expected'])

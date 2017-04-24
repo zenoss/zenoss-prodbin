@@ -50,8 +50,8 @@ class AddReportingZopesSvcDef(Migrate.Step):
         return commit
 
     def insertUpstreamDecl(self, matchObj):
-        zenreports_upstreams_decl = "\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
-        return "{}{}".format(matchObj.group(0), zenreports_upstreams_decl)
+        zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }"
+        return matchObj.group(0)+ '\n' + zenreports_upstreams_decl
 
     def insertProxyDecl(self, matchObj):
         zenreports_proxy_incl = "\n        include zopereports-proxy.conf;\n\n"
@@ -59,14 +59,17 @@ class AddReportingZopesSvcDef(Migrate.Step):
 
     def _insert_zenreport_nginx_incls(self, zproxy_conf):
         # Insert zenreports upstreams server decl
-        zenreports_upstreams_decl = "\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
+        zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
         if re.search(zenreports_upstreams_decl, zproxy_conf.content) is not None:
             return False
-        zenreports_proxy_incl = "\n        include zopereports-proxy.conf;\n\n"
+        zenreports_proxy_incl = "\r\n        include zopereports-proxy.conf;\n\n"
         if re.search(zenreports_proxy_incl, zproxy_conf.content) is not None:
             return False
-        zproxy_conf.content = re.sub(r'(include mime.types;\r\n)', self.insertUpstreamDecl, zproxy_conf.content)
-        zproxy_conf.content = re.sub(r'        location / {', self.insertProxyDecl, zproxy_conf.content)
+        zproxy_conf_a = re.sub('include mime.types;', self.insertUpstreamDecl, zproxy_conf.content)
+        zproxy_conf_b = re.sub(r'        location / {', self.insertProxyDecl, zproxy_conf_a)
+        zproxy_conf.content = zproxy_conf_b
+        if re.search(zenreports_proxy_incl, zproxy_conf.content) is None:
+            log.info("!!! Include for zenreports proxy is not present!")
         return True
 
     def update_zproxy_configs(self, zproxy):

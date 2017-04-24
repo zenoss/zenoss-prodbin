@@ -5,7 +5,7 @@
    "Version": "",
    "Context": null,
    "Environment": null,
-   "Startup": "su - zenoss -c \"CONFIG_FILE=${ZENHOME:-/opt/zenoss}/etc/zenreports.conf /opt/zenoss/bin/runzope\" ",
+   "Command": "su - zenoss -c \"CONFIG_FILE=${ZENHOME:-/opt/zenoss}/etc/zenreports.conf /opt/zenoss/bin/runzope\" ",
    "Description": "Zope server dedicated to report generation",
    "Tags": [
      "daemon"
