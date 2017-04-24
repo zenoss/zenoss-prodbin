@@ -38,14 +38,64 @@ class AddReportingZopesSvcDef(Migrate.Step):
             log.info("The zenreports service already exists. Skipping this migration step.")
             return False
 
-        jsonfile = os.path.join(os.path.dirname(__file__), "zenreports-service.json")
-        with open(jsonfile) as zenreports_svcdef:
-            try:
-                user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
-                ctx.deployService(zenreports_svcdef.read(), user_interface_svc)
-                commit = True
-            except:
-                log.error("Error deploying zenreports service definition")
+        #jsonfile = os.path.join(os.path.dirname(__file__), "zenreports-service.json")
+        #with open(jsonfile) as zenreports_svcdef:
+        #    try:
+        #        user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
+        #        ctx.deployService(zenreports_svcdef.read(), user_interface_svc)
+        #        commit = True
+        #    except:
+        #        log.error("Error deploying zenreports service definition")
+
+        # zenreports is a clone of Zope dedicated to generating resmgr reports
+        zopesvc = filter(lambda x: x.name == "Zope" and x.description == "Zope server", ctx.services)[0]
+        zenreports_svc = zopesvc.clone()
+
+        # Change the name
+        zenreports_svc.name = "zenreports"
+        # Change the description
+        zenreports_svc.description = "Zope server dedicated to report generation"
+        # Change the StartupCommand
+        zenreports_svc.startup = "su - zenoss -c \"CONFIG_FILE=${ZENHOME:-/opt/zenoss}/etc/zenreports.conf /opt/zenoss/bin/runzope\" "
+        # Remove the Commands
+        zenreports_svc.commands = []
+        # Change the ConfigFiles
+        zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", zenreports_svc.originalConfigs)[0]
+        zenreports_svc.originalConfigs = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.originalConfigs)
+        zenreports_svc.originalConfigs.append(sm.ConfigFile(
+                        name = "/opt/zenoss/etc/zenreports.conf",
+                        filename = "/opt/zenoss/etc/zenreports.conf",
+                        owner = "zenoss:zenoss",
+                        permissions = "660",
+                        content = zopeconf.content.replace('9080', '9290')
+                    ))
+        zenreports_svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.configFiles)
+        zenreports_svc.configFiles.append(sm.ConfigFile(
+                        name = "/opt/zenoss/etc/zenreports.conf",
+                        filename = "/opt/zenoss/etc/zenreports.conf",
+                        owner = "zenoss:zenoss",
+                        permissions = "660",
+                        content = zopeconf.content.replace('9080', '9290')
+                    ))
+        # Remove the zope Endpoints entry, add one for zenreports
+        zenreports_svc.endpoints = filter(lambda x: x.name != "zope", zenreports_svc.endpoints)
+        zenreports_svc.endpoints.append(sm.Endpoint(
+            name = "zenreports",
+            application = "zenreports",
+            portnumber = 9290,
+            protocol = "tcp",
+            purpose = "export"
+        ))
+        # Change the answering.script entry in HealthChecks
+        answering = filter(lambda x: x.name == "answering", zenreports_svc.healthChecks)[0]
+        answering.script = answering.script.replace('9080', '9290')
+        # Change Instances.default and Instances.min
+        zenreports_svc.instanceLimits.minimum = 0
+        zenreports_svc.instanceLimits.default = 1
+        zenreports_svc.instances = 1
+
+        # Add the zenreports service
+        ctx.services.append(zenreports_svc)
 
         return commit
 
