@@ -280,7 +280,8 @@ class TreeFacade(ZuulFacade):
         if not brains:
             return SearchResults([], 0, [])
 
-        devices = list(imap(IInfo, imap(unbrain, brains)))
+        devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
+
         if isinstance(params, dict):
             statuses = params.pop('status', None)
             # Don't filter if we want to see devices with all statuses UP, DOWN and UNKNOWN what is set by default

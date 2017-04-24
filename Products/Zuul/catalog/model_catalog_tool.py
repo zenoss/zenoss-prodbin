@@ -1,3 +1,11 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
 
 
 import logging
@@ -5,6 +13,7 @@ import re
 from itertools import islice
 
 from interfaces import IModelCatalog, IModelCatalogTool
+from model_catalog_tool_helper import ModelCatalogToolHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 
 from Products.ZenUtils.NaturalSort import natural_compare
@@ -32,6 +41,7 @@ class ModelCatalogTool(object):
         self.context = context
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
         self.uid_field_name = UID
+        self.helper = ModelCatalogToolHelper(self)
 
     def _parse_user_query(self, query):
         """

@@ -1,3 +1,12 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 
 from behave import given, when, then
 
@@ -30,6 +39,9 @@ def step_impl(context, object_type):
     if object_type == "components":
         components = catalog_helper.get_device_components(context.device)
         context.indexed_device_components = components
+    elif object_type == "mac addresses":
+        device_macs = catalog_helper.get_device_macs(context.device)
+        context.indexed_macs = device_macs
     else:
         raise NotImplementedError
 
@@ -42,6 +54,9 @@ def step_impl(context, object_type):
     if object_type == "components":
         device_components = zodb_helper.get_device_components(context.device)
         assert set(device_components) == set(context.indexed_device_components)
+    elif object_type == "mac addresses":
+        device_macs = zodb_helper.get_device_macs(context.device)
+        assert set(device_macs) == set(context.indexed_macs)
     else:
         raise NotImplementedError
 

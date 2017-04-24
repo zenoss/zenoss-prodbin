@@ -1,8 +1,21 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 
 from transaction import commit
 
 from Products.ZenModel.ZDeviceLoader import JobDeviceLoader
 from Products.ZenHub.services.ModelerService import ModelerService
+from Products.Zuul.utils import unbrain
+
+from itertools import imap
+
 
 class ZodbHelper(object):
     """
@@ -141,9 +154,13 @@ class ZodbHelper(object):
         return device
 
     def get_device_components(self, device, return_paths=True):
+        # use the component catalog since it wont be removed
         component_brains = device.componentSearch()
         return [ b.getPath() if return_paths else b.getObject() for b in component_brains  ]
 
-
+    def get_device_macs(self, device):
+        component_brains = device.componentSearch(meta_type="IpInterface")
+        macs = [ obj.macaddress for obj in imap(unbrain, component_brains) if obj.macaddress ]
+        return macs
 
 
