@@ -8,4 +8,4 @@
 #
 ##############################################################################
 
-curl -s http://localhost:8085/zencatalogservice/api/1.0/catalog/acceptingRequests | grep -q True
+curl -A 'CatalogService_answering Healthcheck' -s http://localhost:8085/zencatalogservice/api/1.0/catalog/acceptingRequests | grep -q True
