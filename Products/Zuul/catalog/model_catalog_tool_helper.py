@@ -99,9 +99,9 @@ class ModelCatalogToolHelper(object):
         str_types = [ "Products.ZenModel.IpInterface.IpInterface" ]
         return self._get_device_components(device, str_types, *args, **kwargs)
 
-    def search_mac(self, mac_address, fields=None):
+    def search_mac(self, mac_address):
         queries = []
         queries.append(Eq("objectImplements", "Products.ZenModel.IpInterface.IpInterface"))
         queries.append(Eq("macaddress", mac_address))
-        return self.model_catalog.search(query=And(*queries), fields=fields)
+        return self.model_catalog.search(query=And(*queries))
 

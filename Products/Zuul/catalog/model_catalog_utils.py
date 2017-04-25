@@ -12,7 +12,9 @@ import Globals
 
 import argparse
 import zope.component
+from zope.event import notify
 
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.model_catalog import get_solr_config
 from zenoss.modelindex.model_index import SearchParams
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID, ZENOSS_MODEL_COLLECTION_NAME
@@ -20,29 +22,39 @@ from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID, ZENOSS_MODEL_
 
 class ModelCatalogUtils(object):
 
-    def __init__(self):
+    def __init__(self, dmd=None):
         self.model_index = zope.component.createObject('ModelIndex', get_solr_config())
-        self.dmd = None
+        self.dmd = dmd
 
     def _get_zodb_connection(self):
         print("Connecting to zodb...")
         from Products.ZenUtils.ZenScriptBase import ZenScriptBase
         self.dmd = ZenScriptBase(connect=True).dmd
 
-    def index_by_uid(self, uid):
+    def _get_object(self, uid):
+        obj = None
         if not self.dmd:
             self._get_zodb_connection()
         try:
             obj = self.dmd.unrestrictedTraverse(uid)
         except:
             print "Object not found: {}".format(uid)
-        else:
+        return obj
+
+    def index_by_uid(self, uid):
+        obj = self._get_object(uid)
+        if obj:
             self.model_index.index(obj)
 
     def unindex_by_uid(self, uid):
         query={UID: uid}
         search_params=SearchParams(query=query)
         self.model_index.unindex_search(search_params, collection=ZENOSS_MODEL_COLLECTION_NAME)
+
+    def generate_indexing_event(self, uid):
+        obj = self._get_object(uid)
+        if obj:
+            notify(IndexingEvent(obj))
 
 
 def main(options):
