@@ -133,11 +133,15 @@ class ModelCatalogTool(object):
 
         # Build query for paths
         if paths is not False:   # When paths is False we dont add any path condition
-            context_path = '/'.join(self.context.getPhysicalPath()) + '*'
-            if not paths:
-                paths = (context_path, )
-            elif isinstance(paths, basestring):
-                paths = (paths,)
+            # TODO: Account for depth or get rid of it
+            # TODO: Consider indexing the device's uid as a path
+            context_path = '/'.join(self.context.getPhysicalPath())
+            uid_path_query = In('path', (context_path,)) # MatchGlob(UID, context_path)   # Add the context uid as filter
+            partial_queries.append( uid_path_query )
+            if paths:
+                if isinstance(paths, basestring):
+                    paths = (paths,)
+                partial_queries.append( In('path', paths) )
 
             """  OLD CODE. Why this instead of In?  What do we need depth for?
             q = {'query':paths}
@@ -145,9 +149,6 @@ class ModelCatalogTool(object):
                 q['depth'] = depth
             paths_query = Generic('path', q)
             """
-            paths_query = In('path', paths)
-            uid_path_query = MatchGlob(UID, context_path)   # Add the context uid as filter
-            partial_queries.append( Or(paths_query, uid_path_query) )
 
         # filter based on permissions
         if filterPermissions and allowedRolesAndGroups(self.context):
