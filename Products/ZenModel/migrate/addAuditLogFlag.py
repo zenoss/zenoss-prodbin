@@ -16,7 +16,7 @@ sm.require("1.1.7")
 class AddAuditLogFlag(Migrate.Step):
     """ Add boolean flag to indicate which logs are audit logs."""
 
-    version = Migrate.Version(111, 0, 0)
+    version = Migrate.Version(112, 0, 0)
 
     def cutover(self, dmd):
         log = logging.getLogger("zen.migrate")
