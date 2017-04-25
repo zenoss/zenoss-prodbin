@@ -155,12 +155,17 @@ class TreeFacade(ZuulFacade):
         if self.validRegex(filterRegex):
             orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
                         MatchRegexp('uid', filterRegex))
-            paths = [ "{0}/*".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
+            paths = [ "{0}/".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
             if paths:
                 return In('path', paths)
 
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
+        return self.getObjectBrains(uid=uid, start=start, limit=limit, sort=sort,
+                                    dir=dir, params=params, hashcheck=hashcheck, types='Products.ZenModel.Device.Device')
+
+    def getObjectBrains(self, uid=None, start=0, limit=50, sort='name',
+                        dir='ASC', params=None, hashcheck=None, types=(), fields=[]):
 
         cat = IModelCatalogTool(self._getObject(uid))
 
@@ -200,6 +205,8 @@ class TreeFacade(ZuulFacade):
         limitp = limit
         hashcheckp = hashcheck
         useProdStates = False
+        if 'uuid' not in fields:
+            fields.append('uuid')
 
         if sort == "productionState":
             useProdStates = True
@@ -214,9 +221,9 @@ class TreeFacade(ZuulFacade):
             limitp = None
 
         catbrains = cat.search(
-                'Products.ZenModel.Device.Device', start=startp,
+                types, start=startp,
                 limit=limitp, orderby=orderby, reverse=reverse,
-                query=query, globFilters=globFilters, hashcheck=hashcheckp)
+                query=query, globFilters=globFilters, hashcheck=hashcheckp, fields=fields)
 
         ## Handle Production State separately
         if useProdStates:
