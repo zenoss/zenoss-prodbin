@@ -98,7 +98,7 @@ def compare(this, that, path=None):
         if not isinstance(that, basestring):
             return False, path, compare.Diff(this, that)
         if any ('\n' in i for i in (this, that)):
-            diff = difflib.unified_diff(this.split('\n'), that.split('\n'))
+            diff = difflib.unified_diff(this.split('\r\n'), that.split('\r\n'))
             log.info("NO I FAILED HERE!!!")
             return False, path, diff
         else:

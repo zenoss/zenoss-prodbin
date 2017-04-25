@@ -30,6 +30,11 @@ class AddReportingZopesSvcDef(Migrate.Step):
     """Adds a svcdef for dedicated reporting Zope"""
     version = Migrate.Version(113,0,0)
 
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        self.zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
+        self.zenreports_proxy_incl = "\n        include zopereports-proxy.conf;\n\n"
+
     def _add_zenreports_service(self, ctx):
         commit = False
         zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)
@@ -37,17 +42,7 @@ class AddReportingZopesSvcDef(Migrate.Step):
             zenreports_svc = zenreports_svc[0]
             log.info("The zenreports service already exists. Skipping this migration step.")
             return False
-
-        #jsonfile = os.path.join(os.path.dirname(__file__), "zenreports-service.json")
-        #with open(jsonfile) as zenreports_svcdef:
-        #    try:
-        #        user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
-        #        ctx.deployService(zenreports_svcdef.read(), user_interface_svc)
-        #        commit = True
-        #    except:
-        #        log.error("Error deploying zenreports service definition")
-
-        # zenreports is a clone of Zope dedicated to generating resmgr reports
+        
         zopesvc = filter(lambda x: x.name == "Zope" and x.description == "Zope server", ctx.services)[0]
         zenreports_svc = zopesvc.clone()
 
@@ -100,25 +95,24 @@ class AddReportingZopesSvcDef(Migrate.Step):
         return commit
 
     def insertUpstreamDecl(self, matchObj):
-        zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }"
-        return matchObj.group(0)+ '\n' + zenreports_upstreams_decl
+        #return matchObj.group(0)+ '\r\n' + self.zenreports_upstreams_decl
+        return "{}{}".format(matchObj.group(0), self.zenreports_upstreams_decl)
 
     def insertProxyDecl(self, matchObj):
-        zenreports_proxy_incl = "\n        include zopereports-proxy.conf;\n\n"
-        return "{}{}".format(zenreports_proxy_incl, matchObj.group(0))
+        return "{}{}".format(self.zenreports_proxy_incl, matchObj.group(0))
 
     def _insert_zenreport_nginx_incls(self, zproxy_conf):
         # Insert zenreports upstreams server decl
-        zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
-        if re.search(zenreports_upstreams_decl, zproxy_conf.content) is not None:
+        # zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
+        if re.search(self.zenreports_upstreams_decl, zproxy_conf.content) is not None:
             return False
-        zenreports_proxy_incl = "\r\n        include zopereports-proxy.conf;\n\n"
-        if re.search(zenreports_proxy_incl, zproxy_conf.content) is not None:
+        # zenreports_proxy_incl = "\r\n        include zopereports-proxy.conf;\n\n"
+        if re.search(self.zenreports_proxy_incl, zproxy_conf.content) is not None:
             return False
-        zproxy_conf_a = re.sub('include mime.types;', self.insertUpstreamDecl, zproxy_conf.content)
-        zproxy_conf_b = re.sub(r'        location / {', self.insertProxyDecl, zproxy_conf_a)
+        zproxy_conf_a = re.sub(r'(include mime.types;\r\n)', self.insertUpstreamDecl, zproxy_conf.content)
+        zproxy_conf_b = re.sub('        location / {', self.insertProxyDecl, zproxy_conf_a)
         zproxy_conf.content = zproxy_conf_b
-        if re.search(zenreports_proxy_incl, zproxy_conf.content) is None:
+        if re.search(self.zenreports_proxy_incl, zproxy_conf.content) is None:
             log.info("!!! Include for zenreports proxy is not present!")
         return True
 
