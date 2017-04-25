@@ -12,6 +12,7 @@ Tests for the testing harness
 """
 
 import unittest
+
 from common import compare
 class test_compare_string(unittest.TestCase):
     def test_None(self):
