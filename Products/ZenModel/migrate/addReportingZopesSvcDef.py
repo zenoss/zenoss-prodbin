@@ -24,7 +24,7 @@ import servicemigration.threshold
 import servicemigration.eventtags
 
 
-sm.require("1.1.6")
+sm.require("1.1.8")
 
 class AddReportingZopesSvcDef(Migrate.Step):
     """Adds a svcdef for dedicated reporting Zope"""
@@ -32,17 +32,16 @@ class AddReportingZopesSvcDef(Migrate.Step):
 
     def __init__(self):
         Migrate.Step.__init__(self)
-        self.zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
+        self.zenreports_upstreams_decl = "\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
         self.zenreports_proxy_incl = "\n        include zopereports-proxy.conf;\n\n"
 
     def _add_zenreports_service(self, ctx):
-        commit = False
         zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)
         if zenreports_svc and len(zenreports_svc) > 0:
             zenreports_svc = zenreports_svc[0]
             log.info("The zenreports service already exists. Skipping this migration step.")
             return False
-        
+
         zopesvc = filter(lambda x: x.name == "Zope" and x.description == "Zope server", ctx.services)[0]
         zenreports_svc = zopesvc.clone()
 
@@ -56,22 +55,17 @@ class AddReportingZopesSvcDef(Migrate.Step):
         zenreports_svc.commands = []
         # Change the ConfigFiles
         zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", zenreports_svc.originalConfigs)[0]
+        zenreports_conf = sm.ConfigFile(
+                        name = "/opt/zenoss/etc/zenreports.conf",
+                        filename = "/opt/zenoss/etc/zenreports.conf",
+                        owner = "zenoss:zenoss",
+                        permissions = "660",
+                        content = zopeconf.content.replace('9080', '9290')
+                    )
         zenreports_svc.originalConfigs = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.originalConfigs)
-        zenreports_svc.originalConfigs.append(sm.ConfigFile(
-                        name = "/opt/zenoss/etc/zenreports.conf",
-                        filename = "/opt/zenoss/etc/zenreports.conf",
-                        owner = "zenoss:zenoss",
-                        permissions = "660",
-                        content = zopeconf.content.replace('9080', '9290')
-                    ))
+        zenreports_svc.originalConfigs.append(zenreports_conf)
         zenreports_svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.configFiles)
-        zenreports_svc.configFiles.append(sm.ConfigFile(
-                        name = "/opt/zenoss/etc/zenreports.conf",
-                        filename = "/opt/zenoss/etc/zenreports.conf",
-                        owner = "zenoss:zenoss",
-                        permissions = "660",
-                        content = zopeconf.content.replace('9080', '9290')
-                    ))
+        zenreports_svc.configFiles.append(zenreports_conf)
         # Remove the zope Endpoints entry, add one for zenreports
         zenreports_svc.endpoints = filter(lambda x: x.name != "zope", zenreports_svc.endpoints)
         zenreports_svc.endpoints.append(sm.Endpoint(
@@ -85,17 +79,16 @@ class AddReportingZopesSvcDef(Migrate.Step):
         answering = filter(lambda x: x.name == "answering", zenreports_svc.healthChecks)[0]
         answering.script = answering.script.replace('9080', '9290')
         # Change Instances.default and Instances.min
-        zenreports_svc.instanceLimits.minimum = 0
+        zenreports_svc.instanceLimits.minimum = 1
         zenreports_svc.instanceLimits.default = 1
         zenreports_svc.instances = 1
 
         # Add the zenreports service
         ctx.services.append(zenreports_svc)
 
-        return commit
+        return True
 
     def insertUpstreamDecl(self, matchObj):
-        #return matchObj.group(0)+ '\r\n' + self.zenreports_upstreams_decl
         return "{}{}".format(matchObj.group(0), self.zenreports_upstreams_decl)
 
     def insertProxyDecl(self, matchObj):
@@ -103,17 +96,13 @@ class AddReportingZopesSvcDef(Migrate.Step):
 
     def _insert_zenreport_nginx_incls(self, zproxy_conf):
         # Insert zenreports upstreams server decl
-        # zenreports_upstreams_decl = "    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n"
-        if re.search(self.zenreports_upstreams_decl, zproxy_conf.content) is not None:
+        if re.search("upstream zopereports", zproxy_conf.content) is not None:
             return False
-        # zenreports_proxy_incl = "\r\n        include zopereports-proxy.conf;\n\n"
-        if re.search(self.zenreports_proxy_incl, zproxy_conf.content) is not None:
+        if re.search("include zopereports-proxy.conf", zproxy_conf.content) is not None:
             return False
         zproxy_conf_a = re.sub(r'(include mime.types;\r\n)', self.insertUpstreamDecl, zproxy_conf.content)
         zproxy_conf_b = re.sub('        location / {', self.insertProxyDecl, zproxy_conf_a)
         zproxy_conf.content = zproxy_conf_b
-        if re.search(self.zenreports_proxy_incl, zproxy_conf.content) is None:
-            log.info("!!! Include for zenreports proxy is not present!")
         return True
 
     def update_zproxy_configs(self, zproxy):
@@ -138,11 +127,11 @@ class AddReportingZopesSvcDef(Migrate.Step):
                content = "server 127.0.0.1:9290;"
             ))
 
-        #Modify zproxy configs for zenreports
+        # Modify zproxy configs for zenreports
         zproxy_conf_orig = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.originalConfigs)[0]
         zproxy_conf = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.configFiles)[0]
 
-        #Add endpoint for new zenreports service
+        # Add endpoint for new zenreports service
         zenreports_endpoint = filter(lambda x: x.name == "zenreports", zproxy.endpoints)
         if not zenreports_endpoint:
             zope_ep = filter(lambda x: x.name == "zope", zproxy.endpoints)[0]
@@ -160,24 +149,27 @@ class AddReportingZopesSvcDef(Migrate.Step):
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
-            log.info("Couldn't generate context, skipping.")
+            log.error("Couldn't generate context, skipping.")
             return
-        commit = False
 
         did_add_zenreports = self._add_zenreports_service(ctx)
-        if did_add_zenreports:
-            try:
-                zope_svc = filter(lambda x: x.name == "Zope", ctx.services)[0]
-                zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)[0]
-                zenreports_svc.imageID = zope_svc.imageID
-            except:
-                log.error("Error updating zenreports service")
+        if not did_add_zenreports:
+           return
+
+        try:
+            zope_svc = filter(lambda x: x.name == "Zope", ctx.services)[0]
+            zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)[0]
+            zenreports_svc.imageID = zope_svc.imageID
+        except:
+            log.error("Error updating zenreports service")
 
         zproxy = ctx.getTopService()
         did_update_zproxy = self.update_zproxy_configs(zproxy)
-        commit = did_add_zenreports and did_update_zproxy
 
-        if commit:
-            ctx.commit()
+        if not did_update_zproxy:
+            log.error("Unable to add zenreports and update zproxy configuration")
+            return
+
+        ctx.commit()
 
 AddReportingZopesSvcDef()
