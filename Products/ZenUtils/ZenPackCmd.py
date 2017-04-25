@@ -296,6 +296,15 @@ def InstallEgg(dmd, eggPath, link=False):
 
     # Install the egg
     if link:
+        # Wake up NFS before attempting setup.py develop
+        touchcmd = ('touch %s/easy-install.pth' % zenPackDir)
+        p = subprocess.Popen(touchcmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            shell=True,
+                            cwd=eggPath)
+        p.wait()
+
         zenPackDir = varPath('ZenPacks')
         cmd = ('%s setup.py develop ' % binPath('python') +
                 '--site-dirs=%s ' % zenPackDir +
