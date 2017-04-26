@@ -222,7 +222,7 @@ class ProcessFacade(TreeFacade):
         def getDevice(devId):
             return self.context.dmd.unrestrictedTraverse(str(devId))
 
-        devices = list(getDevice(brain.deviceId) for brain in iter(brains))
+        devices = list(getDevice(brain.deviceId) for brain in brains)
         devices = list(device for device in devices if device)
 
         # we may have changed the number of results, so check the hash here
