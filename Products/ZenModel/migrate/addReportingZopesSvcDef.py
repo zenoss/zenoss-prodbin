@@ -77,7 +77,7 @@ class AddReportingZopesSvcDef(Migrate.Step):
         ))
         # Change the answering.script entry in HealthChecks
         answering = filter(lambda x: x.name == "answering", zenreports_svc.healthChecks)[0]
-        answering.script = answering.script.replace('9080', '9290')
+        answering.script = answering.script.replace('9080', '9290').replace('Zope', 'zenreports')
         # Change Instances.default and Instances.min
         zenreports_svc.instanceLimits.minimum = 1
         zenreports_svc.instanceLimits.default = 1
@@ -100,7 +100,7 @@ class AddReportingZopesSvcDef(Migrate.Step):
             return False
         if re.search("include zopereports-proxy.conf", zproxy_conf.content) is not None:
             return False
-        zproxy_conf_a = re.sub(r'(include mime.types;\r\n)', self.insertUpstreamDecl, zproxy_conf.content)
+        zproxy_conf_a = re.sub(r'(include mime.types;(?:\r\n|\s+))', self.insertUpstreamDecl, zproxy_conf.content)
         zproxy_conf_b = re.sub('        location / {', self.insertProxyDecl, zproxy_conf_a)
         zproxy_conf.content = zproxy_conf_b
         return True
