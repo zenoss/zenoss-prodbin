@@ -9,6 +9,7 @@
 
 
 import unittest
+import logging
 import zope.component
 from Products.Five import zcml
 import Products.ZenTestCase
@@ -20,6 +21,20 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from itertools import count
 counter = count()
+log = logging.getLogger("zuul_test")
+
+# Decorator for tests that require the model catalog
+def init_modelcatalog(f):
+    def wrapper(self, *args, **kwargs):
+        log.info("Initializing model catalog")
+        from Products.Zuul.catalog.model_catalog_init import init
+        init(self.dmd)
+        from Products.Zuul.catalog.interfaces import IModelCatalogTool
+        import transaction
+        IModelCatalogTool(self.dmd).model_catalog_client._data_manager.tpc_finish(transaction.get())
+        return f(self, *args, **kwargs)
+    return wrapper
+
 
 class FakeAdaptee(object):
     def __init__(self):
