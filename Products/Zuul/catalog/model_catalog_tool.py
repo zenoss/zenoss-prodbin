@@ -9,14 +9,20 @@
 
 
 import logging
-
+import re
+from itertools import islice
 
 from interfaces import IModelCatalog, IModelCatalogTool
 from model_catalog_tool_helper import ModelCatalogToolHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 
+from Products.ZenUtils.NaturalSort import natural_compare
 from Products.Zuul.catalog.interfaces import IModelCatalog
-from Products.Zuul.utils import dottedname, allowedRolesAndGroups
+from Products.Zuul.catalog.model_catalog import SearchResults
+from Products.Zuul.infos import InfoBase
+from Products.Zuul.interfaces import IInfo
+from Products.Zuul.tree import StaleResultsException
+from Products.Zuul.utils import dottedname, allowedRolesAndGroups, unbrain
 from zenoss.modelindex.model_index import SearchParams
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
 from zope.interface import implements
@@ -127,11 +133,15 @@ class ModelCatalogTool(object):
 
         # Build query for paths
         if paths is not False:   # When paths is False we dont add any path condition
-            context_path = '/'.join(self.context.getPhysicalPath()) + '*'
-            if not paths:
-                paths = (context_path, )
-            elif isinstance(paths, basestring):
-                paths = (paths,)
+            # TODO: Account for depth or get rid of it
+            # TODO: Consider indexing the device's uid as a path
+            context_path = '/'.join(self.context.getPhysicalPath())
+            uid_path_query = In('path', (context_path,)) # MatchGlob(UID, context_path)   # Add the context uid as filter
+            partial_queries.append( uid_path_query )
+            if paths:
+                if isinstance(paths, basestring):
+                    paths = (paths,)
+                partial_queries.append( In('path', paths) )
 
             """  OLD CODE. Why this instead of In?  What do we need depth for?
             q = {'query':paths}
@@ -139,9 +149,6 @@ class ModelCatalogTool(object):
                 q['depth'] = depth
             paths_query = Generic('path', q)
             """
-            paths_query = In('path', paths)
-            uid_path_query = MatchGlob(UID, context_path)   # Add the context uid as filter
-            partial_queries.append( Or(paths_query, uid_path_query) )
 
         # filter based on permissions
         if filterPermissions and allowedRolesAndGroups(self.context):
@@ -175,6 +182,73 @@ class ModelCatalogTool(object):
             brain_fields.add(self.uid_field_name)
         return list(brain_fields)
 
+    def _filterQueryResults(self, queryResults, infoFilters):
+        """
+        filters the results by the passed in infoFilters dictionary. If the
+        property of the info object is another info object the "name" attribute is used.
+        The filters are applied as case-insensitive strings on the attribute of the info object.
+        @param queryResults list of brains
+        @param infoFilters dict: key/value pairs of filters
+        @return list of brains
+        """
+        if not infoFilters:
+            return list(queryResults)
+
+        #Optimizing!
+        results = { brain: [True, IInfo(brain.getObject())] for brain in queryResults }
+        for key, value in infoFilters.iteritems():
+            valRe = re.compile(".*" + unicode(value) + ".*", re.IGNORECASE)
+            for result in results:
+                match, info = results[result]
+                if not match:
+                    continue
+
+                testvalues = getattr(info, key)
+                if not hasattr(testvalues, "__iter__"):
+                    testvalues = [testvalues]
+
+                # if the property was a dictionary see if the "key" is valid
+                # or if it is a dict representation of an info object, then check for the
+                # name attribute.
+                if isinstance(testvalues, dict):
+                    val = testvalues.get(key, testvalues.get('name'))
+                    if not (val and valRe.match(str(val))):
+                        results[result][0] = False
+                else:
+                    # if anyone of these values is satisfied then include the object
+                    isMatch = False
+                    for testVal in testvalues:
+                        if isinstance(testVal, InfoBase):
+                            testVal = testVal.name
+                        if valRe.match(str(testVal)):
+                            isMatch = True
+                            break
+                    if not isMatch:
+                        results[result][0] = False
+        return [key for key,matches in results.iteritems() if matches[0]]
+
+    def _sortQueryResults(self, queryResults, orderby, reverse):
+
+        # save the values during sorting in case getting the value is slow
+        savedValues = {}
+
+        def getValue(obj):
+            key = obj.getPrimaryPath()
+            if key in savedValues:
+                value = savedValues[key]
+            else:
+                value = getattr(IInfo(obj), orderby)
+                if callable(value):
+                    value = value()
+                # if an info object is returned then sort by the name
+                if IInfo.providedBy(value):
+                    value = value.name.lower()
+                savedValues[key] = value
+            return value
+
+        return sorted((unbrain(brain) for brain in queryResults),
+                      key=getValue, reverse=reverse, cmp=natural_compare)
+
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None, uid_only=True, fields=None):
@@ -193,21 +267,42 @@ class ModelCatalogTool(object):
         
         query, not_indexed_user_filters = self._build_query(types, paths, depth, query, filterPermissions, globFilters)
 
-        #areBrains = len(not_indexed_user_filters) == 0
+        areBrains = areBrains or len(not_indexed_user_filters) == 0
+        queryStart = start if areBrains else 0
+        queryLimit = limit if areBrains else None
 
-        # if we have not indexed fields, we need to get all the results and manually filter and sort
-        # I guess that with solr we should be able to avoid searching by unindexed fields
-        #
-        # @TODO get all results if areBrains == False
-        #
-        
         fields_to_return = self._get_fields_to_return(uid_only, fields)
 
-        catalog_results = self.search_model_catalog(query, start=start, limit=limit,
-                                                    order_by=orderby, reverse=reverse, fields=fields_to_return)
+        catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
+                                                    order_by=queryOrderby, reverse=reverse, fields=fields_to_return)
+        if len(not_indexed_user_filters) > 0:
+            # unbrain everything and filter
+            results = self._filterQueryResults(catalog_results, not_indexed_user_filters)
+            totalCount = len(results)
+        else:
+            results = catalog_results.results
+            totalCount = catalog_results.total
 
-        # @TODO take care of unindexed filters
-        return catalog_results
+        hash_ = totalCount
+
+        if orderby == queryOrderby:
+            allResults = results
+        else:
+            allResults = self._sortQueryResults(results, orderby, reverse)
+
+        if hashcheck is not None:
+            if hash_ != int(hashcheck):
+                raise StaleResultsException("Search results do not match")
+
+        # Return a slice
+        start = max(start, 0)
+        if limit is None:
+            stop = None
+        else:
+            stop = start + limit
+        results = islice(allResults, start, stop)
+
+        return SearchResults(results, totalCount, str(hash_), areBrains)
 
 
     def getBrain(self, path, fields=None):
