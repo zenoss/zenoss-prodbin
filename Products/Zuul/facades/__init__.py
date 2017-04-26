@@ -155,7 +155,7 @@ class TreeFacade(ZuulFacade):
         if self.validRegex(filterRegex):
             orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
                         MatchRegexp('uid', filterRegex))
-            paths = [ "{0}/".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
+            paths = [ "{0}".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
             if paths:
                 return In('path', paths)
 
