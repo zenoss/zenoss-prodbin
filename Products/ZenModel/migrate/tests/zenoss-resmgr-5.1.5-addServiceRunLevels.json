@@ -2134,7 +2134,7 @@
      "ID": "8c8sfpsq0nv8kk8ktonve2wow",
      "Name": "RegionServer",
      "EmergencyShutdownLevel": 1,
-     "StartLevel": 1,
+     "StartLevel": 2,
      "Title": "",
      "Version": "",
      "Context": null,
@@ -14616,7 +14616,7 @@
    {
      "ID": "4ytm9nwl4bkzot4ppe93r17qs",
      "Name": "MetricConsumer",
-     "StartLevel": 3,
+     "StartLevel": 4,
      "Title": "",
      "Version": "",
      "Context": null,
@@ -16630,7 +16630,7 @@
    {
      "ID": "98g0xzmoa3fvxbv2gql1o6buu",
      "Name": "CentralQuery",
-     "StartLevel": 3,
+     "StartLevel": 4,
      "Title": "",
      "Version": "",
      "Context": null,
@@ -17988,7 +17988,7 @@
    {
      "ID": "1bb1dcb47gyowmr2g4r8jh6tk",
      "Name": "reader",
-     "StartLevel": 2,
+     "StartLevel": 3,
      "Title": "",
      "Version": "",
      "Context": null,
@@ -18193,7 +18193,7 @@
    {
      "ID": "7o6hw8ax3tmfpi8ky1x12n8gx",
      "Name": "writer",
-     "StartLevel": 2,
+     "StartLevel": 3,
      "Title": "",
      "Version": "",
      "Context": null,
@@ -18393,7 +18393,7 @@
    {
      "ID": "bw59bxnya0e0gxgu3oqs1wxm2",
      "Name": "opentsdb",
-     "StartLevel": 2,
+     "StartLevel": 3,
      "Title": "",
      "Version": "",
      "Context": null,
