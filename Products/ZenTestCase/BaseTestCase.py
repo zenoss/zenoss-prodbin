@@ -11,6 +11,7 @@
 import logging
 
 import zope.component
+import zenoss.modelindex.api
 from zope.traversing.adapters import DefaultTraversable
 from transaction._transaction import Transaction
 
@@ -99,6 +100,12 @@ class ZenossTestCaseLayer(ZopeLite):
         # Have to force registering these as they are torn down between tests
         from zenoss.protocols.adapters import registerAdapters
         registerAdapters()
+
+        from Products.Zuul.catalog.model_catalog import register_model_catalog
+        from zenoss.modelindex.api import _register_factories, reregister_subscriptions
+        _register_factories()
+        register_model_catalog()
+        reregister_subscriptions()
 
         from twisted.python.runtime import platform
         platform.supportsThreads_orig = platform.supportsThreads
