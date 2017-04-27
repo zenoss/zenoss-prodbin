@@ -41,7 +41,6 @@ import zExceptions
 import json
 import pkg_resources
 
-from pkg_resources import VersionConflict
 from urlparse import urlparse
 from Products.ZenMessaging.audit import audit
 
@@ -387,22 +386,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             #running files only or zenpack by same name doesn't already exists
             # so no need to install the zenpack in an external process
             runExternalZenpack = False
-            module = None
-            try:
-                module = packEntry.load()
-            except VersionConflict, e:
-                conflictZenpack = str(e).split()
-                conflictZpName = conflictZenpack[0].split("(")[1]
-                conflictZpVersion = conflictZenpack[1]
-                installedZenpack = [pack for pack in dmd.ZenPackManager.packs() if pack.id == conflictZpName]
-                if installedZenpack:
-                    if installedZenpack[0].version == conflictZpVersion:
-                        raise e
-                    else:
-                        pass
-                else:
-                    raise e
-
+            module = packEntry.resolve()
             if hasattr(module, 'ZenPack'):
                 zenPack = module.ZenPack(packName)
             else:
