@@ -15,11 +15,11 @@ import servicemigration as sm
 log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
 
-#
-# Fixes redis configs to allow remote connections after the introduction of
-# protected-mode in newer versions.
-#
 class UpdateRedisBindAddress(Migrate.Step):
+    """
+     Fixes redis configs to allow remote connections after the introduction of
+     protected-mode in newer versions.
+    """
     version = Migrate.Version(111, 0, 0)
 
     def cutover(self, dmd):
