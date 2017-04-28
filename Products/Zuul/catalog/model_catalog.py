@@ -36,7 +36,7 @@ import traceback
 
 log = logging.getLogger("model_catalog")
 
-#logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty 
+#logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
 TX_STATE_FIELD = "tx_state"
 
@@ -138,8 +138,8 @@ class ModelCatalogClient(object):
     def get_indexes(self):
         return self._data_manager.get_indexes()
 
-    def search(self, search_params, context):
-        return self._data_manager.search(search_params, context)
+    def search(self, search_params, context, commit_dirty=False):
+        return self._data_manager.search(search_params, context, commit_dirty)
 
     def catalog_object(self, obj, idxs=None):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -372,22 +372,23 @@ class ModelCatalogDataManager(object):
         count = catalog_results.total_count
         return SearchResults(brains, total=count, hash_=str(count))
 
-    def search(self, search_params, context):
+    def search(self, search_params, context, commit_dirty=False):
         """
         When we do a search mid-transaction and there are objects that have already been modified and not
-        indexed, we need to index and commit them before performing the search.
+        indexed, we need to index and commit them before performing the search, when commit_dirty is True.
         Mid-transaction changes can only be visible by the current transaction until the tx is committed.
-        Hopefully most transactions won't do searches after updating objects so we can minimize the number 
+        Hopefully most transactions won't do searches after updating objects so we can minimize the number
         of commits to solr
         """
-        search_results = None
-        tx_state = self._get_tx_state()
-        # Lets add tx_state filters
-        search_params = self._add_tx_state_query(search_params, tx_state)
-        if tx_state and tx_state.are_there_pending_updates():
-            # Temporary index updated objects so the search
-            # is accurate
-            self._process_pending_updates(tx_state)
+        if commit_dirty:
+            search_results = None
+            tx_state = self._get_tx_state()
+            # Lets add tx_state filters
+            search_params = self._add_tx_state_query(search_params, tx_state)
+            if tx_state and tx_state.are_there_pending_updates():
+                # Temporary index updated objects so the search
+                # is accurate
+                self._process_pending_updates(tx_state)
 
         return self._do_search(search_params, context)
 
@@ -470,7 +471,7 @@ class ModelCatalog(object):
         #
         self.solr_url = solr_url
         """
-        Each Zope thread has its own solr indexer and reader. Model catalog clients are identified 
+        Each Zope thread has its own solr indexer and reader. Model catalog clients are identified
         by the thread's zodb connection id
         """
 
@@ -531,5 +532,3 @@ def register_model_catalog():
 
 
 register_model_catalog()
-
-
