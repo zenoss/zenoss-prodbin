@@ -374,21 +374,20 @@ class ModelCatalogDataManager(object):
 
     def search(self, search_params, context, commit_dirty=False):
         """
-        When we do a search mid-transaction and there are objects that have already been modified and not
-        indexed, we need to index and commit them before performing the search, when commit_dirty is True.
-        Mid-transaction changes can only be visible by the current transaction until the tx is committed.
-        Hopefully most transactions won't do searches after updating objects so we can minimize the number
-        of commits to solr
+        Searches for objects that satisfy search_params in the catalog associated with context.
+
+        When commit_dirty is True, objects that have been modified as a part of a transaction
+        that has not been commited yet, will be commited with tx_state = tid so they can be searched.
+        These "dirty" objects will remain in the catalog until transaction.abort is called,
+        which will remove them from the catalog, or transaction.commit is called, which will remove
+        them as a "dirty" object, then add them to the catalog with tx_state = 0.
         """
-        if commit_dirty:
-            search_results = None
-            tx_state = self._get_tx_state()
-            # Lets add tx_state filters
-            search_params = self._add_tx_state_query(search_params, tx_state)
-            if tx_state and tx_state.are_there_pending_updates():
-                # Temporary index updated objects so the search
-                # is accurate
-                self._process_pending_updates(tx_state)
+        tx_state = self._get_tx_state()
+        # Lets add tx_state filters
+        search_params = self._add_tx_state_query(search_params, tx_state)
+        if commit_dirty and tx_state and tx_state.are_there_pending_updates():
+            # Temporarily index updated objects so the search is accurate
+            self._process_pending_updates(tx_state)
 
         return self._do_search(search_params, context)
 
