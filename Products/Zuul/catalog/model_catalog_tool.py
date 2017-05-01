@@ -159,7 +159,8 @@ class ModelCatalogTool(object):
         search_query = And(*partial_queries)
         return (search_query, not_indexed_user_filters)
 
-    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False, fields=None):
+    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False,
+                             fields=None, commit_dirty=False):
         """
         @returns: SearchResults
         """
@@ -167,7 +168,7 @@ class ModelCatalogTool(object):
         brains = []
         count = 0
         search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
-        catalog_results = self.model_catalog_client.search(search_params, self.context)
+        catalog_results = self.model_catalog_client.search(search_params, self.context, commit_dirty=commit_dirty)
 
         return catalog_results
 
@@ -251,7 +252,8 @@ class ModelCatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
-               hashcheck=None, filterPermissions=True, globFilters=None, uid_only=True, fields=None):
+               hashcheck=None, filterPermissions=True, globFilters=None,
+               uid_only=True, fields=None, commit_dirty=False):
         """
         Build and execute a query against the global catalog.
         @param query: Advanced Query query
@@ -274,7 +276,8 @@ class ModelCatalogTool(object):
         fields_to_return = self._get_fields_to_return(uid_only, fields)
 
         catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
-                                                    order_by=queryOrderby, reverse=reverse, fields=fields_to_return)
+                                                    order_by=queryOrderby, reverse=reverse,
+                                                    fields=fields_to_return, commit_dirty=commit_dirty)
         if len(not_indexed_user_filters) > 0:
             # unbrain everything and filter
             results = self._filterQueryResults(catalog_results, not_indexed_user_filters)
@@ -305,7 +308,7 @@ class ModelCatalogTool(object):
         return SearchResults(results, totalCount, str(hash_), areBrains)
 
 
-    def getBrain(self, path, fields=None):
+    def getBrain(self, path, fields=None, commit_dirty=False):
         """
         Gets the brain representing the object defined at C{path}.
         The search is done by uid field
@@ -316,7 +319,7 @@ class ModelCatalogTool(object):
             path = '/'.join(path)
 
         query = Eq(UID, path)
-        search_results = self.search_model_catalog(query, fields=fields)
+        search_results = self.search_model_catalog(query, fields=fields, commit_dirty=commit_dirty)
 
         brain = None
         if search_results.total > 0:
@@ -334,7 +337,7 @@ class ModelCatalogTool(object):
         """
         pass
 
-    def count(self, types=(), path=None, filterPermissions=True):
+    def count(self, types=(), path=None, filterPermissions=True, commit_dirty=False):
         """
         Get the count of children matching C{types} under C{path}.
 
@@ -354,7 +357,7 @@ class ModelCatalogTool(object):
         if not path.endswith('*'):
             path = path + '*'
         query, _ = self._build_query(types=types, paths=(path,), filterPermissions=filterPermissions)
-        search_results = self.search_model_catalog(query, start=0, limit=0)
+        search_results = self.search_model_catalog(query, start=0, limit=0, commit_dirty=commit_dirty)
         """ #  @TODO OLD CODEEE had some caching stuff
         # Check for a cache
         caches = self.catalog._v_caches
