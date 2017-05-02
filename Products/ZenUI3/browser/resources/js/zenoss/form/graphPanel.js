@@ -356,6 +356,7 @@
                 // lose the footer and yaxis label as the image gets smaller
                 footer: (height >= 350) ? true : false,
                 yAxisLabel: this.units,
+                supressLegend: true,
                 miny: (this.miny !== -1) ? this.miny : null,
                 maxy: (this.maxy !== -1) ? this.maxy : null,
                 // the visualization library currently only supports
@@ -377,10 +378,13 @@
             var p = zenoss.visualization.chart.create(this.graphId, visconfig);
             p.then(function(chart){
                 chart.afterRender = function(){
+                    var legenddiv = chart.$div.find(".nv-legend").length;
+                    // 40 will trigger resize below. 
+                    var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 40;
+
                     // adjust height based on graph content
                     var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
                         graphHeight = self.height,
-                        legendHeight = chart.$div.find(".nv-legend")[0].getBBox().height,
                         adjustedHeight = footerHeight + graphHeight + legendHeight;
 
                     // if more than 1 legend row, recalculate panel height
