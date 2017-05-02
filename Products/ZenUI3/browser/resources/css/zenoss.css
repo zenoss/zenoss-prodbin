@@ -1767,6 +1767,15 @@ img.europaGraphGear.spinnerino {
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+.zenfooter th {
+  font-weight: bold;
+}
+
+.zenfooter_data_text {
+  height: 18px;
+}
+
 /* style the graph titles */
 .graph_title {
     margin: -6px 0 10px 0;
@@ -1817,11 +1826,22 @@ img.europaGraphGear.spinnerino {
 }
 
 .zenfooter_box {
-  width: 10px;
-  height: 10px;
-  border: solid 1px black;
+  width: 12px;
+  height: 12px;
+  border-radius: 12px;
+  border-width: 1px;
   float: left;
   margin: 2px 2px 2px 2px;
+}
+
+.zenfooter_threshold {
+  color: #555;
+  font-style: italic;
+}
+
+.zenchart .nvtooltip table td.legend-color-guide div {
+  border: 0;
+  border-radius: 12px;
 }
 
 .zenfooter_data,

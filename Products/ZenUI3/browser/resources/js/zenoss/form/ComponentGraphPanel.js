@@ -47,6 +47,7 @@
                 graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
                     uid: uid,
                     graphId: id,
+                    allOnSame: allOnSame,
                     graphTitle: graphTitle,
                     ref: id,
                     height: 500
@@ -130,8 +131,10 @@
                         width: 10
                     }, {
                         xtype: 'checkbox',
-                        fieldLabel: _t('All on Same Graph?'),
-                        labelWidth: 150,
+                        fieldLabel: _t('All on same graph'),
+                        labelAlign: 'right',
+                        labelSeparator: '',
+                        labelWidth: 272,
                         ref: '../allOnSame',
                         listeners: {
                             change: this.updateGraphs,
