@@ -12,7 +12,7 @@ import unittest
 from zope.interface.verify import verifyClass
 from zope.event import notify
 from Products import Zuul
-from Products.Zuul.tests.base import ZuulFacadeTestCase, init_modelcatalog
+from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import IDeviceInfo
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.device import DeviceInfo
@@ -33,7 +33,6 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
     def test_interfaces(self):
         verifyClass(IDeviceInfo, DeviceInfo)
 
-    @init_modelcatalog
     def testDeleteOrganizerRemovesDevices(self):
         """When we delete an organizer all the devices assigned to it should not
         still have a relationship to it in the catalog
@@ -132,7 +131,6 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         self.assertTrue(not green_org in systems)
         self.assertTrue(yellow_org in systems)
 
-    @init_modelcatalog
     def test_deviceSearchParams(self):
         """
         Search for something we defniitely do not have
@@ -145,7 +143,6 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(location="test1"))
         self.assertEquals(1, results.total)
 
-    @init_modelcatalog
     def test_deviceSearchAndSortByProdState(self):
         devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
         devMaintenance.setPerformanceMonitor('localhost')

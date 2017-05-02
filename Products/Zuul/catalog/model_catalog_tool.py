@@ -43,6 +43,10 @@ class ModelCatalogTool(object):
         self.uid_field_name = UID
         self.helper = ModelCatalogToolHelper(self)
 
+    @property
+    def model_index(self):
+        return self.model_catalog_client.model_index
+
     def _parse_user_query(self, query):
         """
         # if query is a dict, we convert it to AdvancedQuery
@@ -307,7 +311,6 @@ class ModelCatalogTool(object):
 
         return SearchResults(results, totalCount, str(hash_), areBrains)
 
-
     def getBrain(self, path, fields=None, commit_dirty=False):
         """
         Gets the brain representing the object defined at C{path}.
@@ -318,9 +321,7 @@ class ModelCatalogTool(object):
         elif isinstance(path, tuple):
             path = '/'.join(path)
 
-        query = Eq(UID, path)
-        search_results = self.search_model_catalog(query, fields=fields, commit_dirty=commit_dirty)
-
+        search_results = self.model_catalog_client.search_brain(path, context=self.context, fields=fields, commit_dirty=commit_dirty)
         brain = None
         if search_results.total > 0:
             brain = search_results.results.next()
@@ -328,7 +329,6 @@ class ModelCatalogTool(object):
             log.error("Unable to get brain. Trying to reindex: %s", path)
             # @TODO reindex the object if we did not find it        
         return brain
-
 
     def parents(self, path):
         """

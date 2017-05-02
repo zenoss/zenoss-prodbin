@@ -11,6 +11,8 @@
 import logging
 import transaction
 import zope.component
+from zope.component.factory import Factory
+from zope.component.interfaces import IFactory
 
 from Acquisition import aq_parent, Implicit
 from interfaces import IModelCatalog
@@ -130,7 +132,11 @@ class ObjectUpdate(object):
 class ModelCatalogClient(object):
 
     def __init__(self, solr_url):
-        self._data_manager = ModelCatalogDataManager(solr_url)
+        self._data_manager = zope.component.createObject('ModelCatalogDataManager', solr_url)
+
+    @property
+    def model_index(self):
+        return self._data_manager.model_index
 
     def _get_forbidden_classes(self):
         return (Software, OperatingSystem)
@@ -140,6 +146,9 @@ class ModelCatalogClient(object):
 
     def search(self, search_params, context, commit_dirty=False):
         return self._data_manager.search(search_params, context, commit_dirty)
+
+    def search_brain(self, path, context, fields=None, commit_dirty=False):
+        return self._data_manager.search_brain(path, context, fields, commit_dirty)
 
     def catalog_object(self, obj, idxs=None):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -342,8 +351,8 @@ class ModelCatalogDataManager(object):
         tweak_results = (tx_state and tx_state.are_there_indexed_updates())
         dirty_uids = temp_indexed_uids = set()
         if tweak_results:
-            dirty_uids = set(tx_state.indexed_updates.keys())
-            temp_indexed_uids = tx_state.temp_indexed_uids
+            dirty_uids = set(tx_state.indexed_updates.keys())  # uids without TX_SEPARATOR
+            temp_indexed_uids = tx_state.temp_indexed_uids     # uids with TX_SEPARATOR
 
         for result in catalog_results.results:
             if tweak_results:
@@ -372,10 +381,8 @@ class ModelCatalogDataManager(object):
         count = catalog_results.total_count
         return SearchResults(brains, total=count, hash_=str(count))
 
-    def search(self, search_params, context, commit_dirty=False):
+    def _do_mid_transaction_commit(self):
         """
-        Searches for objects that satisfy search_params in the catalog associated with context.
-
         When commit_dirty is True, objects that have been modified as a part of a transaction
         that has not been commited yet, will be commited with tx_state = tid so they can be searched.
         These "dirty" objects will remain in the catalog until transaction.abort is called,
@@ -384,12 +391,34 @@ class ModelCatalogDataManager(object):
         """
         tx_state = self._get_tx_state()
         # Lets add tx_state filters
-        search_params = self._add_tx_state_query(search_params, tx_state)
-        if commit_dirty and tx_state and tx_state.are_there_pending_updates():
+        if tx_state and tx_state.are_there_pending_updates():
             # Temporarily index updated objects so the search is accurate
             self._process_pending_updates(tx_state)
 
+    def search(self, search_params, context, commit_dirty=False):
+        """
+        Searches for objects that satisfy search_params in the catalog associated with context.
+        """
+        if commit_dirty:
+            self._do_mid_transaction_commit()
         return self._do_search(search_params, context)
+
+    def search_brain(self, uid, context, fields=None, commit_dirty=False):
+        """ """
+        tx_state = self._get_tx_state()
+
+        if commit_dirty:
+            self._do_mid_transaction_commit()
+
+        # if the object has been updated mid transaction, get the latest version
+        if uid in tx_state.indexed_updates:
+            uid = "{0}{1}{2}".format(uid, TX_SEPARATOR, tx_state.tid)
+
+        query = Eq(UID_FIELD, uid)
+        search_params = SearchParams(query, fields=fields)
+        search_params = self._add_tx_state_query(search_params, tx_state)
+        return self._do_search(search_params, context)
+
 
     # ----- Index related methods  ------
 
@@ -462,6 +491,31 @@ class ModelCatalogDataManager(object):
         return NoRollbackSavepoint(self)
 
 
+class ModelCatalogTestDataManager(ModelCatalogDataManager):
+    """
+    Data Manager for tests. In tests we index everything everytime we do a search and
+    we commit everyting to solr with a temp tid
+    """
+
+    def __init__(self, solr_servers):
+        super(ModelCatalogTestDataManager, self).__init__(solr_servers)
+
+    def tpc_finish(self, transaction):
+        super(ModelCatalogTestDataManager, self).abort(transaction)
+
+    def commit(self, transaction):
+        super(ModelCatalogTestDataManager, self).abort(transaction)
+
+    def abort(self, tx):
+        super(ModelCatalogTestDataManager, self).abort(transaction)
+
+    def search(self, search_params, context, commit_dirty=True):
+        return super(ModelCatalogTestDataManager, self).search(search_params, context, commit_dirty=True)
+
+    def search_brain(self, path, context, fields=None, commit_dirty=True):
+        return super(ModelCatalogTestDataManager, self).search_brain(path, context, fields, commit_dirty=True)
+
+
 class ModelCatalog(object):
     """ This class provides Solr Clients """
 
@@ -530,4 +584,12 @@ def register_model_catalog():
     getGlobalSiteManager().registerUtility(model_catalog, IModelCatalog)
 
 
+def register_data_manager_factory(test=False):
+    if not test:
+        factory = Factory(ModelCatalogDataManager, "Default Model Catalog Data Manager")
+    else:
+        factory = Factory(ModelCatalogTestDataManager, "Test Model Catalog Data Manager")
+    getGlobalSiteManager().registerUtility(factory, IFactory, 'ModelCatalogDataManager')
+
+register_data_manager_factory()
 register_model_catalog()

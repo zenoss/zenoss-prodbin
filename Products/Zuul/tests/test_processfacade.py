@@ -15,7 +15,6 @@ from zope.interface.verify import verifyClass
 from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.tests.base import EventTestCase
-from Products.Zuul.tests.base import init_modelcatalog
 from Products.Zuul.interfaces import IProcessNode
 from Products.Zuul.interfaces import IProcessInfo
 from Products.Zuul.interfaces import IProcessFacade
@@ -83,7 +82,6 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         Zuul.unmarshal(data, obj)
         self.assertEqual('barbar', obj.name)
 
-    @init_modelcatalog
     def test_getDevices(self):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
