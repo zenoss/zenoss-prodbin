@@ -98,6 +98,16 @@ def reset_model_catalog():
     model_index.unindex_search(SearchParams(query="NOT tx_state:0"))
 
 
+def init_model_catalog_for_tests():
+    from Products.Zuul.catalog.model_catalog import register_model_catalog, register_data_manager_factory
+    from zenoss.modelindex.api import _register_factories, reregister_subscriptions
+    _register_factories()
+    register_model_catalog()
+    register_data_manager_factory(test=True)
+    reregister_subscriptions()
+    reset_model_catalog()
+
+
 class ZenossTestCaseLayer(ZopeLite):
 
     @classmethod
@@ -115,13 +125,7 @@ class ZenossTestCaseLayer(ZopeLite):
         registerAdapters()
 
         # Register Model Catalog related stuff
-        from Products.Zuul.catalog.model_catalog import register_model_catalog, register_data_manager_factory
-        from zenoss.modelindex.api import _register_factories, reregister_subscriptions
-        _register_factories()
-        register_model_catalog()
-        register_data_manager_factory(test=True)
-        reregister_subscriptions()
-        reset_model_catalog()
+        init_model_catalog_for_tests()
 
         from twisted.python.runtime import platform
         platform.supportsThreads_orig = platform.supportsThreads
