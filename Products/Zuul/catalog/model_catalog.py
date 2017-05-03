@@ -70,6 +70,9 @@ class SearchResults(object):
     def __iter__(self):
         return self.results
 
+    def __len__(self):
+        return self.total
+
 
 class ModelCatalogBrain(Implicit):
     implements(ICatalogBrain)
