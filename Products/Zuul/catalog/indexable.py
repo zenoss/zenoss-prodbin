@@ -20,7 +20,7 @@ from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
 from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
-from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType
+from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
 from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 from ZODB.POSException import ConflictError
@@ -186,7 +186,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         return self.__class__.__name__
     '''
 
-    @indexed(StringFieldType(stored=True), index_field_name="uid", attr_query_name="uid")
+    @indexed(UntokenizedStringFieldType(stored=True), index_field_name="uid", attr_query_name="uid")
     def idx_uid(self):
         return aq_base(self).getPrimaryId()
 
