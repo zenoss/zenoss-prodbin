@@ -538,10 +538,14 @@ class ZenProcessTask(ObservableMixin):
             summary = 'Process set contains 0 running processes: %s' % procClassName
             message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                         % (summary,procConfig.includeRegex,self._device.lastmodeltime)
+            dedupList = [self._devId, procConfig.generatedId, self.statusEvent['eventClass'],
+                            procConfig.processClass, str(procConfig.severity)]
+            dedupid = '|'.join(dedupList)
             self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
                                              message=message,
+                                             dedupid=dedupid,
                                              component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
