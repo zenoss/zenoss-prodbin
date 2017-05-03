@@ -13,7 +13,7 @@ import re
 from itertools import islice
 
 from interfaces import IModelCatalog, IModelCatalogTool
-from model_catalog_tool_helper import ModelCatalogToolHelper
+from model_catalog_tool_helper import ModelCatalogToolHelper, ModelCatalogToolGenericHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 
 from Products.ZenUtils.NaturalSort import natural_compare
@@ -42,6 +42,13 @@ class ModelCatalogTool(object):
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
         self.uid_field_name = UID
         self.helper = ModelCatalogToolHelper(self)
+        # Generic helpers for deprecated layer2 and layer3 catalogs
+        objectImplements = [ "Products.ZenModel.IpInterface.IpInterface" ]
+        fields = [ "deviceId", "interfaceId", "macaddress", "lanId" ]
+        self.layer2 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        fields = [ "deviceId", "interfaceId", "ipAddressId", "networkId" ]
+        objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
+        self.layer3 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
 
     @property
     def model_index(self):
@@ -310,6 +317,9 @@ class ModelCatalogTool(object):
         results = islice(allResults, start, stop)
 
         return SearchResults(results, totalCount, str(hash_), areBrains)
+
+    def __call__(self, *args, **kwargs):
+        return self.search(*args, **kwargs)
 
     def getBrain(self, path, fields=None, commit_dirty=False):
         """
