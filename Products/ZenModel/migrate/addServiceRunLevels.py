@@ -20,10 +20,10 @@ from serviceRunLevels import serviceRunLevels
 class AddServiceRunLevels(Migrate.Step):
     """
     Add the emergency shutdown and startup levels to service definitions.
-    See ZEN-23931.
+    See ZEN-23931, ZEN-27299.
     """
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(113, 0, 0)
 
     def cutover(self, dmd):
         try:

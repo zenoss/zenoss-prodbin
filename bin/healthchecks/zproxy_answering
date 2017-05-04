@@ -8,4 +8,4 @@
 #
 ##############################################################################
 
-curl -f -s http://localhost:8080/ > /dev/null
+curl -A 'ZProxy_answering Healthcheck' -f -s http://localhost:8080/ > /dev/null

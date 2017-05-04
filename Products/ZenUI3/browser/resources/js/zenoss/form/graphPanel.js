@@ -523,7 +523,8 @@
                 form, start, end,
                 startDate = chart.getStartDate(),
                 endDate = chart.getEndDate(),
-                uid = this.uid;
+                uid = this.uid,
+                units = chart.yAxisLabel;
 
             if(!startDate || !endDate){
                 Zenoss.message.error('Cannot export data: graph missing start or end date');
@@ -563,6 +564,11 @@
                     type: 'hidden',
                     name: 'title',
                     value: this.graphTitle
+                },{
+                    tag: 'input',
+                    type: 'hidden',
+                    name: 'units',
+                    value: units
                 }]
             });
             form.submit();
@@ -1098,7 +1104,8 @@
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
             // measurement like "1h-ago"
-            this.drange = rangeToMilliseconds("1h-ago");
+	    this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
+            this.drange = rangeToMilliseconds(config.drange);
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
