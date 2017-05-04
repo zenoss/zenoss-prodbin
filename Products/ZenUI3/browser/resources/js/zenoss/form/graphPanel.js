@@ -379,7 +379,7 @@
             p.then(function(chart){
                 chart.afterRender = function(){
                     var legenddiv = chart.$div.find(".nv-legend").length;
-                    // 40 will trigger resize below. 
+                    // 40 will trigger resize below.
                     var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 40;
 
                     // adjust height based on graph content
