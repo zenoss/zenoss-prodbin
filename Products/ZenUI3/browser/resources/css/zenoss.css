@@ -1869,6 +1869,11 @@ img.europaGraphGear.spinnerino {
   font-size: 8pt;
 }
 
+.zencheckbox_allonsame label,
+.zenfooter_value_row {
+  cursor: pointer;
+}
+
 .zenfooter_dates {
   font-weight: bold;
   text-align: center;

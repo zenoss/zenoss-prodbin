@@ -131,6 +131,7 @@
                         width: 10
                     }, {
                         xtype: 'checkbox',
+                        baseCls: 'zencheckbox_allonsame',
                         fieldLabel: _t('All on same graph'),
                         labelAlign: 'right',
                         labelSeparator: '',
