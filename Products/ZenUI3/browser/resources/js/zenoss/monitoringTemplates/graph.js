@@ -662,6 +662,11 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     }
                 },
                 handler: function() {
+                    var templateUid = Ext.getCmp('dataSourceTreeGrid').uid;
+                    if (!templateUid) {
+                        new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a graph definition.')});
+                        return;
+                    }
                     var dialog = Ext.create('Zenoss.dialog.BaseWindow', {
                         title: _t('Add Graph Definition'),
                         buttonAlign: 'left',
