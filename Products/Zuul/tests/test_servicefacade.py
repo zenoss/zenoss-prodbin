@@ -12,7 +12,7 @@ import unittest
 from zope.interface.verify import verifyClass
 from Products.ZenModel.IpService import IpService
 from Products import Zuul
-from Products.Zuul.tests.base import ZuulFacadeTestCase, init_modelcatalog
+from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.ZenModel.Service import Service
 from Products.Zuul.interfaces import IComponent
 
@@ -25,7 +25,6 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
     def test_interfaces(self):
         verifyClass(IComponent, Service)
 
-    @init_modelcatalog
     def test_getInstances(self):
         device = self.dmd.Devices.createInstance('foo')
         device.os.ipservices._setObject('tcp_00121', IpService('tcp_00121'))

@@ -178,7 +178,7 @@ class Manager(object):
 
         query_set = Or(Eq('id', identifier), Eq('name', identifier))
         if ip_decimal is not None:
-            query_set.addSubquery(Eq('ipAddress', str(ip_decimal)))
+            query_set.addSubquery(Eq('decimal_ipAddress', str(ip_decimal)))
         device_brains = list(dev_cat.search(types=Device,
                                             query=query_set,
                                             limit=limit,

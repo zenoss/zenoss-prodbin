@@ -13,7 +13,7 @@ import re
 from itertools import islice
 
 from interfaces import IModelCatalog, IModelCatalogTool
-from model_catalog_tool_helper import ModelCatalogToolHelper
+from model_catalog_tool_helper import ModelCatalogToolHelper, ModelCatalogToolGenericHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 
 from Products.ZenUtils.NaturalSort import natural_compare
@@ -42,6 +42,17 @@ class ModelCatalogTool(object):
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
         self.uid_field_name = UID
         self.helper = ModelCatalogToolHelper(self)
+        # Generic helpers for deprecated layer2 and layer3 catalogs
+        objectImplements = [ "Products.ZenModel.IpInterface.IpInterface" ]
+        fields = [ "deviceId", "interfaceId", "macaddress", "lanId" ]
+        self.layer2 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        fields = [ "deviceId", "interfaceId", "ipAddressId", "networkId" ]
+        objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
+        self.layer3 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+
+    @property
+    def model_index(self):
+        return self.model_catalog_client.model_index
 
     def _parse_user_query(self, query):
         """
@@ -307,6 +318,8 @@ class ModelCatalogTool(object):
 
         return SearchResults(results, totalCount, str(hash_), areBrains)
 
+    def __call__(self, *args, **kwargs):
+        return self.search(*args, **kwargs)
 
     def getBrain(self, path, fields=None, commit_dirty=False):
         """
@@ -318,9 +331,7 @@ class ModelCatalogTool(object):
         elif isinstance(path, tuple):
             path = '/'.join(path)
 
-        query = Eq(UID, path)
-        search_results = self.search_model_catalog(query, fields=fields, commit_dirty=commit_dirty)
-
+        search_results = self.model_catalog_client.search_brain(path, context=self.context, fields=fields, commit_dirty=commit_dirty)
         brain = None
         if search_results.total > 0:
             brain = search_results.results.next()
@@ -328,7 +339,6 @@ class ModelCatalogTool(object):
             log.error("Unable to get brain. Trying to reindex: %s", path)
             # @TODO reindex the object if we did not find it        
         return brain
-
 
     def parents(self, path):
         """

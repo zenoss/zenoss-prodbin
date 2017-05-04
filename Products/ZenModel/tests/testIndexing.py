@@ -18,6 +18,8 @@ from Products.ZenModel.IpInterface import manage_addIpInterface
 from Products.ZenModel.WinService import manage_addWinService
 from Products.ZenUtils.FakeRequest import FakeRequest
 
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
 LOCATION = '/TestLoc/MyLocation'
 GROUP    = '/TestGrp/MyGroup'
 SYSTEM   = '/TestSys/MySystem'
@@ -32,7 +34,7 @@ class TestPathIndexing(ZenModelBaseTest):
 
     def afterSetUp(self):
         super(TestPathIndexing, self).afterSetUp()
-        self.devcat = self.dmd.Devices.deviceSearch
+        self.devcat = IModelCatalogTool(self.dmd.Devices)
 
         self.devclass = self.dmd.Devices.createOrganizer(DEVCLASS)
         self.loc = self.dmd.Locations.createOrganizer(LOCATION)
@@ -49,7 +51,7 @@ class TestPathIndexing(ZenModelBaseTest):
 
     def testDeviceIndexOnCreation(self):
         for org in (self.loc, self.grp, self.sys, self.devclass):
-            brains = self.devcat(path='/'.join(org.getPrimaryPath()))
+            brains = list(self.devcat(paths='/'.join(org.getPrimaryPath())))
             self.assertEqual(len(brains), 1)
             self.assertEqual(brains[0].id, self.dev.id)
             self.assertEqual(brains[0].getObject(), self.dev)
@@ -70,38 +72,38 @@ class TestPathIndexing(ZenModelBaseTest):
         self.dev.setSystems([])
 
         for org in (self.loc, self.grp, self.sys):
-            brains = self.devcat(path='/'.join(org.getPrimaryPath()))
+            brains = self.devcat(paths='/'.join(org.getPrimaryPath()))
             self.assertEqual(len(brains), 0)
 
         self.dev.deleteDevice()
-        brains = self.devcat(path='/'.join(self.devclass.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(self.devclass.getPrimaryPath()))
         self.assertEqual(len(brains), 0)
 
     def testDeviceReindexOnMove(self):
         neworg = self.dmd.Devices.createOrganizer(DEVCLASS+'NEW')
         self.dmd.Devices.moveDevices(DEVCLASS+'NEW', self.dev.id)
-        brains = self.devcat(path='/'.join(neworg.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(neworg.getPrimaryPath()))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newloc = self.dmd.Locations.createOrganizer(LOCATION+'NEW')
         self.dev.setLocation(LOCATION+'NEW')
-        brains = self.devcat(path='/'.join(newloc.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(newloc.getPrimaryPath()))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newgrp = self.dmd.Groups.createOrganizer(GROUP+'NEW')
         self.dev.setGroups((GROUP+'NEW',))
-        brains = self.devcat(path='/'.join(newgrp.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(newgrp.getPrimaryPath()))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newsys = self.dmd.Systems.createOrganizer(SYSTEM + 'NEW')
         self.dev.setSystems((SYSTEM+'NEW',))
-        brains = self.devcat(path='/'.join(newsys.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(newsys.getPrimaryPath()))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
@@ -115,7 +117,7 @@ class TestPathIndexing(ZenModelBaseTest):
         dcmDevice = sourceOrg.createInstance('dcmDevice')
         destOrg = self.dmd.Devices.createOrganizer('/One')
         self.dmd.Devices.moveOrganizer('/Devices/One', ['Two'])
-        brains = self.devcat(path='/'.join(destOrg.getPrimaryPath()))
+        brains = self.devcat(paths='/'.join(destOrg.getPrimaryPath()))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, dcmDevice.id)
         self.assertEqual(brains[0].getObject(), dcmDevice)
@@ -141,9 +143,9 @@ class TestComponentIndexing(ZenModelBaseTest):
 
     def afterSetUp(self):
         super(TestComponentIndexing, self).afterSetUp()
-        self.devcat = self.dmd.Devices.deviceSearch
-        self.layer2cat = self.dmd.ZenLinkManager._getCatalog(layer=2)
-        self.layer3cat = self.dmd.ZenLinkManager._getCatalog(layer=3)
+        self.model_catalog = IModelCatalogTool(self.dmd.Devices)
+        self.layer2cat = self.model_catalog.layer2
+        self.layer3cat = self.model_catalog.layer3
 
         self.devclass = self.dmd.Devices.createOrganizer(DEVCLASS)
         self.devclass2 = self.dmd.Devices.createOrganizer(DEVCLASS)
@@ -163,17 +165,25 @@ class TestComponentIndexing(ZenModelBaseTest):
         manage_addWinService(self.dev.os.winservices,'wuauserv','test service')
         self.winService = self.dev.os.winservices._getOb('wuauserv')
 
+    def getIdFromPath(self, path):
+        """ return the last part of the path """
+        _id = None
+        if path:
+            splitted = path.split('/')
+            _id = splitted[-1] if splitted else None
+        return _id
+
     def _checkEverything(self):
         for searchcriterion in (dict(macaddress=MAC),
                                 dict(deviceId='/'.join(self.dev.getPrimaryPath())),
                                 dict(interfaceId=self.iface.getPrimaryId())):
-            brains = self.layer2cat(**searchcriterion)
+            brains = list(self.layer2cat(query=searchcriterion))
             self.assertEqual(len(brains), 1)
             brain = brains[0]
             self.assertEqual(brain.deviceId, '/'.join(self.dev.getPrimaryPath()))
             self.assertEqual(brain.interfaceId, self.iface.getPrimaryId())
             self.assertEqual(brain.macaddress, MAC)
-            self.assertEqual(brain.lanId, 'None')
+            self.assertEqual(brain.lanId, None)
             self.assertEqual(brain.getObject(), self.iface)
 
         for searchcriterion in (dict(deviceId=self.dev.id),
@@ -181,11 +191,11 @@ class TestComponentIndexing(ZenModelBaseTest):
                                 dict(ipAddressId=self.ipaddress.getPrimaryId()),
                                 dict(networkId=self.net.getPrimaryId())
                                ):
-            brains = self.layer3cat(**searchcriterion)
+            brains = list(self.layer3cat(query=searchcriterion))
             self.assertEqual(len(brains), 1)
             brain = brains[0]
-            self.assertEqual(brain.deviceId, self.dev.id)
-            self.assertEqual(brain.interfaceId, self.iface.id)
+            self.assertEqual(self.getIdFromPath(brain.deviceId), self.dev.id)
+            self.assertEqual(self.getIdFromPath(brain.interfaceId), self.iface.id)
             self.assertEqual(brain.ipAddressId, self.ipaddress.getPrimaryId())
             self.assertEqual(brain.networkId, self.net.getPrimaryId())
             self.assertEqual(brain.getObject(), self.ipaddress)
@@ -202,10 +212,12 @@ class TestComponentIndexing(ZenModelBaseTest):
         """
         self.dev.deleteDevice()
 
-        brains = self.layer2cat(deviceId = self.dev.getPrimaryId())
+        query = { "deviceId" : self.dev.getPrimaryId() }
+        brains = list(self.layer2cat(query=query))
         self.assertEqual(len(brains), 0)
 
-        brains = self.layer3cat(deviceId = self.dev.id)
+        query = { "deviceId" : self.dev.id }
+        brains = list(self.layer3cat(query=query))
         self.assertEqual(len(brains), 0)
 
     def testComponentReindexOnDeviceMove(self):
@@ -221,18 +233,18 @@ class TestComponentIndexing(ZenModelBaseTest):
         Ensure that the layerN catalogs are updated when the device is moved
         """
         # See that the link has been indexed properly
-        brains = self.layer3cat(deviceId = self.dev.id)
+        brains = list(self.layer3cat( query = {"deviceId": self.dev.id} ))
         self.assertEqual(len(brains), 1)
-        brains = self.layer3cat(networkId = self.net.getPrimaryId())
+        brains = list(self.layer3cat( query = {"networkId": self.net.getPrimaryId()} ))
         self.assertEqual(len(brains), 1)
 
         # Delete the network
         self.dmd.Networks._delObject(self.net.id)
 
         # See that the link has been unindexed
-        brains = self.layer3cat(deviceId = self.dev.id)
+        brains = list(self.layer3cat( query = {"deviceId": self.dev.id} ))
         self.assertEqual(len(brains), 0)
-        brains = self.layer3cat(networkId = self.net.getPrimaryId())
+        brains = list(self.layer3cat( query = {"networkId": self.net.getPrimaryId()} ))
         self.assertEqual(len(brains), 0)
         
     def testWinSerivceComponentReindexOnServiceClassZMonitorChange(self):

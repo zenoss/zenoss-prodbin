@@ -11,12 +11,69 @@
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
 
 
-class ModelCatalogToolHelper(object):
+class ModelCatalogToolGenericHelper(object):
+
+    def __init__(self, model_catalog_tool, objectImplements=None, fields=None):
+        """
+        Helper that will automatically add query for objectImplements and
+        will request the fields passed in the constructor
+        """
+        self.model_catalog = model_catalog_tool
+        self.objectImplements = objectImplements
+        if isinstance(self.objectImplements, basestring):
+            self.objectImplements = [ self.objectImplements ]
+        self.fields = fields
+        if isinstance(self.fields, basestring):
+            self.fields = [ fields ]
+
+    def __call__(self, *args, **kwargs):
+        return self.search(*args, **kwargs)
+
+    def search(self, *args, **kwargs):
+        if self.objectImplements:
+            dict_query =  { "objectImplements" : self.objectImplements }
+            current_query = kwargs.get("query")
+            if not current_query:
+                kwargs["query"] = dict_query
+            else:
+                if isinstance(current_query, dict):
+                    values = current_query.get("objectImplements", [])
+                    if isinstance(values, basestring):
+                        values = [ values ]
+                    for value in self.objectImplements:
+                        if value not in values:
+                            values.append(value)
+                    kwargs["query"]["objectImplements"] = values
+                else:
+                    # it is advanced query
+                    advanced_query = [ Eq("objectImplements", value) for value in self.objectImplements ]
+                    if len(advanced_query) > 1:
+                        advanced_query = And(*advanced_query)
+                    else:
+                        advanced_query = advanced_query[0]
+                    kwargs["query"] = And(current_query, advanced_query)
+
+        if self.fields:
+            current_fields = kwargs.get("fields")
+            if not current_fields:
+                kwargs["fields"] = self.fields
+            else:
+                if isinstance(current_fields, basestring):
+                    current_fields = [ current_fields ]
+                current_fields.extend(self.fields)
+                kwargs["fields"] = current_fields
+
+        return self.model_catalog(*args, **kwargs)
+
+
+
+
+class ModelCatalogToolHelper(ModelCatalogToolGenericHelper):
     """
     Helper class with methods that perform common searches in the model catalog
     """
     def __init__(self, model_catalog_tool):
-        self.model_catalog = model_catalog_tool
+        super(ModelCatalogToolHelper, self).__init__(model_catalog_tool)
 
     def get_device_classes(self, *args, **kwargs):
         kwargs["query"] = Eq("objectImplements", "Products.ZenModel.DeviceClass.DeviceClass")

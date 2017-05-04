@@ -83,7 +83,7 @@ class InterfacePathReporter(DefaultPathReporter):
 
 class IpAddressPathReporter(DefaultPathReporter):
     def getPaths(self):
-        paths = [ ]
+        paths = super(IpAddressPathReporter, self).getPaths()
         if self.context.interface(): 
             paths.append(self.context.interface().getPrimaryPath() + ('ipaddresses',))
         return paths

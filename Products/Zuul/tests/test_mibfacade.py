@@ -12,7 +12,7 @@ import unittest
 #import zope.component
 from zope.interface.verify import verifyClass
 from Products import Zuul
-from Products.Zuul.tests.base import ZuulFacadeTestCase, init_modelcatalog
+from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import IMibOrganizerInfo
 from Products.Zuul.infos.mib import MibOrganizerInfo
 
@@ -45,7 +45,6 @@ class MibFacadeTest(ZuulFacadeTestCase):
         trapTree = self.facade.getMibTrapTree('/zport/dmd/Mibs/mibs/myTestMIB')
         self.assert_(trapTree is None)
 
-    @init_modelcatalog
     def test_mib_organizers(self):
         orgTree = self.facade.getOrganizerTree('/zport/dmd/Mibs')
         self.assert_(len([mib for mib in orgTree.children]) == 1)
@@ -81,7 +80,6 @@ class MibFacadeTest(ZuulFacadeTestCase):
         trapTree = self.facade.getMibTrapTree('/zport/dmd/Mibs/mibs/myTestMIB')
         self.assert_(trapTree is None)
 
-    @init_modelcatalog
     def test_missing_base_oids(self):
         # All of these OIDs are siblings -- need to create a fake parent node
         self._addNode('topLevelOid3',  '1.3.6.4.1.3')
