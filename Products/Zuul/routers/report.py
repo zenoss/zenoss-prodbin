@@ -234,12 +234,15 @@ class ReportRouter(TreeRouter):
         facade = self._getFacade()
         return self._correctReportTitles(facade.getGraphReportDefs(uid))
 
-    def getMultiGraphReportDefs(self, uid, drange=None):
+    def getMultiGraphReportDefs(self, uid, drange=None, graphGroup=None):
         """
         Gets the json necessary for rendering graphs with the metric services
         for multi graph reports.
         @type  uid: string
         @param uid: unique identifier of an object
+        @param graphGroup: return the graph definition for the specific graph group
+        @type graphGroup: string
+
         """
         facade = self._getFacade()
-        return self._correctReportTitles(facade.getMultiGraphReportDefs(uid))
+        return self._correctReportTitles(facade.getMultiGraphReportDefs(uid, graphGroup=graphGroup))

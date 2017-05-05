@@ -240,12 +240,14 @@ class MultiGraphReport(BaseReport):
     ### Graphing
     
 
-    def getDefaultGraphDefs(self, drange=None):
+    def getDefaultGraphDefs(self, drange=None, graphGroup=None):
         """ Construct the list of graph dicts for this report.
         Similar in functionality to MetricMixin.getDefaultGraphDefs
         """
         graphs = []
         for gg in self.getGraphGroups():
+            if graphGroup and gg.id != graphGroup:
+                continue
             collection = gg.getCollection()
             things = collection and collection.getDevicesAndComponents()
             graphDef = gg.getGraphDef()
