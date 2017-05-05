@@ -13,6 +13,7 @@ import transaction
 import zope.component
 from zope.component.factory import Factory
 from zope.component.interfaces import IFactory
+from zExceptions import NotFound
 
 from Acquisition import aq_parent, Implicit
 from interfaces import IModelCatalog
@@ -114,7 +115,7 @@ class ModelCatalogBrain(Implicit):
         obj = None
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
-        except:
+        except (NotFound, KeyError, AttributeError):
             log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self._result.uid))
         return obj
 
@@ -414,7 +415,7 @@ class ModelCatalogDataManager(object):
             self._do_mid_transaction_commit()
 
         # if the object has been updated mid transaction, get the latest version
-        if uid in tx_state.indexed_updates:
+        if tx_state and uid in tx_state.indexed_updates:
             uid = "{0}{1}{2}".format(uid, TX_SEPARATOR, tx_state.tid)
 
         query = Eq(UID_FIELD, uid)

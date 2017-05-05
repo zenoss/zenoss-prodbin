@@ -1733,7 +1733,6 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
     Generator that can be used to load all objects of out a catalog and skip
     any objects that are no longer able to be loaded.
     """
-
     for brain in catalog(query):
         try:
             ob = brain.getObject()
@@ -1751,10 +1750,12 @@ def getObjectsFromModelCatalog(catalog, query=None, log=None):
     for brain in catalog.search(query=query):
         try:
             ob = brain.getObject()
-            yield ob
+            if ob:
+                yield ob
         except (NotFound, KeyError, AttributeError):
-            if log:
-                log.warn("Stale record in Model Catalog: %s", brain.getPath())
+            ob = None
+        if ob is None and log:
+            log.warn("Stale record in Model Catalog: %s", brain.getPath())
 
 
 _LOADED_CONFIGS = set()
