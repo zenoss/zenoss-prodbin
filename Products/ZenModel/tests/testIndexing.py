@@ -34,7 +34,7 @@ class TestPathIndexing(ZenModelBaseTest):
 
     def afterSetUp(self):
         super(TestPathIndexing, self).afterSetUp()
-        self.devcat = IModelCatalogTool(self.dmd.Devices)
+        self.devcat = IModelCatalogTool(self.dmd.Devices).devices
 
         self.devclass = self.dmd.Devices.createOrganizer(DEVCLASS)
         self.loc = self.dmd.Locations.createOrganizer(LOCATION)
@@ -76,34 +76,34 @@ class TestPathIndexing(ZenModelBaseTest):
             self.assertEqual(len(brains), 0)
 
         self.dev.deleteDevice()
-        brains = self.devcat(paths='/'.join(self.devclass.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(self.devclass.getPrimaryPath())))
         self.assertEqual(len(brains), 0)
 
     def testDeviceReindexOnMove(self):
         neworg = self.dmd.Devices.createOrganizer(DEVCLASS+'NEW')
         self.dmd.Devices.moveDevices(DEVCLASS+'NEW', self.dev.id)
-        brains = self.devcat(paths='/'.join(neworg.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(neworg.getPrimaryPath())))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newloc = self.dmd.Locations.createOrganizer(LOCATION+'NEW')
         self.dev.setLocation(LOCATION+'NEW')
-        brains = self.devcat(paths='/'.join(newloc.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(newloc.getPrimaryPath())))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newgrp = self.dmd.Groups.createOrganizer(GROUP+'NEW')
         self.dev.setGroups((GROUP+'NEW',))
-        brains = self.devcat(paths='/'.join(newgrp.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(newgrp.getPrimaryPath())))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
 
         newsys = self.dmd.Systems.createOrganizer(SYSTEM + 'NEW')
         self.dev.setSystems((SYSTEM+'NEW',))
-        brains = self.devcat(paths='/'.join(newsys.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(newsys.getPrimaryPath())))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
@@ -117,7 +117,7 @@ class TestPathIndexing(ZenModelBaseTest):
         dcmDevice = sourceOrg.createInstance('dcmDevice')
         destOrg = self.dmd.Devices.createOrganizer('/One')
         self.dmd.Devices.moveOrganizer('/Devices/One', ['Two'])
-        brains = self.devcat(paths='/'.join(destOrg.getPrimaryPath()))
+        brains = list(self.devcat(paths='/'.join(destOrg.getPrimaryPath())))
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, dcmDevice.id)
         self.assertEqual(brains[0].getObject(), dcmDevice)
@@ -129,7 +129,11 @@ class TestPathIndexing(ZenModelBaseTest):
         """
         from zExceptions import NotFound
         d = self.dmd.Devices.createInstance('catTestDevice')
-        d.index_object()
+
+        from zope.event import notify
+        from Products.Zuul.catalog.events import IndexingEvent
+        notify(IndexingEvent(d))
+
         device_count = len(self.dmd.Devices.getSubDevices())
         self.dmd.Devices.devices._objects.pop('catTestDevice')
         try:

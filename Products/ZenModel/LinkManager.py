@@ -186,13 +186,6 @@ class LinkManager(Folder):
         self.id = id
         self.networks_per_device_cache = DeviceNetworksCache()
 
-    def _getCatalog(self, layer=3):
-        # @TODO REMOVE Whenever all catalogs are migrated to solr
-        try: 
-            return getToolByName(self, 'layer%d_catalog' % layer)
-        except AttributeError:
-            return None
-
     def _get_brains(self, layer, attr, value):
         """
         hack to make getLinkedNodes's awful code work with as little changes as possible
@@ -200,9 +193,11 @@ class LinkManager(Folder):
         model_catalog = IModelCatalogTool(self.dmd)
         query = {}
         if layer == 3:
+            model_catalog = model_catalog.layer3
             meta_type = "IpAddress"
             query["deviceId"] = "*"  # We only are interested in assigned ips
         else:
+            model_catalog = model_catalog.layer2
             meta_type = "IpInterface"
         query["meta_type"] = meta_type
         if isinstance(value, basestring):
@@ -226,7 +221,7 @@ class LinkManager(Folder):
         model_catalog = IModelCatalogTool(self.dmd.Devices)
         query = {}
         query["objectImplements"] = "Products.ZenModel.Device.Device"
-        query["path"] = "{0}/*".format(path)
+        query["path"] = "{0}".format(path)
         fields = ["id", "path", model_catalog.uid_field_name]
         result = model_catalog.search(query=query, fields=fields)
         return result.results
@@ -327,7 +322,7 @@ class LinkManager(Folder):
         # if the net's zDrawMapLinks property is true
         linkobs = []
         linked_locations = defaultdict(set)  # { network: set( location ) }
-        cat = getToolByName(self, 'layer3_catalog')
+        cat = IModelCatalogTool(self.dmd).layer3
         for net, locs in locations_per_network.iteritems():
             if len(locs) > 1:
                 draw_maps = False
@@ -338,7 +333,7 @@ class LinkManager(Folder):
                 if not draw_maps:
                     continue
                 results = defaultdict(list)
-                layer3_brains = set(cat.evalAdvancedQuery(Eq('networkId', net)))
+                layer3_brains = set(cat(query=Eq('networkId', net)))
                 net_locations = defaultdict(list) # { location : l3 brains } for current net
                 for loc in locs:
                     # get l3 brains that belong to net and whose device is in devices_per_location[location]

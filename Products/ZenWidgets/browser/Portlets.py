@@ -30,6 +30,7 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 import logging
 log = logging.getLogger('zen.portlets')
@@ -99,10 +100,9 @@ class ProductionStatePortletView(BrowserView):
 
         numericProdStates = [getProdStateInt(p) for p in prodStates]
 
-        orderby, orderdir = 'id', 'asc'
-        catalog = self.context.getPhysicalRoot().zport.global_catalog
+        catalog = IModelCatalogTool(self.context.getPhysicalRoot().zport.dmd)
         query = Eq('objectImplements', 'Products.ZenModel.Device.Device')
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+        objects = list(catalog.search(query=query, orderby='id', fields="uuid"))
 
         psManager = IProdStateManager(self.context)
         results = (x for x in objects if psManager.getProductionStateFromGUID(IGlobalIdentifier(x).getGUID()) in numericProdStates)
