@@ -21,7 +21,7 @@ logging.basicConfig()
 log.setLevel(logging.INFO)
 
 
-class ServiceMetrics:
+class ServiceMetrics(object):
     """
     Simple process that creates a metric gatherer, loops calling for
     internal metrics, then posts those metrics to a consumer.
@@ -65,34 +65,25 @@ class ServiceMetrics:
         post_data = {'metrics': metrics}
         response = self.session.post(self.metric_destination, data=json.dumps(post_data))
         if response.status_code != 200:
-            log.warning("Problem submitting metrics: %d, %s" % response.status_code, response.text)
+            log.warning("Problem submitting metrics: %d, %s", response.status_code, response.text)
             self.session = None
         else:
-            log.debug("%d Metrics posted" % len(metrics))
+            log.debug("%d Metrics posted", len(metrics))
 
 
-class MetricGatherer:
-
-    def __init__(self):
-        pass
+class MetricGatherer(object):
 
     def build_metric(self, name, value, timestamp, tags=None):
-        _value = self.float_value(value)
+        try:
+            _value = float(value)
+        except ValueError as ve:
+            _value = None
         if not tags:
             tags = {}
         return {"metric": name,
                 "value": _value,
                 "timestamp": timestamp,
                 "tags": tags}
-
-    @staticmethod
-    def float_value(value):
-        if isinstance(value, float):
-            return value
-
-        if isinstance(value, (int, long, str)):
-            return float(value)
-        return None
 
 
 class RabbitMetricGatherer(MetricGatherer):
@@ -114,36 +105,33 @@ class RabbitMetricGatherer(MetricGatherer):
                     # TODO: filter ephemeral queues, like invalidations and collectorcalls.
                     # maybe do aggregate metrics like 'queues with no consumers', i.e. unmonitored
 
-                    self._extract_data(metrics, queue, ts)
+                    metrics.extend(self._extract_data(queue, ts))
         else:
-            log.warning("Queue stats request failed: %d, %s" % result.status_code, result.text)
+            log.warning("Queue stats request failed: %d, %s", result.status_code, result.text)
         return metrics
 
-    def _extract_data(self, metrics, queue, ts):
-        log.debug('%s: %s' % (queue['name'], queue['consumers']))
+    def _extract_data(self, queue, timestamp):
+        metrics = []
+        log.debug('%s: %s', queue['name'], queue['consumers'])
         prefix = 'zenoss.rabbitqueue'
         tags = {'zenoss_queuename': queue['name']}
-        consumers = queue['consumers']
-        metrics.append(MetricGatherer.build_metric(self, "%s.consumers" % prefix, consumers, ts, tags))
-        messages = queue['messages']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages" % prefix, messages, ts, tags))
-        ready = queue['messages_ready']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages_ready" % prefix, ready, ts, tags))
-        messages_unacknowledged = queue['messages_unacknowledged']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages_unacknowledged" %
-                                                   prefix, messages_unacknowledged, ts, tags))
+
+        for name in ['consumers', 'messages', 'messages_ready', 'messages_unacknowledged']:
+            metric_name = '%s.%s' % (prefix, name)
+            metrics.append(MetricGatherer.build_metric(self, metric_name, queue[name], timestamp, tags))
+
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
         if 'message_stats' in queue:
-            ack_rate = queue['message_stats']['ack_details']['rate']
-            deliver_rate = queue['message_stats']['deliver_details']['rate']
-            deliver_get_rate = queue['message_stats']['deliver_get_details']['rate']
-            publish_rate = queue['message_stats']['publish_details']['rate']
-        metrics.append(MetricGatherer.build_metric(self, "%s.ack_rate" % prefix, ack_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.deliver_rate" % prefix, deliver_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.deliver_get_rate" %
-                                                   prefix, deliver_get_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.publish_rate" % prefix, publish_rate, ts, tags))
+            message_stats = queue['message_stats']
+            for detail in ['ack_details', 'deliver_details', 'deliver_get_details', 'publish_details']:
+                if not detail in message_stats:
+                    continue
+                rate_name = '%s.%s' % (prefix, detail.replace('_details', '_rate'))
+                rate_value = message_stats[detail]['rate']
+                metrics.append(MetricGatherer.build_metric(self, rate_name,  rate_value, timestamp, tags))
+
+        return metrics
 
 
 if __name__ == "__main__":

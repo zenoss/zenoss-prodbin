@@ -24,116 +24,10 @@ from zenoss.protocols.jsonformat import to_dict
 from zenoss.protocols.eventlet.amqp import Publishable, getProtobufPubSub
 from Products.ZenCollector.utils.workers import workersBuildOptions
 from Products.ZenUtils.Utils import zenPath
+
 from metrology import Metrology
-from metrology.instruments import (
-    Counter,
-    Gauge,
-    Histogram,
-    Meter,
-    Timer,
-    UtilizationTimer
-)
-from metrology.reporter.base import Reporter
-import requests
-import json
 
 log = logging.getLogger("zen.eventd")
-
-
-class MetricReporter(Reporter):
-
-    def __init__(self, **options):
-        super(MetricReporter, self).__init__(interval=30)
-        self.prefix = options.get('prefix', "")
-        self.metric_destination = os.environ.get("CONTROLPLANE_CONSUMER_URL", "")
-        if self.metric_destination == "":
-            self.metric_destination = "http://localhost:22350/api/metrics/store"
-        self.session = None
-
-    def write(self):
-        metrics = []
-        for name, metric in self.registry:
-            log.info("metric info: %s, %s", name, metric)
-            if isinstance(metric, Meter):
-                metrics.extend(self.log_metric(name, 'meter', metric, [
-                    'count', 'one_minute_rate', 'five_minute_rate',
-                    'fifteen_minute_rate', 'mean_rate'
-                ]))
-            if isinstance(metric, Gauge):
-                metrics.extend(self.log_metric(name, 'gauge', metric, [
-                    'value'
-                ]))
-            if isinstance(metric, UtilizationTimer):
-                metrics.extend(self.log_metric(name, 'timer', metric, [
-                    'count', 'one_minute_rate', 'five_minute_rate',
-                    'fifteen_minute_rate', 'mean_rate',
-                    'min', 'max', 'mean', 'stddev',
-                    'one_minute_utilization', 'five_minute_utilization',
-                    'fifteen_minute_utilization', 'mean_utilization'
-                ], [
-                                    'median', 'percentile_95th'
-                                ]))
-            if isinstance(metric, Timer):
-                metrics.extend(self.log_metric(name, 'timer', metric, [
-                    'count', 'one_minute_rate',
-                    'five_minute_rate', 'fifteen_minute_rate', 'mean_rate',
-                    'min', 'max', 'mean', 'stddev'
-                ], [
-                                    'median', 'percentile_95th'
-                                ]))
-            if isinstance(metric, Counter):
-                metrics.extend(self.log_metric(name, 'counter', metric, [
-                    'count'
-                ]))
-            if isinstance(metric, Histogram):
-                metrics.extend(self.log_metric(name, 'histogram', metric, [
-                    'count', 'min', 'max', 'mean', 'stddev',
-                ], [
-                                    'median', 'percentile_95th'
-                                ]))
-        try:
-            if not self.session:
-                self.session = requests.Session()
-            self.session.headers.update({'Content-Type': 'application/json'})
-            self.session.headers.update({'User-Agent': 'Zenoss Service Metrics'})
-            post_data = {'metrics': metrics}
-            log.info("Sending metric payload: %s" % post_data)
-            response = self.session.post(self.metric_destination, data=json.dumps(post_data))
-            if response.status_code != 200:
-                log.warning("Problem submitting metrics: %d, %s" % response.status_code, response.text)
-                self.session = None
-            else:
-                log.debug("%d Metrics posted" % len(metrics))
-        except Exception, e:
-            log.error(e)
-
-    def log_metric(self, name, type, metric, keys, snapshot_keys=None):
-        results = []
-
-        if snapshot_keys is None:
-            snapshot_keys = []
-
-        metric_name = self.prefix + name if self.prefix else name
-        ts = time.time()
-        try:
-            for stat in keys:
-                whole_metric_name = "%s.%s" % (metric_name, stat)
-                results.append({"metric": whole_metric_name,
-                                "value": getattr(metric, stat),
-                                "timestamp": ts,
-                                "tags": self.tags})
-
-            if hasattr(metric, 'snapshot'):
-                snapshot = metric.snapshot
-                for stat in snapshot_keys:
-                    whole_metric_name = "%s.%s" % (metric_name, stat)
-                    results.append({"metric": whole_metric_name,
-                                    "value": getattr(snapshot, stat),
-                                    "timestamp": ts,
-                                    "tags": self.tags})
-        except Exception, e:
-            log.error(e)
-        return results
 
 
 class EventletQueueConsumerTask(BaseQueueConsumerTask, BasePubSubMessageTask):
@@ -141,8 +35,6 @@ class EventletQueueConsumerTask(BaseQueueConsumerTask, BasePubSubMessageTask):
     def __init__(self, processor):
         BaseQueueConsumerTask.__init__(self, processor)
         self.processing_timer = Metrology.timer('zeneventd.processMessage')
-        self.reporter = MetricReporter(prefix='zenoss.')
-        self.reporter.start()
 
     def processMessage(self, message):
         """
