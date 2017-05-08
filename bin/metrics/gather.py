@@ -72,24 +72,14 @@ class ServiceMetrics:
 
 
 class MetricGatherer:
+
     def __init__(self):
-        self.service_id = os.environ.get("CONTROLPLANE_SERVICED_ID", "")
-        self.instance_id = os.environ.get("CONTROLPLANE_INSTANCE_ID", "")
-        self.host_id = os.environ.get("CONTROLPLANE_HOST_ID", "")
-        self.tenant_id = os.environ.get("CONTROLPLANE_TENANT_ID", "")
-        self.tags = {
-            "serviceId": self.service_id,
-            "instance": self.instance_id,
-            "hostId": self.host_id,
-            "tenantId": self.tenant_id
-        }
+        pass
 
     def build_metric(self, name, value, timestamp, tags=None):
         _value = self.float_value(value)
-        if tags:
-            tags.update(self.tags)
-        else:
-            tags = self.tags
+        if not tags:
+            tags = {}
         return {"metric": name,
                 "value": _value,
                 "timestamp": timestamp,
@@ -132,7 +122,7 @@ class RabbitMetricGatherer(MetricGatherer):
     def _extract_data(self, metrics, queue, ts):
         log.debug('%s: %s' % (queue['name'], queue['consumers']))
         prefix = 'zenoss.rabbitqueue'
-        tags = {'name': queue['name']}
+        tags = {'zenoss_queuename': queue['name']}
         consumers = queue['consumers']
         metrics.append(MetricGatherer.build_metric(self, "%s.consumers" % prefix, consumers, ts, tags))
         messages = queue['messages']
