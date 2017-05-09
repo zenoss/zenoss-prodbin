@@ -1874,6 +1874,18 @@ img.europaGraphGear.spinnerino {
   cursor: pointer;
 }
 
+.zenfooter_value_row:hover {
+  background-color: #ddd;
+}
+
+.zenchart_lowlight {
+  opacity: .15;
+}
+  .zenchart_spotlight {
+    opacity: 1;
+    stroke-width: 4 !important;
+  }
+
 .zenfooter_dates {
   font-weight: bold;
   text-align: center;
