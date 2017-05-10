@@ -13,7 +13,7 @@ Ext.onReady(function(){
     function buildGraph(data, drange){
         var config = Ext.JSON.decode(data);
 
-        if (Ext.isDefined(drange)) {
+        if (Ext.isDefined(drange) && Ext.isNumeric(drange)) {
             config.graph_params = {
                 drange: parseInt(drange),
                 end: new Date().getTime(),
