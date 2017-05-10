@@ -288,10 +288,10 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         ip6_networks = self.getNetworkRoot(6)
         self.initialize_network_cache(ip6_networks)
 
-    def get_network_cache(self):
-        if not hasattr(self.getNetworkRoot(), self.NETWORK_CACHE_ATTR):
-            self.initialize_network_cache(self.getNetworkRoot())
-        return getattr(self.getNetworkRoot(), self.NETWORK_CACHE_ATTR)
+    def get_network_cache(self, version=None):
+        if not hasattr(self.getNetworkRoot(version), self.NETWORK_CACHE_ATTR):
+            self.initialize_network_cache(self.getNetworkRoot(version))
+        return getattr(self.getNetworkRoot(version), self.NETWORK_CACHE_ATTR)
 
     #----------------------------------------------------------
     #    IObjectEventsSubscriber Methods
@@ -306,7 +306,8 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             self.get_network_cache().add_net(self)
 
     def object_added_handler(self):
-        pass
+        if not self.id.endswith("Networks"):
+            self.get_network_cache().add_net(self)
 
     #----------------------------------------------------------
 
@@ -393,8 +394,9 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             netmask = int(netmask)
         except (TypeError, ValueError):
             netmask = None
-        netmask = netmask if netmask < ipobj.max_prefixlen else None
-        return netip, netmask
+        biggest_netmask = ipobj.max_prefixlen if ipobj.version==4 else 64+1 
+        netmask = netmask if netmask > 0  and netmask < biggest_netmask else None
+        return netip, netmask, ipobj.version
 
     security.declareProtected(ZEN_ADD, 'createNet')
     def createNet(self, netip, netmask=None):
@@ -411,11 +413,11 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         @type netmask: integer
         @todo: investigate IPv6 issues
         """
-        netip, netmask = self._parse_netip_and_netmask(netip, netmask)
+        netip, netmask, version = self._parse_netip_and_netmask(netip, netmask)
 
         # if netmask is None it will look for the net in all possible nets
         #
-        netobj = self.get_network_cache().get_net(netip, netmask, context=self)
+        netobj = self.get_network_cache(version).get_net(netip, netmask, context=self)
 
         if netobj is None:
             # Network does not exist. Create a new network
@@ -426,7 +428,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             parent_mask = -1
             parent_net = self._find_parent(netip, netmask)
             if parent_net is None:
-                parent_net = self.getNetworkRoot()
+                parent_net = self.getNetworkRoot(version=version)
             else:
                 parent_mask = parent_net.netmask
 
@@ -438,8 +440,9 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
 
             # filter net tree to create, we only need masks greater than the parent's 
             # and smaller than the the one we want to add
-            network_tree = sorted(filter(lambda m: m > parent_mask and m < netmask, default_net_tree))
+            network_tree = filter(lambda m: m > parent_mask and m < netmask, default_net_tree)
             network_tree.append(netmask)
+            network_tree = sorted(network_tree)
 
             # We need to create the networks with masks in network_tree which
             # includes the net we wanted to create in the first place
@@ -447,7 +450,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             for mask in network_tree:
                 subnet_ip = netFromIpAndNet(netip, mask)
                 subnet = parent_net.addSubNetwork(subnet_ip, mask)
-                self.get_network_cache().add_net(subnet) # update the cache
+                self.get_network_cache(version).add_net(subnet) # update the cache
 
                 # check if any of the existing subnets of parent_net
                 # is a subnet of the new net subnet. If so, move appropriately
@@ -465,7 +468,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
 
         # Who can be a subnet of netobj ? networks whose decimal ip is between within netobj
         # ip range get all the nets that are a subnet of netobj
-        all_subnets_paths = self.get_network_cache().get_subnets_paths(netobj)
+        all_subnets_paths = self.get_network_cache(netobj.version).get_subnets_paths(netobj)
 
         # keep only the ones that are at the same level as netobj
         parent_path = "/".join(netobjParent.getPrimaryPath())
@@ -487,7 +490,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         Find and return the subnet of this IpNetwork that matches the requested
         netip and netmask.
         """
-        netip, netmask = self._parse_netip_and_netmask(netip, netmask)
+        netip, netmask, version = self._parse_netip_and_netmask(netip, netmask)
         return self.get_net_from_cache(ipunwrap(netip), netmask)
 
     def getNet(self, ip, netmask=None):

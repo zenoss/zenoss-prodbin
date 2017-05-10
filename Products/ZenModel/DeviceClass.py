@@ -512,8 +512,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             ors.append(MatchGlob('name', devicename))
 
         query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
-
-        search_results = IModelCatalogTool(self).search(query=query)
+        fields = [ "name", "id", "text_ipAddress" ]
+        search_results = IModelCatalogTool(self).search(query=query, fields=fields)
         return list(search_results.results)
 
     def findDevicePath(self, devicename):
@@ -545,12 +545,13 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Look up device in catalog and return it.  devicename
         must match device id exactly
         """
-        query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
-        search_results = IModelCatalogTool(self).search(query=query)
-        for brain in search_results.results:
-            dev = brain.getObject()
-            if dev.id == devicename:
-                return dev
+        if devicename:
+            query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
+            search_results = IModelCatalogTool(self).search(query=query)
+            for brain in search_results.results:
+                dev = brain.getObject()
+                if dev.id == devicename:
+                    return dev
 
     def findDevicePingStatus(self, devicename):
         """

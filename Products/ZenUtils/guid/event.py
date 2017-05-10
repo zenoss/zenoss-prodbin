@@ -10,14 +10,14 @@
 
 import logging
 from zope.event import notify
-from zope.component import adapter
+from zope.component import adapter, getUtility
 from zope.interface import implements
 from zope.component.interfaces import ObjectEvent
 from zope.container.interfaces import IObjectMovedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 from .interfaces import IGUIDEvent, IGUIDManager, IGloballyIdentifiable
 from .interfaces import IGlobalIdentifier
-from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalog
 
 log = logging.getLogger('zen.UUID')
 
@@ -38,8 +38,7 @@ def registerGUIDToPathMapping(obj, event):
         mgr.setObject(event.new, obj)
         if event.update_global_catalog:
             try:
-                catalog = IModelCatalog(obj)
-                catalog.catalog_object(obj, idxs=("uuid"))
+                getUtility(IModelCatalog).catalog_object(obj, idxs=("uuid"))
             except Exception:
                 log.exception('Encountered a guid exception')
     if event.old and event.old != event.new:

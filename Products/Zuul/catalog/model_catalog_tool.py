@@ -42,13 +42,25 @@ class ModelCatalogTool(object):
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
         self.uid_field_name = UID
         self.helper = ModelCatalogToolHelper(self)
-        # Generic helpers for deprecated layer2 and layer3 catalogs
+        # Helpers for legacy catalogs
+        self.layer2 = None
+        self.layer3 = None
+        self.devices = None
+        self._create_legacy_catalog_helpers()
+
+    def _create_legacy_catalog_helpers(self):
+        # Layer 2
         objectImplements = [ "Products.ZenModel.IpInterface.IpInterface" ]
         fields = [ "deviceId", "interfaceId", "macaddress", "lanId" ]
         self.layer2 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # Layer 3
         fields = [ "deviceId", "interfaceId", "ipAddressId", "networkId" ]
         objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
         self.layer3 = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # Device catalog
+        fields = [ "id", "name" ]
+        objectImplements = [ "Products.ZenModel.Device.Device" ]
+        self.devices = ModelCatalogToolGenericHelper(self, objectImplements, fields)
 
     @property
     def model_index(self):
