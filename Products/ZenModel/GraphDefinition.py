@@ -348,10 +348,10 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             if includeThresholds:
                 for dpName in dpNames:
                     newGps += self.addThresholdsForDataPoint(dpName)
+            for gp in newGps:
+                audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType='DataPoint',
+                      graphPoint=gp.id, includeThresholds=str(includeThresholds))
             if REQUEST:
-                for dpName in dpNames:
-                    audit('UI.GraphDefinition.AddGraphPoint', self.id, graphPointType='DataPoint',
-                          graphPoint=dpName, includeThresholds=str(includeThresholds))
                 messaging.IMessageSender(self).sendToBrowser(
                     'Graph Points Added',
                     '%s graph point%s were added.' % (len(newGps),

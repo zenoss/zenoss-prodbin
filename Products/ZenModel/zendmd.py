@@ -177,7 +177,6 @@ def _customStuff():
     """
 
     import socket
-    from transaction import commit
     from pprint import pprint
     from Products.ZenUtils.Utils import setLogLevel
     from Products.Zuul import getFacade, listFacades
@@ -231,6 +230,11 @@ def _customStuff():
         cmds = sorted(filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF))
         for cmd in cmds:
             print cmd
+
+    def commit():
+        audit.audit('Shell.Script.Commit')
+        from transaction import commit
+        commit()
 
     def grepdir(obj, regex=""):
         if regex:
@@ -562,6 +566,9 @@ if __name__=="__main__":
         set_db_config(opts.host, opts.port)
 
     vars_ = _customStuff()
+
+    audit.audit('Shell.Script.Run')
+
     # set the first positional argument as the --script arg
     for arg in sys.argv[1:]:
         if not arg.startswith("-") and os.path.exists(arg):
@@ -577,6 +584,7 @@ if __name__=="__main__":
         allVars.update(vars_)
         execfile(opts.script, allVars)
         if opts.commit:
+            audit.audit('Shell.Script.Commit')
             from transaction import commit
             commit()
         else:
@@ -586,7 +594,6 @@ if __name__=="__main__":
                 pass
         sys.exit(0)
 
-    audit.audit('Shell.Script.Run')
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")
