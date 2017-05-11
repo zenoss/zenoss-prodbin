@@ -353,6 +353,7 @@
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
                 projections: this.projections,
+                printOptimized: this.printOptimized,
                 type: this.type,
                 // lose the footer and yaxis label as the image gets smaller
                 footer: (height >= 350) ? true : false,
@@ -1200,6 +1201,7 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
+                    printOptimized: this.printOptimized,
                     // when a europa graph appears in a graph panel then don't show controls
                     dockedItems: [],
                     // set the date range incase we are refreshing after a resize or
