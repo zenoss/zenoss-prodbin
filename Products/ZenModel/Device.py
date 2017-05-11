@@ -84,6 +84,7 @@ from Products.ZenUtils.Search import (
     makeCaseInsensitiveKeywordIndex,
     makeMultiPathIndex
 )
+from Products.Jobber.facade import FacadeMethodJob
 
 DEFAULT_PRODSTATE = 1000
 
@@ -1909,10 +1910,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             parent.manage_renameObject(oldId, newId)
             self.restoreCurrentProdStates(currProdStates)
             self.setLastChange()
+
+            # Replace the old id in performance data with the new id.
+            # See ZEN-27329.
+            self.amendPerfDataAfterRename(oldId, newId)
+
             return self.absolute_url_path()
 
         except CopyError:
             raise Exception("Device rename failed.")
+
+    def amendPerfDataAfterRename(self, oldId, newId):
+        """
+        Replace a dev id in metric names and tag values with the new id after
+        renaming the device.
+        """
+        self.dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description='Rename device {} to {} in performance data'.format(oldId, newId),
+            kwargs=dict(
+                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+                method='renameDevice',
+                oldId=oldId,
+                newId=newId
+            )
+        )
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
