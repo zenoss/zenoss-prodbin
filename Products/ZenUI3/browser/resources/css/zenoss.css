@@ -1886,6 +1886,10 @@ img.europaGraphGear.spinnerino {
     stroke-width: 4 !important;
   }
 
+.print-optimized .zenfooter {
+  max-height: none;
+}
+
 .zenfooter_dates {
   font-weight: bold;
   text-align: center;
