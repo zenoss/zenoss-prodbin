@@ -980,7 +980,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             else:
                 self.manageIp = ip
-                notify(IndexingEvent(self, ('ipAddress',), True))
+                notify(IndexingEvent(self, ('decimal_ipAddress', 'text_ipAddress'), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
                 if REQUEST:
