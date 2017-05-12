@@ -281,9 +281,9 @@ class DeviceIndexable(object):   # Device inherits from this class
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
-    @indexed(str, attr_query_name="productionState")
+    @indexed(IntFieldType(stored=True), attr_query_name="productionState")
     def idx_productionState(self):
-        return str(self.productionState)
+        return self.productionState
 
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="macAddresses")
     def idx_macAddresses(self):
