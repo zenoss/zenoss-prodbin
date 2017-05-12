@@ -24,6 +24,7 @@ from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.catalog.interfaces import IIndexableWrapper
+from Products.Zuul.catalog.exceptions import ModelCatalogError, ModelCatalogUnavailableError
 from transaction.interfaces import IDataManager
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
@@ -42,19 +43,6 @@ log = logging.getLogger("model_catalog")
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
 TX_STATE_FIELD = "tx_state"
-
-class ModelCatalogError(Exception):
-    def __init__(self, message=""):
-        if not message:
-            message = "Model Catalog internal error"
-        super(ModelCatalogError, self).__init__(message)
-
-
-class ModelCatalogUnavailableError(ModelCatalogError):
-    def __init__(self, message = ""):
-        if not message:
-            message = "Model Catalog not available"
-        super(ModelCatalogUnavailableError, self).__init__(message)
 
 
 class SearchResults(object):
@@ -570,6 +558,9 @@ class ModelCatalog(object):
         catalog_client = self.get_client(obj)
         catalog_client.uncatalog_object(obj)
 
+    def get_indexes(self, context):
+        catalog_client = self.get_client(context)
+        return catalog_client.get_indexes()
 
 def get_solr_config():
     config = getGlobalConfiguration()

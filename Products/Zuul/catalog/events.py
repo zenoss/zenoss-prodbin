@@ -18,6 +18,7 @@ from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent,
 from paths import devicePathsFromComponent
 
 from Products.Zuul.catalog.interfaces import IModelCatalog
+from Products.Zuul.catalog.exceptions import BadIndexingEvent
 
 
 class IndexingEvent(object):
@@ -26,6 +27,7 @@ class IndexingEvent(object):
         self.object = object
         self.idxs = idxs
         self.update_metadata = update_metadata
+
 
 def _get_object_to_index(ob):
     """
@@ -43,14 +45,23 @@ def _get_object_to_index(ob):
     else:
         return evob
 
+
 @adapter(IGloballyIndexed, IIndexingEvent)
 def onIndexingEvent(ob, event):
+    model_catalog = getUtility(IModelCatalog)
+    object_to_index = _get_object_to_index(ob)
+
     idxs = event.idxs
     if isinstance(idxs, basestring):
         idxs = [idxs]
-    object_to_index = _get_object_to_index(ob)
+
+    if idxs:
+        # check idxs are valid indexes
+        bad_idxs = set(idxs) - set(model_catalog.get_indexes(object_to_index))
+        if bad_idxs:
+            raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
     if object_to_index:
-        getUtility(IModelCatalog).catalog_object(object_to_index, idxs)
+        model_catalog.catalog_object(object_to_index, idxs)
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
