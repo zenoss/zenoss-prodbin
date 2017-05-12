@@ -42,8 +42,6 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
-from Products.ZenUtils.productionstate.interfaces import IProdStateManager
-
 log = logging.getLogger('zen.Zuul')
 
 organizersToClass = {
@@ -187,95 +185,25 @@ class TreeFacade(ZuulFacade):
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
                         qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
+            elif key == 'productionState':
+                qs.append(Or(*[Eq('productionState', str(state))
+                             for state in value]))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
                 if not organizerQuery:
                     return []
                 qs.append(organizerQuery)
-            elif key == 'productionState':
-                prodStates = value
             else:
                 globFilters[key] = value
         if qs:
             query = And(*qs)
 
-        orderby = sort
-        startp = start
-        limitp = limit
-        hashcheckp = hashcheck
-        useProdStates = False
-        if 'uuid' not in fields:
-            fields.append('uuid')
+        return cat.search(
+                types, start=start,
+                limit=limit, orderby=sort, reverse=reverse,
+                query=query, globFilters=globFilters, hashcheck=hashcheck, fields=fields)
 
-        if sort == "productionState":
-            useProdStates = True
-            orderby = 'name'
-            startp = 0
-            limitp = None
-
-        if prodStates:
-            hashcheckp = None
-            useProdStates = True
-            startp = 0
-            limitp = None
-
-        catbrains = cat.search(
-                types, start=startp,
-                limit=limitp, orderby=orderby, reverse=reverse,
-                query=query, globFilters=globFilters, hashcheck=hashcheckp, fields=fields)
-
-        ## Handle Production State separately
-        if useProdStates:
-            psManager = IProdStateManager(self._dmd)
-            # Filter by production state
-            if prodStates:
-                psFilteredbrains = [b for b in catbrains if psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID()) in prodStates]
-                totalCount = len(psFilteredbrains)
-                hash_ = str(totalCount)
-
-                # we've changed the number of results, so check the hash here
-                if hashcheck is not None:
-                    if hash_ != hashcheck:
-                        raise StaleResultsException("Search results do not match")
-            else:
-                psFilteredbrains = catbrains
-                totalCount = catbrains.total
-                hash_ = catbrains.hash_
-
-            # Sort by production state
-            def mergeBuckets(sortedkeys, buckets):
-                for key in sortedkeys:
-                    for item in buckets[key]:
-                        yield item
-
-            if sort == "productionState":
-                productionStates = [conv[1] for conv in self._dmd.getProdStateConversions()]
-                productionStates.sort(reverse=reverse)
-                prodStateBuckets = {}
-                for ps in productionStates:
-                    prodStateBuckets[ps] = []
-
-                for b in psFilteredbrains:
-                    prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID())
-                    prodStateBuckets[prodState].append(b)
-
-                sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
-            else:
-                sortedBrains = psFilteredbrains
-
-            # Pick out the correct range and build the SearchResults object
-            start = max(start, 0)
-            if limit is None:
-                stop = None
-            else:
-                stop = start + limit
-            results = islice(sortedBrains, start, stop)
-            brains = SearchResults(results, totalCount, hash_, catbrains.areBrains)
-        else:
-            brains = catbrains
-
-        return brains
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):

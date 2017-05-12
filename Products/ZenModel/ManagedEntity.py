@@ -28,32 +28,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenModel.MaintenanceWindowable import MaintenanceWindowable
 
-from Products.ZenUtils.productionstate.interfaces import IProdStateManager, ProdStateNotSetError
 from Products.ZenMessaging.ChangeEvents.subscribers import publishModified
-from Acquisition import aq_parent, ImplicitAcquisitionWrapper
-
-class ImplicitAcquisitionWrapper_ManagedEntity(ImplicitAcquisitionWrapper):
-    # Zope's wrapper overrides __getattribute__ to ignore attributes on the wrapper class that don't start with "aq"
-    #  so rather than creating a property, we will we need to override __getattribute__, __setattr__, and __delattr__
-    def __getattribute__(self, name):
-        if name=="productionState":
-            return self.getProductionState()
-        else:
-            return super(ImplicitAcquisitionWrapper_ManagedEntity, self).__getattribute__(name)
-
-    def __setattr__(self, name, value):
-        if name=="productionState":
-            self._setProductionState(value)
-        else:
-            super(ImplicitAcquisitionWrapper_ManagedEntity, self).__setattr__(name, value)
-
-    def __delattr__(self, name):
-        if name=="productionState":
-            self.resetProductionState()
-        else:
-            super(ImplicitAcquisitionWrapper_ManagedEntity, self).__delattr__(name)
-
-
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
                     MaintenanceWindowable):
@@ -75,6 +50,10 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     _properties = (
      {'id':'snmpindex', 'type':'string', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
+     {'id':'productionState', 'type':'keyedselection', 'mode':'w',
+        'select_variable':'getProdStateConversions','setter':'setProdState'},
+     {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
+        'select_variable':'getProdStateConversions','setter':'setProdState'},
     )
 
     _relations = (
@@ -92,39 +71,33 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """
         return None
     
-    def getProdStateManager(self):
-        return IProdStateManager(self)
-
     def getProductionState(self):
-        try:
-            return self.getProdStateManager().getProductionState(self)
-        except (ProdStateNotSetError, AttributeError, TypeError):
-            return aq_parent(self).getProductionState()
+        return self.privateattr_productionState
         
     def _setProductionState(self, state):
-        self.getProdStateManager().setProductionState(self, state)
+        self.privateattr_productionState = state
 
     def getPreMWProductionState(self):
-        try:
-            return self.getProdStateManager().getPreMWProductionState(self)
-        except (ProdStateNotSetError, AttributeError, TypeError):
-            return aq_parent(self).getPreMWProductionState()
+        return self.privateattr_preMWProductionState
 
     def setPreMWProductionState(self, state):
-        self.getProdStateManager().setPreMWProductionState(self, state)
+        self.privateattr_preMWProductionState = state
 
     def resetProductionState(self):
-        self.getProdStateManager().clearProductionState(self)
+        # The Device class should override this and set a default value
+        try:
+            del self.privateattr_productionState
+        except AttributeError:
+            pass
+
+        try:
+            del self.privateattr_preMWProductionState
+        except AttributeError:
+            pass
 
     # In order to maintain backward-compatibility, we need to preserve productionState as a property.
-    #  Our getProductionState() method requires acquisition context, so we have to add the property
-    #  onto the wrapped object and not on the ManagedEntity object itself.  We do this by sub-classing 
-    #  Zope's wrapper. 
-    #  Note that sub-classing sope's wrapper only works because we modified the Acquisition
-    #  source code to handle it properly. The modifications to Acquisition can be seen here:
-    #  https://github.com/zenoss/Acquisition/pull/1
-    def __of__(self, container):
-        return ImplicitAcquisitionWrapper_ManagedEntity(self, container)
+    productionState = property(getProductionState, _setProductionState, resetProductionState)
+    preMWProductionState = property(getPreMWProductionState, setPreMWProductionState)
 
     def getProductionStateString(self):
         """
@@ -146,6 +119,8 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         @permission: ZEN_CHANGE_DEVICE
         """
         self._setProductionState(int(state))
+
+        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
 
         if not maintWindowChange:
             # Saves our production state for use at the end of the

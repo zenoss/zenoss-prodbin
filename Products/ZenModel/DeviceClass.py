@@ -230,9 +230,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         exported = False
 
-        # Save production states
-        currProdStates = dev.saveCurrentProdStates()
-
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
 
@@ -341,9 +338,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             source.devices._delObject(devname)
             target.devices._setObject(devname, dev)
         dev = target.devices._getOb(devname)
-        
-        # Restore the production states
-        dev.restoreCurrentProdStates(currProdStates)
 
         IGlobalIdentifier(dev).guid = guid
         dev.setLastChange()
