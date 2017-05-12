@@ -22,6 +22,8 @@ import servicemigration as sm
 import servicemigration.thresholdconfig
 import servicemigration.threshold
 import servicemigration.eventtags
+import subprocess
+import shutil
 
 
 sm.require("1.1.8")
@@ -42,49 +44,22 @@ class AddReportingZopesSvcDef(Migrate.Step):
             log.info("The zenreports service already exists. Skipping this migration step.")
             return False
 
-        zopesvc = filter(lambda x: x.name == "Zope" and x.description == "Zope server", ctx.services)[0]
-        zenreports_svc = zopesvc.clone()
+        # Copy zenreports service definition
+        zenreports_svc_filepath = os.path.join(os.path.dirname(__file__), "zenreports-service.json")
+        zenreports_svc_tempfilepath = '/tmp/zenreports-service.json'
+        shutil.copyfile(zenreports_svc_filepath, zenreports_svc_tempfilepath)
 
-        # Change the name
-        zenreports_svc.name = "zenreports"
-        # Change the description
-        zenreports_svc.description = "Zope server dedicated to report generation"
-        # Change the StartupCommand
-        zenreports_svc.startup = "su - zenoss -c \"CONFIG_FILE=${ZENHOME:-/opt/zenoss}/etc/zenreports.conf /opt/zenoss/bin/runzope\" "
-        # Remove the Commands
-        zenreports_svc.commands = []
-        # Change the ConfigFiles
-        zopeconf = filter(lambda x: x.name == "/opt/zenoss/etc/zope.conf", zenreports_svc.originalConfigs)[0]
-        zenreports_conf = sm.ConfigFile(
-                        name = "/opt/zenoss/etc/zenreports.conf",
-                        filename = "/opt/zenoss/etc/zenreports.conf",
-                        owner = "zenoss:zenoss",
-                        permissions = "660",
-                        content = zopeconf.content.replace('9080', '9290')
-                    )
-        zenreports_svc.originalConfigs = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.originalConfigs)
-        zenreports_svc.originalConfigs.append(zenreports_conf)
-        zenreports_svc.configFiles = filter(lambda x: x.name != "/opt/zenoss/etc/zope.conf",zenreports_svc.configFiles)
-        zenreports_svc.configFiles.append(zenreports_conf)
-        # Remove the zope Endpoints entry, add one for zenreports
-        zenreports_svc.endpoints = filter(lambda x: x.name != "zope", zenreports_svc.endpoints)
-        zenreports_svc.endpoints.append(sm.Endpoint(
-            name = "zenreports",
-            application = "zenreports",
-            portnumber = 9290,
-            protocol = "tcp",
-            purpose = "export"
-        ))
-        # Change the answering.script entry in HealthChecks
-        answering = filter(lambda x: x.name == "answering", zenreports_svc.healthChecks)[0]
-        answering.script = answering.script.replace('9080', '9290').replace('Zope', 'zenreports')
-        # Change Instances.default and Instances.min
-        zenreports_svc.instanceLimits.minimum = 1
-        zenreports_svc.instanceLimits.default = 1
-        zenreports_svc.instances = 1
+        # Substitute the ImageID
+        zope_svc = filter(lambda x: x.name == "Zope", ctx.services)[0]
+        subprocess.check_call(['sed', '-i', 's#"ImageID": "[a-zA-Z0-9:\/]\+",#"ImageID": "{}",#'.format(zope_svc.imageID), zenreports_svc_tempfilepath])
 
-        # Add the zenreports service
-        ctx.services.append(zenreports_svc)
+        with open(zenreports_svc_tempfilepath) as zenreports_jsonfile:
+            try:
+                user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
+                ctx.deployService(zenreports_jsonfile.read(), user_interface_svc)
+            except Exception, e:
+                log.error("Error deploying zenreports service definition: {}".format(e))
+                return False
 
         return True
 
@@ -106,26 +81,6 @@ class AddReportingZopesSvcDef(Migrate.Step):
         return True
 
     def update_zproxy_configs(self, zproxy):
-        # Add configs for zopereports upstream and proxy included zproxy-nginx.conf
-        zopereports_proxy_conf = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zopereports-proxy.conf", zproxy.originalConfigs)
-        if not zopereports_proxy_conf:
-            zproxy.originalConfigs.append(sm.ConfigFile(
-                name = "/opt/zenoss/zproxy/conf/zopereports-proxy.conf",
-                filename = "/opt/zenoss/zproxy/conf/zopereports-proxy.conf",
-                owner = "zenoss:zenoss",
-                permissions = "644",
-                content = "        location ~* ^/zport/dmd/reports {\n            proxy_pass http://zopereports;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            add_header X-Frame-Options SAMEORIGIN;\n            add_header X-XSS-Protection \"1; mode=block\";\n        }"
-            ))
-
-        zopereports_upstreams_conf = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zopereports-upstreams.conf", zproxy.originalConfigs)
-        if not zopereports_upstreams_conf:
-            zproxy.originalConfigs.append(sm. ConfigFile(
-               name = "/opt/zenoss/zproxy/conf/zopereports-upstreams.conf",
-               filename = "/opt/zenoss/zproxy/conf/zopereports-upstreams.conf",
-               owner = "zenoss:zenoss",
-               permissions = "644",
-               content = "server 127.0.0.1:9290;"
-            ))
 
         # Modify zproxy configs for zenreports
         zproxy_conf_orig = filter(lambda x: x.name == "/opt/zenoss/zproxy/conf/zproxy-nginx.conf", zproxy.originalConfigs)[0]
@@ -155,13 +110,6 @@ class AddReportingZopesSvcDef(Migrate.Step):
         did_add_zenreports = self._add_zenreports_service(ctx)
         if not did_add_zenreports:
            return
-
-        try:
-            zope_svc = filter(lambda x: x.name == "Zope", ctx.services)[0]
-            zenreports_svc = filter(lambda x: x.name == "zenreports", ctx.services)[0]
-            zenreports_svc.imageID = zope_svc.imageID
-        except:
-            log.error("Error updating zenreports service")
 
         zproxy = ctx.getTopService()
         did_update_zproxy = self.update_zproxy_configs(zproxy)
