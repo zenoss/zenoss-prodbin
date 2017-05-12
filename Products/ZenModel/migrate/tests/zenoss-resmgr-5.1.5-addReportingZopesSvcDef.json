@@ -18781,7 +18781,7 @@
        "Content": "\u003cmysql\u003e\n    host    {{getContext . \"global.conf.zodb-host\"}}\n    port    {{getContext . \"global.conf.zodb-port\"}}\n    user    {{getContext . \"global.conf.zodb-user\"}}\n    passwd  {{getContext . \"global.conf.zodb-password\"}}\n    db      zodb_session\n\u003c/mysql\u003e\n"
      }
    },
-   "InstanceLimits": {
+   "Instances": {
      "Min": 1,
      "Max": 0,
      "Default": 1
