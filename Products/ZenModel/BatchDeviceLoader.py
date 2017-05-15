@@ -618,7 +618,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             specs['discoverProto'] = 'none'
 
             self.loader(**specs)
-            devobj  = self.dmd.Devices.findDevice(name)
+            devobj  = self.dmd.Devices.findDevice(name, commit_dirty=True)
             if devobj is None:
                 self.log.error("Unable to find newly created device %s -- skipping" \
                               % name)
