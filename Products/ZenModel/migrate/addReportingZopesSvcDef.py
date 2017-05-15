@@ -45,7 +45,7 @@ class AddReportingZopesSvcDef(Migrate.Step):
             return False
 
         # Copy zenreports service definition
-        zenreports_svc_filepath = os.path.join(os.path.dirname(__file__), "zenreports-service.json")
+        zenreports_svc_filepath = os.path.join(os.path.dirname(__file__), "data", "zenreports-service.json")
         zenreports_svc_tempfilepath = '/tmp/zenreports-service.json'
         shutil.copyfile(zenreports_svc_filepath, zenreports_svc_tempfilepath)
 
