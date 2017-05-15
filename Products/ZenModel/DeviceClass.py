@@ -493,7 +493,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         return devices
 
-    def _findDevice(self, devicename, useTitle=True):
+    def _findDevice(self, devicename, useTitle=True, commit_dirty=False):
         """
         Returns all devices whose ip/id/title match devicename.
         ip/id matches are at the front of the list.
@@ -507,31 +507,31 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
         fields = [ "name", "id", "text_ipAddress" ]
-        search_results = IModelCatalogTool(self).search(query=query, fields=fields)
+        search_results = IModelCatalogTool(self).search(query=query, fields=fields, commit_dirty=commit_dirty)
         return list(search_results.results)
 
-    def findDevicePath(self, devicename):
+    def findDevicePath(self, devicename, commit_dirty=False):
         """
         Look up a device and return its path
         """
-        ret = self._findDevice(devicename)
+        ret = self._findDevice(devicename, commit_dirty=commit_dirty)
         if not ret: return ""
         return ret[0].getPath()
 
-    def findDevice(self, devicename):
+    def findDevice(self, devicename, commit_dirty=False):
         """
         Returns the first device whose ip/id matches devicename.  If
         there is no ip/id match, return the first device whose title
         matches devicename.
         """
-        ret = self._findDevice(devicename)
+        ret = self._findDevice(devicename, commit_dirty=commit_dirty)
         if ret: return ret[0].getObject()
 
-    def findDeviceByIdOrIp(self, devicename):
+    def findDeviceByIdOrIp(self, devicename, commit_dirty=False):
         """
         Returns the first device that has an ip/id that matches devicename
         """
-        ret = self._findDevice( devicename, False )
+        ret = self._findDevice( devicename, False, commit_dirty=commit_dirty )
         if ret: return ret[0].getObject()
 
     def findDeviceByIdExact(self, devicename):
