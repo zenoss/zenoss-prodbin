@@ -21,7 +21,7 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 175,
+                height: 200,
                 title: _t('Reidentify Device'),
                 submitHandler: Ext.bind(this.renameDevice, this),
                 items: [{
@@ -32,16 +32,18 @@
                     xtype: 'label',
                     text: _t('Change the ID of this device.')
                 },{
-                    xtype: 'displayfield',
-                    value:  _t('WARNING: All graph data for this device will be lost!'),
-                    style: {
-                        fontWeight: "bold"
-                    }
-                },{
                     xtype: 'idfield',
                     name: 'newId',
                     fieldLabel: _t('New ID'),
                     allowBlank: false
+                },{
+                    name: 'retainGraphData',
+                    xtype: 'checkbox',
+                    fieldLabel: _t('Retain all graph data?'),
+                    checked: false
+                 },{
+                    xtype: 'displayfield',
+                    value: _t('Note that it may take a while until all graph data are retained.'),
                 }]
             });
             this.callParent([config]);

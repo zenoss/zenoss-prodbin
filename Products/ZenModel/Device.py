@@ -1867,7 +1867,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')
-    def renameDevice(self, newId=None, REQUEST=None):
+    def renameDevice(self, newId=None, REQUEST=None, retainGraphData=False):
         """
         Rename device from the DMD.  Disallow assignment of
         an id that already exists in the system.
@@ -1913,7 +1913,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
-            self.amendPerfDataAfterRename(oldId, newId)
+            if retainGraphData:
+                self.amendPerfDataAfterRename(oldId, newId)
 
             return self.absolute_url_path()
 
@@ -1925,16 +1926,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Replace a dev id in metric names and tag values with the new id after
         renaming the device.
         """
-        self.dmd.JobManager.addJob(
-            FacadeMethodJob,
-            description='Rename device {} to {} in performance data'.format(oldId, newId),
-            kwargs=dict(
-                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
-                method='renameDevice',
-                oldId=oldId,
-                newId=newId
-            )
-        )
+#        self.dmd.JobManager.addJob(
+#            FacadeMethodJob,
+#            description='Rename device {} to {} in performance data'.format(oldId, newId),
+#            kwargs=dict(
+#                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+#                method='renameDevice',
+#                oldId=oldId,
+#                newId=newId
+#            )
+#        )
+
+        metric_facade = getFacade('metric', self)
+        metric_facade.renameDevice(oldId, newId)
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):

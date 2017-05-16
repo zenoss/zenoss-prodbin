@@ -470,7 +470,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
-    def renameDevice(self, uid, newId):
+    def renameDevice(self, uid, newId, retainGraphData):
         """
         Set the device specified by the uid,"uid" to have the
         the id "newId"
@@ -482,7 +482,7 @@ class DeviceRouter(TreeRouter):
         @param newId: string of the new id
         """
         facade = self._getFacade()
-        newUid = facade.renameDevice(uid, newId)
+        newUid = facade.renameDevice(uid, newId, retainGraphData)
         return DirectResponse.succeed(uid=newUid)
 
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,

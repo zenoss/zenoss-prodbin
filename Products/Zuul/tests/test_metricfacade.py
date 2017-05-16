@@ -9,6 +9,8 @@
 
 
 import unittest
+from mock import Mock, patch
+import json
 from Products import Zuul
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
@@ -62,6 +64,21 @@ class MetricFacadeTest(BaseTestCase):
         info = Zuul.infos.metricserver.MetricServiceGraphDefinition(graph, device)
         graph.graphPoints._setObject('test', ThresholdGraphPoint('test'))
         self.assertEquals([], info.projections)
+
+    @patch('Products.Zuul.facades.metricfacade.MetricConnection.request')
+    def testRenameDeviceWhenRespIsOK(self, mock_request):
+        result = {'result': True}
+        mock_request.return_value = Mock(ok=True)
+        mock_request.return_value.json.return_value = result
+        resp = self.facade.renameDevice('oldId', 'newId')
+        self.assertEquals(json.loads(resp), result)
+
+    @patch('Products.Zuul.facades.metricfacade.MetricConnection.request')
+    def testRenameDeviceWhenRespIsNotOK(self, mock_request):
+        result = {'result': False}
+        mock_request.return_value = None
+        resp = self.facade.renameDevice('oldId', 'newId')
+        self.assertEquals(json.loads(resp), result)
 
 
 def test_suite():

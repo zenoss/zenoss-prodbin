@@ -35,6 +35,7 @@ DATE_FORMAT = "%Y/%m/%d-%H:%M:%S"
 
 METRIC_URL_PATH = "/api/performance/query"
 WILDCARD_URL_PATH = "/api/performance/query2"
+RENAME_URL_PATH = '/api/performance/rename'
 
 AGGREGATION_MAPPING = {
     'average': 'avg',
@@ -619,3 +620,12 @@ class MetricFacade(ZuulFacade):
                     results[key][metricnames[metric]].append(dict(timestamp=ts, value=value))
 
         return results
+
+    def renameDevice(self, oldId, newId):
+        # Replace with the cq endpoint
+        path = RENAME_URL_PATH
+        request = {'oldId': oldId, 'newId': newId}
+        timeout = 10
+        content = self._metrics_connection.request(path, request, timeout=timeout)
+        result = True if content else False
+        return json.dumps({'result': result})
