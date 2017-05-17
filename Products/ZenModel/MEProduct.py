@@ -32,7 +32,7 @@ class MEProduct(ManagedEntity, ProductIndexable):
 
     _relations = ManagedEntity._relations + (
         # Deprecated
-        ("productClass", ToOne(ToMany, "Products.ZenModel.ProductClass", "instances")),
+        #("productClass", ToOne(ToMany, "Products.ZenModel.ProductClass", "instances")),
     )
 
     security = ClassSecurityInfo()
