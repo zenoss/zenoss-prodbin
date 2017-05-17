@@ -101,5 +101,5 @@ class ProductPathReporter(DefaultPathReporter):
         paths = super(ProductPathReporter, self).getPaths()
         pc = self.context.productClass()
         if pc:
-            paths.append(pc.idx_uid())
+            paths.append(pc.getPhysicalPath())
         return paths

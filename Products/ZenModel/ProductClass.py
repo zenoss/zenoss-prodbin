@@ -56,7 +56,7 @@ class ProductClass(ZenModelRM, ZenPackable):
     _relations = ZenPackable._relations + (
         ("manufacturer", ToOne(ToManyCont,"Products.ZenModel.Manufacturer","products")),
         # Deprecated
-        ("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
+        #("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
     )
 
     factory_type_information = ( 
