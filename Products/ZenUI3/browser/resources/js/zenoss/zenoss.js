@@ -1373,7 +1373,7 @@ Ext.apply(Zenoss.date, {
 Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a";
+            format = "YYYY-MM-DD hh:mm:ss a z";
         }
         return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
     }
