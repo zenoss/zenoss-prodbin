@@ -31,6 +31,8 @@ from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
 
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
 class ProductClass(ZenModelRM, ZenPackable):
     implements(IIndexed)
     meta_type = "ProductClass"
@@ -52,8 +54,9 @@ class ProductClass(ZenModelRM, ZenPackable):
     )
 
     _relations = ZenPackable._relations + (
-        ("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
         ("manufacturer", ToOne(ToManyCont,"Products.ZenModel.Manufacturer","products")),
+        # Deprecated
+        ("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
     )
 
     factory_type_information = ( 
@@ -88,7 +91,6 @@ class ProductClass(ZenModelRM, ZenPackable):
         )
     
     security = ClassSecurityInfo()
-    
 
     def __init__(self, id, title="", prodName=None,
                  productKey=None, partNumber="",description=""):
@@ -108,18 +110,27 @@ class ProductClass(ZenModelRM, ZenPackable):
         self.partNumber = partNumber
         self.description = description
 
-
     def type(self):
         """Return the type name of this product (Hardware, Software).
         """
         return self.meta_type[:-5]
 
+    def _find_instances_in_catalog(self, count=False):
+        model_catalog = IModelCatalogTool(self.dmd)
+        query = { "productClassId": self.idx_uid() }
+        if count:
+            return model_catalog.search(query=query, limit=0)
+        else:
+            return model_catalog.search(query=query)
+
+    def instances(self):
+        brains = list(self._find_instances_in_catalog())
+        return [ brain.getObject() for brain in brains if brain ]
 
     def count(self):
-        """Return the number of existing instances for this class.
-        """
-        return self.instances.countObjects()
-
+        """ Return the number of existing instances for this class. """
+        search_results = self._find_instances_in_catalog(count=True)
+        return search_results.total
 
     def getProductKey(self):
         """Return the first product key of the device.
@@ -128,12 +139,10 @@ class ProductClass(ZenModelRM, ZenPackable):
             return self.productKeys[0]
         return ""
 
-
     def getManufacturerName(self):
         if not self.manufacturer():
             return ''
         return self.manufacturer().getId()
-
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')
     def manage_editProductClass(self, name="", productKeys=(), isOS=False,
