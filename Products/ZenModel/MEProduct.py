@@ -38,19 +38,22 @@ class MEProduct(ManagedEntity, ProductIndexable):
     security = ClassSecurityInfo()
 
     def setProductClass(self, productClass):
-        if productClass is None:
+        if not productClass:
             self.removeProductClass()
         else:
-            self._setObject(self.PRODUCT_CLASS_ATTR, productClass)
+            setattr(self, self.PRODUCT_CLASS_ATTR, productClass.idx_uid())
             notify(IndexingEvent(self, idxs="productClassId"))
 
     def removeProductClass(self):
-        if self.hasObject(self.PRODUCT_CLASS_ATTR):
-            self._delObject(self.PRODUCT_CLASS_ATTR)
-            notify(IndexingEvent(self, idxs="productClassId"))
+        setattr(self, self.PRODUCT_CLASS_ATTR, "")
+        notify(IndexingEvent(self, idxs="productClassId"))
 
     def productClass(self):
-        return getattr(self, self.PRODUCT_CLASS_ATTR, None)
+        pc = None
+        pc_path = getattr(self, self.PRODUCT_CLASS_ATTR, "")
+        if pc_path:
+            pc = self.dmd.unrestrictedTraverse(pc_path)
+        return pc
 
     security.declareProtected('View', 'getProductName')
     def getProductName(self):

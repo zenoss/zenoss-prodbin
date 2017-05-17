@@ -9,8 +9,8 @@
 
 import Migrate
 
-#from zope.event import notify
-#from Products.Zuul.catalog.events import IndexingEvent
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
 
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 from Products.ZenRelations.ToManyRelationship import ToManyRelationship
@@ -31,8 +31,10 @@ class RemoveProductClassInstancesRelationship(Migrate.Step):
                         product._delObject("instances")
                         for instance in instances:
                             if instance.get("productClass") and isinstance(instance.productClass, ToOneRelationship):
-                                product.productClass.removeRelation()
+                                instance.productClass.removeRelation()
                                 instance._delObject("productClass")
-                            instance.setProductClass(product) # this should raise the indexing event
+                                instance.setProductClass(product)
+                                # reindex the whole object bc OS and SW were not being indexed
+                                notify(IndexingEvent(instance))
 
 RemoveProductClassInstancesRelationship()
