@@ -49,9 +49,11 @@ var deviceColumns = [
     },{
         id: 'status',
         dataIndex: 'status',
+        sortable: true,
+        filter: false,
         header: _t('Device Status'),
         renderer: function(status, row, record) {
-            if (record.data.status === 'true') {
+            if (record.data.status === true) {
                 return Zenoss.render.pingStatus('Up');
             } else {
                 return Zenoss.render.pingStatus('Down');
@@ -378,7 +380,7 @@ Ext.define('Zenoss.device.DeviceModel',{
         {name: 'snmpSysName', type: 'string'},
         {name: 'ipAddress', type: 'int'},
         {name: 'ipAddressString', type: 'string'},
-        {name: 'status', type: 'string'},
+        {name: 'status', type: 'boolean'},
         {name: 'productionState', type: 'string'},
         {name: 'serialNumber', type: 'string'},
         {name: 'tagNumber', type: 'string'},
