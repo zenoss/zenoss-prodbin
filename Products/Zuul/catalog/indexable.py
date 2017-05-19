@@ -291,7 +291,7 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(IPAddressFieldType(stored=True), attr_query_name="text_ipAddress")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
@@ -429,7 +429,7 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(IPAddressFieldType(stored=True), attr_query_name="text_ipAddress")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
@@ -509,7 +509,7 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     def idx_decimal_ipAddress(self):
         return str(self.ipAddressAsInt())
 
-    @indexed(IPAddressFieldType(stored=True), attr_query_name="ipAddressAsText")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="ipAddressAsText")
     def idx_ipAddressAsText(self):
         return self.getIpAddress()
 
