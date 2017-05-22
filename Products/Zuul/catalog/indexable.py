@@ -22,6 +22,7 @@ from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
 from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
+from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 from ZODB.POSException import ConflictError
 from zope.interface import ro
@@ -51,16 +52,15 @@ from zope.interface import ro
             |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |                 |         |         |
             ----------------------------------------------------------------------------------------------
 
-        SearchIndexable:
+        DeviceOrganizerIndexable:
 
             ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
+            |  ATTR_NAME                            |  ATTR_QUERY_NAME |  FIELD NAME | INDEXED |  STORED |
             ----------------------------------------------------------------------------------------------
-            |  idx_searchKeywords        |  searchKeywords         |                 |         |         |
-            |  idx_searchExcerpt         |  searchExcerpt          |                 |         |         |
-            |  idx_searchIcon            |  searchIcon             |                 |         |         |
+            |  idx_deviceOrganizer_searchKeywords   |  searchKeywords  |             |         |         |
+            |  idx_deviceOrganizer_searchExcerpt    |  searchExcerpt   |             |         |         |
+            |  idx_deviceOrganizer_searchIcon       |  searchIcon      |             |         |         |
             ----------------------------------------------------------------------------------------------
-
 
         DeviceIndexable:
 
@@ -260,6 +260,20 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         """
         return allowedRolesAndUsers(self)
 
+class DeviceOrganizerIndexable(object): # DeviceOrganizer inherits from this class
+
+    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
+    def idx_deviceOrganizer_searchKeywords(self):
+        return (self.getOrganizerName(), str(self.description))
+
+    @indexed(StringFieldType(stored=True), attr_query_name="searchExcerpt")
+    def idx_deviceOrganizer_searchExcerpt(self):
+        return self.getOrganizerName()
+
+    @indexed(StringFieldType(stored=True), attr_query_name="searchIcon")
+    def idx_deviceOrganizer_searchIcon(self):
+        return self.getIconPath()
+
 
 class DeviceIndexable(object):   # Device inherits from this class
     
@@ -269,7 +283,7 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
     def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
@@ -277,7 +291,7 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(StringFieldType(stored=True), attr_query_name="text_ipAddress")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
@@ -407,7 +421,7 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
     def idx_decimal_ipAddress(self):
         ip = self._idx_get_ip()
         if ip:
@@ -415,7 +429,7 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(StringFieldType(stored=True), attr_query_name="text_ipAddress")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
@@ -491,11 +505,11 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
 
     """ ipSearch catalog indexes """
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress")
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress")
     def idx_decimal_ipAddress(self):
         return str(self.ipAddressAsInt())
 
-    @indexed(StringFieldType(stored=True), attr_query_name="ipAddressAsText")
+    @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="ipAddressAsText")
     def idx_ipAddressAsText(self):
         return self.getIpAddress()
 
@@ -507,7 +521,7 @@ class IpNetworkIndexable(object):
     # largest 128 decimal is 340282366920938463463374607431768211456
     # we need to fill to 39 chars for range queries to work
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="firstDecimalIp")
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="firstDecimalIp")
     def idx_firstDecimalIp(self):
         first_decimal_ip = None
         if isip(self.id):
@@ -515,7 +529,7 @@ class IpNetworkIndexable(object):
             first_decimal_ip = str(int(net.network))
         return first_decimal_ip
 
-    @indexed(StringFieldType(stored=True, formatter=decimal_ipAddress_formatter), attr_query_name="lastDecimalIp")
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="lastDecimalIp")
     def idx_lastDecimalIp(self):
         last_decimal_ip = None
         if isip(self.id):
