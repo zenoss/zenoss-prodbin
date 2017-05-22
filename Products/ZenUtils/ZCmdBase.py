@@ -24,7 +24,6 @@ from zope.component import getUtility
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 
-from Products.ZenUtils.MetricReporter import MetricReporter
 from Products.ZenUtils.Utils import getObjByPath, zenPath
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 
@@ -98,8 +97,6 @@ class ZCmdBase(ZenDaemon):
         self.poollock = Lock()
         self.getDataRoot()
         self.login()
-        self.reporter = MetricReporter(prefix='zenoss.')
-        self.reporter.start()
 
         setDescriptors(self.dmd)
 

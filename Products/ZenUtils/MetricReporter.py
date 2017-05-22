@@ -49,7 +49,6 @@ class MetricReporter(Reporter):
         snapshot_keys = ['median', 'percentile_95th']
         for name, metric in self.registry:
             log.debug("metric info: %s, %s", name, metric)
-            log.info("metric info: %s, %s", name, metric)
             if isinstance(metric, Meter):
                 keys = ['count', 'one_minute_rate', 'five_minute_rate',
                         'fifteen_minute_rate', 'mean_rate']
@@ -82,7 +81,6 @@ class MetricReporter(Reporter):
             self.session.headers.update({'User-Agent': 'Zenoss Service Metrics'})
             post_data = {'metrics': metrics}
             log.debug("Sending metric payload: %s" % post_data)
-            log.info("Sending metric payload: %s" % post_data)
             response = self.session.post(self.metric_destination,
                                          data=json.dumps(post_data))
             if response.status_code != 200:
