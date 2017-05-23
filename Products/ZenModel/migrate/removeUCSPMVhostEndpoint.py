@@ -16,7 +16,7 @@ sm.require("1.1.6")
 
 
 class removeUCSPMVhostEndpoint(Migrate.Step):
-    "Remove one of the ucspm endpoind since it is not needed"
+    "Remove one of the ucspm endpoints since it is not needed."
 
     version = Migrate.Version(112, 0, 0)
 
@@ -27,7 +27,7 @@ class removeUCSPMVhostEndpoint(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        log.info("Looking for ucspm services to migrate")
+        log.info("Looking for ucspm services to migrate.")
         service = ctx.getTopService()
         if service and service.name != 'ucspm':
             log.info("Not a UCS-PM application.")
@@ -43,10 +43,8 @@ class removeUCSPMVhostEndpoint(Migrate.Step):
                     endpoint._Endpoint__data['VHostList'] = filter_list
                 else:
                     endpoint._Endpoint__data['VHostList'] = None
-                log.info("Deleting vhost ucspm endpoint")
+                log.info("Deleting vhost ucspm endpoint.")
                 commit = True
-
-
 
         if commit:
             log.info("Committing changes.")
