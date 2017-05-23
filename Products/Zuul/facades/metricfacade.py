@@ -95,13 +95,14 @@ class MetricConnection(object):
     def _uri(self, path):
         return "%s/%s" % (self._metric_url, path)
 
-    def _server_request(self, path, request, auth, timeout):
+    def _server_request(self, path, request, auth, timeout, stream):
         log.debug("METRICFACADE POST %s %s", path, request)
         try:
             response = self._req_session.post(self._uri(path),
                                               json.dumps(request),
                                               auth=auth,
-                                              timeout=timeout)
+                                              timeout=timeout,
+                                              stream=stream)
         except requests.exceptions.Timeout as e:
             raise ServiceConnectionError(
                 'Timed out waiting for response from metric service: %s' % e, e)
@@ -113,7 +114,7 @@ class MetricConnection(object):
 
         return response.json()
 
-    def _request(self, path, request, timeout):
+    def _request(self, path, request, timeout, stream):
         auth = None
         if not self._req_session.cookies.get(Z_AUTH_TOKEN):
             if self._credentials:
@@ -122,7 +123,7 @@ class MetricConnection(object):
                 auth = self._global_credentials
 
         try:
-            return self._server_request(path, request, auth, timeout)
+            return self._server_request(path, request, auth, timeout, stream)
         except ServiceResponseError as e:
             if e.status == 401 and auth != self._global_credentials:
                 # Try using global credentials.
@@ -136,7 +137,7 @@ class MetricConnection(object):
             else:
                 raise
 
-    def request(self, path, request, timeout=10):
+    def request(self, path, request, timeout=10, stream=False):
         """
         Performs request to Metrics Server.
 
@@ -154,7 +155,7 @@ class MetricConnection(object):
         :return: decoded response from server or None if error occurred
         """
         try:
-            return self._request(path, request, timeout)
+            return self._request(path, request, timeout, stream)
         except ServiceResponseError as e:
             # there was an error returned by the metric service, log it here
             log.error('Error fetching request: %s \n'
@@ -622,10 +623,14 @@ class MetricFacade(ZuulFacade):
         return results
 
     def renameDevice(self, oldId, newId):
-        # Replace with the cq endpoint
         path = RENAME_URL_PATH
         request = {'oldId': oldId, 'newId': newId}
-        timeout = 10
-        content = self._metrics_connection.request(path, request, timeout=timeout)
+        import time
+        start_time = time.time()
+        content = self._metrics_connection.request(path, request, timeout=10, stream=True)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        log.info('Elapsed time: {}'.format(elapsed_time))
+        log.info(content)
         result = True if content else False
         return json.dumps({'result': result})

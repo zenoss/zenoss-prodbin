@@ -1914,9 +1914,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
             if retainGraphData:
-                self.amendPerfDataAfterRename(oldId, newId)
+                result = self.amendPerfDataAfterRename(oldId, newId)
 
-            return self.absolute_url_path()
+            import json
+            if json.loads(result)['result']:
+                return self.absolute_url_path()
+            else:
+                log.error("Renaming {} to {} failed.".format(oldId, newId))
+                return path
 
         except CopyError:
             raise Exception("Device rename failed.")
@@ -1938,7 +1943,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 #        )
 
         metric_facade = getFacade('metric', self)
-        metric_facade.renameDevice(oldId, newId)
+        return metric_facade.renameDevice(oldId, newId)
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
