@@ -91,8 +91,7 @@ class ZProxyMetricGatherer(MetricGatherer):
 
     def get_metrics(self):
         metrics = []
-        #zopes = self.get_zopes()
-        zopes = ['127.0.0.1:9080']
+        zopes = self.get_zopes()
         if not zopes:
             return []
         for instance, zope in enumerate(zopes):
