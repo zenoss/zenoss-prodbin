@@ -267,6 +267,11 @@
                     ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(btn) {
+                        var templateUid = Ext.getCmp('dataSourceTreeGrid').uid;
+                        if (!templateUid) {
+                            new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a threshold.')});
+                            return;
+                        }
                         showAddThresholdDialog(btn.refOwner);
                     },
                     listeners: {
