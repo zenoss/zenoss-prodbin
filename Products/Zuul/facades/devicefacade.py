@@ -502,7 +502,14 @@ class DeviceFacade(TreeFacade):
     def renameDevice(self, uid, newId, retainGraphData):
         dev = self._getObject(uid)
         # pass in the request for the audit
-        return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
+        path = dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
+        try:
+            # Check if the path to the dev exists in dmd.
+            if self._dmd.unrestrictedTraverse(path):
+                return path
+        except Exception:
+            # Direct to the Infrastructure page.
+            return '/zport/dmd/itinfrastructure'
 
     def _moveDevices(self, uids, target):
         # Resolve target if a path

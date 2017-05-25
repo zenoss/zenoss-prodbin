@@ -1913,16 +1913,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
-            if retainGraphData:
-                result = self.amendPerfDataAfterRename(oldId, newId)
+            decommissioned = self.productionState < self.getZ('zProdStateThreshold')
+            if retainGraphData and decommissioned:
+                self.amendPerfDataAfterRename(oldId, newId)
 
-            import json
-            if json.loads(result)['result']:
-                return self.absolute_url_path()
-            else:
-                log.error("Renaming {} to {} failed.".format(oldId, newId))
-                return path
-
+            return self.absolute_url_path()
         except CopyError:
             raise Exception("Device rename failed.")
 
@@ -1931,19 +1926,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Replace a dev id in metric names and tag values with the new id after
         renaming the device.
         """
-#        self.dmd.JobManager.addJob(
-#            FacadeMethodJob,
-#            description='Rename device {} to {} in performance data'.format(oldId, newId),
-#            kwargs=dict(
-#                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
-#                method='renameDevice',
-#                oldId=oldId,
-#                newId=newId
-#            )
-#        )
-
-        metric_facade = getFacade('metric', self)
-        return metric_facade.renameDevice(oldId, newId)
+        self.dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description='Rename device {} to {} in performance data'.format(oldId, newId),
+            kwargs=dict(
+                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+                method='renameDevice',
+                oldId=oldId,
+                newId=newId
+            )
+        )
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):

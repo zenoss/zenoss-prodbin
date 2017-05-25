@@ -632,5 +632,5 @@ class MetricFacade(ZuulFacade):
         elapsed_time = end_time - start_time
         log.info('Elapsed time: {}'.format(elapsed_time))
         log.info(content)
-        result = True if content else False
-        return json.dumps({'result': result})
+        if not content:
+            log.error("Renaming {} to {} in performance data failed.".format(oldId, newId))
