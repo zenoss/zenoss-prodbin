@@ -118,7 +118,7 @@ class RabbitMetricGatherer(MetricGatherer):
 
         for name in ['consumers', 'messages', 'messages_ready', 'messages_unacknowledged']:
             metric_name = '%s.%s' % (prefix, name)
-            metrics.append(MetricGatherer.build_metric(self, metric_name, queue[name], timestamp, tags))
+            metrics.append(self.build_metric(metric_name, queue[name], timestamp, tags))
 
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
@@ -129,7 +129,7 @@ class RabbitMetricGatherer(MetricGatherer):
                     continue
                 rate_name = '%s.%s' % (prefix, detail.replace('_details', '_rate'))
                 rate_value = message_stats[detail]['rate']
-                metrics.append(MetricGatherer.build_metric(self, rate_name,  rate_value, timestamp, tags))
+                metrics.append(self.build_metric(rate_name,  rate_value, timestamp, tags))
 
         return metrics
 
