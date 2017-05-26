@@ -133,6 +133,15 @@ class ControlPlaneClient(object):
         response.close()
         return ServiceJsonDecoder().decode(body)
 
+    def getURL(self, url):
+        """
+        Get URL information and return raw json
+        """
+        response = self._dorequest(url)
+        body = ''.join(response.readlines())
+        response.close()
+        return json.loads(body)
+
     def getChangesSince(self, age):
         """
         Returns a sequence of ServiceDefinition objects that have changed
@@ -566,3 +575,4 @@ __all__ = (
     "ControlPlaneClient",
     "ControlCenterError"
 )
+
