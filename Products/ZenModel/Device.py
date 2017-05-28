@@ -1882,6 +1882,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         path = self.absolute_url_path()
         oldId = self.getId()
         currProdStates = self.saveCurrentProdStates()
+
+        decommissioned = self.productionState <= self.getZ('zProdStateThreshold')
+
+        if retainGraphData and not decommissioned:
+            raise Exception(
+                    "Keeping old performance data associated with a device "
+                    "after reidentifying the device is possible only when the "
+                    "device is decommissioned."
+            )
+
         if newId is None:
             return path
 
@@ -1913,7 +1923,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
-            decommissioned = self.productionState < self.getZ('zProdStateThreshold')
             if retainGraphData and decommissioned:
                 self.amendPerfDataAfterRename(oldId, newId)
 
@@ -1928,7 +1937,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.dmd.JobManager.addJob(
             FacadeMethodJob,
-            description='Rename device {} to {} in performance data'.format(oldId, newId),
+            description='Reidentify device {} to {} in performance data'.format(oldId, newId),
             kwargs=dict(
                 facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
                 method='renameDevice',
