@@ -1068,5 +1068,6 @@ class SyslogAction(IActionBase):
         msg = msg.strip('_') # Strip off meaningless characters from the ends only
 
         PRI = int(facility) * 8 + int(priority)
-        timestamp = strftime("%b %e %T", localtime(dt))
+        # divide 'dt' to represent is as seconds
+        timestamp = strftime("%b %e %T", localtime(dt/1000))
         return ("<%d>%s %s %s" % (PRI, timestamp, host, msg))[:1023] + "\n"
