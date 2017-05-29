@@ -106,13 +106,18 @@ class MetricConnection(object):
         except requests.exceptions.Timeout as e:
             raise ServiceConnectionError(
                 'Timed out waiting for response from metric service: %s' % e, e)
-        status_code = response.status_code
-        if not (status_code >= 200 and status_code <= 299):
-            log.debug('Server response error: %s %s', status_code, response)
-            raise ServiceResponseError(response.reason, status_code, request,
-                                       response, response.content)
+        if stream:
+            for line in response.iter_lines():
+                if line:
+                    log.info(line.decode('ascii'))
+        else:
+            status_code = response.status_code
+            if not (status_code >= 200 and status_code <= 299):
+                log.debug('Server response error: %s %s', status_code, response)
+                raise ServiceResponseError(response.reason, status_code, request,
+                                           response, response.content)
 
-        return response.json()
+            return response.json()
 
     def _request(self, path, request, timeout, stream):
         auth = None
@@ -133,7 +138,7 @@ class MetricConnection(object):
                     del self._req_session.cookies[Z_AUTH_TOKEN]
 
                 log.debug('Authorization failed. Trying to use global credentials')
-                return self._server_request(path, request, auth, timeout)
+                return self._server_request(path, request, auth, timeout, stream)
             else:
                 raise
 
@@ -627,10 +632,8 @@ class MetricFacade(ZuulFacade):
         request = {'oldId': oldId, 'newId': newId}
         import time
         start_time = time.time()
-        content = self._metrics_connection.request(path, request, timeout=10, stream=True)
+        log.info('rename device %s %s', oldId, newId)
+        self._metrics_connection.request(path, request, timeout=10, stream=True)
         end_time = time.time()
         elapsed_time = end_time - start_time
         log.info('Elapsed time: {}'.format(elapsed_time))
-        log.info(content)
-        if not content:
-            log.error("Renaming {} to {} in performance data failed.".format(oldId, newId))
