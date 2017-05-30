@@ -26,16 +26,17 @@ class ZProxyMetrics(ServiceMetrics):
 
     def build_gatherer(self):
         if self.service == "zproxy":
-            return ZProxyMetricGatherer()
+            return ZProxyMetricGatherer(interval=self.interval)
 
 
 class ZProxyMetricGatherer(MetricGatherer):
     # ZPROXY_STATS_URL = 'http://localhost:9080/zport/dmd/zenossStatsView/'
     ZPROXY_STATS_URL = 'http://%s/zport/dmd/zenossStatsView/'
 
-    def __init__(self):
+    def __init__(self, interval=30):
         super(ZProxyMetricGatherer, self).__init__()
         self.zopes = ['localhost:9080']
+        self.interval = interval
 
     def _extract_data(self, metricdata, timestamp, instance=0):
         metrics = []
