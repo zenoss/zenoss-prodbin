@@ -120,7 +120,7 @@ class EventsExporter(BrowserView):
                     # add all details in one column, otherwise for events with lots of details
                     # the number of columns in the csv can get too large (ZEN-23871)
                     val = json.dumps(val)
-                elif not val and details:
+                elif not (val or val is 0) and details:
                     # ZEN-27617: fill in value for requested field not in evt but in details
                     val = details.get(field,'')
                 data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
