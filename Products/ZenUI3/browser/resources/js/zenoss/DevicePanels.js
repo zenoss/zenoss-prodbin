@@ -50,7 +50,9 @@ var deviceColumns = [
         id: 'status',
         dataIndex: 'status',
         sortable: true,
-        filter: false,
+        filter: {
+            xtype: 'multiselect-devicestatus'
+        },
         header: _t('Device Status'),
         renderer: function(status, row, record) {
             if (record.data.status === true) {
