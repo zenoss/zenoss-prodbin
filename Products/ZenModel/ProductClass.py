@@ -55,8 +55,6 @@ class ProductClass(ZenModelRM, ZenPackable):
 
     _relations = ZenPackable._relations + (
         ("manufacturer", ToOne(ToManyCont,"Products.ZenModel.Manufacturer","products")),
-        # Deprecated
-        #("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
     )
 
     factory_type_information = ( 
@@ -124,8 +122,9 @@ class ProductClass(ZenModelRM, ZenPackable):
             return model_catalog.search(query=query)
 
     def instances(self):
-        brains = list(self._find_instances_in_catalog())
-        return [ brain.getObject() for brain in brains if brain ]
+        for brain in self._find_instances_in_catalog():
+            if brain:
+                yield brain.getObject()
 
     def count(self):
         """ Return the number of existing instances for this class. """

@@ -10,29 +10,27 @@
 import Migrate
 
 from zope.event import notify
-from Products.Zuul.catalog.events import IndexingEvent
 
+from Products.ZenModel.Manufacturer import Manufacturer
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 from Products.ZenRelations.ToManyRelationship import ToManyRelationship
+from Products.Zuul.catalog.events import IndexingEvent
+
 
 class RemoveProductClassInstancesRelationship(Migrate.Step):
 
-    version = Migrate.Version(110, 0, 0)
-
-    INSTANCES_ATTR = "instances"
+    version = Migrate.Version(112, 0, 0)
 
     def cutover(self, dmd):
         for manufacturer in dmd.Manufacturers.values():
-            if hasattr(manufacturer, "products"):
+            if isinstance(manufacturer, Manufacturer) and hasattr(manufacturer, "products"):
                 for product in manufacturer.products():
                     if product.get("instances") and isinstance(product.instances, ToManyRelationship):
                         instances = product.instances()
-                        product.instances.removeRelation()
-                        product._delObject("instances")
+                        product._delOb("instances")
                         for instance in instances:
                             if instance.get("productClass") and isinstance(instance.productClass, ToOneRelationship):
-                                instance.productClass.removeRelation()
-                                instance._delObject("productClass")
+                                instance._delOb("productClass")
                                 instance.setProductClass(product)
                                 # reindex the whole object bc OS and SW were not being indexed
                                 notify(IndexingEvent(instance))
