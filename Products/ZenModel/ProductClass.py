@@ -18,6 +18,7 @@ $Id: ProductClass.py,v 1.10 2004/03/26 23:58:44 edahl Exp $"""
 __version__ = "$Revision: 1.10 $"[11:-2]
 
 from Globals import InitializeClass
+from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from zope.interface import implements
@@ -124,7 +125,8 @@ class ProductClass(ZenModelRM, ZenPackable):
     def instances(self):
         for brain in self._find_instances_in_catalog():
             if brain:
-                yield brain.getObject()
+                ob = brain.getObject()
+                yield aq_base(ob).__of__(self)
 
     def count(self):
         """ Return the number of existing instances for this class. """

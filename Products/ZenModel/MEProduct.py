@@ -10,6 +10,7 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from Acquisition import aq_base
 
 from ManagedEntity import ManagedEntity
 
@@ -50,7 +51,8 @@ class MEProduct(ManagedEntity, ProductIndexable):
         pc = None
         pc_path = getattr(self, self.PRODUCT_CLASS_ATTR, "")
         if pc_path:
-            pc = self.dmd.unrestrictedTraverse(pc_path)
+            ob = self.dmd.unrestrictedTraverse(pc_path)
+            pc = aq_base(ob).__of__(self)
         return pc
 
     security.declareProtected('View', 'getProductName')
