@@ -539,6 +539,21 @@ class IpNetworkIndexable(object):
         return last_decimal_ip
 
 
+class ProductIndexable(object):
+    """
+    Indexable for MEProduct
+    ProductClass used to have a relationship between product <-> productClass that caused
+    ConflictErrors. To avoid them we index the path to the productClass for each Product
+    """
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="productClassId")
+    def idx_productClassId(self):
+        product_class = ""
+        pc = self.productClass()
+        if pc:
+            product_class = pc.idx_uid()
+        return product_class
+
+
 """ @TODO : Do we need to define this
 class FileSystemIndexable(ComponentIndexable):
 
