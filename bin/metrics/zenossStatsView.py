@@ -84,7 +84,7 @@ class ZProxyMetricGatherer(MetricGatherer):
         if upstream_modified > (now - self.interval):
             with open(upstream_file, 'r') as inf:
                 zopes = inf.readlines()
-                zopes = [line.rstrip('\n:') for line in zopes]
+                zopes = [line.rstrip('\n;') for line in zopes]
                 zopes = [line.split(' ')[-1] for line in zopes]
                 self.zopes = zopes
         return self.zopes
