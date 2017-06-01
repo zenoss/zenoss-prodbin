@@ -269,7 +269,6 @@ class TreeFacade(ZuulFacade):
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
 
-        statuses = params.pop('status', None)
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
 
@@ -277,9 +276,11 @@ class TreeFacade(ZuulFacade):
         if not brains:
             return SearchResults([], 0, [])
 
-        devices = imap(IInfo, imap(unbrain, brains))
-        if statuses is not None:
-            devices = [d for d in devices if d.status in statuses]
+        devices = list(imap(IInfo, imap(unbrain, brains)))
+        if isinstance(params, dict):
+            statuses = params.pop('status', None)
+            if statuses is not None:
+                devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
