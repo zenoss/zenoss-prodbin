@@ -84,6 +84,7 @@ from Products.ZenUtils.Search import (
     makeCaseInsensitiveKeywordIndex,
     makeMultiPathIndex
 )
+from Products.Jobber.facade import FacadeMethodJob
 
 DEFAULT_PRODSTATE = 1000
 
@@ -1866,7 +1867,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')
-    def renameDevice(self, newId=None, REQUEST=None):
+    def renameDevice(self, newId=None, REQUEST=None, retainGraphData=False):
         """
         Rename device from the DMD.  Disallow assignment of
         an id that already exists in the system.
@@ -1881,6 +1882,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         path = self.absolute_url_path()
         oldId = self.getId()
         currProdStates = self.saveCurrentProdStates()
+
+        decommissioned = self.productionState <= self.getZ('zProdStateThreshold')
+
+        if retainGraphData and not decommissioned:
+            raise Exception(
+                    "Keeping old performance data associated with a device "
+                    "after reidentifying the device is possible only when the "
+                    "device is decommissioned."
+            )
+
         if newId is None:
             return path
 
@@ -1909,10 +1920,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             parent.manage_renameObject(oldId, newId)
             self.restoreCurrentProdStates(currProdStates)
             self.setLastChange()
-            return self.absolute_url_path()
 
+            # Replace the old id in performance data with the new id.
+            # See ZEN-27329.
+            if retainGraphData and decommissioned:
+                self.amendPerfDataAfterRename(oldId, newId)
+
+            return self.absolute_url_path()
         except CopyError:
             raise Exception("Device rename failed.")
+
+    def amendPerfDataAfterRename(self, oldId, newId):
+        """
+        Replace a dev id in metric names and tag values with the new id after
+        renaming the device.
+        """
+        self.dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description='Reidentify device {} to {} in performance data'.format(oldId, newId),
+            kwargs=dict(
+                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+                method='renameDevice',
+                oldId=oldId,
+                newId=newId
+            )
+        )
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):

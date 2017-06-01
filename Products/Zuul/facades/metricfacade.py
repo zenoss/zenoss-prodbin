@@ -36,6 +36,7 @@ DATE_FORMAT = "%Y/%m/%d-%H:%M:%S"
 
 METRIC_URL_PATH = "/api/performance/query"
 WILDCARD_URL_PATH = "/api/performance/query2"
+RENAME_URL_PATH = '/api/performance/rename'
 
 AGGREGATION_MAPPING = {
     'average': 'avg',
@@ -95,25 +96,31 @@ class MetricConnection(object):
     def _uri(self, path):
         return "%s/%s" % (self._metric_url, path)
 
-    def _server_request(self, path, request, auth, timeout):
+    def _server_request(self, path, request, auth, timeout, stream):
         log.debug("METRICFACADE POST %s %s", path, request)
         try:
             response = self._req_session.post(self._uri(path),
                                               json.dumps(request),
                                               auth=auth,
-                                              timeout=timeout)
+                                              timeout=timeout,
+                                              stream=stream)
         except requests.exceptions.Timeout as e:
             raise ServiceConnectionError(
                 'Timed out waiting for response from metric service: %s' % e, e)
-        status_code = response.status_code
-        if not (status_code >= 200 and status_code <= 299):
-            log.debug('Server response error: %s %s', status_code, response)
-            raise ServiceResponseError(response.reason, status_code, request,
-                                       response, response.content)
+        if stream:
+            for line in response.iter_lines():
+                if line:
+                    log.info(line.decode('ascii'))
+        else:
+            status_code = response.status_code
+            if not (status_code >= 200 and status_code <= 299):
+                log.debug('Server response error: %s %s', status_code, response)
+                raise ServiceResponseError(response.reason, status_code, request,
+                                           response, response.content)
 
-        return response.json()
+            return response.json()
 
-    def _request(self, path, request, timeout):
+    def _request(self, path, request, timeout, stream):
         auth = None
         if not self._req_session.cookies.get(Z_AUTH_TOKEN):
             if self._credentials:
@@ -122,7 +129,7 @@ class MetricConnection(object):
                 auth = self._global_credentials
 
         try:
-            return self._server_request(path, request, auth, timeout)
+            return self._server_request(path, request, auth, timeout, stream)
         except ServiceResponseError as e:
             if e.status == 401 and auth != self._global_credentials:
                 # Try using global credentials.
@@ -132,11 +139,11 @@ class MetricConnection(object):
                     del self._req_session.cookies[Z_AUTH_TOKEN]
 
                 log.debug('Authorization failed. Trying to use global credentials')
-                return self._server_request(path, request, auth, timeout)
+                return self._server_request(path, request, auth, timeout, stream)
             else:
                 raise
 
-    def request(self, path, request, timeout=10):
+    def request(self, path, request, timeout=10, stream=False):
         """
         Performs request to Metrics Server.
 
@@ -154,7 +161,7 @@ class MetricConnection(object):
         :return: decoded response from server or None if error occurred
         """
         try:
-            return self._request(path, request, timeout)
+            return self._request(path, request, timeout, stream)
         except ServiceResponseError as e:
             # there was an error returned by the metric service, log it here
             log.error('Error fetching request: %s \n'
@@ -620,3 +627,14 @@ class MetricFacade(ZuulFacade):
                     results[key][metricnames[metric]].append(dict(timestamp=ts, value=value))
 
         return results
+
+    def renameDevice(self, oldId, newId):
+        path = RENAME_URL_PATH
+        request = {'oldId': oldId, 'newId': newId}
+        import time
+        start_time = time.time()
+        log.info('rename device %s %s', oldId, newId)
+        self._metrics_connection.request(path, request, timeout=10, stream=True)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        log.info('Elapsed time: {}'.format(elapsed_time))
