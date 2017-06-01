@@ -25,11 +25,6 @@ def default_hash_func(data):
     return adler32(data) & 0xffffffff
 
 
-def create_sharded_btree_from(thing, n_shards=DEFAULT_N_SHARDS, hash_func=default_hash_func):
-    tree = ShardedBTree(n_shards, hash_func)
-    tree.update(thing)
-
-
 class ShardedBTree(SimpleItem):
     """
     Sharded BTree to reduce the number of ConflictErrors
