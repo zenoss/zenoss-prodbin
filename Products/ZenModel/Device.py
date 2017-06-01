@@ -224,7 +224,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     sysedgeLicenseMode = ""
     priority = 3
     macaddresses = None
-
+    renameInProgress = False
 
     # Flag indicating whether device is in process of creation
     _temp_device = False
@@ -1250,7 +1250,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: boolean
         """
-        return self.getProductionState() >= self.zProdStateThreshold
+        return (self.getProductionState() >= self.zProdStateThreshold
+                and not self.renameInProgress)
 
 
     def snmpMonitorDevice(self):
@@ -1883,15 +1884,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         oldId = self.getId()
         currProdStates = self.saveCurrentProdStates()
 
-        decommissioned = self.productionState <= self.getZ('zProdStateThreshold')
-
-        if retainGraphData and not decommissioned:
-            raise Exception(
-                    "Keeping old performance data associated with a device "
-                    "after reidentifying the device is possible only when the "
-                    "device is decommissioned."
-            )
-
         if newId is None:
             return path
 
@@ -1923,7 +1915,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
-            if retainGraphData and decommissioned:
+            if retainGraphData:
+                device = self.dmd.Devices.findDeviceByIdExact(newId)
+                device.renameInProgress = True
                 self.amendPerfDataAfterRename(oldId, newId)
 
             return self.absolute_url_path()

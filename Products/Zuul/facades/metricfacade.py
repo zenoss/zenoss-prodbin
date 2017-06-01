@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
 from Products.ZenUtils.deprecated import deprecated
+from Products.ZenEvents import Event
 
 DEFAULT_METRIC_URL = 'http://localhost:8080/'
 Z_AUTH_TOKEN = 'ZAuthToken'
@@ -637,3 +638,17 @@ class MetricFacade(ZuulFacade):
         end_time = time.time()
         elapsed_time = end_time - start_time
         log.info('Elapsed time: {}'.format(elapsed_time))
+
+        dev = self._dmd.Devices.findDeviceByIdExact(newId)
+        log.info('Setting renameInProgress False %s', dev.id)
+        dev.renameInProgress = False
+
+        summary = "Test summary"
+        message = "Test msg"
+
+        self._dmd.ZenEventManager.sendEvent(dict(
+            device=newId,
+            eventClass='/Status/Update',
+            severity=Event.Info,
+            summary=summary,
+            message=message))
