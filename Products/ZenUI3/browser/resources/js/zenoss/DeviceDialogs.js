@@ -31,16 +31,37 @@
                 },{
                     xtype: 'label',
                     text: _t('Change the ID of this device.')
-                },{
+                }, {
                     xtype: 'idfield',
                     name: 'newId',
                     fieldLabel: _t('New ID'),
                     allowBlank: false
-                },{
-                    name: 'retainGraphData',
-                    xtype: 'checkbox',
-                    fieldLabel: _t('Retain all graph data?'),
-                    checked: false
+                // },{
+                //     name: 'retainGraphData',
+                //     xtype: 'checkbox',
+                //     fieldLabel: _t('Retain all graph data?'),
+                //     checked: false
+                 }, {
+                    xtype: 'fieldcontainer',
+                    fieldLabel: 'Delete old data',
+                    defaultType: 'radiofield',
+                    defaults: {
+                        flex: 1
+                    },
+                    layout: 'hbox',
+                    items: [
+                        {
+                            boxLabel: 'Yeah',
+                            name: 'retainGraphData',
+                            inputValue: false,
+                            id: 'radRadio'
+                        }, {
+                            boxLabel: 'Nah',
+                            name: 'retainGraphData',
+                            inputValue: true,
+                            id: 'radderRadio'
+                        }
+                    ]
                  },{
                     xtype: 'displayfield',
                     value: _t('Note that it may take a while until all graph data are retained.'),
