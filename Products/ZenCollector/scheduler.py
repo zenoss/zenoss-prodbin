@@ -512,7 +512,7 @@ class Scheduler(object):
         """
         loopingCall = self._loopingCalls.get(taskName, None)
         if loopingCall:
-            return loopingCall._expectNextCallAt
+            return getattr(loopingCall, '_expectNextCallAt', None)
 
     def setNextExpectedRun(self, taskName, taskInterval):
         """
