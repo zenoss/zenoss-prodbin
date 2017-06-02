@@ -21,7 +21,8 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 200,
+                height: 340,
+                width: 500,
                 title: _t('Reidentify Device'),
                 submitHandler: Ext.bind(this.renameDevice, this),
                 items: [{
@@ -29,42 +30,51 @@
                     name: 'uid',
                     value: config.uid
                 },{
-                    xtype: 'label',
-                    text: _t('Change the ID of this device.')
+                    xtype: 'displayfield',
+                    value: _t(config.uid.split("/devices/")[1]),
+                    labelAlign: 'left',
+                    fieldLabel: _t('Current ID:')
                 }, {
                     xtype: 'idfield',
                     name: 'newId',
+                    labelAlign: 'left',
                     fieldLabel: _t('New ID'),
                     allowBlank: false
-                // },{
-                //     name: 'retainGraphData',
-                //     xtype: 'checkbox',
-                //     fieldLabel: _t('Retain all graph data?'),
-                //     checked: false
-                 }, {
+                }, {
+                    xtype: 'displayfield',
+                    value: _t('Caution: Past performance data stored for this device will be lost if it is not reassociated with the new ID. Moving the performance data may take a while.'),
+                    margin: '0 0 40 0'
+
+                }, {
                     xtype: 'fieldcontainer',
-                    fieldLabel: 'Delete old data',
                     defaultType: 'radiofield',
-                    defaults: {
-                        flex: 1
-                    },
-                    layout: 'hbox',
+                    layout: 'vbox',
+                    align: 'left',
+                    width: '500px',
                     items: [
                         {
-                            boxLabel: 'Yeah',
-                            name: 'retainGraphData',
-                            inputValue: false,
-                            id: 'radRadio'
-                        }, {
-                            boxLabel: 'Nah',
+                            boxLabel: 'Move the performance data to keep it associated with the device',
                             name: 'retainGraphData',
                             inputValue: true,
-                            id: 'radderRadio'
+                            checked: true,
+                            id: 'radRadio',
+                            width: '500px'
+                        }, {
+                            xtype: 'displayfield',
+                            value: _t('Note: This device will be subject to an outage -- no metrics will be collected or graphed during this renaming'),
+                            width: '480px'
+                        }, {
+                            boxLabel: 'Delete the old performance data and start fresh with the new ID',
+                            name: 'retainGraphData',
+                            inputValue: false,
+                            id: 'radderRadio',
+                            width: '500px'
+                        }, {
+                            xtype: 'displayfield',
+                            value: _t('Note: Collection of performance data will begin immediately, however please note that the old ID will remain unusable until the metrics for the previous ID have expired'),
+                            width: '480px'
                         }
                     ]
-                 },{
-                    xtype: 'displayfield',
-                    value: _t('Note that it may take a while until all graph data are retained.'),
                 }]
             });
             this.callParent([config]);
