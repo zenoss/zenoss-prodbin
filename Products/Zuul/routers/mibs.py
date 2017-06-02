@@ -246,7 +246,20 @@ class MibRouter(TreeRouter):
         else:
             return True
 
-    def addOidMapping(self, uid, id, oid, nodetype='node'):
+    def _getOidConflictData(self, uid, oid):
+        organizer = self.api.getMibModuleName(uid)
+        if organizer is not None:
+            oid_list = self.api.getOidList(oid)
+            for oid_obj in oid_list:
+                if oid_obj.moduleName != organizer:
+                    oid_data = {'old_oid': oid_obj.oid,
+                                'old_id': oid_obj.id,
+                                'old_moduleName': oid_obj.moduleName,
+                                'new_moduleName': organizer,
+                                'conflict_detected': True}
+                    return oid_data
+
+    def addOidMapping(self, uid, id, oid, check_for_conflicts=False, nodetype='node'):
 
         if not self._validateOid(oid):
             msg = "Invalid OID value %s" % oid
@@ -255,12 +268,18 @@ class MibRouter(TreeRouter):
         # Make sure they have permission
         if not Zuul.checkPermission('Manage DMD'):
             return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
+        # this step is skipped during the second call when the user confirms the change
+        if check_for_conflicts:
+            oid_data = self._getOidConflictData(uid, oid)
+            if oid_data:
+                return DirectResponse.succeed(data=Zuul.marshal(oid_data))
 
         self.api.addOidMapping(uid, id, oid, nodetype)
         audit('UI.Mib.AddOidMapping', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
-    def addTrap(self, uid, id, oid, nodetype='notification'):
+    def addTrap(self, uid, id, oid, check_for_conflicts=False, nodetype='notification'):
 
         if not self._validateOid(oid):
             msg = "Invalid OID value %s" % oid
@@ -269,6 +288,12 @@ class MibRouter(TreeRouter):
         # Make sure they have permission
         if not Zuul.checkPermission('Manage DMD'):
             return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
+        # this step is skipped during the second call when the user confirms the change
+        if check_for_conflicts:
+            oid_data = self._getOidConflictData(uid, oid)
+            if oid_data:
+                return DirectResponse.succeed(data=Zuul.marshal(oid_data))
 
         self.api.addTrap(uid, id, oid, nodetype)
         audit('UI.Mib.AddTrap', uid, id=id, oid=oid, nodetype=nodetype)

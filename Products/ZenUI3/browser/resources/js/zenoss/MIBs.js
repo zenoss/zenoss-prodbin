@@ -234,6 +234,117 @@ node_details = new Ext.form.FormPanel({
     }]
 });
 
+function createAddNodeDialogConfirm(addParams, oidData) {
+    var dialog = new Zenoss.dialog.CloseDialog({
+        id: 'addNodeDialog',
+        width: 400,
+        title: currentAddNodeTitle,
+        items: [{
+            xtype: 'form',
+            buttonAlign: 'left',
+            fieldDefaults: {
+                labelAlign: 'top'
+            },
+            footerStyle: 'padding-left: 0',
+            id: 'addNodeForm',
+            items: [{
+                xtype: 'panel',
+                html: '<p>The entered OID already exists in another MIB Organizer.<br/>'
+                        + 'The existing OID will be deleted before adding the new OID.</p><br>',
+                renderTo: Ext.getBody()
+            },{
+                xtype: 'panel',
+                title: 'OID to delete:',
+                html: '<p>Name: ' + oidData['old_id'] +'<br>'
+                        + 'OID: ' + oidData['old_oid'] +'<br>'
+                        + 'Organizer: ' + oidData['old_moduleName'] +'</p><br>',
+                renderTo: Ext.getBody()
+            },{
+                xtype: 'panel',
+                title: 'OID to add:',
+                html: '<p>Name: ' + addParams['id'] +'<br>'
+                        + 'OID: ' + addParams['oid'] +'<br>'
+                        + 'Organizer: ' + oidData['new_moduleName'] + '</p><br>',
+                renderTo: Ext.getBody()
+            },{
+                xtype: 'panel',
+                html: '<p><br>Do you want to continue this operation?</p><br>',
+                renderTo: Ext.getBody()
+            }],
+            buttons: [{
+                xtype: 'DialogButton',
+                text: _t('Yes'),
+                handler: function() {
+                    addParams['check_for_conflicts'] = false;
+                    currentAddFn(addParams, function(response) {
+                        if (response.success) {
+                            Zenoss.message.info(_t('OID was successfully added.'));
+                            Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
+                        }
+                        else {
+                            Zenoss.message.info(_t('Problem occurred. Try again.'));
+                        }
+                    });
+                }
+            }, Zenoss.dialog.CANCEL]
+        }]
+    });
+    dialog.show();
+}
+
+function createAddNodeDialog() {
+    var dialog = new Zenoss.dialog.CloseDialog({
+        id: 'addNodeDialog',
+        width: 300,
+        title: currentAddNodeTitle,
+        items: [{
+            xtype: 'form',
+            buttonAlign: 'left',
+            fieldDefaults: {
+                labelAlign: 'top'
+            },
+            footerStyle: 'padding-left: 0',
+            id: 'addNodeForm',
+            items: [{
+                fieldLabel: _t('ID'),
+                xtype: 'textfield',
+                allowBlank: false,
+                name: 'id'
+            },{
+                fieldLabel: _t('OID'),
+                xtype: 'textfield',
+                allowBlank: false,
+                name: 'oid'
+            }],
+            buttons: [{
+                xtype: 'DialogButton',
+                text: _t('Submit'),
+                handler: function() {
+                    var form = Ext.getCmp('addNodeForm').getForm();
+                    var addParams = {
+                            uid: Zenoss.env.currentUid,
+                            id: Ext.htmlEncode(form.findField('id').getValue()),
+                            oid: Ext.htmlEncode(form.findField('oid').getValue()),
+                            check_for_conflicts: true
+                        };
+                    currentAddFn(addParams, function(response) {
+                        if (response.success) {
+                            if ('data' in response && response.data['conflict_detected'] === true) {
+                                createAddNodeDialogConfirm(addParams, response.data);
+                            }
+                            else {
+                                Zenoss.message.info(_t('OID was successfully added.'));
+                                Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
+                            }
+                        }
+                    });
+                }
+            }, Zenoss.dialog.CANCEL]
+        }]
+    });
+    dialog.show();
+}
+
 MibBrowser = Ext.extend(Ext.Container, {
     currentUid: null,
     constructor: function(config) {
@@ -328,49 +439,7 @@ MibBrowser = Ext.extend(Ext.Container, {
                         xtype: 'button',
                         id: 'add_node_button',
                         iconCls: 'add',
-                        handler: function() {
-                            var dialog = new Zenoss.dialog.CloseDialog({
-                                id: 'addNodeDialog',
-                                width: 300,
-                                title: currentAddNodeTitle,
-                                items: [{
-                                    xtype: 'form',
-                                    buttonAlign: 'left',
-                                    fieldDefaults: {
-                                        labelAlign: 'top'
-                                    },
-                                    footerStyle: 'padding-left: 0',
-                                    id: 'addNodeForm',
-                                    items: [{
-                                        fieldLabel: _t('ID'),
-                                        xtype: 'textfield',
-                                        allowBlank: false,
-                                        name: 'id'
-                                    },{
-                                        fieldLabel: _t('OID'),
-                                        xtype: 'textfield',
-                                        allowBlank: false,
-                                        name: 'oid'
-                                    }],
-                                    buttons: [{
-                                        xtype: 'DialogButton',
-                                        text: _t('Submit'),
-                                        handler: function() {
-                                            var form = Ext.getCmp('addNodeForm').getForm();
-                                            var addParams = {
-                                                    uid: Zenoss.env.currentUid,
-                                                    id: Ext.htmlEncode(form.findField('id').getValue()),
-                                                    oid: Ext.htmlEncode(form.findField('oid').getValue())
-                                                };
-                                            currentAddFn(addParams, function() {
-                                                Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
-                                            });
-                                        }
-                                    }, Zenoss.dialog.CANCEL]
-                                }]
-                            });
-                            dialog.show();
-                        }
+                        handler: createAddNodeDialog
                     }, {
                         xtype: 'button',
                         id: 'delete_node_button',
