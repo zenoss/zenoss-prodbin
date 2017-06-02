@@ -18,11 +18,13 @@ class TestShardedBTree(BaseTestCase):
     def test_creation(self):
         default_tree = ShardedBTree()
         self.assertEqual(len(default_tree.shards), DEFAULT_N_SHARDS)
+        self.assertEqual(default_tree.n_shards, DEFAULT_N_SHARDS)
         self.assertEqual(default_tree.hash_func, default_hash_func)
 
         n_shards = 3
         tree = ShardedBTree(n_shards=n_shards, hash_func=self.bad_hash_func)
         self.assertEqual(len(tree.shards), n_shards)
+        self.assertEqual(tree.n_shards, n_shards)
         self.assertEqual(tree.hash_func, self.bad_hash_func)
 
     def test_hashing(self):
@@ -31,10 +33,7 @@ class TestShardedBTree(BaseTestCase):
         for i in xrange(100):
             self.assertEqual(hashed, default_hash_func(data))
 
-    def test_dict_ops(self):
-        """ Test the dict-like operations """
-        n_elements = 1000
-        # create fake data
+    def _get_fake_data(self, n_elements=1000):
         data = {}
         tree = ShardedBTree()
         for i in xrange(n_elements):
@@ -42,6 +41,24 @@ class TestShardedBTree(BaseTestCase):
             value = "value_{}".format(i)
             tree[key] = value
             data[key] = value
+        return data, tree
+
+    def test_resize(self):
+        data, tree = self._get_fake_data()
+        sizes = [ 10, 100, 15, 250, 1500 ]
+        for size in sizes:
+            tree.resize(size)
+            self.assertTrue(len(tree) == len(data))
+            self.assertEqual(tree.n_shards, size)
+            self.assertEqual(len(tree.shards), size)
+            for key, val in data.iteritems():
+                self.assertEqual(tree[key], val)
+
+    def test_dict_ops(self):
+        """ Test the dict-like operations """
+        n_elements = 1000
+        # get fake data
+        data, tree = self._get_fake_data(n_elements)
         # __len__
         self.assertEqual(len(tree), len(data))
         # __setitem__ and __getitem__

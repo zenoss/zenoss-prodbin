@@ -34,13 +34,22 @@ class ShardedBTree(SimpleItem):
         super(ShardedBTree, self).__init__()
         self.n_shards = n_shards
         self.hash_func = hash_func
-        self.shards = None
-        self._init_shards()
+        self.shards = self._build_shards(self.n_shards)
 
-    def _init_shards(self):
-        self.shards = PersistentList()
-        for _ in xrange(self.n_shards):
-            self.shards.append(OOBTree())
+    def _build_shards(self, n_shards):
+        shards = PersistentList()
+        for _ in xrange(n_shards):
+            shards.append(OOBTree())
+        return shards
+
+    def resize(self, new_n_shards):
+        if new_n_shards != self.n_shards:
+            new_shards = self._build_shards(new_n_shards)
+            for k, v in self.iteritems():
+                shard_id = self.hash_func(k) % new_n_shards
+                new_shards[shard_id][k] = v
+            self.n_shards = new_n_shards
+            self.shards = new_shards
 
     def _get_shard_id(self, key):
         return self.hash_func(key) % self.n_shards
