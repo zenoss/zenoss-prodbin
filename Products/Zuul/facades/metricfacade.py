@@ -96,31 +96,26 @@ class MetricConnection(object):
     def _uri(self, path):
         return "%s/%s" % (self._metric_url, path)
 
-    def _server_request(self, path, request, auth, timeout, stream):
+    def _server_request(self, path, request, auth, timeout):
         log.debug("METRICFACADE POST %s %s", path, request)
         try:
             response = self._req_session.post(self._uri(path),
                                               json.dumps(request),
                                               auth=auth,
-                                              timeout=timeout,
-                                              stream=stream)
+                                              timeout=timeout)
         except requests.exceptions.Timeout as e:
             raise ServiceConnectionError(
                 'Timed out waiting for response from metric service: %s' % e, e)
-        if stream:
-            for line in response.iter_lines():
-                if line:
-                    log.info(line.decode('ascii'))
-        else:
-            status_code = response.status_code
-            if not (status_code >= 200 and status_code <= 299):
-                log.debug('Server response error: %s %s', status_code, response)
-                raise ServiceResponseError(response.reason, status_code, request,
-                                           response, response.content)
 
-            return response.json()
+        status_code = response.status_code
+        if not (status_code >= 200 and status_code <= 299):
+            log.debug('Server response error: %s %s', status_code, response)
+            raise ServiceResponseError(response.reason, status_code, request,
+                                       response, response.content)
 
-    def _request(self, path, request, timeout, stream):
+        return response.json()
+
+    def stream_request(self, path, request, timeout):
         auth = None
         if not self._req_session.cookies.get(Z_AUTH_TOKEN):
             if self._credentials:
@@ -129,7 +124,24 @@ class MetricConnection(object):
                 auth = self._global_credentials
 
         try:
-            return self._server_request(path, request, auth, timeout, stream)
+            resp = self._req_session.post(self._uri(path),
+                                              json.dumps(request),
+                                              auth=auth,
+                                              timeout=timeout,
+                                              stream=True)
+
+            if not (resp.status_code >= 200 and resp.status_code <= 299):
+                raise ServiceResponseError(response.reason, status_code, request,
+                                           response, response.content)
+
+            if resp.status_code == 200:
+                for line in resp.iter_lines():
+                    if line:
+                        yield line.decode('ascii')
+
+        except requests.exceptions.Timeout as e:
+            log.error('Error connecting with request: %s \n%s', request, e)
+
         except ServiceResponseError as e:
             if e.status == 401 and auth != self._global_credentials:
                 # Try using global credentials.
@@ -139,11 +151,46 @@ class MetricConnection(object):
                     del self._req_session.cookies[Z_AUTH_TOKEN]
 
                 log.debug('Authorization failed. Trying to use global credentials')
-                return self._server_request(path, request, auth, timeout, stream)
+                resp = self.stream_request(path, request, auth, timeout)
+
+                if not (resp.status_code >= 200 and resp.status_code <= 299):
+                    log.error(
+                            'Centralquery responded with an error code {} while'
+                            'processing request {}: {}'.format(
+                                status_code, resp.reason))
+                if resp.status_code == 200:
+                    for line in resp.iter_lines():
+                        if line:
+                            yield line.decode('ascii')
+            else:
+                log.error('Error fetching request: %s \n'
+                          'Response from the server (return code %s): %s',
+                          request, e.status, e.content)
+
+    def _request(self, path, request, timeout):
+        auth = None
+        if not self._req_session.cookies.get(Z_AUTH_TOKEN):
+            if self._credentials:
+                auth = self._credentials
+            else:
+                auth = self._global_credentials
+
+        try:
+            return self._server_request(path, request, auth, timeout)
+        except ServiceResponseError as e:
+            if e.status == 401 and auth != self._global_credentials:
+                # Try using global credentials.
+                auth = self._global_credentials
+
+                if Z_AUTH_TOKEN in self._req_session.cookies:
+                    del self._req_session.cookies[Z_AUTH_TOKEN]
+
+                log.debug('Authorization failed. Trying to use global credentials')
+                return self._server_request(path, request, auth, timeout)
             else:
                 raise
 
-    def request(self, path, request, timeout=10, stream=False):
+    def request(self, path, request, timeout=10):
         """
         Performs request to Metrics Server.
 
@@ -161,7 +208,7 @@ class MetricConnection(object):
         :return: decoded response from server or None if error occurred
         """
         try:
-            return self._request(path, request, timeout, stream)
+            return self._request(path, request, timeout)
         except ServiceResponseError as e:
             # there was an error returned by the metric service, log it here
             log.error('Error fetching request: %s \n'
@@ -628,23 +675,30 @@ class MetricFacade(ZuulFacade):
 
         return results
 
-    def renameDevice(self, oldId, newId):
+    def renameDevice(self, oldId, newId, joblog=None):
+        # joblog is injected in the FacadeMethodJob class when this method runs
+        # as a job. The messages written to joblog will be displayed in the Jobs
+        # pane of Zenoss.
+
         path = RENAME_URL_PATH
         request = {'oldId': oldId, 'newId': newId}
-        import time
-        start_time = time.time()
-        log.info('rename device %s %s', oldId, newId)
-        self._metrics_connection.request(path, request, timeout=10, stream=True)
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        log.info('Elapsed time: {}'.format(elapsed_time))
+        resp = self._metrics_connection.stream_request(path, request, timeout=10)
 
+        # Log messages streamed from centralquery to both zenjobs.log and the
+        # log file for the job in /opt/zenoss/log/jobs.
+        for line in resp:
+            log.info(line)
+            joblog.info(line)
+
+        # Update renameInProgress so that the collection resumes.
         dev = self._dmd.Devices.findDeviceByIdExact(newId)
-        log.info('Setting renameInProgress False %s', dev.id)
         dev.renameInProgress = False
 
-        summary = "Test summary"
-        message = "Test msg"
+        # Trigger an event that indicates the completion of renaming.
+        message = ("A rename job that replaces a device name {} with a new name"
+            " {} in the performance metrics stored in OpenTSDB has been "
+            "completed.".format(oldId, newId))
+        summary = "Renaming device {} to {} is completed.".format(oldId, newId)
 
         self._dmd.ZenEventManager.sendEvent(dict(
             device=newId,
