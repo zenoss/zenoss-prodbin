@@ -113,13 +113,13 @@ class ShardedBTree(SimpleItem):
         return all_items
         
     def iterkeys(self):
-        return chain( *[ shard.iterkeys() for shard in self.shards ])
+        return chain.from_iterable(shard.iterkeys() for shard in self.shards)
 
     def itervalues(self):
-        return chain( *[ shard.itervalues() for shard in self.shards ])
+        return chain.from_iterable(shard.itervalues() for shard in self.shards)
         
     def iteritems(self):
-        return chain( *[ shard.iteritems() for shard in self.shards ])
+        return chain.from_iterable(shard.iteritems() for shard in self.shards)
 
     def update(self, thing):
         if not hasattr(thing, "iteritems"):
