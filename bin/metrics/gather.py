@@ -13,11 +13,12 @@ import traceback
 import json
 import time
 import argparse
+from collections import defaultdict
 
 import requests
 
 log = logging.getLogger('zenoss.servicemetrics')
-logging.basicConfig()
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log.setLevel(logging.INFO)
 
 
@@ -91,6 +92,8 @@ class RabbitMetricGatherer(MetricGatherer):
         MetricGatherer.__init__(self)
 
     BASE_QUEUE_URL = 'http://localhost:15672/api/queues/%2Fzenoss/'
+    HUB_QUEUE_TYPES = ('invalidations', 'collectorcalls')
+    METRIC_PREFIX = 'zenoss.rabbitqueue'
 
     def get_metrics(self):
         metrics = []
@@ -100,25 +103,27 @@ class RabbitMetricGatherer(MetricGatherer):
         if result.status_code == 200:
             ts = time.time()
             data = result.json()
+            without_consumers_aggregate = defaultdict(lambda: 0)
             for queue in data:
-                if 'zenoss' in queue['name']:
-                    # TODO: filter ephemeral queues, like invalidations and collectorcalls.
-                    # maybe do aggregate metrics like 'queues with no consumers', i.e. unmonitored
-
-                    metrics.extend(self._extract_data(queue, ts))
+                metrics.extend(self._extract_data(queue, ts, without_consumers_aggregate))
+            metrics.extend(self._get_no_consumers_aggregate(without_consumers_aggregate, ts))
         else:
             log.warning("Queue stats request failed: %d, %s", result.status_code, result.text)
         return metrics
 
-    def _extract_data(self, queue, timestamp):
+    def _extract_data(self, queue, timestamp, without_consumers_aggregate):
         metrics = []
+        if not 'zenoss' in queue['name']:
+            return metrics
+
+        if not queue.has_key('consumers'):
+            log.error('queue %s does not have a consumers item' % queue['name'])
         log.debug('%s: %s', queue['name'], queue['consumers'])
-        prefix = 'zenoss.rabbitqueue'
         tags = {'zenoss_queuename': queue['name']}
 
-        for name in ['consumers', 'messages', 'messages_ready', 'messages_unacknowledged']:
-            metric_name = '%s.%s' % (prefix, name)
-            metrics.append(self.build_metric(metric_name, queue[name], timestamp, tags))
+        for stat in ['consumers', 'messages', 'messages_ready', 'messages_unacknowledged']:
+            metric_name = '%s.%s' % (self.METRIC_PREFIX, stat)
+            metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
 
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
@@ -127,10 +132,24 @@ class RabbitMetricGatherer(MetricGatherer):
             for detail in ['ack_details', 'deliver_details', 'deliver_get_details', 'publish_details']:
                 if not detail in message_stats:
                     continue
-                rate_name = '%s.%s' % (prefix, detail.replace('_details', '_rate'))
+                rate_name = '%s.%s' % (self.METRIC_PREFIX, detail.replace('_details', '_rate'))
                 rate_value = message_stats[detail]['rate']
                 metrics.append(self.build_metric(rate_name,  rate_value, timestamp, tags))
 
+        # aggregate these
+        for qtype in self.HUB_QUEUE_TYPES:
+            if queue['name'].startswith('zenoss.queues.hub.%s' % qtype):
+                without_consumers_aggregate[qtype] += 1 if not queue.get('consumers', 0) else 0
+
+        return metrics
+
+    def _get_no_consumers_aggregate(self, without_consumers_aggregate, timestamp):
+        metrics = []
+        for queue, no_consumers in without_consumers_aggregate.iteritems():
+            metrics.append(self.build_metric('%s.%s.queues.without.consumers' % (self.METRIC_PREFIX, queue),
+                                             no_consumers,
+                                             timestamp,
+                                             tags={'zenoss_queuename': 'zenoss.queues.hub.%s.aggregated' % queue}))
         return metrics
 
 
