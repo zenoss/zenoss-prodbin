@@ -9,7 +9,6 @@
 
 from BTrees.OOBTree import OOBTree
 from OFS.SimpleItem import SimpleItem
-from persistent.list import PersistentList
 from itertools import chain
 from zlib import adler32
 
@@ -20,6 +19,7 @@ DEFAULT_N_SHARDS = 127
 def default_hash_func(data):
     """
     adler32 chosen as hashing mechanism since we dont need a cryptographic hashing
+    crc32 and murmur speeds are similar to adler32
     """
     # In python < 3.0 adler32 returns a signed value
     return adler32(data) & 0xffffffff
@@ -37,7 +37,7 @@ class ShardedBTree(SimpleItem):
         self.shards = self._build_shards(self.n_shards)
 
     def _build_shards(self, n_shards):
-        shards = PersistentList()
+        shards = list()
         for _ in xrange(n_shards):
             shards.append(OOBTree())
         return shards
@@ -113,22 +113,13 @@ class ShardedBTree(SimpleItem):
         return all_items
         
     def iterkeys(self):
-        to_chain = []
-        for shard in self.shards:
-            to_chain.append(shard.iterkeys())
-        return chain(*to_chain)
+        return chain( *[ shard.iterkeys() for shard in self.shards ])
 
     def itervalues(self):
-        to_chain = []
-        for shard in self.shards:
-            to_chain.append(shard.itervalues())
-        return chain(*to_chain)
+        return chain( *[ shard.itervalues() for shard in self.shards ])
         
     def iteritems(self):
-        to_chain = []
-        for shard in self.shards:
-            to_chain.append(shard.iteritems())
-        return chain(*to_chain)
+        return chain( *[ shard.iteritems() for shard in self.shards ])
 
     def update(self, thing):
         if not hasattr(thing, "iteritems"):
