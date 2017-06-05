@@ -115,58 +115,6 @@ class MetricConnection(object):
 
         return response.json()
 
-    def stream_request(self, path, request, timeout):
-        auth = None
-        if not self._req_session.cookies.get(Z_AUTH_TOKEN):
-            if self._credentials:
-                auth = self._credentials
-            else:
-                auth = self._global_credentials
-
-        try:
-            resp = self._req_session.post(self._uri(path),
-                                              json.dumps(request),
-                                              auth=auth,
-                                              timeout=timeout,
-                                              stream=True)
-
-            if not (resp.status_code >= 200 and resp.status_code <= 299):
-                raise ServiceResponseError(response.reason, status_code, request,
-                                           response, response.content)
-
-            if resp.status_code == 200:
-                for line in resp.iter_lines():
-                    if line:
-                        yield line.decode('ascii')
-
-        except requests.exceptions.Timeout as e:
-            log.error('Error connecting with request: %s \n%s', request, e)
-
-        except ServiceResponseError as e:
-            if e.status == 401 and auth != self._global_credentials:
-                # Try using global credentials.
-                auth = self._global_credentials
-
-                if Z_AUTH_TOKEN in self._req_session.cookies:
-                    del self._req_session.cookies[Z_AUTH_TOKEN]
-
-                log.debug('Authorization failed. Trying to use global credentials')
-                resp = self.stream_request(path, request, auth, timeout)
-
-                if not (resp.status_code >= 200 and resp.status_code <= 299):
-                    log.error(
-                            'Centralquery responded with an error code {} while'
-                            'processing request {}: {}'.format(
-                                status_code, resp.reason))
-                if resp.status_code == 200:
-                    for line in resp.iter_lines():
-                        if line:
-                            yield line.decode('ascii')
-            else:
-                log.error('Error fetching request: %s \n'
-                          'Response from the server (return code %s): %s',
-                          request, e.status, e.content)
-
     def _request(self, path, request, timeout):
         auth = None
         if not self._req_session.cookies.get(Z_AUTH_TOKEN):
@@ -216,6 +164,59 @@ class MetricConnection(object):
                       request, e.status, e.content)
         except ServiceConnectionError as e:
             log.error('Error connecting with request: %s \n%s', request, e)
+
+    def stream_request(self, path, request, timeout=10):
+        auth = None
+        if not self._req_session.cookies.get(Z_AUTH_TOKEN):
+            if self._credentials:
+                auth = self._credentials
+            else:
+                auth = self._global_credentials
+
+        try:
+            resp = self._req_session.post(self._uri(path),
+                                              json.dumps(request),
+                                              auth=auth,
+                                              timeout=timeout,
+                                              stream=True)
+
+            if not (resp.status_code >= 200 and resp.status_code <= 299):
+                raise ServiceResponseError(response.reason, status_code, request,
+                                           response, response.content)
+
+            if resp.status_code == 200:
+                for line in resp.iter_lines():
+                    if line:
+                        yield line.decode('ascii')
+
+        except requests.exceptions.Timeout as e:
+            log.error('Error connecting with request: %s \n%s', request, e)
+
+        except ServiceResponseError as e:
+            if e.status == 401 and auth != self._global_credentials:
+                # Try using global credentials.
+                auth = self._global_credentials
+
+                if Z_AUTH_TOKEN in self._req_session.cookies:
+                    del self._req_session.cookies[Z_AUTH_TOKEN]
+
+                log.debug('Authorization failed. Trying to use global credentials')
+                resp = self.stream_request(path, request, auth, timeout)
+
+                if not (resp.status_code >= 200 and resp.status_code <= 299):
+                    log.error(
+                            'Centralquery responded with an error code {} while'
+                            'processing request {}: {}'.format(
+                                status_code, resp.reason))
+
+                if resp.status_code == 200:
+                    for line in resp.iter_lines():
+                        if line:
+                            yield line.decode('ascii')
+            else:
+                log.error('Error fetching request: %s \n'
+                          'Response from the server (return code %s): %s',
+                          request, e.status, e.content)
 
 
 class MetricFacade(ZuulFacade):
