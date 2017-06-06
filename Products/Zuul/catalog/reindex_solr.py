@@ -8,6 +8,7 @@ import traceback
 import argparse
 import logging
 import zope.component
+from zExceptions import NotFound
 from collections import deque
 
 from OFS.ObjectManager import ObjectManager
@@ -96,7 +97,11 @@ class ReindexProcess(multiprocessing.Process):
 
         try:
             for current_uid in self.get_work():
-                current_node = self.dmd.unrestrictedTraverse(current_uid)
+                try:
+                    current_node = self.dmd.unrestrictedTraverse(current_uid)
+                except NotFound:
+                    log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(current_uid))
+                    continue
                 self.push_children(current_node)
                 if self.include_node(current_node):
                     batch.append(current_node)
@@ -138,6 +143,7 @@ class HardReindex(ReindexProcess):
         self.deque = deque()
 
     def get_work(self):
+        # this method raises QueueEmpty exception when no more elements are in parent_queue
         yield self.parent_queue.get(timeout=30)
         while True:
             try:
@@ -148,14 +154,13 @@ class HardReindex(ReindexProcess):
     def push_children(self, node):
         if self._include_children(node):
             prefix = "/".join(node.getPhysicalPath()) + "/"
-            [self.deque.append(prefix + child) for child in node.objectIds()]
+            for child in node.objectIds():
+                self.deque.append(prefix + child)
 
     def _include_children(self, node):
         include = False
         if not isinstance(node, GlobalCatalog):
-            if isinstance(node, ObjectManager):
-                include = True
-            elif isinstance(node, ToManyContRelationship):
+            if isinstance(node, ObjectManager) or isinstance(node, ToManyContRelationship):
                 include = True
         return include
 
@@ -191,6 +196,7 @@ class SoftReindex(ReindexProcess):
         super(SoftReindex, self).__init__(queue, idx, parent_queue)
 
     def get_work(self):
+        # this method raises QueueEmpty exception when no more elements are in parent_queue
         yield self.parent_queue.get(timeout=30)
         while True:
             yield self.parent_queue.get(timeout=2)
@@ -208,9 +214,8 @@ class SoftReindex(ReindexProcess):
     def reconcile(self):
         pass
 
-def get_uids(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
+def get_uids(index_client):
     start = 0
-    index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
     need_results = True
 
     while need_results:
@@ -218,23 +223,21 @@ def get_uids(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
             query=And(MatchGlob("uid", "*"), Eq("tx_state", 0)),
             start=start,
             limit=MODEL_INDEX_BATCH_SIZE,
+            order_by="uid",
             fields=["uid"]))
         start += MODEL_INDEX_BATCH_SIZE
         for result in search_results.results:
-            yield result
+            yield result.uid
         need_results = start < search_results.total_count
 
-def clear_data(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
-    model_index = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
-    model_index.clear_data()
-
 def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
-    model_index = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
+    index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
     config = {}
     config["collection_name"] = collection_name
     config["collection_config_name"] = collection_name
     config["num_shards"] = 1
-    model_index.init(config)
+    index_client.init(config)
+    return index_client
 
 def run(processor_count=8, hard=False):
     log.info("Beginning {0} redindexing with {1} child processes.".format(
@@ -243,7 +246,7 @@ def run(processor_count=8, hard=False):
 
     log.info("Initializing dmd and solr model catalog...")
     dmd = ZenScriptBase(connect=True).dmd
-    init_model_catalog()
+    index_client = init_model_catalog()
 
     processes = []
     processor_queue = multiprocessing.Queue()
@@ -257,14 +260,12 @@ def run(processor_count=8, hard=False):
 
     if hard:
         log.info("Clearing solr data")
-        clear_data()
+        index_client.clear_data()
         work.append("/zport")
         Worker = HardReindex
     else:
         log.info("Reading uids from solr")
-        uids = [brain.uid for brain in get_uids()]
-        uids.sort()
-        work = uids
+        work = get_uids(index_client)
         Worker = SoftReindex
 
     log.info("Starting child processes")
@@ -274,7 +275,8 @@ def run(processor_count=8, hard=False):
         p.start()
         processes_remaining += 1
 
-    [parent_queue.put(uid) for uid in work]
+    for uid in work:
+        parent_queue.put(uid)
 
     log.info("Waiting for processes to finish")
     total_count = 0
