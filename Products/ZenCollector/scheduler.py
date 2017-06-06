@@ -188,11 +188,11 @@ class CallableTask(object):
     def __call__(self):
         if self.task.state is TaskStates.STATE_PAUSED and not self.paused:
             self.task.state = TaskStates.STATE_IDLE
+        elif self.paused and self.task.state is not TaskStates.STATE_PAUSED:
+            self.task.state = TaskStates.STATE_PAUSED
 
-        if self.task.state is TaskStates.STATE_IDLE:
-            if self.paused:
-                self.task.state = TaskStates.STATE_PAUSED
-            else:
+        if self.task.state in [TaskStates.STATE_IDLE, TaskStates.STATE_PAUSED]:
+            if not self.paused:
                 self.task.state = TaskStates.STATE_QUEUED
                 # don't return deferred to looping call.
                 # If a deferred is returned to looping call
