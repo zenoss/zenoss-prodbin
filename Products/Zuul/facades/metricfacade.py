@@ -181,8 +181,8 @@ class MetricConnection(object):
                                               stream=True)
 
             if not (resp.status_code >= 200 and resp.status_code <= 299):
-                raise ServiceResponseError(response.reason, status_code, request,
-                                           response, response.content)
+                raise ServiceResponseError(resp.reason, status_code, request,
+                                           resp, resp.content)
 
             if resp.status_code == 200:
                 for line in resp.iter_lines():
