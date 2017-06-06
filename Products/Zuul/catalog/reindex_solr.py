@@ -7,6 +7,7 @@ import transaction
 import traceback
 import argparse
 import logging
+import ctypes
 import zope.component
 from zExceptions import NotFound
 from collections import deque
@@ -35,12 +36,13 @@ class WorkerReport(object):
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, queue, idx, parent_queue):
+    def __init__(self, queue, idx, parent_queue, counter):
         super(ReindexProcess, self).__init__()
 
         self.queue = queue
         self.idx = idx
         self.parent_queue = parent_queue
+        self.counter = counter
 
         self.dmd = ZenScriptBase(connect=True).dmd
         self.index_client = zope.component.createObject('ModelIndex', get_solr_config())
@@ -106,6 +108,8 @@ class ReindexProcess(multiprocessing.Process):
                 if self.include_node(current_node):
                     batch.append(current_node)
                     count += 1
+                    # the increment on counter is non-atomic, but we don't care
+                    self.counter.value += 1
                     if count % INDEX_SIZE == 0:
                         self.index(batch)
                         batch = []
@@ -138,8 +142,8 @@ class HardReindex(ReindexProcess):
     If parent queue is empty, pop a node from left side of deque and push to parent queue.
     Repeat.
     """
-    def __init__(self, queue, idx, parent_queue):
-        super(HardReindex, self).__init__(queue, idx, parent_queue)
+    def __init__(self, queue, idx, parent_queue, counter):
+        super(HardReindex, self).__init__(queue, idx, parent_queue, counter)
         self.deque = deque()
 
     def get_work(self):
@@ -192,8 +196,8 @@ class SoftReindex(ReindexProcess):
     Index all items in list if fit.
     Repeat.
     """
-    def __init__(self, queue, idx, parent_queue):
-        super(SoftReindex, self).__init__(queue, idx, parent_queue)
+    def __init__(self, queue, idx, parent_queue, counter):
+        super(SoftReindex, self).__init__(queue, idx, parent_queue, counter)
 
     def get_work(self):
         # this method raises QueueEmpty exception when no more elements are in parent_queue
@@ -251,6 +255,7 @@ def run(processor_count=8, hard=False):
     processes = []
     processor_queue = multiprocessing.Queue()
     parent_queue = multiprocessing.Queue()
+    counter = multiprocessing.Value(ctypes.c_uint32)
 
     processes_remaining = 0
     work = []
@@ -270,7 +275,7 @@ def run(processor_count=8, hard=False):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(processor_queue, n, parent_queue)
+        p = Worker(processor_queue, n, parent_queue, counter)
         processes.append(p)
         p.start()
         processes_remaining += 1
@@ -282,15 +287,20 @@ def run(processor_count=8, hard=False):
     total_count = 0
 
     while processes_remaining > 0:
-        proc_report = processor_queue.get()
-        if proc_report.err:
-            log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
-            log.exception(proc_report.err)
-        log.info("Process with idx '{0}' finished after processing {1} objects.".format(proc_report.idx, proc_report.count))
-        processes[proc_report.idx].join()
-        processes_remaining -= 1
-        total_count += proc_report.count
-
+        # Try to collect our processes every 30 seconds, or report on their work
+        try:
+            # Will throw Queue.Empty if timeout is hit, which just means it's still working
+            proc_report = processor_queue.get(timeout=10)
+            if proc_report.err:
+                log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
+                log.exception(proc_report.err)
+            log.info("Process with idx '{0}' finished after processing {1} objects.".format(proc_report.idx, proc_report.count))
+            processes[proc_report.idx].join()
+            processes_remaining -= 1
+            total_count += proc_report.count
+        except Queue.Empty:
+            with counter.get_lock():
+                log.info("Progress: {0} objects indexed so far".format(counter.value))
     end = time.time()
 
     log.info("Total time: {0}".format(end - start))
