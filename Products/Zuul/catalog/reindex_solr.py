@@ -290,7 +290,7 @@ def run(processor_count=8, hard=False):
         # Try to collect our processes every 30 seconds, or report on their work
         try:
             # Will throw Queue.Empty if timeout is hit, which just means it's still working
-            proc_report = processor_queue.get(timeout=10)
+            proc_report = processor_queue.get(timeout=30)
             if proc_report.err:
                 log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
                 log.exception(proc_report.err)
