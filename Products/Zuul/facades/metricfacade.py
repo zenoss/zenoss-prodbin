@@ -676,6 +676,7 @@ class MetricFacade(ZuulFacade):
 
         return results
 
+    # This method is supposed to run as a facade method job.
     def renameDevice(self, oldId, newId, joblog=None):
         # joblog is injected in the FacadeMethodJob class when this method runs
         # as a job. The messages written to joblog will be displayed in the Jobs
@@ -691,19 +692,36 @@ class MetricFacade(ZuulFacade):
             log.info(line)
             joblog.info(line)
 
+        lastLine = line
+        success = lastLine.lower() == 'success'
+
         # Update renameInProgress so that the collection resumes.
         dev = self._dmd.Devices.findDeviceByIdExact(newId)
         dev.renameInProgress = False
 
         # Trigger an event that indicates the completion of renaming.
-        message = ("A rename job that replaces a device name {} with a new name"
-            " {} in the performance metrics stored in OpenTSDB has been "
-            "completed.".format(oldId, newId))
-        summary = "Renaming device {} to {} is completed.".format(oldId, newId)
+        if success:
+            message = ("A rename job that replaces a device name {} with a new name"
+                " {} in performance data has been completed."
+                .format(oldId, newId))
+            summary = "Renaming device {} to {} in performance data is completed.".format(oldId, newId)
+            eventClass = '/Status/Update'
+            severity = Event.Info
+        else:
+            # Trigger an event that indicates the completion of renaming.
+            message = ("A rename job that replaces a device name {} with a new name "
+                "{} in performance data has been completed. However some renaming "
+                "tasks have failed. See the job log for the details."
+                .format(oldId, newId))
+            summary = "Renaming device {} to {} in performance data is completed, but some metrics are not renamed properly.".format(oldId, newId)
+            eventClass = '/App/Job/Fail'
+            severity = Event.Error
 
         self._dmd.ZenEventManager.sendEvent(dict(
             device=newId,
-            eventClass='/Status/Update',
-            severity=Event.Info,
+            eventClass=eventClass,
+            severity=severity,
             summary=summary,
             message=message))
+
+        return {'success': success, 'message': None}

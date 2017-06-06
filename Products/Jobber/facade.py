@@ -16,6 +16,7 @@ from Products.ZenUtils.celeryintegration import get_task_logger
 from zope.dottedname.resolve import resolve
 from celery.utils import fun_takes_kwargs
 from .jobs import Job
+from .exceptions import FacadeMethodJobFailed
 
 
 class FacadeMethodJob(Job):
@@ -65,3 +66,15 @@ class FacadeMethodJob(Job):
         accepted = fun_takes_kwargs(bound_method, kwargs)
         kwargs = dict((k, v) for k, v in kwargs.iteritems() if k in accepted)
         result = bound_method(*args, **kwargs)
+
+        # Expect result = {'success': boolean, 'message': string}
+        # Some old facade method jobs return None.
+        if result:
+            try:
+                if not result['success']:
+                    raise FacadeMethodJobFailed
+                return result['message']
+            except FacadeMethodJobFailed:
+                raise
+            except (TypeError, KeyError):
+                log.error('The output from a facade method job is not in the right format.')
