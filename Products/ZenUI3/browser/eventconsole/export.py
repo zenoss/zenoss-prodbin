@@ -110,6 +110,8 @@ class EventsExporter(BrowserView):
             if not wroteHeader:
                 writer.writerow(fields)
                 wroteHeader = True
+            details = evt.get(DETAILS_KEY)
+
             for field in fields:
                 val = evt.get(field, '')
                 if field in ("lastTime", "firstTime") and val:
@@ -118,6 +120,9 @@ class EventsExporter(BrowserView):
                     # add all details in one column, otherwise for events with lots of details
                     # the number of columns in the csv can get too large (ZEN-23871)
                     val = json.dumps(val)
+                elif not (val or val is 0) and details:
+                    # ZEN-27617: fill in value for requested field not in evt but in details
+                    val = details.get(field,'')
                 data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
             writer.writerow(data)
 
