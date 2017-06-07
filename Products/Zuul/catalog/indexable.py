@@ -369,7 +369,7 @@ class ComponentIndexable(object):     # DeviceComponent inherits from this class
         else:
             return []
 
-    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="deviceId")
+    @indexed(StringFieldType(stored=True), attr_query_name="deviceId")
     def idx_deviceId(self):
         """ device the component belongs to """
         device_id = None
@@ -495,7 +495,7 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     def idx_networkId(self):
         return self.networkId()
 
-    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="deviceId")
+    @indexed(StringFieldType(stored=True), attr_query_name="deviceId")
     def idx_deviceId(self):
         """ device the ipaddress belongs to. Since IpAddress does not inherit from DeviceComponent """
         device_id = None
