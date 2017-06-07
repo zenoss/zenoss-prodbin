@@ -34,14 +34,15 @@ class DeviceNames(BrowserView):
         if dataRoot != 'devices':
             import exceptions
             raise exceptions.ValueError("dataRoot should only be 'devices'")
-        catalog = IModelCatalogTool(self.context.dmd).devices
+
+        query_scope = self.context.dmd.Devices
         query = MatchGlob('name', query.rstrip('*') + '*')
         if isinstance(self.context, DeviceOrganizer):
-            query = query & Eq('path', "/".join(self.context.getPhysicalPath()))
-        brains = catalog.search(query=query)
+            query_scope = self.context
+        catalog = IModelCatalogTool(query_scope).devices
+        brains = catalog.search(query=query, fields=['name'])
 
-        # TODO: Add titleOrId to the catalog's metadata.
-        return  sorted((b.getObject().titleOrId() for b in brains),
+        return  sorted((b.name for b in brains),
                         key=lambda x: x.lower())
 
 
