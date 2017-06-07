@@ -190,11 +190,11 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
     def idx_uid(self):
         return aq_base(self).getPrimaryId()
 
-    @indexed(StringFieldType(stored=True), attr_query_name="id")
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="id")
     def idx_id(self):
         return self.id
 
-    @indexed(StringFieldType(stored=True), attr_query_name="uuid")
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="uuid")
     def idx_uuid(self):
         """
         Object's uuid.
@@ -208,7 +208,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         except Exception:
             pass
 
-    @indexed(StringFieldType(stored=True), attr_query_name="name")
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="name")
     def idx_name(self):
         """
         The name of the object.
@@ -218,7 +218,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         except AttributeError:
             return self.id
 
-    @indexed(str, attr_query_name="meta_type")
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="meta_type")
     def idx_meta_type(self):
         """
         Object's meta_type. Mostly used for backwards compatibility.
@@ -266,11 +266,11 @@ class DeviceOrganizerIndexable(object): # DeviceOrganizer inherits from this cla
     def idx_deviceOrganizer_searchKeywords(self):
         return (self.getOrganizerName(), str(self.description))
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchExcerpt")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
     def idx_deviceOrganizer_searchExcerpt(self):
         return self.getOrganizerName()
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchIcon")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
     def idx_deviceOrganizer_searchIcon(self):
         return self.getIconPath()
 
@@ -343,14 +343,14 @@ class DeviceIndexable(object):   # Device inherits from this class
         unique_keywords = { keyword for keyword in keywords if keyword }
         return list(unique_keywords)
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchExcerpt")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
     def idx_device_searchExcerpt(self):
         if self.manageIp:
             return '{0} <span style="font-size:smaller">({1})</span>'.format(self.titleOrId(), self.manageIp)
         else:
             return self.titleOrId()
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchIcon")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
     def idx_device_searchIcon(self):
         return self.getIconPath()
 
@@ -396,12 +396,12 @@ class ComponentIndexable(object):     # DeviceComponent inherits from this class
         keywords.add("monitored" if self.idx_monitored() else "unmonitored")
         return [ k for k in keywords if k ]
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchExcerpt")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
     def idx_component_searchExcerpt(self):
         text = '{0} <span style="font-size:smaller">({1})</span>'
         return text.format(self.name(), self.device().titleOrId())
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchIcon")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
     def idx_compoment_searchIcon(self):
         return self.getIconPath()
 
@@ -455,7 +455,7 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
 
     index("idx_component_searchExcerpt", NOINDEX_TYPE) # disable ComponentIndexable implementation
 
-    @indexed(StringFieldType(stored=True), attr_query_name="searchExcerpt")
+    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
     def idx_ipInterface_searchExcerpt(self):
         parent_excerpt = ComponentIndexable.idx_component_searchExcerpt(self)
         return "{0} {1}".format(parent_excerpt, ' '.join([ self.description ]))
