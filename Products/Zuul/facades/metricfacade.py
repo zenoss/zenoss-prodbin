@@ -712,12 +712,12 @@ class MetricFacade(ZuulFacade):
             eventClass = '/Status/Update'
             severity = Event.Info
         else:
-            message = ("Reassociating performance data for device {} with a new "
+            message = ("Reassociating performance data for device {} with new "
                 "ID {} has been completed. However, reassociation of some "
                 "metrics were unsuccessful. See the job log for the details."
                 .format(oldId, newId))
-            summary = ("Reassociating performance data for device {} with new ID "
-                "{} completed, but some metrics are not reassociated properly."
+            summary = ("Reassociating performance data for device {} with new "
+                "ID {} completed, but some metrics are not reassociated."
                 .format(oldId, newId))
             eventClass = '/App/Job/Fail'
             severity = Event.Error
