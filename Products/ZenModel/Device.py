@@ -1918,20 +1918,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if retainGraphData:
                 device = self.dmd.Devices.findDeviceByIdExact(newId)
                 device.renameInProgress = True
-                self.amendPerfDataAfterRename(oldId, newId)
+                self.reassociatePerfDataAfterRename(oldId, newId)
 
             return self.absolute_url_path()
         except CopyError:
             raise Exception("Device rename failed.")
 
-    def amendPerfDataAfterRename(self, oldId, newId):
+    def reassociatePerfDataAfterRename(self, oldId, newId):
         """
         Replace a dev id in metric names and tag values with the new id after
         renaming the device.
         """
         self.dmd.JobManager.addJob(
             FacadeMethodJob,
-            description='Reidentify device {} to {} in performance data'.format(oldId, newId),
+            description=('Reassociating performance data for device {} with '
+                'new ID {}'.format(oldId, newId)),
             kwargs=dict(
                 facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
                 method='renameDevice',

@@ -692,28 +692,33 @@ class MetricFacade(ZuulFacade):
             log.info(line)
             joblog.info(line)
 
+        # When thr request was successfully fulfilled, central query sends
+        # "Success".
         lastLine = line
-        success = lastLine.lower() == 'success'
+        success = lastLine == 'Success'
 
         # Update renameInProgress so that the collection resumes.
         dev = self._dmd.Devices.findDeviceByIdExact(newId)
         dev.renameInProgress = False
 
-        # Trigger an event that indicates the completion of renaming.
+        # Trigger an event that indicates the completion of a renaming request in
+        # central query.
         if success:
-            message = ("A rename job that replaces a device name {} with a new name"
-                " {} in performance data has been completed."
+            message = ("Reassociating performance data for device {} with new "
+                "ID {} has been completed successfully. See the job log for the details."
                 .format(oldId, newId))
-            summary = "Renaming device {} to {} in performance data is completed.".format(oldId, newId)
+            summary = ("Reassociating performance data for device {} with new "
+                "ID {} completed.".format(oldId, newId))
             eventClass = '/Status/Update'
             severity = Event.Info
         else:
-            # Trigger an event that indicates the completion of renaming.
-            message = ("A rename job that replaces a device name {} with a new name "
-                "{} in performance data has been completed. However some renaming "
-                "tasks have failed. See the job log for the details."
+            message = ("Reassociating performance data for device {} with a new "
+                "ID {} has been completed. However, reassociation of some "
+                "metrics were unsuccessful. See the job log for the details."
                 .format(oldId, newId))
-            summary = "Renaming device {} to {} in performance data is completed, but some metrics are not renamed properly.".format(oldId, newId)
+            summary = ("Reassociating performance data for device {} with new ID "
+                "{} completed, but some metrics are not reassociated properly."
+                .format(oldId, newId))
             eventClass = '/App/Job/Fail'
             severity = Event.Error
 
