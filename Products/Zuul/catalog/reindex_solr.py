@@ -1,3 +1,12 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 import Globals
 import Queue
 import multiprocessing
@@ -108,8 +117,10 @@ class ReindexProcess(multiprocessing.Process):
                 if self.include_node(current_node):
                     batch.append(current_node)
                     count += 1
-                    # the increment on counter is non-atomic, but we don't care
-                    self.counter.value += 1
+                    # update our counter every so often (less lock usage)
+                    if count % 1000 == 0:
+                        with self.counter.get_lock():
+                            self.counter.value += 1000
                     if count % INDEX_SIZE == 0:
                         self.index(batch)
                         batch = []
