@@ -1,14 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-from Products.CMFCore.utils import getToolByName
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Five.browser import BrowserView
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils.jsonutils import json
@@ -34,12 +34,11 @@ class DeviceNames(BrowserView):
         if dataRoot != 'devices':
             import exceptions
             raise exceptions.ValueError("dataRoot should only be 'devices'")
-        catalog = getToolByName(self.context.dmd.Devices,
-            self.context.dmd.Devices.default_catalog)
-        query = MatchGlob('titleOrId', query.rstrip('*') + '*')
+        catalog = IModelCatalogTool(self.context.dmd).devices
+        query = MatchGlob('name', query.rstrip('*') + '*')
         if isinstance(self.context, DeviceOrganizer):
             query = query & Eq('path', "/".join(self.context.getPhysicalPath()))
-        brains = catalog.evalAdvancedQuery(query)
+        brains = catalog.search(query=query)
 
         # TODO: Add titleOrId to the catalog's metadata.
         return  sorted((b.getObject().titleOrId() for b in brains),
@@ -75,7 +74,7 @@ class ComponentPaths(BrowserView):
                     if callable(name):
                         name = name()
                     paths.add((comp.getPrimaryId(), name))
-        
+
         return sorted(paths, key=lambda x: x[1].lower())
 
 
