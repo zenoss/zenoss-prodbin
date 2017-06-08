@@ -63,6 +63,7 @@ echo Checking GO_VER;check_var $GO_VER;echo OK
 echo Creating a virtual env...
 if [ ! -d venv ]; then virtualenv venv; fi
 source venv/bin/activate
+pip install --upgrade pip
 if [ ! -d zendev ]; then git clone ${ZENDEV_REPO} zendev; fi
 cd zendev;git checkout ${ZENDEV_BRANCH}
 pip install -e .

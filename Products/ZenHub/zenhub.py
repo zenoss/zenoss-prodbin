@@ -1023,6 +1023,9 @@ class ZenHub(ZCmdBase):
         r.gauge('services', len(self.services))
         r.counter('totalCallTime', totalTime)
         r.gauge('workListLength', len(self.workList))
+        r.gauge('eventWorkList', len(self.workList.eventworklist))
+        r.gauge('applyWorkList', len(self.workList.applyworklist))
+        r.gauge('otherWorkList', len(self.workList.otherworklist))
         for name, value in self.counters.items():
             r.counter(name, value)
 
