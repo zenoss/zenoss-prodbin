@@ -46,6 +46,7 @@ class ModelCatalogTool(object):
         self.layer2 = None
         self.layer3 = None
         self.devices = None
+        self.ips = None
         self._create_legacy_catalog_helpers()
 
     def _create_legacy_catalog_helpers(self):
@@ -61,6 +62,10 @@ class ModelCatalogTool(object):
         fields = [ "id", "name" ]
         objectImplements = [ "Products.ZenModel.Device.Device" ]
         self.devices = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # IpSearch (there is one per Network Tree)
+        fields = [ "id", "decimal_ipAddress" ]
+        objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
+        self.ips = ModelCatalogToolGenericHelper(self, objectImplements, fields)
 
     @property
     def model_index(self):
