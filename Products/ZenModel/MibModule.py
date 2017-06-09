@@ -22,6 +22,15 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 
+def createOID(dmd, container, new_oid):
+    oid_list = dmd.mibSearch(oid=new_oid.oid)
+    for old_oid in oid_list:
+        old_oid.getObject().getParentNode()._delObject(old_oid.id)
+
+    container._setObject(new_oid.id, new_oid)
+    return container._getOb(new_oid.id)
+
+
 class MibModule(ZenModelRM, ZenPackable):
 
     implements(IIndexed)
@@ -95,7 +104,7 @@ class MibModule(ZenModelRM, ZenPackable):
     def addMibNode(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNode
         """
-        node = self.createMibNode(id, oid=oid, nodetype=nodetype)
+        node = self.createMibNode(id, oid=oid, nodetype=nodetype, moduleName=self.id)
         if REQUEST:
             if node:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -115,12 +124,7 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNode import MibNode
-        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
-            return None
-        node = MibNode(id, **kwargs) 
-        self.nodes._setObject(node.id, node)
-        node = self.nodes._getOb(node.id)
-        return node 
+        return createOID(self.dmd, self.nodes, MibNode(id, **kwargs))
 
 
     def deleteMibNotifications(self, ids=[], REQUEST=None):
@@ -141,7 +145,7 @@ class MibModule(ZenModelRM, ZenPackable):
     def addMibNotification(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNotification 
         """
-        notification = self.createMibNotification(id, oid=oid, nodetype=nodetype)
+        notification = self.createMibNotification(id, oid=oid, nodetype=nodetype, moduleName=self.id)
         if REQUEST:
             if notification: 
                 messaging.IMessageSender(self).sendToBrowser(
@@ -161,12 +165,7 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNotification import MibNotification
-        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
-            return None
-        node = MibNotification(id, **kwargs) 
-        self.notifications._setObject(node.id, node)
-        node = self.notifications._getOb(node.id)
-        return node
-    
+        return createOID(self.dmd, self.notifications, MibNotification(id, **kwargs))
+
 
 InitializeClass(MibModule)
