@@ -1872,6 +1872,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Rename device from the DMD.  Disallow assignment of
         an id that already exists in the system.
+        Block renaming for this Device if a rename is already in progress.
 
         @permission: ZEN_ADMIN_DEVICE
         @param newId: new name
@@ -1879,10 +1880,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
+
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
         currProdStates = self.saveCurrentProdStates()
+
+        if self.renameInProgress:
+            log.warn("Rename already in progress!")
+            return path
 
         if newId is None:
             return path
