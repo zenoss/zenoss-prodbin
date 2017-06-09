@@ -31,6 +31,7 @@ from zope.component.event import objectEventNotify
 
 from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
 from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
+from Products.ZenUtils.MetricReporter import MetricReporter
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.guid import guid
 from Products.ZenUtils.daemonconfig import IDaemonConfig
@@ -79,6 +80,8 @@ class EventPipelineProcessor(object):
             ClearClassRefreshPipe(self._manager),
             CheckHeartBeatPipe(self._manager)
         )
+        self.reporter = MetricReporter(prefix='zenoss.')
+        self.reporter.start()
 
         if not self.SYNC_EVERY_EVENT:
             # don't call sync() more often than 1 every 0.5 sec - helps throughput

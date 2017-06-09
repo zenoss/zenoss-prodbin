@@ -13,15 +13,16 @@ import traceback
 import json
 import time
 import argparse
+from collections import defaultdict
 
 import requests
 
 log = logging.getLogger('zenoss.servicemetrics')
-logging.basicConfig()
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log.setLevel(logging.INFO)
 
 
-class ServiceMetrics:
+class ServiceMetrics(object):
     """
     Simple process that creates a metric gatherer, loops calling for
     internal metrics, then posts those metrics to a consumer.
@@ -65,44 +66,25 @@ class ServiceMetrics:
         post_data = {'metrics': metrics}
         response = self.session.post(self.metric_destination, data=json.dumps(post_data))
         if response.status_code != 200:
-            log.warning("Problem submitting metrics: %d, %s" % response.status_code, response.text)
+            log.warning("Problem submitting metrics: %d, %s", response.status_code, response.text)
             self.session = None
         else:
-            log.debug("%d Metrics posted" % len(metrics))
+            log.debug("%d Metrics posted", len(metrics))
 
 
-class MetricGatherer:
-    def __init__(self):
-        self.service_id = os.environ.get("CONTROLPLANE_SERVICED_ID", "")
-        self.instance_id = os.environ.get("CONTROLPLANE_INSTANCE_ID", "")
-        self.host_id = os.environ.get("CONTROLPLANE_HOST_ID", "")
-        self.tenant_id = os.environ.get("CONTROLPLANE_TENANT_ID", "")
-        self.tags = {
-            "serviceId": self.service_id,
-            "instance": self.instance_id,
-            "hostId": self.host_id,
-            "tenantId": self.tenant_id
-        }
+class MetricGatherer(object):
 
     def build_metric(self, name, value, timestamp, tags=None):
-        _value = self.float_value(value)
-        if tags:
-            tags.update(self.tags)
-        else:
-            tags = self.tags
+        try:
+            _value = float(value)
+        except ValueError as ve:
+            _value = None
+        if not tags:
+            tags = {}
         return {"metric": name,
                 "value": _value,
                 "timestamp": timestamp,
                 "tags": tags}
-
-    @staticmethod
-    def float_value(value):
-        if isinstance(value, float):
-            return value
-
-        if isinstance(value, (int, long, str)):
-            return float(value)
-        return None
 
 
 class RabbitMetricGatherer(MetricGatherer):
@@ -110,6 +92,8 @@ class RabbitMetricGatherer(MetricGatherer):
         MetricGatherer.__init__(self)
 
     BASE_QUEUE_URL = 'http://localhost:15672/api/queues/%2Fzenoss/'
+    HUB_QUEUE_TYPES = ('invalidations', 'collectorcalls')
+    METRIC_PREFIX = 'zenoss.rabbitqueue'
 
     def get_metrics(self):
         metrics = []
@@ -119,41 +103,54 @@ class RabbitMetricGatherer(MetricGatherer):
         if result.status_code == 200:
             ts = time.time()
             data = result.json()
+            without_consumers_aggregate = defaultdict(lambda: 0)
             for queue in data:
-                if 'zenoss' in queue['name']:
-                    # TODO: filter ephemeral queues, like invalidations and collectorcalls.
-                    # maybe do aggregate metrics like 'queues with no consumers', i.e. unmonitored
-
-                    self._extract_data(metrics, queue, ts)
+                metrics.extend(self._extract_data(queue, ts, without_consumers_aggregate))
+            metrics.extend(self._get_no_consumers_aggregate(without_consumers_aggregate, ts))
         else:
-            log.warning("Queue stats request failed: %d, %s" % result.status_code, result.text)
+            log.warning("Queue stats request failed: %d, %s", result.status_code, result.text)
         return metrics
 
-    def _extract_data(self, metrics, queue, ts):
-        log.debug('%s: %s' % (queue['name'], queue['consumers']))
-        prefix = 'zenoss.rabbitqueue'
-        tags = {'name': queue['name']}
-        consumers = queue['consumers']
-        metrics.append(MetricGatherer.build_metric(self, "%s.consumers" % prefix, consumers, ts, tags))
-        messages = queue['messages']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages" % prefix, messages, ts, tags))
-        ready = queue['messages_ready']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages_ready" % prefix, ready, ts, tags))
-        messages_unacknowledged = queue['messages_unacknowledged']
-        metrics.append(MetricGatherer.build_metric(self, "%s.messages_unacknowledged" %
-                                                   prefix, messages_unacknowledged, ts, tags))
+    def _extract_data(self, queue, timestamp, without_consumers_aggregate):
+        metrics = []
+        if not 'zenoss' in queue['name']:
+            return metrics
+
+        if not queue.has_key('consumers'):
+            log.error('queue %s does not have a consumers item' % queue['name'])
+        log.debug('%s: %s', queue['name'], queue['consumers'])
+        tags = {'zenoss_queuename': queue['name']}
+
+        for stat in ['consumers', 'messages', 'messages_ready', 'messages_unacknowledged']:
+            metric_name = '%s.%s' % (self.METRIC_PREFIX, stat)
+            metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
+
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
         if 'message_stats' in queue:
-            ack_rate = queue['message_stats']['ack_details']['rate']
-            deliver_rate = queue['message_stats']['deliver_details']['rate']
-            deliver_get_rate = queue['message_stats']['deliver_get_details']['rate']
-            publish_rate = queue['message_stats']['publish_details']['rate']
-        metrics.append(MetricGatherer.build_metric(self, "%s.ack_rate" % prefix, ack_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.deliver_rate" % prefix, deliver_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.deliver_get_rate" %
-                                                   prefix, deliver_get_rate, ts, tags))
-        metrics.append(MetricGatherer.build_metric(self, "%s.publish_rate" % prefix, publish_rate, ts, tags))
+            message_stats = queue['message_stats']
+            for detail in ['ack_details', 'deliver_details', 'deliver_get_details', 'publish_details']:
+                if not detail in message_stats:
+                    continue
+                rate_name = '%s.%s' % (self.METRIC_PREFIX, detail.replace('_details', '_rate'))
+                rate_value = message_stats[detail]['rate']
+                metrics.append(self.build_metric(rate_name,  rate_value, timestamp, tags))
+
+        # aggregate these
+        for qtype in self.HUB_QUEUE_TYPES:
+            if queue['name'].startswith('zenoss.queues.hub.%s' % qtype):
+                without_consumers_aggregate[qtype] += 1 if queue.get('consumers', 0) == 0 and queue.get('messages', 0) != 0 else 0
+
+        return metrics
+
+    def _get_no_consumers_aggregate(self, without_consumers_aggregate, timestamp):
+        metrics = []
+        for queue, messages_and_no_consumers in without_consumers_aggregate.iteritems():
+            metrics.append(self.build_metric('%s.%s.queues.without.consumers' % (self.METRIC_PREFIX, queue),
+                                             messages_and_no_consumers,
+                                             timestamp,
+                                             tags={'zenoss_queuename': 'zenoss.queues.hub.%s.aggregated' % queue}))
+        return metrics
 
 
 if __name__ == "__main__":
