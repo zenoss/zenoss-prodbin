@@ -15,7 +15,7 @@ Python performance data collector client
 import logging
 log = logging.getLogger("zen.PythonClient")
 
-import Globals
+import Globals  # noqa
 
 from BaseClient import BaseClient
 from twisted.internet.defer import Deferred, DeferredList

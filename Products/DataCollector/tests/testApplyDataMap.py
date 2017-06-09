@@ -9,7 +9,7 @@
 ##############################################################################
 
 
-import Globals
+import Globals  # noqa
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.DataCollector.plugins.DataMaps import RelationshipMap

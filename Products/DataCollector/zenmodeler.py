@@ -13,14 +13,14 @@ For instance, find out what Ethernet interfaces and hard disks a server
 has available.
 This information should change much less frequently than performance metrics.
 """
-import Globals
+import Globals  # noqa
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
 # any other libraries that might possibly use twisted. This will ensure that
 # the proper WmiReactor is installed before anyone else grabs a reference to
 # the wrong reactor.
 try:
-    import pysamba.twisted.reactor
+    import pysamba.twisted.reactor  # noqa
     from ZenPacks.zenoss.WindowsMonitor.WMIClient import WMIClient
     from ZenPacks.zenoss.WindowsMonitor.utils import addNTLMv2Option, setNTLMv2Auth
     USE_WMI = True

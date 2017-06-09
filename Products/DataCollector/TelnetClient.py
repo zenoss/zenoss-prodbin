@@ -32,7 +32,7 @@ zCommandExistanceCheck - shell command issued to look for executible
 
 """
 
-import Globals
+import Globals  # noqa
 
 from twisted.conch import telnet
 from twisted.internet import reactor
@@ -42,7 +42,6 @@ import logging
 log = logging.getLogger("zen.TelnetClient")
 
 import CollectorClient
-from Exceptions import *
 
 from Products.ZenUtils.Utils import unused
 
