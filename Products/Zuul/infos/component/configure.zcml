@@ -83,4 +83,9 @@
              factory=".ComponentFormBuilder"
              />
 
+    <adapter provides="...form.interfaces.IFormBuilder"
+        for="Products.Zuul.infos.component.iprouteentry.IpRouteEntryInfo"
+        factory=".IpRouteEntryFormBuilder"
+        />
+
 </configure>
