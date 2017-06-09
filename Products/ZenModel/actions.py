@@ -12,6 +12,7 @@ from collections import defaultdict
 import os
 import re
 from time import strftime, localtime
+import time
 import socket
 import logging
 from socket import getaddrinfo
@@ -401,9 +402,14 @@ class EmailAction(IActionBase, TargetableAction):
         notification and also group targets emails by those timezones.
         """
         tz_targets = {}
+        targetsCopy = set(targets)
         for user in dmd.ZenUsers.getAllUserSettings():
             if user.email in targets:
                 tz_targets.setdefault(user.timezone, set()).add(user.email)
+                targetsCopy.discard(user.email)
+        if targetsCopy: #some emails are not from users in the system
+            tz = time.tzname[0] #should be UTC
+            tz_targets.setdefault(tz, set()).update(targetsCopy)
         return tz_targets
 
     def _adjustToTimezone(self, millis, timezone):
