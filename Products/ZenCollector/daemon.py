@@ -384,8 +384,7 @@ class CollectorDaemon(RRDDaemon):
         if self.options.traceMetricKey:
             tests.append((self.options.traceMetricKey, contextkey))
 
-        r = re.compile(exp)
-        result = [bool(r.search(subj)) for exp, subj in tests]
+        result = [bool(re.search(exp, subj)) for exp, subj in tests]
 
         return len(result) > 0 and all(result)
 
