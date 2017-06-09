@@ -14,7 +14,7 @@ from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 #  daemon, list of prefixes of expected output
 _daemons = [
-    ["zeneventserver", ["program running", "not running"]],
+    ["zeneventserver", ["program running", "not running", "only start, stop and run supported in devmode"]],
     ["zeneventd", ["program running", "not running"]],
     ["zopectl", ["program running", "daemon manager not running"]],
     ["zenhub", ["program running", "not running"]],
