@@ -12,18 +12,131 @@ from OFS.SimpleItem import SimpleItem
 from Products.AdvancedQuery import And, Or, Not
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
+#------------------------------------------------------
+#                  Value Converters
+#------------------------------------------------------
 
 default_value_converter = lambda value: value
+
 last_part_of_path_value_converter = lambda value: value.split("/")[-1]
+
+def strip_zport_dmd_value_converter(value):
+    if value.startswith("/zport/dmd"):
+        return value[10:]
+    return value
+
+def add_zport_dmd_value_converter(value):
+    if not value.startswith("/zport/dmd"):
+        return "{}{}".format("/zport/dmd", value)
+    return value
+
+#------------------------------------------------------
+
+class TranslationValueConverter(object):
+    """ """
+    def __init__(self, search=None, result=None):
+        self.search_converter = default_value_converter
+        self.result_converter = default_value_converter
+        if search is not None:
+            self.search_converter = search
+        if result is not None:
+            self.result_converter = result
+
+
+DEFAULT_CONVERTER = TranslationValueConverter()
 
 
 class LegacyFieldTranslation(object):
     def __init__(self, old, new, value_converter=None):
         self.old = old
         self.new = new
-        self.value_converter = default_value_converter
+        self.value_converter = DEFAULT_CONVERTER
         if value_converter is not None:
             self.value_converter = value_converter
+
+
+#------------------------------------------------------
+#           Translations for legacy  catalogs
+#------------------------------------------------------
+
+
+GLOBAL_CATALOG_TRANSLATIONS =[
+    LegacyFieldTranslation(old="uid", new="uid",
+                           value_converter=TranslationValueConverter(
+                                            search=add_zport_dmd_value_converter,
+                                            result=strip_zport_dmd_value_converter)),
+    LegacyFieldTranslation(old="id", new="id"),
+    LegacyFieldTranslation(old="name", new="name"),
+    LegacyFieldTranslation(old="meta_type", new="meta_type"),
+    LegacyFieldTranslation(old="objectImplements", new="objectImplements"),
+    LegacyFieldTranslation(old="path", new="path"),
+    LegacyFieldTranslation(old="searchIcon", new="searchIcon"),
+    LegacyFieldTranslation(old="searchKeywords", new="searchKeywords"),
+    LegacyFieldTranslation(old="searchExcerpt", new="searchExcerpt"),
+    LegacyFieldTranslation(old="allowedRolesAndUsers", new="allowedRolesAndUsers"),
+    LegacyFieldTranslation(old="monitored", new="monitored"),
+    LegacyFieldTranslation(old="macAddresses", new="macAddresses"),
+    LegacyFieldTranslation(old="ipAddress", new="text_ipAddress"),
+    LegacyFieldTranslation(old="uuid", new="uuid"),
+    # LegacyFieldTranslation(old="productKeys", new="productKeys"), we currently dont have it
+    LegacyFieldTranslation(old="zProperties", new="zProperties"),
+    LegacyFieldTranslation(old="collectors", new="collectors"),
+]
+
+
+DEVICE_CATALOG_TRANSLATIONS = [
+    LegacyFieldTranslation(old="getDeviceIp", new="text_ipAddress"),
+    LegacyFieldTranslation(old="getPhysicalPath", new="uid"),
+    LegacyFieldTranslation(old="titleOrId", new="name"),
+    LegacyFieldTranslation(old="id", new="id"),
+    LegacyFieldTranslation(old="getPrimaryId", new="uid"),
+    LegacyFieldTranslation(old="path", new="path",
+                           value_converter=TranslationValueConverter(
+                                result=lambda x: [ tuple(p.split("/")) for p in x ])),
+    # These fields need to be added
+    # LegacyFieldTranslation(old="getDeviceClassPath", new="YYYYY"),
+    # LegacyFieldTranslation(old="getAdminUserIds", new="YYYYYY"),
+]
+
+
+LAYER_2_CATALOG_TRANSLATIONS = [
+    LegacyFieldTranslation(old="macaddress", new="macaddress"),
+    LegacyFieldTranslation(old="interfaceId", new="interfaceId"),
+    LegacyFieldTranslation(old="deviceId", new="deviceId"),
+    LegacyFieldTranslation(old="lanId", new="lanId"),
+]
+
+
+LAYER_3_CATALOG_TRANSLATIONS = [
+    LegacyFieldTranslation(old="networkId", new="networkId"),
+    LegacyFieldTranslation(old="interfaceId", new="interfaceId",
+                           value_converter=TranslationValueConverter(
+                                result=last_part_of_path_value_converter)),
+    LegacyFieldTranslation(old="ipAddressId", new="ipAddressId"),
+    LegacyFieldTranslation(old="deviceId", new="deviceId",
+                           value_converter=TranslationValueConverter(
+                                result=last_part_of_path_value_converter)),
+]
+
+
+IP_SEARCH_CATALOG_TRANSLATIONS = [
+    LegacyFieldTranslation(old="path", new="uid"),
+    LegacyFieldTranslation(old="ipAddressAsInt", new="decimal_ipAddress",
+                           value_converter=TranslationValueConverter(result=str)),
+    LegacyFieldTranslation(old="id", new="id"),
+]
+
+
+TRANSLATIONS = {
+    "global_catalog" : GLOBAL_CATALOG_TRANSLATIONS,
+    "deviceSearch"   : DEVICE_CATALOG_TRANSLATIONS,
+    "layer2_catalog" : LAYER_2_CATALOG_TRANSLATIONS,
+    "layer3_catalog" : LAYER_3_CATALOG_TRANSLATIONS,
+    "ipSearch"       : IP_SEARCH_CATALOG_TRANSLATIONS,
+}
+
+
+#------------------------------------------------------
 
 
 class LegacyFieldsTranslator(object):
@@ -54,9 +167,22 @@ class LegacyFieldsTranslator(object):
                 translation = self.new_fields[new].old
         return translation
 
-    def convert_value(self, old, value):
+    def convert_result_value(self, old, value):
         if value and old in self.old_fields:
+            converter = self.old_fields[old].value_converter.result_converter
+            value = converter(value)
+        return value
+
+    def need_search_conversion(self, old):
+        needed = False
+        if self.old_fields.get(old):
             converter = self.old_fields[old].value_converter
+            needed = converter.search_converter != default_value_converter
+        return needed
+
+    def convert_search_value(self, old, value):
+        if value and old in self.old_fields:
+            converter = self.old_fields[old].value_converter.search_converter
             value = converter(value)
         return value
 
@@ -65,50 +191,6 @@ class LegacyFieldsTranslator(object):
 
     def get_new_field_names(self):
         return self.new_fields.keys()
-
-
-DEVICE_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="getDeviceIp", new="text_ipAddress"),
-    LegacyFieldTranslation(old="getPhysicalPath", new="uid"),
-    LegacyFieldTranslation(old="titleOrId", new="name"),
-    LegacyFieldTranslation(old="id", new="id"),
-    LegacyFieldTranslation(old="getPrimaryId", new="uid"),
-    LegacyFieldTranslation(old="path", new="path", value_converter=lambda x: [ tuple(p.split("/")) for p in x ]),
-    # These fields need to be added
-    # LegacyFieldTranslation(old="getDeviceClassPath", new="YYYYY"),
-    # LegacyFieldTranslation(old="getAdminUserIds", new="YYYYYY"),
-]
-
-
-LAYER_2_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="macaddress", new="macaddress"),
-    LegacyFieldTranslation(old="interfaceId", new="interfaceId"),
-    LegacyFieldTranslation(old="deviceId", new="deviceId"),
-    LegacyFieldTranslation(old="lanId", new="lanId"),
-]
-
-
-LAYER_3_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="networkId", new="networkId"),
-    LegacyFieldTranslation(old="interfaceId", new="interfaceId", value_converter=last_part_of_path_value_converter),
-    LegacyFieldTranslation(old="ipAddressId", new="ipAddressId"),
-    LegacyFieldTranslation(old="deviceId", new="deviceId", value_converter=last_part_of_path_value_converter),
-]
-
-
-IP_SEARCH_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="path", new="uid"),
-    LegacyFieldTranslation(old="ipAddressAsInt", new="decimal_ipAddress", value_converter=str),
-    LegacyFieldTranslation(old="id", new="id"),
-]
-
-
-TRANSLATIONS = {
-    "deviceSearch"   : DEVICE_CATALOG_TRANSLATIONS,
-    "layer2_catalog" : LAYER_2_CATALOG_TRANSLATIONS,
-    "layer3_catalog" : LAYER_3_CATALOG_TRANSLATIONS,
-    "ipSearch"       : IP_SEARCH_CATALOG_TRANSLATIONS,
-}
 
 
 class LegacyCatalogAdapter(SimpleItem):
@@ -168,7 +250,22 @@ class LegacyCatalogAdapter(SimpleItem):
         elif isinstance(query, Not):
             self._adapt_query(query._query)
         else:
-            query._idx = self.translator.translate(old=query._idx)
+            old_field_name = query._idx
+            query._idx = self.translator.translate(old=old_field_name)
+            if self.translator.need_search_conversion(old_field_name):
+                # dammit, we need to transform the values to search. so far only
+                # uid in global catalog needs this
+                if isinstance(query._term, basestring):
+                    query._term = self.translator.convert_search_value(old_field_name, query._term)
+                elif isinstance(query._term, tuple) or (query._term, list):
+                    new_values = []
+                    for value in query._term:
+                        new_values.append(self.translator.convert_search_value(old_field_name, value))
+                    if isinstance(query._term, tuple):
+                        new_values = tuple(new_values)
+                    query._term = new_values
+                else:
+                    pass # Not likely since only uid uses a search converter (for now....)
 
     def _adapt_brains(self, search_results):
         """
@@ -181,7 +278,7 @@ class LegacyCatalogAdapter(SimpleItem):
             for old_field_name in self.translator.get_old_field_names():
                 new_field_name = self.translator.translate(old=old_field_name)
                 value = getattr(brain, new_field_name)
-                value = self.translator.convert_value(old_field_name, value)
+                value = self.translator.convert_result_value(old_field_name, value)
                 setattr(brain, old_field_name, value)
             converted_brains.append(brain)
         return converted_brains
@@ -206,6 +303,7 @@ from Products.AdvancedQuery import Eq, And, Or, Not, MatchGlob, In
 from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
 
 deviceSearch = LegacyCatalogAdapter(dmd, "deviceSearch")
+global_catalog = LegacyCatalogAdapter(dmd, "global_catalog")
 
 def print_brains(brains):
     for b in brains:
@@ -222,6 +320,15 @@ deviceSearch()
 deviceSearch(Eq("titleOrId", "cisco2960G-50-5"))
 deviceSearch(MatchGlob("titleOrId", "*cisco*"))
 deviceSearch(In("titleOrId", ["cisco2960G-50-4", "cisco2960G-50-5"]))
+
+
+
+global_catalog(Eq("uid", "/Devices/Network/Cisco/10-160-50-x/devices/cisco2960G-50-5"))
+
+print_brains(deviceSearch())
+print_brains(deviceSearch(Eq("titleOrId", "cisco2960G-50-5")))
+print_brains(deviceSearch(MatchGlob("titleOrId", "*cisco*")))
+print_brains(deviceSearch(In("titleOrId", ["cisco2960G-50-4", "cisco2960G-50-5"])))
 
 searches = [ ]
 searches.append(deviceSearch())

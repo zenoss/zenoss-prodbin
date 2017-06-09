@@ -47,6 +47,7 @@ class ModelCatalogTool(object):
         self.layer3 = None
         self.devices = None
         self.ips = None
+        self.global_catalog = None
         self._create_legacy_catalog_helpers()
 
     def _create_legacy_catalog_helpers(self):
@@ -66,6 +67,10 @@ class ModelCatalogTool(object):
         fields = [ "id", "decimal_ipAddress" ]
         objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
         self.ips = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # global catalog
+        fields = [ "zProperties", "monitored", "name", "collectors",
+                   "searchIcon", "searchExcerpt", "meta_type", "id", "uuid" ]
+        self.global_catalog = ModelCatalogToolGenericHelper(self, fields=fields)
 
     @property
     def model_index(self):
