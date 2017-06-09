@@ -32,12 +32,18 @@ log = logging.getLogger('zen.ZPLoader')
 CONFIG_FILE = 'about.txt'
 CONFIG_SECTION_ABOUT = 'about'
 
-def findFiles(pack, directory, filter=None, excludedDirs=('.svn',)):
-    result = []
+
+def get_path(pack, directory):
+    """Returns an absolute path to the direstory relative to the pack path"""
     if isinstance(pack, basestring):
-        path = os.path.join(pack, directory)
-    else:
-        path = pack.path(directory)
+        return os.path.join(pack, directory)
+    return pack.path(directory)
+
+
+def findFiles(pack, directory, filter=None, excludedDirs=('.svn',)):
+    """Returns list of absolute paths to all files in a provided folder and its subfolders."""
+    result = []
+    path = get_path(pack, directory)
     for p, ds, fs in os.walk(path):
         # Don't visit excluded directories - os.walk with topdown=True
         for excludedDir in excludedDirs:
@@ -263,20 +269,25 @@ class ZPLBin(ZenPackLoader):
                 return False
         return True
 
-    def binPath(self, bin_file):
+    def binPath(self, bin_file, basepath):
         args = ['bin']
-        if '/zenrun.d/' in bin_file:
-            args.append('zenrun.d')
-        args.append(os.path.basename(bin_file))
+        args.append(bin_file.replace(basepath, ''))
         return zenPath(*args)
 
     def load(self, pack, unused):
         for fs in findFiles(pack, 'bin', filter=self.filter):
             os.chmod(fs, 0755)
-            path = self.binPath(fs)
+            path = self.binPath(fs, get_path(pack, 'bin'))
             if os.path.lexists(path):
                 os.remove(path)
             os.symlink(fs, path)
+
+    def unload(self, pack, app, leaveObjects=False):
+        for fs in findFiles(pack, 'bin', filter=self.filter):
+            try:
+                os.remove(self.binPath(fs, get_path(pack, 'bin')))
+            except OSError:
+                pass
 
     def upgrade(self, pack, app):
         self.unload(pack, app)
