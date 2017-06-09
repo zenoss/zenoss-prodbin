@@ -139,8 +139,7 @@ class RabbitMetricGatherer(MetricGatherer):
         # aggregate these
         for qtype in self.HUB_QUEUE_TYPES:
             if queue['name'].startswith('zenoss.queues.hub.%s' % qtype):
-                if queue.get('consumers', 0) == 0 and queue.get('messages', 0) != 0:
-                    without_consumers_aggregate[qtype] += 1
+                without_consumers_aggregate[qtype] += 1 if queue.get('consumers', 0) == 0 and queue.get('messages', 0) != 0 else 0
 
         return metrics
 
