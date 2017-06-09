@@ -113,12 +113,25 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
     def checkValidId(self, id):
         """Checks a valid id
         """
-        relationship = getattr(self, 'serviceclasses')
+        selectedOrg = self
+        validity = True
+        if selectedOrg.getId() == 'IpService':
+            for org in selectedOrg.getParentNode().getSubOrganizers():
+                validity = self._checkValidId(org, id)
+                if validity is not True:
+                    break
+        else:
+            validity = self._checkValidId(selectedOrg, id)
+        return validity
+
+
+    def _checkValidId(self, organizer, id):
+        relationship = getattr(organizer, 'serviceclasses')
         try:
             relationship.checkValidId(id)
-            return True
         except Exception as e:
             return str(e)
+        return True
 
 
     def getSubClassesGen(self):
