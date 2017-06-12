@@ -136,7 +136,10 @@ class AccountLocker(Folder, BasePlugin):
         """
         
         login, password = self.REQUEST.get('attempted_logins', ('', ''))
-        if login:
+        #Whitelisted failed authentications for /authorization/login URL
+        #as it has public.premissions and accessible for anonymous users 
+        #see ZEN-27450
+        if login and '/authorization/login' not in self.REQUEST['PATH_INFO']:
             self.setAttempt(login, password)
             log.info("Failed login attempt: %s ", login)
 
