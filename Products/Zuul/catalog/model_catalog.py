@@ -18,7 +18,7 @@ from zExceptions import NotFound
 from Acquisition import aq_parent, Implicit
 from interfaces import IModelCatalog
 from collections import defaultdict
-from Products.AdvancedQuery import And, Or, Eq
+from Products.AdvancedQuery import And, Or, Eq, Not, In
 from Products.ZCatalog.interfaces import ICatalogBrain
 from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
@@ -291,7 +291,7 @@ class ModelCatalogDataManager(object):
         indexed_uids = set()
         for update in updates:
             tid = tx_state.tid
-            temp_uid = "{0}{1}{2}".format(update.uid, TX_SEPARATOR, tid)
+            temp_uid = self._mid_transaction_uid(update.uid, tx_state)
 
             # We only unindex docs that have been already modified
             # unmodified docs marked for removal are not a problem since
@@ -387,12 +387,59 @@ class ModelCatalogDataManager(object):
             # Temporarily index updated objects so the search is accurate
             self._process_pending_updates(tx_state)
 
+    def _mid_transaction_uid(self, uid, tx_state):
+        return "{0}{1}{2}".format(uid, TX_SEPARATOR, tx_state.tid)
+
+    def _tweak_mid_transaction_search_params(self, search_params, tx_state):
+        """
+        Updates the search params in a transaction with mid transaction objects
+        committed to solr if the query is searching for an uid that has been
+        updated mid transaction.
+
+        Ex: In transacton 1111 object uid_1 has had mid transaction changes. The latest version
+            of the object is under doc uid_1@=@1111. If we get a query {"uid": "uid_1"} we need to
+            transform it to {"uid": "uid_1@=@111"}
+
+        """
+        if isinstance(search_params.query, dict):
+            uid = search_params.query.get("uid")
+            if uid and uid in tx_state.indexed_updates:
+                search_params.query["uid"] = self._mid_transaction_uid(uid, tx_state)
+        elif not isinstance(search_params.query, basestring) and \
+             "uid" in str(search_params.query):
+            # AdvancedQuery
+            queries = [ search_params.query ]
+            while queries:
+                q = queries.pop()
+                if isinstance(q, Eq) and q._idx == "uid":
+                    if q._term in tx_state.indexed_updates:
+                        q._term = self._mid_transaction_uid(q._term, tx_state)
+                elif isinstance(q, And) or isinstance(q, Or):
+                    for sq in q._subqueries:
+                        queries.append(sq)
+                elif isinstance(q, Not):
+                    queries.append(q._query)
+                elif isinstance(q, In) and q._idx == "uid":
+                    new_uid_values = []
+                    for uid in q._term:
+                        if uid in tx_state.indexed_updates:
+                            new_uid_values.append(self._mid_transaction_uid(uid, tx_state))
+                        else:
+                            new_uid_values.append(uid)
+                    q._term = new_uid_values
+        #@TODO add support for lucene queries
+        return search_params
+
     def search(self, search_params, context, commit_dirty=False):
         """
         Searches for objects that satisfy search_params in the catalog associated with context.
         """
+        tx_state = self._get_tx_state()
         if commit_dirty:
             self._do_mid_transaction_commit()
+        if tx_state and tx_state.indexed_updates:
+            # If we have done a mid transaction commit we may need to tweak some params
+            search_params = self._tweak_mid_transaction_search_params(search_params, tx_state)
         return self._do_search(search_params, context)
 
     def search_brain(self, uid, context, fields=None, commit_dirty=False):
@@ -404,7 +451,7 @@ class ModelCatalogDataManager(object):
 
         # if the object has been updated mid transaction, get the latest version
         if tx_state and uid in tx_state.indexed_updates:
-            uid = "{0}{1}{2}".format(uid, TX_SEPARATOR, tx_state.tid)
+            uid = self._mid_transaction_uid(uid, tx_state)
 
         query = Eq(UID_FIELD, uid)
         search_params = SearchParams(query, fields=fields)
