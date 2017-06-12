@@ -292,7 +292,7 @@ class ModelCatalogTool(object):
         
         query, not_indexed_user_filters = self._build_query(types, paths, depth, query, filterPermissions, globFilters)
 
-        areBrains = areBrains or len(not_indexed_user_filters) == 0
+        areBrains = areBrains and len(not_indexed_user_filters) == 0
         queryStart = start if areBrains else 0
         queryLimit = limit if areBrains else None
 
@@ -311,9 +311,9 @@ class ModelCatalogTool(object):
 
         hash_ = totalCount
 
-        if orderby == queryOrderby:
+        if areBrains:
             allResults = results
-        else:
+        else: # Even if orderby was an indexed field,, _filterQueryResults will randomize the order
             allResults = self._sortQueryResults(results, orderby, reverse)
 
         if hashcheck is not None:
