@@ -131,7 +131,7 @@ class ModelCatalogClient(object):
         return self._data_manager.model_index
 
     def _get_forbidden_classes(self):
-        return ()
+        return (Software, OperatingSystem)
 
     def get_indexes(self):
         return self._data_manager.get_indexes()

@@ -1091,7 +1091,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                 % (hwManufacturer, hwProductName))
                 self.hw.setProduct(hwProductName, hwManufacturer)
         else:
-            self.hw.removeProductClass()
+            self.hw.productClass.removeRelation()
 
         if osManufacturer and osProductName:
             # updateDevice uses the sentinel value "_no_change" to indicate
@@ -1101,7 +1101,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                 % (osManufacturer, osProductName))
                 self.os.setProduct(osProductName, osManufacturer, isOS=True)
         else:
-            self.os.removeProductClass()
+            self.os.productClass.removeRelation()
 
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'updateDevice')

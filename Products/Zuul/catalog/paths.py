@@ -99,7 +99,5 @@ class ProcessPathReporter(DefaultPathReporter):
 class ProductPathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ProductPathReporter, self).getPaths()
-        pc = self.context.productClass()
-        if pc:
-            paths.append(pc.getPhysicalPath())
+        paths.extend(relPath(self.context, 'productClass'))
         return paths
