@@ -12,6 +12,7 @@ import signal
 import time
 import logging
 import json
+import re
 import zope.interface
 from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
@@ -280,6 +281,16 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=60,
                                help='How often to write internal statistics value in seconds')
+        self.parser.add_option('--traceMetricName',
+                               dest='traceMetricName',
+                               type='string',
+                               default=None,
+                               help='trace metrics whose name matches this regex')
+        self.parser.add_option('--traceMetricKey',
+                               dest='traceMetricKey',
+                               type='string',
+                               default=None,
+                               help='trace metrics whose key value matches this regex')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -359,6 +370,25 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
+    def should_trace_metric(self, metric, contextkey):
+        """
+        Tracer implementation - use this function to indicate whether a given
+        metric/contextkey combination is to be traced.
+        :param metric: name of the metric in question 
+        :param contextkey: context key of the metric in question
+        :return: boolean indicating whether to trace this metric/key
+        """
+        tests = []
+        if self.options.traceMetricName:
+            tests.append((self.options.traceMetricName, metric))
+        if self.options.traceMetricKey:
+            tests.append((self.options.traceMetricKey, contextkey))
+
+        result = [bool(re.search(exp, subj)) for exp, subj in tests]
+
+        return len(result) > 0 and all(result)
+
+
     @defer.inlineCallbacks
     def writeMetric(self, contextKey, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
@@ -386,6 +416,9 @@ class CollectorDaemon(RRDDaemon):
             'contextUUID': contextUUID,
             'key': contextKey
         }
+        if self.should_trace_metric(metric, contextKey):
+            tags['mtrace'] = "{}".format(int(time.time()))
+
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId
