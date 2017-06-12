@@ -36,12 +36,11 @@ from Products.ZenUtils.Utils import unused, getObjectsFromModelCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
 from Products.Jobber.zenmodel import DeviceSetLocalRolesJob
-from Products.Zuul.catalog.indexable import DeviceOrganizerIndexable
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
 
-class DeviceOrganizer(Organizer, DeviceManagerBase, DeviceOrganizerIndexable, Commandable, ZenMenuable,
+class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                         MaintenanceWindowable, AdministrativeRoleable):
     """
     DeviceOrganizer is the base class for device organizers.
