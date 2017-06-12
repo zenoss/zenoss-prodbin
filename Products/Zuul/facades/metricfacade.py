@@ -207,7 +207,7 @@ class MetricConnection(object):
                     log.error(
                             'Centralquery responded with an error code {} while'
                             'processing request {}: {}'.format(
-                                status_code, resp.reason))
+                                resp.status_code, request, resp.reason))
 
                 if resp.status_code == 200:
                     for line in resp.iter_lines():
@@ -682,51 +682,55 @@ class MetricFacade(ZuulFacade):
         # as a job. The messages written to joblog will be displayed in the Jobs
         # pane of Zenoss.
 
-        path = RENAME_URL_PATH
-        request = {'oldId': oldId, 'newId': newId}
-        resp = self._metrics_connection.stream_request(path, request, timeout=10)
+        success = False
 
-        # Log messages streamed from centralquery to both zenjobs.log and the
-        # log file for the job in /opt/zenoss/log/jobs.
-        for line in resp:
-            log.info(line)
-            joblog.info(line)
+        try:
+            path = RENAME_URL_PATH
+            request = {'oldId': oldId, 'newId': newId}
+            resp = self._metrics_connection.stream_request(path, request, timeout=120)
 
-        # When thr request was successfully fulfilled, central query sends
-        # "Success".
-        lastLine = line
-        success = lastLine == 'Success'
+            # Log messages streamed from centralquery to both zenjobs.log and the
+            # log file for the job in /opt/zenoss/log/jobs.
+            for line in resp:
+                log.info(line)
+                joblog.info(line)
 
-        # Update renameInProgress so that the collection resumes.
-        dev = self._dmd.Devices.findDeviceByIdExact(newId)
-        dev.renameInProgress = False
+            # When the request was successfully fulfilled, central query sends
+            # "Success".
+            lastLine = line
+            success = lastLine == 'Success'
 
-        # Trigger an event that indicates the completion of a renaming request in
-        # central query.
-        if success:
-            message = ("Reassociating performance data for device {} with new "
-                "ID {} has been completed successfully. See the job log for the details."
-                .format(oldId, newId))
-            summary = ("Reassociating performance data for device {} with new "
-                "ID {} completed.".format(oldId, newId))
-            eventClass = '/Status/Update'
-            severity = Event.Info
-        else:
-            message = ("Reassociating performance data for device {} with new "
-                "ID {} has been completed. However, reassociation of some "
-                "metrics were unsuccessful. See the job log for the details."
-                .format(oldId, newId))
-            summary = ("Reassociating performance data for device {} with new "
-                "ID {} completed, but some metrics are not reassociated."
-                .format(oldId, newId))
-            eventClass = '/App/Job/Fail'
-            severity = Event.Error
+            # Trigger an event that indicates the completion of a renaming request in
+            # central query.
+            if success:
+                message = ("Reassociating performance data for device {} with new "
+                    "ID {} has been completed successfully. See the job log for the details."
+                    .format(oldId, newId))
+                summary = ("Reassociating performance data for device {} with new "
+                    "ID {} completed.".format(oldId, newId))
+                eventClass = '/Status/Update'
+                severity = Event.Info
+            else:
+                message = ("Reassociating performance data for device {} with new "
+                    "ID {} has been completed. However, reassociation of some "
+                    "metrics were unsuccessful. See the job log for the details."
+                    .format(oldId, newId))
+                summary = ("Reassociating performance data for device {} with new "
+                    "ID {} completed, but some metrics are not reassociated."
+                    .format(oldId, newId))
+                eventClass = '/App/Job/Fail'
+                severity = Event.Error
 
-        self._dmd.ZenEventManager.sendEvent(dict(
-            device=newId,
-            eventClass=eventClass,
-            severity=severity,
-            summary=summary,
-            message=message))
+            self._dmd.ZenEventManager.sendEvent(dict(
+                device=newId,
+                eventClass=eventClass,
+                severity=severity,
+                summary=summary,
+                message=message))
 
-        return {'success': success, 'message': None}
+        finally:
+            # Update renameInProgress so that the collection resumes.
+            dev = self._dmd.Devices.findDeviceByIdExact(newId)
+            dev.renameInProgress = False
+
+            return {'success': success, 'message': None}
