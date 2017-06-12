@@ -77,4 +77,5 @@ class FacadeMethodJob(Job):
             except FacadeMethodJobFailed:
                 raise
             except (TypeError, KeyError):
-                log.error('The output from a facade method job is not in the right format.')
+                log.error('The output from job {} is not in the right format.'
+                        .format(self.request.id))

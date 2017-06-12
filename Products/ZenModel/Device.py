@@ -1887,7 +1887,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         currProdStates = self.saveCurrentProdStates()
 
         if self.renameInProgress:
-            log.warn("Rename already in progress!")
+            log.warn("Rename already in progress for device {}!".format(self.id))
             return path
 
         if newId is None:
