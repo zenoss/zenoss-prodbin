@@ -30,6 +30,19 @@ def add_zport_dmd_value_converter(value):
         return "{}{}".format("/zport/dmd", value)
     return value
 
+def device_catalog_path_value_converter(value):
+    """
+    device catalog returns the path a a tuple and
+    removes the name of the relationship
+    """
+    paths = []
+    for path in value:
+        pt = tuple(path.split("/"))
+        if pt and pt[-2]=="devices":
+            pt = pt[:-2] + pt[-1:]
+        paths.append(pt)
+    return paths
+
 #------------------------------------------------------
 
 class TranslationValueConverter(object):
@@ -92,7 +105,7 @@ DEVICE_CATALOG_TRANSLATIONS = [
     LegacyFieldTranslation(old="getPrimaryId", new="uid"),
     LegacyFieldTranslation(old="path", new="path",
                            value_converter=TranslationValueConverter(
-                                result=lambda x: [ tuple(p.split("/")) for p in x ])),
+                                result=device_catalog_path_value_converter)),
     # These fields need to be added
     # LegacyFieldTranslation(old="getDeviceClassPath", new="YYYYY"),
     # LegacyFieldTranslation(old="getAdminUserIds", new="YYYYYY"),
@@ -120,7 +133,7 @@ LAYER_3_CATALOG_TRANSLATIONS = [
 
 
 IP_SEARCH_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="path", new="uid"),
+    LegacyFieldTranslation(old="path", new="uid", value_converter=TranslationValueConverter(result=list)),
     LegacyFieldTranslation(old="ipAddressAsInt", new="decimal_ipAddress",
                            value_converter=TranslationValueConverter(result=str)),
     LegacyFieldTranslation(old="id", new="id"),
