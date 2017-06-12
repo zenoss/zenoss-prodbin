@@ -140,7 +140,7 @@ class ManufacturersFacade(TreeFacade):
         """
         manufacturer = self._getObject(uid)
         prod = manufacturer.products._getOb(id, None)
-        instlist = prod.instances()
+        instlist = prod.instances.objectValuesAll()
         instances = []
         filt = params.get('device_id', "")
         for instance in instlist:
