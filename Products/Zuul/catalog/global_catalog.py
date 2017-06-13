@@ -24,7 +24,7 @@ from ZODB.POSException import ConflictError
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpInterface import IpInterface
-from Products.ZenUtils.IpUtil import numbip
+from Products.ZenUtils.IpUtil import ipToDecimal
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.Search import makeMultiPathIndex
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
@@ -131,8 +131,12 @@ class IndexableWrapper(object):
         # 5 we index a bunch of ObjectManager, Persistent, etc., which
         # we'll never use, and enact a significant performance penalty
         # when inserting keywords into the index.
-        for kls in ro.ro(self._context.__class__)[:5]:
-            dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
+
+        for kls in ro.ro(self._context.__class__):
+            # @TODO review. had some issues with picking only the top 5
+            # instead we get anything from Products or Zenpacks
+            if kls.__module__.startswith("Products") or kls.__module__.startswith("ZenPacks"):
+                dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
         return list(dottednames)
 
     @property
@@ -151,7 +155,7 @@ class IndexableWrapper(object):
         ip = getter()
         if ip:
             ip = ip.partition('/')[0]
-            return str(numbip(ip))
+            return str(ipToDecimal(ip))
 
     @property
     def zProperties(self):
@@ -172,7 +176,7 @@ class IndexableWrapper(object):
 
         This is a FieldIndex on the catalog.
         """
-        return aq_base(self._context).getPrimaryId().lstrip('/zport/dmd')
+        return aq_base(self._context).getPrimaryId()
 
     def path(self):
         """
@@ -299,28 +303,32 @@ class DeviceWrapper(SearchableMixin,IndexableWrapper):
     def macAddresses(self):
         return self._context.getMacAddresses()
 
+    def productionState(self):
+        return self._context.getProductionState()
+
     @memoized_in_context
     def searchKeywordsForChildren(self):
         o = self._context
         ipAddresses = []
-        try:
-            # If we find an interface IP address, link it to a device
-            if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
-                ipAddresses = chain(*(iface.getIpAddresses()
-                                       for iface in o.os.interfaces()))
-                # fliter out localhost-ish addresses
-                ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
-                                                     x.startswith('::1/'),
-                                           ipAddresses)
-        except Exception:
-            ipAddresses = []
+        # TODO: What to do about IP addresses?
+        # try:
+        #     # If we find an interface IP address, link it to a device
+        #     if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
+        #         ipAddresses = chain(*(iface.getIpAddresses()
+        #                                for iface in o.os.interfaces()))
+        #         # fliter out localhost-ish addresses
+        #         ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
+        #                                              x.startswith('::1/'),
+        #                                    ipAddresses)
+        # except Exception:
+        #     ipAddresses = []
 
         return (o.titleOrId(),
             o.manageIp, o.hw.serialNumber, o.hw.tag,
             o.getHWManufacturerName(), o.getHWProductName(),
             o.getOSProductName(), o.getOSManufacturerName(),
             o.getHWSerialNumber(), o.getPerformanceServerName(),
-            o.getPriorityString(),
+            o.getProductionStateString(), o.getPriorityString(),
             o.getLocationName(),
             o.monitorDevice() and "monitored" or "unmonitored",
             ) \

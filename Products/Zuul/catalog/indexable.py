@@ -10,23 +10,16 @@
 
 import math
 
-from Acquisition import aq_base
-
-from interfaces import IPathReporter
 from ipaddr import IPNetwork
 
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
-from Products.Zuul.utils import getZProperties, allowedRolesAndUsers
-from Products.ZenUtils.IpUtil import ipToDecimal, ipunwrap, isip
+from Products.Zuul.catalog.interfaces import IIndexableWrapper
+from Products.ZenUtils.IpUtil import ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
 from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
-from ZODB.POSException import ConflictError
-from zope.interface import ro
-
 
 """
     @TODO:
@@ -39,99 +32,88 @@ from zope.interface import ro
 
         BaseIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |  idx_uid                   |  uid                    |       uid       |         |         |
-            |  idx_id                    |  id                     |                 |         |         |
-            |  idx_uuid                  |  uuid                   |                 |         |         |
-            |  idx_name                  |  name                   |                 |         |         |
-            |  idx_meta_type             |  meta_type              |                 |         |         |
-            |  idx_path                  |  path                   |                 |         |         |
-            |  idx_objectImplements      |  objectImplements       |                 |         |         |
-            |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |                 |         |         |
-            ----------------------------------------------------------------------------------------------
-
-        DeviceOrganizerIndexable:
-
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                            |  ATTR_QUERY_NAME |  FIELD NAME | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |  idx_deviceOrganizer_searchKeywords   |  searchKeywords  |             |         |         |
-            |  idx_deviceOrganizer_searchExcerpt    |  searchExcerpt   |             |         |         |
-            |  idx_deviceOrganizer_searchIcon       |  searchIcon      |             |         |         |
-            ----------------------------------------------------------------------------------------------
+            -------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            -------------------------------------------------------------------------------------------------------------------
+            |  idx_uid                   |  uid                    |      uid     |     Y   |    Y    |   str     |     N     |
+            |  idx_id                    |  id                     |              |     Y   |    Y    |   str     |     N     |
+            |  idx_uuid                  |  uuid                   |              |     Y   |    Y    |   str     |     N     |
+            |  idx_name                  |  name                   |              |     Y   |    Y    |   str     |     N     |
+            |  idx_meta_type             |  meta_type              |              |     Y   |    Y    |   str     |     N     |
+            |  idx_path                  |  path                   |              |     Y   |    Y    | list(str) |     Y     |
+            |  idx_objectImplements      |  objectImplements       |              |     Y   |    Y    | list(str) |     Y     |
+            |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |              |     Y   |    Y    | list(str) |     Y     |
+            |  idx_searchKeywords        |  searchKeywords         |              |     Y   |    Y    | list(str) |     Y     |
+            |  idx_searchExcerpt         |  searchExcerpt          |              |     N   |    Y    |   str     |     N     |
+            |  idx_searchIcon            |  searchIcon             |              |     N   |    Y    |   str     |     N     |
+            |  idx_monitored             |  monitored              |              |     Y   |    Y    |   bool    |           |
+            |  idx_collectors            |  collectors             |              |     Y   |    Y    | list(str) |     Y     |
+            |  idx_productionState       |  productionState        |              |     Y   |    Y    |   int     |           |
+            |  idx_zProperties           |  zProperties            |              |     N   |    Y    | dict(str) |           |
+            |  idx_decimal_ipAddress     |  decimal_ipAddress      |              |     Y   |    Y    |   str     |     Y     |
+            |  idx_macAddresses          |  macAddresses           |              |     Y   |    Y    | list(str) |     Y     |
+            -------------------------------------------------------------------------------------------------------------------
 
         DeviceIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |    ATTR_QUERY_NAME      |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |   idx_decimal_ipAddress    |   decimal_ipAddress     |                 |         |         |
-            |   idx_text_ipAddress       |   text_ipAddress        |                 |         |         |
-            |   idx_productionState      |   productionState       |                 |         |         |
-            |   idx_macAddresses         |   macAddresses          |                 |         |         |
-            |   idx_zProperties          |   zProperties           |                 |         |         |
-            |   idx_device_searchExcerpt |   searchExcerpt         |                 |         |         |
-            |   idx_device_searchKeywords|   searchKeywords        |                 |         |         |
-            |   idx_device_searchIcon    |   searchIcon            |                 |         |         |
-            ----------------------------------------------------------------------------------------------
+            -------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            -------------------------------------------------------------------------------------------------------------------
+            |  idx_text_ipAddress        |  text_ipAddress         |              |     Y   |    Y    |   str     |     Y     |
+            -------------------------------------------------------------------------------------------------------------------
 
 
         ComponentIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                   |  ATTR_QUERY_NAME      |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |  idx_monitored               |  monitored            |                 |         |         |
-            |  idx_collectors              |  collectors           |                 |         |         |
-            |  idx_deviceId                |  deviceId             |                 |         |         |
-            |  idx_description             |  description          |                 |         |         |
-            |  idx_component_searchKeywords|  searchKeywords       |                 |         |         |
-            |  idx_component_searchExcerpt |  searchExcerpt        |                 |         |         |
-            |  idx_compoment_searchIcon    |  searchIcon           |                 |         |         |
-            ----------------------------------------------------------------------------------------------
+            -------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            -------------------------------------------------------------------------------------------------------------------
+            |  idx_deviceId              |  deviceId               |              |     Y   |    Y    |   str     |     Y     |
+            |  idx_description           |  description            |              |     Y   |    Y    |   str     |     Y     |
+            -------------------------------------------------------------------------------------------------------------------
 
 
         IpInterfaceIndexable:
 
-            -----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                      |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |
-            -----------------------------------------------------------------------------------------------
-            |  idx_interfaceId                |   interfaceId       |                 |         |         |
-            |  idx_decimal_ipAddress          |   decimal_ipAddress |                 |         |         |
-            |  idx_text_ipAddress             |   text_ipAddress    |                 |         |         |
-            |  idx_macAddresses               |   macAddresses      |                 |         |         |
-            |  idx_lanId                      |   lanId             |                 |         |         |
-            |  idx_macaddress                 |   macaddress        |                 |         |         |
-            |  idx_component_searchKeywords   |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchKeywords |   searchKeywords    |                 |         |         |
-            |  idx_compoment_searchExcerpt    |   NOINDEX_TYPE      | DISABLE SUPERCLASS SPEC FIELD       |
-            |  idx_ipInterface_searchExcerpt  |   searchExcerpt     |                 |         |         |
-            -----------------------------------------------------------------------------------------------
+            -----------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                      |  ATTR_QUERY_NAME    |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            -----------------------------------------------------------------------------------------------------------------------
+            |  idx_interfaceId                |   interfaceId       |                 |     Y   |    Y    |   str     |     Y     |
+            |  idx_text_ipAddress             |   text_ipAddress    |                 |     Y   |    Y    |   str     |     Y     |
+            |  idx_lanId                      |   lanId             |                 |     Y   |    Y    |   str     |     Y     |
+            |  idx_macaddress                 |   macaddress        |                 |     Y   |    Y    |   str     |     Y     |
+            -----------------------------------------------------------------------------------------------------------------------
 
         IpAddressIndexable:
 
-            -----------------------------------------------------------------------------------------
-            |  ATTR_NAME               |  ATTR_QUERY_NAME     |  FIELD NAME     | INDEXED |  STORED |
-            -----------------------------------------------------------------------------------------
-            |   idx_interfaceId        |   interfaceId        |                 |         |         |
-            |   idx_ipAddressId        |   ipAddressId        |                 |         |         |
-            |   idx_networkId          |   networkId          |                 |         |         |
-            |   idx_deviceId           |   deviceId           |                 |         |         |
-            |   idx_decimal_ipAddress  |   decimal_ipAddress  |                 |         |         |
-            |   idx_ipAddressAsText    |   ipAddressAsText    |                 |         |         |
-            -----------------------------------------------------------------------------------------
+            ---------------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                         |  ATTR_QUERY_NAME     |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            ---------------------------------------------------------------------------------------------------------------------------
+            |   idx_interfaceId                  |   interfaceId        |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_ipAddressId                  |   ipAddressId        |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_networkId                    |   networkId          |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_deviceId                     |   deviceId           |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_decimal_ipAddress            |   NOINDEX_TYPE       | DISABLE SUPERCLASS SPEC FIELD                               |
+            |   idx_ipaddress_decimal_ipAddress  |   decimal_ipAddress  |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_ipAddressAsText              |   ipAddressAsText    |                 |     Y   |    Y    |   str     |     Y     |
+            ---------------------------------------------------------------------------------------------------------------------------
 
         IpNetworkIndexable:
 
-            ----------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |
-            ----------------------------------------------------------------------------------------------
-            |   idx_firstDecimalIp       |   firstDecimalIp        |                 |         |         |
-            |   idx_lastDecimalIp        |   lastDecimalIp         |                 |         |         |
-            ----------------------------------------------------------------------------------------------
+            ----------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            ----------------------------------------------------------------------------------------------------------------------
+            |   idx_firstDecimalIp       |   firstDecimalIp        |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_lastDecimalIp        |   lastDecimalIp         |                 |     Y   |    Y    |   str     |     Y     |
+            ----------------------------------------------------------------------------------------------------------------------
 
+        ProductIndexable:
+
+            ----------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            ----------------------------------------------------------------------------------------------------------------------
+            |   idx_productClassId       |   productClassId        |                 |     Y   |    Y    |   str     |     N     |
+            ----------------------------------------------------------------------------------------------------------------------
 
         ###########
 
@@ -188,7 +170,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
 
     @indexed(UntokenizedStringFieldType(stored=True), index_field_name="uid", attr_query_name="uid")
     def idx_uid(self):
-        return aq_base(self).getPrimaryId()
+        return IIndexableWrapper(self).uid()
 
     @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="id")
     def idx_id(self):
@@ -199,81 +181,94 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         """
         Object's uuid.
         """
-        try:
-            # We don't need create() to update the global catalog, because by definition
-            # this is only called when the object is going to be indexed.
-            return IGlobalIdentifier(self).create(update_global_catalog=False)
-        except ConflictError:
-            raise
-        except Exception:
-            pass
+        return IIndexableWrapper(self).uuid()
 
     @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="name")
     def idx_name(self):
         """
         The name of the object.
         """
-        try:
-            return self.titleOrId()
-        except AttributeError:
-            return self.id
+        return IIndexableWrapper(self).name()
 
     @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="meta_type")
     def idx_meta_type(self):
         """
         Object's meta_type. Mostly used for backwards compatibility.
         """
-        return aq_base(self).meta_type
+        return IIndexableWrapper(self).meta_type()
 
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="path") # Device already has a method called path
     def idx_path(self):
         """
-        Paths under which this object may be found. Subclasses should provide
-        tuples indicating more paths (e.g. via a ToMany relationship).
+        Paths under which this object may be found.
         """
-        return [ '/'.join(p) for p in IPathReporter(self).getPaths() ]
+        return [ '/'.join(p) for p in IIndexableWrapper(self).path() ]
 
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="objectImplements")
     def idx_objectImplements(self):
         """
         All interfaces and classes implemented by an object.
         """
-        dottednames = set()
-        # Add the highest five classes in resolution order. 5 is
-        # an arbitrary number; essentially, we only care about indexing
-        # Zenoss classes, and our inheritance tree isn't that deep. Past
-        # 5 we index a bunch of ObjectManager, Persistent, etc., which
-        # we'll never use, and enact a significant performance penalty
-        # when inserting keywords into the index.
-
-        for kls in ro.ro(self.__class__):  
-            # @TODO review. had some issues with picking only the top 5
-            # instead we get anything from Products or Zenpacks
-            if kls.__module__.startswith("Products") or kls.__module__.startswith("ZenPacks"):
-                dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
-        return list(dottednames)
+        return IIndexableWrapper(self).objectImplements()
 
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="allowedRolesAndUsers")
     def idx_allowedRolesAndUsers(self):
         """
         Roles and users with View permission.
         """
-        return allowedRolesAndUsers(self)
+        return IIndexableWrapper(self).allowedRolesAndUsers()
 
-class DeviceOrganizerIndexable(object): # DeviceOrganizer inherits from this class
 
+    # Fields for Searchables
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
-    def idx_deviceOrganizer_searchKeywords(self):
-        return (self.getOrganizerName(), str(self.description))
+    def idx_searchKeywords(self):
+        keywords = IIndexableWrapper(self).searchKeywords()
+        if keywords:
+            unique_keywords = { keyword for keyword in keywords if keyword }
+            return list(unique_keywords)
+        else:
+            return []
 
     @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
-    def idx_deviceOrganizer_searchExcerpt(self):
-        return self.getOrganizerName()
+    def idx_searchExcerpt(self):
+        return IIndexableWrapper(self).searchExcerpt()
 
     @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
-    def idx_deviceOrganizer_searchIcon(self):
-        return self.getIconPath()
+    def idx_searchIcon(self):
+        return IIndexableWrapper(self).searchIcon()
 
+
+    # Fields for components
+    @indexed(bool, attr_query_name="monitored")
+    def idx_monitored(self):
+        return True if IIndexableWrapper(self).monitored() else False
+
+    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="collectors")
+    def idx_collectors(self):
+        cols = IIndexableWrapper(self).collectors()
+        if cols:
+            return [ col for col in cols if col ]
+        else:
+            return []
+
+    # Fields for devices
+    @indexed(IntFieldType(stored=True), attr_query_name="productionState")
+    def idx_productionState(self):
+        return IIndexableWrapper(self).productionState()
+
+    @indexed(DictAsStringsFieldType(indexed=False), attr_query_name="zProperties")
+    def idx_zProperties(self):
+        return IIndexableWrapper(self).zProperties
+
+    # Fields for Devices and Interfaces
+    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
+    def idx_decimal_ipAddress(self):
+
+        return IIndexableWrapper(self).ipAddress
+
+    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="macAddresses")
+    def idx_macAddresses(self):
+        return IIndexableWrapper(self).macAddresses()
 
 class DeviceIndexable(object):   # Device inherits from this class
     
@@ -283,91 +278,11 @@ class DeviceIndexable(object):   # Device inherits from this class
         else:
             return None
 
-    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
-    def idx_decimal_ipAddress(self):
-        ip = self._idx_get_ip()
-        if ip:
-            return str(ipToDecimal(ip))
-        else:
-            return None
-
     @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
-    @indexed(IntFieldType(stored=True), attr_query_name="productionState")
-    def idx_productionState(self):
-        return self.productionState
-
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="macAddresses")
-    def idx_macAddresses(self):
-        return self.getMacAddresses()
-
-    @indexed(DictAsStringsFieldType(indexed=False), attr_query_name="zProperties")
-    def idx_zProperties(self):
-        return getZProperties(self)
-
-    """    IModelSearchable indexes  """
-
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
-    def idx_device_searchKeywords(self):
-        keywords = []
-        keywords.append(self.titleOrId())
-        keywords.append("monitored" if self.monitorDevice() else "unmonitored")
-        keywords.extend( [ self.manageIp, self.hw.serialNumber, self.hw.tag,
-            self.getHWManufacturerName(), self.getHWProductName(),
-            self.getOSProductName(), self.getOSManufacturerName(),
-            self.getHWSerialNumber(), self.getPerformanceServerName(),
-            self.getProductionStateString(), self.getPriorityString(),
-            self.getLocationName(), self.snmpSysName, self.snmpLocation ] )
-        keywords.extend(self.getSystemNames())
-        keywords.extend(self.getDeviceGroupNames())
-        keywords.append(self.meta_type)
-
-        """
-        @TODO What can we do with IpAdresses??
-        o = self._context
-        ipAddresses = []
-        try:
-            # If we find an interface IP address, link it to a device
-            if hasattr(o, 'os') and hasattr(o.os, 'interfaces'):
-                ipAddresses = chain(*(iface.getIpAddresses()
-                                       for iface in o.os.interfaces()))
-                # fliter out localhost-ish addresses
-                ipAddresses = ifilterfalse(lambda x: x.startswith('127.0.0.1/') or
-                                                     x.startswith('::1/'),
-                                           ipAddresses)
-        except Exception:
-            ipAddresses = []
-        """
-        unique_keywords = { keyword for keyword in keywords if keyword }
-        return list(unique_keywords)
-
-    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
-    def idx_device_searchExcerpt(self):
-        if self.manageIp:
-            return '{0} <span style="font-size:smaller">({1})</span>'.format(self.titleOrId(), self.manageIp)
-        else:
-            return self.titleOrId()
-
-    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
-    def idx_device_searchIcon(self):
-        return self.getIconPath()
-
-
 class ComponentIndexable(object):     # DeviceComponent inherits from this class
-
-    @indexed(bool, attr_query_name="monitored")
-    def idx_monitored(self):
-        return True if self.monitored() else False
-
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="collectors")
-    def idx_collectors(self):
-        cols = self.getCollectors()
-        if cols:
-            return [ col for col in cols if col ]
-        else:
-            return []
 
     @indexed(StringFieldType(stored=True), attr_query_name="deviceId")
     def idx_deviceId(self):
@@ -379,32 +294,11 @@ class ComponentIndexable(object):     # DeviceComponent inherits from this class
 
     @indexed(StringFieldType(stored=True), attr_query_name="description")
     def idx_description(self):
-        """ device the component belongs to """
+        """ description of the component """
         description = None
         if self.description:
             description = self.description
         return description
-
-    """    IModelSearchable indexes  """
-
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
-    def idx_component_searchKeywords(self):
-        keywords = set()
-        keywords.add(self.name())
-        keywords.add(self.meta_type)
-        keywords.add(self.titleOrId())
-        keywords.add("monitored" if self.idx_monitored() else "unmonitored")
-        return [ k for k in keywords if k ]
-
-    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
-    def idx_component_searchExcerpt(self):
-        text = '{0} <span style="font-size:smaller">({1})</span>'
-        return text.format(self.name(), self.device().titleOrId())
-
-    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchIcon")
-    def idx_compoment_searchIcon(self):
-        return self.getIconPath()
-
 
 class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this class
     
@@ -421,49 +315,11 @@ class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this
         else:
             return None
 
-    @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress") # Ip address as number
-    def idx_decimal_ipAddress(self):
-        ip = self._idx_get_ip()
-        if ip:
-            return str(ipToDecimal(ip))
-        else:
-            return None
-
     @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
 
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="macAddresses")
-    def idx_macAddresses(self):
-        return [self.macaddress]
-
-    """    IModelSearchable indexes  """
-
-    index("idx_component_searchKeywords", NOINDEX_TYPE) # disable ComponentIndexable implementation
-
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
-    def idx_ipInterface_searchKeywords(self):
-        if self.titleOrId() in ('lo', 'sit0'):
-            # Ignore noisy interfaces
-            return []
-        # We don't need to include the ip addresses for this interface, because
-        # all ips on a device are included in the keywords of every one of its
-        # components.
-        keywords = ComponentIndexable.idx_component_searchKeywords(self)
-        keywords.append(self.description)
-        return keywords
-
-    index("idx_component_searchExcerpt", NOINDEX_TYPE) # disable ComponentIndexable implementation
-
-    @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
-    def idx_ipInterface_searchExcerpt(self):
-        parent_excerpt = ComponentIndexable.idx_component_searchExcerpt(self)
-        return "{0} {1}".format(parent_excerpt, ' '.join([ self.description ]))
-
-    # We dont need searchIcon bc the superclass ComponentIndexable already has it
-
     """ Layer 2 catalog indexes """
-
     @indexed(StringFieldType(stored=True), attr_query_name="lanId")
     def idx_lanId(self):
         lan_id = None
@@ -504,9 +360,9 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
         return device_id
 
     """ ipSearch catalog indexes """
-
+    index("idx_decimal_ipAddress", NOINDEX_TYPE) # disable BaseIndexable implementation
     @indexed(StringFieldType(stored=True, index_formatter=decimal_ipAddress_formatter, query_formatter=decimal_ipAddress_formatter), attr_query_name="decimal_ipAddress")
-    def idx_decimal_ipAddress(self):
+    def idx_ipaddress_decimal_ipAddress(self):
         return str(self.ipAddressAsInt())
 
     @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="ipAddressAsText")
@@ -538,7 +394,6 @@ class IpNetworkIndexable(object):
             last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
         return last_decimal_ip
 
-
 class ProductIndexable(object):
     """
     Indexable for MEProduct
@@ -552,11 +407,3 @@ class ProductIndexable(object):
         if pc:
             product_class = pc.idx_uid()
         return product_class
-
-
-""" @TODO : Do we need to define this
-class FileSystemIndexable(ComponentIndexable):
-
-    def name(self):
-        return self.name()
-"""
