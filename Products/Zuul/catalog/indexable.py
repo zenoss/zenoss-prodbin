@@ -107,14 +107,6 @@ from zenoss.modelindex.constants import NOINDEX_TYPE
             |   idx_lastDecimalIp        |   lastDecimalIp         |                 |     Y   |    Y    |   str     |     Y     |
             ----------------------------------------------------------------------------------------------------------------------
 
-        ProductIndexable:
-
-            ----------------------------------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
-            ----------------------------------------------------------------------------------------------------------------------
-            |   idx_productClassId       |   productClassId        |                 |     Y   |    Y    |   str     |     N     |
-            ----------------------------------------------------------------------------------------------------------------------
-
         ###########
 
             ----------------------------------------------------------------------------------------------
@@ -393,17 +385,3 @@ class IpNetworkIndexable(object):
             first_decimal_ip = long(int(net.network))
             last_decimal_ip = str(long(first_decimal_ip + math.pow(2, net.max_prefixlen - self.netmask) - 1))
         return last_decimal_ip
-
-class ProductIndexable(object):
-    """
-    Indexable for MEProduct
-    ProductClass used to have a relationship between product <-> productClass that caused
-    ConflictErrors. To avoid them we index the path to the productClass for each Product
-    """
-    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="productClassId")
-    def idx_productClassId(self):
-        product_class = ""
-        pc = self.productClass()
-        if pc:
-            product_class = pc.idx_uid()
-        return product_class
