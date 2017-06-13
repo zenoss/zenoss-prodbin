@@ -27,7 +27,7 @@ from zenoss.modelindex.constants import NOINDEX_TYPE
         them in several places (Device, IpInterface, IpAddress)
 
 
-    Set of abstract classes designed to add indexable attributes to zenoss objects. 
+    Set of abstract classes designed to add indexable attributes to zenoss objects.
     Most methods start with idx_ to avoid conflicts with pre existing attributes/methods
 
         BaseIndexable:
@@ -60,6 +60,7 @@ from zenoss.modelindex.constants import NOINDEX_TYPE
             |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
             -------------------------------------------------------------------------------------------------------------------
             |  idx_text_ipAddress        |  text_ipAddress         |              |     Y   |    Y    |   str     |     Y     |
+            |  idx_deviceClassPath       |  deviceClassPath        |              |     Y   |    N    |   str     |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -271,7 +272,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         return IIndexableWrapper(self).macAddresses()
 
 class DeviceIndexable(object):   # Device inherits from this class
-    
+
     def _idx_get_ip(self):
         if hasattr(self, 'getManageIp') and self.getManageIp():
             return self.getManageIp().partition('/')[0]
@@ -281,6 +282,10 @@ class DeviceIndexable(object):   # Device inherits from this class
     @indexed(IPAddressFieldType(stored=True, index_formatter=ipunwrap, query_formatter=ipunwrap), attr_query_name="text_ipAddress")
     def idx_text_ipAddress(self):
         return self._idx_get_ip()
+
+    @indexed(UntokenizedStringFieldType(indexed=True, stored=False), attr_query_name="deviceClassPath")
+    def idx_deviceClassPath(self):
+        return self.getDeviceClassPath()
 
 class ComponentIndexable(object):     # DeviceComponent inherits from this class
 
@@ -301,7 +306,7 @@ class ComponentIndexable(object):     # DeviceComponent inherits from this class
         return description
 
 class IpInterfaceIndexable(ComponentIndexable): # IpInterface inherits from this class
-    
+
     @indexed(StringFieldType(stored=True), attr_query_name="interfaceId")
     def idx_interfaceId(self):
         interface_id = None
