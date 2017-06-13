@@ -7,10 +7,11 @@
 #
 ##############################################################################
 
-from OFS.SimpleItem import SimpleItem
 
+from OFS.SimpleItem import SimpleItem
 from Products.AdvancedQuery import And, Or, Not
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
 
 #------------------------------------------------------
 #                  Value Converters
@@ -312,45 +313,130 @@ class LegacyCatalogAdapter(SimpleItem):
 
 
 """
-from Products.AdvancedQuery import Eq, And, Or, Not, MatchGlob, In
-from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
 
-deviceSearch = LegacyCatalogAdapter(dmd, "deviceSearch")
-global_catalog = LegacyCatalogAdapter(dmd, "global_catalog")
+#===================================================
+#                 GLOBAL CATALOG
+#===================================================
 
-def print_brains(brains):
-    for b in brains:
-           print b.getDeviceIp
-           print b.getPhysicalPath
-           print b.path
-           print b.titleOrId
-           print b.id
-           print b.getPrimaryId
-           print "---"
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+monitored   
+name                    u'performance'
+collectors  
+searchKeywords  
+allowedRolesAndUsers    OOSet([u'Manager', u'ZenManager', u'ZenOperator', u'ZenUser'])
+meta_type               u'MonitorClass'
+macAddresses    
+path                    OOSet(['/zport/dmd/Monitors/Performance'])
+objectImplements        OOSet([u'Products.ZenModel.MonitorClass.MonitorClass', ... ])
+ipAddress   
+id                      u'Performance'
+productKeys 
+uid                     u'Monitors/Performance'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+zProperties             {}
+monitored               None
+name                    Performance
+collectors              None
+searchIcon              None
+searchExcerpt           None
+meta_type               MonitorClass
+id                      Performance
+uuid                    None
+
+#===================================================
+#                 DEVICE CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+"getDeviceIp"        : "text_ipAddress"       # u'10.171.51.2'
+"getPhysicalPath"    : "uid",                 # /zport/dmd/Devices/Server/Linux/devices/10.171.51.2
+"path"               : "path"                 # OOSet(['/zport/dmd/Devices/Server/Linux/10.171.51.2', '/zport/dmd/Systems/hola/10.171.51.2'])
+"titleOrId"          : "name"                 # u'10.171.51.2'
+"id"                 : "id"                   # u'10.171.51.2'
+"getDeviceClassPath" :                 # u'/server/linux'
+"getAdminUserIds"    :                 # OOSet([u'admin'])  # Added by ZenPacks.zenoss.ZenDeviceACL
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+"getPrimaryId": "uid"                   # /zport/dmd/Devices/Server/Linux/devices/10.171.51.2
+"id"          : "id"                    # 10.171.51.2
+"path"        : "path"  POSTPROCESS     # [('', 'zport', 'dmd', 'Systems', 'hola', '10.171.51.2'), ('', 'zport', 'dmd', 'Devices', 'Server', 'Linux', '10.171.51.2')]
+
+#===================================================
+#                 LAYER 2 CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+macaddress          u'00:11:93:3a:9e:c1'
+interfaceId         u'/zport/dmd/devices/http/devices/10.171.51.2/os/interfaces/gigabitethernet1_10'
+deviceId            u'/zport/dmd/devices/http/devices/10.171.51.2'
+lanId               u'none'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+macaddress     00:11:93:3A:9E:C1
+interfaceId    /zport/dmd/Devices/HTTP/devices/10.171.51.2/os/interfaces/GigabitEthernet1_10
+deviceId       /zport/dmd/Devices/HTTP/devices/10.171.51.2
+lanId          None
+
+#===================================================
+#                 LAYER 3 CATALOG
+#===================================================
+
+#--------------------------
+#          INDEXES        #
+#--------------------------
+
+networkId       u'/zport/dmd/networks/10.104.85.0'
+interfaceId     u'vlan800'
+ipAddressId     u'/zport/dmd/networks/10.104.85.0/ipaddresses/10.104.85.248'
+deviceId        u'10.171.51.2'
+
+#--------------------------
+#         METADATA        #
+#--------------------------
+
+networkId       /zport/dmd/Networks/10.104.85.0
+interfaceId     Vlan800
+ipAddressId     /zport/dmd/Networks/10.104.85.0/ipaddresses/10.104.85.248
+deviceId        10.171.51.2
 
 
-deviceSearch()
-deviceSearch(Eq("titleOrId", "cisco2960G-50-5"))
-deviceSearch(MatchGlob("titleOrId", "*cisco*"))
-deviceSearch(In("titleOrId", ["cisco2960G-50-4", "cisco2960G-50-5"]))
+#===================================================
+#       IP SEARCH CATALOG  (1 per network tree)
+#===================================================
 
+#--------------------------
+#          INDEXES        #
+#--------------------------
 
+path             OOSet(['/zport/dmd/Networks/10.104.108.0/ipaddresses/10.104.108.1'])
+ipAddressAsInt   u'174615553'
+id               u'10.104.108.1'
 
-global_catalog(Eq("uid", "/Devices/Network/Cisco/10-160-50-x/devices/cisco2960G-50-5"))
+#--------------------------
+#         METADATA        #
+#--------------------------
 
-print_brains(deviceSearch())
-print_brains(deviceSearch(Eq("titleOrId", "cisco2960G-50-5")))
-print_brains(deviceSearch(MatchGlob("titleOrId", "*cisco*")))
-print_brains(deviceSearch(In("titleOrId", ["cisco2960G-50-4", "cisco2960G-50-5"])))
+NADA
 
-searches = [ ]
-searches.append(deviceSearch())
-searches.append(deviceSearch(Eq("titleOrId", "cisco2960G-50-5")))
-searches.append(deviceSearch(MatchGlob("titleOrId", "*cisco*")))
-
-for s in searches:
-    print_brains(s)
-    print "\n\n"
 """
 
 
