@@ -223,8 +223,11 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
     @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
     def idx_searchKeywords(self):
         keywords = IIndexableWrapper(self).searchKeywords()
-        unique_keywords = { keyword for keyword in keywords if keyword }
-        return list(unique_keywords)
+        if keywords:
+            unique_keywords = { keyword for keyword in keywords if keyword }
+            return list(unique_keywords)
+        else:
+            return []
 
     @indexed(UntokenizedStringFieldType(indexed=False, stored=True), attr_query_name="searchExcerpt")
     def idx_searchExcerpt(self):
