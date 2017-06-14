@@ -12,6 +12,7 @@ import logging
 import re
 from itertools import islice
 
+from Acquisition import aq_base
 from interfaces import IModelCatalog, IModelCatalogTool
 from model_catalog_tool_helper import ModelCatalogToolHelper, ModelCatalogToolGenericHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
@@ -168,7 +169,7 @@ class ModelCatalogTool(object):
         if paths is not False:   # When paths is False we dont add any path condition
             # TODO: Account for depth or get rid of it
             # TODO: Consider indexing the device's uid as a path
-            context_path = '/'.join(self.context.getPhysicalPath())
+            context_path = '/'.join(aq_base(self.context).getPhysicalPath())
             uid_path_query = In('path', (context_path,)) # MatchGlob(UID, context_path)   # Add the context uid as filter
             partial_queries.append( uid_path_query )
             if paths:
