@@ -731,6 +731,15 @@ class MetricFacade(ZuulFacade):
         finally:
             # Update renameInProgress so that the collection resumes.
             dev = self._dmd.Devices.findDeviceByIdExact(newId)
-            dev.renameInProgress = False
+            if dev:
+                dev.renameInProgress = False
+                from transaction import commit()
+                commit()
+            else:
+                msg = ('Cannot find a device after reidentifying: '
+                    'Old ID %s, new ID %s'.format(oldId, newId))
+                log.error(msg)
+                joblog.error(msg)
+                success = False
 
             return {'success': success, 'message': None}
