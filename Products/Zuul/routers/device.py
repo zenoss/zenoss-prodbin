@@ -455,11 +455,6 @@ class DeviceRouter(TreeRouter):
         if isinstance(params, basestring):
             params = unjson(params)
 
-        if params:
-            # clearing most often issue
-            # - anterior asterisk wildcard (one or more)
-            params = {key:value.lstrip('*') for key, value in params.iteritems()}
-
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
                    'ipAddressString', 'serialNumber', 'hwManufacturer',
