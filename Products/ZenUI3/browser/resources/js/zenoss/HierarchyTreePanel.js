@@ -44,9 +44,9 @@
         function getText(object) {
             // text is sometimes an object and sometimes a string
             if (Ext.isObject(object.get('text'))) {
-                return object.get('text').text.toLowerCase();
+                return object.get('text');//.text.toLowerCase();
             }
-            return object.get('text').toLowerCase();
+            return object.get('text');//.toLowerCase();
         }
 
         function alphcmp(obj1, obj2) {

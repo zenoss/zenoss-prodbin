@@ -201,7 +201,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     buildLinks = True
 
     # Index name for IP addresses
-    default_catalog = ''
+    default_catalog = 'ipSearch'
 
     portal_type = meta_type = 'IpNetwork'
 
@@ -783,7 +783,10 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     def createCatalog(self):
         """make the catalog for device searching"""
         # DEPRECATED
-        pass
+        from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+        if hasattr(self, self.default_catalog):
+            self._delObject(self.default_catalog)
+        setattr(self, self.default_catalog, LegacyCatalogAdapter(self, self.default_catalog))
 
     security.declareProtected(ZEN_ADD, 'discoverNetwork')
     def discoverNetwork(self, REQUEST=None):
