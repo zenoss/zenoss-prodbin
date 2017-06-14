@@ -504,11 +504,11 @@ class GlobalCatalogFactory(object):
     implements(IGlobalCatalogFactory)
 
     def create(self, portal):
-        catalog = GlobalCatalog()
+        from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+        catalog = LegacyCatalogAdapter(self, globalCatalogId)
         self.setupCatalog(portal, catalog)
 
     def setupCatalog(self, portal, catalog):
-        initializeGlobalCatalog(catalog)
         portal._setObject(globalCatalogId, catalog)
 
     def remove(self, portal):
