@@ -187,17 +187,20 @@ class LegacyFieldsTranslator(object):
             value = converter(value)
         return value
 
-    def need_search_conversion(self, old):
-        needed = False
-        if self.old_fields.get(old):
-            converter = self.old_fields[old].value_converter
-            needed = converter.search_converter != default_value_converter
-        return needed
-
     def convert_search_value(self, old, value):
         if value and old in self.old_fields:
             converter = self.old_fields[old].value_converter.search_converter
-            value = converter(value)
+            if converter != default_value_converter:
+                new_value = value
+                if isinstance(value, basestring):
+                    new_value = converter(value)
+                elif isinstance(value, tuple) or (value, list):
+                    new_value = [ converter(v) for v in value ]
+                    if isinstance(query._term, tuple):
+                        new_value = tuple(new_value)
+                else:
+                    pass # Not likely since only uid uses a search converter (for now....)
+                return new_value
         return value
 
     def get_old_field_names(self):
@@ -224,10 +227,13 @@ class LegacyCatalogAdapter(SimpleItem):
         """
         self.context = context
         self.zcatalog_name = zcatalog_name
-        self.translator = LegacyFieldsTranslator()
-        if TRANSLATIONS.get(zcatalog_name):
-            translations = TRANSLATIONS.get(zcatalog_name)
-            self.translator.add_translations(translations)
+
+    def _get_translator(self):
+        translator = LegacyFieldsTranslator()
+        if TRANSLATIONS.get(self.zcatalog_name):
+            translations = TRANSLATIONS.get(self.zcatalog_name)
+            translator.add_translations(translations)
+        return translator
 
     def _get_model_catalog(self):
         model_catalog = IModelCatalogTool(self.context)
@@ -252,36 +258,38 @@ class LegacyCatalogAdapter(SimpleItem):
         # @TODO try to do something with the sorting....
         return self.search(query)
 
-    def _adapt_query(self, query):
-        """
-        modifies a query for a legacy catalog into a model catalog query
-        @param query AdvancedQuery for the legacy catalog
-        """
+    def _adapt_advancedQuery_query(self, translator, query):
         # we need to translate the legacy catalog fields to model catalog fields
         if isinstance(query, And) or isinstance(query, Or):
             for q in query._subqueries:
-                self._adapt_query(q)
+                self._adapt_advancedQuery_query(translator, q)
         elif isinstance(query, Not):
-            self._adapt_query(query._query)
+            self._adapt_advancedQuery_query(translator,query._query)
         else:
             old_field_name = query._idx
-            query._idx = self.translator.translate(old=old_field_name)
-            if self.translator.need_search_conversion(old_field_name):
-                # dammit, we need to transform the values to search. so far only
-                # uid in global catalog needs this
-                if isinstance(query._term, basestring):
-                    query._term = self.translator.convert_search_value(old_field_name, query._term)
-                elif isinstance(query._term, tuple) or (query._term, list):
-                    new_values = []
-                    for value in query._term:
-                        new_values.append(self.translator.convert_search_value(old_field_name, value))
-                    if isinstance(query._term, tuple):
-                        new_values = tuple(new_values)
-                    query._term = new_values
-                else:
-                    pass # Not likely since only uid uses a search converter (for now....)
+            query._idx = translator.translate(old=old_field_name)
+            query._term = translator.convert_search_value(old_field_name, query._term)
+        return query
 
-    def _adapt_brains(self, search_results):
+    def _adapt_dict_query(self, translator, query):
+        new_query = {}
+        for field, value in query.iteritems():
+            new_field = translator.translate(old=field)
+            new_value = translator.convert_search_value(field, value)
+            new_query[new_field] = new_value
+        return new_query
+
+    def _adapt_query(self, translator, query):
+        """
+        modifies a query for a legacy catalog into a model catalog query
+        @param query AdvancedQuery or dict for the legacy catalog
+        """
+        if isinstance(query, dict):
+            return self._adapt_dict_query(translator, query)
+        else:
+            return self._adapt_advancedQuery_query(translator, query)
+
+    def _adapt_brains(self, translator, search_results):
         """
         @param search_results model catalog search results
         @return 
@@ -289,26 +297,31 @@ class LegacyCatalogAdapter(SimpleItem):
         converted_brains = []
         for brain in search_results:
             # add the legacy catalog fields to the brain
-            for old_field_name in self.translator.get_old_field_names():
-                new_field_name = self.translator.translate(old=old_field_name)
+            for old_field_name in translator.get_old_field_names():
+                new_field_name = translator.translate(old=old_field_name)
                 value = getattr(brain, new_field_name)
-                value = self.translator.convert_result_value(old_field_name, value)
+                value = translator.convert_result_value(old_field_name, value)
                 setattr(brain, old_field_name, value)
             converted_brains.append(brain)
         return converted_brains
 
     def search(self, query, sort_index=None, reverse=False, limit=None, **kw):
+        """
+        Perform search on Model Catalog tweaking query and results to match legacy
+        indexes and expected data format
+        """
         model_catalog = self._get_model_catalog()
+        translator = self._get_translator()
         search_kw = {}
         if query:
-            self._adapt_query(query)
+            query = self._adapt_query(translator, query)
         if sort_index:
             search_kw["orderby"] = sort_index
         search_kw["reverse"] = reverse
         search_kw["limit"] = limit
-        search_kw["fields"] = self.translator.get_new_field_names()
+        search_kw["fields"] = translator.get_new_field_names()
         search_results = model_catalog.search(query=query, **search_kw)
-        legacy_brains = self._adapt_brains(search_results)
+        legacy_brains = self._adapt_brains(translator, search_results)
         return legacy_brains
 
 

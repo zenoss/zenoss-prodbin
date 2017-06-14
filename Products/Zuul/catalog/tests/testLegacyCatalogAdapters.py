@@ -61,8 +61,12 @@ class TestLegacyCatalogAdapters(BaseTestCase):
             self.devices[dev_id] = dev
 
     def validate_global_catalog(self):
-        # Get Devices
+        # Get Devices using AdvancedQuery
         query = Eq("objectImplements", "Products.ZenModel.Device.Device")
+        brains = self.global_catalog.search(query)
+        self.assertEqual(len(brains), self.n_devices)
+        # Get Devices using dict query
+        query = {"objectImplements": "Products.ZenModel.Device.Device"}
         brains = self.global_catalog.search(query)
         self.assertEqual(len(brains), self.n_devices)
 
@@ -71,7 +75,7 @@ class TestLegacyCatalogAdapters(BaseTestCase):
         brains = self.global_catalog.search(query)
         self.assertEqual(len(brains), self.n_devices + 1) # n_devices plus root node
 
-        # Get Devices or IpAddresses
+        # Get Devices
         query = []
         query.append(Eq("objectImplements", "Products.ZenModel.Device.Device"))
         query.append(Eq("objectImplements", "Products.ZenModel.IpAddress.IpAddress"))
@@ -83,7 +87,11 @@ class TestLegacyCatalogAdapters(BaseTestCase):
         uid = "/".join(d.device.getPrimaryPath())
         # global_catalog strips /zport/dmd/
         uid = uid[10:]
+        # using AdvancedQuery
         brains = self.global_catalog.search(Eq("uid", uid))
+        self.assertEqual(len(brains), 1)
+        # using dict query
+        brains = self.global_catalog.search({"uid": uid})
         self.assertEqual(len(brains), 1)
 
     def validate_device_catalog(self):
