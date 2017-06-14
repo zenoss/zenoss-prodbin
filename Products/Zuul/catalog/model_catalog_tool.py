@@ -12,6 +12,7 @@ import logging
 import re
 from itertools import islice
 
+from Acquisition import aq_base
 from interfaces import IModelCatalog, IModelCatalogTool
 from model_catalog_tool_helper import ModelCatalogToolHelper, ModelCatalogToolGenericHelper
 from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchGlob
@@ -46,6 +47,8 @@ class ModelCatalogTool(object):
         self.layer2 = None
         self.layer3 = None
         self.devices = None
+        self.ips = None
+        self.global_catalog = None
         self._create_legacy_catalog_helpers()
 
     def _create_legacy_catalog_helpers(self):
@@ -61,6 +64,14 @@ class ModelCatalogTool(object):
         fields = [ "id", "name" ]
         objectImplements = [ "Products.ZenModel.Device.Device" ]
         self.devices = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # IpSearch (there is one per Network Tree)
+        fields = [ "id", "decimal_ipAddress" ]
+        objectImplements = [ "Products.ZenModel.IpAddress.IpAddress" ]
+        self.ips = ModelCatalogToolGenericHelper(self, objectImplements, fields)
+        # global catalog
+        fields = [ "zProperties", "monitored", "name", "collectors",
+                   "searchIcon", "searchExcerpt", "meta_type", "id", "uuid" ]
+        self.global_catalog = ModelCatalogToolGenericHelper(self, fields=fields)
 
     @property
     def model_index(self):
@@ -158,7 +169,7 @@ class ModelCatalogTool(object):
         if paths is not False:   # When paths is False we dont add any path condition
             # TODO: Account for depth or get rid of it
             # TODO: Consider indexing the device's uid as a path
-            context_path = '/'.join(self.context.getPhysicalPath())
+            context_path = '/'.join(aq_base(self.context).getPhysicalPath())
             uid_path_query = In('path', (context_path,)) # MatchGlob(UID, context_path)   # Add the context uid as filter
             partial_queries.append( uid_path_query )
             if paths:
