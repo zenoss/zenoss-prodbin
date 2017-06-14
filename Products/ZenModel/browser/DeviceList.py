@@ -179,19 +179,19 @@ class DeviceBatch(BrowserView):
             goodevids = [goodevids]
         if not isinstance(badevids, (list, tuple)):
             badevids = [badevids]
-        if selectstatus=='all':
+        if selectstatus == 'all':
             idquery = ~In('id', badevids)
         else:
             idquery = In('id', goodevids)
-        filter = '(?is).*%s.*' % filter
+        devfilter = '(?is).*%s.*' % filter
         filterquery = Or(
-            MatchRegexp('id', filter),
-            MatchRegexp('titleOrId', filter),
-            MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getDeviceClassPath', filter)
+            MatchRegexp('id', devfilter),
+            MatchRegexp('name', devfilter),
+            MatchRegexp('text_ipAddress', devfilter),
+            MatchRegexp('deviceClassPath', devfilter)
         )
-        query = Eq('getPhysicalPath', self.context.absolute_url_path()) & idquery
+        query = Eq('uid', self.context.absolute_url_path()) & idquery
         query = query & filterquery
-        catalog = getattr(self.context, self.context.default_catalog)
-        objects = catalog.evalAdvancedQuery(query)
+        catalog = IModelCatalogTool(self.context)
+        objects = catalog.search(SearchParams(query=query))
         return [x['id'] for x in objects]
