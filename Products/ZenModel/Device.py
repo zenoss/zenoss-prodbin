@@ -208,7 +208,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     event_key = portal_type = meta_type = 'Device'
 
-    default_catalog = ""
+    default_catalog = "deviceSearch"
 
     relationshipManagerPathRestriction = '/Devices'
     title = ""
