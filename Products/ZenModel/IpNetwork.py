@@ -84,14 +84,14 @@ class NetworkCache(SimpleItem):
             netmask_range = range(48, 64+1)
         return netmask_range
 
-    def _get_net(self, netip, netmask, context):
+    def _get_net(self, netip, netmask, basenet, context):
         net_obj = None
         key = self.get_key(netip, netmask)
         net_paths = self.cache.get(key, ())
         for net_path in net_paths:
             try:
                 net = context.dmd.unrestrictedTraverse(net_path)
-                if net.netmask == netmask:
+                if net.getNetworkRoot() == basenet and net.netmask == netmask:
                     net_obj = net
                     break
             except KeyError:
@@ -99,14 +99,14 @@ class NetworkCache(SimpleItem):
                 net_obj = None
         return net_obj
 
-    def get_net(self, netip, netmask, context):
+    def get_net(self, netip, netmask, basenet, context):
         net_obj = None
         if netmask:
-            net_obj = self._get_net(netip, netmask, context)
+            net_obj = self._get_net(netip, netmask, basenet, context)
         else:
             netmask_range = self._get_netmask_range(netip)
             for mask in sorted(netmask_range, reverse=True):
-                net_obj = self._get_net(netip, mask, context)
+                net_obj = self._get_net(netip, mask, basenet, context)
                 if net_obj:
                     break
         return net_obj
@@ -131,11 +131,11 @@ class NetworkCache(SimpleItem):
         net_path = "/".join(net_obj.getPrimaryPath())
         self.delete_net(net_key, net_path)
 
-    def _get_ip(self, ip, netmask, context):
+    def _get_ip(self, ip, netmask, basenet, context):
         ip_obj = None
         # Lets check if the network exists first.
         net_ip = netFromIpAndNet(ip, netmask)
-        net_obj = self.get_net(net_ip, netmask, context=context)
+        net_obj = self.get_net(net_ip, netmask, basenet, context=context)
         if net_obj is not None: # Network does not exist so neither does the ip
             for existing_ip in net_obj.ipaddresses.objectValuesGen(): # traverse ip addresses looking for the one
                 if existing_ip.id == ip:
@@ -143,15 +143,15 @@ class NetworkCache(SimpleItem):
                     break
         return ip_obj
 
-    def get_ip(self, ip, netmask, context):
+    def get_ip(self, ip, netmask, basenet, context):
         """ Returns IpAddress object for ip if found, else None """
         ip_obj = None
         if netmask:
-            ip_obj = self._get_ip(ip, netmask, context)
+            ip_obj = self._get_ip(ip, netmask, basenet, context)
         else:
             netmask_range = self._get_netmask_range(ip)
             for mask in sorted(netmask_range, reverse=True):
-                ip_obj = self._get_ip(ip, mask, context)
+                ip_obj = self._get_ip(ip, mask, basenet, context)
                 if ip_obj:
                     break
         return ip_obj
@@ -298,15 +298,15 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     #----------------------------------------------------------
 
     def before_object_deleted_handler(self):
-        if not self.id.endswith("Networks"):
+        if isip(self.id):
             self.get_network_cache().delete_net_obj(self)
 
     def after_object_added_or_moved_handler(self):
-        if not self.id.endswith("Networks"):
+        if isip(self.id):
             self.get_network_cache().add_net(self)
 
     def object_added_handler(self):
-        if not self.id.endswith("Networks"):
+        if isip(self.id):
             self.get_network_cache().add_net(self)
 
     #----------------------------------------------------------
@@ -349,7 +349,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         parent = None
         for mask in xrange(netmask-1, smallest_netmask - 1, -1):
             parent_net_ip = netFromIpAndNet(net_ip, mask)
-            netobj = self.get_network_cache().get_net(parent_net_ip, mask, context=self)
+            netobj = self.get_network_cache().get_net(parent_net_ip, mask, self.getNetworkRoot(), context=self)
             if netobj: # We found a parent!
                 parent = netobj
                 break
@@ -417,7 +417,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
 
         # if netmask is None it will look for the net in all possible nets
         #
-        netobj = self.get_network_cache(version).get_net(netip, netmask, context=self)
+        netobj = self.get_network_cache(version).get_net(netip, netmask, self.getNetworkRoot(), context=self)
 
         if netobj is None:
             # Network does not exist. Create a new network
@@ -498,7 +498,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         return self.get_net_from_cache(ipunwrap(ip), netmask)
 
     def get_net_from_cache(self, netip, netmask=None):
-        return self.get_network_cache().get_net(netip, netmask, context=self)
+        return self.get_network_cache().get_net(netip, netmask, self.getNetworkRoot(), context=self)
 
     def get_net_from_catalog(self, ip):
         """
@@ -530,11 +530,12 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         """
         network_cache = self.get_network_cache()
 
-        ip_obj = network_cache.get_ip(ip, netmask, context=self)
+        # ip_obj = network_cache.get_ip(ip, netmask, context=self)
+        ip_obj = self.findIp(ip, netmask)
         if not ip_obj: # Ip does not exists
             if not netmask:
                 netmask = get_default_netmask(ip)
-            net_obj = network_cache.get_net(ip, netmask, context=self)
+            net_obj = network_cache.get_net(ip, netmask, self.getNetworkRoot(), context=self)
             if net_obj is None: # Network does not exist
                 net_obj = self.createNet(ip, netmask)
             ip_obj = net_obj.addIpAddress(ip, netmask)
@@ -752,7 +753,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         Use this method for modeling if possible
         """
         if isip(ip):
-            return self.get_network_cache().get_ip(ip, netmask, context=self)
+            return self.get_network_cache().get_ip(ip, netmask, self.getNetworkRoot(), context=self)
         else: # need to look in the catalog
             return self.find_ip(ip)
 
