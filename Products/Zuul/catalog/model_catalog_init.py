@@ -29,7 +29,7 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
 from Products.Zuul.catalog.model_catalog import get_solr_config
 from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
-from zenoss.modelindex.model_index import IndexUpdate, INDEX, SearchParams
+from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 
 log = logging.getLogger('zenoss.model_catalog_reindexer')
 log.setLevel(logging.INFO)
@@ -229,13 +229,15 @@ class SoftReindex(ReindexProcess):
     def reconcile(self):
         pass
 
-def get_uids(index_client):
+def get_uids(index_client, root=""):
     start = 0
     need_results = True
+    query = [ Eq("tx_state", 0) ]
+    query.append(MatchGlob("uid", "{}*".format(root)))
 
     while need_results:
         search_results = index_client.search(SearchParams(
-            query=And(MatchGlob("uid", "*"), Eq("tx_state", 0)),
+            query=And(*query),
             start=start,
             limit=MODEL_INDEX_BATCH_SIZE,
             order_by="uid",
@@ -320,13 +322,32 @@ def run(processor_count=8, hard=False):
     log.info("Number of objects indexed: {0}".format(total_count))
 
 
-def reindex_model_catalog(root="/zport", idxs=None, processor_count=8, hard=False):
+def reindex_model_catalog(dmd, root="/zport", idxs=None):
     """
-    @param  root: zodb node to reindex
-    @params idxs: fields to index
+    Performs a single threaded soft reindex
     """
-    # @TODO pass root and idxs when implemented
-    run(processor_count, hard)
+    start = time.time()
+    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}'".format(root, idxs))
+    modelindex = init_model_catalog()
+    uids = get_uids(modelindex, root=root)
+    if uids:
+        index_updates = []
+        for uid in uids:
+            try:
+                obj = dmd.unrestrictedTraverse(uid)
+            except KeyError:
+                log.warn("Stale object found in solr: {}".format(uid))
+                index_updates.append(IndexUpdate(None, op=UNINDEX, uid=uid))
+            else:
+                index_updates.append(IndexUpdate(obj, op=INDEX, idxs=idxs))
+            if len(index_updates) % 1000 == 0:
+                modelindex.process_batched_updates(index_updates, commit=False)
+                index_updates = []
+        if index_updates:
+            modelindex.process_batched_updates(index_updates, commit=True)
+        else:
+            modelindex.commit()
+    log.info("Reindexing took {} seconds.".format(time.time()-start))
 
 
 if __name__ == "__main__":
