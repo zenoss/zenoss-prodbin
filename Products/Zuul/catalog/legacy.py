@@ -107,8 +107,8 @@ DEVICE_CATALOG_TRANSLATIONS = [
     LegacyFieldTranslation(old="path", new="path",
                            value_converter=TranslationValueConverter(
                                 result=device_catalog_path_value_converter)),
+    LegacyFieldTranslation(old="getDeviceClassPath", new="deviceClassPath"),
     # These fields need to be added
-    # LegacyFieldTranslation(old="getDeviceClassPath", new="YYYYY"),
     # LegacyFieldTranslation(old="getAdminUserIds", new="YYYYYY"),
 ]
 
