@@ -45,6 +45,7 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.Exceptions import DeviceExistsError
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -82,7 +83,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     portal_type = meta_type = event_key = "DeviceClass"
 
-    default_catalog = ''
+    default_catalog = 'deviceSearch'
 
     _properties = DeviceOrganizer._properties + (
                     {'id':'devtypes', 'type':'lines', 'mode':'w'},
@@ -803,6 +804,17 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 'Templates were deleted: %s' % ", ".join(ids)
             )
             return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_ADD, 'createCatalog')
+    def createCatalog(self):
+        """
+        Make the catalog for device searching.
+        deviceSearch catalog is deprecated.
+        """
+        from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+        if hasattr(self, self.default_catalog):
+            self._delObject(self.default_catalog)
+        setattr(self, self.default_catalog, LegacyCatalogAdapter(self, self.default_catalog))
 
     security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):

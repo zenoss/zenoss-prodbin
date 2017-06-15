@@ -27,6 +27,7 @@ from Products.ZenUtils.NetworkTree import NetworkLink
 from Products.ZenEvents.events2.processing import Manager
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.utils import safe_hasattr as hasattr
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG, SEVERITY_CLEAR)
@@ -58,6 +59,18 @@ def manage_addLinkManager(context, id="ZenLinkManager"):
     mgr = LinkManager(id)
     context._setObject(mgr.id, mgr)
     mgr = context._getOb(id)
+
+
+def _create_legacy_catalog_adapter(self, mgr, catalog_name):
+    from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+    if hasattr(mgr, catalog_name):
+        mgr._delObject(catalog_name)
+    setattr(mgr, catalog_name, LegacyCatalogAdapter(mgr.dmd, catalog_name))
+
+
+def _create_catalogs(mgr):
+    _create_legacy_catalog_adapter(mgr, 'layer2_catalog')
+    _create_legacy_catalog_adapter(mgr, 'layer3_catalog')
 
 
 class Layer3Link(object):
@@ -185,6 +198,12 @@ class LinkManager(Folder):
         Folder.__init__(self, id, *args, **kwargs)
         self.id = id
         self.networks_per_device_cache = DeviceNetworksCache()
+
+    def _getCatalog(self, layer=3):
+        try: 
+            return getToolByName(self, 'layer%d_catalog' % layer)
+        except AttributeError:
+            return None
 
     def _get_brains(self, layer, attr, value):
         """

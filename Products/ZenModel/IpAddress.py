@@ -54,7 +54,7 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
 
     event_key = portal_type = meta_type = 'IpAddress'
 
-    default_catalog = ''
+    default_catalog = 'ipSearch'
 
     version = 4
 
