@@ -15,6 +15,7 @@ from Products.ZenModel.Manufacturer import Manufacturer
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 from Products.ZenRelations.ToManyRelationship import ToManyRelationship
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 
 class RemoveProductClassInstancesRelationship(Migrate.Step):
