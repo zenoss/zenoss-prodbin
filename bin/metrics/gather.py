@@ -125,6 +125,11 @@ class RabbitMetricGatherer(MetricGatherer):
             metric_name = '%s.%s' % (self.METRIC_PREFIX, stat)
             metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
 
+        if queue['name'] == 'zenoss.queues.zep.zenevents':
+            stat = 'messages'
+            metric_name = '%s.zenevents.%s' % (self.METRIC_PREFIX, stat)
+            metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
+
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
         if 'message_stats' in queue:
