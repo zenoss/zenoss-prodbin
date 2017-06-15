@@ -110,6 +110,34 @@ try:
         """
         self.runner.run_script(cursor, script)
 
+    @monkeypatch('relstorage.adapters.mover.ObjectMover')
+    def mysql_on_store_opened(self, cursor, restart=False):
+        """Create the temporary table for storing objects"""
+        if restart:
+            stmt = "DROP TEMPORARY TABLE IF EXISTS temp_store"
+            cursor.execute(stmt)
+            stmt = "DROP TEMPORARY TABLE IF EXISTS temp_blob_chunk"
+            cursor.execute(stmt)
+        # note that the md5 column is not used if self.keep_history == False.
+        stmt = """
+        CREATE TEMPORARY TABLE temp_store (
+            zoid        BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+            prev_tid    BIGINT UNSIGNED NOT NULL,
+            md5         CHAR(32),
+            state       LONGBLOB
+        )
+        """
+        cursor.execute(stmt)
+        stmt = """
+        CREATE TEMPORARY TABLE temp_blob_chunk (
+            zoid        BIGINT UNSIGNED NOT NULL,
+            chunk_num   BIGINT UNSIGNED NOT NULL,
+                        PRIMARY KEY (zoid, chunk_num),
+            chunk       LONGBLOB
+        )
+        """
+        cursor.execute(stmt)
+
 except ImportError:
     pass
     
