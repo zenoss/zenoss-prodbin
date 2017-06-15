@@ -11,6 +11,7 @@ import Migrate
 
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 import logging
 log = logging.getLogger("zen.migrate")

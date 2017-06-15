@@ -782,7 +782,6 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """make the catalog for device searching"""
-        # DEPRECATED
         from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
         if hasattr(self, self.default_catalog):
             self._delObject(self.default_catalog)

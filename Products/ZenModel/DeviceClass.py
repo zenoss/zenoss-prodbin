@@ -45,6 +45,7 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.Exceptions import DeviceExistsError
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer

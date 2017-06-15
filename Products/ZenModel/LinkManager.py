@@ -27,6 +27,7 @@ from Products.ZenUtils.NetworkTree import NetworkLink
 from Products.ZenEvents.events2.processing import Manager
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.utils import safe_hasattr as hasattr
 from zenoss.protocols.protobufs.zep_pb2 import (SEVERITY_CRITICAL, SEVERITY_ERROR,
                                                 SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG, SEVERITY_CLEAR)
