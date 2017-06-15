@@ -319,6 +319,16 @@ def run(processor_count=8, hard=False):
     log.info("Time to process and reindex: {0}".format(end - proc_start))
     log.info("Number of objects indexed: {0}".format(total_count))
 
+
+def reindex_model_catalog(root="/zport", idxs=None, processor_count=8, hard=False):
+    """
+    @param  root: zodb node to reindex
+    @params idxs: fields to index
+    """
+    # @TODO pass root and idxs when implemented
+    run(processor_count, hard)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Reindex Solr against ZODB.")
     parser.add_argument("-f", "--hard", action="store_true",
