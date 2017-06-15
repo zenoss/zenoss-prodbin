@@ -12,6 +12,7 @@ import logging
 import os
 import requests
 import time
+from twisted.internet import reactor
 
 from metrology.instruments import (
     Counter,
@@ -45,6 +46,9 @@ class MetricReporter(Reporter):
         }
 
     def write(self):
+        self._write()
+
+    def _write(self):
         metrics = []
         snapshot_keys = ['median', 'percentile_95th']
         for name, metric in self.registry:
@@ -119,4 +123,9 @@ class MetricReporter(Reporter):
         except Exception as e:
             log.error(e)
         return results
+
+
+class AsyncMetricReporter(MetricReporter):
+    def write(self):
+        reactor.callLater(0, self._write)
 
