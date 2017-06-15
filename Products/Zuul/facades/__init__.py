@@ -280,8 +280,11 @@ class TreeFacade(ZuulFacade):
         if isinstance(params, dict):
             statuses = params.pop('status', None)
             # Don't filter if we want to see devices with both states UP and DOWN what is set by default
-            if statuses is not None and len(statuses) < 2:
-                devices = [d for d in devices if d.status in statuses]
+            if statuses is not None and len(statuses) < 3:
+                if None in statuses:
+                    devices = [d for d in devices if (d.status in statuses or d.status is None)]
+                else:
+                    devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
