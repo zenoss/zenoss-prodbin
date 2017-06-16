@@ -50,13 +50,13 @@ class AdvancedQueryDeviceList(object):
         )
         query = Eq('uid', context.absolute_url_path()
                     ) & filterquery
-        objects = catalog.search(SearchParams(
+        objects = catalog.search(
             query=query,
             start=int(offset),
             limit=int(count),
             order_by=orderby,
             reverse=orderdir != 'asc'
-        ))
+        )
         objects = list(objects)
         totalCount = len(objects)
         return totalCount, objects
@@ -193,5 +193,5 @@ class DeviceBatch(BrowserView):
         query = Eq('uid', self.context.absolute_url_path()) & idquery
         query = query & filterquery
         catalog = IModelCatalogTool(self.context)
-        objects = catalog.search(SearchParams(query=query))
+        objects = catalog.search(query=query)
         return [x['id'] for x in objects]
