@@ -59,6 +59,7 @@ def manage_addLinkManager(context, id="ZenLinkManager"):
     mgr = LinkManager(id)
     context._setObject(mgr.id, mgr)
     mgr = context._getOb(id)
+    _create_catalogs(mgr)
 
 
 def _create_legacy_catalog_adapter(self, mgr, catalog_name):
