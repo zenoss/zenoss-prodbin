@@ -62,7 +62,7 @@ def manage_addLinkManager(context, id="ZenLinkManager"):
     _create_catalogs(mgr)
 
 
-def _create_legacy_catalog_adapter(self, mgr, catalog_name):
+def _create_legacy_catalog_adapter(mgr, catalog_name):
     from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
     if hasattr(mgr, catalog_name):
         mgr._delObject(catalog_name)
