@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -16,6 +16,7 @@ from Products.AdvancedQuery import MatchRegexp, Or, Eq, In
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenWidgets import messaging
 from Products.ZenWidgets.interfaces import IMessageSender
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 class AdvancedQueryDeviceList(object):
     """
@@ -32,29 +33,33 @@ class AdvancedQueryDeviceList(object):
         return self._getAdvancedQueryDeviceList(*args, **kwargs)
 
     def _getAdvancedQueryDeviceList(self, offset=0, count=50, filter='',
-                                   orderby='titleOrId', orderdir='asc'):
+                                   orderby='name', orderdir='asc'):
         """
         Ask the catalog for devices matching the criteria specified.
         """
         context = self.context
         if not isinstance(context, DeviceOrganizer):
             context = self.context.dmd.Devices
-        catalog = getattr(context, context.default_catalog)
-        filter = '(?is).*%s.*' % filter
+        catalog = IModelCatalogTool(context).devices
+        devfilter = '(?is).*%s.*' % filter
         filterquery = Or(
-            MatchRegexp('id', filter),
-            MatchRegexp('titleOrId', filter),
-            MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getDeviceClassPath', filter)
+            MatchRegexp('id', devfilter),
+            MatchRegexp('name', devfilter),
+            MatchRegexp('text_ipAddress', devfilter),
+            MatchRegexp('deviceClassPath', devfilter)
         )
-        query = Eq('getPhysicalPath', context.absolute_url_path()
+        query = Eq('uid', context.absolute_url_path()
                     ) & filterquery
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+        objects = catalog.search(
+            query=query,
+            start=int(offset),
+            limit=int(count),
+            order_by=orderby,
+            reverse=orderdir != 'asc'
+        )
         objects = list(objects)
         totalCount = len(objects)
-        offset, count = int(offset), int(count)
-        obs = objects[offset:offset+count]
-        return totalCount, obs
+        return totalCount, objects
 
 
 class DeviceList(BrowserView):
@@ -77,7 +82,7 @@ class DeviceList(BrowserView):
         @rtype: "([[a, b, c], [a, b, c]], 17)"
         """
         devList = AdvancedQueryDeviceList(self.context)
-        totalCount, devicelist = devList(offset, count, filter, orderby, 
+        totalCount, devicelist = devList(offset, count, filter, orderby,
                                          orderdir)
         obs = [x.getObject() for x in devicelist]
         if orderby=='getDeviceIp':
@@ -120,7 +125,7 @@ class DeviceBatch(BrowserView):
              'setProdState':'state',
              'setPriority':'priority'
             }
-        if not method or not method in d: 
+        if not method or not method in d:
             IMessageSender(self.request).sendToBrowser(
                 'Unable to Perform Action',
                 'An empty or invalid action was attempted.',
@@ -174,19 +179,19 @@ class DeviceBatch(BrowserView):
             goodevids = [goodevids]
         if not isinstance(badevids, (list, tuple)):
             badevids = [badevids]
-        if selectstatus=='all':
+        if selectstatus == 'all':
             idquery = ~In('id', badevids)
         else:
             idquery = In('id', goodevids)
-        filter = '(?is).*%s.*' % filter
+        devfilter = '(?is).*%s.*' % filter
         filterquery = Or(
-            MatchRegexp('id', filter),
-            MatchRegexp('titleOrId', filter),
-            MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getDeviceClassPath', filter)
+            MatchRegexp('id', devfilter),
+            MatchRegexp('name', devfilter),
+            MatchRegexp('text_ipAddress', devfilter),
+            MatchRegexp('deviceClassPath', devfilter)
         )
-        query = Eq('getPhysicalPath', self.context.absolute_url_path()) & idquery
+        query = Eq('uid', self.context.absolute_url_path()) & idquery
         query = query & filterquery
-        catalog = getattr(self.context, self.context.default_catalog)
-        objects = catalog.evalAdvancedQuery(query)
+        catalog = IModelCatalogTool(self.context)
+        objects = catalog.search(query=query)
         return [x['id'] for x in objects]
