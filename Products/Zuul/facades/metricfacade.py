@@ -689,16 +689,28 @@ class MetricFacade(ZuulFacade):
             request = {'oldId': oldId, 'newId': newId}
             resp = self._metrics_connection.stream_request(path, request, timeout=120)
 
-            # Log messages streamed from centralquery to both zenjobs.log and the
-            # log file for the job in /opt/zenoss/log/jobs.
+            # Initially, central query was supposed to send a message every
+            # once in a while. However, due to a buffer somewhere between central
+            # query and zenoss, streaming was not smooth but chunked. As a
+            # workaround, central query sends a message per every metric renaming
+            # and some messages are skipped here.
+            i = 0
             for line in resp:
-                log.info(line)
-                joblog.info(line)
+                if (i % 5000 == 0) or line.startswith(:
+                    log.info(line)
+                    joblog.info(line)
+
+                i += 1
 
             # When the request was successfully fulfilled, central query sends
             # "Success".
             lastLine = line
-            success = lastLine == 'Success'
+            log.info(lastLine)
+            joblog.info(lastLine)
+
+            # Log messages streamed from centralquery to both zenjobs.log and the
+            # log file for the job in /opt/zenoss/log/jobs.
+             success = lastLine == 'Success'
 
             # Trigger an event that indicates the completion of a renaming request in
             # central query.
