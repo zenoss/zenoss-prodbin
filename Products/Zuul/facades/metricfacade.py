@@ -696,21 +696,19 @@ class MetricFacade(ZuulFacade):
             # and some messages are skipped here.
             i = 0
             for line in resp:
-                if (i % 5000 == 0) or line.startswith(:
+                if (i % 5000 == 0) or line.startswith("Error"):
                     log.info(line)
                     joblog.info(line)
 
                 i += 1
 
-            # When the request was successfully fulfilled, central query sends
-            # "Success".
             lastLine = line
             log.info(lastLine)
             joblog.info(lastLine)
 
-            # Log messages streamed from centralquery to both zenjobs.log and the
-            # log file for the job in /opt/zenoss/log/jobs.
-             success = lastLine == 'Success'
+            # When the request was successfully fulfilled, central query sends
+            # "Success." in the end.
+            success = lastLine.endswith('Success.')
 
             # Trigger an event that indicates the completion of a renaming request in
             # central query.
