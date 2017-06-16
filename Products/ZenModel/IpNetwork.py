@@ -22,17 +22,19 @@ log = logging.getLogger('zen')
 
 from ipaddr import IPAddress, IPNetwork
 
+from BTrees.OOBTree import OOBTree
+from OFS.SimpleItem import SimpleItem
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.interfaces import IObjectEventsSubscriber
 
 from Products.ZenUtils.IpUtil import *
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex, makeMultiPathIndex, makeCaseSensitiveKeywordIndex\
-    , makeCaseSensitiveFieldIndex
 from IpAddress import IpAddress
 from DeviceOrganizer import DeviceOrganizer
 
@@ -41,10 +43,131 @@ from Products.ZenModel.Exceptions import *
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
-from Products.ZenUtils.Utils import edgesToXML
-from Products.ZenUtils.Utils import unused, zenPath, unpublished
+from Products.ZenUtils.Utils import unused, zenPath, unpublished, edgesToXML
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenWidgets import messaging
+
+from zope.event import notify
+from zope.interface import implements
+
+from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.catalog.indexable import IpNetworkIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.utils import safe_hasattr as hasattr
+
+
+
+class NetworkCache(SimpleItem):
+    """
+        We need to be able to quickly find if a network is already in Zenoss. Searching in the
+        zcatalogs or solr decreases modeling performance. To work around this, we will have a
+        network cache per Network root (by default dmd.Networks and dmd.IPv6Networks
+        unless multirealm is installed). This cache will be an OOBtree with the following structure:
+
+        OOBTree   { key: decimal net ip   value: { Network paths starting at the decimal ip } }
+
+        When searching IpAddresses we will also use the network cache.
+        If an Ip exists in Zenoss its network will have to exist, and then we will traverse
+        the ipaddresses of the network (if it exists)
+    """
+
+    def __init__(self):
+        self.cache = OOBTree()
+
+    def get_key(self, netip, netmask):
+        ip = netFromIpAndNet(netip, netmask)
+        return ipToDecimal(ip)
+
+    def _get_netmask_range(self, ip):
+        netmask_range = range(8, 30+1)
+        if get_ip_version(ip) == 6:
+            netmask_range = range(48, 64+1)
+        return netmask_range
+
+    def _get_net(self, netip, netmask, basenet, context):
+        net_obj = None
+        key = self.get_key(netip, netmask)
+        net_paths = self.cache.get(key, ())
+        for net_path in net_paths:
+            try:
+                net = context.dmd.unrestrictedTraverse(net_path)
+                if net.getNetworkRoot() == basenet and net.netmask == netmask:
+                    net_obj = net
+                    break
+            except KeyError:
+                self.delete_net(key, net_path)
+                net_obj = None
+        return net_obj
+
+    def get_net(self, netip, netmask, basenet, context):
+        net_obj = None
+        if netmask:
+            net_obj = self._get_net(netip, netmask, basenet, context)
+        else:
+            netmask_range = self._get_netmask_range(netip)
+            for mask in sorted(netmask_range, reverse=True):
+                net_obj = self._get_net(netip, mask, basenet, context)
+                if net_obj:
+                    break
+        return net_obj
+
+    def add_net(self, net_obj):
+        if net_obj:
+            net_key = self.get_key(net_obj.id, net_obj.netmask)
+            net_value = "/".join(net_obj.getPrimaryPath())
+            nets = self.cache.get(net_key, set())
+            nets.add(net_value)
+            self.cache[net_key] = nets
+
+    def delete_net(self, net_key, net_path):
+        if net_key in self.cache:
+            nets = self.cache.get(net_key)
+            if net_path in nets:
+                nets.remove(net_path)
+                self.cache[net_key] = nets
+
+    def delete_net_obj(self, net_obj):
+        net_key = self.get_key(net_obj.id, net_obj.netmask)
+        net_path = "/".join(net_obj.getPrimaryPath())
+        self.delete_net(net_key, net_path)
+
+    def _get_ip(self, ip, netmask, basenet, context):
+        ip_obj = None
+        # Lets check if the network exists first.
+        net_ip = netFromIpAndNet(ip, netmask)
+        net_obj = self.get_net(net_ip, netmask, basenet, context=context)
+        if net_obj is not None: # Network does not exist so neither does the ip
+            for existing_ip in net_obj.ipaddresses.objectValuesGen(): # traverse ip addresses looking for the one
+                if existing_ip.id == ip:
+                    ip_obj = existing_ip
+                    break
+        return ip_obj
+
+    def get_ip(self, ip, netmask, basenet, context):
+        """ Returns IpAddress object for ip if found, else None """
+        ip_obj = None
+        if netmask:
+            ip_obj = self._get_ip(ip, netmask, basenet, context)
+        else:
+            netmask_range = self._get_netmask_range(ip)
+            for mask in sorted(netmask_range, reverse=True):
+                ip_obj = self._get_ip(ip, mask, basenet, context)
+                if ip_obj:
+                    break
+        return ip_obj
+
+    def get_subnets_paths(self, net_obj):
+        """
+        returns net_obj's subnets
+        """
+        subnets = []
+        if net_obj:
+            net = IPNetwork(ipunwrap(net_obj.id)) # addr.IPNetwork
+            first_decimal_ip = long(int(net.network))
+            last_decimal_ip = long(first_decimal_ip + math.pow(2, net.max_prefixlen - net_obj.netmask) - 1)
+            for net_uids in self.cache.values(min=first_decimal_ip, max=last_decimal_ip, excludemin=True, excludemax=True):
+                subnets.extend(net_uids)
+        return subnets
 
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
@@ -56,6 +179,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
         net.dmdRootName = id
         net.buildZProperties()
         net.createCatalog()
+        net.initialize_network_cache(net)
         #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
@@ -68,8 +192,10 @@ addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 # into class A->B->C network tree
 defaultNetworkTree = (32,)
 
-class IpNetwork(DeviceOrganizer):
+class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
     """IpNetwork object"""
+
+    implements(IObjectEventsSubscriber)
 
     isInTree = True
 
@@ -123,6 +249,7 @@ class IpNetwork(DeviceOrganizer):
 
     security = ClassSecurityInfo()
 
+    NETWORK_CACHE_ATTR = "network_cache"
 
     def __init__(self, id, netmask=24, description='', version=4):
         if id.find("/") > -1: id, netmask = id.split("/",1)
@@ -136,6 +263,54 @@ class IpNetwork(DeviceOrganizer):
         self.dmdRootName = "Networks"
         if version == 6:
             self.dmdRootName = "IPv6Networks"
+
+    #----------------------------------------------------------
+    #    Methods related to network cache
+    #----------------------------------------------------------
+
+    def initialize_network_cache(self, network_root):
+        if hasattr(network_root, self.NETWORK_CACHE_ATTR):
+            setattr(network_root, self.NETWORK_CACHE_ATTR, None)
+        network_cache = NetworkCache()
+        setattr(network_root, self.NETWORK_CACHE_ATTR, network_cache)
+        for net in network_root.getSubNetworks():
+            network_cache.add_net(net)
+
+    def create_network_caches(self):
+        """
+        We will have a network cache per Network root (by default
+        dmd.Networks and dmd.IPv6Networks unless multirealm is installed)
+        { key: decimal net ip   value: [ Network paths starting at the decimal ip }
+        """
+        # ipv4 tree
+        ip4_networks = self.getNetworkRoot(4)
+        self.initialize_network_cache(ip4_networks)
+        # ipv6 tree
+        ip6_networks = self.getNetworkRoot(6)
+        self.initialize_network_cache(ip6_networks)
+
+    def get_network_cache(self, version=None):
+        if not hasattr(self.getNetworkRoot(version), self.NETWORK_CACHE_ATTR):
+            self.initialize_network_cache(self.getNetworkRoot(version))
+        return getattr(self.getNetworkRoot(version), self.NETWORK_CACHE_ATTR)
+
+    #----------------------------------------------------------
+    #    IObjectEventsSubscriber Methods
+    #----------------------------------------------------------
+
+    def before_object_deleted_handler(self):
+        if isip(self.id):
+            self.get_network_cache().delete_net_obj(self)
+
+    def after_object_added_or_moved_handler(self):
+        if isip(self.id):
+            self.get_network_cache().add_net(self)
+
+    def object_added_handler(self):
+        if isip(self.id):
+            self.get_network_cache().add_net(self)
+
+    #----------------------------------------------------------
 
     security.declareProtected(ZEN_CHANGE_NET, 'manage_addIpNetwork')
     def manage_addIpNetwork(self, newPath, REQUEST=None):
@@ -161,22 +336,56 @@ class IpNetwork(DeviceOrganizer):
             return self.dmd.getDmdRoot("IPv6Networks")
         return self.dmd.getDmdRoot("Networks")
 
+    def _get_smallest_mask(self, version):
+        smallest_netmask = 8
+        if version == 6:
+            smallest_netmask = 48
+        return smallest_netmask
 
-    security.declareProtected(ZEN_ADD, 'createNet')
-    def createNet(self, netip, netmask=24):
+    def _find_parent(self, net_ip, netmask):
         """
-        Return and create if necessary network.  netip is in the form
-        1.1.1.0/24 or with netmask passed as parameter.  Subnetworks created
-        based on the zParameter zDefaulNetworkTree.
-        Called by IpNetwork.createIp and IpRouteEntry.setTarget
-        If the netmask is invalid, then a netmask of 24 is assumed.
+        Search for an existing network that is a supernet of netip/netmask
+        """
+        smallest_netmask = self._get_smallest_mask(self.version)
+        parent = None
+        for mask in xrange(netmask-1, smallest_netmask - 1, -1):
+            parent_net_ip = netFromIpAndNet(net_ip, mask)
+            netobj = self.get_network_cache().get_net(parent_net_ip, mask, self.getNetworkRoot(), context=self)
+            if netobj: # We found a parent!
+                parent = netobj
+                break
+        return parent
 
-        @param netip: network IP address start
-        @type netip: string
-        @param netmask: network mask
-        @type netmask: integer
-        @todo: investigate IPv6 issues
+    def _get_default_network_tree(self, netip, netmask):
         """
+        return the network tree to create based on 'zDefaultNetworkTree'
+
+        'zDefaultNetworkTree' : list of netmask numbers to use when creating network containers.
+                                Default is 24, 32 which will make /24 networks at the top level 
+                                of the networks tree if a network is smaller than /24
+
+        Example: If zDefaultNetworkTree is (24, 32) any net we need to create with netmask >=24
+                 needs to be a child of the net/24
+                 example_net: 10.10.10.128/25 will create the following net tree
+                                10.10.10.0/24
+                                    10.10.10.128/25
+        """
+        network_tree = []
+        net_ip_obj = IPAddress(ipunwrap_strip(netip))
+        if net_ip_obj.version == 4:
+            for mask in getattr(self, 'zDefaultNetworkTree', defaultNetworkTree):
+                network_tree.append(int(mask))
+        else:
+            # ISPs are supposed to provide the 48-bit prefix to orgs (RFC 3177)
+            network_tree.append(48)
+
+        if net_ip_obj.max_prefixlen not in network_tree:
+            network_tree.append(net_ip_obj.max_prefixlen)
+
+        return list(set(network_tree)) # just in case user gave duplicates
+
+    def _parse_netip_and_netmask(self, netip, netmask):
+        """ validates net ip and network """
         if '/' in  netip:
             netip, netmask = netip.split("/",1)
 
@@ -185,130 +394,162 @@ class IpNetwork(DeviceOrganizer):
         try:
             netmask = int(netmask)
         except (TypeError, ValueError):
-            netmask = 24
-        netmask = netmask if netmask < ipobj.max_prefixlen else 24
+            netmask = None
+        biggest_netmask = ipobj.max_prefixlen if ipobj.version==4 else 64+1 
+        netmask = netmask if netmask > 0  and netmask < biggest_netmask else None
+        return netip, netmask, ipobj.version
 
-        #hook method do not remove!
-        netroot = self.getNetworkRoot(ipobj.version)
-        netobj = netroot.getNet(netip)
-        if netmask == 0:
-            raise ValueError("netip '%s' without netmask" % netip)
-        if netobj and netobj.netmask >= netmask: # Network already exists.
-            return netobj
+    security.declareProtected(ZEN_ADD, 'createNet')
+    def createNet(self, netip, netmask=None):
+        """
+        Return and create if necessary network.  netip is in the form
+        1.1.1.0/24 or with netmask passed as parameter.  Subnetworks created
+        based on the zParameter zDefaulNetworkTree.
+        Called by IpNetwork.createIp
+        If the netmask is invalid, then a netmask of 24 is assumed.
 
-        ipNetObj = IPNetwork(netip)
-        if ipNetObj.version == 4:
-            netip = getnetstr(netip, netmask)
-            netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
-            netTree = map(int, netTree)
-            if ipobj.max_prefixlen not in netTree:
-                netTree.append(ipobj.max_prefixlen)
-        else:
-            # IPv6 doesn't use subnet masks the same way
-            netip = getnetstr(netip, 64)
-            netmask = 64
-            # ISPs are supposed to provide the 48-bit prefix to orgs (RFC 3177)
-            netTree = (48,)
+        @param netip: network IP address start
+        @type netip: string
+        @param netmask: network mask
+        @type netmask: integer
+        @todo: investigate IPv6 issues
+        """
+        netip, netmask, version = self._parse_netip_and_netmask(netip, netmask)
 
-        if netobj:
-            # strip irrelevant values from netTree if we're not starting at /0
-            netTree = [ m for m in netTree if m > netobj.netmask ]
-        else:
-            # start at /Networks if no containing network was found
-            netobj = netroot
+        # if netmask is None it will look for the net in all possible nets
+        #
+        netobj = self.get_network_cache(version).get_net(netip, netmask, self.getNetworkRoot(), context=self)
 
-        for treemask in netTree:
-            if treemask >= netmask:
-                netobjParent = netobj
-                netobj = netobj.addSubNetwork(netip, netmask)
-                self.rebalance(netobjParent, netobj)
-                break
+        if netobj is None:
+            # Network does not exist. Create a new network
+            if not netmask:
+                netmask = get_default_netmask(netip)
+
+            # Let's find a parent of the new net
+            parent_mask = -1
+            parent_net = self._find_parent(netip, netmask)
+            if parent_net is None:
+                parent_net = self.getNetworkRoot(version=version)
             else:
-                supnetip = getnetstr(netip, treemask)
-                netobjParent = netobj
-                netobj = netobj.addSubNetwork(supnetip, treemask)
-                self.rebalance(netobjParent, netobj)
+                parent_mask = parent_net.netmask
+
+            # For netmasks greater than a config parameter we need to also create
+            # the super networks. Ex for netmasks >= 24 we need to create the net with netmask
+            # 24 and then a subnetwork of it with the requested netmask
+            #
+            default_net_tree = self._get_default_network_tree(netip, netmask)
+
+            # filter net tree to create, we only need masks greater than the parent's 
+            # and smaller than the the one we want to add
+            network_tree = filter(lambda m: m > parent_mask and m < netmask, default_net_tree)
+            network_tree.append(netmask)
+            network_tree = sorted(network_tree)
+
+            # We need to create the networks with masks in network_tree which
+            # includes the net we wanted to create in the first place
+            #
+            for mask in network_tree:
+                subnet_ip = netFromIpAndNet(netip, mask)
+                subnet = parent_net.addSubNetwork(subnet_ip, mask)
+                self.get_network_cache(version).add_net(subnet) # update the cache
+
+                # check if any of the existing subnets of parent_net
+                # is a subnet of the new net subnet. If so, move appropriately
+                self.rebalance(parent_net, subnet)
+                parent_net = netobj = subnet # prepare for next iteration
 
         return netobj
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'rebalance')
     def rebalance(self, netobjParent, netobj):
         """
-        Look for children of the netobj at this level and move them to the
-        right spot.
+        Look for children of netobjParent that could be subnets of the newly added net netobj
+        and move them to the right place in the network tree
         """
-        moveList = []
-        for subnetOrIp in netobjParent.children():
-            if subnetOrIp == netobj:
-                continue
-            if netobj.hasIp(subnetOrIp.id):
-                moveList.append(subnetOrIp.id)
-        if moveList:
-            netobjPath = netobj.getOrganizerName()[1:]
-            netobjParent.moveOrganizer(netobjPath, moveList)
 
-    def findNet(self, netip, netmask=0):
+        # Who can be a subnet of netobj ? networks whose decimal ip is between within netobj
+        # ip range get all the nets that are a subnet of netobj
+        all_subnets_paths = self.get_network_cache(netobj.version).get_subnets_paths(netobj)
+
+        # keep only the ones that are at the same level as netobj
+        parent_path = "/".join(netobjParent.getPrimaryPath())
+        netobj_depth = len(netobj.getPrimaryPath())
+
+        same_level_subnets_ids = []
+        for subnet_path in all_subnets_paths:
+            splitted = subnet_path.split("/")
+            if len(splitted) == netobj_depth and parent_path in subnet_path:
+                subnet_id = splitted[-1]
+                same_level_subnets_ids.append(subnet_id)
+
+        if same_level_subnets_ids:
+            netobjPath = netobj.getOrganizerName()[1:]
+            netobjParent.moveOrganizer(netobjPath, same_level_subnets_ids)
+
+    def findNet(self, netip, netmask=None):
         """
         Find and return the subnet of this IpNetwork that matches the requested
         netip and netmask.
         """
-        if netip.find("/") >= 0:
-            netip, netmask = netip.split("/", 1)
-            netmask = int(netmask)
-        for subnet in [self] + self.getSubNetworks():
-            if netmask == 0 and subnet.id == netip:
-                return subnet
-            if subnet.id == netip and subnet.netmask == netmask:
-                return subnet
-        return None
+        netip, netmask, version = self._parse_netip_and_netmask(netip, netmask)
+        return self.get_net_from_cache(ipunwrap(netip), netmask)
 
+    def getNet(self, ip, netmask=None):
+        """ Return the net starting form the Networks root for ip. """
+        return self.get_net_from_cache(ipunwrap(ip), netmask)
 
-    def getNet(self, ip):
-        """Return the net starting form the Networks root for ip.
+    def get_net_from_cache(self, netip, netmask=None):
+        return self.get_network_cache().get_net(netip, netmask, self.getNetworkRoot(), context=self)
+
+    def get_net_from_catalog(self, ip):
         """
-        return self._getNet(ipunwrap(ip))
-
-
-    def _getNet(self, ip):
-        """Recurse down the network tree to find the net of ip.
+        Search in the network tree the IpNetwork ip belongs to.
+        return None if the network is not found
         """
-
-        # If we can find the IP in the catalog, use it. This is fast.
-        brains = self.ipSearch(id=ip)
-        path = self.getPrimaryUrlPath()
-        for brain in brains:
-            bp = brain.getPath()
-            if bp.startswith(path):
-                try:
-                    return self.unrestrictedTraverse('/'.join(bp.split('/')[:-2]))
-                except KeyError:
-                    pass
-
-        # Otherwise we have to traverse the entire network hierarchy.
-        for net in self.children():
-            if net.hasIp(ip):
-                if len(net.children()):
-                    subnet = net._getNet(ip)
-                    if subnet:
-                        return subnet
-                    else:
-                        return net
-                else:
-                    return net
-
+        net = None
+        cat = IModelCatalogTool(self.getNetworkRoot())
+        decimal_ip = ipToDecimal(ip)
+        query = {}
+        query["firstDecimalIp"] = "[ * TO {0} ]".format(decimal_ip)
+        query["lastDecimalIp"]  = "[ {0} TO * ]".format(decimal_ip)
+        query["objectImplements"] = "Products.ZenModel.IpNetwork.IpNetwork"
+        fields = [ "firstDecimalIp", "lastDecimalIp", cat.uid_field_name ]
+        result = cat.search(query=query, fields=fields)
+        if result.total > 0:
+            # networks found. if more than network is found, return the one
+            # whose lastDecimalIp - firstDecimalIp is the smallest
+            net_brains_tuples = [ ( net_brain, long(net_brain.lastDecimalIp) - long(net_brain.firstDecimalIp) ) for net_brain in result.results ]
+            net_brain_tuple = min(net_brains_tuples, key=lambda x: x[1])
+            net = net_brain_tuple[0].getObject()
+        return net
 
     security.declareProtected(ZEN_ADD, 'createIp')
-    def createIp(self, ip, netmask=24):
-        """Return an ip and create if nessesary in a hierarchy of
+    def createIp(self, ip, netmask=None):
+        """
+        Return an ip and create if nessesary in a hierarchy of
         subnetworks based on the zParameter zDefaulNetworkTree.
         """
-        ipobj = self.findIp(ip)
-        if ipobj: return ipobj
-        netobj = self.createNet(ip, netmask)
-        ipobj = netobj.addIpAddress(ip,netmask)
-        return ipobj
+        network_cache = self.get_network_cache()
 
+        # ip_obj = network_cache.get_ip(ip, netmask, context=self)
+        ip_obj = self.findIp(ip, netmask)
+        if not ip_obj: # Ip does not exists
+            if not netmask:
+                netmask = get_default_netmask(ip)
+            net_obj = network_cache.get_net(ip, netmask, self.getNetworkRoot(), context=self)
+            if net_obj is None: # Network does not exist
+                net_obj = self.createNet(ip, netmask)
+            ip_obj = net_obj.addIpAddress(ip, netmask)
+        return ip_obj
+
+    def _search_ip_in_catalog(self, ip):
+        """ Return list of brains that match ip """
+        cat = IModelCatalogTool(self.getNetworkRoot())
+        query = {}
+        query["objectImplements"] = "Products.ZenModel.IpAddress.IpAddress"
+        query["id"] = ipwrap(ip)
+        search_result = cat.search(query=query)
+        return [ brain for brain in search_result.results ]
 
     def freeIps(self):
         """Number of free Ips left in this network.
@@ -324,7 +565,6 @@ class IpNetwork(DeviceOrganizer):
             for net in self.children():
                 freeips += net.freeIps()
             return freeips
-
 
     def hasIp(self, ip):
         """
@@ -385,17 +625,25 @@ class IpNetwork(DeviceOrganizer):
         """
         return numbip(self.id)
 
-
     security.declareProtected(ZEN_CHANGE_NET, 'addSubNetwork')
     def addSubNetwork(self, ip, netmask=24):
-        """Return and add if nessesary subnetwork to this network.
+        """Return and add if neccesary subnetwork to this network.
         """
         netobj = self.getSubNetwork(ip)
+        ip_id = ipwrap(ip)
         if not netobj:
-            net = IpNetwork(ipwrap(ip), netmask=netmask, version=self.version)
-            self._setObject(ipwrap(ip), net)
-        return self.getSubNetwork(ip)
+            net = IpNetwork(ip_id, netmask=netmask, version=self.version)
+            self._setObject(ip_id, net)
+        elif netobj.netmask > netmask: # ex 10.1.0.0/12 exists and we need to add 10.0.0.0/8
+            self._operation = 1 # Do we need this?
+            self._delObject(ip_id) # remove ref to old net with greater mask
+            new_net = IpNetwork(ip_id, netmask=netmask, version=self.version)
+            self._setObject(ip_id, new_net)
+            new_net = self._getOb(ip_id)
+            netobj = aq_base(netobj)
+            new_net._setObject(ip_id, netobj)
 
+        return self.getSubNetwork(ip)
 
     security.declareProtected(ZEN_VIEW, 'getSubNetwork')
     def getSubNetwork(self, ip):
@@ -486,16 +734,29 @@ class IpNetwork(DeviceOrganizer):
         """get all the devices under and instance of a DeviceGroup"""
         return DeviceOrganizer.getSubDevices(self, filter, "ipaddresses")
 
-
-    def findIp(self, ip):
-        """Find an ipAddress.
+    def find_ip(self, ip):
         """
-        searchCatalog = self.getNetworkRoot().ipSearch
-        ret = searchCatalog(dict(id=ipwrap(ip)))
-        if not ret: return None
-        if len(ret) > 1:
-            raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
-        return ret[0].getObject()
+        Looks for the ipaddress in the catalog.
+        Avoid calling this method during modeling if possible
+        """
+        brains = self._search_ip_in_catalog(ip)
+        ip_obj = None
+        if len(brains) > 0:
+            if len(brains) == 1:
+                ip_obj = brains[0].getObject()
+            else:
+                raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
+        return ip_obj
+
+    def findIp(self, ip, netmask=None):
+        """
+        Search for the ip in the network cache.
+        Use this method for modeling if possible
+        """
+        if isip(ip):
+            return self.get_network_cache().get_ip(ip, netmask, self.getNetworkRoot(), context=self)
+        else: # need to look in the catalog
+            return self.find_ip(ip)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'buildZProperties')
     def buildZProperties(self):
@@ -513,32 +774,20 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zPreferSnmpNaming", False, type="boolean")
         nets._setProperty("zSnmpStrictDiscovery", False, type="boolean")
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """Go through all ips in this tree and reindex them."""
-        zcat = self._getCatalog()
-        zcat.manage_catalogClear()
         for net in self.getSubNetworks():
             for ip in net.ipaddresses():
-                ip.index_object()
-
+                notify(IndexingEvent(ip))
 
     security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """make the catalog for device searching"""
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-        # XXX convert to ManagableIndex
-        manage_addZCatalog(self, self.default_catalog,
-                            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        cat.addIndex('id', makeCaseInsensitiveFieldIndex('id'))
-
-        zcat._catalog.addIndex('ipAddressAsInt',  makeCaseSensitiveFieldIndex('ipAddressAsInt'))
-        zcat._catalog.addIndex('path', makeMultiPathIndex('path'))
-
+        from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+        if hasattr(self, self.default_catalog):
+            self._delObject(self.default_catalog)
+        setattr(self, self.default_catalog, LegacyCatalogAdapter(self, self.default_catalog))
 
     security.declareProtected(ZEN_ADD, 'discoverNetwork')
     def discoverNetwork(self, REQUEST=None):

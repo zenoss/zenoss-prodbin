@@ -191,6 +191,10 @@ class ApplyDataMap(object):
 
         if changed:
             device.setLastChange()
+            # This is for IpInterfaces so the device get its paths updated.
+            # Should we think of doing this differently?
+            #
+            notify(IndexingEvent(device))
 
         log.debug(
             "_applyDataMap for Device %s will modify %d objects for %s",

@@ -15,7 +15,8 @@ from zope.interface import implements
 from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
-from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.interfaces import ITemplateFacade, ITemplateNode, IRRDDataSourceInfo, \
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
@@ -32,7 +33,6 @@ from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.DeviceClass import DeviceClass
 
-
 log = logging.getLogger('zen.TemplateFacade')
 
 class TemplateFacade(ZuulFacade):
@@ -44,13 +44,14 @@ class TemplateFacade(ZuulFacade):
 
     def _getTemplateNodes(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
-        brains = catalog.search(types=RRDTemplate)
+        fields_to_return = [ catalog.uid_field_name, "id" ]
+        brains = catalog.search(types=RRDTemplate, fields=fields_to_return)
         nodes = {}
         # create 1 node for each template type
         for brain in brains:
             if brain.id not in nodes:
                 try:
-                    nodes[brain.id] = ITemplateNode(brain.getObject())
+                    nodes[str(brain.id)] = ITemplateNode(brain.getObject())
                 except UncataloguedObjectException:
                     pass
         for key in sorted(nodes.keys(), key=str.lower):
@@ -91,7 +92,7 @@ class TemplateFacade(ZuulFacade):
         """
         @returns list of targets for our new template
         """
-        cat = ICatalogTool(self._dmd)
+        cat = IModelCatalogTool(self._dmd)
         results = []
         # it can be any device class that we add the template too
         brains = cat.search(types=[DeviceClass])
@@ -409,7 +410,7 @@ class TemplateFacade(ZuulFacade):
         return graph.manage_addDataPointGraphPoints([d.name() for d in datapoints], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
-        catalog = ICatalogTool(self._dmd)
+        catalog = IModelCatalogTool(self._dmd)
         template = self._getObject(uid)
         types = ['Products.ZenModel.DeviceClass.DeviceClass']
         brains = catalog.search(types=types)
@@ -531,7 +532,7 @@ class TemplateFacade(ZuulFacade):
 
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
-        return ICatalogTool(obj)
+        return IModelCatalogTool(obj)
 
     def _getTemplate(self, uid):
         obj = self._getObject(uid)

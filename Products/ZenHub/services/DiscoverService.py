@@ -175,13 +175,13 @@ class DiscoverService(ModelerService):
                     defaultNetmasks = getattr(netroot, 'zDefaultNetworkTree', [])
                     if defaultNetmasks:
                         netmask = defaultNetmasks[0]
-                netroot.createIp(ip, netmask)
                 autoDiscover = getattr(netobj, 'zAutoDiscover', True)
                 # If we're not supposed to discover this IP, return None
                 if not force and not autoDiscover:
                     return None, False
                 kw['manageIp'] = ipunwrap(ip)
                 dev = manage_createDevice(self.dmd, **kw)
+                netroot.createIp(ip, netmask)
                 return dev, True
             except DeviceExistsError, e:
                 # Update device with latest info from zendisc

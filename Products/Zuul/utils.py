@@ -332,11 +332,12 @@ class PathIndexCache(object):
                         relnames = (relnames,)
                     for relname in relnames:
                         path = path.replace('/'+relname, '')
-                self._brains[rid] = brain
-                for depth in xrange(path.count('/')+1):
-                    comp = idx.setdefault(path, IOBTree())
-                    comp.setdefault(depth, []).append(rid)
-                    path = path.rsplit('/', 1)[0]
+                if rid: # TODO review this I just did it to avoid exception
+                    self._brains[rid] = brain
+                    for depth in xrange(path.count('/')+1):
+                        comp = idx.setdefault(path, IOBTree())
+                        comp.setdefault(depth, []).append(rid)
+                        path = path.rsplit('/', 1)[0]
 
     def search(self, path, depth=1):
         path = path.split('/', 3)[-1]
@@ -367,9 +368,9 @@ class PathIndexCache(object):
 
     @classmethod
     def test(self, dmd):
-        from Products.Zuul.interfaces import ICatalogTool
-        results = ICatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
-        instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
+        from Products.Zuul.catalog.interfaces import IModelCatalogTool
+        results = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
+        instances = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
         print tree
 
