@@ -135,6 +135,16 @@ class ElasticClient(object):
         """
         return self._doRequest('/' + index_string + '/_count?q=' + query)['count']
 
+    def doScrollURI(self, query):
+        """
+        Scroll through the matched documents
+
+        @param query
+        The query string, sans '?q='.  For example:
+            query = 'service:(applesauce)&size=666'
+        """
+        return self._doRequest('/_search/scroll?' + query)
+
 
 # Define the names to export via 'from client import *'.
 __all__ = (

@@ -43,7 +43,8 @@ report_panel = Ext.create('Ext.panel.Panel', {
         var graphs = Ext.create('Zenoss.form.GraphPanel', {
             tbarTitle: attrs.text,
             directFn: directFn,
-            columns: attrs.columns
+            columns: attrs.columns,
+            printOptimized: true
         });
         graphs.setContext(attrs.uid);
         this.graph_reports.add(graphs);

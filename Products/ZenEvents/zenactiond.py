@@ -20,6 +20,7 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanc
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
 from Products.ZenEvents.Schedule import Schedule
+from Products.ZenUtils.MetricReporter import AsyncMetricReporter
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
 
@@ -36,6 +37,8 @@ from zope.interface import implements
 
 from Products.ZenEvents.interfaces import ISignalProcessorTask
 
+from metrology import Metrology
+
 
 import logging
 log = logging.getLogger("zen.zenactiond")
@@ -49,6 +52,8 @@ class ProcessSignalTask(object):
 
     def __init__(self, notificationDao):
         self.notificationDao = notificationDao
+        self.signal_timer = Metrology.timer('zenactiond.signals')
+        self.notification_timer = Metrology.timer('zenactiond.notifications')
 
         # set by the constructor of queueConsumer
         self.queueConsumer = None
@@ -80,7 +85,8 @@ class ProcessSignalTask(object):
             return
         try:
             signal = hydrateQueueMessage(message, self.schema)
-            self.processSignal(signal)
+            with self.signal_timer:
+                self.processSignal(signal)
             log.debug('Done processing signal.')
         except SchemaException:
             log.error("Unable to hydrate protobuf %s. " % message.content.body)
@@ -117,7 +123,8 @@ class ProcessSignalTask(object):
                 action.setupAction(notification.dmd)
                 if isinstance(action, TargetableAction):
                     target = ','.join(action.getTargets(notification, signal))
-                action.execute(notification, signal)
+                with self.notification_timer:
+                    action.execute(notification, signal)
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
@@ -224,6 +231,8 @@ class ZenActionD(ZCmdBase):
 
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
+        self.reporter = AsyncMetricReporter(prefix='zenoss.')
+        self.reporter.start()
 
         if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
             self._callHomeCycler.start()

@@ -65,6 +65,7 @@ class testTransforms(BaseTestCase):
         self.dmd.Events.Perf.Filesystem.transform = perfFilesystemTransform
 
         self.processor = EventPipelineProcessor(self.dmd)
+        self.processor.reporter.stop()
 
     def _processEvent(self, event):
         # Don't return a sub-message from a C++ protobuf class - can crash as the parent is GC'd

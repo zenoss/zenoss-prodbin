@@ -25,6 +25,7 @@ from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenEvents import Event
+from Products.ZenUtils.metrics import ensure_prefix
 
 DEFAULT_METRIC_URL = 'http://localhost:8080/'
 Z_AUTH_TOKEN = 'ZAuthToken'

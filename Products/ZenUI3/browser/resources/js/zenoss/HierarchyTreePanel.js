@@ -763,6 +763,7 @@
             });
 
             this.addTreeNode(params);
+            this.refresh();
         },
 
         addTreeNode:function (params) {
@@ -818,6 +819,7 @@
             }
 
             this.deleteNodeFn(params, callback);
+            this.refresh();
         },
 
         canMoveOrganizer:function (organizerUid, targetUid) {

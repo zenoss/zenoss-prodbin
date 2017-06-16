@@ -120,6 +120,20 @@
     });
 
 
+    Ext.define("Zenoss.devices.DeviceStatusMultiselectMenu", {
+        extend:"Zenoss.MultiselectMenu",
+        alias: ['widget.multiselect-devicestatus'],
+        constructor: function(config) {
+            config = Ext.apply(config || {}, {
+                text: '...',
+                cls: 'x-btn x-btn-default-toolbar-small',
+                source: [{name: 'Up', value: true}, {name: 'Down', value: false}, {name: 'Unknown', value: null},],
+                defaultValues: [true, false, null]
+            });
+            this.callParent([config]);
+        }
+    });
+
 
     Ext.define("Zenoss.devices.ProductionStateMultiselectMenu", {
         extend:"Zenoss.MultiselectMenu",

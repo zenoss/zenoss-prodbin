@@ -277,6 +277,11 @@ class TreeFacade(ZuulFacade):
             return SearchResults([], 0, [])
 
         devices = list(imap(IInfo, imap(unbrain, brains)))
+        if isinstance(params, dict):
+            statuses = params.pop('status', None)
+            # Don't filter if we want to see devices with all statuses UP, DOWN and UNKNOWN what is set by default
+            if statuses is not None and len(statuses) < 3:
+                devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:

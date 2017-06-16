@@ -25,25 +25,31 @@ from zenoss.protocols.eventlet.amqp import Publishable, getProtobufPubSub
 from Products.ZenCollector.utils.workers import workersBuildOptions
 from Products.ZenUtils.Utils import zenPath
 
+from metrology import Metrology
+
 log = logging.getLogger("zen.eventd")
+
 
 class EventletQueueConsumerTask(BaseQueueConsumerTask, BasePubSubMessageTask):
 
     def __init__(self, processor):
         BaseQueueConsumerTask.__init__(self, processor)
+        self.processing_timer = Metrology.timer('zeneventd.processMessage')
 
     def processMessage(self, message):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
-        zepRawEvent = self.processor.processMessage(message)
+        with self.processing_timer:
+            zepRawEvent = self.processor.processMessage(message)
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Publishing event: %s", to_dict(zepRawEvent))
 
         yield Publishable(zepRawEvent, exchange=self._dest_exchange,
             routingKey=self._routing_key(zepRawEvent))
+
 
 class EventDEventletWorker(ZCmdBase):
 

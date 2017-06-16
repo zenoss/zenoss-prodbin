@@ -188,11 +188,13 @@ class CallableTask(object):
     def __call__(self):
         if self.task.state is TaskStates.STATE_PAUSED and not self.paused:
             self.task.state = TaskStates.STATE_IDLE
+        elif self.paused and self.task.state is not TaskStates.STATE_PAUSED:
+            self.task.state = TaskStates.STATE_PAUSED
 
-        if self.task.state is TaskStates.STATE_IDLE:
-            if self.paused:
-                self.task.state = TaskStates.STATE_PAUSED
-            else:
+        self._scheduler.setNextExpectedRun(self.task.name, self.task.interval)
+
+        if self.task.state in [TaskStates.STATE_IDLE, TaskStates.STATE_PAUSED]:
+            if not self.paused:
                 self.task.state = TaskStates.STATE_QUEUED
                 # don't return deferred to looping call.
                 # If a deferred is returned to looping call
@@ -230,10 +232,6 @@ class CallableTask(object):
     def _run(self):
         self.task.state = TaskStates.STATE_RUNNING
         self.running()
-
-        # explicitly set next expected call 
-        # in case task was never executed or scheduled
-        self._scheduler.setNextExpectedRun(self.task.name, self.task.interval)
 
         return self.task.doTask()
 
@@ -512,7 +510,7 @@ class Scheduler(object):
         """
         loopingCall = self._loopingCalls.get(taskName, None)
         if loopingCall:
-            return loopingCall._expectNextCallAt
+            return getattr(loopingCall, '_expectNextCallAt', None)
 
     def setNextExpectedRun(self, taskName, taskInterval):
         """
