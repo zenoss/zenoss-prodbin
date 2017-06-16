@@ -29,6 +29,7 @@ log = logging.getLogger('zen.eventexport')
 
 DETAILS_KEY = "details"
 
+
 class EventsExporter(BrowserView):
     def __call__(self):
         body = self.request.form['body']
@@ -60,36 +61,44 @@ class EventsExporter(BrowserView):
                 if field in returned_fields:
                     returned_fields.remove(field)
                 header.append(field)
-        # returned_fields has the fields that have not been explicitely requested
-        # lets append them ensuring details are at the end
+        # returned_fields has the fields that have not been explicitely
+        #  requested. lets append them ensuring details are at the end
         show_details = False
         if DETAILS_KEY in returned_fields:
             returned_fields.remove(DETAILS_KEY)
             show_details = True
-        not_requested_fields = list(sorted(returned_fields, key=lambda(x): x.lower() ))
+        not_requested_fields = list(sorted(returned_fields,
+                                           key=lambda(x): x.lower()
+                                           ))
         if show_details:
             not_requested_fields.append(DETAILS_KEY)
         header.extend(not_requested_fields)
 
         return header
 
-    def _query(self, archive, uid=None, fields=None, sort=None, dir=None, evids=None, excludeIds=None, params=None):
+    def _query(self, archive, uid=None, fields=None, sort=None, dir=None,
+               evids=None, excludeIds=None, params=None):
         jsonParams = params
         if isinstance(jsonParams, dict):
             jsonParams = json.dumps(jsonParams)
         zepRouter = EventsRouter(self.context, self.request)
-        summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort, dir=dir,
-                                                 evids=evids, excludeIds=excludeIds,
-                                                 params=jsonParams, uid=uid, detailFormat=True)
+        summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort,
+                                                 dir=dir, evids=evids,
+                                                 excludeIds=excludeIds,
+                                                 params=jsonParams, uid=uid,
+                                                 detailFormat=True)
         header = []
         for event in summaryEvents:
             # default values for fields some optional fields in ZEP events
             if isinstance(event.get('DeviceClass'), dict):
-                event['DeviceClass'] =  event['DeviceClass']['name']
+                event['DeviceClass'] = event['DeviceClass']['name']
             if 'device_uuid' in event:
                 del event['device_uuid']
 
-            parsed_details = {detail['key']:detail['value'] for detail in event[DETAILS_KEY] if detail['key'] not in event}
+            parsed_details = {detail['key']: detail['value']
+                              for detail in event[DETAILS_KEY]
+                              if detail['key'] not in event
+                              }
             event[DETAILS_KEY] = parsed_details
 
             del event['log']
@@ -100,7 +109,8 @@ class EventsExporter(BrowserView):
 
     def csv(self, response, archive, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
-        response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
+        response.setHeader('Content-Disposition',
+                           'attachment; filename=events.csv')
         from csv import writer
         writer = writer(response)
 
@@ -115,16 +125,21 @@ class EventsExporter(BrowserView):
                 if field in ("lastTime", "firstTime") and val:
                     val = datetime.utcfromtimestamp(val).isoformat()
                 elif field == DETAILS_KEY and val:
-                    # add all details in one column, otherwise for events with lots of details
-                    # the number of columns in the csv can get too large (ZEN-23871)
+                    # ZEN-ZEN-23871: add all details in one column
                     val = json.dumps(val)
-                data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
+                elif not (val or val is 0) and details:
+                    # ZEN-27617: fill in value for requested field in details
+                    val = details.get(field, '')
+                if (val or val is 0):
+                    data.append(str(val).replace('\n', ' ').strip())
+                else:
+                    data.append('')
             writer.writerow(data)
 
     def xml(self, response, archive, **params):
         response.setHeader('Content-Type', 'text/xml; charset=utf-8')
-        response.setHeader('Content-Disposition', 'attachment; filename=events.xml')
-
+        response.setHeader('Content-Disposition',
+                           'attachment; filename=events.xml')
         from xml.sax.saxutils import escape, quoteattr
         response.write("""<?xml version="1.0" encoding="UTF-8"?>
 <!-- Common Event Format compliant event structure -->
@@ -138,10 +153,10 @@ class EventsExporter(BrowserView):
 \t</ReporterComponent>
 """ % escape(zem.absolute_url_path())
 
-
         for fields, evt in self._query(archive, **params):
             firstTime = datetime.utcfromtimestamp(evt['firstTime']).isoformat()
-            response.write('<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
+            response.write(
+                '<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
             response.write("""\t<SourceComponent>
 \t\t<DeviceClass>%s</DeviceClass>
 \t\t<device>%s</device>
@@ -163,8 +178,10 @@ class EventsExporter(BrowserView):
                     if key in ("lastTime", "firstTime"):
                         value = datetime.utcfromtimestamp(value).isoformat()
                     key = str(key).replace('.', '_')
-                    response.write('\t<%s>%s</%s>\n' % (key, escape(str(value)), key))
+                    response.write('\t<%s>%s</%s>\n' % (
+                                   key, escape(str(value)), key)
+                                   )
 
             response.write('</ZenossEvent>\n')
 
-        response.write( "</ZenossEvents>\n" )
+        response.write("</ZenossEvents>\n")
