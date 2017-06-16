@@ -59,7 +59,7 @@ class Hardware(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         productName, manufacturer, **kwargs)
-        self.productClass.addRelation(prodobj)
+        self.setProductClass(prodobj)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Product Set',
@@ -82,9 +82,10 @@ class Hardware(MEProduct):
 
             manufs = self.getDmdRoot("Manufacturers")
             prodobj = manufs.createHardwareProduct(prodKey, manufacturer)
-            self.productClass.addRelation(prodobj)
+            self.setProductClass(prodobj)
         else:
-            self.productClass.removeRelation()
+            self.removeProductClass()
+
 
 
 InitializeClass(Hardware)

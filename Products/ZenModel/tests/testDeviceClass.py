@@ -52,22 +52,21 @@ class TestDeviceClass(ZenModelBaseTest):
 
     def testSearchDevicesOneDevice(self):
         devices = self.dmd.Devices
-        self.assertRaises(Redirect, devices.searchDevices, "testdev2",
-                          REQUEST=dict(junk=1))
+        self.assertEqual( len(  devices._findDevice("testdev2") ), 1 )
 
     
     def testSearchDevicesNoDevice(self):
         devices = self.dmd.Devices
-        self.assertEqual(len(devices.searchDevices("adsf")), 0)
+        self.assertEqual(len(devices._findDevice("adsf")), 0)
 
     
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
-        self.assertEqual(len(devices.searchDevices("testdev*")), 2)
+        self.assertEqual(len(devices._findDevice("testdev*")), 2)
 
     def testSearchDevicesByTitle(self):
         self.dev2.setTitle('testtitle2')
-        foundDevices = self.dmd.Devices.searchDevices('testtitle2')
+        foundDevices = self.dmd.Devices._findDevice('testtitle2')
         self.assertEqual( len( foundDevices ), 1 )
         self.assertEqual( foundDevices[0].id, self.dev2.id )
         

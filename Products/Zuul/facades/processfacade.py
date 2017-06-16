@@ -8,19 +8,20 @@
 ##############################################################################
 import re
 import logging
-from itertools import izip, count, imap
+from itertools import izip, count, imap, islice
 from zope.event import notify
 from Acquisition import aq_parent
 from zope.interface import implements
-from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
+from Products.Zuul import getFacade
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IProcessFacade, ITreeFacade
 from Products.Zuul.utils import unbrain
-from Products.Zuul.interfaces import IInfo, ICatalogTool
-from Products.Zuul.tree import SearchResults
+from Products.Zuul.interfaces import IInfo
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.tree import SearchResults, StaleResultsException
 from zope.container.contained import ObjectMovedEvent
 from Products.ZenModel.OSProcessMatcher import OSProcessClassDataMatcher 
 from Products.ZenModel.OSProcessMatcher import applyOSProcessClassMatchers
@@ -69,7 +70,7 @@ class ProcessFacade(TreeFacade):
 
         # reindex all the devices and processes underneath this guy and the target
         for org in (obj.getPrimaryParent().getPrimaryParent(), target):
-            catalog = ICatalogTool(org)
+            catalog = IModelCatalogTool(org)
             brainsCollection.append(catalog.search(OSProcess))
 
         if isinstance(obj, OSProcessClass):
@@ -88,7 +89,6 @@ class ProcessFacade(TreeFacade):
             objs = imap(unbrain, brains)
             for item in objs:
                 notify(ObjectMovedEvent(item, item.os(), item.id, item.os(), item.id))
-
 
         return newObj.getPrimaryPath()
 
@@ -195,17 +195,11 @@ class ProcessFacade(TreeFacade):
     def _processSearch(self, limit=None, start=None, sort='name', dir='ASC',
               params=None, uid=None, criteria=()):
         ob = self._getObject(uid) if isinstance(uid, basestring) else uid
-        cat = ICatalogTool(ob)
-
+        cat = IModelCatalogTool(ob)
+        query = {}
+        if params and params.get('name'):
+            query['name'] = "*{0}*".format(params.get('name'))
         reverse = dir=='DESC'
-        qs = []
-        query = None
-        if params:
-            if 'name' in params:
-                qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
-        if qs:
-            query = And(*qs)
-
         return cat.search("Products.ZenModel.OSProcessClass.OSProcessClass",
                           start=start, limit=limit, orderby=sort,
                           reverse=reverse, query=query)
@@ -215,5 +209,47 @@ class ProcessFacade(TreeFacade):
         brains = self._processSearch(limit, start, sort, dir, params, uid, criteria)
         wrapped = imap(IInfo, imap(unbrain, brains))
         return SearchResults(wrapped, brains.total, brains.hash_)
+
+    def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
+                   params=None, hashcheck=None):
+
+        # We have to query for the process(es) and then use unrestrictedTraverse on the deviceIds to get the devices
+        brains = self.getObjectBrains(uid, 0, None, sort, dir, params, None, 'Products.ZenModel.OSProcess.OSProcess', ['deviceId'])
+        # ZEN-10057 - Handle the case of empty results for a filter with no matches
+        if not brains:
+            return SearchResults([], 0, [])
+
+        def getDevice(devId):
+            return self.context.dmd.unrestrictedTraverse(str(devId))
+
+        devices = list(getDevice(brain.deviceId) for brain in brains)
+        devices = list(device for device in devices if device)
+
+        # we may have changed the number of results, so check the hash here
+        totalCount = len(devices)
+        hash_ = str(totalCount)
+        if hashcheck is not None:
+            if hash_ != hashcheck:
+                raise StaleResultsException("Search results do not match")
+
+        # Pick out the correct range
+        start = max(start, 0)
+        if limit is None:
+            stop = None
+        else:
+            stop = start + limit
+        results = islice(devices, start, stop)
+
+        deviceInfos = list(imap(IInfo, results))
+
+        # This part is copy-paste from ZuulFacade.getDevices:
+        uuids = set(dev.uuid for dev in deviceInfos)
+        if uuids:
+            zep = getFacade('zep', self._dmd)
+            severities = zep.getEventSeverities(uuids)
+            for device in deviceInfos:
+                device.setEventSeverities(severities[device.uuid])
+
+        return SearchResults(iter(deviceInfos), totalCount, hash_)
 
 

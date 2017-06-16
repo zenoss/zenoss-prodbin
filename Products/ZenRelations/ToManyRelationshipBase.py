@@ -52,12 +52,7 @@ class ToManyRelationshipBase(
 
     def setCount(self):
         self._count = len(self._objects)
-        # persist the changes if we are on the object graph
-        try:
-            parent = self.__primary_parent__
-            parent._p_changed = True
-        except AttributeError:
-            log.debug("Unable to persist the count of %s" % self.id)
+
 
     def countObjects(self):
         """Return the number of objects in this relationship"""
