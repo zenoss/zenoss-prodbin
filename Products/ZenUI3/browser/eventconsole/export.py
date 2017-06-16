@@ -122,7 +122,7 @@ class EventsExporter(BrowserView):
                 wroteHeader = True
             for field in fields:
                 val = evt.get(field, '')
-                if field in ("lastTime", "firstTime") and val:
+                if field in ("lastTime", "firstTime", "stateChange") and val:
                     val = datetime.utcfromtimestamp(val).isoformat()
                 elif field == DETAILS_KEY and val:
                     # ZEN-ZEN-23871: add all details in one column
