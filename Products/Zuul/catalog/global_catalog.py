@@ -505,7 +505,7 @@ class GlobalCatalogFactory(object):
 
     def create(self, portal):
         from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
-        catalog = LegacyCatalogAdapter(self, globalCatalogId)
+        catalog = LegacyCatalogAdapter(portal.dmd, globalCatalogId)
         self.setupCatalog(portal, catalog)
 
     def setupCatalog(self, portal, catalog):

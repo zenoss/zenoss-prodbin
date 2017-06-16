@@ -178,6 +178,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None, version=4):
         net = context._getOb(net.id)
         net.dmdRootName = id
         net.buildZProperties()
+        net.createCatalog()
         net.initialize_network_cache(net)
         #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:

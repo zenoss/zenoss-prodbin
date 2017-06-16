@@ -107,6 +107,7 @@ class DmdBuilder(object):
                 object.isInTree = True
                 self.dmd._setObject(objectId, object)
         devices = self.dmd._getOb('Devices')
+        devices.createCatalog()
         devices.buildDeviceTreeProperties()
 
     def buildMonitors(self):
