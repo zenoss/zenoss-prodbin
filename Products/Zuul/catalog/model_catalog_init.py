@@ -22,12 +22,13 @@ from zExceptions import NotFound
 from collections import deque
 
 from OFS.ObjectManager import ObjectManager
-from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp
+from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
 from Products.Zuul.catalog.model_catalog import get_solr_config
+from Products.Zuul.utils import dottedname
 from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 
@@ -229,11 +230,17 @@ class SoftReindex(ReindexProcess):
     def reconcile(self):
         pass
 
-def get_uids(index_client, root=""):
+def get_uids(index_client, root="", types=()):
     start = 0
     need_results = True
     query = [ Eq("tx_state", 0) ]
     query.append(MatchGlob("uid", "{}*".format(root)))
+
+    if not isinstance(types, (tuple, list)):
+        types = (types,)
+
+    if types:
+        query.append(In("objectImplements", [dottedname(t) for t in types]))
 
     while need_results:
         search_results = index_client.search(SearchParams(
@@ -322,14 +329,14 @@ def run(processor_count=8, hard=False):
     log.info("Number of objects indexed: {0}".format(total_count))
 
 
-def reindex_model_catalog(dmd, root="/zport", idxs=None):
+def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
     """
     Performs a single threaded soft reindex
     """
     start = time.time()
-    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}'".format(root, idxs))
+    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs, types))
     modelindex = init_model_catalog()
-    uids = get_uids(modelindex, root=root)
+    uids = get_uids(modelindex, root=root, types=types)
     if uids:
         index_updates = []
         for uid in uids:
