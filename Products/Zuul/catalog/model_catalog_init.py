@@ -335,7 +335,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None):
         for uid in uids:
             try:
                 obj = dmd.unrestrictedTraverse(uid)
-            except KeyError:
+            except (KeyError, NotFound):
                 log.warn("Stale object found in solr: {}".format(uid))
                 index_updates.append(IndexUpdate(None, op=UNINDEX, uid=uid))
             else:
