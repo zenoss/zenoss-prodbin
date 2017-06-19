@@ -252,10 +252,10 @@ class MultiGraphReport(BaseReport):
             if not things or not graphDef:
                 continue
             if gg.combineDevices:
-                graphs.append(dict(context=things, graphDef=graphDef, separateGraphs=False))
+                graphs.append(dict(context=things, graphDef=graphDef, collection=collection, separateGraphs=False))
             else:
                 for thing in things:
-                    graphs.append(dict(context=thing, graphDef=graphDef, separateGraphs=True))
+                    graphs.append(dict(context=thing, graphDef=graphDef, collection=collection, separateGraphs=True))
         return graphs
 
 

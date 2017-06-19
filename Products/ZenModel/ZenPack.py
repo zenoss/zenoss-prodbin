@@ -387,6 +387,30 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         self.migrate()
 
+    def doServiceAction(self, tag, action):
+        """
+        Process all services matching tag from Control Center
+
+        :param tag: tag for which all services will be processed
+        :type tag: string
+        """
+        if not ZenPack.currentServiceId:
+            return
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
+        for root in serviceRoots:
+            services = serviceTree.findMatchingServices(root, tag)
+            # Ensure that child services are processed before parents
+            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
+            for service in services:
+                if action == 'stop':
+                    cpClient.stopService(service.id)
+                elif action == 'delete':
+                    cpClient.deleteService(service.id)
+
     def remove(self, app, leaveObjects=False):
         """
         This prepares the ZenPack for removal but does not actually remove
@@ -399,14 +423,15 @@ class ZenPack(ZenModelRM):
         @param leaveObjects: remove zProperties and things?
         @type leaveObjects: boolean
         """
+        serviceTag = self.getServiceTag()
         if not leaveObjects:
-            self.stopDaemons()
+            self.doServiceAction(serviceTag, 'stop')
         for loader in self.loaders:
             loader.unload(self, app, leaveObjects)
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-            self.removeServices(self.getServiceTag())
+            self.doServiceAction(serviceTag, 'delete')
 
     def backup(self, backupDir, logger):
         """
@@ -1474,29 +1499,6 @@ registerDirectory("skins", globals())
                 log.info("Service exists, not deploying.")
             else:
                 raise e
-
-
-    def removeServices(self, tag):
-        """
-        Remove all services matching tag from Control Center
-
-        :param tag: tag for which all services will be removed
-        :type tag: string
-        """
-        if not ZenPack.currentServiceId:
-            return
-
-        cpClient = ControlPlaneClient(**getConnectionSettings())
-        services = cpClient.queryServices("*")
-        serviceTree = ServiceTree(services)
-        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
-        for root in serviceRoots:
-            services = serviceTree.findMatchingServices(root, tag)
-            # Ensure that child services are deleted before parents
-            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
-            for service in services:
-                cpClient.deleteService(service.id)
-
 
     def getExampleLicenseNames(self):
         return sorted(ExampleLicenses.LICENSES.keys())

@@ -383,7 +383,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             #running files only or zenpack by same name doesn't already exists
             # so no need to install the zenpack in an external process
             runExternalZenpack = False
-            module = packEntry.load()
+            module = packEntry.resolve()
             if hasattr(module, 'ZenPack'):
                 zenPack = module.ZenPack(packName)
             else:

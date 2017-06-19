@@ -288,21 +288,25 @@ class ZenPackCmd(ZenScriptBase):
             return EggPackCmd.ExportZenPack(
                 self.dmd, self.options.exportPack)
         elif self.options.removePackName:
-            pack = self.dmd.ZenPackManager.packs._getOb(
-                                        self.options.removePackName, None)
+            try:
+                self.dmd.startPauseADM()
+                pack = self.dmd.ZenPackManager.packs._getOb(
+                                            self.options.removePackName, None)
 
-            if not pack:
-                if not self.options.ifinstalled:
-                    self.log.info('ZenPack %s is not installed.' %
-                                            self.options.removePackName)
-                    return False
-            else:
-                if pack:
-                    removeZenPackQueuesExchanges(pack.path())
-                    if pack.isEggPack():
-                        return EggPackCmd.RemoveZenPack(
-                                self.dmd, self.options.removePackName)
-                RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+                if not pack:
+                    if not self.options.ifinstalled:
+                        self.log.info('ZenPack %s is not installed.' %
+                                                self.options.removePackName)
+                        return False
+                else:
+                    if pack:
+                        removeZenPackQueuesExchanges(pack.path())
+                        if pack.isEggPack():
+                            return EggPackCmd.RemoveZenPack(
+                                    self.dmd, self.options.removePackName)
+                    RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+            finally:
+                self.dmd.stopPauseADM()
 
         elif self.options.list:
             for zpId in self.dmd.ZenPackManager.packs.objectIds():
@@ -682,37 +686,44 @@ class ZenPackCmd(ZenScriptBase):
 
     def install(self, packName):
         zp = None
+        # We wrap our try in a try to abort our tansaction, but make sure we
+        # unpause applyDataMap functionality
         try:
-            # hide uncatalog error messages since they do not do any harm
-            log = logging.getLogger('Zope.ZCatalog')
-            oldLevel = log.getEffectiveLevel()
-            log.setLevel(HIGHER_THAN_CRITICAL)
-            zp = self.dmd.ZenPackManager.packs._getOb(packName)
-            self.log.info('Upgrading %s' % packName)
-            zp.upgrade(self.app)
-        except AttributeError:
             try:
-                module =  __import__('Products.' + packName, globals(), {}, [''])
-                zp = module.ZenPack(packName)
-            except (ImportError, AttributeError), ex:
-                self.log.debug("Unable to find custom ZenPack (%s), "
-                               "defaulting to generic ZenPack",
-                               ex)
-                zp = ZenPack(packName)
-            self.dmd.ZenPackManager.packs._setObject(packName, zp)
-            zp = self.dmd.ZenPackManager.packs._getOb(packName)
-            zp.install(self.app)
-        finally:
-            log.setLevel(oldLevel)
-        if zp:
-            for required in zp.requires:
+                # hide uncatalog error messages since they do not do any harm
+                log = logging.getLogger('Zope.ZCatalog')
+                oldLevel = log.getEffectiveLevel()
+                log.setLevel(HIGHER_THAN_CRITICAL)
+                zp = self.dmd.ZenPackManager.packs._getOb(packName)
+                self.log.info('Upgrading %s' % packName)
+                self.dmd.startPauseADM()
+                zp.upgrade(self.app)
+            except AttributeError:
                 try:
-                    self.dmd.ZenPackManager.packs._getOb(required)
-                except:
-                    self.log.error("Pack %s requires pack %s: not installing",
-                                   packName, required)
-                    return
-        transaction.commit()
+                    module =  __import__('Products.' + packName, globals(), {}, [''])
+                    zp = module.ZenPack(packName)
+                except (ImportError, AttributeError), ex:
+                    self.log.debug("Unable to find custom ZenPack (%s), "
+                                   "defaulting to generic ZenPack",
+                                   ex)
+                    zp = ZenPack(packName)
+                self.dmd.ZenPackManager.packs._setObject(packName, zp)
+                zp = self.dmd.ZenPackManager.packs._getOb(packName)
+                zp.install(self.app)
+            finally:
+                log.setLevel(oldLevel)
+            if zp:
+                for required in zp.requires:
+                    try:
+                        self.dmd.ZenPackManager.packs._getOb(required)
+                    except:
+                        self.log.error("Pack %s requires pack %s: not installing",
+                                       packName, required)
+                        return
+        except:
+            transaction.abort()
+        finally:
+            self.dmd.stopPauseADM()
 
     def extract(self, fname):
         """Unpack a ZenPack, and return the name"""

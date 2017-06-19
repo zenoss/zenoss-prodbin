@@ -16,6 +16,7 @@ from Products.Zuul.utils import mutateRPN
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.Collection import Collection
 from Products.ZenModel.PerformanceConf import PerformanceConf
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.ComplexGraphPoint import ComplexGraphPoint
@@ -57,20 +58,6 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         return self._object.titleOrId()
 
     @property
-    def titleGroup(self):
-        """
-        For multi graph reports we need group name in title.
-        """
-        obj = self._object
-        if hasattr(obj, "getGraphGroups"):
-            for group in obj.getGraphGroups():
-                if obj.id == group.graphDefId:
-                    groupName = group.titleOrId()
-        else:
-            groupName = obj.titleOrId()
-        return groupName    
-
-    @property
     def contextTitle(self):
         """
         For the reports we need the context in the title.
@@ -78,7 +65,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         title = self._context.device().deviceClass().getOrganizerName() + " - " + self._context.device().titleOrId()
         if isinstance(self._context, DeviceComponent):
             title =  "%s - %s" %(title, self._context.titleOrId())
-        return "%s - %s" % (self.titleGroup, title)
+        return "%s - %s" % (self._object.titleOrId(), title)
 
     @property
     def type(self):
@@ -145,6 +132,34 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     units = ProxyProperty('units')
 
 
+class MetricServiceGraphDefinitionMGR(MetricServiceGraphDefinition):
+    adapts(GraphDefinition, ZenModelRM, Collection)
+    implements(templateInterfaces.IMetricServiceGraphDefinition)
+
+    def __init__(self, graph, context, collection):
+        super(MetricServiceGraphDefinitionMGR, self).__init__(graph, context)
+        self._collection = collection
+
+    @property
+    def titleGroup(self):
+        """
+        For multi graph reports we need group name in title.
+        """
+        obj = self._object
+        for group in obj.getGraphGroups():
+            if self._collection.id == group.collectionId:
+                return group.titleOrId()
+
+    @property
+    def contextTitle(self):
+        """
+        For the reports we need the context in the title.
+        """
+        title = self._context.device().deviceClass().getOrganizerName() + " - " + self._context.device().titleOrId()
+        if isinstance(self._context, DeviceComponent):
+            title =  "%s - %s" %(title, self._context.titleOrId())
+        return "%s - %s" % (self.titleGroup, title)
+
 class ColorMetricServiceGraphPoint(MetricServiceGraph):
 
     def __init__(self, graph, context):
@@ -170,9 +185,9 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         if self._multiContext:
             dev = self._context.device()
             if dev and dev.id != self._context.id:
-                return "%s %s" % (dev.id, self._context.id)
+                return "%s %s" % (dev.titleOrId(), self._context.titleOrId())
             else:
-                return "%s" % (self._context.id)
+                return "%s" % (self._context.titleOrId())
         return None
 
     def setMultiContext(self):
@@ -356,7 +371,7 @@ class MultiContextMetricServiceGraphDefinition(MetricServiceGraphDefinition):
 
     @property
     def contextTitle(self):
-        return self.titleGroup
+        return self._object.titleOrId()
 
     def _getGraphPoints(self, klass):
         """

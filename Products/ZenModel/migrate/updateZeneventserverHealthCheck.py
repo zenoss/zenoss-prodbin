@@ -12,13 +12,13 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.0.0")
+sm.require("1.1.5")
 
 
 class UpdateZeneventserverHealthCheck(Migrate.Step):
     "Change 'answering' healthcheck to only care about successful curl."
 
-    version = Migrate.Version(5,0,70)
+    version = Migrate.Version(111,0,0)
 
     def cutover(self, dmd):
         try:
