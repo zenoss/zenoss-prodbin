@@ -476,7 +476,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
-    def renameDevice(self, uid, newId, retainGraphData):
+    def renameDevice(self, uid, newId, retainGraphData=False):
         """
         Set the device specified by the uid,"uid" to have the
         the id "newId"

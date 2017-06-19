@@ -499,7 +499,7 @@ class DeviceFacade(TreeFacade):
         dev = self._getObject(uid)
         dev.manage_snmpCommunity()
 
-    def renameDevice(self, uid, newId, retainGraphData):
+    def renameDevice(self, uid, newId, retainGraphData=False):
         dev = self._getObject(uid)
         # pass in the request for the audit
         return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
