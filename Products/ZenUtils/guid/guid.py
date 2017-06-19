@@ -18,13 +18,13 @@ the code is available from http://zesty.ca/python/
 """
 import urllib
 from uuid import uuid1, uuid3, uuid4, uuid5
-from BTrees.OOBTree import OOBTree
 from zope.event import notify
 from zope.interface import implements
 from zope.component import adapts
 from .interfaces import IGloballyIdentifiable, IGlobalIdentifier, IGUIDManager
 
 from Products.ZenUtils.guid.event import GUIDEvent
+from Products.ZenUtils.ShardedBTree import ShardedBTree
 from Products.ZCatalog.interfaces import ICatalogBrain
 
 # Dictionary of known UUID types
@@ -98,7 +98,7 @@ class GUIDManager(object):
             self.table = self.traverse(self._table_path)
         except (AttributeError, KeyError), e:
             parent, name = self._table_path.rsplit('/', 1)
-            self.table = OOBTree()
+            self.table = ShardedBTree()
             setattr(self.traverse(parent), name, self.table)
 
     def getPath(self, guid):

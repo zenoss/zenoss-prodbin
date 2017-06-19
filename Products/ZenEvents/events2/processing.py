@@ -18,7 +18,7 @@ from Products.ZenEvents.events2.proxy import ZepRawEventProxy, EventProxy
 from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
 from Products.ZenUtils.IpUtil import isip, ipToDecimal
 from Products.ZenUtils.FunctionCache import FunctionCache
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.AdvancedQuery import Eq, Or
 from zope.component import getUtility, getUtilitiesFor
 from Acquisition import aq_chain
@@ -127,11 +127,11 @@ class Manager(object):
         if cls:
             catalog = catalog or self._catalogs.get(element_type_id)
             if catalog:
-                results = ICatalogTool(catalog).search(cls,
+                results = IModelCatalogTool(catalog).search(cls,
                                                        query=Or(Eq('id', id),
                                                                 Eq('name', id)),
                                                        filterPermissions=False,
-                                                       limit=1)
+                                                       limit=1, fields=["uuid"])
                 if results.total:
                     try:
                         result = results.results.next()
@@ -167,7 +167,7 @@ class Manager(object):
         Returns a tuple ([device brains], [devices]) searching manage IP and
         interface IPs. limit is the maximum total number in both lists.
         """
-        dev_cat = ICatalogTool(self._devices)
+        dev_cat = IModelCatalogTool(self._devices)
 
         try:
             ip_address = next(i for i in (ipAddress, identifier) if isip(i))
@@ -178,11 +178,12 @@ class Manager(object):
 
         query_set = Or(Eq('id', identifier), Eq('name', identifier))
         if ip_decimal is not None:
-            query_set.addSubquery(Eq('ipAddress', str(ip_decimal)))
+            query_set.addSubquery(Eq('decimal_ipAddress', str(ip_decimal)))
         device_brains = list(dev_cat.search(types=Device,
                                             query=query_set,
                                             limit=limit,
-                                            filterPermissions=False))
+                                            filterPermissions=False,
+                                            fields=["uid", "uuid"]))
 
         if device_brains:
             return device_brains, []
@@ -197,7 +198,7 @@ class Manager(object):
         if ip_decimal is None:
             return [], []
 
-        net_cat = ICatalogTool(self._networks)
+        net_cat = IModelCatalogTool(self._networks)
         results = net_cat.search(types=IpAddress,
                                  query=(Eq('name', ip_address)),
                                  limit = limit,

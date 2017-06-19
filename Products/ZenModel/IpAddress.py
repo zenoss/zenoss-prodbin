@@ -30,14 +30,12 @@ from Products import Zuul
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.jsonutils import json
 from Products.Zuul.utils import allowedRolesAndUsers
-from Products.ZenModel.interfaces import IIndexed
-from Products.ZenModel.Linkable import Layer3Linkable
 from Products.ZenRelations.RelSchema import ToOne, ToMany, ToManyCont
 from Products.ZenUtils.IpUtil import maskToBits, checkip, ipToDecimal, netFromIpAndNet, \
                                      ipwrap, ipunwrap, ipunwrap_strip
 from Products.ZenModel.Exceptions import WrongSubnetError
 from Products.ZenUtils.IpUtil import numbip
-
+from Products.Zuul.catalog.indexable import IpAddressIndexable
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
     """make an IpAddress"""
@@ -51,9 +49,8 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ManagedEntity, Layer3Linkable):
+class IpAddress(ManagedEntity, IpAddressIndexable):
     """IpAddress object"""
-    zope.interface.implements(IIndexed)
 
     event_key = portal_type = meta_type = 'IpAddress'
 
@@ -235,12 +232,12 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         return None
 
     def index_object(self, idxs=None):
-        super(IpAddress, self).index_object(idxs)
-        self.index_links()
+        """ DEPRECATED """
+        pass
 
     def unindex_object(self):
-        self.unindex_links()
-        super(IpAddress, self).unindex_object()
+        """ DEPRECATED """
+        pass
 
     def deviceId(self):
         """
@@ -277,5 +274,17 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         if ip:
             ip = ip.partition('/')[0]
         return str(numbip(ip))
+
+    #------------------------------------------
+    #--    ITreeSpanningComponent methods   --
+
+    def get_indexable_peers(self):
+        """  """
+        peers = []
+        if self.device():
+            peers.append(self.device().primaryAq())
+        if self.interface():
+            peers.append(self.interface().primaryAq())
+        return peers
 
 InitializeClass(IpAddress)
