@@ -135,8 +135,23 @@ class MEProduct(ManagedEntity, ProductIndexable):
     def getProductLink(self, target=None):
         """
         Gets the Product's PrimaryLink
+        productClass is not a ToOne relationship anymore. the code below is
+        the same as ToOneRelationship.getPrimaryLink's code
         """
-        return self.productClass().getPrimaryLink(target)
+        link = ""
+        pc = self.productClass()
+        if pc:
+            if not pc.checkRemotePerm("View", pc):
+                link = pc.id
+            else:
+                attributes = ''
+                if target is not None:
+                    attributes = "target='%s' " % (target,)
+                link = "<a %shref='%s'>%s</a>" % (
+                    attributes,
+                    pc.getPrimaryUrlPath(),
+                    pc.id)
+        return link
 
     def getProductContext(self):
         """Return list of tuples with product context for this product.
