@@ -67,9 +67,10 @@ class EventsExporter(BrowserView):
         if DETAILS_KEY in returned_fields:
             returned_fields.remove(DETAILS_KEY)
             show_details = True
-        not_requested_fields = list(sorted(returned_fields,
-                                           key=lambda(x): x.lower()
-                                           ))
+        not_requested_fields = list(sorted(
+            returned_fields,
+            key=lambda x: x.lower()
+        ))
         if show_details:
             not_requested_fields.append(DETAILS_KEY)
         header.extend(not_requested_fields)
@@ -82,11 +83,10 @@ class EventsExporter(BrowserView):
         if isinstance(jsonParams, dict):
             jsonParams = json.dumps(jsonParams)
         zepRouter = EventsRouter(self.context, self.request)
-        summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort,
-                                                 dir=dir, evids=evids,
-                                                 excludeIds=excludeIds,
-                                                 params=jsonParams, uid=uid,
-                                                 detailFormat=True)
+        summaryEvents = zepRouter.queryGenerator(
+            archive=archive, sort=sort, dir=dir, evids=evids, uid=uid,
+            excludeIds=excludeIds, params=jsonParams, detailFormat=True
+        )
         header = []
         for event in summaryEvents:
             # default values for fields some optional fields in ZEP events
@@ -95,10 +95,11 @@ class EventsExporter(BrowserView):
             if 'device_uuid' in event:
                 del event['device_uuid']
 
-            parsed_details = {detail['key']: detail['value']
-                              for detail in event[DETAILS_KEY]
-                              if detail['key'] not in event
-                              }
+            parsed_details = {
+                detail['key']: detail['value']
+                for detail in event[DETAILS_KEY]
+                if detail['key'] not in event
+            }
             event[DETAILS_KEY] = parsed_details
 
             del event['log']
@@ -132,10 +133,10 @@ class EventsExporter(BrowserView):
                 elif not (val or val is 0) and details:
                     # ZEN-27617: fill in value for requested field in details
                     val = details.get(field, '')
-                if (val or val is 0):
-                    data.append(str(val).replace('\n', ' ').strip())
-                else:
-                    data.append('')
+                data.append(
+                    str(val).replace('\n', ' ').strip()
+                    if (val or val == 0) else ''
+                )
             writer.writerow(data)
 
     def xml(self, response, archive, **params):
@@ -143,32 +144,42 @@ class EventsExporter(BrowserView):
         response.setHeader('Content-Disposition',
                            'attachment; filename=events.xml')
         from xml.sax.saxutils import escape, quoteattr
-        response.write("""<?xml version="1.0" encoding="UTF-8"?>
-<!-- Common Event Format compliant event structure -->
-<ZenossEvents>
-""")
+        response.write(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!-- Common Event Format compliant event structure -->\n'
+            '<ZenossEvents>\n'
+        )
 
         evutil = IEventManagerProxy(self)
         zem = evutil.event_manager()
-        reporterComponent = """\t<ReporterComponent>
-\t\t<url>%s</url>
-\t</ReporterComponent>
-""" % escape(zem.absolute_url_path())
+        reporterComponent = (
+            "\t<ReporterComponent>\n"
+            "\t\t<url>%s</url>\n"
+            "\t</ReporterComponent>\n"
+        ) % (escape(zem.absolute_url_path()))
 
         for fields, evt in self._query(archive, **params):
             firstTime = datetime.utcfromtimestamp(evt['firstTime']).isoformat()
             response.write(
                 '<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
-            response.write("""\t<SourceComponent>
-\t\t<DeviceClass>%s</DeviceClass>
-\t\t<device>%s</device>
-\t\t<ipAddress>%s</ipAddress>
-\t</SourceComponent>
-""" % (escape(str(evt.get('DeviceClass',''))), escape(str(evt.get('device',''))), escape(str(evt.get('ipAddress', '')))))
+            response.write((
+                "\t<SourceComponent>\n"
+                "\t\t<DeviceClass>%s</DeviceClass>\n"
+                "\t\t<device>%s</device>\n"
+                "\t\t<ipAddress>%s</ipAddress>\n"
+                "\t</SourceComponent>\n"
+            ) % (
+                escape(str(evt.get('DeviceClass', ''))),
+                escape(str(evt.get('device', ''))),
+                escape(str(evt.get('ipAddress', '')))
+            ))
             response.write(reporterComponent)
-            response.write('\t<dedupid>%s</dedupid>\n' % escape(str(evt.pop('dedupid', ''))))
-            response.write('\t<summary>%s</summary>\n' % escape(str(evt.pop('summary', ''))))
-            response.write('\t<message>%s</message>\n' % escape(str(evt.pop('message', ''))))
+            for tag in ('dedupid', 'summary', 'message'):
+                response.write(
+                    '\t<{tag}>{val}</{tag}>\n'.format(
+                        tag=tag, val=escape(str(evt.pop(tag, '')))
+                    )
+                )
 
             details = evt.get(DETAILS_KEY)
             if details:
@@ -180,9 +191,9 @@ class EventsExporter(BrowserView):
                     if key in ("lastTime", "firstTime"):
                         value = datetime.utcfromtimestamp(value).isoformat()
                     key = str(key).replace('.', '_')
-                    response.write('\t<%s>%s</%s>\n' % (
-                                   key, escape(str(value)), key)
-                                   )
+                    response.write(
+                        '\t<%s>%s</%s>\n' % (key, escape(str(value)), key)
+                    )
 
             response.write('</ZenossEvent>\n')
 
