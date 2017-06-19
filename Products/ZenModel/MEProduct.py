@@ -136,8 +136,7 @@ class MEProduct(ManagedEntity, ProductIndexable):
         """
         Gets the Product's PrimaryLink
         """
-        return self.productClass.getPrimaryLink(target)
-
+        return self.productClass().getPrimaryLink(target)
 
     def getProductContext(self):
         """Return list of tuples with product context for this product.
