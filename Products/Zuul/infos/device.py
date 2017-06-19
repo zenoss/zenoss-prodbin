@@ -452,6 +452,10 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
                 connectionInfo.append(str(self._object.zenPropertyString(prop)))
         return " ".join(connectionInfo)
 
+    @property
+    def renameInProgress(self):
+        return self._object.renameInProgress
+
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)
     adapts(DeviceOrganizer)
