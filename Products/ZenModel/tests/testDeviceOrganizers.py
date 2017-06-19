@@ -13,7 +13,8 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 from Products.ZenModel.ZenossSecurity import *
-from Products.CMFCore.utils import getToolByName
+
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from ZenModelBaseTest import ZenModelBaseTest
 
@@ -27,7 +28,7 @@ class TestDeviceOrganizers(ZenModelBaseTest):
 
     def afterSetUp(self):
         super(TestDeviceOrganizers, self).afterSetUp()
-        self.catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
+        self.catalog = IModelCatalogTool(self.dmd.Devices)
 
         orgs = ("/aa/bb", "/aa/cc", "/bb/aa", "/bb/cc")
 

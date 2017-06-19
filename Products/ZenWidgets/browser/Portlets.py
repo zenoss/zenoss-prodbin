@@ -12,15 +12,14 @@ import re
 import json
 
 from Products.Five.browser import BrowserView
-from Products.AdvancedQuery import Eq
+from Products.AdvancedQuery import Eq, In, And
 
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
 from Products.ZenEvents.HeartbeatUtils import getHeartbeatObjects
 from zenoss.protocols.services import ServiceException
 from zenoss.protocols.services.zep import ZepConnectionError
-from Products.ZenUtils.guid.interfaces import IGUIDManager, IGlobalIdentifier
-from Products.ZenUtils.productionstate.interfaces import IProdStateManager
+from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.Utils import nocache, formreq, extractPostContent
 from Products.ZenWidgets import messaging
@@ -30,6 +29,7 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 import logging
 log = logging.getLogger('zen.portlets')
@@ -89,6 +89,7 @@ class ProductionStatePortletView(BrowserView):
                 {'Device':'<a href=/>', 'Prod State':'Maintenance'},
             ]}"
         """
+
         if isinstance(prodStates, basestring):
             prodStates = [prodStates]
 
@@ -99,14 +100,13 @@ class ProductionStatePortletView(BrowserView):
 
         numericProdStates = [getProdStateInt(p) for p in prodStates]
 
-        orderby, orderdir = 'id', 'asc'
-        catalog = self.context.getPhysicalRoot().zport.global_catalog
-        query = Eq('objectImplements', 'Products.ZenModel.Device.Device')
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+        catalog = IModelCatalogTool(self.context.getPhysicalRoot().zport.dmd)
+        query = In('productionState', numericProdStates)
 
-        psManager = IProdStateManager(self.context)
-        results = (x for x in objects if psManager.getProductionStateFromGUID(IGlobalIdentifier(x).getGUID()) in numericProdStates)
-        devs = (x.getObject() for x in results)
+        query = And(query, Eq('objectImplements', 'Products.ZenModel.Device.Device'))
+        objects = list(catalog.search(query=query, orderby='id', fields="uuid"))
+        devs = (x.getObject() for x in objects)
+
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
             if not self.context.checkRemotePerm(ZEN_VIEW, dev): continue

@@ -18,4 +18,27 @@
         handler=".subscribers.unindexBeforeDelete"
         />
 
+    <!--
+    New handlers, once model catalog is implemented for all ZCatalog
+    the above handlers will be removed
+    -->
+
+    <subscriber
+        for=".interfaces.IObjectEventsSubscriber
+             zope.container.interfaces.IObjectMovedEvent"
+        handler=".subscribers.onAfterObjectAddedOrMoved"
+        />
+
+    <subscriber
+        for=".interfaces.IObjectEventsSubscriber
+             OFS.interfaces.IObjectWillBeMovedEvent"
+        handler=".subscribers.onBeforeObjectDeleted"
+        />
+
+    <subscriber
+        for=".interfaces.IObjectEventsSubscriber
+             zope.container.interfaces.IObjectAddedEvent"
+        handler=".subscribers.onObjectAdded"
+        />
+
 </configure>

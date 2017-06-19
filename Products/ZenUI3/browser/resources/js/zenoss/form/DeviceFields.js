@@ -127,8 +127,8 @@
             config = Ext.apply(config || {}, {
                 text: '...',
                 cls: 'x-btn x-btn-default-toolbar-small',
-                source: [{name: 'Up', value: true}, {name: 'Down', value: false}],
-                defaultValues: [true, false]
+                source: [{name: 'Up', value: true}, {name: 'Down', value: false}, {name: 'Unknown', value: null},],
+                defaultValues: [true, false, null]
             });
             this.callParent([config]);
         }

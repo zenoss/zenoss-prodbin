@@ -13,7 +13,7 @@ Zuul facades are part of the Python API.  The main functions of facades are
 objects representing objects related to the retrieved object, and (2) given an
 info object bind its properties to a ZenModel object and save it. The UID is
 typically an acquisition path, e.g. '/zport/dmd/Devices'. Facades use an
-ICatalogTool to search for the ZenModel object using the UID.
+IModelCatalogTool to search for the ZenModel object using the UID.
 
 Documentation for the classes and methods in this module can be found in the
 definition of the interface that they implement.
@@ -28,11 +28,11 @@ from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
-    ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
+    ITreeFacade, IInfo, IOrganizerInfo
 )
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
 from Products.Zuul.tree import SearchResults, StaleResultsException
@@ -40,8 +40,7 @@ from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
-
-from Products.ZenUtils.productionstate.interfaces import IProdStateManager
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger('zen.Zuul')
 
@@ -138,7 +137,7 @@ class TreeFacade(ZuulFacade):
         raise NotImplementedError
 
     def deviceCount(self, uid=None):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
     def validRegex(self, r):
@@ -150,16 +149,24 @@ class TreeFacade(ZuulFacade):
 
     def findMatchingOrganizers(self, organizerClass, organizerPath, userFilter):
         filterRegex = '(?i)^%s.*%s.*' % (organizerPath, userFilter)
+        filterRegex = '/zport/dmd/{0}*{1}*'.format(organizerPath, userFilter)
         if self.validRegex(filterRegex):
             orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
                         MatchRegexp('uid', filterRegex))
-            paths = [b.getPath() for b in ICatalogTool(self._dmd).search(query=orgquery)]
+            paths = [ "{0}".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
             if paths:
-                return Generic('path', {'query':paths})
+                return In('path', paths)
 
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
-        cat = ICatalogTool(self._getObject(uid))
+        return self.getObjectBrains(uid=uid, start=start, limit=limit, sort=sort,
+                                    dir=dir, params=params, hashcheck=hashcheck, types='Products.ZenModel.Device.Device')
+
+    def getObjectBrains(self, uid=None, start=0, limit=50, sort='name',
+                        dir='ASC', params=None, hashcheck=None, types=(), fields=[]):
+
+        cat = IModelCatalogTool(self._getObject(uid))
+
         reverse = bool(dir == 'DESC')
         qs = []
         query = None
@@ -177,94 +184,26 @@ class TreeFacade(ZuulFacade):
                 else:
                     if numbip(ip):
                         minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('ipAddress', str(minip), str(maxip)))
+                        qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
+            elif key == 'productionState':
+                qs.append(Or(*[Eq('productionState', str(state))
+                             for state in value]))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
                 if not organizerQuery:
                     return []
                 qs.append(organizerQuery)
-            elif key == 'productionState':
-                prodStates = value
             else:
                 globFilters[key] = value
         if qs:
             query = And(*qs)
 
-        orderby = sort
-        startp = start
-        limitp = limit
-        hashcheckp = hashcheck
-        useProdStates = False
+        return cat.search(
+                types, start=start,
+                limit=limit, orderby=sort, reverse=reverse,
+                query=query, globFilters=globFilters, hashcheck=hashcheck, fields=fields)
 
-        if sort == "productionState":
-            useProdStates = True
-            orderby = 'name'
-            startp = 0
-            limitp = None
-
-        if prodStates:
-            hashcheckp = None
-            useProdStates = True
-            startp = 0
-            limitp = None
-
-        catbrains = cat.search(
-                'Products.ZenModel.Device.Device', start=startp,
-                limit=limitp, orderby=orderby, reverse=reverse,
-                query=query, globFilters=globFilters, hashcheck=hashcheckp)
-
-        ## Handle Production State separately
-        if useProdStates:
-            psManager = IProdStateManager(self._dmd)
-            # Filter by production state
-            if prodStates:
-                psFilteredbrains = [b for b in catbrains if psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID()) in prodStates]
-                totalCount = len(psFilteredbrains)
-                hash_ = str(totalCount)
-
-                # we've changed the number of results, so check the hash here
-                if hashcheck is not None:
-                    if hash_ != hashcheck:
-                        raise StaleResultsException("Search results do not match")
-            else:
-                psFilteredbrains = catbrains
-                totalCount = catbrains.total
-                hash_ = catbrains.hash_
-
-            # Sort by production state
-            def mergeBuckets(sortedkeys, buckets):
-                for key in sortedkeys:
-                    for item in buckets[key]:
-                        yield item
-
-            if sort == "productionState":
-                productionStates = [conv[1] for conv in self._dmd.getProdStateConversions()]
-                productionStates.sort(reverse=reverse)
-                prodStateBuckets = {}
-                for ps in productionStates:
-                    prodStateBuckets[ps] = []
-
-                for b in psFilteredbrains:
-                    prodState = psManager.getProductionStateFromGUID(IGlobalIdentifier(b).getGUID())
-                    prodStateBuckets[prodState].append(b)
-
-                sortedBrains = (brain for brain in mergeBuckets(productionStates, prodStateBuckets))
-            else:
-                sortedBrains = psFilteredbrains
-
-            # Pick out the correct range and build the SearchResults object
-            start = max(start, 0)
-            if limit is None:
-                stop = None
-            else:
-                stop = start + limit
-            results = islice(sortedBrains, start, stop)
-            brains = SearchResults(results, totalCount, hash_, catbrains.areBrains)
-        else:
-            brains = catbrains
-
-        return brains
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
@@ -276,11 +215,12 @@ class TreeFacade(ZuulFacade):
         if not brains:
             return SearchResults([], 0, [])
 
-        devices = list(imap(IInfo, imap(unbrain, brains)))
+        devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
+
         if isinstance(params, dict):
             statuses = params.pop('status', None)
-            # Don't filter if we want to see devices with both states UP and DOWN what is set by default
-            if statuses is not None and len(statuses) < 2:
+            # Don't filter if we want to see devices with all statuses UP, DOWN and UNKNOWN what is set by default
+            if statuses is not None and len(statuses) < 3:
                 devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
@@ -295,7 +235,7 @@ class TreeFacade(ZuulFacade):
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
                      dir='ASC', params=None):
         # do the catalog search
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = bool(dir == 'DESC')
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)

@@ -8,7 +8,7 @@
 ##############################################################################
 
 from Products.AdvancedQuery import Eq
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenReports.AliasPlugin import AliasPlugin
 from Products.ZenReports import Utils
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
@@ -23,7 +23,7 @@ class monitoredcomponents(AliasPlugin):
     """
 
     def getSubComponents(self, dmd):
-        catalog = ICatalogTool(dmd.Devices)
+        catalog = IModelCatalogTool(dmd.Devices)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         query = Eq('monitored', '1')
         with gc_cache_every(100, db=dmd._p_jar._db):
