@@ -15,10 +15,12 @@ from Acquisition import aq_base
 from ManagedEntity import ManagedEntity
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ToOneRelationship import getPrimaryLink
 from Products.Zuul.catalog.indexable import ProductIndexable
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
+
 
 class MEProduct(ManagedEntity, ProductIndexable):
     """
@@ -135,23 +137,8 @@ class MEProduct(ManagedEntity, ProductIndexable):
     def getProductLink(self, target=None):
         """
         Gets the Product's PrimaryLink
-        productClass is not a ToOne relationship anymore. the code below is
-        the same as ToOneRelationship.getPrimaryLink's code
         """
-        link = ""
-        pc = self.productClass()
-        if pc:
-            if not pc.checkRemotePerm("View", pc):
-                link = pc.id
-            else:
-                attributes = ''
-                if target is not None:
-                    attributes = "target='%s' " % (target,)
-                link = "<a %shref='%s'>%s</a>" % (
-                    attributes,
-                    pc.getPrimaryUrlPath(),
-                    pc.id)
-        return link
+        return getPrimaryLink(self.productClass(), target)
 
     def getProductContext(self):
         """Return list of tuples with product context for this product.
