@@ -125,6 +125,11 @@ class RabbitMetricGatherer(MetricGatherer):
             metric_name = '%s.%s' % (self.METRIC_PREFIX, stat)
             metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
 
+        if queue['name'] == 'zenoss.queues.zep.zenevents':
+            stat = 'messages'
+            metric_name = '%s.zenevents.%s' % (self.METRIC_PREFIX, stat)
+            metrics.append(self.build_metric(metric_name, queue[stat], timestamp, tags))
+
         # message_stats only available for queues that have actual activity
         ack_rate, deliver_rate, deliver_get_rate, publish_rate = 0, 0, 0, 0
         if 'message_stats' in queue:
@@ -139,15 +144,15 @@ class RabbitMetricGatherer(MetricGatherer):
         # aggregate these
         for qtype in self.HUB_QUEUE_TYPES:
             if queue['name'].startswith('zenoss.queues.hub.%s' % qtype):
-                without_consumers_aggregate[qtype] += 1 if not queue.get('consumers', 0) else 0
+                without_consumers_aggregate[qtype] += 1 if queue.get('consumers', 0) == 0 and queue.get('messages', 0) != 0 else 0
 
         return metrics
 
     def _get_no_consumers_aggregate(self, without_consumers_aggregate, timestamp):
         metrics = []
-        for queue, no_consumers in without_consumers_aggregate.iteritems():
+        for queue, messages_and_no_consumers in without_consumers_aggregate.iteritems():
             metrics.append(self.build_metric('%s.%s.queues.without.consumers' % (self.METRIC_PREFIX, queue),
-                                             no_consumers,
+                                             messages_and_no_consumers,
                                              timestamp,
                                              tags={'zenoss_queuename': 'zenoss.queues.hub.%s.aggregated' % queue}))
         return metrics

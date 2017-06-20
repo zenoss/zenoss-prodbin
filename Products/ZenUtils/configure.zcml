@@ -9,7 +9,6 @@
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
     <include package=".controlplane"/>
-    <include package=".productionstate"/>
 
     <browser:page
             for="*"
