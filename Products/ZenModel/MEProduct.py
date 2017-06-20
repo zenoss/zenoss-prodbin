@@ -15,10 +15,12 @@ from Acquisition import aq_base
 from ManagedEntity import ManagedEntity
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ToOneRelationship import getPrimaryLink
 from Products.Zuul.catalog.indexable import ProductIndexable
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
+
 
 class MEProduct(ManagedEntity, ProductIndexable):
     """
@@ -136,8 +138,7 @@ class MEProduct(ManagedEntity, ProductIndexable):
         """
         Gets the Product's PrimaryLink
         """
-        return self.productClass.getPrimaryLink(target)
-
+        return getPrimaryLink(self.productClass(), target)
 
     def getProductContext(self):
         """Return list of tuples with product context for this product.
