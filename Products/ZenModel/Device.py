@@ -2247,7 +2247,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             from Products.Zuul import getFacade
             from Products.ZenEvents.events2.proxy import EventProxy
             from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-                SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
+                STATUS_SUPPRESSED, SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
             # Override normal behavior - we only care if the manage IP is down
 
             # need to add the ipinterface component id to search since we may be
@@ -2263,7 +2263,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             zep = getFacade('zep', self)
             event_filter = zep.createEventFilter(tags=[self.getUUID()],
                                                  severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
-                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED,STATUS_SUPPRESSED],
                                                  element_sub_identifier=element_sub_identifier,
                                                  event_class=filter(None, [statusclass]),
                                                  details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
