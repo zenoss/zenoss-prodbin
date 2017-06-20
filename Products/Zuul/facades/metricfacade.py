@@ -175,11 +175,13 @@ class MetricConnection(object):
                 auth = self._global_credentials
 
         try:
+            log.info('posting request')
             resp = self._req_session.post(self._uri(path),
                                               json.dumps(request),
                                               auth=auth,
                                               timeout=timeout,
                                               stream=True)
+            log.info('finished posting request')
 
             if not (resp.status_code >= 200 and resp.status_code <= 299):
                 raise ServiceResponseError(resp.reason, status_code, request,
@@ -683,33 +685,85 @@ class MetricFacade(ZuulFacade):
         # as a job. The messages written to joblog will be displayed in the Jobs
         # pane of Zenoss.
 
+        path = RENAME_URL_PATH
+        timeout = 120
+        totalFails = 0
         success = False
+        request = {}
 
-        try:
-            path = RENAME_URL_PATH
-            request = {'oldId': oldId, 'newId': newId}
-            resp = self._metrics_connection.stream_request(path, request, timeout=120)
+        def processRename():
+            resp = self._metrics_connection.stream_request(
+                    path, request, timeout=timeout)
 
             # Initially, central query was supposed to send a message every
             # once in a while. However, due to a buffer somewhere between central
             # query and zenoss, streaming was not smooth but chunked. As a
             # workaround, central query sends a message per every metric renaming
             # and some messages are skipped here.
+            logFreq = 5000 if request['patternType'] == 'prefix' else 1
+
+            nFails = 0
+
+            # Log the fist line, the last line, and every logFreq lines
             i = 0
             for line in resp:
-                if (i % 5000 == 0) or line.startswith("Error"):
+                if i % logFreq == 0:
                     log.info(line)
                     joblog.info(line)
 
+                if line.startswith("Error"):
+                    log.info(line)
+                    joblog.info(line)
+                    nFails += 1
                 i += 1
+            if line:
+                log.info(line)
+                joblog.info(line)
 
-            lastLine = line
-            log.info(lastLine)
-            joblog.info(lastLine)
+            return nFails
 
-            # When the request was successfully fulfilled, central query sends
-            # "Success." in the end.
-            success = lastLine.endswith('Success.')
+        try:
+            # metrics
+            request = {
+                'oldName': oldId + '/',
+                'newName': newId + '/',
+                'type': 'metric',
+                'patternType':'prefix'
+            }
+
+            totalFails += processRename()
+
+            # key tagv for components metrics
+            request = {
+                'oldName': 'Devices/' + oldId + '/',
+                'newName': 'Devices/' + newId + '/',
+                'type': 'tagv',
+                'patternType':'prefix'
+            }
+
+            totalFails += processRename()
+
+            # key tagv for device metrics
+            request = {
+                'oldName': 'Devices/' + oldId,
+                'newName': 'Devices/' + newId,
+                'type': 'tagv',
+                'patternType':'whole'
+            }
+
+            totalFails += processRename()
+
+            # device tagv
+            request = {
+                'oldName': oldId,
+                'newName': newId,
+                'type': 'tagv',
+                'patternType':'whole'
+            }
+
+            totalFails += processRename()
+
+            success = totalFails == 0
 
             # Trigger an event that indicates the completion of a renaming request in
             # central query.
@@ -738,6 +792,11 @@ class MetricFacade(ZuulFacade):
                 severity=severity,
                 summary=summary,
                 message=message))
+        except Exception as e:
+            msg = 'Exception thrown while re-identifying device {} to {}: {}'.format(
+                    oldId, newId, e)
+            log.error(msg)
+            joblog.error(msg)
 
         finally:
             if success:
