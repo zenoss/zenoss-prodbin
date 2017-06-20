@@ -12,6 +12,7 @@ import signal
 import time
 import logging
 import json
+import re
 import zope.interface
 from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
@@ -245,9 +246,14 @@ class CollectorDaemon(RRDDaemon):
         self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
-        # Used in resmgr. True once we have finished loading the configs
-        # for the first time after a restart
+        # Variables used by enterprise collector in resmgr
+        #
+        # flag that indicates we have finished loading the configs for the first time after a restart
         self.firstConfigLoadDone = False
+        # flag that indicates the daemon has received the encryption key from zenhub
+        self.encryptionKeyInitialized = False
+        # flag that indicates the daemon is loading the cached configs
+        self.loadingCachedConfigs = False
 
     def buildOptions(self):
         """
@@ -275,6 +281,16 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=60,
                                help='How often to write internal statistics value in seconds')
+        self.parser.add_option('--traceMetricName',
+                               dest='traceMetricName',
+                               type='string',
+                               default=None,
+                               help='trace metrics whose name matches this regex')
+        self.parser.add_option('--traceMetricKey',
+                               dest='traceMetricKey',
+                               type='string',
+                               default=None,
+                               help='trace metrics whose key value matches this regex')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -315,16 +331,19 @@ class CollectorDaemon(RRDDaemon):
 
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
-        d.addCallback( self._startConfigCycle )
         d.addCallback( self._initEncryptionKey )
+        d.addCallback( self._startConfigCycle )
         d.addCallback( self._startMaintenance )
         d.addErrback( self._errorStop )
         return d
 
+    @defer.inlineCallbacks
     def _initEncryptionKey(self, prv_cb_result=None):
         # encrypt dummy msg in order to initialize the encryption key
-        self._configProxy.encrypt("Hello")
-        self.log.info("Daemon's encryption key initialized")
+        data = yield self._configProxy.encrypt("Hello") # block until we get the key
+        if data: # encrypt returns None if an exception is raised
+            self.encryptionKeyInitialized = True
+            self.log.info("Daemon's encryption key initialized")
 
     def watchdogCycleTime(self):
         """
@@ -350,6 +369,25 @@ class CollectorDaemon(RRDDaemon):
             if guid:
                 eventCopy['device_guid'] = guid
         return eventCopy
+
+    def should_trace_metric(self, metric, contextkey):
+        """
+        Tracer implementation - use this function to indicate whether a given
+        metric/contextkey combination is to be traced.
+        :param metric: name of the metric in question 
+        :param contextkey: context key of the metric in question
+        :return: boolean indicating whether to trace this metric/key
+        """
+        tests = []
+        if self.options.traceMetricName:
+            tests.append((self.options.traceMetricName, metric))
+        if self.options.traceMetricKey:
+            tests.append((self.options.traceMetricKey, contextkey))
+
+        result = [bool(re.search(exp, subj)) for exp, subj in tests]
+
+        return len(result) > 0 and all(result)
+
 
     @defer.inlineCallbacks
     def writeMetric(self, contextKey, metric, value, metricType, contextId,
@@ -378,6 +416,9 @@ class CollectorDaemon(RRDDaemon):
             'contextUUID': contextUUID,
             'key': contextKey
         }
+        if self.should_trace_metric(metric, contextKey):
+            tags['mtrace'] = "{}".format(int(time.time()))
+
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId

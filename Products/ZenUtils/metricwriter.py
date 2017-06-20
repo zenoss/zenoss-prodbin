@@ -30,8 +30,13 @@ class MetricWriter(object):
         @return deferred: metric was published or queued
         """
         try:
-            log.debug("publishing metric %s %s %s %s", metric, value, timestamp, tags)
-            val = defer.maybeDeferred(self._publisher.put, metric, value, timestamp, tags)
+            if tags and 'mtrace' in tags.keys():
+                log.info("mtrace: publishing metric %s %s %s %s",
+                         metric, value, timestamp, tags)
+            log.debug("publishing metric %s %s %s %s", metric, value,
+                      timestamp, tags)
+            val = defer.maybeDeferred(self._publisher.put, metric, value,
+                                      timestamp, tags)
             self._datapoints += 1
             return val
         except Exception as x:
@@ -64,8 +69,13 @@ class FilteredMetricWriter(object):
         """
         try:
             if self._test_filter(metric, value, timestamp, tags):
-                log.debug("publishing metric %s %s %s %s", metric, value, timestamp, tags)
-                val = defer.maybeDeferred(self._publisher.put, metric, value, timestamp, tags)
+                if tags and 'mtrace' in tags.keys():
+                    log.info("mtrace: publishing metric %s %s %s %s",
+                             metric, value, timestamp, tags)
+                log.debug("publishing metric %s %s %s %s", metric, value,
+                          timestamp, tags)
+                val = defer.maybeDeferred(self._publisher.put, metric, value,
+                                          timestamp, tags)
                 self._datapoints += 1
                 return val
         except Exception as x:
