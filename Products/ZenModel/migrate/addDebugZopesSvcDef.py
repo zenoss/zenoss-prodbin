@@ -24,10 +24,50 @@ import shutil
 
 sm.require("1.1.9")
 
-mimetypes_incl_pat = re.compile(r'include mime\.types;(?:[\\r|\\n]+)?')
-upstreams_block_pat = re.compile(r'\\n    upstream \w+ {[\.\\\s\w;:-]+}(?:(?:\\r)?\\n)', re.S)
-map_whichzopes_block_pat = re.compile(r'\\n    map \$host \$whichzopes {[\.\*\\;\s\w~]+}(?:\\r)?\\n', re.S)
-zendebug_map_clause_pat = re.compile(r'~\*zendebug debugzopes;\\n')
+def create_upstream_pattern(upstream_name, server_decl):
+    return re.compile("\\n\s+upstream %s {\\n\s+least_conn;\\n\s+%s;\\n\s+keepalive 64;\\n\s+}(?:(?:\\r)?\\n)" % (upstream_name, server_decl))
+
+incl_mimetypes_pat = re.compile(r'include mime\.types;(?:(?:\\r)?\\n)?')
+zope_upstream_pat = create_upstream_pattern('zopes', 'include zope-upstreams\.conf')
+zopereports_upstream_pat = create_upstream_pattern('zopereports', 'include zopereports-upstreams\.conf')
+debugzope_upstream_pat = create_upstream_pattern('debugzopes', 'server 127\.0\.0\.1:9310')
+map_whichzopes_pat = re.compile(r'\\n\s+map \$host \$whichzopes {\\n\s+default zopes;\\n\s+~\*zendebug debugzopes;\\n\s+}\\n(?:(?:\\r)?\\n)')
+
+zendebug_upstreams_decl = '\n\n    upstream debugzopes {\n        least_conn;\n        server 127.0.0.1:9310;\n        keepalive 64;\n    }\n'
+debugzope_map_clause = '\n        ~*zendebug debugzopes;'
+zendebug_map_whichzopes_block_decl = '\n    map $host $whichzopes {\n        default zopes;\n        ~*zendebug debugzopes;\n    }\n'
+
+def find_insertion_point(conf, patterns):
+    insertion_point = 0
+    if len(patterns) < 1:
+        return insertion_point
+    for pat in patterns:
+        search_result = pat.search(conf)
+        if search_result is not None:
+            insertion_point = max(insertion_point, search_result.end())
+    return insertion_point
+
+def insert_debugzopes_upstreams(conf):
+    if debugzope_upstream_pat.search(conf) is not None:
+        return conf
+    insertion_point = find_insertion_point(conf, [incl_mimetypes_pat, zope_upstream_pat, zopereports_upstream_pat])
+    if insertion_point > 0:
+        return conf[:insertion_point] + zendebug_upstreams_decl + conf[insertion_point:]
+    else:
+        return conf
+
+def insert_map_whichzopes_block(conf):
+    map_block_begin_pat = re.compile('map \$host \$whichzopes {(?:\\n\s+(?:~|\*)*\w+\s+\w+;)+', re.S)
+    if map_whichzopes_pat.search(conf) is not None:
+        return conf
+    else:
+        r1 = map_block_begin_pat.search(conf)
+        if r1 is not None:
+            insertion_point = r1.end()
+            return conf[:insertion_point] + debugzope_map_clause + conf[insertion_point:]
+        else:
+            insertion_point = find_insertion_point(conf, [incl_mimetypes_pat, zope_upstream_pat, zopereports_upstream_pat, debugzope_upstream_pat])
+            return conf[:insertion_point] + zendebug_map_whichzopes_block_decl + conf[insertion_point:]
 
 class AddDebugZopesSvcDef(Migrate.Step):
     """Adds a svcdef for a dedicated debug Zope instance."""
@@ -35,8 +75,6 @@ class AddDebugZopesSvcDef(Migrate.Step):
 
     def __init__(self):
         Migrate.Step.__init__(self)
-        self.zendebug_upstreams_decl = '\n\n    upstream debugzopes {\n        least_conn;\n        server 127.0.0.1:9310;\n        keepalive 64;\n    }\n'
-        self.zendebg_map_whichzopes_block_decl = '\n    map $host $whichzopes {\n        default zopes;\n        ~*zendebug debugzopes;\n    }\n'
         self.zendebug_proxy_incl = '        location / {\n            proxy_pass http://$whichzopes;'
 
     def _add_zendebug_service(self, ctx):
@@ -64,76 +102,19 @@ class AddDebugZopesSvcDef(Migrate.Step):
 
         return True
 
-    def insertUpstreamDecl(self, matchObj):
-        return "{}{}".format(matchObj.group(0), self.zendebug_upstreams_decl)
-
     def insertProxyDecl(self, matchObj):
         return self.zendebug_proxy_incl
 
-    def _insertUpstreamBlockForDebugZopes(self, conf):
-        intermediate_results = mimetypes_incl_pat.search(conf)
-        insertion_point = intermediate_results.end()
-
-        upstreams_blocks = [b for b in upstreams_block_pat.finditer(conf)]
-        if len(upstreams_blocks) > 0:
-            for b in upstreams_blocks:
-                debugzope_block  = re.search(r'upstream debugzopes', b.string[b.start():b.end()])
-                if debugzope_block is not None:
-                    return False, None, b.end()
-            insertion_point = upstreams_blocks[-1].end()
-
-        conf_with_debugzope_upstream = conf[:insertion_point] + self.zendebug_upstreams_decl + conf[insertion_point:]
-        return True, conf_with_debugzope_upstream, insertion_point + len(self.zendebug_upstreams_decl)
-
-
-    def _insertMapBlockforDebugZope(self, conf, insert_pos=None):
-        map_whichzopes_match = map_whichzopes_block_pat.search(conf)
-        if map_whichzopes_match is None:
-            if insert_pos is not None:
-                insertion_point = insert_pos
-            else:
-                mimetypes_incl_match = mimetypes_incl_pat.search(conf)
-                if mimetypes_incl_match is not None:
-                    insertion_point = mimetypes_incl_match.end()
-                else:
-                    return False, None, 0
-                upstreams_blocks = [b for b in upstreams_block_pat.finditer(conf)]
-                if len(upstreams_blocks) > 0:
-                    insertion_point = upstreams_blocks[-1].end()
-            conf_with_map_block = conf[:insertion_point] + self.zendebg_map_whichzopes_block_decl + conf[insertion_point:]
-            return True, conf_with_map_block, insertion_point + len(self.zendebg_map_whichzopes_block_decl)
-
-        else:
-            m_start, m_end = map_whichzopes_match.span()
-            zdebug_clause_match = zendebug_map_clause_pat.search(conf, m_start, m_end)
-            debugzopes_map_case_str = '        ~*zendebug debugzopes;\\n'
-            if zdebug_clause_match is None:
-                default_case_str = r'        default zopes;\\n'
-                default_case_match = re.search(default_case_str, conf)
-                if default_case_match is not None:
-                    insertion_point = default_case_match.end()
-                    conf_with_debugzope_clause = conf[:insertion_point] + debugzopes_map_case_str + conf[insertion_point:]
-                    return True, conf_with_debugzope_clause, insertion_point + len(debugzopes_map_case_str)
-                else:
-                    return False, None, m_end
-            else:
-                return False, None, m_end
-
     def _insert_zendebug_nginx_incls(self, zproxy_conf):
-        # Insert zendebug upstreams server decl
-        if re.search("upstream debugzopes", zproxy_conf.content) is not None:
-            return False
-        did_add_upstreams_block, conf_with_upstreams, insertion_point = self._insertUpstreamBlockForDebugZopes(zproxy_conf.content)
-        if not did_add_upstreams_block:
+        conf_with_upstreams = insert_debugzopes_upstreams(zproxy_conf.content)
+        conf_with_map_block = insert_map_whichzopes_block(conf_with_upstreams)
+        conf_with_new_location_block = re.sub(r'        location / {\n            proxy_pass http://zopes;', self.insertProxyDecl, conf_with_map_block)
+        if conf_with_new_location_block == zproxy_conf.content:
             return False
         else:
-            did_add_map_block, conf_with_map_block, insertion_point = self._insertMapBlockforDebugZope(conf_with_upstreams, insert_pos=insertion_point)
-            if did_add_map_block:
-                zproxy_conf.content = conf_with_map_block
-            else:
-                return False
-        zproxy_conf.content = re.sub(r'        location / {\n            proxy_pass http://zopes;', self.insertProxyDecl, zproxy_conf.content)
-        return True
+            zproxy_conf.content = conf_with_new_location_block
+            log.warn(zproxy_conf.content)
+            return True
 
     def update_zproxy_configs(self, zproxy):
 
