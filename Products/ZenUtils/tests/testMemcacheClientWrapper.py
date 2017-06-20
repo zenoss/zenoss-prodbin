@@ -8,6 +8,7 @@
 ##############################################################################
 
 import memcache
+import mock
 import types
 import unittest
 import uuid
@@ -31,6 +32,11 @@ def mockMemcacheClient():
     yield MockClient
     memcache.Client = original
 
+def mockAdapter():
+    ''' Replace relstorage.adapter with a mock class '''
+    adapter = mock.Mock()
+    adapter.packundo = {}
+    return adapter
 
 class TestMemcacheClientWrapper(unittest.TestCase):
     """ Tests the memcacheClientWrapper module """
@@ -90,11 +96,12 @@ class TestMemcacheClientWrapper(unittest.TestCase):
         kwargs = {'foo':1, 'bar': moduleName}
         relstoreParams = {
                 'cache_module_name': moduleName,
-                'cache_servers': ('localhost:1234',)
+                'cache_servers': ('localhost:1234',),
+                'cache_prefix': 'cache_prefix',
                 }
         with mockMemcacheClient() as mockClientClass:
             createModule(moduleName, **kwargs)
-            relstorage.storage.RelStorage(None, create=False, **relstoreParams)
+            relstorage.storage.RelStorage(mockAdapter(), create=False, **relstoreParams)
         self.assertEqual(len(mockClientClass.instances), 1)
         client = mockClientClass.instances[0]
         self.assertEqual(client.initKwargs, kwargs)
