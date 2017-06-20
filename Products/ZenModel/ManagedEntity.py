@@ -50,10 +50,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
     _properties = (
      {'id':'snmpindex', 'type':'string', 'mode':'w'},
      {'id':'monitor', 'type':'boolean', 'mode':'w'},
-     {'id':'productionState', 'type':'keyedselection', 'mode':'w',
-        'select_variable':'getProdStateConversions','setter':'setProdState'},
-     {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
-        'select_variable':'getProdStateConversions','setter':'setProdState'},
     )
 
     _relations = (
