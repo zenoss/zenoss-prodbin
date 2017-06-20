@@ -387,7 +387,8 @@ class ZenModelBase(object):
                         data_=REQUEST.form,
                         skipFields_=('redirect',
                                 'zenScreenName',
-                                'zmanage_editProperties'),
+                                'zmanage_editProperties',
+                                'curpasswd'),
                         maskFields_=('smtpPass'))
             return self.callZenScreen(REQUEST, redirect=redirect)
 
