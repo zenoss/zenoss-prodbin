@@ -133,7 +133,7 @@ class EventsExporter(BrowserView):
                     val = details.get(field, '')
                 data.append(
                     str(val).replace('\n', ' ').strip()
-                    if (val or val == 0) else ''
+                    if (val or val is 0) else ''
                 )
             writer.writerow(data)
 
