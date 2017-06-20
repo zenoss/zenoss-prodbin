@@ -65,12 +65,18 @@ class DeviceOrganizerNode(TreeNode):
                 self._cached_count = None
                 return self._cached_count
 
-            count = 0
-            for child in self.children:
-                count += child._count_devices()
-            count += self._get_object().devices.countObjects()
-            self._cached_count = count
+            # De-duplicate so we don't repeatedly count the same device in
+            # multiple sub-organizers.
+            self._cached_count = len(self._unique_keys())
         return self._cached_count
+
+    def _unique_keys(self):
+       unique_keys = set()
+       for child in self.children:
+           unique_keys.update(child._unique_keys())
+       for device in self._get_object().devices():
+           unique_keys.add(device.id)
+       return unique_keys
 
     @property
     def text(self):
