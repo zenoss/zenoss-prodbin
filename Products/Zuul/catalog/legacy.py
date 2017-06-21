@@ -313,7 +313,6 @@ class LegacyCatalogAdapter(SimpleItem):
         translator = self._get_translator()
         search_kw = {}
         old_fields = translator.get_old_field_names()
-        old_fields.append('uid')
 
         # Check kw args for query terms
         dict_query = {name:value for name, value in kw.items() if name in old_fields}
