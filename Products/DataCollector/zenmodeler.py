@@ -791,6 +791,7 @@ class ZenModeler(PBDaemon):
 
         # save modeled device rate
         self.rrdStats.derive('modeledDevices', self.counters['modeledDevicesCount'])
+        self.rrdStats.derive('zenmodeler.modeledDevices', self.counters['modeledDevicesCount'])
 
         # save running count
         self.rrdStats.gauge('modeledDevicesCount', self.counters['modeledDevicesCount'])

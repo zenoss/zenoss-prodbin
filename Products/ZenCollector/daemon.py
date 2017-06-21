@@ -212,6 +212,13 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("taskCount", "GAUGE")
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
+        # namespace these a bit so they can be used in ZP monitoring
+        self._statService.addStatistic("collectordaemon.devices", "GAUGE")
+        self._statService.addStatistic("collectordaemon.dataPoints", "DERIVE")
+        self._statService.addStatistic("collectordaemon.runningTasks", "GAUGE")
+        self._statService.addStatistic("collectordaemon.taskCount", "GAUGE")
+        self._statService.addStatistic("collectordaemon.queuedTasks", "GAUGE")
+        self._statService.addStatistic("collectordaemon.missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
 
         self._deviceGuids = {}
@@ -849,6 +856,25 @@ class CollectorDaemon(RRDDaemon):
             stat.value = self._scheduler._executor.queued
 
             stat = self._statService.getStatistic("missedRuns")
+            stat.value = self._scheduler.missedRuns
+
+            stat = self._statService.getStatistic("collectordaemon.devices")
+            stat.value = len(self._devices)
+
+            stat = self._statService.getStatistic("collectordaemon.dataPoints")
+            stat.value = self.metricWriter().dataPoints
+
+            # Scheduler statistics
+            stat = self._statService.getStatistic("collectordaemon.runningTasks")
+            stat.value = self._scheduler._executor.running
+
+            stat = self._statService.getStatistic("collectordaemon.taskCount")
+            stat.value = self._scheduler.taskCount
+
+            stat = self._statService.getStatistic("collectordaemon.queuedTasks")
+            stat.value = self._scheduler._executor.queued
+
+            stat = self._statService.getStatistic("collectordaemon.missedRuns")
             stat.value = self._scheduler.missedRuns
 
             self._statService.postStatistics(self.rrdStats)

@@ -8,6 +8,7 @@
 ##############################################################################
 import os
 import logging
+
 def monkey_patch_rotatingfilehandler():
   try:
     from cloghandler import ConcurrentRotatingFileHandler
@@ -19,6 +20,8 @@ monkey_patch_rotatingfilehandler()
 
 from twisted.internet import reactor
 from twisted.internet import defer
+
+from metrology import Metrology
 
 import time
 from datetime import datetime, timedelta
@@ -80,6 +83,11 @@ class EventPipelineProcessor(object):
             ClearClassRefreshPipe(self._manager),
             CheckHeartBeatPipe(self._manager)
         )
+        self._pipe_timers = {}
+        for pipe in self._pipes:
+            timer_name = "zeneventd.{}".format(pipe.name)
+            self._pipe_timers[timer_name] = Metrology.timer(timer_name)
+
         self.reporter = MetricReporter(prefix='zenoss.')
         self.reporter.start()
 
@@ -120,7 +128,8 @@ class EventPipelineProcessor(object):
                     eventContext = EventContext(log, zepevent)
 
                     for pipe in self._pipes:
-                        eventContext = pipe(eventContext)
+                        with self._pipe_timers["zeneventd.{}".format(pipe.name)]:
+                            eventContext = pipe(eventContext)
                         if log.isEnabledFor(logging.DEBUG):
                             log.debug('After pipe %s, event context is %s' % ( pipe.name, to_dict(eventContext.zepRawEvent) ))
                         if eventContext.event.status == STATUS_DROPPED:
