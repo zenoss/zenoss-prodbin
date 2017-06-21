@@ -43,8 +43,8 @@ def onBeforeObjectDeleted(ob, event):
 def onAfterObjectAddedOrMoved(ob, event):
     """ Subscriber for IObjectEventsSubscriber + IObjectMovedEvent """
     if not IObjectRemovedEvent.providedBy(event):
-        if hasattr(ob, "before_object_deleted_handler"):
-            ob.before_object_deleted_handler()
+        if hasattr(ob, "after_object_added_or_moved_handler"):
+            ob.after_object_added_or_moved_handler()
 
 
 def onObjectAdded(ob, event):
