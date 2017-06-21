@@ -317,6 +317,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         ip = ip + '/' + str(netmask)
         if not self._ipAddresses: self._ipAddresses = []
         if not ip in self._ipAddresses:
+            self._invalidate_ipaddress_cache()
             self._ipAddresses = self._ipAddresses + [ip,]
 
 
@@ -365,20 +366,27 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
 
 
         #delete ips that are no longer in use
+        dirty = False
         for ip in ipids:
             ipobj = self.ipaddresses._getOb(ip)
             self.removeRelation('ipaddresses', ipobj)
+            dirty = True
             notify(IndexingEvent(ipobj))
         for ip in localips:
+            dirty = True
             self._ipAddresses.remove(ip)
+
+        # Invalidate the cache if we removed an ip.
+        if dirty:
+            self._invalidate_ipaddress_cache()
 
     def removeIpAddress(self, ip):
         """
         Remove an ipaddress from this interface.
         """
-        self._invalidate_ipaddress_cache()
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
+                self._invalidate_ipaddress_cache()
                 self.ipaddresses.removeRelation(ipobj)
                 notify(IndexingEvent(ipobj))
                 return
