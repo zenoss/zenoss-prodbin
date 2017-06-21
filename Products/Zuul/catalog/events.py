@@ -14,7 +14,8 @@ from zope.component import adapter, getUtility
 from zope.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
 from zope.container.interfaces import IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
-from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
+from interfaces import IIndexingEvent, IAfterIndexingEventSubscriber, \
+                       IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
 
 from Products.Zuul.catalog.interfaces import IModelCatalog
@@ -23,10 +24,15 @@ from Products.Zuul.catalog.exceptions import BadIndexingEvent
 
 class IndexingEvent(object):
     implements(IIndexingEvent)
-    def __init__(self, object, idxs=None, update_metadata=True):
+    def __init__(self, object, idxs=None, update_metadata=True, triggered_by_zope_event=False):
+        """
+        @param triggered_by_zope_event : flag to indicate whether the IndexingEvent was triggered
+        by zope events (IObjectWillBeMovedEvent, IObjectAddedEvent etc) or not.
+        """
         self.object = object
         self.idxs = idxs
         self.update_metadata = update_metadata
+        self.triggered_by_zope_event = triggered_by_zope_event
 
 
 def _get_object_to_index(ob):
@@ -62,6 +68,8 @@ def onIndexingEvent(ob, event):
             raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
     if object_to_index:
         model_catalog.catalog_object(object_to_index, idxs)
+        if IAfterIndexingEventSubscriber.providedBy(object_to_index):
+            object_to_index.after_indexing_event(event)
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
@@ -81,7 +89,7 @@ def onObjectAdded(ob, event):
     Simple subscriber that fires the indexing event for all
     indices.
     """
-    notify(IndexingEvent(ob))
+    notify(IndexingEvent(ob, triggered_by_zope_event=True))
 
 
 @adapter(IGloballyIndexed, IObjectMovedEvent)
@@ -91,7 +99,7 @@ def onObjectMoved(ob, event):
     """
     if not (IObjectAddedEvent.providedBy(event) or
             IObjectRemovedEvent.providedBy(event)):
-        notify(IndexingEvent(ob, 'path'))
+        notify(IndexingEvent(ob, idxs='path', triggered_by_zope_event=True))
 
 
 @adapter(IDeviceOrganizer, IObjectWillBeMovedEvent)
@@ -102,7 +110,7 @@ def onOrganizerBeforeDelete(ob, event):
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
         for device in ob.devices.objectValuesGen():
-            notify(IndexingEvent(device, idxs=['path']))
+            notify(IndexingEvent(device, idxs=['path'], triggered_by_zope_event=True))
 
 
 #-------------------------------------------------------------
@@ -129,7 +137,7 @@ class ObjectsAffectedBySpanningComponent(object):
 
     def index_affected_objects(self):
         for peer in self.peers:
-            notify(IndexingEvent(peer))
+            notify(IndexingEvent(peer, triggered_by_zope_event=True))
 
 
 @adapter(ITreeSpanningComponent, IObjectWillBeMovedEvent)

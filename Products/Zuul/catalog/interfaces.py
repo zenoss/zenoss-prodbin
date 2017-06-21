@@ -59,6 +59,17 @@ class IIndexingEvent(IObjectEvent):
     update_metadata = Attribute("Whether to update the metadata of the object")
 
 
+class IAfterIndexingEventSubscriber(Interface):
+    """
+    Notify interested subscribers that IndexingEvent has been processed
+    """
+    def after_indexing_event(event):
+        """
+        Custom behavior after the IndexingEvent is processed
+        @param event: processed IndexingEvent
+        """
+
+
 class IPathReporter(Interface):
     """
     An adapter that reports the paths under which an object can live, including
