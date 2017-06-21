@@ -700,7 +700,7 @@ class MetricFacade(ZuulFacade):
             # query and zenoss, streaming was not smooth but chunked. As a
             # workaround, central query sends a message per every metric renaming
             # and some messages are skipped here.
-            logFreq = 5000 if request['patternType'] == 'prefix' else 1
+            logFreq = 5000
 
             nFails = 0
 
@@ -708,16 +708,30 @@ class MetricFacade(ZuulFacade):
             i = 0
             for line in resp:
                 line = json.loads(line)
-                if i % logFreq == 0:
+                if line['type'] == 'info':
                     log.info(line['content'])
                     joblog.info(line['content'])
-
-                if line['type'] == "error":
-                    log.info(line['content'])
-                    joblog.info(line['content'])
+                if line['type'] == 'progress':
+                    if i % logFreq == 0:
+                        log.info(line['content'])
+                        joblog.info(line['content'])
+                elif line['type'] == 'error':
+                    log.error(line['content'])
+                    joblog.error(line['content'])
                     nFails += 1
+                else:
+                    log.error(
+                        'Unknown log msg type received from central query: '
+                        'type %s, content %s',
+                        line['type'],
+                        line['content']
+                    )
+
                 i += 1
-            if request['patternType'] == 'prefix' and line:
+
+            # Log the last progress msg because the progress msgs are printed at
+            # every once in a while so that the last line can be omitted.
+            if line['type'] == 'progress':
                 log.info(line['content'])
                 joblog.info(line['content'])
 
