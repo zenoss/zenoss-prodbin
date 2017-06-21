@@ -304,6 +304,9 @@ class LegacyCatalogAdapter(SimpleItem):
             converted_brains.append(brain)
         return converted_brains
 
+    def getIndexes(self):
+        return self._get_translator().get_old_field_names()
+
     def search(self, query, sort_index=None, reverse=False, limit=None, **kw):
         """
         Perform search on Model Catalog tweaking query and results to match legacy
