@@ -115,6 +115,31 @@ class TestLegacyCatalogAdapters(BaseTestCase):
                 self.assertEqual(brains[0].id, dev.device.id)
                 self.assertEqual(sorted(brains[0].path), sorted(dev.device.path()))
 
+                # Search with keywords as the query
+                kw = {q_field:q_value}
+                brains = self.device_catalog(**kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].getPrimaryId, uid)
+                self.assertEqual(brains[0].id, dev.device.id)
+                self.assertEqual(sorted(brains[0].path), sorted(dev.device.path()))
+
+                # Search with both (query is AdvancedQuery)
+                query = Eq(q_field, q_value)
+                brains = self.device_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].getPrimaryId, uid)
+                self.assertEqual(brains[0].id, dev.device.id)
+                self.assertEqual(sorted(brains[0].path), sorted(dev.device.path()))
+
+                # Search with both (query is dict)
+                query = {}
+                query.update(kw)
+                brains = self.device_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].getPrimaryId, uid)
+                self.assertEqual(brains[0].id, dev.device.id)
+                self.assertEqual(sorted(brains[0].path), sorted(dev.device.path()))
+
     def validate_layer2_catalog(self):
         # get all ip interfaces
         brains = self.layer2_catalog()
@@ -129,6 +154,31 @@ class TestLegacyCatalogAdapters(BaseTestCase):
                         ("deviceId", device_uid) ]
             for q_field, q_value in queries:
                 brains = self.layer2_catalog.search(Eq(q_field, q_value))
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].deviceId, device_uid)
+                self.assertEqual(brains[0].interfaceId, interface_uid)
+                self.assertEqual(brains[0].macaddress, mac)
+
+                # Search with keywords as the query
+                kw = {q_field:q_value}
+                brains = self.layer2_catalog(**kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].deviceId, device_uid)
+                self.assertEqual(brains[0].interfaceId, interface_uid)
+                self.assertEqual(brains[0].macaddress, mac)
+
+                # Search with both (query is AdvancedQuery)
+                query = Eq(q_field, q_value)
+                brains = self.layer2_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].deviceId, device_uid)
+                self.assertEqual(brains[0].interfaceId, interface_uid)
+                self.assertEqual(brains[0].macaddress, mac)
+
+                # Search with both (query is dict)
+                query = {}
+                query.update(kw)
+                brains = self.layer2_catalog(query, **kw)
                 self.assertEqual(len(brains), 1)
                 self.assertEqual(brains[0].deviceId, device_uid)
                 self.assertEqual(brains[0].interfaceId, interface_uid)
@@ -156,6 +206,34 @@ class TestLegacyCatalogAdapters(BaseTestCase):
                 self.assertEqual(brains[0].ipAddressId, ip_address_uid)
                 self.assertEqual(brains[0].deviceId, device_id)
 
+                # Search with keywords as the query
+                kw = {q_field:q_value}
+                brains = self.layer3_catalog(**kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].networkId, network_uid)
+                self.assertEqual(brains[0].interfaceId, interface_id)
+                self.assertEqual(brains[0].ipAddressId, ip_address_uid)
+                self.assertEqual(brains[0].deviceId, device_id)
+
+                # Search with both (query is AdvancedQuery)
+                query = Eq(q_field, q_value)
+                brains = self.layer3_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].networkId, network_uid)
+                self.assertEqual(brains[0].interfaceId, interface_id)
+                self.assertEqual(brains[0].ipAddressId, ip_address_uid)
+                self.assertEqual(brains[0].deviceId, device_id)
+
+                # Search with both (query is dict)
+                query = {}
+                query.update(kw)
+                brains = self.layer3_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].networkId, network_uid)
+                self.assertEqual(brains[0].interfaceId, interface_id)
+                self.assertEqual(brains[0].ipAddressId, ip_address_uid)
+                self.assertEqual(brains[0].deviceId, device_id)
+
     def validate_ip_catalog(self):
         # get all ips
         brains = self.ip_catalog()
@@ -169,6 +247,31 @@ class TestLegacyCatalogAdapters(BaseTestCase):
                         ("id", ip_id) ]
             for q_field, q_value in queries:
                 brains = self.ip_catalog.search(Eq(q_field, q_value))
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].path, list(path))
+                self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
+                self.assertEqual(brains[0].id, ip_id)
+
+                # Search with keywords as the query
+                kw = {q_field:q_value}
+                brains = self.ip_catalog(**kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].path, list(path))
+                self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
+                self.assertEqual(brains[0].id, ip_id)
+
+                # Search with both (query is AdvancedQuery)
+                query = Eq(q_field, q_value)
+                brains = self.ip_catalog(query, **kw)
+                self.assertEqual(len(brains), 1)
+                self.assertEqual(brains[0].path, list(path))
+                self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
+                self.assertEqual(brains[0].id, ip_id)
+
+                # Search with both (query is dict)
+                query = {}
+                query.update(kw)
+                brains = self.ip_catalog(query, **kw)
                 self.assertEqual(len(brains), 1)
                 self.assertEqual(brains[0].path, list(path))
                 self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
