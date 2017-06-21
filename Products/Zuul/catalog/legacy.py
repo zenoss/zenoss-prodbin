@@ -9,7 +9,7 @@
 
 
 from OFS.SimpleItem import SimpleItem
-from Products.AdvancedQuery import And, Or, Not
+from Products.AdvancedQuery import And, Or, Not, Eq
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 
@@ -312,6 +312,21 @@ class LegacyCatalogAdapter(SimpleItem):
         model_catalog = self._get_model_catalog()
         translator = self._get_translator()
         search_kw = {}
+        old_fields = translator.get_old_field_names()
+
+        # Check kw args for query terms
+        dict_query = {name:value for name, value in kw.items() if name in old_fields}
+
+        # merge with any existing query
+        if dict_query:
+            if not query:
+                query = dict_query
+            elif isinstance(query, dict):
+                query.update(dict_query)
+            else:
+                aq_from_dict = And(*[Eq(name, value) for name, value in dict_query.items()])
+                query = And(query, aq_from_dict)
+
         if query:
             query = self._adapt_query(translator, query)
         if sort_index:
