@@ -113,7 +113,6 @@ class AddDebugZopesSvcDef(Migrate.Step):
             return False
         else:
             zproxy_conf.content = conf_with_new_location_block
-            log.warn(zproxy_conf.content)
             return True
 
     def update_zproxy_configs(self, zproxy):
