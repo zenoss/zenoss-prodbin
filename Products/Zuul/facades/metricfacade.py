@@ -707,18 +707,19 @@ class MetricFacade(ZuulFacade):
             # Log the fist line, the last line, and every logFreq lines
             i = 0
             for line in resp:
+                line = json.loads(line)
                 if i % logFreq == 0:
-                    log.info(line)
-                    joblog.info(line)
+                    log.info(line['content'])
+                    joblog.info(line['content'])
 
-                if line.startswith("Error"):
-                    log.info(line)
-                    joblog.info(line)
+                if line['type'] == "error":
+                    log.info(line['content'])
+                    joblog.info(line['content'])
                     nFails += 1
                 i += 1
-            if line:
-                log.info(line)
-                joblog.info(line)
+            if request['patternType'] == 'prefix' and line:
+                log.info(line['content'])
+                joblog.info(line['content'])
 
             return nFails
 
