@@ -224,7 +224,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         try:
             for i in range(4):
                 try:
-                    yield self.async_syncdb()
+                    if i > 0:
+                        #only sync for retries as it already happened above
+                        yield self.async_syncdb()
                     result = runOnce()
                     defer.returnValue(result)
                 except RemoteConflictError, ex:
