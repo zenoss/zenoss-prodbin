@@ -731,7 +731,7 @@ class MetricFacade(ZuulFacade):
 
             # Log the last progress msg because the progress msgs are printed at
             # every once in a while so that the last line can be omitted.
-            if line['type'] == 'progress':
+            if line and line['type'] == 'progress':
                 log.info(line['content'])
                 joblog.info(line['content'])
 
