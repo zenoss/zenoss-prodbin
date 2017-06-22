@@ -363,6 +363,14 @@ class DeviceRouter(TreeRouter):
         return values
 
     @require('Manage Device')
+    def resumeCollection(self, id):
+        uid = id.split('/')[-1]
+        facade = self._getFacade()
+        device = facade._getObject(id)
+        device.resumeCollection(uid)
+        return "OK"
+
+    @require('Manage Device')
     def setProductInfo(self, uid, **data):
         """
         Sets the ProductInfo on a device. This method has the following valid
