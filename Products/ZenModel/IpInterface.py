@@ -218,6 +218,8 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         @params event: IndexingEvent for whom we were called
         """
         if not event.triggered_by_zope_event:
+            # when the event is triggers by zope, the
+            # IObjectEventsSubscriber methods are called
             self._update_device_macs(self.device(), self.macaddress)
 
     #------------------------------------------
