@@ -4322,7 +4322,7 @@
      "ID": "dagwsa2x37g4n64aqe5ak8d6r",
      "Name": "collectorredis",
      "EmergencyShutdownLevel": 2,
-     "StartLevel": 2,
+     "StartLevel": 0,
      "Title": "",
      "Version": "",
      "Context": null,
