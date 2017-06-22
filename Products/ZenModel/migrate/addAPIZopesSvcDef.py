@@ -102,13 +102,10 @@ class AddAPIZopesSvcDef(Migrate.Step):
 
         return True
 
-    def insertProxyDecl(self, matchObj):
-        return "{}{}".format(self.zenapi_proxy_incl, matchObj.group(0))
-
     def _insert_zenreport_nginx_incls(self, zproxy_conf):
         conf_with_upstreams = insert_apizopes_upstreams(zproxy_conf.content)
         conf_with_map_block = insert_map_whichzopes_block(conf_with_upstreams)
-        conf_with_new_location_block = re.sub(r'        location / {\n            proxy_pass http://zopes;', self.insertProxyDecl, conf_with_map_block)
+        conf_with_new_location_block = re.sub(r'        location / {\n            proxy_pass http://zopes;', self.zenapi_proxy_incl, conf_with_map_block)
         if conf_with_new_location_block == zproxy_conf.content:
             return False
         else:
