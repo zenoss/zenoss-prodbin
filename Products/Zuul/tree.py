@@ -43,7 +43,7 @@ class TreeNode(object):
         if getattr(self._root, '_ob_cache', None) is None:
             self._root._ob_cache = {}
         if not ICatalogBrain.providedBy(ob):
-            brain = IModelCatalogTool(ob).getBrain(ob)
+            brain = IModelCatalogTool(ob).getBrainFromObject(ob)
             if brain is None:
                 raise UncataloguedObjectException(ob)
             # We already have the object - cache it here so _get_object doesn't

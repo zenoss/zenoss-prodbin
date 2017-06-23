@@ -343,6 +343,12 @@ class ModelCatalogTool(object):
     def __call__(self, *args, **kwargs):
         return self.search(*args, **kwargs)
 
+    def getBrainFromObject(self, ob):
+        """
+        Builds a object's brain without searching model_catalog
+        """
+        return self.model_catalog_client.get_brain_from_object(ob, self.context)
+
     def getBrain(self, path, fields=None, commit_dirty=False):
         """
         Gets the brain representing the object defined at C{path}.
