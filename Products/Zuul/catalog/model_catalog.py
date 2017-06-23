@@ -66,24 +66,26 @@ class SearchResults(object):
 class ModelCatalogBrain(Implicit):
     implements(ICatalogBrain)
 
-    def __init__(self, result):
+    def __init__(self, data, idxs=None):
         """
-        Modelindex result wrapper
-        @param result: modelindex.zenoss.modelindex.search.SearchResult
+        @param  data: dict with the brain's data
+        @params idxs: indices the brain must have
         """
-        self._result = result
-        for idx in result.idxs:
-            setattr(self, idx, getattr(result, idx, None))
+        self.idxs = data.keys()
+        if idxs is not None:
+            self.idxs = idxs
+        for idx in self.idxs:
+            setattr(self, idx, data.get(idx))
 
     def has_key(self, key):
         return self.__contains__(key)
 
     def __contains__(self, name):
-        return hasattr(self._result, name)
+        return hasattr(self, name)
 
     def getPath(self):
         """ Get the physical path for this record """
-        uid = str(self._result.uid)
+        uid = str(getattr(self, UID_FIELD))
         if not uid.startswith('/zport/dmd'):
             uid = '/zport/dmd/' + uid
         return uid
@@ -109,7 +111,7 @@ class ModelCatalogBrain(Implicit):
 
     def getRID(self):
         """Return the record ID for this object."""
-        return self._result.uuid
+        return getattr(self, "uuid")
 
 
 class ObjectUpdate(object):
@@ -157,6 +159,13 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error()
+
+    def get_brain_from_object(self, obj, context):
+        """ Builds a brain for the passed object without performing a search """
+        spec = self._data_manager.model_index.get_object_spec(obj)
+        brain = ModelCatalogBrain(spec.to_dict(use_attr_query_name=True))
+        brain = brain.__of__(context.dmd)
+        return brain
 
 
 class NoRollbackSavepoint(object):
@@ -352,7 +361,7 @@ class ModelCatalogDataManager(object):
                     continue  # outdated result
                 elif result.uid in temp_indexed_uids: # object has been updated mid transaction
                     result.uid = result.uid.split(TX_SEPARATOR)[0]
-            brain = ModelCatalogBrain(result)
+            brain = ModelCatalogBrain(result.to_dict())
             brain = brain.__of__(context.dmd)
             yield brain
 
