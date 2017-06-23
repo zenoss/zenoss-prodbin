@@ -705,35 +705,36 @@ class MetricFacade(ZuulFacade):
             nFails = 0
 
             # Log the fist line, the last line, and every logFreq lines
+            jsonLine = None
             i = 0
             for line in resp:
-                line = json.loads(line)
-                if line['type'] == 'info':
-                    log.info(line['content'])
-                    joblog.info(line['content'])
-                if line['type'] == 'progress':
+                jsonLine = json.loads(line)
+                if jsonLine['type'] == 'info':
+                    log.info(jsonLine['content'])
+                    joblog.info(jsonLine['content'])
+                if jsonLine['type'] == 'progress':
                     if i % logFreq == 0:
-                        log.info(line['content'])
-                        joblog.info(line['content'])
-                elif line['type'] == 'error':
-                    log.error(line['content'])
-                    joblog.error(line['content'])
+                        log.info(jsonLine['content'])
+                        joblog.info(jsonLine['content'])
+                elif jsonLine['type'] == 'error':
+                    log.error(jsonLine['content'])
+                    joblog.error(jsonLine['content'])
                     nFails += 1
                 else:
                     log.error(
                         'Unknown log msg type received from central query: '
                         'type %s, content %s',
-                        line['type'],
-                        line['content']
+                        jsonLine['type'],
+                        jsonLine['content']
                     )
 
                 i += 1
 
             # Log the last progress msg because the progress msgs are printed at
             # every once in a while so that the last line can be omitted.
-            if line and line['type'] == 'progress':
-                log.info(line['content'])
-                joblog.info(line['content'])
+            if jsonLine and jsonLine['type'] == 'progress':
+                log.info(jsonLine['content'])
+                joblog.info(jsonLine['content'])
 
             return nFails
 
