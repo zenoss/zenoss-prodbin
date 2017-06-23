@@ -361,7 +361,7 @@ class ModelCatalogDataManager(object):
                     continue  # outdated result
                 elif result.uid in temp_indexed_uids: # object has been updated mid transaction
                     result.uid = result.uid.split(TX_SEPARATOR)[0]
-            brain = ModelCatalogBrain(result.to_dict())
+            brain = ModelCatalogBrain(result.to_dict(), result.idxs)
             brain = brain.__of__(context.dmd)
             yield brain
 
