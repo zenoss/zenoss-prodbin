@@ -10,7 +10,7 @@ serviceRunLevels = {
           "opentsdb": (0, 3),
           "writer": (0, 3),
           "redis": (2, 1),
-          "collectorredis": (2, 2),
+          "collectorredis": (2, 0),
           "zenhub": (0, 2),
           "zeneventserver": (2, 2),
           "CentralQuery": (0, 4),
