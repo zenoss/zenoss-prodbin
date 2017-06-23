@@ -11,6 +11,7 @@
 import cgi
 import re
 import cStringIO
+import logging
 from Products.PageTemplates.Expressions import getEngine
 from zope.tal.htmltalparser import HTMLTALParser
 from zope.tal.talgenerator import TALGenerator
@@ -19,17 +20,19 @@ from zope.tal.talinterpreter import TALInterpreter
 from DateTime import DateTime
 from Products.Zuul.interfaces.info import IInfo
 
+log = logging.getLogger("zen.actions")
+
 class InvalidTalesException(Exception):
     pass
 
 
 _compiled = {}
 
-def talesEvalStr(expression, context, extra=None):
-    return talesEval('string:%s' % expression, context, extra)
+def talesEvalStr(expression, context, extra=None, skipfails=False):
+    return talesEval('string:%s' % expression, context, extra, skipfails)
 
 
-def talesEval(express, context, extra=None):
+def talesEval(express, context, extra=None, skipfails=False):
     """Perform a TALES eval on the express using context.
     """
     try:
@@ -56,7 +59,11 @@ def talesEval(express, context, extra=None):
         msg = "Error when processing tales expression %s on context %s : Exception Class %s Message: %s" % (express,
                                                                                                             context,
                                                                                                             type(e), e)
-        raise InvalidTalesException(msg)
+        if skipfails:
+            res = express
+            log.debug(msg)
+        else:
+            raise InvalidTalesException(msg)
     if isinstance(res, Exception):
         raise res
     return res
@@ -77,7 +84,7 @@ def _chunk_repl(match):
     interior = cgi.escape(match.groups()[0], True)
     return '<tal:block content="%s"/>' % interior
 
-def talEval(expression, context, extra=None):
+def talEval(expression, context, extra=None, skipfails=False):
     """
     Perform a TAL eval on the expression.
     """
@@ -86,7 +93,7 @@ def talEval(expression, context, extra=None):
     # just send it to talesEval
     isTales = '<tal' not in expression and '${python:' not in expression
     if isTales:
-        return talesEvalStr(expression, context, extra)
+        return talesEvalStr(expression, context, extra, skipfails)
 
     contextDict = { 'context':context,
                     'here':context,

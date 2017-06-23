@@ -76,6 +76,7 @@ class EmailActionContentInfo(ActionContentInfo):
     clear_subject_format = ActionFieldProperty(IEmailActionContentInfo, 'clear_subject_format')
     clear_body_format = ActionFieldProperty(IEmailActionContentInfo, 'clear_body_format')
     email_from = ActionFieldProperty(IEmailActionContentInfo, 'email_from')
+    skipfails = ActionFieldProperty(IEmailActionContentInfo, 'skipfails')
     host = ActionFieldProperty(IEmailActionContentInfo, 'host')
     port = ActionFieldProperty(IEmailActionContentInfo, 'port')
     useTls = ActionFieldProperty(IEmailActionContentInfo, 'useTls')
