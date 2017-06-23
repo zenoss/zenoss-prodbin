@@ -86,7 +86,7 @@ class TargetableActionException(ActionExecutionException):
 DEVICE_TAL = re.compile('\$\{dev[ice]*/([-A-Za-z_.0-9]+)\}')
 NO_ZEN_DEVICE = 'Unable to perform TALES evaluation on "%s" -- no Zenoss device'
 BAD_TALES = 'Unable to perform TALES evaluation on "%s"'
-def processTalSource(source, **kwargs):
+def processTalSource(source, skipfails=False, **kwargs):
     """
     This function is used to parse fields made available to actions that allow
     for TAL expressions.
@@ -103,7 +103,7 @@ def processTalSource(source, **kwargs):
 
     try:
         context = kwargs.get('here')
-        return talEval(source, context, kwargs)
+        return talEval(source, context, kwargs, skipfails)
     except CompilerError as ex:
         message = "%s: %s" % (ex, source)
         log.error("%s context = %s data = %s", message, context, kwargs)
@@ -448,11 +448,11 @@ class EmailAction(IActionBase, TargetableAction):
 
             if signal.clear:
                 log.debug("Generating a notification at enabled 'Send Clear' option when event was closed")
-                subject = processTalSource(notification.content['clear_subject_format'], **data)
-                body = processTalSource(notification.content['clear_body_format'], **data)
+                subject = processTalSource(notification.content['clear_subject_format'], notification.content['skipfails'], **data)
+                body = processTalSource(notification.content['clear_body_format'], notification.content['skipfails'], **data)
             else:
-                subject = processTalSource(notification.content['subject_format'], **data)
-                body = processTalSource(notification.content['body_format'], **data)
+                subject = processTalSource(notification.content['subject_format'], notification.content['skipfails'], **data)
+                body = processTalSource(notification.content['body_format'], notification.content['skipfails'], **data)
 
             log.debug('Sending this subject: %s', subject)
 
@@ -561,9 +561,9 @@ class PageAction(IActionBase, TargetableAction):
         data = self._signalToContextDict(signal, notification)
         if signal.clear:
             log.debug('This is a clearing signal.')
-            subject = processTalSource(notification.content['clear_subject_format'], **data)
+            subject = processTalSource(notification.content['clear_subject_format'], notification.content['skipfails'], **data)
         else:
-            subject = processTalSource(notification.content['subject_format'], **data)
+            subject = processTalSource(notification.content['subject_format'], notification.content['skipfails'], **data)
 
         msg = str(subject)
 
