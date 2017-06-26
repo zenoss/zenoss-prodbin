@@ -39,6 +39,7 @@ from Products.ZenModel.Exceptions import *
 
 from Products.ZenModel.ZenossSecurity import *
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.catalog.events import IAfterIndexingEventSubscriber
 
 from Products.Zuul.catalog.indexable import IpInterfaceIndexable
 from Products.ZenModel.interfaces import IObjectEventsSubscriber
@@ -68,7 +69,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
     """
     IpInterface object
     """
-    implements(IObjectEventsSubscriber)
+    implements(IObjectEventsSubscriber, IAfterIndexingEventSubscriber)
 
     portal_type = meta_type = 'IpInterface'
 
@@ -195,10 +196,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
 
     def after_object_added_or_moved_handler(self):
         self._invalidate_ipaddress_cache()
-        device = self.device()
-        if self.macaddress and device:
-            if (device.getMacAddressCache().add(self.macaddress) ):
-                notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))  # @TODO Should we remove the macs from the device?
+        self._update_device_macs(self.device(), self.macaddress)
 
     def before_object_deleted_handler(self):
         device = self.device()
@@ -211,12 +209,25 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 pass
 
     def object_added_handler(self):
-        if self.macaddress:
-            device = self.device()
-            if device:
-                device.getMacAddressCache().add(self.macaddress)
+        self._update_device_macs(self.device(), self.macaddress)
+
+    #------------------------------------------------
+    #--    IAfterIndexingEventSubscriber methods   --
+    def after_indexing_event(self, event):
+        """
+        @params event: IndexingEvent for whom we were called
+        """
+        if not event.triggered_by_zope_event:
+            # when the event is triggers by zope, the
+            # IObjectEventsSubscriber methods are called
+            self._update_device_macs(self.device(), self.macaddress)
 
     #------------------------------------------
+
+    def _update_device_macs(self, device, macaddress):
+        if device and macaddress:
+            if ( device.getMacAddressCache().add(macaddress) ):
+                notify(IndexingEvent(device, idxs=('macAddresses',)))  # @TODO Should we remove the macs from the device?
 
     def index_object(self, idxs=None):
         """
@@ -317,6 +328,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         ip = ip + '/' + str(netmask)
         if not self._ipAddresses: self._ipAddresses = []
         if not ip in self._ipAddresses:
+            self._invalidate_ipaddress_cache()
             self._ipAddresses = self._ipAddresses + [ip,]
 
 
@@ -365,20 +377,27 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
 
 
         #delete ips that are no longer in use
+        dirty = False
         for ip in ipids:
             ipobj = self.ipaddresses._getOb(ip)
             self.removeRelation('ipaddresses', ipobj)
+            dirty = True
             notify(IndexingEvent(ipobj))
         for ip in localips:
+            dirty = True
             self._ipAddresses.remove(ip)
+
+        # Invalidate the cache if we removed an ip.
+        if dirty:
+            self._invalidate_ipaddress_cache()
 
     def removeIpAddress(self, ip):
         """
         Remove an ipaddress from this interface.
         """
-        self._invalidate_ipaddress_cache()
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
+                self._invalidate_ipaddress_cache()
                 self.ipaddresses.removeRelation(ipobj)
                 notify(IndexingEvent(ipobj))
                 return

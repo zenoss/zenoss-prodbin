@@ -79,6 +79,11 @@ class IEmailActionContentInfo(IActionContentInfo):
         ''')
     )
 
+    skipfails = schema.Bool(
+        title       = _t(u'Skip fails in TALES evaluation ?'),
+        description = _t(u'Skip bad TALES expressions')
+    )
+
     email_from = schema.Text(
         title       = _t(u'From Address for Emails'),
         description = _t(u'The user from which the e-mail originated on the Zenoss server.'),
