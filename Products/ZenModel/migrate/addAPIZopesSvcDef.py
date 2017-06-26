@@ -126,7 +126,7 @@ class AddAPIZopesSvcDef(Migrate.Step):
             zenapi_ep.name = "zenapi"
             zenapi_ep.application = "zenapi"
             zenapi_ep.applicationtemplate = "zenapi"
-            zenapi_ep.portnumber = 9300
+            zenapi_ep.portnumber = 9320
             zenapi_ep.purpose = "import_all"
             zproxy.endpoints.append(zenapi_ep)
 
