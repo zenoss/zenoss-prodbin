@@ -1,3 +1,6 @@
+Products/LDAPMultiPlugins/
+Products/LDAPUserFolder/
+Products/MemcachedManager/
 Products/README.txt
 Products/ZenUI3/browser/resources/js/deploy/
 Products/ZenUI3/node_modules
