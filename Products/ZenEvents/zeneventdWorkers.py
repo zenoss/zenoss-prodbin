@@ -34,7 +34,7 @@ class EventletQueueConsumerTask(BaseQueueConsumerTask, BasePubSubMessageTask):
 
     def __init__(self, processor):
         BaseQueueConsumerTask.__init__(self, processor)
-        self.processing_timer = Metrology.timer('zeneventd.processMessage')
+        self.processing_timer = Metrology.timer('processMessage')
 
     def processMessage(self, message):
         """
