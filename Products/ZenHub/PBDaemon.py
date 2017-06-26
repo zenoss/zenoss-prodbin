@@ -856,6 +856,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
+        self.counters['collectordaemon.eventCount'] += 1
 
     def generateEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
