@@ -50,6 +50,8 @@ from Products.ZenEvents.Event import Event
 from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+from AccessControl import getSecurityManager
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 
 iszprop = re.compile("z[A-Z]").match
@@ -186,19 +188,19 @@ class DeviceFacade(TreeFacade):
         return brains, total
 
     def _typecatComponentPostProcess(self, brains, total):
-            hash_ = str(total)
-            comps = map(IInfo, map(unbrain, brains))
-            # fetch any rrd data necessary
-            self.bulkLoadMetricData(comps)
-            # Do one big lookup of component events and add to the result objects
-            showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
-            if showSeverityIcon:
-                uuids = [r.uuid for r in comps]
-                zep = getFacade('zep')
-                severities = zep.getWorstSeverity(uuids)
-                for r in comps:
-                    r.setWorstEventSeverity(severities[r.uuid])
-            return SearchResults(iter(comps), total, hash_, False)
+        hash_ = str(total)
+        comps = map(IInfo, map(unbrain, brains))
+        # fetch any rrd data necessary
+        self.bulkLoadMetricData(comps)
+        # Do one big lookup of component events and add to the result objects
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            uuids = [r.uuid for r in comps]
+            zep = getFacade('zep')
+            severities = zep.getWorstSeverity(uuids)
+            for r in comps:
+                r.setWorstEventSeverity(severities[r.uuid])
+        return SearchResults(iter(comps), total, hash_, False)
 
     # Get components from model catalog. Not used for now
     def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
@@ -1043,3 +1045,21 @@ class DeviceFacade(TreeFacade):
                     'protocol': ptcl,
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
+
+    def getDeviceClasses(self, allClasses=True):
+        """
+        Get a list of device classes.
+        If not allClasses, get only device classes which should use the standard
+        device creation job.
+        """
+        devices = self._dmd.Devices
+        deviceClasses = []
+        user = getSecurityManager().getUser()
+        def getOrganizerNames(org, user, deviceClasses):
+            if user.has_permission(ZEN_VIEW, org) and allClasses or getattr(org, 'zUsesStandardDeviceCreationJob', True):
+                deviceClasses.append(org.getOrganizerName())
+            for suborg in org.children(checkPerm=False):
+                getOrganizerNames(suborg, user, deviceClasses)
+        getOrganizerNames(devices, user, deviceClasses)
+        deviceClasses.sort(key=lambda x: x.lower())
+        return deviceClasses

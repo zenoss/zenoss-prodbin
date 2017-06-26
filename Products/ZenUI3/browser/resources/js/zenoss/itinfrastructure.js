@@ -100,22 +100,29 @@ var deviceClassCombo = {
         root: 'deviceClasses',
         totalProperty: 'totalCount',
         model: 'Zenoss.model.Name',
-        directFn: REMOTE.getDeviceClasses
+        directFn: REMOTE.getDeviceClassesToAdd
     }),
     listeners: {
         'afterrender': function(component) {
-            var selnode = getSelectionModel().getSelectedNode();
-            var isclass = selnode.data.uid.startswith('/zport/dmd/Devices');
+            component.store.load({
+                scope: this,
+                callback: function(records, operation, success) {
+                    var selnode = getSelectionModel().getSelectedNode();
+                    var isclass = selnode.data.uid.startswith('/zport/dmd/Devices');
 
-            if(selnode.data.uid === "/zport/dmd/Devices" || !isclass ){
-                //root node doesn't have a path attr
-                component.setValue('/');
-            }
-            else if (isclass) {
-                var path = selnode.data.path;
-                path = path.replace(/^Devices/,'');
-                component.setRawValue(path);
-            }
+                    if(selnode.data.uid === "/zport/dmd/Devices" || !isclass ){
+                        //root node doesn't have a path attr
+                        this.setValue('/');
+                    }
+                    else if (isclass) {
+                        var path = selnode.data.path;
+                        path = path.replace(/^Devices/,'');
+                        if (this.findRecordByValue(path)) {
+                            this.setRawValue(path);
+                        }
+                    }
+                }
+            });
 
             this.toggleAdditionalFields();
         },
