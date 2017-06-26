@@ -204,7 +204,7 @@ class CollectorDaemon(RRDDaemon):
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
-        # setup daemon statistics
+        # setup daemon statistics (deprecated names)
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
         self._statService.addStatistic("dataPoints", "DERIVE")
@@ -212,7 +212,9 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("taskCount", "GAUGE")
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
-        # namespace these a bit so they can be used in ZP monitoring
+
+        # namespace these a bit so they can be used in ZP monitoring.
+        # prefer these stat names in future refs
         self._statService.addStatistic("collectordaemon.devices", "GAUGE")
         self._statService.addStatistic("collectordaemon.dataPoints", "DERIVE")
         self._statService.addStatistic("collectordaemon.runningTasks", "GAUGE")

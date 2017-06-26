@@ -855,7 +855,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
+        # deprecated counter name
         self.counters['eventCount'] += 1
+        # prefer this counter name for future refs
         self.counters['collectordaemon.eventCount'] += 1
 
     def generateEvent(self, event, **kw):
