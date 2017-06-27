@@ -35,7 +35,8 @@ from zenoss.modelindex.constants import NOINDEX_TYPE
             -------------------------------------------------------------------------------------------------------------------
             |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
             -------------------------------------------------------------------------------------------------------------------
-            |  idx_uid                   |  uid                    |      uid     |     Y   |    Y    |   str     |     N     |
+            |  idx_model_index_uid       |  model_index_uid        |      uid     |     Y   |    Y    |   str     |     N     |
+            |  idx_object_uid            |  uid                    |              |     Y   |    Y    |   str     |     N     |
             |  idx_id                    |  id                     |              |     Y   |    Y    |   str     |     N     |
             |  idx_uuid                  |  uuid                   |              |     Y   |    Y    |   str     |     N     |
             |  idx_name                  |  name                   |              |     Y   |    Y    |   str     |     N     |
@@ -169,9 +170,21 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         return self.__class__.__name__
     '''
 
-    @indexed(UntokenizedStringFieldType(stored=True), index_field_name="uid", attr_query_name="uid")
     def idx_uid(self):
         return IIndexableWrapper(self).uid()
+
+    # Solr uid. It is mandatory for modelindex. We use the object's primary path.
+    # The model catalog data manager may add additional information to this field
+    # for mid transaction commits. model_index_uid should only be used by the data manager
+    # The index_field_name must be the same as zenoss.modelindex.constants.INDEX_UNIQUE_FIELD
+    @indexed(UntokenizedStringFieldType(stored=True), index_field_name="uid", attr_query_name="model_index_uid")
+    def idx_model_index_uid(self):
+        return self.idx_uid()
+
+    # uid used within zenoss. it is the object's primary path
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="uid")
+    def idx_object_uid(self):
+        return self.idx_uid()
 
     @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="id")
     def idx_id(self):
