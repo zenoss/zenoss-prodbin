@@ -184,7 +184,7 @@ class MetricConnection(object):
             log.info('finished posting request')
 
             if not (resp.status_code >= 200 and resp.status_code <= 299):
-                raise ServiceResponseError(resp.reason, status_code, request,
+                raise ServiceResponseError(resp.reason, resp.status_code, request,
                                            resp, resp.content)
 
             if resp.status_code == 200:
