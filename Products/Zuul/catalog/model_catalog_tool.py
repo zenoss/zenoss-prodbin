@@ -18,13 +18,12 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchG
 
 from Products.ZenUtils.NaturalSort import natural_compare
 from Products.Zuul.catalog.interfaces import IModelCatalog
-from Products.Zuul.catalog.model_catalog import SearchResults
+from Products.Zuul.catalog.model_catalog import SearchResults, MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.tree import StaleResultsException
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups, unbrain
 from zenoss.modelindex.model_index import SearchParams
-from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID
 from zope.interface import implements
 from zope.component import getUtility
 
@@ -40,7 +39,6 @@ class ModelCatalogTool(object):
     def __init__(self, context):
         self.context = context
         self.model_catalog_client = getUtility(IModelCatalog).get_client(context)
-        self.uid_field_name = UID
         self.helper = ModelCatalogToolHelper(self)
         # Helpers for legacy catalogs
         self.layer2 = None
@@ -205,15 +203,16 @@ class ModelCatalogTool(object):
 
         return catalog_results
 
-    def _get_fields_to_return(self, uid_only, fields):
+    def _get_fields_to_return(self, fields):
         """
         return the list of fields that brains returned by the current search will have
         """
         if isinstance(fields, basestring):
             fields = [ fields ]
         brain_fields = set(fields) if fields else set()
-        if uid_only:
-            brain_fields.add(self.uid_field_name)
+        # Always return object uid and solr internal uid
+        brain_fields.add(OBJECT_UID_FIELD)
+        brain_fields.add(MODEL_INDEX_UID_FIELD)
         return list(brain_fields)
 
     def _filterQueryResults(self, queryResults, infoFilters):
@@ -286,12 +285,11 @@ class ModelCatalogTool(object):
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None,
-               uid_only=True, fields=None, commit_dirty=False):
+               fields=None, commit_dirty=False):
         """
         Build and execute a query against the global catalog.
         @param query: Advanced Query query
         @param globFilters: dict {field: value}
-        @param uid_only: if True model index will only return the uid
         @param fields: Fields we want model index to return. The fewer 
                        fields we need to retrieve the faster the query will be
         """
@@ -306,7 +304,7 @@ class ModelCatalogTool(object):
         queryStart = start if areBrains else 0
         queryLimit = limit if areBrains else None
 
-        fields_to_return = self._get_fields_to_return(uid_only, fields)
+        fields_to_return = self._get_fields_to_return(fields)
 
         catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
                                                     order_by=queryOrderby, reverse=reverse,
@@ -352,7 +350,7 @@ class ModelCatalogTool(object):
     def getBrain(self, path, fields=None, commit_dirty=False):
         """
         Gets the brain representing the object defined at C{path}.
-        The search is done by uid field
+        The search is done by the object's uid field
         """
         if not isinstance(path, (tuple, basestring)):
             path = '/'.join(path.getPhysicalPath())

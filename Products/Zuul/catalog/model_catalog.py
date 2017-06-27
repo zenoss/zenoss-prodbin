@@ -29,7 +29,6 @@ from transaction.interfaces import IDataManager
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
-from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID_FIELD
 from zenoss.modelindex.exceptions import IndexException, SearchException
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 
@@ -44,6 +43,8 @@ log = logging.getLogger("model_catalog")
 
 TX_STATE_FIELD = "tx_state"
 
+MODEL_INDEX_UID_FIELD = "model_index_uid"  # this will translate to "uid" in solr
+OBJECT_UID_FIELD = "uid"  # this will transalate to "idx_object_uid_s_isnn" in solr
 
 class SearchResults(object):
 
@@ -85,7 +86,7 @@ class ModelCatalogBrain(Implicit):
 
     def getPath(self):
         """ Get the physical path for this record """
-        uid = str(getattr(self, UID_FIELD))
+        uid = str(getattr(self, OBJECT_UID_FIELD))
         if not uid.startswith('/zport/dmd'):
             uid = '/zport/dmd/' + uid
         return uid
@@ -198,7 +199,9 @@ class ModelCatalogTransactionState(object):
         # ^^
         # In indexed_updates we store updates that we indexed mid transaction
         # because a search came in. Only this transaction should see such changes
-        self.temp_indexed_uids = set() # uids (uid@=@tid) of temporary indexed documents
+        self.temp_indexed_uids = set() # object uids of temporary indexed documents
+        self.temp_deleted_uids = set() # object uids of temporary deleted documents
+
         self.commits_metric = []
 
     def add_model_update(self, object_update):
@@ -220,7 +223,7 @@ class ModelCatalogTransactionState(object):
                     idxs = None # index the whole object
                 elif previous_model_update.idxs and idxs: # combine them
                     idxs = set(idxs) | set(previous_model_update.idxs)
-                    idxs.update(TX_STATE_FIELD, UID_FIELD) # Mandatory fields
+                    idxs.update(TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD) # Mandatory fields
 
         model_update = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
         self.pending_updates[object_update.uid] = model_update
@@ -241,7 +244,7 @@ class ModelCatalogTransactionState(object):
         for uid, update in self.indexed_updates.iteritems():
             # update the uid and tx_state
             if update.op == INDEX:
-                update.spec.set_field_value(UID_FIELD, uid)
+                update.spec.set_field_value(MODEL_INDEX_UID_FIELD, uid)
                 update.spec.set_field_value(TX_STATE_FIELD, 0)
             final_updates[uid] = update
         # now update overwriting in case we had a new update for any
@@ -255,12 +258,15 @@ class ModelCatalogTransactionState(object):
     def are_there_indexed_updates(self):
         return len(self.indexed_updates) > 0
 
-    def mark_pending_updates_as_indexed(self, indexed_uids):
+    def mark_pending_updates_as_indexed(self, indexed_uids, deleted_uids):
         """
         @param indexed_uids: temporary uids we indexed the docs with
         """
         self.commits_metric.append(len(self.pending_updates))
         self.temp_indexed_uids = self.temp_indexed_uids | indexed_uids
+        self.temp_deleted_uids = self.temp_deleted_uids | deleted_uids
+        self.temp_indexed_uids = self.temp_indexed_uids - deleted_uids
+        self.temp_deleted_uids = self.temp_deleted_uids - indexed_uids
         self.indexed_updates.update(self.pending_updates)
         self.pending_updates = {} # clear pending updates
         #log.info("SEARCH TRIGGERED TEMP INDEXING. {0}".format(traceback.format_stack()))   # @TODO TEMP LOGGING
@@ -292,35 +298,32 @@ class ModelCatalogDataManager(object):
         return self.model_index.get_indexes()
 
     def _process_pending_updates(self, tx_state):
+        """ index all pending updates """
         updates = tx_state.get_pending_updates()
-        # we are going to index all pending updates adding
-        # the tid to the uid field and setting tx_state field
-        # to the tid
+        # we are going to index all pending updates setting the MODEL_INDEX_UID_FIELD
+        # field as the OBJECT_UID_FIELD appending the tid and setting tx_state field
+        # to the current tid
         tweaked_updates = []
         indexed_uids = set()
+        deleted_uids = set()
         for update in updates:
             tid = tx_state.tid
-            temp_uid = self._mid_transaction_uid(update.uid, tx_state)
-
-            # We only unindex docs that have been already modified
-            # unmodified docs marked for removal are not a problem since
-            # we blacklist them from searchs
             if update.op == UNINDEX:
-                if temp_uid not in tx_state.temp_indexed_uids:
-                    continue
-                else:
-                    update.uid = temp_uid
+                # we dont do anything for unindexed objects, we just add the to
+                # a set to be able to blacklist them from search results
+                deleted_uids.add(update.uid)
             else:
                 # Index the object with a special uid
-                update.spec.set_field_value(UID_FIELD, temp_uid)
+                temp_uid = self._mid_transaction_uid(update.uid, tx_state)
+                update.spec.set_field_value(MODEL_INDEX_UID_FIELD, temp_uid)
                 update.spec.set_field_value(TX_STATE_FIELD, tid)
-                indexed_uids.add(temp_uid)
+                indexed_uids.add(update.uid)
             tweaked_updates.append(update)
 
         # send and commit indexed docs to solr
         self.model_index.process_batched_updates(tweaked_updates)
         # marked docs as indexed
-        tx_state.mark_pending_updates_as_indexed(indexed_uids)
+        tx_state.mark_pending_updates_as_indexed(indexed_uids, deleted_uids)
 
     def _add_tx_state_query(self, search_params, tx_state):
         """
@@ -350,17 +353,14 @@ class ModelCatalogDataManager(object):
         """
         tx_state = self._get_tx_state()
         tweak_results = (tx_state and tx_state.are_there_indexed_updates())
-        dirty_uids = temp_indexed_uids = set()
-        if tweak_results:
-            dirty_uids = set(tx_state.indexed_updates.keys())  # uids without TX_SEPARATOR
-            temp_indexed_uids = tx_state.temp_indexed_uids     # uids with TX_SEPARATOR
 
         for result in catalog_results.results:
             if tweak_results:
-                if result.uid in dirty_uids:
-                    continue  # outdated result
-                elif result.uid in temp_indexed_uids: # object has been updated mid transaction
-                    result.uid = result.uid.split(TX_SEPARATOR)[0]
+                tid = tx_state.tid
+                if result.uid in tx_state.temp_deleted_uids:
+                    continue # object was deleted
+                elif result.uid in tx_state.temp_indexed_uids and result.tx_state != tid:
+                    continue # Not the latest version of the object for this transaction
             brain = ModelCatalogBrain(result.to_dict(), result.idxs)
             brain = brain.__of__(context.dmd)
             yield brain
@@ -376,9 +376,9 @@ class ModelCatalogDataManager(object):
             self.raise_model_catalog_error()
 
         brains = self._parse_catalog_results(catalog_results, context)
-        # this count might occasionally be wrong if there are mid tx updated objects
-        # Since we should avoid mid transaction searches we will use it
-        #
+        # @TODO: this count might occasionally be wrong if there are mid tx updated objects
+        # the solution would be that if there are mid tx updates, we would need to load all
+        # the results to get the right count
         count = catalog_results.total_count
         return SearchResults(brains, total=count, hash_=str(count))
 
@@ -399,46 +399,6 @@ class ModelCatalogDataManager(object):
     def _mid_transaction_uid(self, uid, tx_state):
         return "{0}{1}{2}".format(uid, TX_SEPARATOR, tx_state.tid)
 
-    def _tweak_mid_transaction_search_params(self, search_params, tx_state):
-        """
-        Updates the search params in a transaction with mid transaction objects
-        committed to solr if the query is searching for an uid that has been
-        updated mid transaction.
-
-        Ex: In transacton 1111 object uid_1 has had mid transaction changes. The latest version
-            of the object is under doc uid_1@=@1111. If we get a query {"uid": "uid_1"} we need to
-            transform it to {"uid": "uid_1@=@111"}
-
-        """
-        if isinstance(search_params.query, dict):
-            uid = search_params.query.get("uid")
-            if uid and uid in tx_state.indexed_updates:
-                search_params.query["uid"] = self._mid_transaction_uid(uid, tx_state)
-        elif not isinstance(search_params.query, basestring) and \
-             "uid" in str(search_params.query):
-            # AdvancedQuery
-            queries = [ search_params.query ]
-            while queries:
-                q = queries.pop()
-                if isinstance(q, Eq) and q._idx == "uid":
-                    if q._term in tx_state.indexed_updates:
-                        q._term = self._mid_transaction_uid(q._term, tx_state)
-                elif isinstance(q, And) or isinstance(q, Or):
-                    for sq in q._subqueries:
-                        queries.append(sq)
-                elif isinstance(q, Not):
-                    queries.append(q._query)
-                elif isinstance(q, In) and q._idx == "uid":
-                    new_uid_values = []
-                    for uid in q._term:
-                        if uid in tx_state.indexed_updates:
-                            new_uid_values.append(self._mid_transaction_uid(uid, tx_state))
-                        else:
-                            new_uid_values.append(uid)
-                    q._term = new_uid_values
-        #@TODO add support for lucene queries
-        return search_params
-
     def search(self, search_params, context, commit_dirty=False):
         """
         Searches for objects that satisfy search_params in the catalog associated with context.
@@ -446,23 +406,14 @@ class ModelCatalogDataManager(object):
         tx_state = self._get_tx_state()
         if commit_dirty:
             self._do_mid_transaction_commit()
-        if tx_state and tx_state.indexed_updates:
-            # If we have done a mid transaction commit we may need to tweak some params
-            search_params = self._tweak_mid_transaction_search_params(search_params, tx_state)
         return self._do_search(search_params, context)
 
     def search_brain(self, uid, context, fields=None, commit_dirty=False):
         """ """
         tx_state = self._get_tx_state()
-
         if commit_dirty:
             self._do_mid_transaction_commit()
-
-        # if the object has been updated mid transaction, get the latest version
-        if tx_state and uid in tx_state.indexed_updates:
-            uid = self._mid_transaction_uid(uid, tx_state)
-
-        query = Eq(UID_FIELD, uid)
+        query = Eq(OBJECT_UID_FIELD, uid)
         search_params = SearchParams(query, fields=fields)
         search_params = self._add_tx_state_query(search_params, tx_state)
         return self._do_search(search_params, context)
@@ -557,10 +508,10 @@ class ModelCatalogTestDataManager(ModelCatalogDataManager):
     def abort(self, tx):
         super(ModelCatalogTestDataManager, self).abort(transaction)
 
-    def search(self, search_params, context, commit_dirty=True):
+    def search(self, search_params, context, commit_dirty=False):
         return super(ModelCatalogTestDataManager, self).search(search_params, context, commit_dirty=True)
 
-    def search_brain(self, path, context, fields=None, commit_dirty=True):
+    def search_brain(self, path, context, fields=None, commit_dirty=False):
         return super(ModelCatalogTestDataManager, self).search_brain(path, context, fields, commit_dirty=True)
 
 
