@@ -541,6 +541,13 @@ class DeviceFacade(TreeFacade):
         # pass in the request for the audit
         return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
 
+    def resumeCollection(self, id):
+        uid = id.split('/')[-1]
+        device = self._getObject(uid)
+        # device = self._getObject(uid).findDevice(uid)
+        device.renameInProgress = False
+        return "OK!"
+
     def _moveDevices(self, uids, target):
         # Resolve target if a path
         if isinstance(target, basestring):
