@@ -59,11 +59,6 @@ class TestGuid(BaseTestCase):
                 provides="Products.ZenUtils.guid.interfaces.IGUIDManager"
                 factory="Products.ZenUtils.guid.guid.GUIDManager"
                 />
-            <adapter
-                for="Products.ZenUtils.tests.test_guid.Identifiable"
-                provides="Products.ZenUtils.productionstate.interfaces.IProdStateManager"
-                factory="Products.ZenUtils.productionstate.productionstate.ProdStateManager"
-                />
             <include package="Products.Five" file="event.zcml" />
             <subscriber handler="Products.ZenUtils.guid.event.registerGUIDToPathMapping"/>
             <subscriber handler="Products.ZenUtils.guid.event.refireEventOnObjectAddOrMove"/>

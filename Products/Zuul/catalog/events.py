@@ -10,32 +10,36 @@
 
 from zope.event import notify
 from zope.interface import implements
-from zope.component import adapter
+from zope.component import adapter, getUtility
 from zope.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
 from zope.container.interfaces import IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
-from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
+from interfaces import IIndexingEvent, IAfterIndexingEventSubscriber, \
+                       IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
+
+from Products.Zuul.catalog.interfaces import IModelCatalog
+from Products.Zuul.catalog.exceptions import BadIndexingEvent
 
 
 class IndexingEvent(object):
     implements(IIndexingEvent)
-    def __init__(self, object, idxs=None, update_metadata=True):
+    def __init__(self, object, idxs=None, update_metadata=True, triggered_by_zope_event=False):
+        """
+        @param triggered_by_zope_event : flag to indicate whether the IndexingEvent was triggered
+        by zope events (IObjectWillBeMovedEvent, IObjectAddedEvent etc) or not.
+        """
         self.object = object
         self.idxs = idxs
         self.update_metadata = update_metadata
+        self.triggered_by_zope_event = triggered_by_zope_event
 
 
-@adapter(IGloballyIndexed, IIndexingEvent)
-def onIndexingEvent(ob, event):
-    try:
-        catalog = ob.getPhysicalRoot().zport.global_catalog
-    except (KeyError, AttributeError):
-        # Migrate script hasn't run yet; ignore indexing
-        return
-    idxs = event.idxs
-    if isinstance(idxs, basestring):
-        idxs = [idxs]
+def _get_object_to_index(ob):
+    """
+    Returns the object to be indexed/unindexed or None 
+    if the object does not have to be indexed
+    """
     try:
         evob = ob.primaryAq()
     except (AttributeError, KeyError):
@@ -43,9 +47,29 @@ def onIndexingEvent(ob, event):
     path = evob.getPrimaryPath()
     # Ignore things dmd or above
     if len(path)<=3 or path[2]!='dmd':
-        return
-    catalog.catalog_object(evob, idxs=idxs,
-                           update_metadata=event.update_metadata)
+        return None
+    else:
+        return evob
+
+
+@adapter(IGloballyIndexed, IIndexingEvent)
+def onIndexingEvent(ob, event):
+    model_catalog = getUtility(IModelCatalog)
+    object_to_index = _get_object_to_index(ob)
+
+    idxs = event.idxs
+    if isinstance(idxs, basestring):
+        idxs = [idxs]
+
+    if idxs:
+        # check idxs are valid indexes
+        bad_idxs = set(idxs) - set(model_catalog.get_indexes(object_to_index))
+        if bad_idxs:
+            raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
+    if object_to_index:
+        model_catalog.catalog_object(object_to_index, idxs)
+        if IAfterIndexingEventSubscriber.providedBy(object_to_index):
+            object_to_index.after_indexing_event(event)
 
 
 @adapter(IGloballyIndexed, IObjectWillBeMovedEvent)
@@ -54,19 +78,9 @@ def onObjectRemoved(ob, event):
     Unindex, please.
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        path = ob.getPrimaryPath()
-        # Ignore things dmd or above
-        if len(path)<=3 or path[2]!='dmd':
-            return
-        uid = '/'.join(path)
-        if catalog.getrid(uid) is None:
-            return
-        catalog.uncatalog_object(uid)
+        object_to_unindex = _get_object_to_index(ob)
+        if object_to_unindex:
+            getUtility(IModelCatalog).uncatalog_object(object_to_unindex)
 
 
 @adapter(IGloballyIndexed, IObjectAddedEvent)
@@ -75,17 +89,17 @@ def onObjectAdded(ob, event):
     Simple subscriber that fires the indexing event for all
     indices.
     """
-    notify(IndexingEvent(ob))
+    notify(IndexingEvent(ob, triggered_by_zope_event=True))
 
 
 @adapter(IGloballyIndexed, IObjectMovedEvent)
 def onObjectMoved(ob, event):
     """
-    Reindex paths only, don't update metadata.
+    Reindex paths only
     """
     if not (IObjectAddedEvent.providedBy(event) or
             IObjectRemovedEvent.providedBy(event)):
-        notify(IndexingEvent(ob, 'path', False))
+        notify(IndexingEvent(ob, idxs='path', triggered_by_zope_event=True))
 
 
 @adapter(IDeviceOrganizer, IObjectWillBeMovedEvent)
@@ -95,66 +109,49 @@ def onOrganizerBeforeDelete(ob, event):
     to the devices. 
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        # get the catalog
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        
-        # remove the device's path from this organizer
-        # from the indexes
         for device in ob.devices.objectValuesGen():
-            notify(IndexingEvent(device, idxs=['path']))
-        
+            notify(IndexingEvent(device, idxs=['path'], triggered_by_zope_event=True))
+
+
+#-------------------------------------------------------------
+#    Methods to deal with tree spanning components.
+#    When a tree spanning component is updated, we need
+#    to make sure that the object the component is linked
+#    to in the other tree is updated if needed
+#-------------------------------------------------------------
+
+
+class ObjectsAffectedBySpanningComponent(object):
+
+    def __init__(self, component):
+        self.component = component
+        self.peers = self._set_component_peers(component)
+
+    def _set_component_peers(self, component):
+        peers = []
+        if hasattr(component, "get_indexable_peers"):
+            peers = component.get_indexable_peers()
+            if not hasattr(peers, '__iter__'):
+                peers = [ peers ]
+        return peers
+
+    def index_affected_objects(self):
+        for peer in self.peers:
+            notify(IndexingEvent(peer, triggered_by_zope_event=True))
+
 
 @adapter(ITreeSpanningComponent, IObjectWillBeMovedEvent)
 def onTreeSpanningComponentBeforeDelete(ob, event):
-    """
-    When a component that links a device to another tree is going to
-    be removed, update the device's paths.
-    """
+    """ Before tree spanning component is deleted """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        component = ob
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        device = component.device()
-        if not device:
-            # OS relation has already been broken; get by path
-            path = component.getPrimaryPath()
-            try:
-                devpath = path[:path.index('devices')+2]
-                device = component.unrestrictedTraverse(devpath)
-            except ValueError:
-                # We've done our best. Give up.
-                return
-        if device:
-            oldpaths = devicePathsFromComponent(component)
-            catalog.unindex_object_from_paths(device, oldpaths)
+        ppath = "/".join(ob.getPrimaryPath())
+        affected_objects = ObjectsAffectedBySpanningComponent(ob)
+        affected_objects.index_affected_objects()
 
 
 @adapter(ITreeSpanningComponent, IObjectMovedEvent)
 def onTreeSpanningComponentAfterAddOrMove(ob, event):
+    """ When tree spanning component is added or moved """
     if not IObjectRemovedEvent.providedBy(event):
-        component = ob
-        try:
-            catalog = ob.getPhysicalRoot().zport.global_catalog
-        except (KeyError, AttributeError):
-            # Migrate script hasn't run yet; ignore indexing
-            return
-        device = component.device()
-        if not device:
-            # OS relation has been broken or doesn't exist yet; get by path
-            path = component.getPrimaryPath()
-            try:
-                devpath = path[:path.index('devices')+2]
-                device = component.unrestrictedTraverse(devpath)
-            except ValueError:
-                # We've done our best. Give up.
-                return
-        if device:
-            newpaths = devicePathsFromComponent(component)
-            catalog.index_object_under_paths(device, newpaths)
+        affected_objects = ObjectsAffectedBySpanningComponent(ob)
+        affected_objects.index_affected_objects()

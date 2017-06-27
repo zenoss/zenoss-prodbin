@@ -169,7 +169,7 @@ class TestIpInterface(ZenModelBaseTest):
                     template_id, self.iface.getRRDTemplates()[0].id)
 
     def testProductionState(self):
-	    # test acquisition from device
+        # test acquisition from device
         self.dev._setProductionState(400)
         self.assertEquals(self.iface.getProductionState(), 400)
 
@@ -182,10 +182,10 @@ class TestIpInterface(ZenModelBaseTest):
         self.dev._setProductionState(1000)
         self.assertEquals(self.iface.getProductionState(), 100)
 
-    	# delete it from the component and it goes back to acquiring
+        # delete it from the component and it goes back to acquiring
     	self.iface.resetProductionState()
-    	self.dev._setProductionState(99)
-    	self.assertEquals(self.iface.getProductionState(), 99)
+        self.dev._setProductionState(99)
+        self.assertEquals(self.iface.getProductionState(), 99)
 
     # Same as testProductionState but use the property instead of the methods
     def testProductionStateProperty(self):

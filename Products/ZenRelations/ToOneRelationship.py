@@ -45,6 +45,26 @@ def manage_addToOneRelationship(context, id, REQUEST = None):
 addToOneRelationship = DTMLFile('dtml/addToOneRelationship',globals())
 
 
+#FIXME - please make me go away, I'm so ugly!
+def getPrimaryLink(obj, target=None):
+    """
+    Gets the object's PrimaryLink
+    """
+    link = ""
+    if obj:
+        if not obj.checkRemotePerm("View", obj):
+            link = obj.id
+        else:
+            attributes = ''
+            if target is not None:
+                attributes = "target='%s' " % (target,)
+            link = "<a %shref='%s'>%s</a>" % (
+                attributes,
+                obj.getPrimaryUrlPath(),
+                obj.id)
+    return link
+
+
 class ToOneRelationship(RelationshipBase):
     """ToOneRelationship represents a to one Relationship
     on a RelationshipManager"""
@@ -157,25 +177,10 @@ class ToOneRelationship(RelationshipBase):
         REQUEST['RESPONSE'].redirect(
             self.getPrimaryParent().getPrimaryUrlPath()+'/manage_workspace')
 
-
-    #FIXME - please make me go away, I'm so ugly!
     security.declareProtected('View', 'getPrimaryLink')
     def getPrimaryLink(self, target=None):
         """get the link tag of a related object"""
-        link = ""
-        if self.obj:
-            if not self.obj.checkRemotePerm("View", self.obj):
-                link = self.obj.id
-            else:
-                attributes = ''
-                if target is not None:
-                    attributes = "target='%s' " % (target,)
-                link = "<a %shref='%s'>%s</a>" % (
-                    attributes,
-                    self.obj.getPrimaryUrlPath(),
-                    self.obj.id)
-        return link
-
+        return getPrimaryLink(self.obj, target)
 
     def getPrimaryHref(self):
         """Return the primary URL for our related object.

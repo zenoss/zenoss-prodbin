@@ -24,6 +24,7 @@ from AccessControl.SecurityManagement import noSecurityManager
 
 from Products.ZenUtils.ZeoConn import ZeoConn
 
+from Products.ZenTestCase.BaseTestCase import init_model_catalog_for_tests
 
 unused = lambda x: None
 unused(Globals)
@@ -116,7 +117,7 @@ class ZenDocTestRunner(object):
                                     zodb_socket=adapter_config.unix_socket)
             else:
                 self.conn = ZeoConn()
-
+        init_model_catalog_for_tests()
         self.app = self.conn.app
         self.login()
         self.dmd = self.app.zport.dmd

@@ -1332,6 +1332,21 @@ class DeviceRouter(TreeRouter):
         """
         return self.context.dmd.Monitors.getPerformanceMonitorNames()
 
+    def getDeviceClassesToAdd(self, **data):
+        """
+        Get a list of device classes that don't require special case add jobs
+
+        @rtype:   DirectResponse
+        @return:  B{Properties}:
+             - deviceClasses: ([dictionary]) List of device classes
+             - totalCount: (integer) Total number of device classes
+        """
+        facade = self._getFacade()
+        deviceClasses = ['']
+        deviceClasses.extend(facade.getDeviceClasses(allClasses=False))
+        result = [{'name': name} for name in deviceClasses]
+        return DirectResponse(deviceClasses=result, totalCount=len(result))
+
     def getDeviceClasses(self, **data):
         """
         Get a list of all device classes.
@@ -1341,8 +1356,9 @@ class DeviceRouter(TreeRouter):
              - deviceClasses: ([dictionary]) List of device classes
              - totalCount: (integer) Total number of device classes
         """
-        devices = self.context.dmd.Devices
-        deviceClasses = devices.getOrganizerNames(addblank=True)
+        facade = self._getFacade()
+        deviceClasses = ['']
+        deviceClasses.extend(facade.getDeviceClasses())
         result = [{'name': name} for name in deviceClasses]
         return DirectResponse(deviceClasses=result, totalCount=len(result))
 

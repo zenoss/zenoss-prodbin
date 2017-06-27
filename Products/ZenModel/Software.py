@@ -110,7 +110,7 @@ class Software(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                     productName, manufacturer, **kwargs)
-        self.productClass.addRelation(prodobj)
+        self.setProductClass(prodobj)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Product Set',
@@ -133,9 +133,9 @@ class Software(MEProduct):
 
             manufs = self.getDmdRoot("Manufacturers")
             prodobj = manufs.createSoftwareProduct(prodKey, manufacturer, isOS=True)
-            self.productClass.addRelation(prodobj)
+            self.setProductClass(prodobj)
         else:
-            self.productClass.removeRelation()
+            self.removeProductClass()
 
 
     def name(self):

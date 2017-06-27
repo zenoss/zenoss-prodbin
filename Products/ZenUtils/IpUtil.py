@@ -582,3 +582,9 @@ def isRemotelyReachable(ip):
         return not ip_address.is_link_local and not ip_address.is_loopback
     except ValueError:
         return False
+
+def get_default_netmask(ip):
+    netmask = 24
+    if get_ip_version(ip) == 6:
+        netmask = 48
+    return netmask

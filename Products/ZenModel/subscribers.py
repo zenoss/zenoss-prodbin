@@ -11,17 +11,13 @@ from zope.component import adapter
 from zope.container.interfaces import IObjectAddedEvent, IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
 
-from Products.ZenModel.IpInterface import IpInterface, beforeDeleteIpInterface
 
 def unindexBeforeDelete(ob, event):
     """
     Multisubscriber for IIndexed + IObjectWillBeMovedEvent
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        if isinstance(ob, IpInterface):
-            beforeDeleteIpInterface(ob, event)
-        else:
-            ob.unindex_object()
+        ob.unindex_object()
 
 def indexAfterAddOrMove(ob, event):
     """
@@ -30,28 +26,29 @@ def indexAfterAddOrMove(ob, event):
     if not IObjectRemovedEvent.providedBy(event):
         ob.index_object()
 
-@adapter(IpInterface, IObjectWillBeMovedEvent)
-def onInterfaceRemoved(ob, event):
-    """
-    Unindex
-    """
 
+"""
+    New handlers, once model catalog is implemented for all ZCatalogs
+    the above handlers will be removed
+"""
+
+
+def onBeforeObjectDeleted(ob, event):
+    """ Subscriber for IObjectEventsSubscriber + IObjectWillBeMovedEvent """
     if not IObjectWillBeAddedEvent.providedBy(event):
-        device = ob.device()
-        if device:
-            macs = device.getMacAddressCache()
-            if ob.macaddress in macs:
-                macs.remove(ob.macaddress)
+        if hasattr(ob, "before_object_deleted_handler"):
+            ob.before_object_deleted_handler()
 
 
-@adapter(IpInterface, IObjectAddedEvent)
-def onInterfaceAdded(ob, event):
-    """
-    Simple subscriber that fires the indexing event for all indices.
-    """
+def onAfterObjectAddedOrMoved(ob, event):
+    """ Subscriber for IObjectEventsSubscriber + IObjectMovedEvent """
+    if not IObjectRemovedEvent.providedBy(event):
+        if hasattr(ob, "after_object_added_or_moved_handler"):
+            ob.after_object_added_or_moved_handler()
 
-    if ob.macaddress:
-        device = ob.device()
-        if device:
-            device.getMacAddressCache().add(ob.macaddress)
+
+def onObjectAdded(ob, event):
+    """ """
+    if hasattr(ob, "object_added_handler"):
+        ob.object_added_handler()
 
