@@ -86,11 +86,11 @@ class ReportFacade(TreeFacade):
             defs.append(info)
         return defs
 
-    def getMultiGraphReportDefs(self, uid):
+    def getMultiGraphReportDefs(self, uid, graphGroup=None):
         obj = self._getObject(uid)
         graphs = []
-        for graphDef in obj.getDefaultGraphDefs():
-            if  graphDef['separateGraphs']:
+        for graphDef in obj.getDefaultGraphDefs(graphGroup=graphGroup):
+            if graphDef['separateGraphs']:
                 info = getMultiAdapter((graphDef['graphDef'], graphDef['context'], graphDef['collection']), IMetricServiceGraphDefinition)
             else:
                 # specialized adapter for combined graph groups
