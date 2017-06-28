@@ -1,15 +1,13 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
 import logging
-log = logging.getLogger('zen.MibFacade')
 
 from zope.interface import implements
 from Acquisition import aq_parent
@@ -18,13 +16,15 @@ from Products.Zuul.decorators import info
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import UncataloguedObjectException
 from Products.Zuul.interfaces import ITreeFacade, IMibFacade, IInfo
-from Products.Zuul.infos.mib import MibOrganizerNode, MibNode, FakeTopLevelNodeInfo
-
+from Products.Zuul.infos.mib import (
+    MibOrganizerNode, MibNode, FakeTopLevelNodeInfo
+)
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath, snmptranslate
-
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
+
+log = logging.getLogger('zen.MibFacade')
 
 
 class MibFacade(TreeFacade):
@@ -64,15 +64,15 @@ class MibFacade(TreeFacade):
         b = node2.oid.split('.')
 
         # Find the point where the OIDs diverge
-        for i in range( min(len(a), len(b)) ):
+        for i in range(min(len(a), len(b))):
             if a[i] == b[i]:
                 continue
 
             # Compare the two oids at the branch, *numerically*
-            return cmp( int(a[i]), int(b[i]) )
+            return cmp(int(a[i]), int(b[i]))
 
         # This case occurs when one OID is the parent of another
-        return cmp( len(a), len(b) )
+        return cmp(len(a), len(b))
 
     def addOidMapping(self, uid, id, oid, nodetype):
         self._getObject(uid).addMibNode(id, oid, nodetype)
@@ -86,18 +86,24 @@ class MibFacade(TreeFacade):
     def deleteTrap(self, mibUid, trapId):
         self._getObject(mibUid).deleteMibNotifications([trapId])
 
-    def getMibNodes(self, uid, limit=0, start=0, sort='name', dir='DESC', relation='nodes'):
+    def getMibNodes(
+            self, uid, limit=0, start=0, sort='name',
+            dir='DESC', relation='nodes'):
         obj = self._getObject(uid)
         if isinstance(obj, MibOrganizer):
-            return 0,[]
+            return 0, []
         functor = getattr(obj, relation, None)
         if functor is None:
-            log.warn("Unable to retrieve the relation '%s' from %s",
-                     relation, obj.id)
-            return 0,[]
+            log.warn(
+                "Unable to retrieve the relation '%s' from %s",
+                relation, obj.id
+            )
+            return 0, []
         all = [IInfo(node) for node in functor()]
         reverse = dir == 'DESC'
-        return len(all), sorted(all, key=lambda info: getattr(info, sort), reverse=reverse)[start:limit + start]
+        return len(all), sorted(
+            all, key=lambda info: getattr(info, sort), reverse=reverse
+        )[start:limit + start]
 
     def getMibNodeTree(self, id):
         return self.getMibBaseNodeTree(id, relation='nodes')
@@ -118,7 +124,7 @@ class MibFacade(TreeFacade):
                      relation, obj.id)
             return []
         seenNodes = {}
-        rootNodeList = [] # There can be only one! ... unless there are many.
+        rootNodeList = []  # There can be only one! ... unless there are many.
         try:
             for node in sorted(functor(), self.oidcmp):
                 prev_oid, _ = node.oid.rsplit('.', 1)
@@ -136,7 +142,7 @@ class MibFacade(TreeFacade):
                             branchNode._addSubNode(subNode)
                             seenNodes[node.oid] = subNode
                             break
-                    else: #  The first entry
+                    else:  # The first entry
                         rootNode = MibNode(node)
                         rootNodeList.append(rootNode)
                         seenNodes[node.oid] = rootNode
@@ -146,7 +152,7 @@ class MibFacade(TreeFacade):
 
             # Create a fake top-level node -- common with traps
             rootNode = FakeTopLevelNodeInfo(obj)
-            baseNode = rootNodeList[0] # Use the first sibling
+            baseNode = rootNodeList[0]  # Use the first sibling
             rootNode.oid = baseNode.oid.rsplit('.', 1)[0]
             for sibling in rootNodeList:
                 rootNode._addSubNode(sibling)
@@ -158,9 +164,11 @@ class MibFacade(TreeFacade):
     def addMibPackage(self, package, organizer):
         args = [binPath('zenmib'), 'run', package,
                 '--path=%s' % organizer]
-        jobStatus = self._dmd.JobManager.addJob(SubprocessJob,
+        jobStatus = self._dmd.JobManager.addJob(
+            SubprocessJob,
             description="Add MIB package %s" % package,
-            kwargs=dict(cmd=args))
+            kwargs=dict(cmd=args)
+        )
         return jobStatus
 
     def moveMibs(self, sourceUids, targetUid):
@@ -170,11 +178,11 @@ class MibFacade(TreeFacade):
 
             if isinstance(sourceObj, MibOrganizer):
                 sourceParent = aq_parent(sourceObj)
-                sourceParent.moveOrganizer(moveTarget, (sourceObj.id,) )
+                sourceParent.moveOrganizer(moveTarget, (sourceObj.id,))
 
             elif isinstance(sourceObj, MibModule):
                 sourceParent = sourceObj.miborganizer()
-                sourceParent.moveMibModules(moveTarget, (sourceObj.id,) )
+                sourceParent.moveMibModules(moveTarget, (sourceObj.id,))
 
             else:
                 args = (sourceUid, sourceObj.__class__.__name__)
@@ -192,4 +200,3 @@ class MibFacade(TreeFacade):
         if not oid:
             oid = snmptranslate('-On', name)
         return oid
-
