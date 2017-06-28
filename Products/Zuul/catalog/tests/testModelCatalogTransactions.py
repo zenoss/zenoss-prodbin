@@ -37,24 +37,40 @@ class TestModelCatalogTransactions(BaseTestCase):
         tid = self.data_manager._get_tid()
         return self.data_manager._current_transactions.get(tid)
 
+    def _check_uid_is_pending_to_be_indexed(self, uid, tx_state, previousy_committed=False):
+        self.assertTrue(uid in tx_state.pending_updates)
+        if previousy_committed:
+            self.assertTrue(uid in tx_state.indexed_updates)
+            self.assertTrue(uid in tx_state.temp_indexed_uids)
+        else:
+            self.assertTrue(uid not in tx_state.indexed_updates)
+            self.assertTrue(uid not in tx_state.temp_indexed_uids)
+
+    def _check_uid_is_temporary_indexed(self, uid, tx_state):
+        self.assertTrue(uid in tx_state.indexed_updates)
+        self.assertTrue(uid in tx_state.temp_indexed_uids)
+
     def testDataManager(self):
         tx_state = self._get_transaction_state()
         # before any changes are made, tx_state is None
         self.assertIsNone(tx_state)
         device_class_1 = "device_class_1"
+        device_class_2 = "device_class_2"
 
         # create an organizer
         dc_1 = self.dmd.Devices.createOrganizer(device_class_1)
         tx_state = self._get_transaction_state()
         dc_1_uid = dc_1.idx_uid()
 
-        # We should now have a not None tx_state
+        # Some tx_state checks
         self.assertIsNotNone(tx_state)
+        self.assertTrue( len(tx_state.pending_updates) == 1 )
+        self.assertTrue( len(tx_state.indexed_updates) == 0 )
+        self.assertTrue( len(tx_state.temp_indexed_uids) == 0 )
+        self.assertTrue( len(tx_state.temp_deleted_uids) == 0 )
 
         # The new organizer index update should have been buffered in tx_state
-        self.assertTrue(dc_1_uid in tx_state.pending_updates)
-        self.assertEquals(len(tx_state.indexed_updates), 0)
-        self.assertEquals(len(tx_state.temp_indexed_uids), 0)
+        self._check_uid_is_pending_to_be_indexed(dc_1_uid, tx_state)
 
         # A search with commit_dirty=False should not find the new device organizer
         search_result = self.model_catalog.search(query=Eq("uid", dc_1_uid), commit_dirty=False)
@@ -64,13 +80,21 @@ class TestModelCatalogTransactions(BaseTestCase):
         search_result = self.model_catalog.search(query=Eq("uid", dc_1_uid), commit_dirty=True)
         self.assertEquals(search_result.total, 1)
 
-        # the tx_state object should be updated appropiately
+        # the tx_state object should have been updated appropiately
+        self._check_uid_is_temporary_indexed(dc_1_uid, tx_state)
         self.assertTrue(dc_1_uid not in tx_state.pending_updates)
-        self.assertTrue(dc_1_uid in tx_state.indexed_updates)
-        self.assertTrue(dc_1_uid in tx_state.temp_indexed_uids)
         self.assertTrue(dc_1_uid not in tx_state.temp_deleted_uids)
         
-        #search_result = self.model_index.search( SearchParams(Eq("uid", dc_1_uid)) )
+        # create another organizer
+        dc_2 = self.dmd.Devices.createOrganizer(device_class_2)
+        dc_2_uid = dc_2.idx_uid()
+
+        # check tx_state has been updated accordinly
+        tx_state = self._get_transaction_state()
+        self._check_uid_is_pending_to_be_indexed(dc_2_uid, tx_state)
+
+        # search for both device classes with commit_dirty=False, it should only return dc_1_uid
+
 
 
 def test_suite():

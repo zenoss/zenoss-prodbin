@@ -23,7 +23,6 @@ from Products.ZCatalog.interfaces import ICatalogBrain
 from Products.ZenModel.Software import Software
 from Products.ZenModel.OperatingSystem import OperatingSystem
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.Zuul.catalog.interfaces import IIndexableWrapper
 from Products.Zuul.catalog.exceptions import ModelCatalogError, ModelCatalogUnavailableError
 from transaction.interfaces import IDataManager
 from zenoss.modelindex import indexed, index
@@ -43,8 +42,7 @@ log = logging.getLogger("model_catalog")
 
 TX_STATE_FIELD = "tx_state"
 
-MODEL_INDEX_UID_FIELD = "model_index_uid"  # this will translate to "uid" in solr
-OBJECT_UID_FIELD = "uid"  # this will transalate to "idx_object_uid_s_isnn" in solr
+from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
 class SearchResults(object):
 
@@ -107,7 +105,7 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self._result.uid))
+            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self.uid))
         return obj
 
     def getRID(self):

@@ -16,10 +16,15 @@ from Products.Zuul.catalog.interfaces import IIndexableWrapper
 from Products.ZenUtils.IpUtil import ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
+from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
 from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
+
+
+MODEL_INDEX_UID_FIELD = INDEX_UNIQUE_FIELD  # this will translate to "modelindex_uid" in solr
+OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in solr
 
 """
     @TODO:
@@ -32,28 +37,28 @@ from zenoss.modelindex.constants import NOINDEX_TYPE
 
         BaseIndexable:
 
-            -------------------------------------------------------------------------------------------------------------------
-            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME  | INDEXED |  STORED |  TYPE     | TOKENIZED |
-            -------------------------------------------------------------------------------------------------------------------
-            |  idx_model_index_uid       |  model_index_uid        |      uid     |     Y   |    Y    |   str     |     N     |
-            |  idx_object_uid            |  uid                    |              |     Y   |    Y    |   str     |     N     |
-            |  idx_id                    |  id                     |              |     Y   |    Y    |   str     |     N     |
-            |  idx_uuid                  |  uuid                   |              |     Y   |    Y    |   str     |     N     |
-            |  idx_name                  |  name                   |              |     Y   |    Y    |   str     |     N     |
-            |  idx_meta_type             |  meta_type              |              |     Y   |    Y    |   str     |     N     |
-            |  idx_path                  |  path                   |              |     Y   |    Y    | list(str) |     Y     |
-            |  idx_objectImplements      |  objectImplements       |              |     Y   |    Y    | list(str) |     Y     |
-            |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |              |     Y   |    Y    | list(str) |     Y     |
-            |  idx_searchKeywords        |  searchKeywords         |              |     Y   |    Y    | list(str) |     Y     |
-            |  idx_searchExcerpt         |  searchExcerpt          |              |     N   |    Y    |   str     |     N     |
-            |  idx_searchIcon            |  searchIcon             |              |     N   |    Y    |   str     |     N     |
-            |  idx_monitored             |  monitored              |              |     Y   |    Y    |   bool    |           |
-            |  idx_collectors            |  collectors             |              |     Y   |    Y    | list(str) |     Y     |
-            |  idx_productionState       |  productionState        |              |     Y   |    Y    |   int     |           |
-            |  idx_zProperties           |  zProperties            |              |     N   |    Y    | dict(str) |           |
-            |  idx_decimal_ipAddress     |  decimal_ipAddress      |              |     Y   |    Y    |   str     |     Y     |
-            |  idx_macAddresses          |  macAddresses           |              |     Y   |    Y    | list(str) |     Y     |
-            -------------------------------------------------------------------------------------------------------------------
+            ----------------------------------------------------------------------------------------------------------------------
+            |  ATTR_NAME                 |  ATTR_QUERY_NAME        |  FIELD NAME     | INDEXED |  STORED |  TYPE     | TOKENIZED |
+            ----------------------------------------------------------------------------------------------------------------------
+            |  idx_model_index_uid       |  modelindex_uid         | modelindex_uid  |     Y   |    Y    |   str     |     N     |
+            |  idx_object_uid            |  uid                    |       uid       |     Y   |    Y    |   str     |     N     |
+            |  idx_id                    |  id                     |                 |     Y   |    Y    |   str     |     N     |
+            |  idx_uuid                  |  uuid                   |                 |     Y   |    Y    |   str     |     N     |
+            |  idx_name                  |  name                   |                 |     Y   |    Y    |   str     |     N     |
+            |  idx_meta_type             |  meta_type              |                 |     Y   |    Y    |   str     |     N     |
+            |  idx_path                  |  path                   |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_objectImplements      |  objectImplements       |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_searchKeywords        |  searchKeywords         |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_searchExcerpt         |  searchExcerpt          |                 |     N   |    Y    |   str     |     N     |
+            |  idx_searchIcon            |  searchIcon             |                 |     N   |    Y    |   str     |     N     |
+            |  idx_monitored             |  monitored              |                 |     Y   |    Y    |   bool    |           |
+            |  idx_collectors            |  collectors             |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_productionState       |  productionState        |                 |     Y   |    Y    |   int     |           |
+            |  idx_zProperties           |  zProperties            |                 |     N   |    Y    | dict(str) |           |
+            |  idx_decimal_ipAddress     |  decimal_ipAddress      |                 |     Y   |    Y    |   str     |     Y     |
+            |  idx_macAddresses          |  macAddresses           |                 |     Y   |    Y    | list(str) |     Y     |
+            ----------------------------------------------------------------------------------------------------------------------
 
         DeviceIndexable:
 
@@ -173,16 +178,16 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
     def idx_uid(self):
         return IIndexableWrapper(self).uid()
 
-    # Solr uid. It is mandatory for modelindex. We use the object's primary path.
-    # The model catalog data manager may add additional information to this field
-    # for mid transaction commits. model_index_uid should only be used by the data manager
-    # The index_field_name must be the same as zenoss.modelindex.constants.INDEX_UNIQUE_FIELD
-    @indexed(UntokenizedStringFieldType(stored=True), index_field_name="uid", attr_query_name="model_index_uid")
+    # modelindex requires that every object has an 'index_field_name' and  'attr_query_name'
+    # named MODELINDEX_UID. This field is used as unique field in the index.
+    # We use the object's primary path. The model catalog data manager adds additional information
+    # to this field for mid transaction commits. This way we can have several documents for the same object
+    @indexed(UntokenizedStringFieldType(stored=True), index_field_name=MODEL_INDEX_UID_FIELD, attr_query_name=MODEL_INDEX_UID_FIELD)
     def idx_model_index_uid(self):
         return self.idx_uid()
 
     # uid used within zenoss. it is the object's primary path
-    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="uid")
+    @indexed(UntokenizedStringFieldType(stored=True), index_field_name=OBJECT_UID_FIELD, attr_query_name=OBJECT_UID_FIELD)
     def idx_object_uid(self):
         return self.idx_uid()
 
