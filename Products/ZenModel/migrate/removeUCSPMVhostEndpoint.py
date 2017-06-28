@@ -12,7 +12,7 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.1.6")
+sm.require("1.1.9")
 
 
 class removeUCSPMVhostEndpoint(Migrate.Step):
@@ -37,12 +37,12 @@ class removeUCSPMVhostEndpoint(Migrate.Step):
         # Remove vhost endpoint from ucspm
         commit = False
         for endpoint in service.endpoints:
-            if endpoint.name == 'zproxy' and endpoint._Endpoint__data['VHostList'] != None:
-                filter_list = filter(lambda x: x['Name'] != 'ucspm', endpoint._Endpoint__data['VHostList'])
+            if endpoint.name == 'zproxy' and endpoint.vhostlist != None:
+                filter_list = filter(lambda x: x.name != 'ucspm', endpoint.vhostlist)
                 if filter_list:
-                    endpoint._Endpoint__data['VHostList'] = filter_list
+                    endpoint.vhostlist = filter_list
                 else:
-                    endpoint._Endpoint__data['VHostList'] = None
+                    endpoint.vhostlist = []
                 log.info("Deleting vhost ucspm endpoint.")
                 commit = True
 

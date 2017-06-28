@@ -6,11 +6,13 @@ import json
 import mock
 import os
 from collections import namedtuple
-from itertools import chain
+from itertools import chain, tee
 
 import Globals
 from servicemigration import context, service
 
+import logging
+log = logging.getLogger("zen.migrate")
 
 def fakeContextFromFile(jsonfile):
     jsonfile = os.path.join(os.path.dirname(__file__), jsonfile)
@@ -96,7 +98,16 @@ def compare(this, that, path=None):
         if not isinstance(that, basestring):
             return False, path, compare.Diff(this, that)
         if any ('\n' in i for i in (this, that)):
-            diff = difflib.unified_diff(this.split('\n'), that.split('\n'))
+            diff = difflib.unified_diff(this.replace('\r', '').split('\n'), that.replace('\r', '').split('\n'))
+
+            # Since we ignored '\r', we need to see if the diff actually found 0 differences,
+            # but iterating diff will empty it, so make a copy to count the diffs
+            diff, diff2 = tee(diff)
+            n_diffs = 0
+            for d in diff2:
+                n_diffs += 1
+            if n_diffs == 0:
+                return True, None, None
             return False, path, diff
         else:
             return False, path, compare.Diff(this, that)
@@ -147,7 +158,7 @@ class ServiceMigrationTestCase(object):
         if not result:
             if isinstance(rdiff, compare.Diff):
                 self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                        % (rdiff.actual, rpath, rdiff.expected))
+                        % (rdiff.expected, rpath, rdiff.actual))
             else:
                 self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
                         % (rpath, "\n".join(rdiff)))
