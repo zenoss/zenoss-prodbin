@@ -182,8 +182,6 @@ class MibOrganizer(Organizer, ZenPackable):
     def moveMibModules(self, moveTarget, ids=None, REQUEST=None):
         """Move MibModules from this organizer to moveTarget.
         """
-        if not moveTarget or not ids:
-            return self()
         if isinstance(ids, basestring):
             ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
