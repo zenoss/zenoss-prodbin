@@ -30,6 +30,7 @@ from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
+from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
 from zope.component import getGlobalSiteManager, getUtility
 from zope.interface import implements
@@ -40,9 +41,10 @@ log = logging.getLogger("model_catalog")
 
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
+TX_SEPARATOR = "@=@"
+
 TX_STATE_FIELD = "tx_state"
 
-from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
 class SearchResults(object):
 
@@ -173,9 +175,6 @@ class NoRollbackSavepoint(object):
 
     def rollback(self):
         pass
-
-
-TX_SEPARATOR = "@=@"
 
 
 class ModelCatalogTransactionState(object):
@@ -351,13 +350,14 @@ class ModelCatalogDataManager(object):
         """
         tx_state = self._get_tx_state()
         tweak_results = (tx_state and tx_state.are_there_indexed_updates())
-
         for result in catalog_results.results:
             if tweak_results:
                 tid = tx_state.tid
-                if result.uid in tx_state.temp_deleted_uids:
+                result_uid = getattr(result, OBJECT_UID_FIELD)
+                result_tid = getattr(result, TX_STATE_FIELD)
+                if result_uid in tx_state.temp_deleted_uids:
                     continue # object was deleted
-                elif result.uid in tx_state.temp_indexed_uids and result.tx_state != tid:
+                elif result_uid in tx_state.temp_indexed_uids and result_tid != tid:
                     continue # Not the latest version of the object for this transaction
             brain = ModelCatalogBrain(result.to_dict(), result.idxs)
             brain = brain.__of__(context.dmd)
@@ -367,17 +367,24 @@ class ModelCatalogDataManager(object):
         """
         @param  context object to hook brains up to acquisition
         """
+        tx_state = self._get_tx_state()
         try:
+            if TX_STATE_FIELD not in search_params.fields:
+                search_params.fields.append(TX_STATE_FIELD)
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
             self.raise_model_catalog_error()
 
         brains = self._parse_catalog_results(catalog_results, context)
-        # @TODO: this count might occasionally be wrong if there are mid tx updated objects
-        # the solution would be that if there are mid tx updates, we would need to load all
-        # the results to get the right count
         count = catalog_results.total_count
+        # if we have mid-transaction commits, we need to extract
+        # all brains from the generator to return the real count
+        if tx_state and tx_state.are_there_indexed_updates():
+            brains = [ b for b in brains ]
+            count = len(brains)
+            brains = iter(brains)
+
         return SearchResults(brains, total=count, hash_=str(count))
 
     def _do_mid_transaction_commit(self):
