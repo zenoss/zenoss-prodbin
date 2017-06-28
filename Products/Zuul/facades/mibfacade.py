@@ -172,7 +172,7 @@ class MibFacade(TreeFacade):
         return jobStatus
 
     def moveMibs(self, sourceUids, targetUid):
-        moveTarget = targetUid.replace('/zport/dmd/Mibs/', '')
+        moveTarget = '/'.join(targetUid.split('/')[4:])
         for sourceUid in sourceUids:
             sourceObj = self._getObject(sourceUid)
 
