@@ -1871,6 +1871,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
+        newPath = "/".join(self.getPrimaryPath()).replace(oldId, newId)
 
         if self.renameInProgress:
             log.warn("Rename already in progress for device {}.".format(self.id))
@@ -1887,7 +1888,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newId == '' or newId == oldId:
             return path
 
-        device = self.dmd.Devices.findDeviceByIdExact(newId)
+        device = None
+        try:
+            device = self.dmd.unrestictedTraverse(newPath)
+        except AttributeError as e:
+            pass # device was not found
         if device:
             message = 'Device already exists with id %s' % newId
             raise DeviceExistsError(message, device)
@@ -1907,8 +1912,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             # Replace the old id in performance data with the new id.
             # See ZEN-27329.
             if retainGraphData:
-                device = self.dmd.Devices.findDeviceByIdExact(newId)
-                device.renameInProgress = True
+                self.renameInProgress = True
                 self.reassociatePerfDataAfterRename(oldId, newId)
 
             return self.absolute_url_path()
