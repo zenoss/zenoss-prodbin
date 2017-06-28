@@ -46,13 +46,19 @@ class WorkerReport(object):
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, queue, idx, parent_queue, counter):
+    def __init__(self, queue, idx, parent_queue, counter, semaphore, cond, cancel):
         super(ReindexProcess, self).__init__()
 
         self.queue = queue
         self.idx = idx
         self.parent_queue = parent_queue
         self.counter = counter
+
+        self.semaphore = semaphore
+        self.cond = cond
+        self.cancel = cancel
+
+        self._batch = []
 
         self.dmd = ZenScriptBase(connect=True).dmd
         self.index_client = zope.component.createObject('ModelIndex', get_solr_config())
@@ -86,7 +92,7 @@ class ReindexProcess(multiprocessing.Process):
             [IndexUpdate(node, op=INDEX) for node in batch],
             commit=commit)
 
-    def index(self, batch, commit=False):
+    def index(self, commit=False):
         """
         Wraps batch_update to perform other necessary tasks.
         Should be implemented by a subclass.
@@ -100,45 +106,59 @@ class ReindexProcess(multiprocessing.Process):
         """
         raise NotImplementedError
 
-    def do_work(self):
+    def idle(self):
+        """
+        Signal to the parent process that a worker has become idle.
+        """
+        with self.cond:
+            self.cond.notify_all()
+
+    def add_to_batch(self, node):
+        """
+        Add a node to the batch. If the batch passes a threshold, index it.
+        """
+        self._batch.append(node)
+        if len(batch) >= INDEX_SIZE:
+            self.index()
+            self._batch[:] = []
+
+    def process(self, uid):
+        """
+        Process a single uid.
+        """
+        try:
+            current_node = self.dmd.unrestrictedTraverse(current_uid)
+        except NotFound:
+            log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(current_uid))
+        else:
+            self.push_children(current_node)
+            if self.include_node(current_node):
+                self.add_to_batch(current_node)
+            self.reconcile()
+
+    def run(self):
         """
         Operates on uids/nodes from get_work until exhausted.
         """
         count = 0
-        batch = []
-
-        try:
-            for current_uid in self.get_work():
-                try:
-                    current_node = self.dmd.unrestrictedTraverse(current_uid)
-                except NotFound:
-                    log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(current_uid))
-                    continue
-                self.push_children(current_node)
-                if self.include_node(current_node):
-                    batch.append(current_node)
+        while True:
+            with self.semaphore:
+                for uid in self.get_work():
+                    self.process(uid)
                     count += 1
                     # update our counter every so often (less lock usage)
                     if count % 1000 == 0:
                         with self.counter.get_lock():
                             self.counter.value += 1000
-                    if count % INDEX_SIZE == 0:
-                        self.index(batch)
-                        batch = []
-                self.reconcile()
-            # Mandatory to commit before we bail
-            self.index(batch, True)
-            return WorkerReport(self.idx, count)
-        except Queue.Empty:
-            # The parent_queue is empty, which means we're done
-            self.index(batch, True)
-            return WorkerReport(self.idx, count)
-        except Exception as e:
-            # grab the traceback for the report
-            return WorkerReport(self.idx, count - len(batch), traceback.format_exc())
-
-    def run(self):
-        self.queue.put(self.do_work())
+            # Flush the index batch
+            self.index()
+            # Should we die?
+            if self.cancel.is_set():
+                break
+            self.queue.put(WorkerReport(self.idx, count))
+            self.idle()
+        # One last hurrah
+        self.index(True) # TODO: Why commit=True?
 
 
 class HardReindex(ReindexProcess):
@@ -154,18 +174,21 @@ class HardReindex(ReindexProcess):
     If parent queue is empty, pop a node from left side of deque and push to parent queue.
     Repeat.
     """
-    def __init__(self, queue, idx, parent_queue, counter):
-        super(HardReindex, self).__init__(queue, idx, parent_queue, counter)
+    def __init__(self, *args, **kwargs):
+        super(HardReindex, self).__init__(*args, **kwargs)
         self.deque = deque()
 
     def get_work(self):
-        # this method raises QueueEmpty exception when no more elements are in parent_queue
-        yield self.parent_queue.get(timeout=30)
         while True:
-            try:
+            while self.deque:
                 yield self.deque.pop()
-            except IndexError:
+            try:
                 yield self.parent_queue.get(timeout=2)
+            except Queue.Empty:
+                pass
+            # If we've gotten here and the deque is empty, we have nothing to do
+            if not self.deque:
+                return
 
     def push_children(self, node):
         if self._include_children(node):
@@ -187,8 +210,8 @@ class HardReindex(ReindexProcess):
                 include = True
         return include
 
-    def index(self, batch, commit=False):
-        self.batch_update(batch, commit)
+    def index(self, commit=False):
+        self.batch_update(self._batch, commit)
 
     def reconcile(self):
         try:
@@ -208,14 +231,15 @@ class SoftReindex(ReindexProcess):
     Index all items in list if fit.
     Repeat.
     """
-    def __init__(self, queue, idx, parent_queue, counter):
-        super(SoftReindex, self).__init__(queue, idx, parent_queue, counter)
-
     def get_work(self):
-        # this method raises QueueEmpty exception when no more elements are in parent_queue
-        yield self.parent_queue.get(timeout=30)
+        """
+        Returns items from the parent queue until signaled to stop.
+        """
         while True:
-            yield self.parent_queue.get(timeout=2)
+            try:
+                yield self.parent_queue.get(timeout=2)
+            except Queue.Empty:
+                return
 
     def push_children(self, node):
         pass
@@ -223,8 +247,8 @@ class SoftReindex(ReindexProcess):
     def include_node(self, node):
         return True
 
-    def index(self, batch, commit=True):
-        self.batch_update(batch, commit)
+    def index(self, commit=True):
+        self.batch_update(self._batch, commit)
         transaction.abort()
 
     def reconcile(self):
@@ -276,6 +300,9 @@ def run(processor_count=8, hard=False):
     processor_queue = multiprocessing.Queue()
     parent_queue = multiprocessing.Queue()
     counter = multiprocessing.Value(ctypes.c_uint32)
+    semaphore = multiprocessing.Semaphore(processor_count)
+    cond = multiprocessing.Condition()
+    cancel = multiprocessing.Event()
 
     processes_remaining = 0
     work = []
@@ -295,10 +322,9 @@ def run(processor_count=8, hard=False):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(processor_queue, n, parent_queue, counter)
+        p = Worker(processor_queue, n, parent_queue, counter, semaphore, cond, cancel)
         processes.append(p)
         p.start()
-        processes_remaining += 1
 
     for uid in work:
         parent_queue.put(uid)
@@ -306,23 +332,25 @@ def run(processor_count=8, hard=False):
     log.info("Waiting for processes to finish")
     total_count = 0
 
-    while processes_remaining > 0:
-        # Try to collect our processes every 30 seconds, or report on their work
-        try:
-            # Will throw Queue.Empty if timeout is hit, which just means it's still working
-            proc_report = processor_queue.get(timeout=30)
-            if proc_report.err:
-                log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
-                log.exception(proc_report.err)
-            log.info("Process with idx '{0}' finished after processing {1} objects.".format(proc_report.idx, proc_report.count))
-            processes[proc_report.idx].join()
-            processes_remaining -= 1
-            total_count += proc_report.count
-        except Queue.Empty:
-            with counter.get_lock():
-                log.info("Progress: {0} objects indexed so far".format(counter.value))
+    while True:
+        with cond:
+            cond.wait()
+            try:
+                proc_report = processor_queue.get_nowait()
+                if proc_report.err:
+                    log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
+                    log.exception(proc_report.err)
+                total_count += proc_report.count
+            except Queue.Empty:
+                with counter.get_lock():
+                    log.info("Progress: {0} objects indexed so far".format(counter.value))
+            if semaphore.get_value() == processor_count and parent_queue.empty():
+                # All workers are idle and there's no more work to do, so the end
+                break
     end = time.time()
-
+    cancel.set()
+    for proc in processes:
+        proc.join()
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
     log.info("Time to process and reindex: {0}".format(end - proc_start))
