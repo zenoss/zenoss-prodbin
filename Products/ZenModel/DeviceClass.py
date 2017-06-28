@@ -371,6 +371,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 numExports += 1
         return numExports
 
+    def resumeCollection(self, devname):
+        dev = self.findDevice(devname)
+        dev.renameInProgress = False
+        return "OK!"
+
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False,
                     deleteHistory=False, deletePerf=False,REQUEST=None):
