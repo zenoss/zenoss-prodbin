@@ -193,7 +193,59 @@ var node_details = Ext.create('Ext.form.Panel', {
     }]
 });
 
-function createAddNodeDialog(nodeType) {
+function createConfirmAddNodeDialog(nodeType, ctx, info, addHandler) {
+    var mibMatch = info.uid.match(/\/mibs\/(.+)\/nodes/),
+        oldMib = mibMatch ? mibMatch[1] : "";
+    return new Zenoss.dialog.CloseDialog({
+        id: 'confirmAddNodeDialog',
+        width: 400,
+        title: "Add " + nodeType.name,
+        items: [{
+            xtype: 'panel',
+            style: {
+                backgroundColor: 'yellow',
+                padding: '3px 5px'
+            },
+            html: '<p style="color: black;font-size:16px">That OID already exists!</p>',
+            renderTo: Ext.getBody()
+        }, {
+            xtype: 'form',
+            layout: 'form',
+            buttonAlign: 'left',
+            fieldDefaults: {labelAlign: 'top'},
+            footerStyle: 'padding-left: 0',
+            defaultType: 'fieldset',
+            items: [{
+                title: _t('Do you wish to replace the existing mapping'),
+                defaultType: 'displayfield',
+                defaults: {labelAlign: 'right', labelWidth: 50, labelPad: 15},
+                layout: 'form',
+                items: [
+                    {fieldLabel: _t('Name'), value: info.name},
+                    {fieldLabel: _t('OID'), value: info.oid},
+                    {fieldLabel: _t('MIB'), value: oldMib}
+                ]
+            },{
+                title: _t('with this new mapping?'),
+                defaultType: 'displayfield',
+                defaults: {labelAlign: 'right', labelWidth: 50, labelPad: 15},
+                layout: 'form',
+                items: [
+                    {fieldLabel: _t('Name'), value: ctx.id},
+                    {fieldLabel: _t('OID'), value: ctx.oid},
+                    {fieldLabel: _t('MIB'), value: Zenoss.env.currentUid.split('/').pop()}
+                ]
+            }],
+            buttons: [{
+                xtype: 'DialogButton',
+                text: _t('Yes'),
+                handler: function() { addHandler(ctx); }
+            }, Zenoss.dialog.CANCEL]
+        }]
+    });
+}
+
+function createAddNodeDialog(nodeType, handler) {
     return new Zenoss.dialog.CloseDialog({
         id: 'addNodeDialog',
         width: 300,
@@ -220,19 +272,7 @@ function createAddNodeDialog(nodeType) {
                 text: _t('Submit'),
                 handler: function(button, evt) {
                     var form = Ext.getCmp('addNodeForm').getForm();
-                    var params = {
-                        uid: Zenoss.env.currentUid,
-                        id: Ext.htmlEncode(form.findField('id').getValue()),
-                        oid: Ext.htmlEncode(form.findField('oid').getValue()),
-                    };
-                    nodeType.addfn(params, function(response) {
-                        if (response.success) {
-                            Zenoss.message.info(_t('OID was successfully added.'));
-                            Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
-                        } else {
-                            Zenoss.message.info(_t('Could not add OID.'));
-                        }
-                    });
+                    handler(form.findField('id').getValue(), form.findField('oid').getValue());
                 }
             }, Zenoss.dialog.CANCEL]
         }]
@@ -330,7 +370,42 @@ var MibBrowser = Ext.extend(Ext.Container, {
                         handler: function(btn, evt) {
                             var combo = Ext.getCmp('node_type_combo'),
                                 nodeType = combo.findRecordByDisplay(combo.getValue()).data,
-                                addNodeDialog = createAddNodeDialog(nodeType);
+                                addMibNode = function(ctx) {
+                                    // The addMibNode function adds a node or trap.
+                                    // Called by handleOidInfo or by the ConfirmAddNodeDialog.
+                                    var params = {
+                                        uid: Zenoss.env.currentUid,
+                                        id: Ext.htmlEncode(ctx.id),
+                                        oid: Ext.htmlEncode(ctx.oid),
+                                    };
+                                    nodeType.addfn(params, function(response) {
+                                        if (response.success) {
+                                            Zenoss.message.info(_t('OID was successfully added.'));
+                                            Ext.getCmp('gridCardPanel').layout.activeItem.refresh();
+                                        } else {
+                                            Zenoss.message.info(_t('Could not add OID.'));
+                                        }
+                                    });
+                                },
+                                // Processes the response from the remote 'getOid' call.
+                                handleOidInfo = function(response, remoteFn, ignored, ctx) {
+                                    if (response.success) {
+                                        var confirmDialog = createConfirmAddNodeDialog(
+                                            nodeType, ctx, response.info, addMibNode
+                                        );
+                                        confirmDialog.show();
+                                    } else {
+                                        addMibNode(ctx);
+                                    }
+                                },
+                                // Processes the data retrieved from the AddNodeDialog.
+                                handleAddNodeDialog = function(id, oid) {
+                                    router.getOid(
+                                        { oid: Ext.htmlEncode(oid) },
+                                        Ext.bind(handleOidInfo, undefined, {id:id, oid:oid}, true)
+                                    );
+                                },
+                                addNodeDialog = createAddNodeDialog(nodeType, handleAddNodeDialog);
                             addNodeDialog.show();
                         }
                     }, {

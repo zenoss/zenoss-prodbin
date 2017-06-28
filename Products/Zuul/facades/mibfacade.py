@@ -11,6 +11,7 @@ import logging
 
 from zope.interface import implements
 from Acquisition import aq_parent
+from zExceptions import NotFound
 
 from Products.Zuul.decorators import info
 from Products.Zuul.facades import TreeFacade
@@ -85,6 +86,26 @@ class MibFacade(TreeFacade):
 
     def deleteTrap(self, mibUid, trapId):
         self._getObject(mibUid).deleteMibNotifications([trapId])
+
+    def getMibModuleName(self, uid):
+        """Returns name of MibModule identified by uid.
+        """
+        module = None
+        try:
+            module = self._dmd.unrestrictedTraverse(uid)
+        except NotFound:
+            return None
+        if isinstance(module, MibModule):
+            return module.id
+        module = getattr(module, 'module', None)
+        if module:
+            return module().id
+
+    def getOidList(self, oid):
+        """Returns a list containing every OID object matching the
+        given oid.
+        """
+        return [i.getObject() for i in self._dmd.Mibs.mibSearch(oid=oid)]
 
     def getMibNodes(
             self, uid, limit=0, start=0, sort='name',
