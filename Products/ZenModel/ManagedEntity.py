@@ -62,10 +62,6 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
 
     security = ClassSecurityInfo()
 
-    def __init__(self, id, buildRelations=True):
-        ZenModelRM.__init__(self, id, buildRelations=buildRelations)
-        self.resetProductionState()
-
     def device(self):
         """Overridden in lower classes if a device relationship exists.
         """
