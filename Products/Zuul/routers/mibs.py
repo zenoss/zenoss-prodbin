@@ -279,6 +279,12 @@ class MibRouter(TreeRouter):
         )
         return DirectResponse.succeed(count=count, data=Zuul.marshal(nodes))
 
+    def getOid(self, oid):
+        node = next(iter(self.api.getOidList(oid)), None)
+        if node is None:
+            return DirectResponse.fail()
+        return DirectResponse.succeed(info=Zuul.marshal(IInfo(node)))
+
     def getMibNodeTree(self, id=None):
         """
         A MIB node is a regular OID (ie you can hit it with snmpwalk)

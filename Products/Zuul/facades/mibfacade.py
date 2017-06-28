@@ -86,6 +86,12 @@ class MibFacade(TreeFacade):
     def deleteTrap(self, mibUid, trapId):
         self._getObject(mibUid).deleteMibNotifications([trapId])
 
+    def getOidList(self, oid):
+        """Returns a list containing every OID object matching the
+        given oid.
+        """
+        return [i.getObject() for i in self._dmd.Mibs.mibSearch(oid=oid)]
+
     def getMibNodes(
             self, uid, limit=0, start=0, sort='name',
             dir='DESC', relation='nodes'):
