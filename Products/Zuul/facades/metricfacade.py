@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IAuthorizationTool
 from Products.Zuul.utils import safe_hasattr
 from Products.ZenUtils import metrics
 from Products.ZenUtils.deprecated import deprecated
+from Products.ZenEvents import Event
 from Products.ZenUtils.metrics import ensure_prefix
 
 DEFAULT_METRIC_URL = 'http://localhost:8080/'
@@ -36,6 +37,7 @@ DATE_FORMAT = "%Y/%m/%d-%H:%M:%S"
 
 METRIC_URL_PATH = "/api/performance/query"
 WILDCARD_URL_PATH = "/api/performance/query2"
+RENAME_URL_PATH = '/api/performance/rename'
 
 AGGREGATION_MAPPING = {
     'average': 'avg',
@@ -105,6 +107,7 @@ class MetricConnection(object):
         except requests.exceptions.Timeout as e:
             raise ServiceConnectionError(
                 'Timed out waiting for response from metric service: %s' % e, e)
+
         status_code = response.status_code
         if not (status_code >= 200 and status_code <= 299):
             log.debug('Server response error: %s %s', status_code, response)
@@ -162,6 +165,61 @@ class MetricConnection(object):
                       request, e.status, e.content)
         except ServiceConnectionError as e:
             log.error('Error connecting with request: %s \n%s', request, e)
+
+    def stream_request(self, path, request, timeout=10):
+        auth = None
+        if not self._req_session.cookies.get(Z_AUTH_TOKEN):
+            if self._credentials:
+                auth = self._credentials
+            else:
+                auth = self._global_credentials
+
+        try:
+            log.info('posting request')
+            resp = self._req_session.post(self._uri(path),
+                                              json.dumps(request),
+                                              auth=auth,
+                                              timeout=timeout,
+                                              stream=True)
+            log.info('finished posting request')
+
+            if not (resp.status_code >= 200 and resp.status_code <= 299):
+                raise ServiceResponseError(resp.reason, resp.status_code, request,
+                                           resp, resp.content)
+
+            if resp.status_code == 200:
+                for line in resp.iter_lines():
+                    if line:
+                        yield line.decode('ascii')
+
+        except requests.exceptions.Timeout as e:
+            log.error('Error connecting with request: %s \n%s', request, e)
+
+        except ServiceResponseError as e:
+            if e.status == 401 and auth != self._global_credentials:
+                # Try using global credentials.
+                auth = self._global_credentials
+
+                if Z_AUTH_TOKEN in self._req_session.cookies:
+                    del self._req_session.cookies[Z_AUTH_TOKEN]
+
+                log.debug('Authorization failed. Trying to use global credentials')
+                resp = self.stream_request(path, request, auth, timeout)
+
+                if not (resp.status_code >= 200 and resp.status_code <= 299):
+                    log.error(
+                            'Centralquery responded with an error code {} while'
+                            'processing request {}: {}'.format(
+                                resp.status_code, request, resp.reason))
+
+                if resp.status_code == 200:
+                    for line in resp.iter_lines():
+                        if line:
+                            yield line.decode('ascii')
+            else:
+                log.error('Error fetching request: %s \n'
+                          'Response from the server (return code %s): %s',
+                          request, e.status, e.content)
 
 
 class MetricFacade(ZuulFacade):
@@ -620,3 +678,155 @@ class MetricFacade(ZuulFacade):
                     results[key][metricnames[metric]].append(dict(timestamp=ts, value=value))
 
         return results
+
+    # This method is supposed to run as a facade method job.
+    def renameDevice(self, oldId, newId, joblog=None):
+        # joblog is injected in the FacadeMethodJob class when this method runs
+        # as a job. The messages written to joblog will be displayed in the Jobs
+        # pane of Zenoss.
+
+        path = RENAME_URL_PATH
+        timeout = 120
+        totalFails = 0
+        success = False
+        request = {}
+
+        def processRename():
+            resp = self._metrics_connection.stream_request(
+                    path, request, timeout=timeout)
+
+            # Initially, central query was supposed to send a message every
+            # once in a while. However, due to a buffer somewhere between central
+            # query and zenoss, streaming was not smooth but chunked. As a
+            # workaround, central query sends a message per every metric renaming
+            # and some messages are skipped here.
+            logFreq = 5000
+
+            nFails = 0
+
+            # Log the fist line, the last line, and every logFreq lines
+            jsonLine = None
+            i = 0
+            for line in resp:
+                jsonLine = json.loads(line)
+                if jsonLine['type'] == 'info':
+                    log.info(jsonLine['content'])
+                    joblog.info(jsonLine['content'])
+                if jsonLine['type'] == 'progress':
+                    if i % logFreq == 0:
+                        log.info(jsonLine['content'])
+                        joblog.info(jsonLine['content'])
+                elif jsonLine['type'] == 'error':
+                    log.error(jsonLine['content'])
+                    joblog.error(jsonLine['content'])
+                    nFails += 1
+                else:
+                    log.error(
+                        'Unknown log msg type received from central query: '
+                        'type %s, content %s',
+                        jsonLine['type'],
+                        jsonLine['content']
+                    )
+
+                i += 1
+
+            # Log the last progress msg because the progress msgs are printed at
+            # every once in a while so that the last line can be omitted.
+            if jsonLine and jsonLine['type'] == 'progress':
+                log.info(jsonLine['content'])
+                joblog.info(jsonLine['content'])
+
+            return nFails
+
+        try:
+            # metrics
+            request = {
+                'oldName': oldId + '/',
+                'newName': newId + '/',
+                'type': 'metric',
+                'patternType':'prefix'
+            }
+
+            totalFails += processRename()
+
+            # key tagv for components metrics
+            request = {
+                'oldName': 'Devices/' + oldId + '/',
+                'newName': 'Devices/' + newId + '/',
+                'type': 'tagv',
+                'patternType':'prefix'
+            }
+
+            totalFails += processRename()
+
+            # key tagv for device metrics
+            request = {
+                'oldName': 'Devices/' + oldId,
+                'newName': 'Devices/' + newId,
+                'type': 'tagv',
+                'patternType':'whole'
+            }
+
+            totalFails += processRename()
+
+            # device tagv
+            request = {
+                'oldName': oldId,
+                'newName': newId,
+                'type': 'tagv',
+                'patternType':'whole'
+            }
+
+            totalFails += processRename()
+
+            success = totalFails == 0
+
+            # Trigger an event that indicates the completion of a renaming request in
+            # central query.
+            if success:
+                message = ("Reassociating performance data for device {} with new "
+                    "ID {} has been completed successfully. See the job log for the details."
+                    .format(oldId, newId))
+                summary = ("Reassociating performance data for device {} with new "
+                    "ID {} completed.".format(oldId, newId))
+                eventClass = '/Status/Update'
+                severity = Event.Info
+            else:
+                message = ("Reassociating performance data for device {} with new "
+                    "ID {} has been completed. However, reassociation of some "
+                    "metrics were unsuccessful. See the job log for the details."
+                    .format(oldId, newId))
+                summary = ("Reassociating performance data for device {} with new "
+                    "ID {} completed, but some metrics are not reassociated."
+                    .format(oldId, newId))
+                eventClass = '/App/Job/Fail'
+                severity = Event.Error
+
+            self._dmd.ZenEventManager.sendEvent(dict(
+                device=newId,
+                eventClass=eventClass,
+                severity=severity,
+                summary=summary,
+                message=message))
+        except Exception as e:
+            msg = 'Exception thrown while re-identifying device {} to {}: {}'.format(
+                    oldId, newId, e)
+            log.error(msg)
+            joblog.error(msg)
+
+        finally:
+            if success:
+                # Update renameInProgress so that the collection resumes.
+                dev = self._dmd.Devices.findDeviceByIdExact(newId)
+                if dev:
+                    dev.renameInProgress = False
+                    from transaction import commit
+                    commit()
+                else:
+                    msg = ('Cannot find a device after reidentifying: '
+                        'Old ID %s, new ID %s'.format(oldId, newId))
+                    log.error(msg)
+                    joblog.error(msg)
+                    success = False
+
+            return {'success': success, 'message': None}

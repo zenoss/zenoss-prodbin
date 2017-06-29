@@ -103,6 +103,14 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 width:100,
                 label: _t('Priority'),
                 id: 'priorityitem'
+            }, {
+                ref: 'renamingitemseparator',
+                cls: 'x-toolbar-separator x-box-item x-toolbar-item x-toolbar-separator-horizontal'
+            }, {
+                ref: 'renamingitem',
+                width:100,
+                label: _t('Monitoring'),
+                id: 'renamingitem'
             }]
         });
         this.contextKeys = [
@@ -112,7 +120,8 @@ Ext.define("Zenoss.DeviceDetailBar", {
             'icon',
             'status',
             'productionState',
-            'priority'
+            'priority',
+            'renameInProgress'
         ];
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
@@ -153,6 +162,42 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 pstate += "</span>";
             this.prodstateitem.setText(pstate);
             this.priorityitem.setText(Zenoss.env.PRIORITIES_MAP[data.priority]);
+
+            if(data.renameInProgress){
+                this.renamingitem.setText("Paused");
+                this.renamingitemseparator.show();
+                if(!Zenoss.Security.doesNotHavePermission('Admin Device')){
+                    var resetRenameCmp = Ext.getCmp("resetRenameCmp");
+                    if(resetRenameCmp) {
+                        resetRenameCmp.show();
+                    } else {
+                        // sometimes the component gets loaded afterwards
+                        Ext.defer(function() {
+                            resetRenameCmp = Ext.getCmp("resetRenameCmp");
+                            if(resetRenameCmp) {
+                                resetRenameCmp.show();
+                            }
+                        }, 1000);
+                    }
+                }
+            } else {
+                this.renamingitem.hide();
+                this.renamingitemseparator.hide();
+                if(!Zenoss.Security.doesNotHavePermission('Admin Device')){
+                    var resetRenameCmp = Ext.getCmp("resetRenameCmp");
+                    if(resetRenameCmp) {
+                        resetRenameCmp.hide();
+                    } else {
+                        // sometimes the component gets loaded afterwards
+                        Ext.defer(function() {
+                            resetRenameCmp = Ext.getCmp("resetRenameCmp");
+                            if(resetRenameCmp) {
+                                resetRenameCmp.hide();
+                            }
+                        }, 1000);
+                    }
+                }
+            }
 
             // reset the positions based on text width and what not:
             this.iconitem.setPosition(0, 0);

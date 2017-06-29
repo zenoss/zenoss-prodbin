@@ -536,10 +536,15 @@ class DeviceFacade(TreeFacade):
         dev = self._getObject(uid)
         dev.manage_snmpCommunity()
 
-    def renameDevice(self, uid, newId):
+    def renameDevice(self, uid, newId, retainGraphData=False):
         dev = self._getObject(uid)
         # pass in the request for the audit
-        return dev.renameDevice(newId, self.context.REQUEST)
+        return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
+
+    def resumeCollection(self, uid):
+        device = self._getObject(uid)
+        device.renameInProgress = False
+        return "OK!"
 
     def _moveDevices(self, uids, target):
         # Resolve target if a path
