@@ -542,8 +542,7 @@ class DeviceFacade(TreeFacade):
         return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
 
     def resumeCollection(self, uid):
-        id = uid.split('/')[-1]
-        device = self._getObject(id)
+        device = self._getObject(uid)
         device.renameInProgress = False
         return "OK!"
 

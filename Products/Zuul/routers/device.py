@@ -363,8 +363,8 @@ class DeviceRouter(TreeRouter):
         return values
 
     @require('Manage Device')
-    def resumeCollection(self, uid):
-        return self._getFacade().resumeCollection(uid)
+    def resumeCollection(self, id):
+        return self._getFacade().resumeCollection(id)
 
     @require('Manage Device')
     def setProductInfo(self, uid, **data):
