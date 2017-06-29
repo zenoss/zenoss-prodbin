@@ -44,7 +44,7 @@ class TemplateFacade(ZuulFacade):
 
     def _getTemplateNodes(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
-        fields_to_return = [ catalog.uid_field_name, "id" ]
+        fields_to_return = [ "id" ]
         brains = catalog.search(types=RRDTemplate, fields=fields_to_return)
         nodes = {}
         # create 1 node for each template type
