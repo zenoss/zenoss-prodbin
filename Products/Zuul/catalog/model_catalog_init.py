@@ -64,20 +64,6 @@ class ReindexProcess(multiprocessing.Process):
         """
         raise NotImplementedError
 
-    def push_children(self, node):
-        """
-        Puts the children of node in an appropriate queue.
-        Should be implemented by a subclass.
-        """
-        raise NotImplementedError
-
-    def include_node(self, node):
-        """
-        Returns whether or not to include the node in a batch to be indexed.
-        Should be implemented by a subclass.
-        """
-        raise NotImplementedError
-
     def batch_update(self, batch, commit=False):
         """
         Uses a Solr index client to perform a batch update of batch.
@@ -87,56 +73,42 @@ class ReindexProcess(multiprocessing.Process):
             commit=commit)
 
     def index(self, commit=False):
-        """
-        Wraps batch_update to perform other necessary tasks.
-        Should be implemented by a subclass.
-        """
-        raise NotImplementedError
+        if self._batch:
+            self.batch_update(self._batch, commit)
+            self._batch[:] = []
+	# transaction.abort()  # Allow cache boundaries to be enforced
 
-    def reconcile(self):
-        """
-        Reconciles queues or other properties after operating on a node.
-        Should be implemented by a subclass.
-        """
-        raise NotImplementedError
-
-    def handle_exception(self, exc):
+    def handle_exception(self):
         """
         Pass an error to the parent.
         """
-        self.error_queue.put((self.idx, exc))
+        exc = sys.exc_info()
+        self.error_queue.put((self.idx, traceback.format_exception(*exc)))
         self.notify_parent()
 
-    def notify_parent(self):
+    def notify_parent(self, wait=False):
         """
 	Signal to the parent process that a worker has become idle or has
         encountered an exception.
         """
         with self.cond:
             self.cond.notify_all()
+            if wait:
+                self.cond.wait(timeout=2)
 
-    def add_to_batch(self, node):
+    def schedule_index(self, node):
         """
         Add a node to the batch. If the batch passes a threshold, index it.
         """
         self._batch.append(node)
         if len(self._batch) >= INDEX_SIZE:
-            self.index()
-            self._batch[:] = []
+            self.index(True)
 
     def process(self, uid):
         """
         Process a single uid.
         """
-        try:
-            current_node = self.dmd.unrestrictedTraverse(uid)
-            self.push_children(current_node)
-            if self.include_node(current_node):
-                self.add_to_batch(current_node)
-        except Exception as e:
-            self.handle_exception(e)
-        finally:
-            self.reconcile()
+        raise NotImplementedError
 
     def run(self):
         """
@@ -144,15 +116,23 @@ class ReindexProcess(multiprocessing.Process):
         """
         count = 0
         while True:
+            if self.cancel.is_set():
+                return
             with self.semaphore:
                 for uid in self.get_work():
-                    self.process(uid)
+                    try:
+                        self.process(uid)
+                    except Exception:
+                        self.handle_exception()
+                        continue
                     count += 1
                     # update our counter every so often (less lock usage)
                     if count >= 1000:
                         with self.counter.get_lock():
                             self.counter.value += count
                         count = 0
+                        log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
+                        log.debug('Worker {0} deque length: {1}'.format(self.idx, len(self.deque)))
                         self.notify_parent()
             # Flush the index batch dregs
             self.index(True)
@@ -160,10 +140,11 @@ class ReindexProcess(multiprocessing.Process):
 	        with self.counter.get_lock():
 	            self.counter.value += count
 	        count = 0
-            self.notify_parent()
             # Should we die? Or wait for more work from the parent?
             if self.cancel.is_set():
-                break
+                return
+            log.debug('Worker {0} notifying parent without holding semaphore'.format(self.idx))
+            self.notify_parent(True)
 
 class HardReindex(ReindexProcess):
     """
@@ -192,35 +173,41 @@ class HardReindex(ReindexProcess):
                 pass
             # If we've gotten here and the deque is empty, we have nothing to do
             if not self.deque:
+                log.debug("Worker {0} is effectively idle".format(self.idx))
                 return
 
-    def push_children(self, node):
-        if self._include_children(node):
-            prefix = "/".join(node.getPhysicalPath()) + "/"
-            for child in node.objectIds():
-                self.deque.append(prefix + child)
+    def process(self, uid):
+        try:
+            current_node = self.dmd.unrestrictedTraverse(uid)
+            self._push_children(current_node)
+            if self._include_node(current_node):
+                self.schedule_index(current_node)
+        finally:
+            self._reconcile()
 
-    def _include_children(self, node):
-        include = False
-        if not isinstance(node, GlobalCatalog):
-            if isinstance(node, ObjectManager) or isinstance(node, ToManyContRelationship):
-                include = True
-        return include
+    def _get_children(self, node):
+        if isinstance(node, ObjectManager):
+            for ob in node.objectValues():
+                if isinstance(ob, ZenModelRM):
+                    yield ob
+                elif isinstance(ob, ToManyContRelationship):
+                    for o in ob.objectValuesGen():
+                        yield o
 
-    def include_node(self, node):
-        include = False
-        if not isinstance(node, GlobalCatalog):
-            if isinstance(node,ZenModelRM):
-                include = True
-        return include
+    def _push_children(self, node):
+        for child in self._get_children(node):
+            self.deque.append("/".join(child.getPhysicalPath()))
 
-    def index(self, commit=False):
-        self.batch_update(self._batch, commit)
+    def _include_node(self, node):
+        return isinstance(node, ZenModelRM) and not isinstance(node, GlobalCatalog)
 
-    def reconcile(self):
+    def _reconcile(self):
         try:
             if self.parent_queue.empty():
-                self.parent_queue.put(self.deque.popleft())
+                idle = self.semaphore.get_value() + 1
+                log.debug("Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
+                for _ in xrange(idle):
+		    self.parent_queue.put(self.deque.popleft())
         except IndexError:
             pass
 
@@ -245,18 +232,10 @@ class SoftReindex(ReindexProcess):
             except Queue.Empty:
                 return
 
-    def push_children(self, node):
-        pass
+    def process(self, uid):
+        current_node = self.dmd.unrestrictedTraverse(uid)
+        self.schedule_index(current_node)
 
-    def include_node(self, node):
-        return True
-
-    def index(self, commit=True):
-        self.batch_update(self._batch, commit)
-        transaction.abort()
-
-    def reconcile(self):
-        pass
 
 def get_uids(index_client, root="", types=()):
     start = 0
@@ -282,6 +261,7 @@ def get_uids(index_client, root="", types=()):
             yield result.uid
         need_results = start < search_results.total_count
 
+
 def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
     config = {}
@@ -290,6 +270,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     config["num_shards"] = 1
     index_client.init(config)
     return index_client
+
 
 def run(processor_count=8, hard=False):
     log.info("Beginning {0} reindexing with {1} child processes.".format(
@@ -340,30 +321,37 @@ def run(processor_count=8, hard=False):
     while True:
         with cond:
             cond.wait()
-            # Print any errors we've built up
-            while not error_queue.empty():
-                try:
-                    idx, exc = error_queue.get_nowait()
-                except Queue.Empty:
-                    pass # This shouldn't happen, but just in case there's a race somehow
-                else:
-                    log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
-            # Print status
-            with counter.get_lock():
-	        delta = counter.value - lastcount
-                if delta > MODEL_INDEX_BATCH_SIZE:
-                    now = time.time()
-                    persec = delta/(now - last)
-                    last, lastcount = now, counter.value
-                    log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
-            # Check to see if we're done
-            if semaphore.get_value() == processor_count and parent_queue.empty():
-                # All workers are idle and there's no more work to do, so the end
-                log.info("All workers idle, queue empty. Done!")
-                break
+            try:
+                # Print any errors we've built up
+                while not error_queue.empty():
+                    try:
+                        idx, exc = error_queue.get_nowait()
+                    except Queue.Empty:
+                        pass # This shouldn't happen, but just in case there's a race somehow
+                    else:
+                        log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
+                # Print status
+                with counter.get_lock():
+	            delta = counter.value - lastcount
+                    if delta > MODEL_INDEX_BATCH_SIZE:
+                        now = time.time()
+                        persec = delta/(now - last)
+                        last, lastcount = now, counter.value
+                        log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
+                # Check to see if we're done
+                log.debug("{0} workers still busy".format(processor_count - semaphore.get_value()))
+                log.debug("parent queue is {0}empty".format("" if parent_queue.empty() else "not "))
+                if semaphore.get_value() == processor_count and parent_queue.empty():
+                    # All workers are idle and there's no more work to do, so the end
+                    log.info("All workers idle, queue empty. Done!")
+                    cancel.set()
+                    break
+            finally:
+                # Pass the ball back to the child that notified
+                cond.notify_all()
     end = time.time()
-    cancel.set()
     for proc in processes:
+        log.debug("Joining proc {0}".format(proc.idx))
         proc.join()
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
