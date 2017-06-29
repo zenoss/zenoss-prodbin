@@ -168,6 +168,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         self._checkDeviceExists(devId, performanceMonitor, manageIp)
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(devId)
+        dev.resetProductionState()
         self.devices._setObject(devId, dev)
         devInContext = self.devices._getOb(devId)
         return devInContext
@@ -369,7 +370,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if devicewasExported:
                 numExports += 1
         return numExports
-
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False,
