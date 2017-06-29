@@ -132,7 +132,6 @@ class ReindexProcess(multiprocessing.Process):
                             self.counter.value += count
                         count = 0
                         log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
-                        log.debug('Worker {0} deque length: {1}'.format(self.idx, len(self.deque)))
                         self.notify_parent()
             # Flush the index batch dregs
             self.index(True)
