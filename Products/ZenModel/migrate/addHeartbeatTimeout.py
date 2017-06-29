@@ -31,7 +31,6 @@ class AddHeartbeatTimeout(Migrate.Step):
             return
 
         services = ["zenactiond",
-                    "zencatalogservice",
                     "zencommand",
                     "zeneventd",
                     "zenhub",
@@ -52,7 +51,7 @@ class AddHeartbeatTimeout(Migrate.Step):
 
 
         update_string = """# Heartbeat timeout, default: 900 sec.
-#heartbeattimeout 300
+#heartbeattimeout 900
 #
 """
 
