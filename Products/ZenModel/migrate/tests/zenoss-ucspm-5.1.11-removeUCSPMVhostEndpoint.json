@@ -91,7 +91,7 @@
                     "Protocol": ""
                 },
                 "VHosts": null,
-                "VHostList": null,
+                "VHostList": [],
                 "AddressAssignment": {
                     "ID": "",
                     "AssignmentType": "",

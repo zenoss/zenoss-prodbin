@@ -42,6 +42,7 @@ import json
 import pkg_resources
 
 from urlparse import urlparse
+from Products.ZenMessaging.audit import audit
 
 
 log = logging.getLogger('zen.ZenPackCMD')
@@ -109,6 +110,7 @@ def CreateZenPack(zpId, prevZenPackName='', devDir=None):
         f.close()
     base = os.path.join(base, parts[-1])
     shutil.move(os.path.join(destDir, 'CONTENT'), base)
+    audit('Shell.ZenPack.Create', zpId)
 
     return destDir
 
@@ -254,6 +256,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                                               serviceId=serviceId,
                                               ignoreServiceInstall=ignoreServiceInstall)
                     zenPacks.append(zp)
+                    audit('Shell.ZenPack.Install', zp.id)
                 except NonCriticalInstallError, ex:
                     nonCriticalErrorEncountered = True
                     if sendEvent:
@@ -985,6 +988,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
     if sendEvent:
         ZPEvent(dmd, 2, 'Removed ZenPack %s' % packName)
 
+    audit('Shell.ZenPack.Remove', packName)
 
 def DoEasyUninstall(name):
     """
