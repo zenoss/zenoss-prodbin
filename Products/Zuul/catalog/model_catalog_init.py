@@ -118,7 +118,7 @@ class ReindexProcess(multiprocessing.Process):
         Add a node to the batch. If the batch passes a threshold, index it.
         """
         self._batch.append(node)
-        if len(batch) >= INDEX_SIZE:
+        if len(self._batch) >= INDEX_SIZE:
             self.index()
             self._batch[:] = []
 
@@ -127,9 +127,9 @@ class ReindexProcess(multiprocessing.Process):
         Process a single uid.
         """
         try:
-            current_node = self.dmd.unrestrictedTraverse(current_uid)
+            current_node = self.dmd.unrestrictedTraverse(uid)
         except NotFound:
-            log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(current_uid))
+            log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(uid))
         else:
             self.push_children(current_node)
             if self.include_node(current_node):
@@ -150,6 +150,8 @@ class ReindexProcess(multiprocessing.Process):
                     if count % 1000 == 0:
                         with self.counter.get_lock():
                             self.counter.value += 1000
+		        self.queue.put(WorkerReport(self.idx, count))
+		        self.idle()
             # Flush the index batch
             self.index()
             # Should we die?
