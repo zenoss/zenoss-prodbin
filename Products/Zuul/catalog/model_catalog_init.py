@@ -38,18 +38,12 @@ log.setLevel(logging.INFO)
 MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
 
-class WorkerReport(object):
-    def __init__(self, idx, count, err=None):
-        self.idx = idx
-        self.count = count
-        self.err = err
-
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, queue, idx, parent_queue, counter, semaphore, cond, cancel):
+    def __init__(self, error_queue, idx, parent_queue, counter, semaphore, cond, cancel):
         super(ReindexProcess, self).__init__()
 
-        self.queue = queue
+        self.error_queue = error_queue
         self.idx = idx
         self.parent_queue = parent_queue
         self.counter = counter
@@ -106,9 +100,17 @@ class ReindexProcess(multiprocessing.Process):
         """
         raise NotImplementedError
 
-    def idle(self):
+    def handle_exception(self, exc):
         """
-        Signal to the parent process that a worker has become idle.
+        Pass an error to the parent.
+        """
+        self.error_queue.put((self.idx, exc))
+        self.notify_parent()
+
+    def notify_parent(self):
+        """
+	Signal to the parent process that a worker has become idle or has
+        encountered an exception.
         """
         with self.cond:
             self.cond.notify_all()
@@ -128,12 +130,12 @@ class ReindexProcess(multiprocessing.Process):
         """
         try:
             current_node = self.dmd.unrestrictedTraverse(uid)
-        except NotFound:
-            log.error("'{0}' was not found in ZODB.  A hard reindex or investigation may be needed.".format(uid))
-        else:
             self.push_children(current_node)
             if self.include_node(current_node):
                 self.add_to_batch(current_node)
+        except Exception as e:
+            self.handle_exception(e)
+        finally:
             self.reconcile()
 
     def run(self):
@@ -147,21 +149,21 @@ class ReindexProcess(multiprocessing.Process):
                     self.process(uid)
                     count += 1
                     # update our counter every so often (less lock usage)
-                    if count % 1000 == 0:
+                    if count >= 1000:
                         with self.counter.get_lock():
-                            self.counter.value += 1000
-		        self.queue.put(WorkerReport(self.idx, count))
-		        self.idle()
-            # Flush the index batch
-            self.index()
-            # Should we die?
+                            self.counter.value += count
+                        count = 0
+                        self.notify_parent()
+            # Flush the index batch dregs
+            self.index(True)
+            if count:
+	        with self.counter.get_lock():
+	            self.counter.value += count
+	        count = 0
+            self.notify_parent()
+            # Should we die? Or wait for more work from the parent?
             if self.cancel.is_set():
                 break
-            self.queue.put(WorkerReport(self.idx, count))
-            self.idle()
-        # One last hurrah
-        self.index(True) # TODO: Why commit=True?
-
 
 class HardReindex(ReindexProcess):
     """
@@ -299,7 +301,7 @@ def run(processor_count=8, hard=False):
     index_client = init_model_catalog()
 
     processes = []
-    processor_queue = multiprocessing.Queue()
+    error_queue = multiprocessing.Queue()
     parent_queue = multiprocessing.Queue()
     counter = multiprocessing.Value(ctypes.c_uint32)
     semaphore = multiprocessing.Semaphore(processor_count)
@@ -324,7 +326,7 @@ def run(processor_count=8, hard=False):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(processor_queue, n, parent_queue, counter, semaphore, cond, cancel)
+        p = Worker(error_queue, n, parent_queue, counter, semaphore, cond, cancel)
         processes.append(p)
         p.start()
 
@@ -332,22 +334,32 @@ def run(processor_count=8, hard=False):
         parent_queue.put(uid)
 
     log.info("Waiting for processes to finish")
-    total_count = 0
 
+    lastcount = 0
+    last = start
     while True:
         with cond:
             cond.wait()
-            try:
-                proc_report = processor_queue.get_nowait()
-                if proc_report.err:
-                    log.error("Process with idx '{0}' exited early with an error".format(proc_report.idx))
-                    log.exception(proc_report.err)
-                total_count += proc_report.count
-            except Queue.Empty:
-                with counter.get_lock():
-                    log.info("Progress: {0} objects indexed so far".format(counter.value))
+            # Print any errors we've built up
+            while not error_queue.empty():
+                try:
+                    idx, exc = error_queue.get_nowait()
+                except Queue.Empty:
+                    pass # This shouldn't happen, but just in case there's a race somehow
+                else:
+                    log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
+            # Print status
+            with counter.get_lock():
+	        delta = counter.value - lastcount
+                if delta > MODEL_INDEX_BATCH_SIZE:
+                    now = time.time()
+                    persec = delta/(now - last)
+                    last, lastcount = now, counter.value
+                    log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
+            # Check to see if we're done
             if semaphore.get_value() == processor_count and parent_queue.empty():
                 # All workers are idle and there's no more work to do, so the end
+                log.info("All workers idle, queue empty. Done!")
                 break
     end = time.time()
     cancel.set()
@@ -356,7 +368,7 @@ def run(processor_count=8, hard=False):
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
     log.info("Time to process and reindex: {0}".format(end - proc_start))
-    log.info("Number of objects indexed: {0}".format(total_count))
+    log.info("Number of objects indexed: {0}".format(counter.value))
 
 
 def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
