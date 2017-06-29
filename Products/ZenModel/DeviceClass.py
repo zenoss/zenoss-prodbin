@@ -168,6 +168,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         self._checkDeviceExists(devId, performanceMonitor, manageIp)
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(devId)
+        dev.resetProductionState()
         self.devices._setObject(devId, dev)
         devInContext = self.devices._getOb(devId)
         return devInContext
