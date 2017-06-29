@@ -158,7 +158,7 @@ class ServiceMigrationTestCase(object):
         if not result:
             if isinstance(rdiff, compare.Diff):
                 self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                        % (rdiff.actual, rpath, rdiff.expected))
+                        % (rdiff.expected, rpath, rdiff.actual))
             else:
                 self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
                         % (rpath, "\n".join(rdiff)))

@@ -300,6 +300,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def __init__(self, id, buildRelations=True):
         ManagedEntity.__init__(self, id, buildRelations=buildRelations)
+        self.resetProductionState()
         osObj = OperatingSystem()
         self._setObject(osObj.id, osObj)
         hw = DeviceHW()
