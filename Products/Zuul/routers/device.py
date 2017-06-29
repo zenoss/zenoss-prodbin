@@ -364,6 +364,7 @@ class DeviceRouter(TreeRouter):
 
     @require('Manage Device')
     def resumeCollection(self, id):
+        # argument 1 is actually uid but is passed as the "id" keyword
         return self._getFacade().resumeCollection(id)
 
     @require('Manage Device')
