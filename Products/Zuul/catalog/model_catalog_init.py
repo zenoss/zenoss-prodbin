@@ -80,7 +80,7 @@ class ReindexProcess(multiprocessing.Process):
 
     def batch_update(self, batch, commit=False):
         """
-        Uses a solr index client to perform a batch update of batch.
+        Uses a Solr index client to perform a batch update of batch.
         """
         self.index_client.process_batched_updates(
             [IndexUpdate(node, op=INDEX) for node in batch],
@@ -292,11 +292,11 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     return index_client
 
 def run(processor_count=8, hard=False):
-    log.info("Beginning {0} redindexing with {1} child processes.".format(
+    log.info("Beginning {0} reindexing with {1} child processes.".format(
     "hard" if hard else "soft", processor_count))
     start = time.time()
 
-    log.info("Initializing dmd and solr model catalog...")
+    log.info("Initializing model database and Solr model catalog...")
     dmd = ZenScriptBase(connect=True).dmd
     index_client = init_model_catalog()
 
@@ -315,12 +315,12 @@ def run(processor_count=8, hard=False):
     proc_start = time.time()
 
     if hard:
-        log.info("Clearing solr data")
+        log.info("Clearing Solr data")
         index_client.clear_data()
         work.append("/zport")
         Worker = HardReindex
     else:
-        log.info("Reading uids from solr")
+        log.info("Reading uids from Solr")
         work = get_uids(index_client)
         Worker = SoftReindex
 
@@ -385,7 +385,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
             try:
                 obj = dmd.unrestrictedTraverse(uid)
             except (KeyError, NotFound):
-                log.warn("Stale object found in solr: {}".format(uid))
+                log.warn("Stale object found in Solr: {}".format(uid))
                 index_updates.append(IndexUpdate(None, op=UNINDEX, uid=uid))
             else:
                 index_updates.append(IndexUpdate(obj, op=INDEX, idxs=idxs))
