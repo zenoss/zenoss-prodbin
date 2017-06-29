@@ -1888,11 +1888,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newId == '' or newId == oldId:
             return path
 
-        device = None
-        try:
-            device = self.dmd.unrestictedTraverse(newPath)
-        except AttributeError as e:
-            pass # device was not found
+        device = self.dmd.Devices.findDeviceByIdExact(newId)
         if device:
             message = 'Device already exists with id %s' % newId
             raise DeviceExistsError(message, device)

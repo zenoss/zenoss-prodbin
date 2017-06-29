@@ -541,9 +541,9 @@ class DeviceFacade(TreeFacade):
         # pass in the request for the audit
         return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
 
-    def resumeCollection(self, id):
-        uid = id.split('/')[-1]
-        device = self._getObject(uid)
+    def resumeCollection(self, uid):
+        id = uid.split('/')[-1]
+        device = self._getObject(id)
         device.renameInProgress = False
         return "OK!"
 
