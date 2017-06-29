@@ -200,20 +200,7 @@ class ModelCatalogTool(object):
         count = 0
         search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
         catalog_results = self.model_catalog_client.search(search_params, self.context, commit_dirty=commit_dirty)
-
         return catalog_results
-
-    def _get_fields_to_return(self, fields):
-        """
-        return the list of fields that brains returned by the current search will have
-        """
-        if isinstance(fields, basestring):
-            fields = [ fields ]
-        brain_fields = set(fields) if fields else set()
-        # Always return object uid and solr internal uid
-        brain_fields.add(OBJECT_UID_FIELD)
-        brain_fields.add(MODEL_INDEX_UID_FIELD)
-        return list(brain_fields)
 
     def _filterQueryResults(self, queryResults, infoFilters):
         """
@@ -304,11 +291,9 @@ class ModelCatalogTool(object):
         queryStart = start if areBrains else 0
         queryLimit = limit if areBrains else None
 
-        fields_to_return = self._get_fields_to_return(fields)
-
         catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
                                                     order_by=queryOrderby, reverse=reverse,
-                                                    fields=fields_to_return, commit_dirty=commit_dirty)
+                                                    fields=fields, commit_dirty=commit_dirty)
         if len(not_indexed_user_filters) > 0:
             # unbrain everything and filter
             results = self._filterQueryResults(catalog_results, not_indexed_user_filters)

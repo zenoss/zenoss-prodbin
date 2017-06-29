@@ -7,13 +7,13 @@
 #
 ##############################################################################
 
-
+import transaction
 import unittest
 
 from Products.AdvancedQuery import Eq, MatchGlob
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
-from Products.Zuul.catalog.model_catalog import ModelCatalogDataManager, SearchParams, TX_SEPARATOR
+from Products.Zuul.catalog.model_catalog import ModelCatalogDataManager, SearchParams, TX_SEPARATOR, TX_STATE_FIELD
 from Products.Zuul.catalog.indexable import MODEL_INDEX_UID_FIELD as SOLR_UID
 from Products.Zuul.catalog.indexable import OBJECT_UID_FIELD as UID
 
@@ -68,14 +68,16 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertNotEquals(getattr(result, UID), getattr(result, SOLR_UID))
             self.assertTrue(getattr(result, UID) in getattr(result, SOLR_UID))
             self.assertTrue( TX_SEPARATOR in getattr(result, SOLR_UID) )
+            self.assertIsNotNone(getattr(result, TX_STATE_FIELD))
+            self.assertTrue(getattr(result, TX_STATE_FIELD) != 0)
         self.assertEquals(set(found_object_uids), set(expected_object_uids))
 
     def testDataManager(self):
-        tx_state = self._get_transaction_state()
         # before any changes are made, tx_state is None
-        self.assertIsNone(tx_state)
+        self.assertIsNone(self._get_transaction_state())
         device_class_1 = "device_class_1"
         device_class_2 = "device_class_2"
+        device_class_3 = "device_class_3"
 
         # create an organizer
         dc_1 = self.dmd.Devices.createOrganizer(device_class_1)
@@ -94,12 +96,12 @@ class TestModelCatalogTransactions(BaseTestCase):
 
         # A search with commit_dirty=False should not find the new device organizer
         search_results = self.model_catalog.search(query=Eq(UID, dc_1_uid), commit_dirty=False)
-        self.assertEquals(len(search_results), 0)
+        self.assertEquals( search_results.total, 0 )
 
         # A search with commit_dirty=True must find the new device organizer
         search_results = self.model_catalog.search(query=Eq(UID, dc_1_uid), commit_dirty=True)
         # model catalog should return the dirty doc
-        self.assertEquals(len(search_results), 1)
+        self.assertEquals( search_results.total, 1 )
         self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_1_uid])
 
         # the tx_state object should have been updated appropiately
@@ -124,22 +126,90 @@ class TestModelCatalogTransactions(BaseTestCase):
         search_results = self.model_catalog.search(query=query, commit_dirty=True)
         self._check_tx_state(temp_indexed=[dc_1_uid, dc_2_uid])
         # it should return 2 device classes
-        self.assertEquals(len(search_results), 2)
+        self.assertEquals( search_results.total, 2 )
         self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_1_uid, dc_2_uid])
 
-        # Lets delete device_class_2
+        # Lets delete device_class_1
         self.dmd.Devices._delObject(device_class_1)
         self._check_tx_state(pending=[dc_1_uid])
-        # a search with commit = True should not return device_class_1 anymore
+        #   a search with commit = True should not return device_class_1 anymore
         search_results = self.model_catalog.search(query=query, commit_dirty=True)
         self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_2_uid])
         self._check_tx_state(temp_deleted=[dc_1_uid])
+        #   however, we should have two temp docs matching "/zport/dmd/Devices/device_class*"
+        mi_results = self.model_index.search(SearchParams(query))
+        self.assertTrue( mi_results.total_count == 2 )
 
+        #   some more tx_state checks before moving on to the next thing
         tx_state = self._get_transaction_state()
         self.assertTrue( len(tx_state.pending_updates) == 0 )
         self.assertTrue( len(tx_state.indexed_updates) == 2 )
         self.assertTrue( len(tx_state.temp_indexed_uids) == 1 )
         self.assertTrue( len(tx_state.temp_deleted_uids) == 1 )
+
+        # Simulate transaction is committed and do checks
+        try:
+            tid = self.data_manager._get_tid()
+            # before commit we should have 2 docs with tx_state = tid
+            mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
+            self.assertTrue( mi_results.total_count == 2 )
+            # Lets do the commit
+            self.data_manager.tpc_finish(transaction.get())
+            self.assertIsNone(self._get_transaction_state())
+            # Check we only have one doc matching "/zport/dmd/Devices/device_class*"
+            search_results = self.model_catalog.search(query=query, commit_dirty=False)
+            self.assertEquals( search_results.total, 1 )
+            # Check the result's tx_state field has been set to zero
+            brain = search_results.results.next()
+            self.assertEquals( brain.tx_state, 0 )
+            # No documents should remain with tx_state == tid
+            mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
+            self.assertEquals( mi_results.total_count, 0 )
+        finally:
+            # clean up created docs in solr
+            self.model_index.unindex_search(SearchParams(query))
+
+        # create another organizer in a new transaction
+        dc_3 = self.dmd.Devices.createOrganizer(device_class_3)
+        dc_3_uid = dc_3.idx_uid()
+        self._check_tx_state(pending=dc_3_uid)
+        tx_state = self._get_transaction_state()
+        self.assertTrue( len(tx_state.pending_updates) == 1 )
+        self.assertTrue( len(tx_state.indexed_updates) == 0 )
+        self.assertTrue( len(tx_state.temp_indexed_uids) == 0 )
+        self.assertTrue( len(tx_state.temp_deleted_uids) == 0 )
+        # Manual mid-transaction commit
+        self.data_manager.do_mid_transaction_commit()
+        self._check_tx_state(temp_indexed=dc_3_uid)
+        self.assertTrue( len(tx_state.pending_updates) == 0 )
+        self.assertTrue( len(tx_state.indexed_updates) == 1 )
+        self.assertTrue( len(tx_state.temp_indexed_uids) == 1 )
+        self.assertTrue( len(tx_state.temp_deleted_uids) == 0 )
+        query = MatchGlob(UID, "/zport/dmd/Devices/device_class*")
+        search_results = self.model_catalog.search(query=query, commit_dirty=False)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_3_uid])
+        # Simulate transaction is aborted and check tx state has been reset
+        self.data_manager.abort(transaction.get())
+        # No docs should match the device class uid
+        search_results = self.model_catalog.search(query=Eq(UID, dc_3_uid), commit_dirty=False)
+        self.assertTrue(search_results.total == 0)
+        # No documents should remain with tx_state == tid
+        tid = self.data_manager._get_tid()
+        mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
+        self.assertEquals( mi_results.total_count, 0 )
+        self.assertIsNone(self._get_transaction_state())
+
+    def testSearchBrain(self):
+        # create an object
+        device_class_1 = "device_class_1"
+        dc_1 = self.dmd.Devices.createOrganizer(device_class_1)
+        dc_1_uid = dc_1.idx_uid()
+        search_results = self.data_manager.search_brain(uid=dc_1_uid, context=self.dmd, commit_dirty=False)
+        self.assertTrue( search_results.total == 0 )
+        search_results = self.data_manager.search_brain(uid=dc_1_uid, context=self.dmd, commit_dirty=True)
+        self.assertTrue( search_results.total == 1 )
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_1_uid])
+
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(TestModelCatalogTransactions),))

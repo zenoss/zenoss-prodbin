@@ -363,14 +363,23 @@ class ModelCatalogDataManager(object):
             brain = brain.__of__(context.dmd)
             yield brain
 
+    def _get_fields_to_return(self, fields):
+        """
+        return the list of fields that brains returned by the current search will have
+        """
+        mandatory_fields = { MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD, TX_STATE_FIELD }
+        if isinstance(fields, basestring):
+            fields = [ fields ]
+        brain_fields = set(fields) if fields else set()
+        return list(brain_fields | mandatory_fields)
+
     def _do_search(self, search_params, context):
         """
         @param  context object to hook brains up to acquisition
         """
         tx_state = self._get_tx_state()
         try:
-            if TX_STATE_FIELD not in search_params.fields:
-                search_params.fields.append(TX_STATE_FIELD)
+            search_params.fields = self._get_fields_to_return(search_params.fields)
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
@@ -387,7 +396,7 @@ class ModelCatalogDataManager(object):
 
         return SearchResults(brains, total=count, hash_=str(count))
 
-    def _do_mid_transaction_commit(self):
+    def do_mid_transaction_commit(self):
         """
         When commit_dirty is True, objects that have been modified as a part of a transaction
         that has not been commited yet, will be commited with tx_state = tid so they can be searched.
@@ -410,14 +419,14 @@ class ModelCatalogDataManager(object):
         """
         tx_state = self._get_tx_state()
         if commit_dirty:
-            self._do_mid_transaction_commit()
+            self.do_mid_transaction_commit()
         return self._do_search(search_params, context)
 
     def search_brain(self, uid, context, fields=None, commit_dirty=False):
         """ """
         tx_state = self._get_tx_state()
         if commit_dirty:
-            self._do_mid_transaction_commit()
+            self.do_mid_transaction_commit()
         query = Eq(OBJECT_UID_FIELD, uid)
         search_params = SearchParams(query, fields=fields)
         search_params = self._add_tx_state_query(search_params, tx_state)
@@ -510,7 +519,7 @@ class ModelCatalogTestDataManager(ModelCatalogDataManager):
     def commit(self, transaction):
         super(ModelCatalogTestDataManager, self).abort(transaction)
 
-    def abort(self, tx):
+    def abort(self, transaction):
         super(ModelCatalogTestDataManager, self).abort(transaction)
 
     def search(self, search_params, context, commit_dirty=False):
