@@ -28,7 +28,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         self.model_catalog = IModelCatalogTool(self.dmd)
         self.data_manager = ModelCatalogDataManager('localhost:8983')
         self.model_catalog.model_catalog_client._data_manager = self.data_manager
-        # get a refence to model_index to be able to fo checks bypassing the data manager
+        # get a reference to model_index to be able to fo checks bypassing the data manager
         self.model_index = self.data_manager.model_index
 
     def beforeTearDown(self):
@@ -72,6 +72,53 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertTrue(getattr(result, TX_STATE_FIELD) != 0)
         self.assertEquals(set(found_object_uids), set(expected_object_uids))
 
+
+    def testPartialUpdates(self):
+        """
+                pending_update = tx_state.pending_updates[device_uid]
+        self.assertIsNone( pending_update.idxs ) # whole object needs to be indexed
+        """
+        pass
+
+    def testMultipleUpdates(self):
+        device = self.dmd.Devices.createInstance("my_device")
+        device_uid = device.idx_uid()
+        # On creationg, a index update of the whole object should have been created
+        tx_state = self._get_transaction_state()
+        self._check_tx_state(pending=device_uid)
+        # temporary commit changes made so far
+        self.data_manager.do_mid_transaction_commit()
+        # We should be able to find the newly created device
+        search_results = self.model_catalog.search(query=Eq(UID, device_uid), commit_dirty=False)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[device_uid])
+        # Changing the managed ip should trigger another index update
+        ip = "10.10.10.1"
+        device.setManageIp(ip)
+        self.assertTrue(device_uid in tx_state.pending_updates)
+        self.assertTrue(device_uid in tx_state.temp_indexed_uids)
+
+        # a serch by ip "10.10.10.1" should return our device
+        search_results = self.model_catalog.search(query=Eq("text_ipAddress", ip), commit_dirty=True)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[device_uid])
+
+        # set the managed ip to a different value
+        old_ip = ip
+        new_ip = "10.10.10.2"
+        device.setManageIp(new_ip)
+        # search by new ip should return out device
+        search_results = self.model_catalog.search(query=Eq("text_ipAddress", new_ip), commit_dirty=True)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[device_uid])
+        # search by old ip should NOT return anything
+        search_results = self.model_catalog.search(query=Eq("text_ipAddress", old_ip), commit_dirty=True)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[])
+
+        # now rename the device
+        old_device_uid = device_uid
+        device.renameDevice(newId="my_device_new_name", retainGraphData=True)
+        device_uid = device.idx_uid()
+        self.assertNotEquals(old_device_uid, device_uid)
+
+
     def testDataManager(self):
         # before any changes are made, tx_state is None
         self.assertIsNone(self._get_transaction_state())
@@ -86,7 +133,7 @@ class TestModelCatalogTransactions(BaseTestCase):
 
         # Some tx_state checks
         self.assertIsNotNone(tx_state)
-        self.assertTrue( len(tx_state.pending_updates) == 1 )
+        self.assertTrue( len(tx_state.pending_updates) > 0 )
         self.assertTrue( len(tx_state.indexed_updates) == 0 )
         self.assertTrue( len(tx_state.temp_indexed_uids) == 0 )
         self.assertTrue( len(tx_state.temp_deleted_uids) == 0 )
