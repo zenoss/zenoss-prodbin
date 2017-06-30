@@ -352,10 +352,12 @@
                 datapoints: this.datapoints,
                 overlays: this.thresholds,
                 projections: this.projections,
+                printOptimized: this.printOptimized,
                 type: this.type,
                 // lose the footer and yaxis label as the image gets smaller
                 footer: (height >= 350) ? true : false,
                 yAxisLabel: this.units,
+                supressLegend: true,
                 miny: (this.miny !== -1) ? this.miny : null,
                 maxy: (this.maxy !== -1) ? this.maxy : null,
                 // the visualization library currently only supports
@@ -377,14 +379,17 @@
             var p = zenoss.visualization.chart.create(this.graphId, visconfig);
             p.then(function(chart){
                 chart.afterRender = function(){
+                    var legenddiv = chart.$div.find(".nv-legend").length;
+                    // 40 will trigger resize below.
+                    var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 0;
+
                     // adjust height based on graph content
                     var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
                         graphHeight = self.height,
-                        legendHeight = chart.$div.find(".nv-legend")[0].getBBox().height,
                         adjustedHeight = footerHeight + graphHeight + legendHeight;
 
-                    // if more than 1 legend row, recalculate panel height
-                    if(legendHeight > 20){
+                    // if tall footer is squishing the chart, recalculate panel height
+                    if(footerHeight > 150){
                         chart.$div.height(adjustedHeight);
                         self.setHeight(adjustedHeight + 60);
                         chart.resize();
@@ -1105,7 +1110,8 @@
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
             // measurement like "1h-ago"
-            this.drange = rangeToMilliseconds("1h-ago");
+	    this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
+            this.drange = rangeToMilliseconds(config.drange);
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
@@ -1196,6 +1202,7 @@
                     graphId: graphId,
                     graphTitle: graphTitle,
                     ref: graphId,
+                    printOptimized: this.printOptimized,
                     // when a europa graph appears in a graph panel then don't show controls
                     dockedItems: [],
                     // set the date range incase we are refreshing after a resize or

@@ -121,6 +121,8 @@ class EventsExporter(BrowserView):
             if not wroteHeader:
                 writer.writerow(fields)
                 wroteHeader = True
+            details = evt.get(DETAILS_KEY)
+
             for field in fields:
                 val = evt.get(field, '')
                 if field in ("lastTime", "firstTime", "stateChange") and val:
