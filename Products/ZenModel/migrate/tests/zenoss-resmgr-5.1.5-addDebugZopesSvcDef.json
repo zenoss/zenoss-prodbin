@@ -17771,7 +17771,7 @@
            },
            {
              "Name": "zendebug",
-             "Enabled": true
+             "Enabled": false 
            }
          ],
          "AddressAssignment": {
