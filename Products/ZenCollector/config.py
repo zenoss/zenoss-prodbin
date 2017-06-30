@@ -206,7 +206,7 @@ class ConfigurationLoaderTask(ObservableMixin):
         self.options = self._prefs.options
 
         self._daemon = zope.component.getUtility(ICollector)
-        self._daemon.heartbeatTimeout = self._prefs.cycleInterval * 3
+        self._daemon.heartbeatTimeout = self.options.heartbeatTimeout
         log.debug("Heartbeat timeout set to %ds", self._daemon.heartbeatTimeout)
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
