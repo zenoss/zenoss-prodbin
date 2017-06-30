@@ -179,7 +179,7 @@ class ZenActionD(ZCmdBase):
                                        "zenactiond worker")
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                  'zenactiond',
-                                                 self.options.maintenancecycle *3)
+                                                 self.options.heartbeatTimeout)
 
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                                   self._heartbeatSender)

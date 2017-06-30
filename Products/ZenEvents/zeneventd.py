@@ -265,7 +265,7 @@ class ZenEventD(ZCmdBase):
         EventPipelineProcessor.SYNC_EVERY_EVENT = self.options.syncEveryEvent
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                      'zeneventd',
-                                                     self.options.maintenancecycle *3)
+                                                     self.options.heartbeatTimeout)
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                   self._heartbeatSender)
         objectEventNotify(DaemonCreatedEvent(self))
