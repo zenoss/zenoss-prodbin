@@ -1012,7 +1012,7 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         seconds = 30
-        evt = EventHeartbeat(self.options.monitor, self.name, 3*seconds)
+        evt = EventHeartbeat(self.options.monitor, self.name, self.options.heartbeatTimeout)
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)

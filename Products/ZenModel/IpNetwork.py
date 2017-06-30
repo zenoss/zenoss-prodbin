@@ -513,7 +513,7 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
         query["firstDecimalIp"] = "[ * TO {0} ]".format(decimal_ip)
         query["lastDecimalIp"]  = "[ {0} TO * ]".format(decimal_ip)
         query["objectImplements"] = "Products.ZenModel.IpNetwork.IpNetwork"
-        fields = [ "firstDecimalIp", "lastDecimalIp", cat.uid_field_name ]
+        fields = [ "firstDecimalIp", "lastDecimalIp" ]
         result = cat.search(query=query, fields=fields)
         if result.total > 0:
             # networks found. if more than network is found, return the one
