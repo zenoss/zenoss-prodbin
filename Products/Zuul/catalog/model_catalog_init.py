@@ -22,7 +22,7 @@ from zExceptions import NotFound
 from collections import deque
 
 from OFS.ObjectManager import ObjectManager
-from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In
+from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In, Or
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -40,7 +40,7 @@ INDEX_SIZE = 5000
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, parent_queue, counter, semaphore, cond, cancel):
+    def __init__(self, error_queue, idx, parent_queue, counter, semaphore, cond, cancel, fields=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
@@ -51,6 +51,7 @@ class ReindexProcess(multiprocessing.Process):
         self.semaphore = semaphore
         self.cond = cond
         self.cancel = cancel
+        self.fields = fields
 
         self._batch = []
 
@@ -69,7 +70,7 @@ class ReindexProcess(multiprocessing.Process):
         Uses a Solr index client to perform a batch update of batch.
         """
         self.index_client.process_batched_updates(
-            [IndexUpdate(node, op=INDEX) for node in batch],
+            [IndexUpdate(node, op=INDEX, idxs=self.fields) for node in batch],
             commit=commit)
 
     def index(self, commit=False):
@@ -87,7 +88,7 @@ class ReindexProcess(multiprocessing.Process):
 
     def notify_parent(self, wait=False):
         """
-	Signal to the parent process that a worker has become idle or has
+	    Signal to the parent process that a worker has become idle or has
         encountered an exception.
         """
         with self.cond:
@@ -161,6 +162,9 @@ class HardReindex(ReindexProcess):
 
     def __init__(self, *args, **kwargs):
         super(HardReindex, self).__init__(*args, **kwargs)
+        if self.fields:
+            raise Exception("Atomic updates not supported by hard reindexer")
+
         self.deque = deque()
 
     def get_work(self):
@@ -243,7 +247,9 @@ def get_uids(index_client, root="", types=()):
     start = 0
     need_results = True
     query = [Eq("tx_state", 0)]
-    query.append(MatchGlob("uid", "{}*".format(root)))
+    if root:
+        root = root.rstrip('/')
+        query.append(Or(Eq("uid", "{}".format(root)), MatchGlob("uid", "{}/*".format(root))))
 
     if not isinstance(types, (tuple, list)):
         types = (types,)
@@ -273,10 +279,13 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
+def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
+    if hard and (root or indexes or types):
+        raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
-def run(processor_count=8, hard=False):
-    log.info("Beginning {0} reindexing with {1} child processes.".format(
-        "hard" if hard else "soft", processor_count))
+    log.info("Beginning {0} redindexing with {1} child processes.".format(
+    "hard" if hard else "soft", processor_count))
+
     start = time.time()
 
     log.info("Initializing model database and Solr model catalog...")
@@ -304,12 +313,12 @@ def run(processor_count=8, hard=False):
         Worker = HardReindex
     else:
         log.info("Reading uids from Solr")
-        work = get_uids(index_client)
+        work = get_uids(index_client, root, types)
         Worker = SoftReindex
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, parent_queue, counter, semaphore, cond, cancel)
+        p = Worker(error_queue, n, parent_queue, counter, semaphore, cond, cancel, indexes)
         processes.append(p)
         p.start()
 
@@ -398,7 +407,13 @@ if __name__ == "__main__":
                         help="wipe Solr data and traverse the entire ZODB tree")
     parser.add_argument("-p", "--procs", type=int, default=8,
                         help="use n child processes (default 8)")
+    parser.add_argument("-r", "--root", type=str, default="",
+                        help="root of subtree to reindex (soft-reindex only)")
+    parser.add_argument("-i", "--indexes", type=str, nargs='+', default=[],
+                        help="list of fields to update (soft-reindex only)")
+    parser.add_argument("-t", "--types", type=str, nargs='+', default=[],
+                        help="list of object types to re-index (soft-reindex only)")
     args = parser.parse_args()
     # Something else seems to want to parse our args, so reset them
     sys.argv = sys.argv[:1]
-    run(args.procs, args.hard)
+    run(args.procs, args.hard, args.root, args.indexes, args.types)
