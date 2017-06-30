@@ -242,7 +242,7 @@ class LinkManager(Folder):
         query = {}
         query["objectImplements"] = "Products.ZenModel.Device.Device"
         query["path"] = "{0}".format(path)
-        fields = ["id", "path", model_catalog.uid_field_name]
+        fields = ["id", "path"]
         result = model_catalog.search(query=query, fields=fields)
         return result.results
 

@@ -84,6 +84,7 @@ from Products.ZenUtils.Search import (
     makeCaseInsensitiveKeywordIndex,
     makeMultiPathIndex
 )
+from Products.Jobber.facade import FacadeMethodJob
 
 DEFAULT_PRODSTATE = 1000
 
@@ -224,7 +225,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     sysedgeLicenseMode = ""
     priority = 3
     macaddresses = None
-
+    renameInProgress = False
 
     # Flag indicating whether device is in process of creation
     _temp_device = False
@@ -300,6 +301,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def __init__(self, id, buildRelations=True):
         ManagedEntity.__init__(self, id, buildRelations=buildRelations)
+        self.resetProductionState()
         osObj = OperatingSystem()
         self._setObject(osObj.id, osObj)
         hw = DeviceHW()
@@ -1272,7 +1274,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: boolean
         """
-        return self.getProductionState() >= self.zProdStateThreshold
+        return (self.getProductionState() >= self.zProdStateThreshold
+                and not self.renameInProgress)
 
 
     def snmpMonitorDevice(self):
@@ -1853,10 +1856,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')
-    def renameDevice(self, newId=None, REQUEST=None):
+    def renameDevice(self, newId=None, REQUEST=None, retainGraphData=False):
         """
         Rename device from the DMD.  Disallow assignment of
         an id that already exists in the system.
+        Block renaming for this Device if a rename is already in progress.
 
         @permission: ZEN_ADMIN_DEVICE
         @param newId: new name
@@ -1864,9 +1868,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
+
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
+        newPath = "/".join(self.getPrimaryPath()).replace(oldId, newId)
+
+        if self.renameInProgress:
+            log.warn("Rename already in progress for device {}.".format(self.id))
+            raise Exception("Rename already in progress for device {}.".format(self.id))
+
         if newId is None:
             return path
 
@@ -1894,10 +1905,33 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
             self.setLastChange()
-            return self.absolute_url_path()
 
+            # Replace the old id in performance data with the new id.
+            # See ZEN-27329.
+            if retainGraphData:
+                self.renameInProgress = True
+                self.reassociatePerfDataAfterRename(oldId, newId)
+
+            return self.absolute_url_path()
         except CopyError:
             raise Exception("Device rename failed.")
+
+    def reassociatePerfDataAfterRename(self, oldId, newId):
+        """
+        Replace a dev id in metric names and tag values with the new id after
+        renaming the device.
+        """
+        self.dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description=('Reassociating performance data for device {} with '
+                'new ID {}'.format(oldId, newId)),
+            kwargs=dict(
+                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+                method='renameDevice',
+                oldId=oldId,
+                newId=newId
+            )
+        )
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
