@@ -76,7 +76,6 @@ class ReindexProcess(multiprocessing.Process):
         if self._batch:
             self.batch_update(self._batch, commit)
             self._batch[:] = []
-	# transaction.abort()  # Allow cache boundaries to be enforced
 
     def handle_exception(self):
         """
@@ -351,7 +350,9 @@ def run(processor_count=8, hard=False):
     end = time.time()
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join()
+        proc.join(5)
+        if proc.is_alive():
+            proc.terminate()
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
     log.info("Time to process and reindex: {0}".format(end - proc_start))
