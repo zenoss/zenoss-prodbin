@@ -363,6 +363,11 @@ class DeviceRouter(TreeRouter):
         return values
 
     @require('Manage Device')
+    def resumeCollection(self, id):
+        # argument 1 is actually uid but is passed as the "id" keyword
+        return self._getFacade().resumeCollection(id)
+
+    @require('Manage Device')
     def setProductInfo(self, uid, **data):
         """
         Sets the ProductInfo on a device. This method has the following valid
@@ -476,7 +481,7 @@ class DeviceRouter(TreeRouter):
         return DirectResponse(devices=data, totalCount=devices.total,
                               hash=devices.hash_)
 
-    def renameDevice(self, uid, newId):
+    def renameDevice(self, uid, newId, retainGraphData=False):
         """
         Set the device specified by the uid,"uid" to have the
         the id "newId"
@@ -488,7 +493,7 @@ class DeviceRouter(TreeRouter):
         @param newId: string of the new id
         """
         facade = self._getFacade()
-        newUid = facade.renameDevice(uid, newId)
+        newUid = facade.renameDevice(uid, newId, retainGraphData)
         return DirectResponse.succeed(uid=newUid)
 
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,

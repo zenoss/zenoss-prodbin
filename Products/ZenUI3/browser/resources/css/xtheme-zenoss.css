@@ -9788,6 +9788,14 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   padding-left: 0px; }
 .x-window .x-form-display-field {
   color: #fff; }
+.x-form-display-field-jumbo {
+  font-size: 1.2em;
+  color: #fff;
+}
+.x-form-display-field-note {
+  font-style: italic;
+  color: #fff;
+}
 
 .x-window-body .x-panel-body {
   background-color: transparent;

@@ -9,6 +9,7 @@
 
 
 import unittest
+import json
 from Products import Zuul
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
@@ -62,7 +63,6 @@ class MetricFacadeTest(BaseTestCase):
         info = Zuul.infos.metricserver.MetricServiceGraphDefinition(graph, device)
         graph.graphPoints._setObject('test', ThresholdGraphPoint('test'))
         self.assertEquals([], info.projections)
-
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(MetricFacadeTest),))
