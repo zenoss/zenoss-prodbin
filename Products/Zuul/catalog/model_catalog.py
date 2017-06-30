@@ -420,6 +420,7 @@ class ModelCatalogDataManager(object):
         tx_state = self._get_tx_state()
         if commit_dirty:
             self.do_mid_transaction_commit()
+        search_params = self._add_tx_state_query(search_params, tx_state)
         return self._do_search(search_params, context)
 
     def search_brain(self, uid, context, fields=None, commit_dirty=False):
