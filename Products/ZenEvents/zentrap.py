@@ -749,11 +749,18 @@ Maximum processing time for one event was %.5f""" % (
 
 
 class Decoders:
-    '''methods to decode OID values
-    '''
+    """methods to decode OID values
+    """
 
     @staticmethod
     def decode(value):
+        """Given a raw OID value
+        Itterate over the list of decoder methods in order
+        Returns the first value returned by a decoder method
+
+        NOTE: The order of decoders in the list determines their priority
+        """
+
         decoders = [Decoders.oid,
                     Decoders.basestring,
                     Decoders.ipaddress,
@@ -833,7 +840,7 @@ class Decoders:
             try:
                 return socket.inet_ntop(version, value)
             except ValueError:
-                None
+                pass
 
     @staticmethod
     def basestring(value):
@@ -841,7 +848,7 @@ class Decoders:
             value.decode('utf8')
             return value
         except UnicodeDecodeError:
-            None
+            pass
 
     @staticmethod
     def encode_base64(value):
