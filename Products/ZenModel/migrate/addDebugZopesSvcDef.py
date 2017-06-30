@@ -134,7 +134,7 @@ class AddDebugZopesSvcDef(Migrate.Step):
             zproxy.endpoints.append(zendebug_ep)
 
         zproxy_endpoint = filter(lambda x: x.name == "zproxy", zproxy.endpoints)[0]
-        zproxy_endpoint.vhostlist.append(sm.vhost.VHost(name="zendebug", enabled=True))
+        zproxy_endpoint.vhostlist.append(sm.vhost.VHost(name="zendebug", enabled=False))
         return self._insert_zendebug_nginx_incls(zproxy_conf_orig) and self._insert_zendebug_nginx_incls(zproxy_conf)
 
     def cutover(self, dmd):
