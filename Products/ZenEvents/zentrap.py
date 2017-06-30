@@ -628,7 +628,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # off any index values.
         vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
-            vb_value = decode.value (vb_value)
+            vb_value = Decoders.decode(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
@@ -853,7 +853,6 @@ class Decoders:
     @staticmethod
     def encode_base64(value):
         return 'BASE64:' + base64.b64encode(value)
-
 
 
 class MibConfigTask(ObservableMixin):
