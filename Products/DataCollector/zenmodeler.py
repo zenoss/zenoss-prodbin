@@ -768,7 +768,7 @@ class ZenModeler(PBDaemon):
             evt = dict(eventClass=Heartbeat,
                        component='zenmodeler',
                        device=self.options.monitor,
-                       timeout=3*ARBITRARY_BEAT)
+                       timeout=self.options.heartbeatTimeout)
             self.sendEvent(evt)
             self.niceDoggie(self.cycleTime())
 
