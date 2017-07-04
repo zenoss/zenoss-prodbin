@@ -429,3 +429,8 @@ class ZenDaemon(CmdBase):
                 dest='socketOption', default=[], action='append',
                 help="Set listener socket options. "
                 "For option details: man 7 socket")
+        self.parser.add_option('--heartbeattimeout',
+                dest='heartbeatTimeout',
+                type='int',
+                help="Set a heartbeat timeout in seconds for a daemon",
+                default=900)
