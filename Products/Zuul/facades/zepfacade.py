@@ -697,17 +697,26 @@ class ZepFacade(ZuulFacade):
             url = evclass.getPrimaryId()
         return msg, url
 
-    def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):
+    def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=(), deviceOnly=False):
         if not severity:
             severity = (SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING)
         if not status:
             status = (STATUS_NEW, STATUS_ACKNOWLEDGED)
-        eventFilter = self.createEventFilter(
-            severity=severity,
-            status=status,
-            event_class=eventClass,
-            tags=tags,
-            )
+        if deviceOnly:
+            eventFilter = self.createEventFilter(
+                severity=severity,
+                status=status,
+                event_class=eventClass,
+                tags=tags,
+                element_sub_identifier=[""],
+                )
+        else:
+            eventFilter = self.createEventFilter(
+                severity=severity,
+                status=status,
+                event_class=eventClass,
+                tags=tags,
+                )
 
         response, content = self.client.getEventTagSeverities(from_dict(EventFilter, eventFilter))
         return content.severities
@@ -725,7 +734,8 @@ class ZepFacade(ZuulFacade):
     def getDeviceIssues(self, eventClass=(),
                         severity=(SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL),
                         status=(STATUS_NEW,)):
-        tagSeverities = self._getEventTagSeverities(eventClass, severity, status)
+        tagSeverities = self._getEventTagSeverities(
+                eventClass=eventClass, severity=severity, status=status, deviceOnly=True)
         issues = []
         for eventTagSeverity in tagSeverities:
             device = self._guidManager.getObject(eventTagSeverity.tag_uuid)
