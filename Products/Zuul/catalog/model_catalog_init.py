@@ -41,11 +41,12 @@ QUEUE_TIMEOUT = 2
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, parent_queue, counter, semaphore, cond, cancel, fields=None):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, fields=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
         self.idx = idx
+        self.worker_count = worker_count
         self.parent_queue = parent_queue
         self.counter = counter
 
@@ -53,6 +54,8 @@ class ReindexProcess(multiprocessing.Process):
         self.cond = cond
         self.cancel = cancel
         self.fields = fields
+
+        self.semaphore_acquired = False
 
         self._batch = []
 
@@ -111,6 +114,27 @@ class ReindexProcess(multiprocessing.Process):
         """
         raise NotImplementedError
 
+    def acquire_semaphore(self):
+        if not self.semaphore_acquired:
+            self.semaphore.acquire(True)
+            self.semaphore_acquired = True
+
+    def release_semaphore(self):
+        if self.semaphore_acquired:
+            self.semaphore.release()
+            self.semaphore_acquired = False
+
+    def get_work_from_parent(self):
+        try:
+            # We hold the semaphore while we are waiting on the queue
+            # This is safe to call multiple times
+            self.acquire_semaphore()
+            new_work = self.parent_queue.get(timeout=QUEUE_TIMEOUT)
+            self.release_semaphore()
+            return new_work
+        except Queue.Empty:
+            return None
+
     def run(self):
         """
         Operates on uids/nodes from get_work until exhausted.
@@ -119,21 +143,20 @@ class ReindexProcess(multiprocessing.Process):
         while True:
             if self.cancel.is_set():
                 return
-            with self.semaphore:
-                for uid in self.get_work():
-                    try:
-                        self.process(uid)
-                    except Exception:
-                        self.handle_exception()
-                        continue
-                    count += 1
-                    # update our counter every so often (less lock usage)
-                    if count >= 1000:
-                        with self.counter.get_lock():
-                            self.counter.value += count
-                        count = 0
-                        log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
-                        self.notify_parent()
+            for uid in self.get_work():
+                try:
+                    self.process(uid)
+                except Exception:
+                    self.handle_exception()
+                    continue
+                count += 1
+                # update our counter every so often (less lock usage)
+                if count >= 1000:
+                    with self.counter.get_lock():
+                        self.counter.value += count
+                    count = 0
+                    log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
+                    self.notify_parent()
             # Flush the index batch dregs
             self.index(True)
             if count:
@@ -172,10 +195,11 @@ class HardReindex(ReindexProcess):
         while True:
             while self.deque:
                 yield self.deque.pop()
-            try:
-                yield self.parent_queue.get(timeout=QUEUE_TIMEOUT)
-            except Queue.Empty:
-                pass
+
+            new_work = self.get_work_from_parent()
+            if new_work:
+                yield new_work
+
             # If we've gotten here and the deque is empty, we have nothing to do
             if not self.deque:
                 log.debug("Worker {0} is effectively idle".format(self.idx))
@@ -209,7 +233,7 @@ class HardReindex(ReindexProcess):
     def _reconcile(self):
         try:
             if self.parent_queue.empty():
-                idle = self.semaphore.get_value() + 1
+                idle = self.worker_count - self.semaphore.get_value()
                 log.debug(
                     "Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
                 for _ in xrange(idle):
@@ -234,9 +258,10 @@ class SoftReindex(ReindexProcess):
         Returns items from the parent queue until signaled to stop.
         """
         while True:
-            try:
-                yield self.parent_queue.get(timeout=QUEUE_TIMEOUT)
-            except Queue.Empty:
+            new_work = self.get_work_from_parent()
+            if new_work:
+                yield new_work
+            else:
                 return
 
     def process(self, uid):
@@ -319,7 +344,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, parent_queue, counter, semaphore, cond, cancel, indexes)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, indexes)
         processes.append(p)
         p.start()
 
@@ -351,9 +376,9 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
                         last, lastcount = now, counter.value
                         log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
                 # Check to see if we're done
-                log.debug("{0} workers still busy".format(processor_count - semaphore.get_value()))
+                log.debug("{0} workers still busy".format(semaphore.get_value()))
                 log.debug("parent queue is {0}empty".format("" if parent_queue.empty() else "not "))
-                if semaphore.get_value() == processor_count and parent_queue.empty():
+                if semaphore.get_value() == 0 and parent_queue.empty():
                     # All workers are idle and there's no more work to do, so the end
                     log.info("All workers idle, queue empty. Done!")
                     cancel.set()
