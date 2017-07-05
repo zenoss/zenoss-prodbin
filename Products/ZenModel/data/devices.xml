@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-06-26 18:28:03.495180
+    Zenoss RelationshipManager export completed on 2017-07-07 13:01:32.217099
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.3.0]" export_date="2017-06-26 18:28:03.495180" zenoss_server="e5d52b54880b" >
+<objects version="[Zenoss, version 5.3.0]" export_date="2017-07-07 13:01:32.217099" zenoss_server="caa3d64c7da7" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -196,7 +196,10 @@ False
 <property visible="True" type="date" id="cDateTest" >
 1900/01/01 00:00:00 US/Central
 </property>
-<property visible="True" description="" type="boolean" id="zUsesStandardDeviceCreationJob" label="" >
+<property visible="True" label="" type="boolean" description="" id="zUsesStandardDeviceCreationJob" >
+True
+</property>
+<property visible="True" label="" type="boolean" description="" id="zUsesManageIp" >
 True
 </property>
 <tomanycont id='zenMenus'>
