@@ -804,6 +804,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
 
+        def startStatsLoop():
+            self.log.debug("Starting Statistic posting")
+            loop = task.LoopingCall(self.postStatistics)
+            loop.start(self.options.writeStatistics, now=False)
+
+        reactor.callWhenRunning(startStatsLoop)
         d.addCallback(callback)
         d.addErrback(twisted.python.log.err)
         reactor.run()
@@ -946,6 +952,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
+    def postStatisticsImpl(self):
+        pass
+
+    def postStatistics(self):
         # save daemon counter stats
         for name, value in self.counters.items():
             self.log.info("Counter %s, value %d", name, value)
@@ -953,6 +963,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
         # persist counters values
         self.saveCounters()
+        self.postStatisticsImpl()
 
     def saveCounters(self):
         atomicWrite(
@@ -1151,5 +1162,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                help="Enable or disable ping perspective",
                                default=True,
                                action='store_false')
+        self.parser.add_option('--writeStatistics',
+                               dest='writeStatistics',
+                               type='int',
+                               default=30,
+                               help='How often to write internal statistics value in seconds')
 
         ZenDaemon.buildOptions(self)
