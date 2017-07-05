@@ -26,12 +26,14 @@ var deviceButtonsDisabled = false;
 Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
+REMOTE.getAllCredentialsProps({}, function(data) {
+    Zenoss.env.allCredentialsProps = data['data'];
+});
 
 var resetCombo = function(combo, manufacturer) {
     combo.clearValue();
     combo.getStore().setBaseParam('manufacturer', manufacturer);
     delete combo.lastQuery;
-    //combo.doQuery(combo.allQuery, true);
 };
 
 var hwManufacturers = {
@@ -118,34 +120,30 @@ var deviceClassCombo = {
                         var path = selnode.data.path;
                         path = path.replace(/^Devices/,'');
                         if (this.findRecordByValue(path)) {
-                            this.setRawValue(path);
+                            this.setValue(path);
                         }
                     }
                 }
             });
-
-            this.toggleAdditionalFields();
         },
         'change': function(){
             this.toggleAdditionalFields();
         }
     },
     toggleAdditionalFields: function(){
-        if(this.getValue() !== null && this.getValue().toLowerCase().indexOf("ssh") >= 0){
-            Ext.getCmp('zCommandUsername').show();
-            Ext.getCmp('zCommandPassword').show();
-        }else{
-            Ext.getCmp('zCommandUsername').hide();
-            Ext.getCmp('zCommandPassword').hide();
-        }
-
-        if(this.getValue() !== null && this.getValue().toLowerCase().toLowerCase().indexOf("wmi") >= 0){
-            Ext.getCmp('zWinUser').show();
-            Ext.getCmp('zWinPassword').show();
-        }else{
-            Ext.getCmp('zWinUser').hide();
-            Ext.getCmp('zWinPassword').hide();
-        }
+        REMOTE.getCredentialsProps({deviceClass: this.getValue()}, function(data) {
+            var credsProps = data['data'],
+                unusedCreds = Zenoss.env.allCredentialsProps.filter(function(prop) {
+                    return credsProps[prop] === undefined;
+                });
+            for (prop in credsProps) {
+                Ext.getCmp(prop).setValue(credsProps[prop]);
+                Ext.getCmp(prop).show();
+            }
+            unusedCreds.forEach(function(prop) {
+                Ext.getCmp(prop).hide();
+            });
+        });
     }
 };
 
@@ -465,22 +463,233 @@ Ext.apply(Zenoss.devices, {
         id: 'addsingledevice-item',
         permission: 'Manage Device',
         handler: function() {
+            var snmpAndRackItems = [{
+                    xtype: 'textfield',
+                    name: 'snmpCommunity',
+                    fieldLabel: _t('Snmp Community')
+                }, {
+                    xtype: 'numberfield',
+                    name: 'snmpPort',
+                    fieldLabel: _t('Snmp Port'),
+                    value: 161,
+                    allowBlank: false,
+                    allowNegative: false,
+                    allowDecimals: false,
+                    maxValue: 65535
+                }, {
+                    xtype: 'textfield',
+                    name: 'tag',
+                    fieldLabel: _t('Tag Number')
+                }, {
+                    xtype: 'textfield',
+                    name: 'rackSlot',
+                    fieldLabel: _t('Rack Slot')
+                }, {
+                    xtype: 'textfield',
+                    name: 'serialNumber',
+                    fieldLabel: _t('Serial Number')
+                }],
+                manufacturersAndProductsItems = [hwManufacturers, hwProduct, osManufacturers, osProduct],
+                organizersItems = [{
+                    xtype: 'textarea',
+                    name: 'comments',
+                    fieldLabel: _t('Comments'),
+                    emptyText: _t('None...'),
+                    height: 77,
+                    width: 200
+                },{
+                    xtype: 'locationdropdown',
+                    name: 'locationPath',
+                    fieldLabel: _t('Location'),
+                    emptyText: _t('None...'),
+                    width: 200
+                },{
+                    xtype: 'groupdropdown',
+                    name: 'groupPaths',
+                    fieldLabel: _t('Groups'),
+                    emptyText: _t('None...'),
+                    multiSelect: true,
+                    width: 200
+                },{
+                    xtype: 'systemdropdown',
+                    name: 'systemPaths',
+                    fieldLabel: _t('Systems'),
+                    emptyText: _t('None...'),
+                    multiSelect: true,
+                    width: 200
+                },{
+                    //Add hidden input field to prevent password autocomplete
+                    xtype: 'password',
+                    id: 'autocompletePassword',
+                    name: 'autocompletePassword',
+                    hidden: true
+                }];
+
+            // this is an attempt to provide some coarse consistency without
+            // completely hardcoding it. it is ugly.
+            var propsCollection = Zenoss.env.allCredentialsProps.slice(),
+                usernamesCollection,
+                passwordsCollection,
+                hostsCollection,
+                sslCollection,
+                portsCollection;
+
+            // usernames go in the first column.
+            usernamesCollection = propsCollection.filter(function(value) {
+                return (value.toLowerCase().endswith('user') || value.toLowerCase().endswith('username'));
+            });
+            usernamesCollection.forEach(function(value) {
+                snmpAndRackItems.push({
+                                xtype: 'textfield',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160
+                });
+            });
+            propsCollection = propsCollection.filter(function(value) {
+                return usernamesCollection.every(function(prop) {
+                    return prop !== value;
+                });
+            });
+
+            // passwords go in the second column.
+            passwordsCollection = propsCollection.filter(function(value) {
+                return value.toLowerCase().endswith('password');
+            });
+            passwordsCollection.forEach(function(value) {
+                manufacturersAndProductsItems.push({
+                                xtype: 'textfield',
+                                inputType: 'password',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160
+                });
+            });
+            propsCollection = propsCollection.filter(function(value) {
+                return passwordsCollection.every(function(prop) {
+                    return prop !== value;
+                });
+            });
+
+            // hosts go in the third column.
+            hostsCollection = propsCollection.filter(function(value) {
+                return (value.toLowerCase().endswith('host') || value.toLowerCase().endswith('hostname'));
+            });
+            hostsCollection.forEach(function(value) {
+                organizersItems.push({
+                                xtype: 'textfield',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160
+                });
+            });
+            propsCollection = propsCollection.filter(function(value) {
+                return hostsCollection.every(function(prop) {
+                    return prop !== value;
+                });
+            });
+
+            // ssl goes in the third column.
+            sslCollection = propsCollection.filter(function(value) {
+                return value.toLowerCase().endswith('ssl');
+            });
+            sslCollection.forEach(function(value) {
+                organizersItems.push({
+                                xtype: 'checkbox',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160,
+                                checked: true
+                });
+            });
+            propsCollection = propsCollection.filter(function(value) {
+                return sslCollection.every(function(prop) {
+                    return prop !== value;
+                });
+            });
+
+            // ports go in the first column.
+            portsCollection = propsCollection.filter(function(value) {
+                return value.toLowerCase().endswith('port');
+            });
+            portsCollection.forEach(function(value) {
+                snmpAndRackItems.push({
+                                xtype: 'numberfield',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160,
+                                value: 443,
+                                allowBlank: false,
+                                allowNegative: false,
+                                allowDecimals: false,
+                                maxValue: 65535
+                });
+            });
+            propsCollection = propsCollection.filter(function(value) {
+                return portsCollection.every(function(prop) {
+                    return prop !== value;
+                });
+            });
+
+            // everything else goes in the third column.
+            propsCollection.forEach(function(value) {
+                manufacturersAndProductsItems.push({
+                                xtype: 'textfield',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160
+                });
+            });
+            propsCollection.forEach(function(value) {
+                organizersItems.push({
+                                xtype: 'textfield',
+                                id: value,
+                                name: value,
+                                fieldLabel: _t(value),
+                                hidden: true,
+                                width: 160
+                });
+            });
+
             var win = new Zenoss.dialog.CloseDialog({
                 width: 850,
-                height: 500,
+                height: 620,
                 autoScroll: true,
                 buttons: [{
                         xtype: 'DialogButton',
                         id: 'addsingledevice-submit',
                         text: _t('Add'),
                         handler: function() {
-                            var form = win.childPanel.getForm();
-                            var opts = form.getValues();
+                            var form = win.childPanel.getForm(),
+                                opts = form.getValues();
                             delete opts.autocompletePassword;
-                            Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
-                                if (!response.success) {
-                                    Zenoss.message.error(_t('Error adding device job.'));
+                            REMOTE.getCredentialsProps({deviceClass: opts.deviceClass}, function(data) {
+                                var zProps = {},
+                                    credsProps = data['data'];
+                                for (prop in credsProps) {
+                                    zProps[prop] = opts[prop];
                                 }
+                                Zenoss.env.allCredentialsProps.forEach(function(prop) {
+                                    delete opts[prop];
+                                });
+                                opts.zProperties = zProps;
+                                Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
+                                    if (!response.success) {
+                                        Zenoss.message.error(_t('Error adding device job.'));
+                                    }
+                                });
                             });
                         }
                     }, Zenoss.dialog.CANCEL],
@@ -661,106 +870,17 @@ Ext.apply(Zenoss.devices, {
                             defaults: {
                                 anchor: '65%'
                             },
-                            items: [{
-                                xtype: 'textfield',
-                                name: 'snmpCommunity',
-                                fieldLabel: _t('Snmp Community')
-                            }, {
-                                xtype: 'numberfield',
-                                name: 'snmpPort',
-                                fieldLabel: _t('Snmp Port'),
-                                value: 161,
-                                allowBlank: false,
-                                allowNegative: false,
-                                allowDecimals: false,
-                                maxValue: 65535
-                            }, {
-                                xtype: 'textfield',
-                                name: 'tag',
-                                fieldLabel: _t('Tag Number')
-                            }, {
-                                xtype: 'textfield',
-                                name: 'rackSlot',
-                                fieldLabel: _t('Rack Slot')
-                            }, {
-                                xtype: 'textfield',
-                                name: 'serialNumber',
-                                fieldLabel: _t('Serial Number')
-                            }]
+                            items: snmpAndRackItems
                         }, {
+                            bodyPadding: '41px 0px 0px 0px',
                             columnWidth: 0.33,
                             layout: 'anchor',
-                            items: [hwManufacturers, hwProduct, osManufacturers, osProduct,
-                            {
-                                xtype: 'textfield',
-                                id: 'zCommandUsername',
-                                name: 'zCommandUsername',
-                                fieldLabel: _t('SSH Username'),
-                                hidden: true,
-                                width: 160
-                            },
-                            {
-                                xtype: 'textfield',
-                                id: 'zWinUser',
-                                name: 'zWinUser',
-                                fieldLabel: _t('Windows User'),
-                                hidden: true,
-                                width: 160
-                            }]
+                            items: manufacturersAndProductsItems
                         }, {
                             columnWidth: 0.34,
                             layout: 'anchor',
                             id: 'add-device-organizer-column',
-                            items: [{
-                                xtype: 'textarea',
-                                name: 'comments',
-                                fieldLabel: _t('Comments'),
-                                emptyText: _t('None...'),
-                                width: 200
-                            },{
-                                xtype: 'locationdropdown',
-                                name: 'locationPath',
-                                fieldLabel: _t('Location'),
-                                emptyText: _t('None...'),
-                                width: 200
-                            },{
-                                xtype: 'groupdropdown',
-                                name: 'groupPaths',
-                                fieldLabel: _t('Groups'),
-                                emptyText: _t('None...'),
-                                multiSelect: true,
-                                width: 200
-                            },{
-                                xtype: 'systemdropdown',
-                                name: 'systemPaths',
-                                fieldLabel: _t('Systems'),
-                                emptyText: _t('None...'),
-                                multiSelect: true,
-                                width: 200
-                            },{
-                                //Add hidden input field to prevent password autocomplete
-                                xtype: 'password',
-                                id: 'autocompletePassword',
-                                name: 'autocompletePassword',
-                                hidden: true
-                            },{
-                                xtype: 'textfield',
-                                inputType: 'password',
-                                id: 'zCommandPassword',
-                                name: 'zCommandPassword',
-                                fieldLabel: _t('SSH Password'),
-                                hidden: true,
-                                width: 200
-                            },
-                            {
-                                xtype: 'textfield',
-                                inputType: 'password',
-                                id: 'zWinPassword',
-                                name: 'zWinPassword',
-                                fieldLabel: _t('Windows Password'),
-                                hidden: true,
-                                width: 200
-                            }]
+                            items: organizersItems
                         }]
                     }]
 

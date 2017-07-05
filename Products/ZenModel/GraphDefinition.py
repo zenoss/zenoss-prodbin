@@ -89,6 +89,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     autoscale = None
     ceiling = None
     description = ""
+    graphType = ""
 
     _properties = (
         {'id':'height', 'type':'int', 'mode':'w'},
