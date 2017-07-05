@@ -1309,6 +1309,30 @@ class DeviceRouter(TreeRouter):
                                          value=int(s.split(':')[1])) for s in
                                     self.context.dmd.prodStateConversions])
 
+    def getAllCredentialsProps(self, **kwargs):
+        """
+        Get a list of available credentials props
+
+        @rtype:   DirectResponse
+        @return:  List of credentials props
+        """
+        props = self._getFacade().getAllCredentialsProps()
+        # zSnmpCommunity is always on the form, don't include it
+        return DirectResponse(data=[prop for prop in props if prop != 'zSnmpCommunity'])
+
+    def getCredentialsProps(self, deviceClass):
+        """
+        Get a dictionary of the creds props and default values for this device class
+
+        @rtype:   DirectResponse
+        @return:  List of credentials props
+        """
+        organizerUid = '/zport/dmd/Devices' + deviceClass
+        props = self._getFacade().getCredentialsProps(organizerUid)
+        if props.get('zSnmpCommunity'):
+            del props['zSnmpCommunity'] # its always on the form
+        return DirectResponse(data=props)
+
     def getPriorities(self, **kwargs):
         """
         Get a list of available device priorities.
@@ -1528,7 +1552,7 @@ class DeviceRouter(TreeRouter):
         safeDeviceName = organizer.prepId(deviceName)
 
         device = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
-        if device:
+        if device and organizer.getZ('zUsesManageIp', True):
             return DirectResponse.fail(deviceUid=device.getPrimaryId(),
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
 
