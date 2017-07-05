@@ -35,6 +35,7 @@ from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchPar
 log = logging.getLogger('zenoss.model_catalog_reindexer')
 log.setLevel(logging.INFO)
 
+TERMINATE_SENTINEL = 'xxTERMINATExx'
 MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
 QUEUE_TIMEOUT = 2
@@ -144,6 +145,11 @@ class ReindexProcess(multiprocessing.Process):
             if self.cancel.is_set():
                 return
             for uid in self.get_work():
+                if uid == TERMINATE_SENTINEL:
+                    log.debug('Worker {0} found sentinel'.format(self.idx))
+                    self.cancel.set()
+                    self.notify_parent(True)
+                    break
                 try:
                     self.process(uid)
                 except Exception:
@@ -155,7 +161,7 @@ class ReindexProcess(multiprocessing.Process):
                     with self.counter.get_lock():
                         self.counter.value += count
                     count = 0
-                    log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
+                    log.debug('Worker {0} notifying parent of count update'.format(self.idx))
                     self.notify_parent()
             # Flush the index batch dregs
             self.index(True)
@@ -166,7 +172,7 @@ class ReindexProcess(multiprocessing.Process):
             # Should we die? Or wait for more work from the parent?
             if self.cancel.is_set():
                 return
-            log.debug('Worker {0} notifying parent without holding semaphore'.format(self.idx))
+            log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
             self.notify_parent(True)
 
 
@@ -332,15 +338,23 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
 
     proc_start = time.time()
 
+    def hard_index_is_done():
+        return semaphore.get_value() == 0 and parent_queue.empty()
+
+    def soft_index_is_done():
+        return cancel.is_set()
+
     if hard:
         log.info("Clearing Solr data")
         index_client.clear_data()
         work.append("/zport")
         Worker = HardReindex
+        is_done = hard_index_is_done
     else:
         log.info("Reading uids from Solr")
         work = get_uids(index_client, root, types)
         Worker = SoftReindex
+        is_done = soft_index_is_done
 
     log.info("Starting child processes")
     for n in range(processor_count):
@@ -351,12 +365,20 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     for uid in work:
         parent_queue.put(uid)
 
+    if not hard:
+        # Put the terminate sentinal at the end of the queue
+        parent_queue.put(TERMINATE_SENTINEL)
+
     log.info("Waiting for processes to finish")
 
     lastcount = 0
     last = start
     while True:
         with cond:
+            if cancel.is_set():
+                # In case we were terminated before we were waiting
+                cond.notify_all()
+                break
             cond.wait()
             try:
                 # Print any errors we've built up
@@ -378,20 +400,21 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
                 # Check to see if we're done
                 log.debug("{0} workers still busy".format(semaphore.get_value()))
                 log.debug("parent queue is {0}empty".format("" if parent_queue.empty() else "not "))
-                if semaphore.get_value() == 0 and parent_queue.empty():
+                if is_done():
                     # All workers are idle and there's no more work to do, so the end
-                    log.info("All workers idle, queue empty. Done!")
+                    log.info("Terminating condition met. Done!")
                     cancel.set()
                     break
             finally:
                 # Pass the ball back to the child that notified
                 cond.notify_all()
-    end = time.time()
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join(5)
+        proc.join(60)
         if proc.is_alive():
+            log.warn("Worker did not exit within timeout, terminating...")
             proc.terminate()
+    end = time.time()
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
     log.info("Time to process and reindex: {0}".format(end - proc_start))
