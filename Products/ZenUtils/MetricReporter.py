@@ -12,7 +12,6 @@ import logging
 import os
 import requests
 import time
-from twisted.internet import reactor
 
 from metrology.instruments import (
     Counter,
@@ -31,7 +30,7 @@ log = logging.getLogger("zen.metricreporter")
 class MetricReporter(Reporter):
 
     def __init__(self, **options):
-        super(MetricReporter, self).__init__(interval=30)
+        super(MetricReporter, self).__init__(options.get('interval', 30))
         self.prefix = options.get('prefix', "")
         self.metric_destination = os.environ.get("CONTROLPLANE_CONSUMER_URL", "")
         if self.metric_destination == "":
@@ -44,6 +43,7 @@ class MetricReporter(Reporter):
             'hostId': os.environ.get('CONTROLPLANE_HOST_ID', ''),
             'tenantId': os.environ.get('CONTROLPLANE_TENANT_ID', ''),
         }
+        self.tags.update(options.get('tags', {}))
 
     def write(self):
         self._write()
@@ -57,27 +57,36 @@ class MetricReporter(Reporter):
                 keys = ['count', 'one_minute_rate', 'five_minute_rate',
                         'fifteen_minute_rate', 'mean_rate']
                 metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, Gauge):
+            elif isinstance(metric, Gauge):
                 keys = ['value']
                 metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, UtilizationTimer):
+            elif isinstance(metric, UtilizationTimer):
                 keys = ['count', 'one_minute_rate', 'five_minute_rate',
                         'fifteen_minute_rate', 'mean_rate', 'min', 'max',
                         'mean', 'stddev', 'one_minute_utilization',
                         'five_minute_utilization', 'fifteen_minute_utilization',
                         'mean_utilization']
                 metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
-            if isinstance(metric, Timer):
+            elif isinstance(metric, Timer):
                 keys = ['count', 'one_minute_rate', 'five_minute_rate',
                         'fifteen_minute_rate', 'mean_rate', 'min', 'max', 'mean',
                         'stddev']
                 metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
-            if isinstance(metric, Counter):
+            elif isinstance(metric, Counter):
                 keys = ['count']
                 metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, Histogram):
+            elif isinstance(metric, Histogram):
                 keys = ['count', 'min', 'max', 'mean', 'stddev']
                 metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
+
+        if metrics:
+            log.debug("Posting %i metrics", len(metrics))
+            self._post_metrics(metrics)
+        else:
+            log.debug("No metrics to post, skipping.")
+
+
+    def _post_metrics(self, metrics):
         try:
             if not self.session:
                 self.session = requests.Session()
@@ -123,9 +132,3 @@ class MetricReporter(Reporter):
         except Exception as e:
             log.error(e)
         return results
-
-
-class AsyncMetricReporter(MetricReporter):
-    def write(self):
-        reactor.callLater(0, self._write)
-
