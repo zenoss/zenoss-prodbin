@@ -10,12 +10,15 @@
 import transaction
 import unittest
 
-from Products.AdvancedQuery import Eq, MatchGlob
+from Products.AdvancedQuery import Eq, MatchGlob, In
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
-from Products.Zuul.catalog.model_catalog import ModelCatalogDataManager, SearchParams, TX_SEPARATOR, TX_STATE_FIELD
+from Products.Zuul.catalog.model_catalog import ModelCatalogDataManager, SearchParams, \
+                                                TX_SEPARATOR, TX_STATE_FIELD, MANDATORY_FIELDS
 from Products.Zuul.catalog.indexable import MODEL_INDEX_UID_FIELD as SOLR_UID
 from Products.Zuul.catalog.indexable import OBJECT_UID_FIELD as UID
+
+from Products.ZenModel.Device import manage_createDevice
 
 from zenoss.modelindex.model_index import SearchParams
 
@@ -26,7 +29,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         super(TestModelCatalogTransactions, self).afterSetUp()
         # Lets change the ModelCatalogTestDataManager with ModelCatalogDataManager
         self.model_catalog = IModelCatalogTool(self.dmd)
-        self.data_manager = ModelCatalogDataManager('localhost:8983')
+        self.data_manager = ModelCatalogDataManager('localhost:8983', self.dmd)
         self.model_catalog.model_catalog_client._data_manager = self.data_manager
         # get a reference to model_index to be able to fo checks bypassing the data manager
         self.model_index = self.data_manager.model_index
@@ -74,14 +77,85 @@ class TestModelCatalogTransactions(BaseTestCase):
 
 
     def testPartialUpdates(self):
-        """
-                pending_update = tx_state.pending_updates[device_uid]
-        self.assertIsNone( pending_update.idxs ) # whole object needs to be indexed
-        """
-        pass
+        # for this test we need to create a test device and commit the changes to
+        device = manage_createDevice(self.dmd, 'my_device', '/')
+        ip = "10.10.10.1"
+        prod_state = 500
+        device_uid = device.idx_uid()
+        device.setManageIp(ip)
+        device.setProdState(prod_state)
+
+        # get the uids we are about to commit so we can revert them at the end
+        tx_state = self._get_transaction_state()
+        tid = tx_state.tid
+        updated_uids = set(tx_state.pending_updates.keys()) | tx_state.temp_indexed_uids
+        try:
+            # simulate the transaction was committed and do a few partial updates
+            self.data_manager.tpc_finish(transaction.get())
+            # make sure the device was correctly indexed
+            fields = ["productionState", "text_ipAddress"]
+            search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
+            self.assertEquals(search_results.total, 1)
+            brain = search_results.results.next()
+            self.assertEquals(brain.uid, device_uid)
+            self.assertEquals(brain.text_ipAddress, ip)
+            self.assertEquals(brain.productionState, prod_state)
+
+            # update prod state triggers an atomic update
+            new_prod_state = 1000
+            device.setProdState(new_prod_state)
+            # tx_state.pending_updates.values()[0].spec.to_dict()
+            # mi_results = self.model_index.search(SearchParams(Eq(UID, device_uid)))
+            # repeat the search and make sure that the atomic update has all the fields it should
+            search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=True)
+            self.assertEquals(search_results.total, 1)
+            brain = search_results.results.next()
+            self.assertEquals(brain.uid, device_uid)
+            self.assertEquals(brain.text_ipAddress, ip)
+            self.assertEquals(brain.productionState, new_prod_state)
+            # Make sure the index update is correct
+            tx_state = self._get_transaction_state()
+            index_update = tx_state.indexed_updates.get(device_uid)
+            self.assertIsNotNone(index_update)
+            expected_fields = MANDATORY_FIELDS | set( [ "productionState" ] )
+            self.assertEquals(expected_fields, index_update.idxs)
+
+            # Set manage ip also sends a partial update for fields 
+            # 'decimal_ipAddress', 'text_ipAddress'
+            new_ip = "10.10.10.2"
+            device.setManageIp(new_ip)
+            search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=True)
+            self.assertEquals(search_results.total, 1)
+            brain = search_results.results.next()
+            self.assertEquals(brain.uid, device_uid)
+            self.assertEquals(brain.text_ipAddress, new_ip)
+            self.assertEquals(brain.productionState, new_prod_state)
+            # Make sure the partial updates have been correctly combined
+            tx_state = self._get_transaction_state()
+            index_update = tx_state.indexed_updates.get(device_uid)
+            self.assertIsNotNone(index_update)
+            expected_fields = MANDATORY_FIELDS | set([ 'decimal_ipAddress', 'text_ipAddress', "productionState" ])
+            self.assertEquals(expected_fields, index_update.idxs)
+
+            # simulate another transaction commit and check everything went well
+            self.data_manager.tpc_finish(transaction.get())
+            search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
+            self.assertEquals(search_results.total, 1)
+            brain = search_results.results.next()
+            self.assertEquals(brain.uid, device_uid)
+            self.assertEquals(brain.text_ipAddress, new_ip)
+            self.assertEquals(brain.productionState, new_prod_state)
+
+            # make sure all temp documents have beed deleted
+            search_results = self.model_catalog.search(query=Eq(TX_STATE_FIELD, tid), commit_dirty=False)
+            self.assertEquals(search_results.total, 0)
+        finally:
+            query = In(UID, updated_uids)
+            self.model_index.unindex_search(SearchParams(query))
+
 
     def testMultipleUpdates(self):
-        device = self.dmd.Devices.createInstance("my_device")
+        device = manage_createDevice(self.dmd, 'my_device', '/')
         device_uid = device.idx_uid()
         # On creationg, a index update of the whole object should have been created
         tx_state = self._get_transaction_state()
@@ -112,12 +186,20 @@ class TestModelCatalogTransactions(BaseTestCase):
         search_results = self.model_catalog.search(query=Eq("text_ipAddress", old_ip), commit_dirty=True)
         self._validate_temp_indexed_results(search_results, expected_object_uids=[])
 
-        # now rename the device
-        old_device_uid = device_uid
-        device.renameDevice(newId="my_device_new_name", retainGraphData=True)
-        device_uid = device.idx_uid()
-        self.assertNotEquals(old_device_uid, device_uid)
+        # set production state
+        prod_state = 1000
+        device.setProdState(prod_state)
+        search_results = self.model_catalog.search(query=Eq("productionState", prod_state), commit_dirty=True)
+        self._validate_temp_indexed_results(search_results, expected_object_uids=[device_uid])
 
+        # Search by uid and check all the fields are correct
+        fields = ["productionState", "text_ipAddress"]
+        search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
+        self.assertEquals(search_results.total, 1)
+        brain = search_results.results.next()
+        self.assertEquals(brain.uid, device_uid)
+        self.assertEquals(brain.text_ipAddress, new_ip)
+        self.assertEquals(brain.productionState, prod_state)
 
     def testDataManager(self):
         # before any changes are made, tx_state is None
@@ -195,6 +277,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         self.assertTrue( len(tx_state.temp_deleted_uids) == 1 )
 
         # Simulate transaction is committed and do checks
+        updated_uids = set(tx_state.pending_updates.keys()) | tx_state.temp_indexed_uids
         try:
             tid = self.data_manager._get_tid()
             # before commit we should have 2 docs with tx_state = tid
@@ -214,6 +297,7 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertEquals( mi_results.total_count, 0 )
         finally:
             # clean up created docs in solr
+            query = In(UID, updated_uids)
             self.model_index.unindex_search(SearchParams(query))
 
         # create another organizer in a new transaction
