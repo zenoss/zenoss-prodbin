@@ -135,14 +135,15 @@ class ReindexProcess(multiprocessing.Process):
             # Flush the index batch dregs
             self.index(True)
             if count:
-	        with self.counter.get_lock():
-	            self.counter.value += count
-	        count = 0
+                with self.counter.get_lock():
+                    self.counter.value += count
+                count = 0
             # Should we die? Or wait for more work from the parent?
             if self.cancel.is_set():
                 return
             log.debug('Worker {0} notifying parent without holding semaphore'.format(self.idx))
             self.notify_parent(True)
+
 
 class HardReindex(ReindexProcess):
     """
@@ -157,6 +158,7 @@ class HardReindex(ReindexProcess):
     If parent queue is empty, pop a node from left side of deque and push to parent queue.
     Repeat.
     """
+
     def __init__(self, *args, **kwargs):
         super(HardReindex, self).__init__(*args, **kwargs)
         self.deque = deque()
@@ -203,9 +205,10 @@ class HardReindex(ReindexProcess):
         try:
             if self.parent_queue.empty():
                 idle = self.semaphore.get_value() + 1
-                log.debug("Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
+                log.debug(
+                    "Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
                 for _ in xrange(idle):
-		    self.parent_queue.put(self.deque.popleft())
+                    self.parent_queue.put(self.deque.popleft())
         except IndexError:
             pass
 
@@ -220,6 +223,7 @@ class SoftReindex(ReindexProcess):
     Index all items in list if fit.
     Repeat.
     """
+
     def get_work(self):
         """
         Returns items from the parent queue until signaled to stop.
@@ -238,7 +242,7 @@ class SoftReindex(ReindexProcess):
 def get_uids(index_client, root="", types=()):
     start = 0
     need_results = True
-    query = [ Eq("tx_state", 0) ]
+    query = [Eq("tx_state", 0)]
     query.append(MatchGlob("uid", "{}*".format(root)))
 
     if not isinstance(types, (tuple, list)):
@@ -272,7 +276,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
 
 def run(processor_count=8, hard=False):
     log.info("Beginning {0} reindexing with {1} child processes.".format(
-    "hard" if hard else "soft", processor_count))
+        "hard" if hard else "soft", processor_count))
     start = time.time()
 
     log.info("Initializing model database and Solr model catalog...")
@@ -325,15 +329,15 @@ def run(processor_count=8, hard=False):
                     try:
                         idx, exc = error_queue.get_nowait()
                     except Queue.Empty:
-                        pass # This shouldn't happen, but just in case there's a race somehow
+                        pass  # This shouldn't happen, but just in case there's a race somehow
                     else:
                         log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
                 # Print status
                 with counter.get_lock():
-	            delta = counter.value - lastcount
+                    delta = counter.value - lastcount
                     if delta > MODEL_INDEX_BATCH_SIZE:
                         now = time.time()
-                        persec = delta/(now - last)
+                        persec = delta / (now - last)
                         last, lastcount = now, counter.value
                         log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
                 # Check to see if we're done
@@ -364,7 +368,8 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
     Performs a single threaded soft reindex
     """
     start = time.time()
-    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs, types))
+    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs,
+                                                                                                            types))
     modelindex = init_model_catalog()
     uids = get_uids(modelindex, root=root, types=types)
     if uids:
@@ -384,7 +389,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
             modelindex.process_batched_updates(index_updates, commit=True)
         else:
             modelindex.commit()
-    log.info("Reindexing took {} seconds.".format(time.time()-start))
+    log.info("Reindexing took {} seconds.".format(time.time() - start))
 
 
 if __name__ == "__main__":
