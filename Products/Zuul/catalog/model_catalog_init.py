@@ -37,6 +37,7 @@ log.setLevel(logging.INFO)
 
 MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
+QUEUE_TIMEOUT = 2
 
 
 class ReindexProcess(multiprocessing.Process):
@@ -94,7 +95,7 @@ class ReindexProcess(multiprocessing.Process):
         with self.cond:
             self.cond.notify_all()
             if wait:
-                self.cond.wait(timeout=2)
+                self.cond.wait(timeout=QUEUE_TIMEOUT)
 
     def schedule_index(self, node):
         """
@@ -172,7 +173,7 @@ class HardReindex(ReindexProcess):
             while self.deque:
                 yield self.deque.pop()
             try:
-                yield self.parent_queue.get(timeout=2)
+                yield self.parent_queue.get(timeout=QUEUE_TIMEOUT)
             except Queue.Empty:
                 pass
             # If we've gotten here and the deque is empty, we have nothing to do
@@ -234,7 +235,7 @@ class SoftReindex(ReindexProcess):
         """
         while True:
             try:
-                yield self.parent_queue.get(timeout=2)
+                yield self.parent_queue.get(timeout=QUEUE_TIMEOUT)
             except Queue.Empty:
                 return
 
