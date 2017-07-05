@@ -156,7 +156,7 @@ True
 </object>
 <object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
+COUNTER
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -1445,7 +1445,7 @@ False
 None
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="ceiling" mode="w" >
 None
@@ -2025,7 +2025,7 @@ True
 </object>
 <object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
+COUNTER
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -3314,7 +3314,7 @@ False
 None
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="ceiling" mode="w" >
 None
