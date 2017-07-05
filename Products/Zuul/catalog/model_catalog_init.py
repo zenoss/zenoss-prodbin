@@ -301,6 +301,10 @@ def get_uids(index_client, root="", types=()):
             yield result.uid
         need_results = start < search_results.total_count
 
+def collection_exists(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
+    index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
+    return collection_name in index_client.get_collections()
+
 
 def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
