@@ -285,11 +285,6 @@ class CollectorDaemon(RRDDaemon):
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
         addWorkerOptions(self.parser)
-        self.parser.add_option('--writeStatistics',
-                               dest='writeStatistics',
-                               type='int',
-                               default=60,
-                               help='How often to write internal statistics value in seconds')
         self.parser.add_option('--traceMetricName',
                                dest='traceMetricName',
                                type='string',
@@ -759,10 +754,6 @@ class CollectorDaemon(RRDDaemon):
             loop = task.LoopingCall(self._displayStatistics, verbose=True)
             loop.start(self.options.logTaskStats, now=False)
 
-        log.debug("Starting Statistic posting")
-        loop = task.LoopingCall(self._postStatistics)
-        loop.start(self.options.writeStatistics, now=False)
-
         interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
         heartbeatSender = self if self.worker_id == 0 else None
@@ -833,7 +824,7 @@ class CollectorDaemon(RRDDaemon):
                 self._scheduler.addTask(task, now=True)
             self.addedPostStartupTasks = True
 
-    def _postStatistics(self):
+    def postStatisticsImpl(self):
         self._displayStatistics()
 
         # update and post statistics if we've been configured to do so

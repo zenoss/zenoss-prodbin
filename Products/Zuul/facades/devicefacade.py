@@ -13,6 +13,7 @@ import re
 import os
 import logging
 import subprocess
+from collections import OrderedDict
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
@@ -1061,10 +1062,33 @@ class DeviceFacade(TreeFacade):
         deviceClasses = []
         user = getSecurityManager().getUser()
         def getOrganizerNames(org, user, deviceClasses):
-            if user.has_permission(ZEN_VIEW, org) and allClasses or getattr(org, 'zUsesStandardDeviceCreationJob', True):
+            if user.has_permission(ZEN_VIEW, org) and allClasses or org.getZ('zUsesStandardDeviceCreationJob', True):
                 deviceClasses.append(org.getOrganizerName())
             for suborg in org.children(checkPerm=False):
                 getOrganizerNames(suborg, user, deviceClasses)
         getOrganizerNames(devices, user, deviceClasses)
         deviceClasses.sort(key=lambda x: x.lower())
         return deviceClasses
+
+    def getAllCredentialsProps(self):
+        """
+        Get a list of available credentials props
+        """
+        props = OrderedDict()
+        for prop in self.context.dmd.Devices.zCredentialsZProperties:
+            props[prop] = prop
+        for org in self.context.dmd.Devices.getSubOrganizers():
+            for prop in org.zCredentialsZProperties:
+                props[prop] = prop
+        return props.keys()
+
+    def getCredentialsProps(self, deviceClass):
+        """
+        Get a dictionary of credentials props and their default values
+        for a provided device class
+        """
+        organizer = self._getObject(deviceClass)
+        props = OrderedDict()
+        for prop in organizer.zCredentialsZProperties:
+            props[prop] = organizer.getZ(prop, '')
+        return props
