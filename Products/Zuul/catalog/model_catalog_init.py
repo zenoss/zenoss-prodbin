@@ -22,7 +22,7 @@ from zExceptions import NotFound
 from collections import deque
 
 from OFS.ObjectManager import ObjectManager
-from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In
+from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In, Or
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -35,22 +35,28 @@ from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchPar
 log = logging.getLogger('zenoss.model_catalog_reindexer')
 log.setLevel(logging.INFO)
 
+TERMINATE_SENTINEL = 'xxTERMINATExx'
 MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
+QUEUE_TIMEOUT = 2
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, parent_queue, counter, semaphore, cond, cancel):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, fields=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
         self.idx = idx
+        self.worker_count = worker_count
         self.parent_queue = parent_queue
         self.counter = counter
 
         self.semaphore = semaphore
         self.cond = cond
         self.cancel = cancel
+        self.fields = fields
+
+        self.semaphore_acquired = False
 
         self._batch = []
 
@@ -69,7 +75,7 @@ class ReindexProcess(multiprocessing.Process):
         Uses a Solr index client to perform a batch update of batch.
         """
         self.index_client.process_batched_updates(
-            [IndexUpdate(node, op=INDEX) for node in batch],
+            [IndexUpdate(node, op=INDEX, idxs=self.fields) for node in batch],
             commit=commit)
 
     def index(self, commit=False):
@@ -87,13 +93,13 @@ class ReindexProcess(multiprocessing.Process):
 
     def notify_parent(self, wait=False):
         """
-	Signal to the parent process that a worker has become idle or has
+	    Signal to the parent process that a worker has become idle or has
         encountered an exception.
         """
         with self.cond:
             self.cond.notify_all()
             if wait:
-                self.cond.wait(timeout=2)
+                self.cond.wait(timeout=QUEUE_TIMEOUT)
 
     def schedule_index(self, node):
         """
@@ -109,6 +115,27 @@ class ReindexProcess(multiprocessing.Process):
         """
         raise NotImplementedError
 
+    def acquire_semaphore(self):
+        if not self.semaphore_acquired:
+            self.semaphore.acquire(True)
+            self.semaphore_acquired = True
+
+    def release_semaphore(self):
+        if self.semaphore_acquired:
+            self.semaphore.release()
+            self.semaphore_acquired = False
+
+    def get_work_from_parent(self):
+        try:
+            # We hold the semaphore while we are waiting on the queue
+            # This is safe to call multiple times
+            self.acquire_semaphore()
+            new_work = self.parent_queue.get(timeout=QUEUE_TIMEOUT)
+            self.release_semaphore()
+            return new_work
+        except Queue.Empty:
+            return None
+
     def run(self):
         """
         Operates on uids/nodes from get_work until exhausted.
@@ -117,32 +144,37 @@ class ReindexProcess(multiprocessing.Process):
         while True:
             if self.cancel.is_set():
                 return
-            with self.semaphore:
-                for uid in self.get_work():
-                    try:
-                        self.process(uid)
-                    except Exception:
-                        self.handle_exception()
-                        continue
-                    count += 1
-                    # update our counter every so often (less lock usage)
-                    if count >= 1000:
-                        with self.counter.get_lock():
-                            self.counter.value += count
-                        count = 0
-                        log.debug('Worker {0} notifying parent holding semaphore'.format(self.idx))
-                        self.notify_parent()
+            for uid in self.get_work():
+                if uid == TERMINATE_SENTINEL:
+                    log.debug('Worker {0} found sentinel'.format(self.idx))
+                    self.cancel.set()
+                    self.notify_parent(True)
+                    break
+                try:
+                    self.process(uid)
+                except Exception:
+                    self.handle_exception()
+                    continue
+                count += 1
+                # update our counter every so often (less lock usage)
+                if count >= 1000:
+                    with self.counter.get_lock():
+                        self.counter.value += count
+                    count = 0
+                    log.debug('Worker {0} notifying parent of count update'.format(self.idx))
+                    self.notify_parent()
             # Flush the index batch dregs
             self.index(True)
             if count:
-	        with self.counter.get_lock():
-	            self.counter.value += count
-	        count = 0
+                with self.counter.get_lock():
+                    self.counter.value += count
+                count = 0
             # Should we die? Or wait for more work from the parent?
             if self.cancel.is_set():
                 return
-            log.debug('Worker {0} notifying parent without holding semaphore'.format(self.idx))
+            log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
             self.notify_parent(True)
+
 
 class HardReindex(ReindexProcess):
     """
@@ -157,18 +189,23 @@ class HardReindex(ReindexProcess):
     If parent queue is empty, pop a node from left side of deque and push to parent queue.
     Repeat.
     """
+
     def __init__(self, *args, **kwargs):
         super(HardReindex, self).__init__(*args, **kwargs)
+        if self.fields:
+            raise Exception("Atomic updates not supported by hard reindexer")
+
         self.deque = deque()
 
     def get_work(self):
         while True:
             while self.deque:
                 yield self.deque.pop()
-            try:
-                yield self.parent_queue.get(timeout=2)
-            except Queue.Empty:
-                pass
+
+            new_work = self.get_work_from_parent()
+            if new_work:
+                yield new_work
+
             # If we've gotten here and the deque is empty, we have nothing to do
             if not self.deque:
                 log.debug("Worker {0} is effectively idle".format(self.idx))
@@ -202,10 +239,11 @@ class HardReindex(ReindexProcess):
     def _reconcile(self):
         try:
             if self.parent_queue.empty():
-                idle = self.semaphore.get_value() + 1
-                log.debug("Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
+                idle = self.worker_count - self.semaphore.get_value()
+                log.debug(
+                    "Worker {0} putting {1} into parent queue. Remaining: {2}".format(self.idx, idle, len(self.deque)))
                 for _ in xrange(idle):
-		    self.parent_queue.put(self.deque.popleft())
+                    self.parent_queue.put(self.deque.popleft())
         except IndexError:
             pass
 
@@ -220,14 +258,16 @@ class SoftReindex(ReindexProcess):
     Index all items in list if fit.
     Repeat.
     """
+
     def get_work(self):
         """
         Returns items from the parent queue until signaled to stop.
         """
         while True:
-            try:
-                yield self.parent_queue.get(timeout=2)
-            except Queue.Empty:
+            new_work = self.get_work_from_parent()
+            if new_work:
+                yield new_work
+            else:
                 return
 
     def process(self, uid):
@@ -238,8 +278,10 @@ class SoftReindex(ReindexProcess):
 def get_uids(index_client, root="", types=()):
     start = 0
     need_results = True
-    query = [ Eq("tx_state", 0) ]
-    query.append(MatchGlob("uid", "{}*".format(root)))
+    query = [Eq("tx_state", 0)]
+    if root:
+        root = root.rstrip('/')
+        query.append(Or(Eq("uid", "{}".format(root)), MatchGlob("uid", "{}/*".format(root))))
 
     if not isinstance(types, (tuple, list)):
         types = (types,)
@@ -269,10 +311,13 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
+def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
+    if hard and (root or indexes or types):
+        raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
-def run(processor_count=8, hard=False):
-    log.info("Beginning {0} reindexing with {1} child processes.".format(
+    log.info("Beginning {0} redindexing with {1} child processes.".format(
     "hard" if hard else "soft", processor_count))
+
     start = time.time()
 
     log.info("Initializing model database and Solr model catalog...")
@@ -293,24 +338,36 @@ def run(processor_count=8, hard=False):
 
     proc_start = time.time()
 
+    def hard_index_is_done():
+        return semaphore.get_value() == 0 and parent_queue.empty()
+
+    def soft_index_is_done():
+        return cancel.is_set()
+
     if hard:
         log.info("Clearing Solr data")
         index_client.clear_data()
         work.append("/zport")
         Worker = HardReindex
+        is_done = hard_index_is_done
     else:
         log.info("Reading uids from Solr")
-        work = get_uids(index_client)
+        work = get_uids(index_client, root, types)
         Worker = SoftReindex
+        is_done = soft_index_is_done
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, parent_queue, counter, semaphore, cond, cancel)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, indexes)
         processes.append(p)
         p.start()
 
     for uid in work:
         parent_queue.put(uid)
+
+    if not hard:
+        # Put the terminate sentinal at the end of the queue
+        parent_queue.put(TERMINATE_SENTINEL)
 
     log.info("Waiting for processes to finish")
 
@@ -318,6 +375,10 @@ def run(processor_count=8, hard=False):
     last = start
     while True:
         with cond:
+            if cancel.is_set():
+                # In case we were terminated before we were waiting
+                cond.notify_all()
+                break
             cond.wait()
             try:
                 # Print any errors we've built up
@@ -325,34 +386,35 @@ def run(processor_count=8, hard=False):
                     try:
                         idx, exc = error_queue.get_nowait()
                     except Queue.Empty:
-                        pass # This shouldn't happen, but just in case there's a race somehow
+                        pass  # This shouldn't happen, but just in case there's a race somehow
                     else:
                         log.error("Indexing process {0} encountered an exception: {1}".format(idx, exc))
                 # Print status
                 with counter.get_lock():
-	            delta = counter.value - lastcount
+                    delta = counter.value - lastcount
                     if delta > MODEL_INDEX_BATCH_SIZE:
                         now = time.time()
-                        persec = delta/(now - last)
+                        persec = delta / (now - last)
                         last, lastcount = now, counter.value
                         log.info("Indexed {0} objects ({1}/sec)".format(lastcount, persec))
                 # Check to see if we're done
-                log.debug("{0} workers still busy".format(processor_count - semaphore.get_value()))
+                log.debug("{0} workers still busy".format(semaphore.get_value()))
                 log.debug("parent queue is {0}empty".format("" if parent_queue.empty() else "not "))
-                if semaphore.get_value() == processor_count and parent_queue.empty():
+                if is_done():
                     # All workers are idle and there's no more work to do, so the end
-                    log.info("All workers idle, queue empty. Done!")
+                    log.info("Terminating condition met. Done!")
                     cancel.set()
                     break
             finally:
                 # Pass the ball back to the child that notified
                 cond.notify_all()
-    end = time.time()
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join(5)
+        proc.join(60)
         if proc.is_alive():
+            log.warn("Worker did not exit within timeout, terminating...")
             proc.terminate()
+    end = time.time()
     log.info("Total time: {0}".format(end - start))
     log.info("Time to initialize: {0}".format(proc_start - start))
     log.info("Time to process and reindex: {0}".format(end - proc_start))
@@ -364,7 +426,8 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
     Performs a single threaded soft reindex
     """
     start = time.time()
-    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs, types))
+    log.info("Performing soft reindex on model_catalog. Params = root:'{}' / idxs:'{}' / types:'{}'".format(root, idxs,
+                                                                                                            types))
     modelindex = init_model_catalog()
     uids = get_uids(modelindex, root=root, types=types)
     if uids:
@@ -384,7 +447,7 @@ def reindex_model_catalog(dmd, root="/zport", idxs=None, types=()):
             modelindex.process_batched_updates(index_updates, commit=True)
         else:
             modelindex.commit()
-    log.info("Reindexing took {} seconds.".format(time.time()-start))
+    log.info("Reindexing took {} seconds.".format(time.time() - start))
 
 
 if __name__ == "__main__":
@@ -393,7 +456,13 @@ if __name__ == "__main__":
                         help="wipe Solr data and traverse the entire ZODB tree")
     parser.add_argument("-p", "--procs", type=int, default=8,
                         help="use n child processes (default 8)")
+    parser.add_argument("-r", "--root", type=str, default="",
+                        help="root of subtree to reindex (soft-reindex only)")
+    parser.add_argument("-i", "--indexes", type=str, nargs='+', default=[],
+                        help="list of fields to update (soft-reindex only)")
+    parser.add_argument("-t", "--types", type=str, nargs='+', default=[],
+                        help="list of object types to re-index (soft-reindex only)")
     args = parser.parse_args()
     # Something else seems to want to parse our args, so reset them
     sys.argv = sys.argv[:1]
-    run(args.procs, args.hard)
+    run(args.procs, args.hard, args.root, args.indexes, args.types)
