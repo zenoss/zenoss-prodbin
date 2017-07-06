@@ -13,7 +13,7 @@ import sys
 
 from Globals import *
 
-from multiprocessing import Process
+from multiprocessing import Process, Event
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.Zuul.catalog.model_catalog_init import run as run_model_catalog_init
 from Products.Zuul.catalog.model_catalog_init import collection_exists
@@ -26,8 +26,6 @@ logging.getLogger('ZODB.Connection').setLevel(HIGHER_THAN_CRITICAL)
 logging.getLogger('ZEO.zrpc').setLevel(HIGHER_THAN_CRITICAL)
 
 
-class CatalogReindexAborted(Exception): pass
-
 def raiseKeyboardInterrupt(signum, frame):
     raise KeyboardInterrupt()
 
@@ -35,14 +33,15 @@ def ignore_interruptions():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     signal.signal(signal.SIGUSR2, signal.SIG_IGN)
+    signal.signal(signal.SIGUSR1, signal.SIG_IGN)
 
 def drop_all_arguments():
     sys.argv[:] = sys.argv[:1]
 
-def _run_model_catalog_init(worker_count, hard, idxs):
+def _run_model_catalog_init(worker_count, hard, idxs, terminate):
     ignore_interruptions()
     drop_all_arguments()
-    run_model_catalog_init(worker_count, hard, indexes=idxs)
+    run_model_catalog_init(worker_count, hard, indexes=idxs, terminate=terminate)
 
 
 # Note: We are very careful not to connect to the database nor memcache until
@@ -125,16 +124,21 @@ class ZenCatalogBase(ZenDaemon):
 
     def _process(self, worker_count, hard, permissions_only=False):
         idxs = ["allowedRolesAndUsers"] if permissions_only else []
+        terminate = Event()
         p = Process(
             target=_run_model_catalog_init,
-            args=(worker_count, hard, idxs)
+            args=(worker_count, hard, idxs, terminate)
         )
         try:
             p.start()
             p.join()
         except KeyboardInterrupt:
-            log.info("Received signal to terminate, terminating subprocess")
-            p.terminate()
+            log.info("Received signal to terminate, stopping subprocess")
+            terminate.set()
+            p.join(90)
+            if p.is_alive():
+                log.info("Timeout waiting for subprocess to exit gracefully")
+                p.terminate()
 
     def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False, clearmemcached=False, resume=True, print_progress=True):
         if resume:
@@ -179,8 +183,8 @@ class ZenCatalogBase(ZenDaemon):
 if __name__ == "__main__":
     zc = ZenCatalogBase()
     try:
-        # signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, raiseKeyboardInterrupt)
+        signal.signal(signal.SIGINT, raiseKeyboardInterrupt)
         signal.signal(signal.SIGUSR2, signal.SIG_IGN)
         zc.run()
     except Exception:

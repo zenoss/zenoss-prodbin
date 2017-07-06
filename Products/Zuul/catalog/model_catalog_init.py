@@ -20,6 +20,7 @@ import ctypes
 import zope.component
 from zExceptions import NotFound
 from collections import deque
+from contextlib import contextmanager
 
 from OFS.ObjectManager import ObjectManager
 from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In, Or
@@ -40,9 +41,15 @@ MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
 QUEUE_TIMEOUT = 2
 
+@contextmanager
+def worker_context(worker):
+    yield
+    # notify parent one last time before exiting
+    worker.notify_parent()
+    log.info("Worker {} exiting".format(worker.idx))
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, fields=None):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate, fields=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
@@ -54,6 +61,7 @@ class ReindexProcess(multiprocessing.Process):
         self.semaphore = semaphore
         self.cond = cond
         self.cancel = cancel
+        self.terminate = terminate
         self.fields = fields
 
         self.semaphore_acquired = False
@@ -140,40 +148,45 @@ class ReindexProcess(multiprocessing.Process):
         """
         Operates on uids/nodes from get_work until exhausted.
         """
-        count = 0
-        while True:
-            if self.cancel.is_set():
-                return
-            for uid in self.get_work():
-                if uid == TERMINATE_SENTINEL:
-                    log.debug('Worker {0} found sentinel'.format(self.idx))
-                    self.cancel.set()
-                    self.notify_parent(True)
-                    break
-                try:
-                    self.process(uid)
-                except Exception:
-                    self.handle_exception()
-                    continue
-                count += 1
-                # update our counter every so often (less lock usage)
-                if count >= 1000:
+        with worker_context(self):
+            count = 0
+            while True:
+                if self.cancel.is_set() or self.terminate.is_set():
+                    return
+                for uid in self.get_work():
+                    if self.terminate.is_set():
+                        # If terminate is set, we exit immediately, leaving data behind
+                        return
+
+                    if uid == TERMINATE_SENTINEL:
+                        log.debug('Worker {0} found sentinel'.format(self.idx))
+                        self.cancel.set()
+                        self.notify_parent(True)
+                        break
+                    try:
+                        self.process(uid)
+                    except Exception:
+                        self.handle_exception()
+                        continue
+                    count += 1
+                    # update our counter every so often (less lock usage)
+                    if count >= 1000:
+                        with self.counter.get_lock():
+                            self.counter.value += count
+                        count = 0
+                        log.debug('Worker {0} notifying parent of count update'.format(self.idx))
+                        self.notify_parent()
+                # Flush the index batch dregs
+                self.index(True)
+                if count:
                     with self.counter.get_lock():
                         self.counter.value += count
                     count = 0
-                    log.debug('Worker {0} notifying parent of count update'.format(self.idx))
-                    self.notify_parent()
-            # Flush the index batch dregs
-            self.index(True)
-            if count:
-                with self.counter.get_lock():
-                    self.counter.value += count
-                count = 0
-            # Should we die? Or wait for more work from the parent?
-            if self.cancel.is_set():
-                return
-            log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
-            self.notify_parent(True)
+                # Should we die? Or wait for more work from the parent?
+                if self.cancel.is_set() or self.terminate.is_set():
+                    return
+                log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
+                self.notify_parent(True)
 
 
 class HardReindex(ReindexProcess):
@@ -315,7 +328,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
+def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate = None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
@@ -334,6 +347,10 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     counter = multiprocessing.Value(ctypes.c_uint32)
     semaphore = multiprocessing.Semaphore(processor_count)
     cond = multiprocessing.Condition()
+
+    if not terminate:
+        terminate = multiprocessing.Event()
+
     cancel = multiprocessing.Event()
 
     processes_remaining = 0
@@ -343,10 +360,10 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     proc_start = time.time()
 
     def hard_index_is_done():
-        return semaphore.get_value() == 0 and parent_queue.empty()
+        return terminate.is_set() or (semaphore.get_value() == 0 and parent_queue.empty())
 
     def soft_index_is_done():
-        return cancel.is_set()
+        return cancel.is_set() or terminate.is_set()
 
     if hard:
         log.info("Clearing Solr data")
@@ -362,7 +379,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, indexes)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes)
         processes.append(p)
         p.start()
 
@@ -379,7 +396,9 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     last = start
     while True:
         with cond:
-            if cancel.is_set():
+            if is_done():
+                log.info("Terminating condition met. Done!")
+                cancel.set()
                 # In case we were terminated before we were waiting
                 cond.notify_all()
                 break
@@ -412,11 +431,12 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
             finally:
                 # Pass the ball back to the child that notified
                 cond.notify_all()
+    log.info("Indexing complete, waiting for workers to clean up")
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
         proc.join(60)
         if proc.is_alive():
-            log.warn("Worker did not exit within timeout, terminating...")
+            log.warn("Worker {} did not exit within timeout, terminating...".format(proc.idx))
             proc.terminate()
     end = time.time()
     log.info("Total time: {0}".format(end - start))
