@@ -15,6 +15,7 @@ Available at:  /zport/dmd/device_router
 """
 import logging
 from cgi import escape
+from collections import OrderedDict
 from itertools import islice
 from AccessControl import Unauthorized
 from Products.ZenUtils.Ext import DirectResponse
@@ -1328,7 +1329,8 @@ class DeviceRouter(TreeRouter):
         @return:  List of credentials props
         """
         organizerUid = '/zport/dmd/Devices' + deviceClass
-        props = self._getFacade().getCredentialsProps(organizerUid)
+        connInfo = self._getFacade().getConnectionInfo(organizerUid)
+        props = OrderedDict([(item['id'], item.get('valueAsString', '')) for item in connInfo])
         if props.get('zSnmpCommunity'):
             del props['zSnmpCommunity'] # its always on the form
         return DirectResponse(data=props)

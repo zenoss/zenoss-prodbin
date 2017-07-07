@@ -1081,14 +1081,3 @@ class DeviceFacade(TreeFacade):
             for prop in org.zCredentialsZProperties:
                 props[prop] = prop
         return props.keys()
-
-    def getCredentialsProps(self, deviceClass):
-        """
-        Get a dictionary of credentials props and their default values
-        for a provided device class
-        """
-        organizer = self._getObject(deviceClass)
-        props = OrderedDict()
-        for prop in organizer.zCredentialsZProperties:
-            props[prop] = organizer.getZ(prop, '')
-        return props
