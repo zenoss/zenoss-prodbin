@@ -80,6 +80,10 @@ class ZenCatalogBase(ZenDaemon):
                                action="store_true",
                                default=False,
                                help="clears memcached after processing")
+        self.parser.add_option('--zodb-cacheservers',
+                               dest='zodb_cacheservers',
+                               default="",
+                               help='memcached servers (used for --clearmemcached option')
         self.parser.add_option("--workers",
                                type="int",
                                default=8,
@@ -152,7 +156,8 @@ class ZenCatalogBase(ZenDaemon):
 
     def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False, clearmemcached=False, resume=True, print_progress=True):
         if resume:
-            log.info("--resume is deprecated.  Performing a full index")
+            log.info("--resume option is no longer supported")
+            return False
         if not force:
             if self._check_for_global_catalog():
                 log.info("Global catalog already exists. " \
@@ -164,6 +169,11 @@ class ZenCatalogBase(ZenDaemon):
         self._process(worker_count=worker_count, hard=True)
 
         if clearmemcached:
+            if not self.options.zodb_cacheservers:
+                log.error("Unable to clear memcached:  No cache_servers set, please specify with --zodb-cacheservers, "
+                          "or add to {}".format(self.options.configfile))
+                return False
+
             import memcache
             servers = self.options.zodb_cacheservers.split()
             try:
