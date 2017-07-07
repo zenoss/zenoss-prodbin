@@ -41,6 +41,7 @@ MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
 QUEUE_TIMEOUT = 2
 
+
 @contextmanager
 def worker_context(worker):
     yield
@@ -48,14 +49,17 @@ def worker_context(worker):
     worker.notify_parent()
     log.info("Worker {} exiting".format(worker.idx))
 
+
 def checkLogging(evt):
     if evt:
         loglevel = logging.DEBUG if evt.is_set() else logging.INFO
         if log.getEffectiveLevel() != loglevel:
             log.setLevel(loglevel)
 
+
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate, fields=None, logtoggle=None):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate,
+                 fields=None, logtoggle=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
@@ -323,6 +327,7 @@ def get_uids(index_client, root="", types=()):
             yield result.uid
         need_results = start < search_results.total_count
 
+
 def collection_exists(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
     return collection_name in index_client.get_collections()
@@ -337,12 +342,13 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate = None, toggle_debug = None):
+
+def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate=None, toggle_debug=None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
     log.info("Beginning {0} redindexing with {1} child processes.".format(
-    "hard" if hard else "soft", processor_count))
+        "hard" if hard else "soft", processor_count))
 
     start = time.time()
 
@@ -388,7 +394,8 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminat
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes, toggle_debug)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes,
+                   toggle_debug)
         processes.append(p)
         p.start()
 

@@ -29,14 +29,17 @@ logging.getLogger('ZEO.zrpc').setLevel(HIGHER_THAN_CRITICAL)
 def raiseKeyboardInterrupt(signum, frame):
     raise KeyboardInterrupt()
 
+
 def ignore_interruptions():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     signal.signal(signal.SIGUSR2, signal.SIG_IGN)
     signal.signal(signal.SIGUSR1, signal.SIG_IGN)
 
+
 def drop_all_arguments():
     sys.argv[:] = sys.argv[:1]
+
 
 def _run_model_catalog_init(worker_count, hard, idxs, terminate, toggle_debug):
     ignore_interruptions()
@@ -154,7 +157,8 @@ class ZenCatalogBase(ZenDaemon):
                 log.info("Timeout waiting for subprocess to exit gracefully")
                 p.terminate()
 
-    def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False, clearmemcached=False, resume=True, print_progress=True):
+    def _create_catalog(self, worker_count, buffer_size, input_queue_size, processed_queue_size, force=False,
+                        clearmemcached=False, resume=True, print_progress=True):
         if resume:
             log.info("--resume option is no longer supported")
             return False
@@ -175,6 +179,7 @@ class ZenCatalogBase(ZenDaemon):
                 return False
 
             import memcache
+
             servers = self.options.zodb_cacheservers.split()
             try:
                 log.info("Flushing memcache servers: %r" % servers)
@@ -185,7 +190,8 @@ class ZenCatalogBase(ZenDaemon):
                 log.error("problem flushing cache server %r: %r" % (servers, ex))
         return True
 
-    def _reindex(self, worker_count, buffer_size, input_queue_size, processed_queue_size, permissions_only=False, resume=True,  print_progress=True):
+    def _reindex(self, worker_count, buffer_size, input_queue_size, processed_queue_size, permissions_only=False,
+                 resume=True, print_progress=True):
         if not self._check_for_global_catalog():
             msg = 'Global Catalog does not exist, try --createcatalog option'
             log.warning(msg)
@@ -199,6 +205,7 @@ class ZenCatalogBase(ZenDaemon):
 
     def _check_for_global_catalog(self):
         return collection_exists()
+
 
 if __name__ == "__main__":
     zc = ZenCatalogBase()
