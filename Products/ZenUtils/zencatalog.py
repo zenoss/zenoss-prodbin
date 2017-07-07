@@ -38,10 +38,10 @@ def ignore_interruptions():
 def drop_all_arguments():
     sys.argv[:] = sys.argv[:1]
 
-def _run_model_catalog_init(worker_count, hard, idxs, terminate):
+def _run_model_catalog_init(worker_count, hard, idxs, terminate, toggle_debug):
     ignore_interruptions()
     drop_all_arguments()
-    run_model_catalog_init(worker_count, hard, indexes=idxs, terminate=terminate)
+    run_model_catalog_init(worker_count, hard, indexes=idxs, terminate=terminate, toggle_debug=toggle_debug)
 
 
 # Note: We are very careful not to connect to the database nor memcache until
@@ -125,9 +125,19 @@ class ZenCatalogBase(ZenDaemon):
     def _process(self, worker_count, hard, permissions_only=False):
         idxs = ["allowedRolesAndUsers"] if permissions_only else []
         terminate = Event()
+        toggle_debug = Event()
+
+        def handle_SIGUSR1(signum, frame):
+            if toggle_debug.is_set():
+                toggle_debug.clear()
+            else:
+                toggle_debug.set()
+
+        signal.signal(signal.SIGUSR1, handle_SIGUSR1)
+
         p = Process(
             target=_run_model_catalog_init,
-            args=(worker_count, hard, idxs, terminate)
+            args=(worker_count, hard, idxs, terminate, toggle_debug)
         )
         try:
             p.start()

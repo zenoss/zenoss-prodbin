@@ -48,8 +48,14 @@ def worker_context(worker):
     worker.notify_parent()
     log.info("Worker {} exiting".format(worker.idx))
 
+def checkLogging(evt):
+    if evt:
+        loglevel = logging.DEBUG if evt.is_set() else logging.INFO
+        if log.getEffectiveLevel() != loglevel:
+            log.setLevel(loglevel)
+
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate, fields=None):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate, fields=None, logtoggle=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
@@ -63,6 +69,7 @@ class ReindexProcess(multiprocessing.Process):
         self.cancel = cancel
         self.terminate = terminate
         self.fields = fields
+        self.logtoggle = logtoggle
 
         self.semaphore_acquired = False
 
@@ -157,6 +164,8 @@ class ReindexProcess(multiprocessing.Process):
                     if self.terminate.is_set():
                         # If terminate is set, we exit immediately, leaving data behind
                         return
+
+                    checkLogging(self.logtoggle)
 
                     if uid == TERMINATE_SENTINEL:
                         log.debug('Worker {0} found sentinel'.format(self.idx))
@@ -328,7 +337,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate = None):
+def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate = None, toggle_debug = None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
@@ -379,7 +388,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminat
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes, toggle_debug)
         processes.append(p)
         p.start()
 
@@ -403,6 +412,9 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminat
                 cond.notify_all()
                 break
             cond.wait()
+
+            checkLogging(toggle_debug)
+
             try:
                 # Print any errors we've built up
                 while not error_queue.empty():
