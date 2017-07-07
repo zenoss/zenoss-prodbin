@@ -416,11 +416,14 @@ class SshPerformanceCollectionTask(BaseTask):
             yield self._fetchPerf()
         except Exception, e:
             self.state = TaskStates.STATE_PAUSED
+            message = e.message
+            if not self._manageIp:
+                message += ". IP address is not assigned."
             log.error("Pausing task %s as %s [%s] connection failure: %s",
-                      self.name, self._devId, self._manageIp, e.message)
+                      self.name, self._devId, self._manageIp, message)
             self._eventService.sendEvent(STATUS_EVENT,
                                          device=self._devId,
-                                         summary=e.message,
+                                         summary=message,
                                          component=COLLECTOR_NAME,
                                          severity=Event.Error)
             raise e
