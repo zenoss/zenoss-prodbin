@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-07-05 16:09:07.382427
+    Zenoss RelationshipManager export completed on 2017-07-07 15:29:13.201711
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.3.0]" export_date="2017-07-05 16:09:07.382427" zenoss_server="29e77611bec1" >
+<objects version="[Zenoss, version 5.3.0]" export_date="2017-07-07 15:29:13.201711" zenoss_server="1d38757a8d69" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -156,7 +156,7 @@ True
 </object>
 <object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
+COUNTER
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -1445,7 +1445,7 @@ False
 None
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="ceiling" mode="w" >
 None
@@ -2025,7 +2025,7 @@ True
 </object>
 <object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-DERIVE
+COUNTER
 </property>
 <property type="boolean" id="isrow" mode="w" >
 True
@@ -3314,7 +3314,7 @@ False
 None
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="ceiling" mode="w" >
 None
