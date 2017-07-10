@@ -660,6 +660,14 @@ Ext.onReady(function() {
             eventData.firstTime = Zenoss.date.renderWithTimeZone(eventData.firstTime);
             eventData.lastTime = Zenoss.date.renderWithTimeZone(eventData.lastTime);
             eventData.stateChange = Zenoss.date.renderWithTimeZone(eventData.stateChange);
+            // Convert log timestamps to localized dates
+            eventData.log = eventData.log.map(
+                function(item) {
+                    item[1] = Zenoss.date.renderWithTimeZone(item[1]/1000);
+                    return item;
+                }
+            )
+
             var renderedData = this.renderData(eventData);
 
             this.setSummary(renderedData.summary);

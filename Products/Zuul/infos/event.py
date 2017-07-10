@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009,2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -227,7 +227,6 @@ class EventCompatInfo(object):
         if uuid:
             return '/zport/dmd/goto?guid=%s' % uuid
 
-
     def _get_device_url(self, eventDetails):
         url_and_path = [self._singleDetail(eventDetails.get(k)) for k in 'zenoss.device.url', 'zenoss.device.path']
         if len(url_and_path) != 2:
@@ -369,14 +368,20 @@ class EventCompatDetailInfo(EventCompatInfo):
     def details(self):
         d = []
         if 'details' in self._eventOccurrence:
-            for detail in sorted(self._eventOccurrence['details'], key=lambda detail: detail['name'].lower()):
+            for detail in sorted(
+                self._eventOccurrence['details'],
+                key=lambda detail: detail['name'].lower()
+            ):
                 values = detail.get('value', ())
                 if not isinstance(values, list):
                     values = list(values)
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
                         try:
-                            d.append(dict(key=_clean_html(detail['name']), value=_clean_html(value)))
+                            d.append(dict(
+                                key=_clean_html(detail['name']),
+                                value=_clean_html(value))
+                            )
                         except ParserError:
                             d.append(dict(key=detail['name'], value=value))
         return d
@@ -385,7 +390,13 @@ class EventCompatDetailInfo(EventCompatInfo):
     def log(self):
         logs = []
         if 'notes' in self._event_summary:
-            self._event_summary['notes'].sort(key=lambda a:a['created_time'], reverse=True)
+            self._event_summary['notes'].sort(
+                key=lambda a: a['created_time'], reverse=True
+            )
             for note in self._event_summary['notes']:
-                logs.append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
+                logs.append((
+                    note['user_name'],
+                    note['created_time'],
+                    note['message']
+                ))
         return logs
