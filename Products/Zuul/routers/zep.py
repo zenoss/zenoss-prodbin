@@ -36,7 +36,7 @@ from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.Zuul.utils import get_dmd
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUI3.security.security import permissionsForContext
-from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 from zenoss.protocols.services import ServiceResponseError
 from lxml.html.clean import clean_html
@@ -44,6 +44,7 @@ from lxml.html.clean import clean_html
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
 log = logging.getLogger('zen.%s' % __name__)
+
 
 class _FilterParser(object):
     """
@@ -53,33 +54,42 @@ class _FilterParser(object):
 
     NOT_SEPARATOR = "!!"
     OR_SEPARATOR = "||"
-    NULL_CHAR='""'
+    NULL_CHAR = '""'
 
     def __init__(self, zep_facade):
         """ """
         # Gets some config params from the zep facade
-        detail_list =  zep_facade.getDetailsMap().keys()
+        detail_list = zep_facade.getDetailsMap().keys()
         param_to_detail_mapping = zep_facade.ZENOSS_DETAIL_OLD_TO_NEW_MAPPING
         null_numeric_detail_value = zep_facade.ZENOSS_NULL_NUMERIC_DETAIL_INDEX_VALUE
         null_text_detail_value = zep_facade.ZENOSS_NULL_TEXT_DETAIL_INDEX_VALUE
-        numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
+        numeric_details = [
+            d['key']
+            for d in zep_facade.getDetails()
+            if d['type'] == 2
+        ]
 
         # Sets config variables
-        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor',
-                                  'agent', 'eventClassKey', 'eventGroup', 'eventKey', 'dedupid', 'evid' ]
-        self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
-                                        'component': 'element_sub_title',
-                                        'eventClass': 'event_class',
-                                        'ownerid': 'current_user_name',
-                                        'summary': 'event_summary',
-                                        'message' :'message',
-                                        'monitor': 'monitor',
-                                        'agent': 'agent',
-                                        'eventClassKey': 'event_class_key',
-                                        'eventGroup': 'event_group',
-                                        'eventKey': 'event_key',
-                                        'dedupid': 'fingerprint',
-                                        'evid': 'uuid' }
+        self.PARSEABLE_PARAMS = [
+            'device', 'component', 'eventClass', 'ownerid', 'summary',
+            'message', 'monitor', 'agent', 'eventClassKey', 'eventGroup',
+            'eventKey', 'dedupid', 'evid'
+        ]
+        self.PARAM_TO_FIELD_MAPPING = {
+            'device': 'element_title',
+            'component': 'element_sub_title',
+            'eventClass': 'event_class',
+            'ownerid': 'current_user_name',
+            'summary': 'event_summary',
+            'message': 'message',
+            'monitor': 'monitor',
+            'agent': 'agent',
+            'eventClassKey': 'event_class_key',
+            'eventGroup': 'event_group',
+            'eventKey': 'event_key',
+            'dedupid': 'fingerprint',
+            'evid': 'uuid'
+        }
         self.PARSEABLE_DETAILS = detail_list
         self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
         for detail in self.PARSEABLE_DETAILS:
@@ -89,7 +99,7 @@ class _FilterParser(object):
         self.EXCLUDABLE = self.PARSEABLE_PARAMS + self.PARAM_TO_DETAIL_MAPPING.keys()
         self.NULL_NUMERIC_INDEX = null_numeric_detail_value
         self.NULL_TEXT_INDEX = null_text_detail_value
-        self.NO_FRONT_WILDCARD = [ 'device', 'component', 'eventClass' ]
+        self.NO_FRONT_WILDCARD = ['device', 'component', 'eventClass']
         self.NUMERIC_DETAILS = numeric_details
         self.NO_WILDCARD = self.NUMERIC_DETAILS[:]
 
@@ -104,7 +114,11 @@ class _FilterParser(object):
         if params is not None and isinstance(params, dict) and len(params) > 0:
             for param in self.EXCLUDABLE:
                 value = params.get(param)
-                if value is not None and isinstance(value, basestring) and self.NOT_SEPARATOR in value:
+                if (
+                    value is not None and
+                    isinstance(value, basestring) and
+                    self.NOT_SEPARATOR in value
+                ):
                     value = self._cleanText(value)
                     clauses = value.split(self.NOT_SEPARATOR)
                     inclusion_clause = clauses[0].strip()
@@ -151,7 +165,11 @@ class _FilterParser(object):
             value = self._cleanText(value)
             if self.OR_SEPARATOR in value:
                 temp_or_clauses = value.split(self.OR_SEPARATOR)
-                or_clauses = [ self._addWildcardsToFilter(field, clause) for clause in temp_or_clauses if len(clause)>0 and clause != ' ']
+                or_clauses = [
+                    self._addWildcardsToFilter(field, clause)
+                    for clause in temp_or_clauses
+                    if len(clause) > 0 and clause != ' '
+                ]
             elif field in self.TRANSLATE_NULL and self.NULL_CHAR in value:
                 or_clauses.append(self.NULL_CHAR)
             else:
@@ -159,13 +177,21 @@ class _FilterParser(object):
         elif isinstance(value, list):
             or_clauses = value
 
-        # For details we need to translate the NULL_CHAR to the value used to index null
-        # details in lucene.
-        # The value used to index null details is different depending on if the detail
-        # is numeric or text
+        # For details we need to translate the NULL_CHAR to the value
+        # used to index null details in lucene.
+        # The value used to index null details is different depending on
+        # if the detail is numeric or text
         if len(or_clauses) > 0 and field in self.TRANSLATE_NULL:
-            null_index = self.NULL_NUMERIC_INDEX if field in self.NUMERIC_DETAILS else self.NULL_TEXT_INDEX
-            or_clauses = [ null_index if self.NULL_CHAR in str(c) else c for c in or_clauses ]
+            null_index = (
+                self.NULL_NUMERIC_INDEX
+                if field in self.NUMERIC_DETAILS
+                else self.NULL_TEXT_INDEX
+            )
+            or_clauses = [
+                null_index
+                if self.NULL_CHAR in str(c)
+                else c for c in or_clauses
+            ]
 
         return or_clauses
 
@@ -198,9 +224,12 @@ class _FilterParser(object):
         for detail in self.PARSEABLE_DETAILS:
             if details.get(detail) is not None:
                 detail_value = details.get(detail)
-                or_clauses = self._getOrClauses(field=detail, value=detail_value)
+                or_clauses = self._getOrClauses(
+                    field=detail, value=detail_value
+                )
                 parsed_details[detail] = or_clauses
         return parsed_details
+
 
 class EventsRouter(DirectRouter):
     """
@@ -210,7 +239,7 @@ class EventsRouter(DirectRouter):
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = Zuul.getFacade('zep', context)
-        self.catalog = IModelCatalogTool(context)
+        self.catalog = ICatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
         self._filterParser = _FilterParser(self.zep)
         self.use_permissions = False
@@ -249,25 +278,33 @@ class EventsRouter(DirectRouter):
             occurrence = event_summary['occurrence'][0]
             actor = occurrence['actor']
             # element
-            if actor.get('element_uuid') and \
-                   actor.get('element_uuid') not in manager.table:
+            if (
+                actor.get('element_uuid') and
+                actor.get('element_uuid') not in manager.table
+            ):
                 del actor['element_uuid']
 
             # sub element
-            if actor.get('element_sub_uuid') and \
-                   actor.get('element_sub_uuid') not in manager.table:
+            if (
+                actor.get('element_sub_uuid') and
+                actor.get('element_sub_uuid') not in manager.table
+            ):
                 del actor['element_sub_uuid']
             yield event_summary
 
     @serviceConnectionError
     @require('ZenCommon')
-    def queryArchive(self, page=None, limit=0, start=0, sort='lastTime', dir='desc', params=None, exclusion_filter=None, keys=None, uid=None, detailFormat=False):
+    def queryArchive(
+            self, page=None, limit=0, start=0, sort='lastTime', dir='desc',
+            params=None, exclusion_filter=None, keys=None, uid=None,
+            detailFormat=False
+    ):
         if not self._canViewEvents():
             return DirectResponse.succeed(
-                events = [],
-                totalCount = 0,
-                asof = time.time()
-                )
+                events=[],
+                totalCount=0,
+                asof=time.time()
+            )
 
         exclude_params = self._filterParser.findExclusionParams(params)
         if len(exclude_params) > 0:
@@ -279,26 +316,32 @@ class EventsRouter(DirectRouter):
         filter = self._buildFilter([uid], params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter([uid], exclusion_filter)
-        events = self.zep.getEventSummariesFromArchive(limit=limit, offset=start, sort=self._buildSort(sort,dir),
-                                                       filter=filter, exclusion_filter=exclusion_filter)
+        events = self.zep.getEventSummariesFromArchive(
+            limit=limit, offset=start, sort=self._buildSort(sort, dir),
+            filter=filter, exclusion_filter=exclusion_filter
+        )
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo
 
         dmd = self.context.dmd
-        # filter out the component and device UUIDs that no longer exist in our system
+        # filter out the component and device UUIDs
+        # that no longer exist in our system
         evdata = self._filterInvalidUuids(events['events'])
         eventObs = [eventFormat(dmd, e) for e in evdata]
         return DirectResponse.succeed(
-            events = Zuul.marshal(eventObs, keys),
-            totalCount = events['total'],
-            asof = time.time()
+            events=Zuul.marshal(eventObs, keys),
+            totalCount=events['total'],
+            asof=time.time()
         )
 
     @serviceConnectionError
     @require('ZenCommon')
-    def query(self, limit=0, start=0, sort='lastTime', dir='desc', params=None, exclusion_filter=None, keys=None,
-              page=None, archive=False, uid=None, detailFormat=False):
+    def query(
+        self, limit=0, start=0, sort='lastTime', dir='desc', params=None,
+        exclusion_filter=None, keys=None, page=None, archive=False, uid=None,
+        detailFormat=False
+    ):
         """
         Query for events.
 
@@ -307,8 +350,8 @@ class EventsRouter(DirectRouter):
         @type  start: integer
         @param start: (optional) Min index of events to retrieve (default: 0)
         @type  sort: string
-        @param sort: (optional) Key on which to sort the return results (default:
-                     'lastTime')
+        @param sort: (optional) Key on which to sort the return results
+                     (default: 'lastTime')
         @type  dir: string
         @param dir: (optional) Sort order; can be either 'ASC' or 'DESC'
                     (default: 'DESC')
@@ -316,8 +359,8 @@ class EventsRouter(DirectRouter):
         @param params: (optional) Key-value pair of filters for this search.
                        (default: None)
         @type  history: boolean
-        @param history: (optional) True to search the event history table instead
-                        of active events (default: False)
+        @param history: (optional) True to search the event history table
+                        instead of active events (default: False)
         @type  uid: string
         @param uid: (optional) Context for the query (default: None)
         @rtype:   dictionary
@@ -328,15 +371,17 @@ class EventsRouter(DirectRouter):
         """
         if not self._canViewEvents():
             return DirectResponse.succeed(
-                events = [],
-                totalCount = 0,
-                asof = time.time()
-                )
+                events=[],
+                totalCount=0,
+                asof=time.time()
+            )
 
         if archive:
-            return self.queryArchive(limit=limit, start=start, sort=sort,
-                                     dir=dir, params=params, exclusion_filter=exclusion_filter, keys=keys, uid=uid,
-                                     detailFormat=detailFormat)
+            return self.queryArchive(
+                limit=limit, start=start, sort=sort, dir=dir, params=params,
+                exclusion_filter=exclusion_filter, keys=keys, uid=uid,
+                detailFormat=detailFormat
+            )
 
         def child_uids(org):
             """Return list of uids for children of Organizer org."""
@@ -351,7 +396,7 @@ class EventsRouter(DirectRouter):
             '/zport/dmd/Locations': child_uids(self.context.dmd.Locations),
             '/zport/dmd/Groups': child_uids(self.context.dmd.Groups),
             '/zport/dmd/Systems': child_uids(self.context.dmd.Systems),
-            }.get(uid, [uid])
+        }.get(uid, [uid])
 
         exclude_params = self._filterParser.findExclusionParams(params)
         if len(exclude_params) > 0:
@@ -363,34 +408,39 @@ class EventsRouter(DirectRouter):
         filter = self._buildFilter(uids, params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter(uids, exclusion_filter)
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter,
-                                            exclusion_filter=exclusion_filter, use_permissions=self.use_permissions)
+        events = self.zep.getEventSummaries(
+            limit=limit, offset=start, sort=self._buildSort(sort, dir),
+            filter=filter, exclusion_filter=exclusion_filter,
+            use_permissions=self.use_permissions
+        )
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo
 
         dmd = self.context.dmd
-        # filter out the component and device UUIDs that no longer exist in our system
+        # filter out the component and device UUIDs
+        # that no longer exist in our system
         evdata = self._filterInvalidUuids(events['events'])
         eventObs = [eventFormat(dmd, e) for e in evdata]
 
         return DirectResponse.succeed(
-            events = Zuul.marshal(eventObs, keys),
-            totalCount = events['total'],
-            asof = time.time()
+            events=Zuul.marshal(eventObs, keys),
+            totalCount=events['total'],
+            asof=time.time()
         )
-
 
     @serviceConnectionError
     @require('ZenCommon')
-    def queryGenerator(self, sort='lastTime', dir='desc', evids=None, excludeIds=None, params=None,
-                       archive=False, uid=None, detailFormat=False):
+    def queryGenerator(
+        self, sort='lastTime', dir='desc', evids=None, excludeIds=None,
+        params=None, archive=False, uid=None, detailFormat=False
+    ):
         """
         Query for events.
 
         @type  sort: string
-        @param sort: (optional) Key on which to sort the return results (default:
-                     'lastTime')
+        @param sort: (optional) Key on which to sort the return results
+                     (default: 'lastTime')
         @type  dir: string
         @param dir: (optional) Sort order; can be either 'ASC' or 'DESC'
                     (default: 'DESC')
@@ -411,10 +461,16 @@ class EventsRouter(DirectRouter):
 
         if not self._canViewEvents():
             return
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            uid, params, evids, excludeIds
+        )
 
-        events = self.zep.getEventSummariesGenerator(filter=includeFilter, exclude=excludeFilter,
-                                                      sort=self._buildSort(sort,dir), archive=archive)
+        events = self.zep.getEventSummariesGenerator(
+            filter=includeFilter,
+            exclude=excludeFilter,
+            sort=self._buildSort(sort, dir),
+            archive=archive
+        )
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo
@@ -422,16 +478,18 @@ class EventsRouter(DirectRouter):
             yield Zuul.marshal(eventFormat(self.context.dmd, event))
 
     def _buildSort(self, sort='lastTime', dir='desc'):
-        sort_list = [(sort,dir)]
+        sort_list = [(sort, dir)]
         # Add secondary sort of last time descending
-        if sort not in ('lastTime','evid'):
-            sort_list.append(('lastTime','desc'))
+        if sort not in ('lastTime', 'evid'):
+            sort_list.append(('lastTime', 'desc'))
         return sort_list
 
-
-    def _buildFilter(self, uids, params, specificEventUuids=None, includeContextInUid=True):
+    def _buildFilter(
+        self, uids, params, specificEventUuids=None, includeContextInUid=True
+    ):
         """
-        Construct a dictionary that can be converted into an EventFilter protobuf.
+        Construct a dictionary that can be converted into an EventFilter
+        protobuf.
 
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search.
@@ -440,7 +498,7 @@ class EventsRouter(DirectRouter):
         @param uids: (optional) Contexts for the query (default: None)
         """
         if not uids:
-            uids=[]
+            uids = []
         elif isinstance(uids, basestring):
             uids = [uids]
 
@@ -461,19 +519,21 @@ class EventsRouter(DirectRouter):
             if specificEventUuids is None:
                 log.debug('No specific event uuids were passed in.')
 
-                # The evid's from params only ever mean anything for filtering - if
-                # specific uuids are passed in, this filter will ignore the grid
-                # parameters and just act on or filter using these specific event uuids.
+                # The evid's from params only ever mean anything for filtering
+                # if specific uuids are passed in, this filter will ignore
+                # the grid parameters and just act on or filter using these
+                # specific event uuids.
                 evid = params.get('evid')
                 if evid:
-                    if not isinstance(evid,(list, tuple)):
+                    if not isinstance(evid, (list, tuple)):
                         evid = [evid]
                     filterEventUuids.extend(evid)
 
             # Specific event uuids were passed in, use those for this filter.
             else:
-                log.debug('Specific event uuids passed in: %s', specificEventUuids)
-                if not isinstance(specificEventUuids,(list, tuple)):
+                log.debug('Specific event uuids passed in: %s',
+                          specificEventUuids)
+                if not isinstance(specificEventUuids, (list, tuple)):
                     filterEventUuids = [specificEventUuids]
                 else:
                     filterEventUuids = specificEventUuids
@@ -483,18 +543,33 @@ class EventsRouter(DirectRouter):
             # 'tags' comes from managed object guids.
             # see Zuul/security/security.py
             param_tags = params.get('tags')
-            if params.get('excludeNonActionables') and not Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
+            if (
+                params.get('excludeNonActionables') and
+                not Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context)
+            ):
                 if not param_tags:
                     us = self.context.dmd.ZenUsers.getUserSettings()
-                    param_tags = [IGlobalIdentifier(ar.managedObject()).getGUID() for ar in us.getAllAdminRoles()]
+                    param_tags = [
+                        IGlobalIdentifier(ar.managedObject()).getGUID()
+                        for ar in us.getAllAdminRoles()
+                    ]
                 if param_tags:
-                    param_tags = [tag for tag in param_tags if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.manager.getObject(tag))]
+                    param_tags = [
+                        tag for tag in param_tags
+                        if Zuul.checkPermission(
+                            ZEN_MANAGE_EVENTS, self.manager.getObject(tag)
+                        )
+                    ]
                 if not param_tags:
-                    param_tags = ['dne'] # Filter everything (except "does not exist'). An empty tag list would be ignored.
+                    # Filter everything (except "does not exist').
+                    # An empty tag list would be ignored.
+                    param_tags = ['dne']
 
             status_filter = params.get('eventState', [])
             if params.get('eventStateText', None):
-                status_filter = list(set(status_filter + params.get('eventStateText')))
+                status_filter = list(set(
+                    status_filter + params.get('eventStateText')
+                ))
 
             filter_params = {
                 'severity': params.get('severity'),
@@ -520,12 +595,20 @@ class EventsRouter(DirectRouter):
                 'message': params.get('message'),
             }
             parsed_params = self._filterParser.parseParams(params)
-            # ZEN23418: Add 1 sec to first_seen and last_seen range filters,
-            # so that it includes {events: event['{first|last}_seen'] <= params['{firstTime|lastTime}']}
+            # ZEN-23418/ZEN-26147: Add 1 sec to first_seen and last_seen
+            # range filters, so that it includes
+            # {events: event['{first|last}_seen'] <= params['{firstTime|lastTime}']}
             filter_params.update(parsed_params)
-            if filter_params['first_seen'] is not None and len(filter_params['first_seen']) == 2:
+            if (
+                filter_params['first_seen'] is not None and
+                len(filter_params['first_seen']) == 2
+            ):
                 filter_params['first_seen'][1] = filter_params['first_seen'][1]+1000
-            if filter_params['last_seen'] is not None and len(filter_params['last_seen']) == 2:
+
+            if (
+                filter_params['last_seen'] is not None and
+                len(filter_params['last_seen']) == 2
+            ):
                 filter_params['last_seen'][1] = filter_params['last_seen'][1]+1000
 
             parsed_details = self._filterParser.parseDetails(details)
@@ -533,13 +616,14 @@ class EventsRouter(DirectRouter):
                 filter_params['details'].update(parsed_details)
 
             event_filter = self.zep.createEventFilter(**filter_params)
-            log.debug('Found params for building filter, ended up building  the following:')
+            log.debug('Found params for building filter, ended up building'
+                      'the following:')
             log.debug(event_filter)
         elif specificEventUuids:
             # if they passed in specific uuids but not other params
             event_filter = self.zep.createEventFilter(
-                uuid = specificEventUuids
-                )
+                uuid=specificEventUuids
+            )
         else:
             log.debug('Did not get parameters, using empty filter.')
             event_filter = {}
@@ -553,12 +637,14 @@ class EventsRouter(DirectRouter):
         for context in contexts:
             if context and context.id not in ('Events', 'Devices', 'dmd'):
                 try:
-                    # make a specific instance of tag_filter just for the context tag.
+                    # make a specific instance of tag_filter
+                    # just for the context tag.
                     if not context_uuids:
                         context_tag_filter = {
                             'tag_uuids': context_uuids
-                            }
-                        # if it exists, filter['tag_filter'] will be a list. just append the special
+                        }
+                        # if it exists, filter['tag_filter'] will be a list.
+                        # just append the special
                         # context tag filter to whatever that list is.
                         tag_filter = event_filter.setdefault('tag_filter', [])
                         tag_filter.append(context_tag_filter)
@@ -590,7 +676,9 @@ class EventsRouter(DirectRouter):
         """
         event_summary = self.zep.getEventSummary(evid)
         if event_summary:
-            eventData = Zuul.marshal(EventCompatDetailInfo(self.context.dmd, event_summary))
+            eventData = Zuul.marshal(
+                EventCompatDetailInfo(self.context.dmd, event_summary)
+            )
             return DirectResponse.succeed(event=[eventData])
         else:
             raise Exception('Could not find event %s' % evid)
@@ -599,8 +687,12 @@ class EventsRouter(DirectRouter):
         try:
             dmd = get_dmd()
             target_permission = permission.lower()
-            events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
-            event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
+            events_filter = self._buildFilter(
+                uids=None, params={}, specificEventUuids=evids
+            )
+            event_summaries = self.zep.getEventSummaries(
+                0, filter=events_filter, use_permissions=True
+            )
             devices = set()
             for summary in event_summaries['events']:
                 d = EventCompatInfo(self.context.dmd, summary)
@@ -614,7 +706,10 @@ class EventsRouter(DirectRouter):
             log.debug(e)
             return False
 
-    def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def manage_events(
+        self, evids=None, excludeIds=None, params=None, uid=None, asof=None,
+        limit=None, timeout=None
+    ):
         user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
@@ -623,12 +718,20 @@ class EventsRouter(DirectRouter):
         if user.hasNoGlobalRoles():
             try:
                 if uid is not None:
-                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                    organizer_name = self.context.dmd.Devices.getOrganizer(
+                        uid
+                    ).getOrganizerName()
                 else:
-                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+                    return self._hasPermissionsForAllEvents(
+                        ZEN_MANAGE_EVENTS, evids
+                    )
             except (AttributeError, KeyError):
                 return False
-            manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+            manage_events_for = (
+                r.managedObjectName()
+                for r in user.getAllAdminRoles()
+                if r.role in READ_WRITE_ROLES
+            )
             return organizer_name in manage_events_for
         return False
 
@@ -656,7 +759,9 @@ class EventsRouter(DirectRouter):
 
         userName = getSecurityManager().getUser().getId()
 
-        self.zep.addNote(uuid=evid, message=clean_html(message), userName=userName)
+        self.zep.addNote(
+            uuid=evid, message=clean_html(message), userName=userName
+        )
 
         return DirectResponse.succeed()
 
@@ -686,7 +791,9 @@ class EventsRouter(DirectRouter):
             includeUuids = evids
 
         exclude_params = self._filterParser.findExclusionParams(params)
-        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
+        includeFilter = self._buildFilter(
+            [uid], params, specificEventUuids=includeUuids
+        )
 
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
@@ -696,9 +803,12 @@ class EventsRouter(DirectRouter):
                 excludeIds = {}
             # make sure the exclude filter doesn't include the context
             # otherwise all event actions wont have an effect.
-            excludeFilter = self._buildFilter(None, exclude_params,
-                                              specificEventUuids=excludeIds.keys(),
-                                              includeContextInUid=False)
+            excludeFilter = self._buildFilter(
+                None,
+                exclude_params,
+                specificEventUuids=excludeIds.keys(),
+                includeContextInUid=False
+            )
 
         log.debug('The exclude filter:' + str(excludeFilter))
         log.debug('Finished building request filters.')
@@ -708,19 +818,22 @@ class EventsRouter(DirectRouter):
     @require(ZEN_MANAGE_EVENTS)
     def nextEventSummaryUpdate(self, next_request):
         """
-        When performing updates from the event console, updates are performed in batches
-        to allow the user to see the progress of event changes and cancel out of updates
-        while they are in progress. This works by specifying a limit to one of the close,
-        acknowledge, or reopen calls in this router. The response will contain an
-        EventSummaryUpdateResponse, and if there are additional updates to be performed,
-        it will contain a next_request field with all of the parameters used to update
-        the next range of events.
+        When performing updates from the event console, updates are performed
+        in batches to allow the user to see the progress of event changes and
+        cancel out of updates while they are in progress. This works by
+        specifying a limit to one of the close, acknowledge, or reopen calls in
+        this router. The response will contain an EventSummaryUpdateResponse,
+        and if there are additional updates to be performed, it will contain a
+        next_request field with all of the parameters used to update the next
+        range of events.
 
         @type  next_request: dictionary
         @param next_request: The next_request field from the previous updates.
         """
         log.debug('Starting next batch of updates')
-        status, summaryUpdateResponse = self.zep.nextEventSummaryUpdate(next_request)
+        status, summaryUpdateResponse = self.zep.nextEventSummaryUpdate(
+            next_request
+        )
 
         log.debug('Completed updates: %s', summaryUpdateResponse)
         return DirectResponse.succeed(data=summaryUpdateResponse)
@@ -736,12 +849,15 @@ class EventsRouter(DirectRouter):
 
         device = params['device']
 
-        log.debug('Clearing heartbeats for device: {device}'.format(device=device))
+        log.debug('Clearing heartbeats for device: {device}'.format(
+                  device=device))
 
         params['eventState'] = [STATUS_NEW, STATUS_ACKNOWLEDGED]
         params['eventClass'] = '/Status/Heartbeat'
 
-        includeFilter, excludeFilter = self._buildRequestFilters(None, params, None, None)
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            None, params, None, None
+        )
 
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
@@ -749,14 +865,18 @@ class EventsRouter(DirectRouter):
             limit=limit,
         )
 
-        log.debug('Done clearing heartbeats for device: {device}'.format(device=device))
+        log.debug('Done clearing heartbeats for device: {device}'.format(
+            device=device))
         log.debug(summaryUpdateResponse)
         audit('UI.Device.ClearHeartbeats', device=device)
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require(manage_events)
-    def close(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def close(
+        self, evids=None, excludeIds=None, params=None, uid=None, asof=None,
+        limit=None, timeout=None
+    ):
         """
         Close event(s).
 
@@ -774,16 +894,20 @@ class EventsRouter(DirectRouter):
         @param asof: (optional) Only close if there has been no state
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
-        @param limit: (optional) Maximum number of events to update (default: None).
+        @param limit: (optional) Maximum number of events to update
+                      (default: None).
         @type  timeout: int
-        @param timeout: The time (in seconds) before the underlying saved search times out.
+        @param timeout: The time (in seconds) before the underlying saved
+                        search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
 
         log.debug('Issuing a close request.')
 
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            uid, params, evids, excludeIds
+        )
 
         status, summaryUpdateResponse = self.zep.closeEventSummaries(
             eventFilter=includeFilter,
@@ -798,12 +922,16 @@ class EventsRouter(DirectRouter):
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
     @require(manage_events)
-    def acknowledge(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def acknowledge(
+        self, evids=None, excludeIds=None, params=None, uid=None, asof=None,
+        limit=None, timeout=None
+    ):
         """
         Acknowledge event(s).
 
         @type  evids: [string]
-        @param evids: (optional) List of event IDs to acknowledge (default: None)
+        @param evids: (optional) List of event IDs to acknowledge
+                      (default: None)
         @type  excludeIds: [string]
         @param excludeIds: (optional) List of event IDs to exclude from
                            acknowledgment (default: None)
@@ -816,15 +944,19 @@ class EventsRouter(DirectRouter):
         @param asof: (optional) Only acknowledge if there has been no state
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
-        @param limit: (optional) Maximum number of events to update (default: None).
+        @param limit: (optional) Maximum number of events to update
+                      (default: None).
         @type  timeout: int
-        @param timeout: The time (in seconds) before the underlying saved search times out.
+        @param timeout: The time (in seconds) before the underlying saved
+                        search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
         log.debug('Issuing an acknowledge request.')
 
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            uid, params, evids, excludeIds
+        )
 
         status, summaryUpdateResponse = self.zep.acknowledgeEventSummaries(
             eventFilter=includeFilter,
@@ -846,7 +978,10 @@ class EventsRouter(DirectRouter):
         return self.reopen(*args, **kwargs)
 
     @require(manage_events)
-    def reopen(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+    def reopen(
+        self, evids=None, excludeIds=None, params=None, uid=None, asof=None,
+        limit=None, timeout=None
+    ):
         """
         Reopen event(s).
 
@@ -864,16 +999,20 @@ class EventsRouter(DirectRouter):
         @param asof: (optional) Only reopen if there has been no state
                      change since this time (default: None)
         @type  limit: The maximum number of events to update in this batch.
-        @param limit: (optional) Maximum number of events to update (Default: None).
+        @param limit: (optional) Maximum number of events to update
+                      (Default: None).
         @type  timeout: int
-        @param timeout: The time (in seconds) before the underlying saved search times out.
+        @param timeout: The time (in seconds) before the underlying saved
+                        search times out.
         @rtype:   DirectResponse
         @return:  Success message
         """
 
         log.debug('Issuing a reopen request.')
 
-        includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
+        includeFilter, excludeFilter = self._buildRequestFilters(
+            uid, params, evids, excludeIds
+        )
 
         status, summaryUpdateResponse = self.zep.reopenEventSummaries(
             eventFilter=includeFilter,
@@ -887,16 +1026,21 @@ class EventsRouter(DirectRouter):
 
         return DirectResponse.succeed(data=summaryUpdateResponse)
 
-
     @require(ZEN_MANAGE_EVENTS)
-    def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None, timeout=None):
-        status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
+    def updateEventSummaries(
+        self, update, event_filter=None, exclusion_filter=None, limit=None,
+        timeout=None
+    ):
+        status, response = self.zep.updateEventSummaries(
+            update, event_filter, exclusion_filter, limit, timeout=timeout
+        )
         return DirectResponse.succeed(data=response)
 
-
     @require(ZEN_MANAGE_EVENTS)
-    def add_event(self, summary, device, component, severity, evclasskey,
-                  evclass=None, monitor=None, **kwargs):
+    def add_event(
+        self, summary, device, component, severity, evclasskey, evclass=None,
+        monitor=None, **kwargs
+    ):
         """
         Create a new event.
 
@@ -924,120 +1068,121 @@ class EventsRouter(DirectRouter):
                             monitor=monitor, **kwargs)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
-            # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
-            # currently running.
-            msg = 'Queued event. Check zeneventd status on <a href="/zport/dmd/daemons">Services</a>'
+            # This occurs if the event is queued but there are no consumers
+            # i.e. zeneventd is not currently running.
+            msg = ('Queued event. Check zeneventd status on '
+                   '<a href="/zport/dmd/daemons">Services</a>')
             return DirectResponse.succeed(msg, sticky=True)
-        except PublishException, e:
-            # This occurs if there is a failure publishing the event to the queue.
+        except PublishException as err:
+            # There was a failure publishing the event to the queue.
             log.exception("Failed creating event")
-            return DirectResponse.exception(e, "Failed to create event")
+            return DirectResponse.exception(err, "Failed to create event")
 
     @property
     def configSchema(self):
-        configSchema =[{
-                'id': 'event_age_disable_severity',
-                'name': _t("Don't Age This Severity and Above"),
-                'xtype': 'eventageseverity',
-                },{
-                'id': 'event_age_severity_inclusive',
-                'xtype': 'hidden',
-                },{
-                'id': 'event_age_interval_minutes',
-                'name': _t('Event Aging Threshold (minutes)'),
-                'xtype': 'numberfield',
-                'minValue': 0,
-                'allowNegative': False,
-                },{
-                'id': 'aging_interval_milliseconds',
-                'name': _t('Event Aging Interval (milliseconds)'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'allowNegative': False
-                },{
-                'id': 'aging_limit',
-                'name': _t('Event Aging Limit'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'allowNegative': False
-                },{
-                'id': 'event_archive_interval_minutes',
-                'name': _t('Event Archive Threshold (minutes)'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'maxValue': 43200,
-                'allowNegative': False,
-                },{
-                'id': 'archive_interval_milliseconds',
-                'name': _t('Event Archive Interval (milliseconds)'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'allowNegative': False,
-                },{
-                'id': 'archive_limit',
-                'name': _t('Event Archive Limit'),
-                'xtype': 'numberfield',
-                'minValue': 1,
-                'allowNegative': False,
-                },{
-                'id': 'event_archive_purge_interval_days',
-                'minValue': 1,
-                'name': _t('Delete Archived Events Older Than (days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                },{
-                'id': 'default_syslog_priority',
-                'name': _t('Default Syslog Priority'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'value': self.context.dmd.ZenEventManager.defaultPriority
-                },{
-                'id': 'default_availability_days',
-                'name': _t('Default Availability Report (days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 1,
-                'value': self.context.dmd.ZenEventManager.defaultAvailabilityDays
-                },{
-                'id': 'event_max_size_bytes',
-                'name': _t('Max Event Size In Bytes'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 8192,
-                'maxValue': 102400,
-                },{
-                'id': 'index_summary_interval_milliseconds',
-                'name': _t('Summary Index Interval (milliseconds)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 1
-                },{
-                'id': 'index_archive_interval_milliseconds',
-                'name': _t('Archive Index Interval (milliseconds)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 1
-                },{
-                'id': 'index_limit',
-                'name': _t('Index Limit'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 1
-                },{
-                'id': 'event_time_purge_interval_days',
-                'name': _t('Event Time Purge Interval (days)'),
-                'xtype': 'numberfield',
-                'allowNegative': False,
-                'minValue': 1
-                },{
-                'id': 'enable_event_flapping_detection',
-                'name': _t('Enable Event Flapping Detection'),
-                'xtype': 'checkbox',
-                }, {
-                'id': 'flapping_event_class',
-                'name': _t('Event Flapping Event Class'),
-                'xtype': 'eventclass'
-                }]
+        configSchema = [{
+            'id': 'event_age_disable_severity',
+            'name': _t("Don't Age This Severity and Above"),
+            'xtype': 'eventageseverity',
+        }, {
+            'id': 'event_age_severity_inclusive',
+            'xtype': 'hidden',
+        }, {
+            'id': 'event_age_interval_minutes',
+            'name': _t('Event Aging Threshold (minutes)'),
+            'xtype': 'numberfield',
+            'minValue': 0,
+            'allowNegative': False,
+        }, {
+            'id': 'aging_interval_milliseconds',
+            'name': _t('Event Aging Interval (milliseconds)'),
+            'xtype': 'numberfield',
+            'minValue': 1,
+            'allowNegative': False
+        }, {
+            'id': 'aging_limit',
+            'name': _t('Event Aging Limit'),
+            'xtype': 'numberfield',
+            'minValue': 1,
+            'allowNegative': False
+        }, {
+            'id': 'event_archive_interval_minutes',
+            'name': _t('Event Archive Threshold (minutes)'),
+            'xtype': 'numberfield',
+            'minValue': 1,
+            'maxValue': 43200,
+            'allowNegative': False,
+        }, {
+            'id': 'archive_interval_milliseconds',
+            'name': _t('Event Archive Interval (milliseconds)'),
+            'xtype': 'numberfield',
+            'minValue': 1,
+            'allowNegative': False,
+        }, {
+            'id': 'archive_limit',
+            'name': _t('Event Archive Limit'),
+            'xtype': 'numberfield',
+            'minValue': 1,
+            'allowNegative': False,
+        }, {
+            'id': 'event_archive_purge_interval_days',
+            'minValue': 1,
+            'name': _t('Delete Archived Events Older Than (days)'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+        }, {
+            'id': 'default_syslog_priority',
+            'name': _t('Default Syslog Priority'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'value': self.context.dmd.ZenEventManager.defaultPriority
+        }, {
+            'id': 'default_availability_days',
+            'name': _t('Default Availability Report (days)'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 1,
+            'value': self.context.dmd.ZenEventManager.defaultAvailabilityDays
+        }, {
+            'id': 'event_max_size_bytes',
+            'name': _t('Max Event Size In Bytes'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 8192,
+            'maxValue': 102400,
+        }, {
+            'id': 'index_summary_interval_milliseconds',
+            'name': _t('Summary Index Interval (milliseconds)'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 1
+        }, {
+            'id': 'index_archive_interval_milliseconds',
+            'name': _t('Archive Index Interval (milliseconds)'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 1
+        }, {
+            'id': 'index_limit',
+            'name': _t('Index Limit'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 1
+        }, {
+            'id': 'event_time_purge_interval_days',
+            'name': _t('Event Time Purge Interval (days)'),
+            'xtype': 'numberfield',
+            'allowNegative': False,
+            'minValue': 1
+        }, {
+            'id': 'enable_event_flapping_detection',
+            'name': _t('Enable Event Flapping Detection'),
+            'xtype': 'checkbox',
+        }, {
+            'id': 'flapping_event_class',
+            'name': _t('Event Flapping Event Class'),
+            'xtype': 'eventclass'
+        }]
         return configSchema
 
     def _mergeSchemaAndZepConfig(self, data, configSchema):
@@ -1053,9 +1198,9 @@ class EventsRouter(DirectRouter):
 
     @require('ZenCommon')
     def getConfig(self):
-        # this data var is not a ZepConfig, it's a config structure that has been
-        # constructed to include default values and be keyed by the protobuf
-        # property name.
+        # this data var is not a ZepConfig, it's a config structure that
+        # has been constructed to include default values and be keyed
+        # by the protobuf property name.
         data = self.zep.getConfig()
         config = self._mergeSchemaAndZepConfig(data, self.configSchema)
         return DirectResponse.succeed(data=config)
@@ -1067,18 +1212,26 @@ class EventsRouter(DirectRouter):
         @param values: Key Value pairs of config values
         """
         # Remove empty strings from values
-        empty_keys = [k for k,v in values.iteritems() if isinstance(v, basestring) and not len(v)]
+        empty_keys = [
+            k for k, v in values.iteritems()
+            if isinstance(v, basestring) and not len(v)
+        ]
         for empty_key in empty_keys:
             del values[empty_key]
 
-        # we store default syslog priority and default availability days on the event manager
+        # we store default syslog priority and default availability days
+        # on the event manager
         defaultSyslogPriority = values.pop('default_syslog_priority', None)
         if defaultSyslogPriority is not None:
-            self.context.dmd.ZenEventManager.defaultPriority = int(defaultSyslogPriority)
+            self.context.dmd.ZenEventManager.defaultPriority = int(
+                defaultSyslogPriority
+            )
 
         defaultAvailabilityDays = values.pop('default_availability_days', None)
         if defaultAvailabilityDays is not None:
-            self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(defaultAvailabilityDays)
+            self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(
+                defaultAvailabilityDays
+            )
 
         self.zep.setConfigValues(values)
         return DirectResponse.succeed()
