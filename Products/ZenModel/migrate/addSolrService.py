@@ -30,7 +30,8 @@ class AddSolrService(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        # If the service lacks memcached, add it now.
+        changed = False
+        # If the service lacks Solr, add it now.
         solr = filter(lambda s: s.name == "Solr", ctx.services)
         log.info("Found %i services named 'Solr'." % len(solr))
         if not solr:
@@ -38,6 +39,21 @@ class AddSolrService(Migrate.Step):
             new_solr = default_solr_service()
             infrastructure = ctx.findServices('^[^/]+/Infrastructure$')[0]
             ctx.deployService(json.dumps(new_solr), infrastructure)
+            changed = True
+
+        # Now healthchecks
+        solr_answering_healthcheck = HealthCheck(
+            name="solr_answering",
+            interval=10.0,
+            script="curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"
+        )
+
+        tomodify = ('zenhub', 'zeneventd', 'zenreports', 'Zope', '')
+        for svc in ctx.services:
+
+
+
+        if changed:
             ctx.commit()
 
 
