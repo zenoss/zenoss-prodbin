@@ -17,7 +17,8 @@ from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.catalog.model_catalog import get_solr_config
 from zenoss.modelindex.model_index import SearchParams
-from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD as UID, ZENOSS_MODEL_COLLECTION_NAME
+from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
+from .indexable import OBJECT_UID_FIELD as UID
 
 
 class ModelCatalogUtils(object):
