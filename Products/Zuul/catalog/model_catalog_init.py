@@ -343,7 +343,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     return index_client
 
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=[], terminate=None, toggle_debug=None):
+def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminate=None, toggle_debug=None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
