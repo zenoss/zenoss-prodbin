@@ -25,6 +25,7 @@ from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
+from metrology import Metrology
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer, task
@@ -50,6 +51,7 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 
 
 #field size limits for events
@@ -377,6 +379,7 @@ class EventQueueManager(object):
         # TODO: Do we want to limit the size of the clear event dictionary?
         self.clear_events_count = {}
         self._initQueues()
+        self._eventsSent = Metrology.meter("collectordaemon.eventsSent")
 
     def _initQueues(self):
         maxlen = self.options.maxqueuelen
@@ -511,6 +514,9 @@ class EventQueueManager(object):
                     "Sending %d events, %d perf events, %d heartbeats",
                     len(events), len(perf_events), len(heartbeat_events))
                 yield event_sender_fn(heartbeat_events + perf_events + events)
+                self._eventsSent.mark(len(events))
+                self._eventsSent.mark(len(perf_events))
+                self._eventsSent.mark(len(heartbeat_events))
                 heartbeat_events, perf_events, events = chunk_events()
 
         except Exception:
@@ -584,7 +590,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self._internal_publisher = None
         self._metric_writer = None
         self._derivative_tracker = None
-
+        self._metrologyReporter = None
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
 
@@ -788,6 +794,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def run(self):
+        def stopReporter():
+            if self._metrologyReporter:
+                return self._metrologyReporter.stop()
+
+        # Order of the shutdown triggers matter. Want to stop reporter first, calling self.metricWriter() below
+        # registers shutdown triggers for the actual metric http and redis publishers.
+        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
+
         threshold_notifier = self._getThresholdNotifier()
         self.rrdStats.config(self.name,
                              self.options.monitor,
@@ -808,6 +822,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.log.debug("Starting Statistic posting")
             loop = task.LoopingCall(self.postStatistics)
             loop.start(self.options.writeStatistics, now=False)
+            daemonTags = {
+                'daemon': self.name,
+                'monitor': self.options.monitor,
+                'internal': True
+            }
+            self._metrologyReporter = TwistedMetricReporter(self.options.writeStatistics, self.metricWriter(), daemonTags)
+            self._metrologyReporter.start()
+
 
         reactor.callWhenRunning(startStatsLoop)
         d.addCallback(callback)
@@ -864,7 +886,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # deprecated counter name
         self.counters['eventCount'] += 1
         # prefer this counter name for future refs
-        self.counters['collectordaemon.eventCount'] += 1
 
     def generateEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
@@ -967,14 +988,18 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def saveCounters(self):
         atomicWrite(
-            zenPath('var/%s_counters.pickle' % self.name),
+            zenPath(self._pickleName()),
             pickle.dumps(self.counters),
             raiseException=False,
         )
 
+    def _pickleName(self):
+        instance_id = os.environ.get('CONTROLPLANE_INSTANCE_ID')
+        return 'var/%s_%s_counters.pickle' % (self.name, instance_id)
+
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(zenPath('var/%s_counters.pickle'% self.name)))
+            self.counters = pickle.load(open(zenPath(self._pickleName())))
         except Exception:
             pass
 

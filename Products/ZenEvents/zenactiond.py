@@ -9,6 +9,8 @@
 
 
 import Globals
+import os
+
 from traceback import format_exc
 from twisted.internet import reactor, defer
 
@@ -20,9 +22,11 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanc
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
 from Products.ZenEvents.Schedule import Schedule
-from Products.ZenUtils.MetricReporter import AsyncMetricReporter
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.metricwriter import MetricWriter
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
+from Products.ZenHub.metricpublisher import publisher
 
 from Products.ZenModel.actions import ActionMissingException, TargetableAction, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
@@ -231,8 +235,21 @@ class ZenActionD(ZCmdBase):
 
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
-        self.reporter = AsyncMetricReporter(prefix='zenoss.')
+        metric_destination = os.environ.get("CONTROLPLANE_CONSUMER_URL", "")
+        if metric_destination == "":
+            metric_destination = "http://localhost:22350/api/metrics/store"
+        username = os.environ.get("CONTROLPLANE_CONSUMER_USERNAME", "")
+        password = os.environ.get("CONTROLPLANE_CONSUMER_PASSWORD", "")
+        pub = publisher.HttpPostPublisher(username, password, metric_destination)
+
+        log.debug("Creating async MetricReporter")
+        daemonTags = {
+            'daemon': 'zenactiond',
+            'internal': True
+        }
+        self.reporter = TwistedMetricReporter(prefix='zenoss.', metricWriter=MetricWriter(pub), tags=daemonTags)
         self.reporter.start()
+        reactor.addSystemEventTrigger('before', 'shutdown', self.reporter.stop)
 
         if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
             self._callHomeCycler.start()
