@@ -208,6 +208,7 @@ def getModelChangePublisher():
 _prepublishing_timer = None
 
 def _getPrepublishingTimer():
+    global _prepublishing_timer
     if not _prepublishing_timer:
         _prepublishing_timer =  Metrology.timer("MessagePrePublishingEvents")
     return _prepublishing_timer
