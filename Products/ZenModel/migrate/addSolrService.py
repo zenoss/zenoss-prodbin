@@ -15,6 +15,7 @@ log = logging.getLogger("zen.migrate")
 import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
+from servicemigration import HealthCheck
 
 
 class AddSolrService(Migrate.Step):
@@ -48,10 +49,14 @@ class AddSolrService(Migrate.Step):
             script="curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"
         )
 
-        tomodify = ('zenhub', 'zeneventd', 'zenreports', 'Zope', '')
         for svc in ctx.services:
-
-
+            if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
+                continue
+            for ep in svc.endpoints:
+                if ep.purpose == 'import' and ep.application == 'zodb_.*':
+                    svc.healthChecks.append(solr_answering_healthcheck)
+                    changed = True
+                    break
 
         if changed:
             ctx.commit()
