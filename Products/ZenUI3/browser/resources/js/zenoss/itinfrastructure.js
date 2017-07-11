@@ -643,16 +643,6 @@ Ext.apply(Zenoss.devices, {
 
             // everything else goes in the third column.
             propsCollection.forEach(function(value) {
-                manufacturersAndProductsItems.push({
-                                xtype: 'textfield',
-                                id: value,
-                                name: value,
-                                fieldLabel: _t(value),
-                                hidden: true,
-                                width: 160
-                });
-            });
-            propsCollection.forEach(function(value) {
                 organizersItems.push({
                                 xtype: 'textfield',
                                 id: value,
