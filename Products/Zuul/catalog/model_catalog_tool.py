@@ -304,22 +304,19 @@ class ModelCatalogTool(object):
 
         hash_ = totalCount
 
-        if areBrains:
-            allResults = results
-        else: # Even if orderby was an indexed field,, _filterQueryResults will randomize the order
-            allResults = self._sortQueryResults(results, orderby, reverse)
-
         if hashcheck is not None:
             if hash_ != int(hashcheck):
                 raise StaleResultsException("Search results do not match")
 
-        # Return a slice
-        start = max(start, 0)
-        if limit is None:
-            stop = None
-        else:
-            stop = start + limit
-        results = islice(allResults, start, stop)
+        if not areBrains: # Even if orderby was an indexed field,, _filterQueryResults will randomize the order
+            sorted_results = self._sortQueryResults(results, orderby, reverse)
+            # Return a slice
+            start = max(start, 0)
+            if limit is None:
+                stop = None
+            else:
+                stop = start + limit
+            results = islice(sorted_results, start, stop)
 
         return SearchResults(results, totalCount, str(hash_), areBrains)
 
