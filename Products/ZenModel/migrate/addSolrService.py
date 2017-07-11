@@ -50,6 +50,15 @@ class AddSolrService(Migrate.Step):
         )
 
         for svc in ctx.services:
+            # Remove zencatalogservice, if it still exists
+            if svc.name == "zencatalogservice":
+                svcid = svc._Service__data['ID']
+                ctx._client.deleteService(svcid)
+                ctx.services.remove(svc)
+                changed = True
+                continue
+            # If we've got a solr_answering health check, we can stop.
+            # Otherwise, remove catalogservice health checks and add Solr ones
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
                 continue
             for hc in svc.healthChecks:
@@ -61,15 +70,6 @@ class AddSolrService(Migrate.Step):
                     svc.healthChecks.append(solr_answering_healthcheck)
                     changed = True
                     break
-
-        # If we still have a zencatalogservice entry, remove it
-        for svc in ctx.services:
-            if svc.name == "zencatalogservice":
-                svcid = svc._Service__data['ID']
-                ctx._client.deleteService(svcid)
-                ctx.services.remove(svc)
-                changed = True
-                break
 
         if changed:
             ctx.commit()
