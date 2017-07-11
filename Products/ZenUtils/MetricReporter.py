@@ -12,7 +12,9 @@ import logging
 import os
 import requests
 import time
-from twisted.internet import reactor
+from twisted.internet import reactor, defer, task
+
+from metrology.registry import registry
 
 from metrology.instruments import (
     Counter,
@@ -49,83 +51,121 @@ class MetricReporter(Reporter):
         self._write()
 
     def _write(self):
-        metrics = []
-        snapshot_keys = ['median', 'percentile_95th']
-        for name, metric in self.registry:
-            log.debug("metric info: %s, %s", name, metric)
-            if isinstance(metric, Meter):
-                keys = ['count', 'one_minute_rate', 'five_minute_rate',
-                        'fifteen_minute_rate', 'mean_rate']
-                metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, Gauge):
-                keys = ['value']
-                metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, UtilizationTimer):
-                keys = ['count', 'one_minute_rate', 'five_minute_rate',
-                        'fifteen_minute_rate', 'mean_rate', 'min', 'max',
-                        'mean', 'stddev', 'one_minute_utilization',
-                        'five_minute_utilization', 'fifteen_minute_utilization',
-                        'mean_utilization']
-                metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
-            if isinstance(metric, Timer):
-                keys = ['count', 'one_minute_rate', 'five_minute_rate',
-                        'fifteen_minute_rate', 'mean_rate', 'min', 'max', 'mean',
-                        'stddev']
-                metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
-            if isinstance(metric, Counter):
-                keys = ['count']
-                metrics.extend(self.log_metric(name, metric, keys))
-            if isinstance(metric, Histogram):
-                keys = ['count', 'min', 'max', 'mean', 'stddev']
-                metrics.extend(self.log_metric(name, metric, keys, snapshot_keys))
+        metrics = getMetrics(self.registry, self.tags, self.prefix)
         try:
-            if not self.session:
-                self.session = requests.Session()
-            self.session.headers.update({'Content-Type': 'application/json'})
-            self.session.headers.update({'User-Agent': 'Zenoss Service Metrics'})
-            post_data = {'metrics': metrics}
-            log.debug("Sending metric payload: %s" % post_data)
-            response = self.session.post(self.metric_destination,
-                                         data=json.dumps(post_data))
-            if response.status_code != 200:
-                log.warning("Problem submitting metrics: %d, %s",
-                            response.status_code, response.text.replace('\n', '\\n'))
-                self.session = None
-            else:
-                log.debug("%d Metrics posted" % len(metrics))
+            self.postMetrics(metrics)
         except Exception as e:
             log.error(e)
 
-    def log_metric(self, name, metric, keys, snapshot_keys=None):
-        results = []
+    def postMetrics(self, metrics):
+        if not self.session:
+            self.session = requests.Session()
+        self.session.headers.update({'Content-Type': 'application/json'})
+        self.session.headers.update({'User-Agent': 'Zenoss Service Metrics'})
+        post_data = {'metrics': metrics}
+        log.debug("Sending metric payload: %s" % post_data)
+        response = self.session.post(self.metric_destination,
+                                     data=json.dumps(post_data))
+        if response.status_code != 200:
+            log.warning("Problem submitting metrics: %d, %s",
+                        response.status_code, response.text.replace('\n', '\\n'))
+            self.session = None
+        else:
+            log.debug("%d Metrics posted" % len(metrics))
 
-        if snapshot_keys is None:
-            snapshot_keys = []
 
-        metric_name = self.prefix + name if self.prefix else name
-        ts = time.time()
+class TwistedMetricReporter(object):
+    def __init__(self, interval=30, metricWriter=None, tags={}, *args, **options):
+        super(TwistedMetricReporter, self).__init__()
+        self.registry = options.get('registry', registry)
+        self.prefix = options.get('prefix', "")
+        self.metricWriter = metricWriter
+        self.interval = interval
+        self.tags = {}
+        self.tags.update(tags)
+        self._stopped = False
+        self._loop = task.LoopingCall(self.postMetrics)
+
+    def start(self):
+        def doStart():
+            self._loop.start(self.interval, now=False)
+
+        reactor.callWhenRunning(doStart)
+        reactor.addSystemEventTrigger('before', 'shutdown', self.stop)
+
+    @defer.inlineCallbacks
+    def stop(self):
+        if not self._stopped:
+            self._stopped = True
+            self._loop.stop()
+            yield self.postMetrics()
+
+    @defer.inlineCallbacks
+    def postMetrics(self):
         try:
-            for stat in keys:
+            for metric in getMetrics(self.registry, self.tags, self.prefix):
+                yield self.metricWriter.write_metric(metric['metric'], metric['value'], metric['timestamp'],
+                                                    metric['tags'])
+        except Exception:
+            log.exception("Error writing metrics")
+
+
+def getMetrics(mRegistry, tags, prefix):
+    metrics = []
+    snapshot_keys = ['median', 'percentile_95th']
+    for name, metric in mRegistry:
+        log.debug("metric info: %s, %s", name, metric)
+        if isinstance(metric, Meter):
+            keys = ['count', 'one_minute_rate', 'five_minute_rate',
+                    'fifteen_minute_rate', 'mean_rate']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix))
+        if isinstance(metric, Gauge):
+            keys = ['value']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix))
+        if isinstance(metric, UtilizationTimer):
+            keys = ['count', 'one_minute_rate', 'five_minute_rate',
+                    'fifteen_minute_rate', 'mean_rate', 'min', 'max',
+                    'mean', 'stddev', 'one_minute_utilization',
+                    'five_minute_utilization', 'fifteen_minute_utilization',
+                    'mean_utilization']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix, snapshot_keys))
+        if isinstance(metric, Timer):
+            keys = ['count', 'one_minute_rate', 'five_minute_rate',
+                    'fifteen_minute_rate', 'mean_rate', 'min', 'max', 'mean',
+                    'stddev']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix, snapshot_keys))
+        if isinstance(metric, Counter):
+            keys = ['count']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix))
+        if isinstance(metric, Histogram):
+            keys = ['count', 'min', 'max', 'mean', 'stddev']
+            metrics.extend(log_metric(name, metric, keys, tags, prefix, snapshot_keys))
+    return metrics
+
+def log_metric(name, metric, keys, tags, prefix, snapshot_keys=None):
+    results = []
+
+    if snapshot_keys is None:
+        snapshot_keys = []
+
+    metric_name = prefix + name if prefix else name
+    ts = time.time()
+    try:
+        for stat in keys:
+            whole_metric_name = "%s.%s" % (metric_name, stat)
+            results.append({"metric": whole_metric_name,
+                            "value": getattr(metric, stat),
+                            "timestamp": ts,
+                            "tags": tags})
+
+        if hasattr(metric, 'snapshot'):
+            snapshot = metric.snapshot
+            for stat in snapshot_keys:
                 whole_metric_name = "%s.%s" % (metric_name, stat)
                 results.append({"metric": whole_metric_name,
-                                "value": getattr(metric, stat),
+                                "value": getattr(snapshot, stat),
                                 "timestamp": ts,
-                                "tags": self.tags})
-
-            if hasattr(metric, 'snapshot'):
-                snapshot = metric.snapshot
-                for stat in snapshot_keys:
-                    whole_metric_name = "%s.%s" % (metric_name, stat)
-                    results.append({"metric": whole_metric_name,
-                                    "value": getattr(snapshot, stat),
-                                    "timestamp": ts,
-                                    "tags": self.tags})
-        except Exception as e:
-            log.error(e)
-        return results
-
-
-class AsyncMetricReporter(MetricReporter):
-    def write(self):
-        reactor.callLater(0, self._write)
-
+                                "tags": tags})
+    except Exception as e:
+        log.error(e)
+    return results

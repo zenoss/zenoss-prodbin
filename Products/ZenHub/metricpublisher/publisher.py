@@ -243,28 +243,36 @@ class RedisListPublisher(BasePublisher):
                     self._flushing = False
 
             return _flush(metrics)
+        return defer.fail()
 
     def _shutdown(self):
-        def disconnect(c):
-            log.debug('shutting down [disconnecting]')
+        def disconnect():
+            log.debug('redislistpublisher shutting down [disconnecting]')
             if self._connection.state == 'connected':
                 self._connection.disconnect()
-            log.debug('shutting down [disconnected]')
+            log.debug('redislistpublisher shutting down [disconnected]')
 
-        log.debug('shutting down')
+        def drainQueue(unused):
+            if self._mq:
+                log.debug("draining queue %s", len(self._mq))
+                d = self._put(False, reschedule=False)
+                d.addCallback(drainQueue)
+                return d
+            else:
+                disconnect()
+
+        log.debug('redislistpublisher shutting down')
         if self._connection.state != 'connected':
-            log.debug('shutting down [not connected: %s]',
+            log.debug('redislistpublisher shutting down [not connected: %s]',
                       self._connection.state)
         elif len(self._mq):
-            log.debug('shutting down [publishing]')
+            log.debug('redislistpublisher shutting down [publishing  metrics %s]', len(self._mq))
             try:
-                d = self._put(False, reschedule=False)
-                d.addCallback(disconnect)
-                return d
+                return drainQueue(None)
             except Exception as x:
-                log.exception('shutting down [publishing failed: %s]', x)
+                log.exception('redislistpublisher shutting down [publishing failed: %s]', x)
         else:
-            disconnect(True)
+            disconnect()
 
 
 class HttpPostPublisher(BasePublisher):
@@ -321,9 +329,9 @@ class HttpPostPublisher(BasePublisher):
             log.warn("Unexpected result: %s", result)
 
     def _shutdown(self):
-        log.debug('shutting down [publishing]')
+        log.debug('shutting down http [publishing %s metrics]' % len(self._mq))
         if len(self._mq):
-            self._make_request()
+            return self._make_request()
 
     def _make_request(self):
         metrics = []
@@ -346,6 +354,7 @@ class HttpPostPublisher(BasePublisher):
             headers.addRawHeader('Authorization',
                                  basic_auth_string_content(self._username, self._password))
 
+        log.debug("Posting %s metrics" % len(metrics))
         d = self._agent.request(
             'POST', self._url, headers,
             body_writer)
