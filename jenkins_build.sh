@@ -90,7 +90,7 @@ source $(zendev bootstrap)
 
 echo Creating a zendev environment...
 cd $WORKSPACE
-zendev init --tag $BRANCH ${ZENDEV_ENV}
+zendev init --shallow --tag $BRANCH ${ZENDEV_ENV}
 zendev use ${ZENDEV_ENV}
 echo Use ${ZENDEV_ENV} zendev environment
 
