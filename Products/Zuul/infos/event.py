@@ -13,7 +13,6 @@ from zope.interface import implements
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.services.zep import EventStatus
-from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.ZenEvents.events2.proxy import EventProxy
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
