@@ -17,7 +17,6 @@ import servicemigration as sm
 sm.require("1.0.0")
 from servicemigration import HealthCheck
 
-
 class AddSolrService(Migrate.Step):
     """
     Add Solr service and associated healthchecks.
@@ -32,6 +31,7 @@ class AddSolrService(Migrate.Step):
             return
 
         changed = False
+
         # If the service lacks Solr, add it now.
         solr = filter(lambda s: s.name == "Solr", ctx.services)
         log.info("Found %i services named 'Solr'." % len(solr))
@@ -52,11 +52,24 @@ class AddSolrService(Migrate.Step):
         for svc in ctx.services:
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
                 continue
+            for hc in svc.healthChecks:
+                if hc.name == "catalogservice_answering":
+                    svc.healthChecks.remove(hc)
+                    changed = True
             for ep in svc.endpoints:
                 if ep.purpose == 'import' and ep.application == 'zodb_.*':
                     svc.healthChecks.append(solr_answering_healthcheck)
                     changed = True
                     break
+
+        # If we still have a zencatalogservice entry, remove it
+        for svc in ctx.services:
+            if svc.name == "zencatalogservice":
+                svcid = svc._Service__data['ID']
+                ctx._client.deleteService(svcid)
+                ctx.services.remove(svc)
+                changed = True
+                break
 
         if changed:
             ctx.commit()
