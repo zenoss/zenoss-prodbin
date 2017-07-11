@@ -20,9 +20,11 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanc
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
 from Products.ZenEvents.Schedule import Schedule
-from Products.ZenUtils.MetricReporter import AsyncMetricReporter
+from Products.ZenUtils.AsyncMetricReporter import AsyncMetricReporter
+from Products.ZenUtils.metricwriter import MetricWriter
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
+from Products.ZenHub.metricpublisher import publisher
 
 from Products.ZenModel.actions import ActionMissingException, TargetableAction, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
@@ -38,6 +40,7 @@ from zope.interface import implements
 from Products.ZenEvents.interfaces import ISignalProcessorTask
 
 from metrology import Metrology
+import os
 
 
 import logging
@@ -231,8 +234,18 @@ class ZenActionD(ZCmdBase):
 
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
-        self.reporter = AsyncMetricReporter(prefix='zenoss.')
+
+        metric_destination = os.environ.get("CONTROLPLANE_CONSUMER_URL", "")
+        if metric_destination == "":
+            metric_destination = "http://localhost:22350/api/metrics/store"
+        username = os.environ.get("CONTROLPLANE_CONSUMER_USERNAME", "")
+        password = os.environ.get("CONTROLPLANE_CONSUMER_PASSWORD", "")
+        pub = publisher.HttpPostPublisher(username, password, metric_destination)
+
+        log.debug("Creating async MetricReporter")
+        self.reporter = AsyncMetricReporter(prefix='zenoss.', metricwriter=MetricWriter(pub))
         self.reporter.start()
+        log.debug("Started async MetricReporter")
 
         if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
             self._callHomeCycler.start()
