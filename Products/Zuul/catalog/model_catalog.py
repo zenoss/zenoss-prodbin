@@ -41,10 +41,13 @@ log = logging.getLogger("model_catalog")
 
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
+SOLR_CONFIG = []
+
 TX_SEPARATOR = "@=@"
 
 TX_STATE_FIELD = "tx_state"
 
+MANDATORY_FIELDS = set([ TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD ])
 
 class SearchResults(object):
 
@@ -72,6 +75,7 @@ class ModelCatalogBrain(Implicit):
         @param  data: dict with the brain's data
         @params idxs: indices the brain must have
         """
+        self._data = data  # for debug purposes store the data the brain was built from
         self.idxs = data.keys()
         if idxs is not None:
             self.idxs = idxs
@@ -107,7 +111,8 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self.uid))
+            log.error("Unable to get object from brain. Path: {0}. Model Catalog may be out of sync.".format(self.uid))
+            # @TODO we should unindex the object
         return obj
 
     def getRID(self):
@@ -126,8 +131,9 @@ class ObjectUpdate(object):
 
 class ModelCatalogClient(object):
 
-    def __init__(self, solr_url):
-        self._data_manager = zope.component.createObject('ModelCatalogDataManager', solr_url)
+    def __init__(self, solr_url, context):
+        self.context = context
+        self._data_manager = zope.component.createObject('ModelCatalogDataManager', solr_url, context)
 
     @property
     def model_index(self):
@@ -161,9 +167,9 @@ class ModelCatalogClient(object):
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error()
 
-    def get_brain_from_object(self, obj, context):
+    def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
-        spec = self._data_manager.model_index.get_object_spec(obj)
+        spec = self._data_manager.model_index.get_object_spec(obj, idxs=fields)
         brain = ModelCatalogBrain(spec.to_dict(use_attr_query_name=True))
         brain = brain.__of__(context.dmd)
         return brain
@@ -209,6 +215,11 @@ class ModelCatalogTransactionState(object):
         uid = object_update.uid
         op = object_update.op
         idxs = object_update.idxs
+        if idxs:
+            if isinstance(idxs, basestring):
+                idxs = set([idxs])
+            else:
+                idxs = set(idxs)
 
         previous_model_update = self.pending_updates.get(uid) if self.pending_updates.get(uid) else self.indexed_updates.get(uid)
         # When we get INDEX after UNINDEX or UNINDEX after INDEX, the last operation to come overwrites the previous
@@ -220,7 +231,9 @@ class ModelCatalogTransactionState(object):
                     idxs = None # index the whole object
                 elif previous_model_update.idxs and idxs: # combine them
                     idxs = set(idxs) | set(previous_model_update.idxs)
-                    idxs.update(TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD) # Mandatory fields
+
+        if idxs: # make sure mandatory idxs are always sent
+            idxs.update( MANDATORY_FIELDS ) # Mandatory fields
 
         model_update = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
         self.pending_updates[object_update.uid] = model_update
@@ -274,8 +287,9 @@ class ModelCatalogDataManager(object):
 
     implements(IDataManager)
 
-    def __init__(self, solr_servers):
+    def __init__(self, solr_servers, context):
         self.model_index = zope.component.createObject('ModelIndex', solr_servers)
+        self.context = context
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread
 
@@ -312,6 +326,15 @@ class ModelCatalogDataManager(object):
             else:
                 # Index the object with a special uid
                 temp_uid = self._mid_transaction_uid(update.uid, tx_state)
+
+                # the first time we index a mid transaction atomic update, we need
+                # to index the whole object, otherwise the temp document will only
+                # have the mandatory fields and whatever fields the partial update has
+                #
+                if update.spec.partial_spec and update.uid not in tx_state.temp_indexed_uids:
+                    original_update = update
+                    obj = self.context.dmd.unrestrictedTraverse(original_update.uid)
+                    update = IndexUpdate(obj, op=original_update.op , uid=original_update.uid)
                 update.spec.set_field_value(MODEL_INDEX_UID_FIELD, temp_uid)
                 update.spec.set_field_value(TX_STATE_FIELD, tid)
                 indexed_uids.add(update.uid)
@@ -367,11 +390,10 @@ class ModelCatalogDataManager(object):
         """
         return the list of fields that brains returned by the current search will have
         """
-        mandatory_fields = { MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD, TX_STATE_FIELD }
         if isinstance(fields, basestring):
             fields = [ fields ]
         brain_fields = set(fields) if fields else set()
-        return list(brain_fields | mandatory_fields)
+        return list(brain_fields | MANDATORY_FIELDS)
 
     def _do_search(self, search_params, context):
         """
@@ -420,6 +442,7 @@ class ModelCatalogDataManager(object):
         tx_state = self._get_tx_state()
         if commit_dirty:
             self.do_mid_transaction_commit()
+        search_params = self._add_tx_state_query(search_params, tx_state)
         return self._do_search(search_params, context)
 
     def search_brain(self, uid, context, fields=None, commit_dirty=False):
@@ -510,8 +533,8 @@ class ModelCatalogTestDataManager(ModelCatalogDataManager):
     we commit everyting to solr with a temp tid
     """
 
-    def __init__(self, solr_servers):
-        super(ModelCatalogTestDataManager, self).__init__(solr_servers)
+    def __init__(self, solr_servers, context):
+        super(ModelCatalogTestDataManager, self).__init__(solr_servers, context)
 
     def tpc_finish(self, transaction):
         super(ModelCatalogTestDataManager, self).abort(transaction)
@@ -554,7 +577,7 @@ class ModelCatalog(object):
         #
         if zodb_conn is None:
             if not hasattr(self, "_v_temp_model_catalog_client"):
-                self._v_temp_model_catalog_client = ModelCatalogClient(self.solr_url)
+                self._v_temp_model_catalog_client = ModelCatalogClient(self.solr_url, context)
             catalog_client = self._v_temp_model_catalog_client
         else:
             #
@@ -563,7 +586,7 @@ class ModelCatalog(object):
             # connection object so we are certain that each zope thread has its own
             catalog_client = getattr(zodb_conn, 'model_catalog_client', None)
             if catalog_client is None:
-                zodb_conn.model_catalog_client = ModelCatalogClient(self.solr_url)
+                zodb_conn.model_catalog_client = ModelCatalogClient(self.solr_url, context)
                 catalog_client = zodb_conn.model_catalog_client
 
         return catalog_client
@@ -583,9 +606,13 @@ class ModelCatalog(object):
         catalog_client = self.get_client(context)
         return catalog_client.get_indexes()
 
+
 def get_solr_config():
-    config = getGlobalConfiguration()
-    return config.get('solr-servers', 'localhost:8983')
+    if not SOLR_CONFIG:
+        config = getGlobalConfiguration()
+        SOLR_CONFIG.append(config.get('solr-servers', 'localhost:8983'))
+        log.info("Loaded Solr config from global.conf. Solr Servers: {}".format(SOLR_CONFIG))
+    return SOLR_CONFIG[0]
 
 
 def register_model_catalog():
