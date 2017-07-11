@@ -12,13 +12,139 @@ import re
 from itertools import imap
 from zope.interface import implements
 from zope.component import adapts
+from Products.AdvancedQuery import In, Eq
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpAddress import IpAddress
+from Products.ZenUtils.IpUtil import ipToDecimal
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.catalog.model_catalog import SearchResults, OBJECT_UID_FIELD as UID
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
 from Products.Zuul.infos import InfoBase, BulkLoadMixin
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.tree import TreeNode
+
+
+class NetworkTree(object):
+    def __init__(self, path):
+        self.path = path
+        self.netip = path.split("/")[-1]
+        self.subnets = {}
+        self.partial_ip_count = 0   # count not including children
+        self.total_ip_count = 0     # count including children
+
+
+class NetworkTreeCache(object):
+    def __init__(self, root):
+        self.root = root              # IpNetwork for which we are building the tree
+        self.brains = {}              # net_uid : net brain
+        self.network_trees = {}       # net_uid : NetworkTree
+        self.root_network_tree = None
+
+        self.build_network_tree()
+        self.load_brains()
+        self.load_ip_counts()
+
+    def build_network_tree(self):
+        """
+        Builds the network tree for a given network and its subnetworks
+        The network tree is built using the networks paths that are available
+        in the network_cache
+        """
+        net_obj = self.root
+        root = net_obj.getNetworkRoot()
+
+        # get the paths of all relevant networks
+        paths = []
+        if root == net_obj: # we are at the nerwork root
+            for nets in root.network_cache.cache.itervalues():
+                paths.extend(nets)
+        else:
+            paths = root.network_cache.get_subnets_paths(net_obj)
+
+        self.root_network_tree = NetworkTree("/".join(net_obj.getPrimaryPath()))
+        parent_path = self.root_network_tree.path
+        self.network_trees[parent_path] = self.root_network_tree
+        # iterate through all networks paths creating network nodes in the network tree
+        for path in paths:
+            if not path.startswith(parent_path) or \
+               path == parent_path:
+                continue
+            current_path = parent_path
+            current_tree = self.root_network_tree
+            # create subnets from the path
+            # Example path /zport/dmd/Networks/10.0.0.0/10.10.0.0/10.10.10.0
+            # creates subnets 10.0.0.0, 10.0.0.0/10.10.0.0 and 10.0.0.0/10.10.0.0/10.10.10.0
+            nets = path.replace(parent_path, "").strip("/").split("/")
+            for netip in nets:
+                if not netip:
+                    continue
+                current_path = "{}/{}".format(current_path, netip)
+                if netip not in current_tree.subnets:
+                    new_network_tree = NetworkTree(current_path)
+                    current_tree.subnets[netip] = new_network_tree
+                    self.network_trees[current_path] = new_network_tree
+                current_tree = current_tree.subnets[netip]
+
+    def _load_brains(self, batch):
+        model_catalog = IModelCatalogTool(self.root.dmd)
+        fields = [ UID, "name", "id", "uuid" ]
+        query = In(UID, batch)
+        search_results = model_catalog.search(query=query, fields=fields)
+        for brain in search_results.results:
+            path = brain.getPath()
+            self.brains[path] = brain
+
+    def load_brains(self):
+        """
+        Get the brains of all the relevant networks
+        """
+        batch = []
+        batch_size = 1000
+        for uid in self.network_trees.iterkeys():
+            batch.append('"{0}"'.format(uid))
+            if len(batch) == batch_size:
+                self._load_brains(batch)
+                batch = []
+        if batch:
+            self._load_brains(batch)
+
+    def load_ip_counts(self):
+        # Load all ip addresses to get count of ips per net
+        # @TODO We should do this using solr facets
+        model_catalog = IModelCatalogTool(self.root.dmd)
+        query = Eq("objectImplements", 'Products.ZenModel.IpAddress.IpAddress')
+        search_results = model_catalog.search(query=query, fields="networkId")
+        for ip_brain in search_results.results:
+            if ip_brain.networkId in self.network_trees:
+                self.network_trees[ip_brain.networkId].partial_ip_count += 1
+
+        # Now get the total ip count per net including subnets from the bottom up
+        net_uids = self.network_trees.keys()
+        net_uids.sort(reverse=True, key=lambda x: len(x))
+        for net_uid in net_uids:
+            net_tree = self.network_trees[net_uid]
+            children_count = 0
+            for subnet_tree in net_tree.subnets.itervalues():
+                children_count += subnet_tree.total_ip_count
+            net_tree.total_ip_count = net_tree.partial_ip_count + children_count
+
+    def get_ip_count(self, net_uid):
+        count = 0
+        net_tree = self.network_trees.get(net_uid)
+        if net_tree:
+            count = net_tree.total_ip_count
+        return count
+
+    def get_children(self, uid):
+        if not uid.startswith("/zport/dmd"):
+            uid = "{}/{}".format("/zport/dmd", uid)
+        network_tree = self.network_trees[uid]
+        subnets = network_tree.subnets.values()
+        subnets.sort( key=lambda x: ipToDecimal(x.netip) )
+        brains = [ self.brains[subnet.path] for subnet in subnets if self.brains.get(subnet.path)]
+        return brains
+
 
 class IpNetworkNode(TreeNode):
     implements(IIpNetworkNode)
@@ -26,7 +152,7 @@ class IpNetworkNode(TreeNode):
 
     @property
     def text(self):
-        numInstances = self._object.getObject().countIpAddresses()
+        numInstances = self._get_cache.get_ip_count(self.uid)
         text = super(IpNetworkNode, self).text + '/' + str(self._object.getObject().netmask)
         return {
             'text': text,
@@ -38,17 +164,18 @@ class IpNetworkNode(TreeNode):
     def _get_cache(self):
         cache = getattr(self._root, '_cache', None)
         if cache is None:
-            cache = TreeNode._buildCache(self, IpNetwork, IpAddress, 'ipaddresses', orderby='name' )
+            cache = NetworkTreeCache(self._root._get_object())
+            setattr(self._root, '_cache', cache)
         return cache
 
     @property
     def children(self):
-        nets = self._get_cache.search(self.uid)
+        nets = self._get_cache.get_children(self.uid)
         return imap(lambda x:IpNetworkNode(x, self._root, self), nets)
 
     @property
     def leaf(self):
-        nets = self._get_cache.search(self.uid)
+        nets = self._get_cache.get_children(self.uid)
         return not nets
 
     @property

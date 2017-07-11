@@ -242,7 +242,7 @@ class CatalogTool(object):
         return self.model_catalog.parents(path)
 
     def count(self, types=(), path=None, filterPermissions=True):
-        return self.model_catalog.parents(types=types, path=path, filterPermissions=filterPermissions)
+        return self.model_catalog.count(types=types, path=path, filterPermissions=filterPermissions)
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,

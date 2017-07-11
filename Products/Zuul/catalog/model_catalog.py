@@ -41,6 +41,8 @@ log = logging.getLogger("model_catalog")
 
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
+SOLR_CONFIG = []
+
 TX_SEPARATOR = "@=@"
 
 TX_STATE_FIELD = "tx_state"
@@ -109,7 +111,8 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self.uid))
+            log.error("Unable to get object from brain. Path: {0}. Model Catalog may be out of sync.".format(self.uid))
+            # @TODO we should unindex the object
         return obj
 
     def getRID(self):
@@ -164,9 +167,9 @@ class ModelCatalogClient(object):
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error()
 
-    def get_brain_from_object(self, obj, context):
+    def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
-        spec = self._data_manager.model_index.get_object_spec(obj)
+        spec = self._data_manager.model_index.get_object_spec(obj, idxs=fields)
         brain = ModelCatalogBrain(spec.to_dict(use_attr_query_name=True))
         brain = brain.__of__(context.dmd)
         return brain
@@ -603,9 +606,13 @@ class ModelCatalog(object):
         catalog_client = self.get_client(context)
         return catalog_client.get_indexes()
 
+
 def get_solr_config():
-    config = getGlobalConfiguration()
-    return config.get('solr-servers', 'localhost:8983')
+    if not SOLR_CONFIG:
+        config = getGlobalConfiguration()
+        SOLR_CONFIG.append(config.get('solr-servers', 'localhost:8983'))
+        log.info("Loaded Solr config from global.conf. Solr Servers: {}".format(SOLR_CONFIG))
+    return SOLR_CONFIG[0]
 
 
 def register_model_catalog():
