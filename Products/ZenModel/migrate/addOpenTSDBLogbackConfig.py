@@ -47,14 +47,14 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
 
             # If there's a config with the same name but is different from
             # the new config, overwrite it.
-            if all([not equal(config, newConfig) for config in service.originalConfigs]):
+            if all(not equal(config, newConfig) for config in service.originalConfigs):
                 service.originalConfigs.append(newConfig)
                 changed = True
                 log.info("Adding a configuration to OriginalConfigs of %s", service.name)
 
             # Add this config only if there's no config with the same name.
             # If there is such config, honor it.
-            if all([not config.name == newConfig.name for config in service.configFiles]):
+            if all(not equal(config, newConfig) for config in service.configFiles):
                 service.configFiles.append(newConfig)
                 changed = True
                 log.info("Adding a configuration to ConfigFiles of %s", service.name)
