@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 import cgi
 import inspect
@@ -17,9 +17,9 @@ from uuid import uuid4
 
 log = logging.getLogger('extdirect')
 
+
 class DirectException(Exception):
     pass
-
 
 
 class DirectResponse(object):
@@ -28,6 +28,7 @@ class DirectResponse(object):
     the front end.
     """
     _data = None
+
     def __init__(self, msg=None, success=True, **kwargs):
         self._data = {}
         self._data.update(kwargs)
@@ -49,8 +50,8 @@ class DirectResponse(object):
     @staticmethod
     def exception(exception, message=None, **kwargs):
         """
-        If an exception is raised, use this! It will cause the transaction to be rolled
-        back.
+        If an exception is raised, use this!
+        It will cause the transaction to be rolled back.
         """
         msg = exception.__class__.__name__ + ': ' + str(exception)
         if message:
@@ -72,6 +73,7 @@ class DirectResponse(object):
     def __json__(self):
         return self.data
 
+
 class DirectMethodResponse(object):
     """
     Encapsulation of the response of a method call for Ext Direct.
@@ -87,12 +89,13 @@ class DirectMethodResponse(object):
     def __json__(self):
         return {
             'tid': self.tid,
-            'type' : self.type,
+            'type': self.type,
             'action': self.action,
             'method': self.method,
             'uuid': self.uuid,
             'result': self.result
         }
+
 
 class DirectRouter(object):
     """
@@ -116,7 +119,9 @@ class DirectRouter(object):
         try:
             body = unjson(body)
         except Exception:
-            raise DirectException("Request body is not unjson()-able: %s" % body)
+            raise DirectException(
+                "Request body is not unjson()-able: %s" % body
+            )
         self._body = body
 
         if isinstance(body, list):
@@ -173,24 +178,38 @@ class DirectRouter(object):
             data = {'id': data}
 
         # Cast all keys as strings, in case of encoding or other wrinkles
-        data = dict((str(k), v) for k,v in data.iteritems())
+        data = dict((str(k), v) for k, v in data.iteritems())
         self._data = data
-        response = DirectMethodResponse(tid=directRequest['tid'], method=method, action=action, uuid=uuid)
+        response = DirectMethodResponse(
+            tid=directRequest['tid'], method=method, action=action, uuid=uuid
+        )
 
         # Finally, call the target method, passing in the data
         try:
             response.result = _targetfn(**data)
         except Exception as e:
             import traceback
-            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, directRequest))
-            log.info("DirectRouter suppressed the following exception (Response {0}):\n{1}".format(response.uuid, traceback.format_exc()))
+            log.info(
+                "Direct request failed: {0}: {1[action]}.{1[method]}"
+                " {1[data]}".format(e, directRequest)
+            )
+            log.info(
+                "DirectRouter suppressed the following exception (Response "
+                "{0}):\n{1}".format(response.uuid, traceback.format_exc())
+            )
             response.result = DirectResponse.exception(e)
 
-        if isinstance(response.result, DirectResponse) and response.result.type == 'exception':
-            savepoint.rollback()
+        savepoint.rollback() if (
+            isinstance(response.result, DirectResponse)
+            and response.result.type == 'exception'
+        ) else None
+
         # setBrowserState is very spammy and not useful so don't log it.
         if log.isEnabledFor(logging.DEBUG) and method != 'setBrowserState':
-            log.debug("Action: %s Method %s Data %s TotalTime: %s", action, method, data, time.time() - startTime)
+            log.debug(
+                "Action: %s Method %s Data %s TotalTime: %s",
+                action, method, data, time.time() - startTime
+            )
         return response
 
 
@@ -203,8 +222,8 @@ class DirectProviderDefinition(object):
     then defines those as actions on the Ext.Direct provider, and creates the
     JS that adds the provider.
 
-    See http://www.sencha.com/products/extjs/extdirect for a full explanation of
-    protocols and features of Ext.Direct.
+    See http://www.sencha.com/products/extjs/extdirect for a full explanation
+    of protocols and features of Ext.Direct.
     """
     def __init__(self, routercls, url, timeout, ns=None):
         """
@@ -250,28 +269,35 @@ class DirectProviderDefinition(object):
                 self.routercls.__name__: list(method_infos)
             }
         }
-        env_vars = {'ZENOSS_EXTDIRECT_ENABLEBUFFER': 'enableBuffer',
-                    'ZENOSS_EXTDIRECT_MAXRETRIES': 'maxRetries',
-                    'ZENOSS_EXTDIRECT_TIMEOUT': 'timeout'
+        env_vars = {
+            'ZENOSS_EXTDIRECT_ENABLEBUFFER': 'enableBuffer',
+            'ZENOSS_EXTDIRECT_MAXRETRIES': 'maxRetries',
+            'ZENOSS_EXTDIRECT_TIMEOUT': 'timeout'
         }
         for env_var, cfg_var in env_vars.iteritems():
             value = os.environ.get(env_var)
             if value:
                 config[cfg_var] = int(value)
-                log.info('Setting extdirect config variable from environment. {0} = {1}'.format(cfg_var, value))
+                log.info(
+                    'Setting extdirect config variable from environment.'
+                    ' {0} = {1}'.format(cfg_var, value)
+                )
         if self.ns:
             config['namespace'] = self.ns
         return config
 
     def _jsonapi_config(self):
         def strategy(method_info, method):
-            method_info['args'] = inspect.formatargspec(*inspect.getargspec(method))
+            method_info['args'] = inspect.formatargspec(
+                *inspect.getargspec(method)
+            )
             method_info['doc'] = method.__doc__
         method_infos = self._gen_method_infos(strategy)
-        config = {"action": self.routercls.__name__,
-                  "url": self.url,
-                  "methods": list(method_infos),
-                 }
+        config = {
+            "action": self.routercls.__name__,
+            "url": self.url,
+            "methods": list(method_infos),
+        }
         return config
 
     def render(self):
