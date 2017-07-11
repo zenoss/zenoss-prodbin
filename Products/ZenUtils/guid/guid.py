@@ -58,6 +58,7 @@ def generate( uuid_type=4, *args, **kwargs ):
 
 GUID_ATTR_NAME = '_guid'
 GUID_TABLE_PATH = '/zport/dmd/guid_table'
+DEFAULT_NUMBER_OF_SHARDS = 1021
 
 
 class GlobalIdentifier(object):
@@ -98,7 +99,7 @@ class GUIDManager(object):
             self.table = self.traverse(self._table_path)
         except (AttributeError, KeyError), e:
             parent, name = self._table_path.rsplit('/', 1)
-            self.table = ShardedBTree()
+            self.table = ShardedBTree(n_shards=DEFAULT_NUMBER_OF_SHARDS)
             setattr(self.traverse(parent), name, self.table)
 
     def getPath(self, guid):
