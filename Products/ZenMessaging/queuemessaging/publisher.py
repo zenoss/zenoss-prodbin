@@ -32,8 +32,6 @@ log = logging.getLogger('zen.queuepublisher')
 
 MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type')
 
-_prepublishing_timer = Metrology.timer("MessagePrePublishingEvents")
-
 class ModelChangePublisher(object):
     """
     Keeps track of all the model changes so far in this
@@ -207,8 +205,15 @@ def getModelChangePublisher():
     return tx._synchronizedPublisher
 
 
-class PublishSynchronizer(object):
+_prepublishing_timer = None
 
+def _getPrepublishingTimer():
+    global _prepublishing_timer
+    if not _prepublishing_timer:
+        _prepublishing_timer =  Metrology.timer("MessagePrePublishingEvents")
+    return _prepublishing_timer
+
+class PublishSynchronizer(object):
     _queuePublisher = None
 
     def findNonImpactingEvents(self, events):
@@ -265,7 +270,7 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
-                with _prepublishing_timer:
+                with _getPrepublishingTimer():
                     notify(MessagePrePublishingEvent(msgs))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
