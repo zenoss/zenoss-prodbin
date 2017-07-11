@@ -61,9 +61,6 @@ class EventCompatDetailInfoTest(BaseTestCase):
             expected_output
         )
 
-    def test_raise_flag(self):
-        raise Exception
-
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(EventCompatDetailInfoTest),))
