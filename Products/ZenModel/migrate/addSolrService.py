@@ -36,8 +36,9 @@ class AddSolrService(Migrate.Step):
         solr = filter(lambda s: s.name == "Solr", ctx.services)
         log.info("Found %i services named 'Solr'." % len(solr))
         if not solr:
+            imageid = os.environ['SERVICED_SERVICE_IMAGE']
             log.info("No Solr found; creating new service.")
-            new_solr = default_solr_service()
+            new_solr = default_solr_service(imageid)
             infrastructure = ctx.findServices('^[^/]+/Infrastructure$')[0]
             ctx.deployService(json.dumps(new_solr), infrastructure)
             changed = True
@@ -75,7 +76,7 @@ class AddSolrService(Migrate.Step):
             ctx.commit()
 
 
-def default_solr_service():
+def default_solr_service(imageid):
     return {
         "CPUCommitment": 2,
         "Command": "setuser zenoss /opt/solr/zenoss/bin/start-solr -cloud -Dbootstrap_confdir=/opt/solr/server/solr/configsets/zenoss_model/conf -Dcollection.configName=zenoss_model",
@@ -127,7 +128,7 @@ def default_solr_service():
                 "Script": "curl -A 'Solr zk_connected healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"zkConnected\":true'"
             }
         },
-        "ImageID": "zenoss/zenoss5x",
+        "ImageID": imageid,
         "Instances": {
             "Default": 1,
             "Max": 1,
