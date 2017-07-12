@@ -154,10 +154,15 @@
                         handler:function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.getStore().load({
-                                callback:function () {
-                                    tree.getRootNode().expand();
-                                    if (tree.getRootNode().childNodes.length) {
-                                        tree.getRootNode().childNodes[0].expand();
+                                callback:function (records, opts, success) {
+                                    if (success) {
+                                        var childNodes = opts.response.result[0];
+                                        // Remove old records and update root node with the fresh data
+                                        this.getRootNode().removeAll();
+                                        this.getRootNode().appendChild(childNodes);
+                                        if (this.getRootNode().childNodes.length) {
+                                            this.getRootNode().childNodes[0].expand();
+                                        }
                                     }
                                 }
                             });
@@ -763,7 +768,6 @@
             });
 
             this.addTreeNode(params);
-            this.refresh();
         },
 
         addTreeNode:function (params) {
@@ -781,11 +785,13 @@
                         }
                     });
 
+                    this.refresh();
                 }
                 else {
                     Ext.Msg.alert('Error', result.msg);
                 }
             };
+
             this.addNodeFn(params, Ext.bind(callback, this));
         },
 

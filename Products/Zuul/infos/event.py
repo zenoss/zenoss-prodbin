@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009,2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -13,7 +13,6 @@ from zope.interface import implements
 from zenoss.protocols.protobufs.zep_pb2 import EventSummary
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.services.zep import EventStatus
-from Products.ZenUtils.Time import isoDateTimeFromMilli
 from Products.ZenEvents.events2.proxy import EventProxy
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenUtils.guid.interfaces import IGUIDManager
@@ -22,21 +21,24 @@ from lxml.html.clean import clean_html
 from lxml.etree import ParserError
 
 
-_status_name = ProtobufEnum(EventSummary,'status').getPrettyName
+_status_name = ProtobufEnum(EventSummary, 'status').getPrettyName
+
+
 def _mergeAuditLogToNotes(evtsumm):
     if 'audit_log' in evtsumm:
-        mergedNotes = evtsumm.get('notes',[])
+        mergedNotes = evtsumm.get('notes', [])
         for auditNote in evtsumm['audit_log']:
-            mergedNotes.append(
-                {
-                'created_time' : auditNote['timestamp'],
-                'user_uuid' : auditNote.get('user_uuid', ''),
-                'user_name' : auditNote.get('user_name', ''),
-                'message' : 'state changed to %s' % _status_name(auditNote['new_status']),
-                }
-            )
+            mergedNotes.append({
+                'created_time': auditNote['timestamp'],
+                'user_uuid': auditNote.get('user_uuid', ''),
+                'user_name': auditNote.get('user_name', ''),
+                'message': 'state changed to {}'.format(
+                    _status_name(auditNote['new_status'])
+                ),
+            })
         evtsumm['notes'] = mergedNotes
     return evtsumm
+
 
 def _clean_html(html):
     """
@@ -52,6 +54,7 @@ def _clean_html(html):
         return cleaned_html[3:-4]
 
     return cleaned_html
+
 
 class EventCompatInfo(object):
     """
@@ -92,10 +95,12 @@ class EventCompatInfo(object):
     def component(self):
         return {
             'text': self._eventActor.get('element_sub_title'),
-            'uid': self._getPathFromUuid(self._eventActor.get('element_sub_uuid')),
-            'url' : self._uuidUrl(self._eventActor.get('element_sub_uuid')),
-            'uuid' : self._eventActor.get('element_sub_uuid')
-            }
+            'uid': self._getPathFromUuid(
+                self._eventActor.get('element_sub_uuid')
+            ),
+            'url': self._uuidUrl(self._eventActor.get('element_sub_uuid')),
+            'uuid': self._eventActor.get('element_sub_uuid')
+        }
 
     @property
     def eventClass(self):
@@ -156,7 +161,9 @@ class EventCompatInfo(object):
 
     @property
     def eventClassMapping(self):
-        return self._lookupEventClassMapping(self._eventOccurrence.get('event_class_mapping_uuid'))
+        return self._lookupEventClassMapping(
+            self._eventOccurrence.get('event_class_mapping_uuid')
+        )
 
     @property
     def clearid(self):
@@ -176,41 +183,61 @@ class EventCompatInfo(object):
 
     @property
     def Location(self):
-        return self._lookupDetailPath('/zport/dmd/Locations', self._eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY))
+        return self._lookupDetailPath(
+            '/zport/dmd/Locations',
+            self._eventDetails.get(EventProxy.DEVICE_LOCATION_DETAIL_KEY)
+        )
 
     @property
     def DeviceGroups(self):
-        return self._lookupDetailPath('/zport/dmd/Groups', self._eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY))
+        return self._lookupDetailPath(
+            '/zport/dmd/Groups',
+            self._eventDetails.get(EventProxy.DEVICE_GROUPS_DETAIL_KEY)
+        )
 
     @property
     def Systems(self):
-        return self._lookupDetailPath('/zport/dmd/Systems', self._eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY))
+        return self._lookupDetailPath(
+            '/zport/dmd/Systems',
+            self._eventDetails.get(EventProxy.DEVICE_SYSTEMS_DETAIL_KEY)
+        )
 
     @property
     def DeviceClass(self):
-        return self._lookupDetailPath('/zport/dmd/Devices', self._eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY))
+        return self._lookupDetailPath(
+            '/zport/dmd/Devices',
+            self._eventDetails.get(EventProxy.DEVICE_CLASS_DETAIL_KEY)
+        )
 
     @property
     def device(self):
         device_url = self._get_device_url(self._eventDetails)
         if device_url is None:
-            return  dict(text=self._eventActor.get('element_title'),
-                         uid=self._getPathFromUuid(self._eventActor.get('element_uuid')),
-                         url=self._uuidUrl(self._eventActor.get('element_uuid')),
-                         uuid=self._eventActor.get('element_uuid'))
+            return dict(
+                text=self._eventActor.get('element_title'),
+                uid=self._getPathFromUuid(
+                    self._eventActor.get('element_uuid')
+                ),
+                url=self._uuidUrl(self._eventActor.get('element_uuid')),
+                uuid=self._eventActor.get('element_uuid')
+            )
         else:
             return dict(text=self._eventActor.get('element_title'),
                         url=device_url)
 
     @property
     def prodState(self):
-        prodState = self._singleDetail(self._eventDetails.get('zenoss.device.production_state'))
+        prodState = self._singleDetail(
+            self._eventDetails.get('zenoss.device.production_state')
+        )
         if prodState is not None:
             return self._dmd.convertProdState(prodState)
 
     @property
     def DevicePriority(self):
-        DevicePriority = self._singleDetail(self._eventDetails.get('zenoss.device.priority'))
+        DevicePriority = self._singleDetail(
+            self._eventDetails.get('zenoss.device.priority')
+        )
         if DevicePriority is not None:
             return self._dmd.convertPriority(DevicePriority)
 
@@ -227,9 +254,11 @@ class EventCompatInfo(object):
         if uuid:
             return '/zport/dmd/goto?guid=%s' % uuid
 
-
     def _get_device_url(self, eventDetails):
-        url_and_path = [self._singleDetail(eventDetails.get(k)) for k in 'zenoss.device.url', 'zenoss.device.path']
+        url_and_path = [
+            self._singleDetail(eventDetails.get(k))
+            for k in ('zenoss.device.url', 'zenoss.device.path')
+        ]
         if len(url_and_path) != 2:
             return None
         url, path = url_and_path
@@ -283,7 +312,10 @@ class EventCompatInfo(object):
         if not mappingUuid:
             return ""
 
-        return {'uuid': mappingUuid, 'name': self._getNameFromUuid(mappingUuid)}
+        return {
+            'uuid': mappingUuid,
+            'name': self._getNameFromUuid(mappingUuid)
+        }
 
     def _getNameFromUuid(self, uuid):
         """
@@ -310,11 +342,15 @@ class EventCompatDetailInfo(EventCompatInfo):
         self._event_summary = _mergeAuditLogToNotes(self._event_summary)
 
         # event class mapping
-        eventClassMapping = self._lookupEventClassMapping(self._eventOccurrence.get('event_class_mapping_uuid'))
+        eventClassMapping = self._lookupEventClassMapping(
+            self._eventOccurrence.get('event_class_mapping_uuid')
+        )
         self._eventClassMappingName = self._eventClassMappingUrl = None
         if eventClassMapping:
             self._eventClassMappingName = eventClassMapping['name']
-            self._eventClassMappingUrl = self._uuidUrl(eventClassMapping['uuid'])
+            self._eventClassMappingUrl = self._uuidUrl(
+                eventClassMapping['uuid']
+            )
 
     @property
     def component(self):
@@ -322,7 +358,10 @@ class EventCompatDetailInfo(EventCompatInfo):
 
     @property
     def component_title(self):
-        return self._getNameFromUuid(self._eventActor.get('element_sub_uuid')) or self._eventActor.get('element_sub_title')
+        return (
+            self._getNameFromUuid(self._eventActor.get('element_sub_uuid')) or
+            self._eventActor.get('element_sub_title')
+        )
 
     @property
     def component_url(self):
@@ -369,14 +408,20 @@ class EventCompatDetailInfo(EventCompatInfo):
     def details(self):
         d = []
         if 'details' in self._eventOccurrence:
-            for detail in sorted(self._eventOccurrence['details'], key=lambda detail: detail['name'].lower()):
+            for detail in sorted(
+                self._eventOccurrence['details'],
+                key=lambda detail: detail['name'].lower()
+            ):
                 values = detail.get('value', ())
                 if not isinstance(values, list):
                     values = list(values)
                 for value in (v for v in values if v):
                     if not detail['name'].startswith('__meta__'):
                         try:
-                            d.append(dict(key=_clean_html(detail['name']), value=_clean_html(value)))
+                            d.append(dict(
+                                key=_clean_html(detail['name']),
+                                value=_clean_html(value))
+                            )
                         except ParserError:
                             d.append(dict(key=detail['name'], value=value))
         return d
@@ -385,7 +430,13 @@ class EventCompatDetailInfo(EventCompatInfo):
     def log(self):
         logs = []
         if 'notes' in self._event_summary:
-            self._event_summary['notes'].sort(key=lambda a:a['created_time'], reverse=True)
+            self._event_summary['notes'].sort(
+                key=lambda a: a['created_time'], reverse=True
+            )
             for note in self._event_summary['notes']:
-                logs.append((note['user_name'], isoDateTimeFromMilli(note['created_time']), note['message']))
+                logs.append((
+                    note['user_name'],
+                    note['created_time'],
+                    note['message']
+                ))
         return logs
