@@ -404,6 +404,9 @@ class SshPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
+            if not self._manageIp:
+                raise Exception("Unknown host")                
+
             yield self._connector.connect(self)
 
             if self._useSsh:
