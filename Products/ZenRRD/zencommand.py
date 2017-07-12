@@ -426,7 +426,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                          summary=e.message,
                                          component=COLLECTOR_NAME,
                                          severity=Event.Error)
-            raise e
+            raise
         else:
             self._returnToNormalSchedule()
 
