@@ -249,6 +249,10 @@ class LegacyCatalogAdapter(SimpleItem):
     def __call__(self, query=None, **kw):
         return self.search(query, **kw)
 
+    def __len__(self):
+        model_catalog = self._get_model_catalog()
+        return len(model_catalog.search())
+
     def searchResults(self, query=None, **kw):
         return self.search(query, **kw)
 
