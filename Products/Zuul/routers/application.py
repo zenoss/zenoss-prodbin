@@ -98,7 +98,7 @@ class ApplicationRouter(TreeRouter):
     def _getMonitorTree(self, id):
         appfacade = self._getFacade()
         monitorfacade = Zuul.getFacade("monitors", self.context)
-        m = monitorfacade.getMonitor(id[len(_monitorprefix):])
+        m = monitorfacade.get(id[len(_monitorprefix):])
         monitor = ITreeNode(m)
         apps = appfacade.queryMonitorDaemons(monitor.name)
         for app in apps:
