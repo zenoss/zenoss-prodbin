@@ -49,17 +49,21 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         self.assertTrue( results.total == 0 )
 
     def test_zproperty_with_invalid_chars(self):
+        bad_zproperty = ("zTestBadProp", '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95')
+        good_zproperty = ("zTestGoodProp", 'hola :)')
         zProperty_key = "zTestProp"
         zProperty_value = '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95'
         dc = self.dmd.Devices.createOrganizer("dc_with_invalid_chars")
-        dc.setZenProperty(zProperty_key, zProperty_value)
+        dc.setZenProperty(bad_zproperty[0], bad_zproperty[1])
+        dc.setZenProperty(good_zproperty[0], good_zproperty[1])
         notify(IndexingEvent(dc))
         dc_uid = dc.idx_uid()
         self.data_manager.do_mid_transaction_commit() # this should not raise any exceptions
         results = self.model_catalog.search(query={UID:dc_uid}, fields="zProperties")
         self.assertTrue( results.total == 1 )
         brain = results.results.next()
-        self.assertEquals(brain.zProperties[zProperty_key], zProperty_value)
+        self.assertEquals(brain.zProperties[bad_zproperty[0]], bad_zproperty[1])
+        self.assertEquals(brain.zProperties[good_zproperty[0]], good_zproperty[1])
 
 
 def test_suite():
