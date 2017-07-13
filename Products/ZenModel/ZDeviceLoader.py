@@ -234,11 +234,12 @@ class CreateDeviceJob(Job):
             return '/'.join(device.getPhysicalPath())
         except DeviceExistsError as e:
             transaction.abort()
-            # If the device already exists, log it and move on.
-            self.log.debug(
+            # If the device already exists, log it and raise exception.
+            self.log.error(
                 "Device already exists (job was likely interrupted "
                 "and restarted): %s", e
             )
+            raise
         except Exception:
             transaction.abort()
             self.log.exception("Failed to create device.")
