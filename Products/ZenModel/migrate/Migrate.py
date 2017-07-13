@@ -274,7 +274,7 @@ class Migration(ZenScriptBase):
             for m in steps:
                 m.prepare()
             currentDbVers = self._currentVersion()
-            if steps[-1].version > currentDbVers:
+            if steps[-1].version > currentDbVers and not self.options.dont_bump:
                 self.message('Database going to version %s'
                                                % steps[-1].version.long())
             # hide uncatalog error messages since they do not do any harm
@@ -287,7 +287,7 @@ class Migration(ZenScriptBase):
                                 % (m.name(), m.version.short()))
 
                 m.cutover(self.dmd)
-                if m.version > currentDbVers:
+                if m.version > currentDbVers and not self.options.dont_bump:
                     self.dmd.version = m.version.long()
             for m in steps:
                 m.cleanup()
@@ -407,6 +407,11 @@ class Migration(ZenScriptBase):
                                         'Usually if there are no newer '
                                         'migrate steps the current steps '
                                         'are rerun.')
+        self.parser.add_option('--dont-bump',
+                               action='store_true',
+                               default=False,
+                               dest="dont_bump",
+                               help="Don't bump database version.")
         ZenScriptBase.buildOptions(self)
 
 
