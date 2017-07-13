@@ -104,7 +104,7 @@ def default_solr_service(imageid):
         "EmergencyShutdownLevel": 1,
         "Endpoints": [
             {
-                "Application": "solr",
+                "Application": "zodb_solr",
                 "Name": "solr",
                 "PortNumber": 8983,
                 "Protocol": "tcp",
