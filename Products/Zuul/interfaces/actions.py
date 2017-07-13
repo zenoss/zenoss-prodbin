@@ -44,16 +44,16 @@ class IEmailActionContentInfo(IActionContentInfo):
         title       = _t(u'Body Format'),
         description = _t(u'The template for the body for emails.'),
         default     = textwrap.dedent(text = u'''
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Time: ${evt/lastTime}
-        Message:
-        ${evt/message}
-        <a href="${urls/eventUrl}">Event Detail</a>
-        <a href="${urls/ackUrl}">Acknowledge</a>
-        <a href="${urls/closeUrl}">Close</a>
-        <a href="${urls/eventsUrl}">Device Events</a>
+        Device: ${evt/device} <br />
+        Component: ${evt/component} <br />
+        Severity: ${evt/severity} <br />
+        Time: ${evt/lastTime} <br />
+        Message: <br />
+        ${evt/message} <br />
+        <a href="${urls/eventUrl}">Event Detail</a><br />
+        <a href="${urls/ackUrl}">Acknowledge</a><br />
+        <a href="${urls/closeUrl}">Close</a><br />
+        <a href="${urls/eventsUrl}">Device Events</a><br />
         ''')
     )
 
@@ -67,15 +67,15 @@ class IEmailActionContentInfo(IActionContentInfo):
         title       = _t(u'Body Format'),
         description = _t(u'The template for the body for CLEAR emails.'),
         default     = textwrap.dedent(text = u'''
-        Event: '${evt/summary}'
-        Cleared by: '${evt/clearid}'
-        At: ${evt/stateChange}
-        Device: ${evt/device}
-        Component: ${evt/component}
-        Severity: ${evt/severity}
-        Message:
-        ${evt/message}
-        <a href="${urls/reopenUrl}">Reopen</a>
+        Event: '${evt/summary}' <br />
+        Cleared by: '${evt/clearid}' <br />
+        At: ${evt/stateChange} <br />
+        Device: ${evt/device} <br />
+        Component: ${evt/component} <br />
+        Severity: ${evt/severity} <br />
+        Message: <br />
+        ${evt/message} <br />
+        <a href="${urls/reopenUrl}">Reopen</a><br />
         ''')
     )
 
