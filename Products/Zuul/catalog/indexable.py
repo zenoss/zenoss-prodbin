@@ -18,7 +18,7 @@ from Products.ZenUtils.IpUtil import ipunwrap, isip
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD
 from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
-from zenoss.modelindex.field_types import DictAsStringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
+from zenoss.modelindex.field_types import DictAsBase64StringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
 
@@ -275,7 +275,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
     def idx_productionState(self):
         return IIndexableWrapper(self).productionState()
 
-    @indexed(DictAsStringsFieldType(indexed=False), attr_query_name="zProperties")
+    @indexed(DictAsBase64StringsFieldType(indexed=False), attr_query_name="zProperties")
     def idx_zProperties(self):
         return IIndexableWrapper(self).zProperties
 

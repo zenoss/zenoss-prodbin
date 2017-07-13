@@ -111,8 +111,11 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Model Catalog may be out of sync.".format(self.uid))
-            # @TODO we should unindex the object
+            msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
+            msg += "Will attempt to delete the object from model catalog."
+            log.error(msg.format(self.uid))
+            # unindex uid
+            getUtility(IModelCatalog).get_client(self).unindex_uid(self.uid)
         return obj
 
     def getRID(self):
@@ -127,6 +130,17 @@ class ObjectUpdate(object):
         self.obj = obj
         self.op = op
         self.idxs = idxs
+
+class ObjectToUnindex(object):
+    """
+    Dummy class that allows to unindex an uid. ModelIndex does not check the
+    object when we are unindexing as long as we pass an uid to the IndexUpdate
+    """
+    def __init__(self, uid):
+        self.uid = uid
+
+    def idx_uid(self):
+        return self.uid
 
 
 class ModelCatalogClient(object):
@@ -157,7 +171,7 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=INDEX, idxs=idxs))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception indexing object")
 
     def uncatalog_object(self, obj):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -165,7 +179,16 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception unindexing object")
+
+    def unindex_uid(self, uid):
+        obj = ObjectToUnindex(uid)
+        try:
+            self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
+        except IndexException as e:
+            log.error("EXCEPTION {0} {1}".format(e, e.message))
+            self._data_manager.raise_model_catalog_error("Exception unindexing uid")
+
 
     def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
@@ -405,7 +428,7 @@ class ModelCatalogDataManager(object):
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
-            self.raise_model_catalog_error()
+            self.raise_model_catalog_error("Exception performing search")
 
         brains = self._parse_catalog_results(catalog_results, context)
         count = catalog_results.total_count
