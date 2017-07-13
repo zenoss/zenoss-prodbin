@@ -92,6 +92,16 @@ class BatchDeviceDumper(ZCmdBase):
         'setProperty', 'setZenProperty',
     )
 
+    _ucsTypes = {
+        "UCS-Manager": "ucsmanager",
+        "C-Series": "cimc-c",
+        "E-Series": "cimc-e"
+    }
+
+    _ucsTypeMatcher = re.compile(
+        r"/(%s)" % r"|".join(r"%s\b" % k for k in _ucsTypes.keys())
+    )
+
     def __init__(self, *args, **kwargs):
         ZCmdBase.__init__(self, *args, **kwargs)
         self.defaults = {}
@@ -423,6 +433,11 @@ class BatchDeviceDumper(ZCmdBase):
                     name, props = self._emitOrg(branch)
                 else:
                     name, props = definition
+                    # add zProperties and others here to UCS device class
+                    # workaround of workaround
+                    _, emit_props = self._emitOrg(branch)
+                    if emit_props:
+                        props.extend(emit_props)
                 result['DeviceClasses'] += 1
                 outFile.write("\n%s %s\n" % (name, ", ".join(props)))
                 self.emittedDeviceClasses.add(branch)
@@ -584,8 +599,14 @@ class BatchDeviceDumper(ZCmdBase):
             line = "loader='VMware vSphere', loader_arg_keys=['title', 'hostname', 'username', 'password', 'ssl', 'collector']"
             return name, [line]
 
-        elif path == '/zport/dmd/Devices/CiscoUCS':
-            line = "loader='ciscoucs', loader_arg_keys=['host', 'username', 'password', 'useSsl', 'port', 'collector']"
+        elif path.startswith('/zport/dmd/Devices/CiscoUCS'):
+            loaderArgKeys = ['host', 'username', 'password', 'useSsl', 'port', 'collector']
+            if "UCS-Central" in path:
+                loaderName = "ciscoucscentral"
+            else:
+                loaderName = "ciscoucs"
+                loaderArgKeys.append("ucstype")
+            line = "loader='%s', loader_arg_keys=%r" % (loaderName, loaderArgKeys)
             return name, [line]
 
         elif path.startswith('/zport/dmd/Monitors/Hub/'):
@@ -620,13 +641,27 @@ class BatchDeviceDumper(ZCmdBase):
             return props
 
         elif path.startswith('/zport/dmd/Devices/CiscoUCS'):
-            props = dict(host=obj.manageIp, username=obj.zCiscoUCSManagerUser,
-                         password=obj.zCiscoUCSManagerPassword,
+            if "UCS-Central" in path:
+                username = obj.zCiscoUCSCentralUsername
+                password = obj.zCiscoUCSCentralPassword
+                usessl = obj.zCiscoUCSCentralUseSSL
+                port = obj.zCiscoUCSCentralPort
+            else:
+                username = obj.zCiscoUCSManagerUser
+                password = obj.zCiscoUCSManagerPassword
+                usessl = obj.zCiscoUCSManagerUseSSL
+                port = obj.zCiscoUCSManagerPort
+            props = dict(host=obj.titleOrId(), username=username,
+                         password=password,
                          collector=obj.perfServer().id
                         )
             props = ["%s='%s'" % (key, value) for key, value in props.items()]
-            props.append('useSsl=%s' % obj.zCiscoUCSManagerUseSSL)
-            props.append('port=%s' % obj.zCiscoUCSManagerPort)
+            props.append('useSsl=%s' % usessl)
+            props.append('port=%s' % port)
+            matched = self._ucsTypeMatcher.search(path)
+            ucstype = self._ucsTypes.get(matched.group(1)) if matched else ''
+            if ucstype:
+                props.append("ucstype='%s'" % ucstype)
             return props
 
         elif path.startswith('/zport/dmd/Monitors/Hub/'):
