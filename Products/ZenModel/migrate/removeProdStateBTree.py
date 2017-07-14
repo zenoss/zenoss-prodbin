@@ -72,6 +72,7 @@ class RemoveProdStateBTree(Migrate.Step):
             #  Since 'productionState' is now the name of a property, we have to pull the old productionState off of the
             #  object's __dict__
             def migrate_object(obj):
+                obj._p_activate() # Activate the object so the old attributes end up in __dict__
                 if 'preMWProductionState' in obj.__dict__:
                     obj.preMWProductionState = obj.__dict__['preMWProductionState']
                     del obj.__dict__['preMWProductionState']
