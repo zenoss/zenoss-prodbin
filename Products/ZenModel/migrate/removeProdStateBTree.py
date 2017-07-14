@@ -7,9 +7,7 @@
 #
 ##############################################################################
 
-import json
 import logging
-import os
 import transaction
 
 log = logging.getLogger("zen.migrate")
