@@ -32,8 +32,6 @@ class RemoveProductClassInstancesRelationship(Migrate.Step):
                         for instance in instances:
                             if instance.get("productClass") and isinstance(instance.productClass, ToOneRelationship):
                                 instance._delOb("productClass")
-                                instance.setProductClass(product)
-                                # reindex the whole object bc OS and SW were not being indexed
-                                notify(IndexingEvent(instance))
+                                instance.setProductClass(product, raiseIndexEvent=False)
 
 RemoveProductClassInstancesRelationship()
