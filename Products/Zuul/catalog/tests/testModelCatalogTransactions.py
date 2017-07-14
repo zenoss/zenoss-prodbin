@@ -268,6 +268,9 @@ class TestModelCatalogTransactions(BaseTestCase):
         #   however, we should have two temp docs matching "/zport/dmd/Devices/device_class*"
         mi_results = self.model_index.search(SearchParams(query))
         self.assertTrue( mi_results.total_count == 2 )
+        #   make sure a count type of query works (search with limit=0)
+        search_results = self.model_catalog.search(query=query, limit=0, commit_dirty=True)
+        self.assertTrue( search_results.total == 1 )
 
         #   some more tx_state checks before moving on to the next thing
         tx_state = self._get_transaction_state()
@@ -340,6 +343,31 @@ class TestModelCatalogTransactions(BaseTestCase):
         search_results = self.data_manager.search_brain(uid=dc_1_uid, context=self.dmd, commit_dirty=True)
         self.assertTrue( search_results.total == 1 )
         self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_1_uid])
+
+    def testSearches(self):
+        n_organizers = 100
+        organizers = {}
+        pattern = "testSearches_DEVICE_CLASS_"
+        for i in xrange(n_organizers):
+            dc = self.dmd.Devices.createOrganizer("{}{:02}".format(pattern, i))
+            organizers[dc.idx_uid()] = dc
+        query = MatchGlob(UID, "/zport/dmd/Devices/{}*".format(pattern))
+        search_results = self.model_catalog.search(query=query, commit_dirty=False)
+        self.assertTrue( search_results.total == 0 )
+        search_results = self.model_catalog.search(query=query, commit_dirty=True)
+        self.assertTrue( search_results.total == n_organizers )
+        search_results = self.model_catalog.search(query=query, limit=0)
+        self.assertTrue( search_results.total == n_organizers )
+        limit = 18
+        for start in [ 0, 12, 45, 70 ]:
+            expected_uids = { "/zport/dmd/Devices/{}{:02}".format(pattern, i) for i in xrange(start, start+limit) }
+            search_results = self.model_catalog.search(query=query, start=start, limit=limit)
+            self.assertTrue( search_results.total == n_organizers )
+            brain_uids = { getattr(brain, UID) for brain in search_results.results }
+            self.assertEquals( len(brain_uids), limit )
+            self.assertEquals( len(brain_uids), len(expected_uids) )
+            self.assertTrue( len( expected_uids - brain_uids ) == 0 )
+            self.assertTrue( len( brain_uids - expected_uids ) == 0 )
 
 
 def test_suite():
