@@ -192,6 +192,9 @@ class JobManager(ZenModelRM):
         """
         subtasks = []
         records = []
+        skipPruning = options.get('skipPruning', False)
+        if options.has_key('skipPruning'):
+            del options['skipPruning']
         for subjob in joblist:
             task_id = str(uuid4())
             opts = dict(task_id=task_id, **options)
@@ -210,7 +213,10 @@ class JobManager(ZenModelRM):
         _dispatchTask(task)
 
         # Clear out old jobs
-        self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
+        # skipPruning option added because doing this deletion in a
+        # subscriber for ZopeApplicationOpenedEvent does not work
+        if not skipPruning:
+            self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
 
         return records
 
