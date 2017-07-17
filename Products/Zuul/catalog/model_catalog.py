@@ -29,6 +29,7 @@ from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
+from zenoss.modelindex.constants import NULL_SEARCH_LIMIT
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
@@ -111,8 +112,11 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Model Catalog may be out of sync.".format(self.uid))
-            # @TODO we should unindex the object
+            msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
+            msg += "Will attempt to delete the object from model catalog."
+            log.error(msg.format(self.uid))
+            # unindex uid
+            getUtility(IModelCatalog).get_client(self).unindex_uid(self.uid)
         return obj
 
     def getRID(self):
@@ -127,6 +131,17 @@ class ObjectUpdate(object):
         self.obj = obj
         self.op = op
         self.idxs = idxs
+
+class ObjectToUnindex(object):
+    """
+    Dummy class that allows to unindex an uid. ModelIndex does not check the
+    object when we are unindexing as long as we pass an uid to the IndexUpdate
+    """
+    def __init__(self, uid):
+        self.uid = uid
+
+    def idx_uid(self):
+        return self.uid
 
 
 class ModelCatalogClient(object):
@@ -157,7 +172,7 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=INDEX, idxs=idxs))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception indexing object")
 
     def uncatalog_object(self, obj):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -165,7 +180,16 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception unindexing object")
+
+    def unindex_uid(self, uid):
+        obj = ObjectToUnindex(uid)
+        try:
+            self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
+        except IndexException as e:
+            log.error("EXCEPTION {0} {1}".format(e, e.message))
+            self._data_manager.raise_model_catalog_error("Exception unindexing uid")
+
 
     def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
@@ -400,21 +424,46 @@ class ModelCatalogDataManager(object):
         @param  context object to hook brains up to acquisition
         """
         tx_state = self._get_tx_state()
+        is_tx_dirty = tx_state and tx_state.are_there_indexed_updates()
+
+        if is_tx_dirty:
+            # to get an accurate count when there are mid transaction documents
+            # already committed to solr we need to get all the results :(
+            original_start = search_params.start
+            original_limit = search_params.limit
+            search_params.start = 0
+            search_params.limit = None
+
         try:
             search_params.fields = self._get_fields_to_return(search_params.fields)
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
-            self.raise_model_catalog_error()
+            self.raise_model_catalog_error("Exception performing search")
 
-        brains = self._parse_catalog_results(catalog_results, context)
+        brains = iter(self._parse_catalog_results(catalog_results, context))
         count = catalog_results.total_count
+
         # if we have mid-transaction commits, we need to extract
         # all brains from the generator to return the real count
-        if tx_state and tx_state.are_there_indexed_updates():
+        # Please do not use mid tx commits !!
+        if is_tx_dirty:
             brains = [ b for b in brains ]
             count = len(brains)
-            brains = iter(brains)
+
+            if original_limit != NULL_SEARCH_LIMIT or original_start != 0:
+                # We need to do some slicing
+                start = original_start
+                if original_limit == NULL_SEARCH_LIMIT:
+                    end = count
+                else:
+                    end = original_start + original_limit
+                brains = iter(brains[start:end])
+            else:
+                brains = iter(brains)
+            # undo changes to search_params
+            search_params.start = original_start
+            search_params.limit = original_limit
 
         return SearchResults(brains, total=count, hash_=str(count))
 
