@@ -58,7 +58,7 @@ def generate( uuid_type=4, *args, **kwargs ):
 
 GUID_ATTR_NAME = '_guid'
 GUID_TABLE_PATH = '/zport/dmd/guid_table'
-DEFAULT_NUMBER_OF_SHARDS = 1021
+DEFAULT_NUMBER_OF_SHARDS = 2017
 
 
 class GlobalIdentifier(object):
