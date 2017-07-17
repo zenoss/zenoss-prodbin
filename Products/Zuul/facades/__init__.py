@@ -165,8 +165,7 @@ class TreeFacade(ZuulFacade):
         query = None
         globFilters = {}
         prodStates = None
-        if params is None:
-            params = {}
+        params = params if params else {}
         for key, value in params.iteritems():
             if key == 'ipAddress':
                 ip = ensureIp(value)
@@ -268,7 +267,11 @@ class TreeFacade(ZuulFacade):
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
-
+        params = params if params else {}
+        # Passing a key that's not an index in the catalog will
+        # cause a serious performance penalty.  Remove 'status' from
+        # the 'params' parameter before passing it on.
+        statuses = params.pop('status', None)
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
 
@@ -277,6 +280,9 @@ class TreeFacade(ZuulFacade):
             return SearchResults([], 0, [])
 
         devices = list(imap(IInfo, imap(unbrain, brains)))
+
+        if statuses is not None and len(statuses) < 3:
+            devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
