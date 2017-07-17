@@ -47,6 +47,18 @@ class UserLoggedOutEvent(PASEvent):
     """
     implements(IUserLoggedOutEvent)
 
+class IQuickstartWizardFinishedEvent(Interface):
+    """
+    Returns the Zope application.
+    """
+    app = Attribute("The Zope Application")
+
+class QuickstartWizardFinishedEvent(object):
+    implements(IQuickstartWizardFinishedEvent)
+
+    def __init__(self, app):
+        self.app = app
+
 class IZopeApplicationOpenedEvent(Interface):
     """
     Returns the Zope application.
