@@ -29,6 +29,7 @@ from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
+from zenoss.modelindex.constants import NULL_SEARCH_LIMIT
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
@@ -423,6 +424,16 @@ class ModelCatalogDataManager(object):
         @param  context object to hook brains up to acquisition
         """
         tx_state = self._get_tx_state()
+        is_tx_dirty = tx_state and tx_state.are_there_indexed_updates()
+
+        if is_tx_dirty:
+            # to get an accurate count when there are mid transaction documents
+            # already committed to solr we need to get all the results :(
+            original_start = search_params.start
+            original_limit = search_params.limit
+            search_params.start = 0
+            search_params.limit = None
+
         try:
             search_params.fields = self._get_fields_to_return(search_params.fields)
             catalog_results = self.model_index.search(search_params)
@@ -430,14 +441,29 @@ class ModelCatalogDataManager(object):
             log.error("EXCEPTION: {0}".format(e.message))
             self.raise_model_catalog_error("Exception performing search")
 
-        brains = self._parse_catalog_results(catalog_results, context)
+        brains = iter(self._parse_catalog_results(catalog_results, context))
         count = catalog_results.total_count
+
         # if we have mid-transaction commits, we need to extract
         # all brains from the generator to return the real count
-        if tx_state and tx_state.are_there_indexed_updates():
+        # Please do not use mid tx commits !!
+        if is_tx_dirty:
             brains = [ b for b in brains ]
             count = len(brains)
-            brains = iter(brains)
+
+            if original_limit != NULL_SEARCH_LIMIT or original_start != 0:
+                # We need to do some slicing
+                start = original_start
+                if original_limit == NULL_SEARCH_LIMIT:
+                    end = count
+                else:
+                    end = original_start + original_limit
+                brains = iter(brains[start:end])
+            else:
+                brains = iter(brains)
+            # undo changes to search_params
+            search_params.start = original_start
+            search_params.limit = original_limit
 
         return SearchResults(brains, total=count, hash_=str(count))
 
