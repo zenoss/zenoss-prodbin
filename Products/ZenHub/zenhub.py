@@ -25,6 +25,8 @@ from XmlRpcService import XmlRpcService
 
 import collections
 import heapq
+import logging
+from metrology import Metrology
 import time
 import signal
 import cPickle as pickle
@@ -52,6 +54,7 @@ from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite, wait
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
@@ -273,9 +276,12 @@ class WorkerInterceptor(pb.Referenceable):
     def __init__(self, zenhub, service):
         self.zenhub = zenhub
         self.service = service
+        self._serviceCalls = Metrology.meter("zenhub.serviceCalls")
+        self.log = logging.getLogger('zen.zenhub.WorkerInterceptor')
 
     def remoteMessageReceived(self, broker, message, args, kw):
         """Intercept requests and send them down to workers"""
+        self._serviceCalls.mark()
         svc = str(self.service.__class__).rpartition('.')[0]
         instance = self.service.instance
         args = broker.unserialize(args)
@@ -487,13 +493,14 @@ class ZenHub(ZCmdBase):
         self._initialize_invalidation_filters()
         reactor.callLater(self.options.invalidation_poll_interval, self.processQueue)
 
+        self._metric_writer = metricWriter()
         self.rrdStats = self.getRRDStats()
 
         if self.options.workers:
             self.workerconfig = zenPath('var', 'zenhub', '%s_worker.conf' % self._getConf().id)
             self._createWorkerConf()
             for i in range(self.options.workers):
-                self.createWorker()
+                self.createWorker(i)
 
             # start cyclic call to giveWorkToWorkers
             reactor.callLater(2, self.giveWorkToWorkers, True)
@@ -567,10 +574,9 @@ class ZenHub(ZCmdBase):
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
         threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
 
-        metric_writer = metricWriter()
         derivative_tracker = DerivativeTracker()
 
-        rrdStats.config('zenhub', perfConf.id, metric_writer,
+        rrdStats.config('zenhub', perfConf.id, self._metric_writer,
                         threshold_notifier, derivative_tracker)
 
         return rrdStats
@@ -943,8 +949,9 @@ class ZenHub(ZCmdBase):
             workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
             workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
             workerfd.write("profiling %s\n" % self.options.profiling)
+            workerfd.write("monitor %s\n" % self.options.monitor)
 
-    def createWorker(self):
+    def createWorker(self, workerNum):
         """Start a worker subprocess
 
         @return: None
@@ -957,10 +964,11 @@ class ZenHub(ZCmdBase):
         # watch for output, and generally just take notice
         class WorkerRunningProtocol(protocol.ProcessProtocol):
 
-            def __init__(self, parent):
+            def __init__(self, parent, workerNum):
                 self._pid = 0
                 self.parent = parent
                 self.log = parent.log
+                self.workerNum = workerNum
 
             @property
             def pid(self):
@@ -971,16 +979,17 @@ class ZenHub(ZCmdBase):
                 reactor.callLater(1, self.parent.giveWorkToWorkers)
 
             def outReceived(self, data):
-                self.log.debug("Worker (%d) reports %s" % (self.pid, data.rstrip(),))
+                self.log.debug("Worker %d (%d) reports %s" % (self.workerNum, self.pid, data.rstrip(),))
 
             def errReceived(self, data):
-                self.log.info("Worker (%d) reports %s" % (self.pid, data.rstrip(),))
+                self.log.info("Worker %d (%d) reports %s" % (self. workerNum, self.pid, data.rstrip(),))
 
             def processEnded(self, reason):
                 self.parent.worker_processes.discard(self)
                 ended_proc = self.parent.workerprocessmap.pop(self.pid, None)
                 ended_proc_age = time.time() - ended_proc.spawn_time
-                self.log.warning("Worker (%d), age %f secs, exited with status: %d (%s)",
+                self.log.warning("Worker %d (%d), age %f secs, exited with status: %d (%s)",
+                                 self.workerNum,
                                  self.pid,
                                  ended_proc_age,
                                   reason.value.exitCode or -1,
@@ -988,17 +997,17 @@ class ZenHub(ZCmdBase):
                 # if not shutting down, restart a new worker
                 if not self.parent.shutdown:
                     self.log.info("Starting new zenhubworker")
-                    self.parent.createWorker()
+                    self.parent.createWorker(self.workerNum)
 
         if NICE_PATH:
             exe = NICE_PATH
             args = (NICE_PATH, "-n", "%+d" % self.options.hubworker_priority,
-                    zenPath('bin', 'zenhubworker'), 'run', '-C', self.workerconfig)
+                    zenPath('bin', 'zenhubworker'), 'run', '--workernum', '%s' % workerNum, '-C', self.workerconfig)
         else:
             exe = zenPath('bin', 'zenhubworker')
             args = (exe, 'run', '-C', self.workerconfig)
         self.log.debug("Starting %s", ' '.join(args))
-        prot = WorkerRunningProtocol(self)
+        prot = WorkerRunningProtocol(self, workerNum)
         proc = reactor.spawnProcess(prot, exe, args, os.environ)
         proc.spawn_time = time.time()
         self.workerprocessmap[proc.pid] = proc
@@ -1056,6 +1065,16 @@ class ZenHub(ZCmdBase):
         """
         if self.options.cycle:
             reactor.callLater(0, self.heartbeat)
+            self.log.debug("Creating async MetricReporter")
+            daemonTags = {
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            }
+            self.metricreporter = TwistedMetricReporter(metricWriter=self._metric_writer, tags=daemonTags)
+            self.metricreporter.start()
+            reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
+
         reactor.run()
         self.shutdown = True
         self.log.debug("Killing workers")

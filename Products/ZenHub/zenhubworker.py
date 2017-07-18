@@ -11,11 +11,12 @@
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
-from Products.ZenHub.zenhub import LastCallReturnValue
+from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
 from Products.DataCollector.plugins import DataMaps
@@ -31,6 +32,7 @@ import cPickle as pickle
 import time
 import signal
 import os
+from metrology import Metrology
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
@@ -63,7 +65,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             self.profiler.start()
         self.current = IDLE
         self.currentStart = 0
-        self.numCalls = 0
+        self.numCalls = Metrology.meter("zenhub.workerCalls")
         try:
             self.log.debug("establishing SIGUSR1 signal handler")
             signal.signal(signal.SIGUSR1, self.sighandler_USR1)
@@ -92,6 +94,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
         factory.startLogin(c)
+
+        self.log.debug("Creating async MetricReporter")
+        daemonTags = {
+            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
+            'zenoss_monitor': self.options.monitor,
+            'internal': True
+        }
+        self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
+        self.metricreporter.start()
+        reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
 
     def audit(self, action):
         """
@@ -207,8 +219,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         args, kw = pickle.loads(joinedArgs)
 
         # see if this is our last call
-        self.numCalls += 1
-        lastCall = self.numCalls >= self.options.calllimit
+        self.numCalls.mark()
+        lastCall = self.numCalls.count >= self.options.calllimit
 
         def runOnce():
             res = m(*args, **kw)
@@ -288,6 +300,13 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         self.parser.add_option('--profiling', dest='profiling',
                                action='store_true', default=False,
                                help="Run with profiling on")
+        self.parser.add_option('--monitor', dest='monitor',
+                               default='localhost',
+                               help='Name of the distributed monitor this hub runs on')
+        self.parser.add_option('--workernum',
+                               dest='workernum',
+                               type='int',
+                               default=0)
 
 if __name__ == '__main__':
     zhw = zenhubworker()
