@@ -41,11 +41,32 @@ class DecodersUnitTest(BaseTestCase):
             '5aef:2b::8'
         )
 
+    def test_decode_long_values(self):
+        value = long(555)
+        self.assertEqual(
+            Decoders.decode(value),
+            int(555)
+        )
+
+    def test_decode_int_values(self):
+        value = int(555)
+        self.assertEqual(
+            Decoders.decode(value),
+            int(555)
+        )
+
     def test_encode_invalid_chars(self):
         value = '\xde\xad\xbe\xef\xfe\xed\xfa\xce'
         self.assertEqual(
             Decoders.decode(value),
             'BASE64:3q2+7/7t+s4='
+        )
+
+    def test_decode_unexpected_object_type(self):
+        value = object()
+        self.assertEqual(
+            Decoders.decode(value),
+            None
         )
 
 
