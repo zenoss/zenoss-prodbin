@@ -111,12 +111,13 @@ class ModelCatalogBrain(Implicit):
         obj = None
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
-        except (NotFound, KeyError, AttributeError):
+        except (NotFound, KeyError, AttributeError) as e:
             msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
             msg += "Will attempt to delete the object from model catalog."
             log.error(msg.format(self.uid))
             # unindex uid
             getUtility(IModelCatalog).get_client(self).unindex_uid(self.uid)
+            raise e
         return obj
 
     def getRID(self):
