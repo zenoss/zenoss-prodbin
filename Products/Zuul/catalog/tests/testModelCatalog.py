@@ -43,8 +43,13 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         self.assertTrue( results.total == 1 )
         brain = results.results.next()
         self.assertTrue(brain.getPath() == bad_uid)
-        obj = brain.getObject()
-        self.assertIsNone(obj)
+        # Ensure getObject raises an exception
+        expception_raised = False
+        try:
+            obj = brain.getObject()
+        except:
+            expception_raised = True
+        self.assertTrue(expception_raised)
         results = self.model_catalog.search(query={UID:bad_uid})
         self.assertTrue( results.total == 0 )
 
