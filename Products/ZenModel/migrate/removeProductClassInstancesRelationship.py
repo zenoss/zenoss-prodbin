@@ -28,10 +28,10 @@ class RemoveProductClassInstancesRelationship(Migrate.Step):
                 for product in manufacturer.products():
                     if product.get("instances") and isinstance(product.instances, ToManyRelationship):
                         instances = product.instances()
-                        product._delOb("instances")
+                        product._delObject("instances", suppress_events=True)
                         for instance in instances:
                             if instance.get("productClass") and isinstance(instance.productClass, ToOneRelationship):
-                                instance._delOb("productClass")
+                                instance._delObject("productClass", suppress_events=True)
                                 instance.setProductClass(product, raiseIndexEvent=False)
 
 RemoveProductClassInstancesRelationship()
