@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -38,12 +38,13 @@ class MEProduct(ManagedEntity, ProductIndexable):
 
     security = ClassSecurityInfo()
 
-    def setProductClass(self, productClass):
+    def setProductClass(self, productClass, raiseIndexEvent=True):
         if not productClass:
             self.removeProductClass()
         else:
             setattr(self, self.PRODUCT_CLASS_ATTR, productClass.idx_uid())
-            notify(IndexingEvent(self, idxs="productClassId"))
+            if raiseIndexEvent:
+                notify(IndexingEvent(self, idxs="productClassId"))
 
     def removeProductClass(self):
         setattr(self, self.PRODUCT_CLASS_ATTR, "")
