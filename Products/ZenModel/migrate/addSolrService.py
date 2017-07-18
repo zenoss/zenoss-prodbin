@@ -79,7 +79,7 @@ class AddSolrService(Migrate.Step):
 def default_solr_service(imageid):
     return {
         "CPUCommitment": 2,
-        "Command": "setuser zenoss /opt/solr/zenoss/bin/start-solr -cloud -Dbootstrap_confdir=/opt/solr/server/solr/configsets/zenoss_model/conf -Dcollection.configName=zenoss_model",
+        "Command": "setuser zenoss /opt/solr/zenoss/bin/start-solr -cloud -Dbootstrap_confdir=/opt/solr/server/solr/configsets/zenoss_model/conf -Dcollection.configName=zenoss_model -Dsolr.jetty.request.header.size=1000000",
         "ConfigFiles": {
             "/opt/solr/server/solr/configsets/zenoss_model/conf/solrconfig.xml": {
                 "Filename": "/opt/solr/server/solr/configsets/zenoss_model/conf/solrconfig.xml",
