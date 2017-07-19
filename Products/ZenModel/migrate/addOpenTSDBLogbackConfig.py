@@ -36,7 +36,7 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
                 content = fcontent.read()
             except Exception, e:
                 log.error("Error reading logback configuration file: {}".format(e))
-                return False
+                return
 
         def equal(this, that):
             return this.name == that.name and this.filename == that.filename and this.owner == that.owner and this.permissions == that.permissions and this.content == that.content
@@ -54,14 +54,12 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
             # the new config, overwrite it.
             if all(not equal(config, newConfig) for config in service.originalConfigs):
                 service.originalConfigs.append(newConfig)
-                changed = True
                 log.info("Adding a configuration to OriginalConfigs of %s", service.name)
 
             # Add this config only if there's no config with the same name.
             # If there is such config, honor it.
             if all(not equal(config, newConfig) for config in service.configFiles):
                 service.configFiles.append(newConfig)
-                changed = True
                 log.info("Adding a configuration to ConfigFiles of %s", service.name)
 
         log.info("Configuration added for OpenTSDB services")
