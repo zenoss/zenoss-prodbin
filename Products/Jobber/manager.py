@@ -47,7 +47,7 @@ def _dispatchTask(task, **kwargs):
     # Have to use a closure because of Celery's funky signature inspection
     # and because of the status argument transaction passes
     def hook(ignored):
-        log.info("Dispatching %s job to zenjobs: %s", type(task), task)
+        log.info("Dispatching %s job to zenjobs", type(task))
         # Push the task out to AMQP (ignore returned object).
         task.apply_async(**opts)
     transaction.get().addAfterCommitHook(hook)
@@ -281,7 +281,7 @@ class JobManager(ZenModelRM):
         self._setOb(job_id, meta)
         jobrecord = self._getOb(job_id)
         self.getCatalog().catalog_object(jobrecord)
-        log.info("Created job %s: %s", job, jobrecord.id)
+        log.info("Created job %s: %s, description: %s", job, jobrecord.id, desc)
         return jobrecord
 
     def wait(self, job_id):
