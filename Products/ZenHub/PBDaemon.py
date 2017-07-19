@@ -1162,7 +1162,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.parser.add_option('--redis-url',
                                dest='redisUrl',
                                type='string',
-                               default='redis://localhost:{default}/0'.format(default=publisher.defaultRedisPort),
+                               default='redis://rd1:{default}/0'.format(default=publisher.defaultRedisPort),
                                help='redis connection string: redis://[hostname]:[port]/[db], default: %default')
 
         self.parser.add_option('--metricBufferSize',
