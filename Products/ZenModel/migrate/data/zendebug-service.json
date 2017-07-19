@@ -74,7 +74,7 @@
    "HostPolicy": "",
    "Hostname": "",
    "Privileged": false,
-   "Launch": "auto",
+   "Launch": "manual",
    "Endpoints": [
      {
        "Name": "zenhub",
