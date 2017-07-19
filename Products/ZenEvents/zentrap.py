@@ -628,7 +628,7 @@ class TrapTask(BaseTask, CaptureReplay):
         # off any index values.
         vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
-            vb_value = Decoders.decode(vb_value)
+            vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
@@ -645,7 +645,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
         vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
-            vb_value = Decoders.decode(vb_value)
+            vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
 
             # SNMPv2-MIB/snmpTrapOID
@@ -757,30 +757,6 @@ class Decoders:
     """
 
     @staticmethod
-    def decode(value):
-        """Given a raw OID value
-        Itterate over the list of decoder methods in order
-        Returns the first value returned by a decoder method
-
-        NOTE: The order of decoders in the list determines their priority
-        """
-
-        decoders = [Decoders.oid,
-                    Decoders.number,
-                    Decoders.basestring,
-                    Decoders.ipaddress,
-                    Decoders.dateandtime,
-                    Decoders.encode_base64]
-
-        try:
-            for decoder in decoders:
-                out = decoder(value)
-                if out is not None:
-                    return out
-        except Exception as err:
-            log.exception("Unexpected exception: %s", err)
-
-    @staticmethod
     def dateandtime(value):
         """Tries converting a DateAndTime value to a printable string.
 
@@ -859,7 +835,7 @@ class Decoders:
                 pass
 
     @staticmethod
-    def basestring(value):
+    def utf8(value):
         try:
             return value.decode('utf8')
         except (UnicodeDecodeError, AttributeError):
@@ -868,6 +844,31 @@ class Decoders:
     @staticmethod
     def encode_base64(value):
         return 'BASE64:' + base64.b64encode(value)
+
+
+_decoders = [Decoders.oid,
+             Decoders.number,
+             Decoders.utf8,
+             Decoders.ipaddress,
+             Decoders.dateandtime,
+             Decoders.encode_base64]
+
+
+def decode_snmp_value(value):
+    """Given a raw OID value
+    Itterate over the list of decoder methods in order
+    Returns the first value returned by a decoder method
+
+    NOTE: The order of decoders in the list determines their priority
+    """
+
+    try:
+        for decoder in _decoders:
+            out = decoder(value)
+            if out is not None:
+                return out
+    except Exception as err:
+        log.exception("Unexpected exception: %s", err)
 
 
 class MibConfigTask(ObservableMixin):
