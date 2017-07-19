@@ -244,12 +244,12 @@ class ZenActionD(ZCmdBase):
 
         log.debug("Creating async MetricReporter")
         daemonTags = {
-            'daemon': 'zenactiond',
+            'zenoss_daemon': 'zenactiond',
             'internal': True
         }
-        self.reporter = TwistedMetricReporter(prefix='zenoss.', metricWriter=MetricWriter(pub), tags=daemonTags)
-        self.reporter.start()
-        reactor.addSystemEventTrigger('before', 'shutdown', self.reporter.stop)
+        self.metricreporter = TwistedMetricReporter(prefix='zenoss.', metricWriter=MetricWriter(pub), tags=daemonTags)
+        self.metricreporter.start()
+        reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
 
         if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
             self._callHomeCycler.start()
