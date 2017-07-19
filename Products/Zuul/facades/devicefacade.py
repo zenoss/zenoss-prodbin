@@ -378,6 +378,7 @@ class DeviceFacade(TreeFacade):
         return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
 
     def deleteComponents(self, uids):
+        parents = set()
         comps = imap(self._getObject, uids)
         for comp in comps:
             if comp.isLockedFromDeletion():
@@ -388,6 +389,10 @@ class DeviceFacade(TreeFacade):
             else:
                 raise Exception("%s %s cannot be manually deleted" %
                             (getattr(comp,'meta_type','component'),comp.id))
+
+        for parent in parents:
+            parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
+            parent.setCount()
 
     def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
