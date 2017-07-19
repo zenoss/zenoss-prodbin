@@ -775,31 +775,30 @@ class Decoders:
         try:
             for decoder in decoders:
                 out = decoder(value)
-                if out or out == 0:
+                if out is not None:
                     return out
         except Exception as err:
             log.exception("Unexpected exception: %s", err)
 
     @staticmethod
     def dateandtime(value):
-        """
-            Tries converting a DateAndTime value to a printable string.
+        """Tries converting a DateAndTime value to a printable string.
 
-            A date-time specification.
-            field  octets  contents                  range
-            -----  ------  --------                  -----
-            1      1-2     year*                     0..65536
-            2        3     month                     1..12
-            3        4     day                       1..31
-            4        5     hour                      0..23
-            5        6     minutes                   0..59
-            6        7     seconds                   0..60
-                          (use 60 for leap-second)
-            7        8     deci-seconds              0..9
-            8        9     direction from UTC        '+' / '-'
-            9       10     hours from UTC*           0..13
-            10      11     minutes from UTC          0..59
-            """
+        A date-time specification.
+        field  octets  contents                  range
+        -----  ------  --------                  -----
+        1      1-2     year*                     0..65536
+        2        3     month                     1..12
+        3        4     day                       1..31
+        4        5     hour                      0..23
+        5        6     minutes                   0..59
+        6        7     seconds                   0..60
+                      (use 60 for leap-second)
+        7        8     deci-seconds              0..9
+        8        9     direction from UTC        '+' / '-'
+        9       10     hours from UTC*           0..13
+        10      11     minutes from UTC          0..59
+        """
         try:
             # Some traps send invalid UTC times (direction/hours/minutes all zeros)
             if value[8:] == '\x00\x00\x00':
