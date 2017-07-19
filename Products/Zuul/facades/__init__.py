@@ -28,7 +28,7 @@ from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In, MatchGlob
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
@@ -175,15 +175,7 @@ class TreeFacade(ZuulFacade):
         params = params if params else {}
         for key, value in params.iteritems():
             if key == 'ipAddress':
-                ip = ensureIp(value)
-                try:
-                    checkip(ip)
-                except IpAddressError:
-                    pass
-                else:
-                    if numbip(ip):
-                        minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
+                qs.append(MatchGlob('text_ipAddress', '{}*'.format(value)))
             elif key == 'productionState':
                 qs.append(Or(*[Eq('productionState', str(state))
                              for state in value]))
