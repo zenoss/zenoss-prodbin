@@ -25,8 +25,7 @@ log.setLevel(logging.INFO)
 class ZProxyMetrics(ServiceMetrics):
 
     def build_gatherer(self):
-        if self.service == "zproxy":
-            return ZProxyMetricGatherer(interval=self.interval)
+        return ZProxyMetricGatherer(interval=self.interval)
 
 
 class ZProxyMetricGatherer(MetricGatherer):
@@ -89,7 +88,6 @@ class ZProxyMetricGatherer(MetricGatherer):
                 self.zopes = zopes
         return self.zopes
 
-
     def get_metrics(self):
         metrics = []
         zopes = self.get_zopes()
@@ -113,10 +111,9 @@ class ZProxyMetricGatherer(MetricGatherer):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("service", help="the service for which to collect metrics")
     parser.add_argument("-i", "--interval", dest="interval", type=float,
                         default=30, help="polling interval in seconds")
     args = parser.parse_args()
 
-    sm = ZProxyMetrics(options=args)
-    sm.run()
+    zpm = ZProxyMetrics(options=args)
+    zpm.run()
