@@ -79,7 +79,7 @@ class AddSolrService(Migrate.Step):
 def default_solr_service(imageid):
     return {
         "CPUCommitment": 2,
-        "Command": "setuser zenoss /opt/solr/zenoss/bin/start-solr -cloud -Dbootstrap_confdir=/opt/solr/server/solr/configsets/zenoss_model/conf -Dcollection.configName=zenoss_model",
+        "Command": "/bin/supervisord -n -c /opt/solr/zenoss/etc/supervisor.conf",
         "ConfigFiles": {
             "/opt/solr/server/solr/configsets/zenoss_model/conf/solrconfig.xml": {
                 "Filename": "/opt/solr/server/solr/configsets/zenoss_model/conf/solrconfig.xml",
@@ -98,6 +98,12 @@ def default_solr_service(imageid):
                 "Owner": "root:root",
                 "Permissions": "0664",
                 "Content": "# This file is injected by ControlCenter with container-specific parameters\n# ZK_HOST={{with $zks := (child (child (parent .) \"HBase\") \"ZooKeeper\").Instances }}{{range (each $zks)}}127.0.0.1:{{plus 2181 .}}{{if ne (plus 1 .) $zks}},{{end}}{{end}}{{end}}/solr\n\n"
+            },
+            "/opt/solr/zenoss/etc/supervisor.conf": {
+                "Filename": "/opt/solr/zenoss/etc/supervisor.conf",
+                "Owner": "root:root",
+                "Permissions": "0664",
+                "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/solr_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:solr]\ncommand=setuser zenoss /opt/solr/zenoss/bin/start-solr -cloud -Dbootstrap_confdir=/opt/solr/server/solr/configsets/zenoss_model/conf -Dcollection.configName=zenoss_model -Dsolr.jetty.request.header.size=1000000\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:solr_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/solrstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
             }
         },
         "Description": "Solr Cloud",
@@ -161,7 +167,8 @@ def default_solr_service(imageid):
                 "Permission": "0750",
                 "ResourcePath": "solr-{{.InstanceID}}"
             }
-        ]
+        ],
+        "Version": ""
     }
 
 AddSolrService()

@@ -35,7 +35,7 @@ startsecs=5
 priority=1
 
 [program:zproxy_metrics]
-command=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py zproxy
+command=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py
 autorestart=true
 autostart=true
 startsecs=5

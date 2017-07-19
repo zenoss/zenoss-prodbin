@@ -823,8 +823,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             loop = task.LoopingCall(self.postStatistics)
             loop.start(self.options.writeStatistics, now=False)
             daemonTags = {
-                'daemon': self.name,
-                'monitor': self.options.monitor,
+                'zenoss_daemon': self.name,
+                'zenoss_monitor': self.options.monitor,
                 'internal': True
             }
             self._metrologyReporter = TwistedMetricReporter(self.options.writeStatistics, self.metricWriter(), daemonTags)

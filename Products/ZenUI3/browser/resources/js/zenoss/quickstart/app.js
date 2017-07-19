@@ -137,6 +137,7 @@
                             text: _t('✔ Finish'),
                             handler: function() {
                                 window.globalApp.fireEvent('finish');
+                                Zenoss.remote.JobsRouter.quickstartWizardFinished({});
                             }
                         }]
                     }]
