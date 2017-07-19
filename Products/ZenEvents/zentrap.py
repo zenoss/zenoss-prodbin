@@ -846,20 +846,21 @@ class Decoders:
         return 'BASE64:' + base64.b64encode(value)
 
 
-_decoders = [Decoders.oid,
-             Decoders.number,
-             Decoders.utf8,
-             Decoders.ipaddress,
-             Decoders.dateandtime,
-             Decoders.encode_base64]
+# NOTE: The order of decoders in the list determines their priority
+_decoders = [
+    Decoders.oid,
+    Decoders.number,
+    Decoders.utf8,
+    Decoders.ipaddress,
+    Decoders.dateandtime,
+    Decoders.encode_base64
+]
 
 
 def decode_snmp_value(value):
     """Given a raw OID value
     Itterate over the list of decoder methods in order
     Returns the first value returned by a decoder method
-
-    NOTE: The order of decoders in the list determines their priority
     """
 
     try:
