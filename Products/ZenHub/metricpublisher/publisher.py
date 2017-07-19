@@ -126,7 +126,7 @@ class RedisListPublisher(BasePublisher):
     """
 
     def __init__(self,
-                 host='localhost',
+                 host='rd1',
                  port=defaultRedisPort,
                  buflen=defaultMetricBufferSize,
                  pubfreq=defaultPublishFrequency,
