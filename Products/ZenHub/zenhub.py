@@ -572,7 +572,7 @@ class ZenHub(ZCmdBase):
 
         from Products.ZenModel.BuiltInDS import BuiltInDS
         threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
-        threshold_notifier = ThresholdNotifier(self.sendEvent, threshs)
+        threshold_notifier = ThresholdNotifier(self.zem.sendEvent, threshs)
 
         derivative_tracker = DerivativeTracker()
 
