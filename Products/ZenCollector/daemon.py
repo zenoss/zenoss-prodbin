@@ -660,7 +660,11 @@ class CollectorDaemon(RRDDaemon):
                     task_.startDelay = 0
                 else:
                     task_.startDelay = startDelay
-            self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            try:
+                self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            except ValueError:
+                self.log.exception("Error adding device config")
+                continue
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):
