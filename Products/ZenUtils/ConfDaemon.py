@@ -10,7 +10,7 @@
 
 __doc__="""ConfDaemon
 
-Base class for makeing deamon programs
+Base class for making daemon programs
 
 $Id: ConfDaemon.py,v 1.9 2003/08/29 20:33:10 edahl Exp $"""
 

@@ -301,7 +301,7 @@ Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs|debug|stats}
 
     debug   - toggle the logging of daemons between Debug level and the default
 
-    stats   - display detailed statistics of the deamon
+    stats   - display detailed statistics of the daemon
 
 HELP
 	    exit 1
