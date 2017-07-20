@@ -133,7 +133,7 @@ LAYER_3_CATALOG_TRANSLATIONS = [
 
 
 IP_SEARCH_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="path", new="uid", value_converter=TranslationValueConverter(result=list)),
+    LegacyFieldTranslation(old="path", new="uid", value_converter=TranslationValueConverter()),
     LegacyFieldTranslation(old="ipAddressAsInt", new="decimal_ipAddress",
                            value_converter=TranslationValueConverter(result=str)),
     LegacyFieldTranslation(old="id", new="id"),
