@@ -253,7 +253,7 @@ class TestLegacyCatalogAdapters(BaseTestCase):
             for q_field, q_value in queries:
                 brains = self.ip_catalog.search(Eq(q_field, q_value))
                 self.assertEqual(len(brains), 1)
-                self.assertEqual(brains[0].path, list(path))
+                self.assertEqual(brains[0].path, path)
                 self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
                 self.assertEqual(brains[0].id, ip_id)
 
@@ -261,7 +261,7 @@ class TestLegacyCatalogAdapters(BaseTestCase):
                 kw = {q_field:q_value}
                 brains = self.ip_catalog(**kw)
                 self.assertEqual(len(brains), 1)
-                self.assertEqual(brains[0].path, list(path))
+                self.assertEqual(brains[0].path, path)
                 self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
                 self.assertEqual(brains[0].id, ip_id)
 
@@ -269,7 +269,7 @@ class TestLegacyCatalogAdapters(BaseTestCase):
             query = Eq("path", path)
             brains = self.ip_catalog(query, id=ip_id)
             self.assertEqual(len(brains), 1)
-            self.assertEqual(brains[0].path, list(path))
+            self.assertEqual(brains[0].path, path)
             self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
             self.assertEqual(brains[0].id, ip_id)
 
@@ -277,7 +277,7 @@ class TestLegacyCatalogAdapters(BaseTestCase):
             query = {"path": path}
             brains = self.ip_catalog(query, id=ip_id)
             self.assertEqual(len(brains), 1)
-            self.assertEqual(brains[0].path, list(path))
+            self.assertEqual(brains[0].path, path)
             self.assertEqual(int(brains[0].ipAddressAsInt), ip_as_int)
             self.assertEqual(brains[0].id, ip_id)
 
