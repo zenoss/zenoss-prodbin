@@ -9,6 +9,7 @@
 
 
 import logging
+import sys
 import transaction
 import zope.component
 from zope.component.factory import Factory
