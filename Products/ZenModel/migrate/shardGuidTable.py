@@ -27,7 +27,7 @@ class ShardGuidTable(Migrate.Step):
             sharded_tree = ShardedBTree(n_shards=DEFAULT_NUMBER_OF_SHARDS)
             sharded_tree.update(old_table)
             # replace the old table
-            table_parent._delObject(table_name, suppress_events=True)
+            table_parent._delOb(table_name, suppress_events=True)
             table_parent._setObject(table_name, sharded_tree)
 
 
