@@ -628,13 +628,14 @@ class TrapTask(BaseTask, CaptureReplay):
         # off any index values.
         vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
-            vb_value = Decoders.decode(vb_value)
+            vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
         result.update(
             {name: ','.join(vals) for name, vals in vb_result.iteritems()}
         )
+
         return eventType, result
 
     def decodeSnmpv2(self, addr, pdu):
@@ -644,14 +645,17 @@ class TrapTask(BaseTask, CaptureReplay):
 
         vb_result = defaultdict(list)
         for vb_oid, vb_value in variables:
-            vb_value = Decoders.decode(vb_value)
+            vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
+
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
                 result["oid"] = vb_value
-                eventType = self.oid2name(vb_value,
-                                          exactMatch=False,
-                                          strip=False)
+                eventType = self.oid2name(
+                    vb_value,
+                    exactMatch=False,
+                    strip=False
+                )
             elif vb_oid.startswith('1.3.6.1.6.3.18.1.3'):
                 self.log.debug("found snmpTrapAddress OID: %s = %s",
                                vb_oid, vb_value)
@@ -753,29 +757,8 @@ class Decoders:
     """
 
     @staticmethod
-    def decode(value):
-        """Given a raw OID value
-        Itterate over the list of decoder methods in order
-        Returns the first value returned by a decoder method
-
-        NOTE: The order of decoders in the list determines their priority
-        """
-
-        decoders = [Decoders.oid,
-                    Decoders.basestring,
-                    Decoders.ipaddress,
-                    Decoders.dateandtime,
-                    Decoders.encode_base64]
-
-        for decoder in decoders:
-            out = decoder(value)
-            if out:
-                return out
-
-    @staticmethod
     def dateandtime(value):
-        """
-        Tries converting a DateAndTime value to a printable string.
+        """Tries converting a DateAndTime value to a printable string.
 
         A date-time specification.
         field  octets  contents                  range
@@ -792,41 +775,45 @@ class Decoders:
         9       10     hours from UTC*           0..13
         10      11     minutes from UTC          0..59
         """
-        # Some traps send invalid UTC times (direction/hours/minutes all zeros)
-        if value[8:] == '\x00\x00\x00':
-            value = value[:8]
-        vallen = len(value)
-        if vallen == 8 or (vallen == 11 and value[8] in ('+', '-')):
-            (year, mon, day,
-             hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
-            # Ensure valid date representation
-            if mon < 1 or mon > 12:
-                return None
-            if day < 1 or day > 31:
-                return None
-            if hour < 0 or hour > 23:
-                return None
-            if mins > 60:
-                return None
-            if secs > 60:
-                return None
-            if dsecs > 9:
-                return None
-            if vallen == 11:
-                utc_dir = value[8]
-                (utc_hours, utc_mins) = unpack(">BB", value[9:])
-            else:
-                tz_mins = time.timezone / 60
-                if tz_mins < 0:
-                    utc_dir = '-'
-                    tz_mins = -tz_mins
+        try:
+            # Some traps send invalid UTC times (direction/hours/minutes all zeros)
+            if value[8:] == '\x00\x00\x00':
+                value = value[:8]
+            vallen = len(value)
+            if vallen == 8 or (vallen == 11 and value[8] in ('+', '-')):
+                (year, mon, day,
+                 hour, mins, secs, dsecs) = unpack(">HBBBBBB", value[:8])
+                # Ensure valid date representation
+                if mon < 1 or mon > 12:
+                    return None
+                if day < 1 or day > 31:
+                    return None
+                if hour < 0 or hour > 23:
+                    return None
+                if mins > 60:
+                    return None
+                if secs > 60:
+                    return None
+                if dsecs > 9:
+                    return None
+                if vallen == 11:
+                    utc_dir = value[8]
+                    (utc_hours, utc_mins) = unpack(">BB", value[9:])
                 else:
-                    utc_dir = '+'
-                utc_hours = tz_mins / 60
-                utc_mins = tz_mins % 60
-            return "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (
-                year, mon, day, hour, mins, secs,
-                dsecs, utc_dir, utc_hours, utc_mins)
+                    tz_mins = time.timezone / 60
+                    if tz_mins < 0:
+                        utc_dir = '-'
+                        tz_mins = -tz_mins
+                    else:
+                        utc_dir = '+'
+                    utc_hours = tz_mins / 60
+                    utc_mins = tz_mins % 60
+                return "%04d-%02d-%02dT%02d:%02d:%02d.%d00%s%02d:%02d" % (
+                    year, mon, day, hour, mins, secs,
+                    dsecs, utc_dir, utc_hours, utc_mins)
+
+        except TypeError:
+            pass
 
     @staticmethod
     def oid(value):
@@ -835,24 +822,54 @@ class Decoders:
                 return '.'.join(map(str, value))
 
     @staticmethod
+    def number(value):
+        if type(value) in [long, int]:
+            return value
+
+    @staticmethod
     def ipaddress(value):
         for version in [socket.AF_INET, socket.AF_INET6]:
             try:
                 return socket.inet_ntop(version, value)
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
 
     @staticmethod
-    def basestring(value):
+    def utf8(value):
         try:
-            value.decode('utf8')
-            return value
-        except UnicodeDecodeError:
+            return value.decode('utf8')
+        except (UnicodeDecodeError, AttributeError):
             pass
 
     @staticmethod
     def encode_base64(value):
         return 'BASE64:' + base64.b64encode(value)
+
+
+# NOTE: The order of decoders in the list determines their priority
+_decoders = [
+    Decoders.oid,
+    Decoders.number,
+    Decoders.utf8,
+    Decoders.ipaddress,
+    Decoders.dateandtime,
+    Decoders.encode_base64
+]
+
+
+def decode_snmp_value(value):
+    """Given a raw OID value
+    Itterate over the list of decoder methods in order
+    Returns the first value returned by a decoder method
+    """
+
+    try:
+        for decoder in _decoders:
+            out = decoder(value)
+            if out is not None:
+                return out
+    except Exception as err:
+        log.exception("Unexpected exception: %s", err)
 
 
 class MibConfigTask(ObservableMixin):
