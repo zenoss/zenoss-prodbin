@@ -22,7 +22,7 @@
 
     /**
      * @class Daemons.controller.DaemonsListController
-     * This is the controller for the list of control plane services and collector deamons.
+     * This is the controller for the list of control plane services and collector daemons.
      * @extends Ext.app.Controller
      */
     Ext.define('Daemons.controller.DaemonsListController', {
@@ -48,22 +48,22 @@
             this.control(Ext.apply(Daemons.ListControllerActions || {}, {
                 // start
                 'daemonslist button[ref="start"]': {
-                    click: this.startSelectedDeamons
+                    click: this.startSelectedDaemons
                 },
                 // stop
                 'daemonslist button[ref="stop"]': {
-                    click: this.stopSelectedDeamons
+                    click: this.stopSelectedDaemons
                 },
                 // restart
                 'daemonslist button[ref="restart"]': {
-                    click: this.restartSelectedDeamons
+                    click: this.restartSelectedDaemons
                 },
                 // Column Actions
                 // restart
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
-                        this.updateSelectedDeamons([record], 'restart', 'state', Daemons.states.RESTARTING);
+                        this.updateSelectedDaemons([record], 'restart', 'state', Daemons.states.RESTARTING);
                     }, this)
                 },
                 // start/stop
@@ -71,9 +71,9 @@
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
                         if (record.get('state') === 'up') {
-                            this.updateSelectedDeamons([record], 'stop', 'state', Daemons.states.STOPPED);
+                            this.updateSelectedDaemons([record], 'stop', 'state', Daemons.states.STOPPED);
                         } else {
-                            this.updateSelectedDeamons([record], 'start', 'state', Daemons.states.RUNNING);
+                            this.updateSelectedDaemons([record], 'start', 'state', Daemons.states.RUNNING);
                         }
                     }, this)
                 },
@@ -131,7 +131,7 @@
         /**
          * Performs the "action" on every selected daemon.
          **/
-        updateSelectedDeamons: function(selectedRows, action, field, value) {
+        updateSelectedDaemons: function(selectedRows, action, field, value) {
             var record,
                 recordsToUpdate = [],
                 uids = [],
@@ -183,28 +183,28 @@
         /**
          * Starts every daemon that is selected
          **/
-        startSelectedDeamons: function() {
-            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+        startSelectedDaemons: function() {
+            this.updateSelectedDaemons(this.getTreegrid().getSelectionModel().getSelection(),
                                        'start', 'state', Daemons.states.RUNNING);
         },
         /**
          * Stops every daemon that is selected
          **/
-        stopSelectedDeamons: function() {
-            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+        stopSelectedDaemons: function() {
+            this.updateSelectedDaemons(this.getTreegrid().getSelectionModel().getSelection(),
                                        'stop', 'state', Daemons.states.STOPPED);
         },
         /**
          * restarts every daemon that is selected
          **/
-        restartSelectedDeamons: function() {
+        restartSelectedDaemons: function() {
             var selected = this.getTreegrid().getSelectionModel().getSelection();
             this.updateRefreshIcon(selected);
-            this.updateSelectedDeamons(selected, 'restart', 'state', Daemons.states.RUNNING);
+            this.updateSelectedDaemons(selected, 'restart', 'state', Daemons.states.RUNNING);
         },
 
         /**
-         * Let the user know that the deamon is restarting.
+         * Let the user know that the daemon is restarting.
          **/
         updateRefreshIcon: function(selectedRows) {
             var view = this.getTreegrid().getView(),
