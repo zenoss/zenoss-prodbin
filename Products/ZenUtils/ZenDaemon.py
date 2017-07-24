@@ -10,7 +10,7 @@
 
 """ZenDaemon
 
-Base class for making deamon programs
+Base class for making daemon programs
 """
 
 import re

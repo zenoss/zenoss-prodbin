@@ -60,7 +60,7 @@ class RemoveProdStateBTree(Migrate.Step):
 
             # Now drop the BTree
             log.info("Removing production state BTree")
-            delattr(dmd, 'prodstate_table')
+            dmd._delOb('prodstate_table')
             transaction.commit()
 
             log.info("Migration Complete")
