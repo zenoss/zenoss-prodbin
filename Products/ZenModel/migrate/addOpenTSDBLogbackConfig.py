@@ -27,6 +27,7 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
+        commit = False
         services = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
         log.info("Found %i services with 'opentsdb' in their service path." % len(services))
         services = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], services)
@@ -55,14 +56,17 @@ class addOpenTSDBLogbackConfig(Migrate.Step):
             if all(not equal(config, newConfig) for config in service.originalConfigs):
                 service.originalConfigs.append(newConfig)
                 log.info("Adding a configuration to OriginalConfigs of %s", service.name)
+                commit = True
 
             # Add this config only if there's no config with the same name.
             # If there is such config, honor it.
             if all(not equal(config, newConfig) for config in service.configFiles):
                 service.configFiles.append(newConfig)
                 log.info("Adding a configuration to ConfigFiles of %s", service.name)
+                commit = True
 
         log.info("Configuration added for OpenTSDB services")
-        ctx.commit()
+        if commit:
+            ctx.commit()
 
 addOpenTSDBLogbackConfig()
