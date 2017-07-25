@@ -148,8 +148,8 @@ class PropertiesRouter(DirectRouter):
             oldValue = str(oldValue) if not oldValue else oldValue  # must match
             obj = facade._getObject(uid)
 
-            maskFields = 'value' if obj.zenPropIsPassword(zProperty) else None
-            audit('UI.zProperty.Edit', zProperty, maskFields_=maskFields,
+            maskFields = 'value' if obj.zenPropIsPassword(key) else None
+            audit('UI.zProperty.Edit', key, maskFields_=maskFields,
                   data_={obj.meta_type: uid, 'value': value},
                   oldData_={'value': oldValue})          
         
