@@ -27,6 +27,7 @@ import collections
 import heapq
 import logging
 from metrology import Metrology
+from metrology.registry import registry
 from metrology.instruments import Gauge
 import time
 import signal
@@ -447,31 +448,35 @@ class ZenHub(ZCmdBase):
         self.counters = collections.Counter()
         self._invalidations_paused = False
 
-
         wl = self.workList
+        metricNames = {x[0] for x in registry}
         class EventWorkList(Gauge):
             @property
             def value(self):
                 return len(wl.eventworklist)
-        Metrology.gauge("zenhub.eventWorkList", EventWorkList())
+        if 'zenhub.eventWorkList' not in metricNames:
+            Metrology.gauge('zenhub.eventWorkList', EventWorkList())
 
         class ADMWorkList(Gauge):
             @property
             def value(self):
                 return len(wl.applyworklist)
-        Metrology.gauge("zenhub.admWorkList", ADMWorkList())
+        if 'zenhub.admWorkList' not in metricNames:
+            Metrology.gauge('zenhub.admWorkList', ADMWorkList())
 
         class OtherWorkList(Gauge):
             @property
             def value(self):
                 return len(wl.otherworklist)
-        Metrology.gauge("zenhub.otherWorkList", OtherWorkList())
+        if 'zenhub.otherWorkList' not in metricNames:
+            Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
 
         class WorkListTotal(Gauge):
             @property
             def value(self):
                 return len(wl)
-        Metrology.gauge("zenhub.workList", WorkListTotal())
+        if 'zenhub.workList' not in metricNames:
+            Metrology.gauge('zenhub.workList', WorkListTotal())
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
