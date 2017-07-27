@@ -586,7 +586,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         Return True if this instance should be monitored. False
         otherwise.
         '''
-        if self.adminStatus != 1:
+        if self.adminStatus > 1:
             return False
         else:
             return super(IpInterface, self).monitored()
