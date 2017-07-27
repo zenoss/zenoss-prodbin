@@ -30,17 +30,12 @@ class ReplicateCollectorRedis(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        svcs = ctx.findServices(r".*/localhost/localhost/.*")
+        svcs = filter(lambda s: all(x in s.tags for x in ["collector", "daemon"]), ctx.services)
         daemons = ([svc for svc in svcs
             if not svc.name == 'collectorredis'
             and not svc.name == 'zminion'])
 
-        collectorRedis = None
-        try:
-            collectorRedis = [svc for svc in svcs if svc.name == 'collectorredis'][0]
-        except IndexError:
-            log.error("collectorredis service definition is not found.")
-            return
+        collectorRedises = [svc for svc in svcs if svc.name == 'collectorredis']
 
         changed = False
 
@@ -58,7 +53,10 @@ class ReplicateCollectorRedis(Migrate.Step):
                 )
                 return
 
-        if collectorRedis:
+        for collectorRedis in collectorRedises:
+            parent = ctx.getServiceParent(collectorRedis)
+            parentName = parent.name if parent else ""
+
             collectorRedis.startup = "{{ if ne .InstanceID 0 }} /bin/sed -i 's/# slaveof <masterip> <masterport>/slaveof rd1 6379/' /etc/redis.conf & {{ end }} /usr/bin/redis-server /etc/redis.conf"
             collectorRedis.changeOptions = ['restartAllOnInstanceZeroDown']
             collectorRedis.hostPolicy = 'REQUIRE_SEPARATE'
@@ -79,7 +77,7 @@ class ReplicateCollectorRedis(Migrate.Step):
                 sm.Endpoint(
                     name = 'CollectorRedis',
                     purpose = 'export',
-                    application = 'localhost_redis',
+                    application = parentName + '_redis',
                     portnumber = 6379,
                     protocol = 'tcp',
                     applicationtemplate = '{{(parent .).Name}}_redis'
@@ -88,7 +86,7 @@ class ReplicateCollectorRedis(Migrate.Step):
                 sm.Endpoint(
                     name = 'CollectorRedises',
                     purpose = 'import_all',
-                    application = 'localhost_redis',
+                    application = parentName + '_redis',
                     portnumber = 16379,
                     protocol = 'tcp',
                     applicationtemplate = '{{(parent .).Name}}_redis',
