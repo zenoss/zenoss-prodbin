@@ -562,7 +562,7 @@ class MetricFacade(ZuulFacade):
         :type start: str or int,float,long. string can be of the form "1h-ago"
         :param end: end of time range, defaults to 30s ago. Aggregate metrics benefit from a bit of lag
         :type end: str or int,float,long. string can be of the form "1h-ago"        
-        :param agg: how to aggregate the
+        :param agg: aggregation function for the time series. e.g. avg, sum
         :type agg: str
         :param downSample: how to downsample series. e.g. 1m-avg
         :type downSample: str
@@ -579,7 +579,7 @@ class MetricFacade(ZuulFacade):
         metric = self._buildMetric(component, dataPoint, agg)[0]
         #replace context specific tag with just device tag
         metric['tags'] = {'device': [device.id]}
-        #not needed for thes queries
+        #not needed for these queries
         if metric.has_key('name'):
             del metric['name']
         if metric.has_key('format'):
