@@ -97,7 +97,7 @@ def default_solr_service(imageid):
                 "Filename": "/opt/solr/zenoss/etc/solr.in.sh",
                 "Owner": "root:root",
                 "Permissions": "0664",
-                "Content": "# This file is injected by ControlCenter with container-specific parameters\n# ZK_HOST={{with $zks := (child (child (parent .) \"HBase\") \"ZooKeeper\").Instances }}{{range (each $zks)}}127.0.0.1:{{plus 2181 .}}{{if ne (plus 1 .) $zks}},{{end}}{{end}}{{end}}/solr\nSOLR_JAVA_MEM=\"-Xms{{.RAMCommitment}} -Xmx{{.RAMCommitment}}\"\n\n"
+                "Content": "# This file is injected by ControlCenter with container-specific parameters\n# ZK_HOST={{with $zks := (child (child (parent .) \"HBase\") \"ZooKeeper\").Instances }}{{range (each $zks)}}127.0.0.1:{{plus 2181 .}}{{if ne (plus 1 .) $zks}},{{end}}{{end}}{{end}}/solr\nSOLR_JAVA_MEM=\"-Xmx{{.RAMCommitment}}\"\n\n"
             },
             "/opt/solr/zenoss/etc/supervisor.conf": {
                 "Filename": "/opt/solr/zenoss/etc/supervisor.conf",
