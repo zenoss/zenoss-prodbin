@@ -21,6 +21,7 @@ def createInterface( device, id, speed, inputOctets, outputOctets,
     device.os.addIpInterface( id, False )
     interface = device.os.interfaces._getOb( id )
     interface.speed=speed
+    interface.adminStatus = 1
     interface.ifInputOctets_ifInputOctets=inputOctets
     interface.ifOutputOctets_ifOutputOctets=outputOctets
     for key, value in properties.iteritems():
