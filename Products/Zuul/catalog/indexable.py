@@ -17,7 +17,7 @@ from Products.ZenUtils.IpUtil import ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD
-from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType
+from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType, ListOfUntokenizedStringsFieldType
 from zenoss.modelindex.field_types import DictAsBase64StringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
@@ -49,7 +49,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             |  idx_path                  |  path                   |                 |     Y   |    Y    | list(str) |     Y     |
             |  idx_objectImplements      |  objectImplements       |                 |     Y   |    Y    | list(str) |     Y     |
             |  idx_allowedRolesAndUsers  |  allowedRolesAndUsers   |                 |     Y   |    Y    | list(str) |     Y     |
-            |  idx_searchKeywords        |  searchKeywords         |                 |     Y   |    Y    | list(str) |     Y     |
+            |  idx_searchKeywords        |  searchKeywords         |                 |     Y   |    Y    | list(str) |     N     |
             |  idx_searchExcerpt         |  searchExcerpt          |                 |     N   |    Y    |   str     |     N     |
             |  idx_searchIcon            |  searchIcon             |                 |     N   |    Y    |   str     |     N     |
             |  idx_monitored             |  monitored              |                 |     Y   |    Y    |   bool    |           |
@@ -239,7 +239,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
 
 
     # Fields for Searchables
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="searchKeywords")
+    @indexed(ListOfUntokenizedStringsFieldType(stored=True), attr_query_name="searchKeywords")
     def idx_searchKeywords(self):
         keywords = IIndexableWrapper(self).searchKeywords()
         if keywords:
