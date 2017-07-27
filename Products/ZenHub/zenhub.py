@@ -27,6 +27,8 @@ import collections
 import heapq
 import logging
 from metrology import Metrology
+from metrology.registry import registry
+from metrology.instruments import Gauge
 import time
 import signal
 import cPickle as pickle
@@ -445,6 +447,36 @@ class ZenHub(ZCmdBase):
         self.shutdown = False
         self.counters = collections.Counter()
         self._invalidations_paused = False
+
+        wl = self.workList
+        metricNames = {x[0] for x in registry}
+        class EventWorkList(Gauge):
+            @property
+            def value(self):
+                return len(wl.eventworklist)
+        if 'zenhub.eventWorkList' not in metricNames:
+            Metrology.gauge('zenhub.eventWorkList', EventWorkList())
+
+        class ADMWorkList(Gauge):
+            @property
+            def value(self):
+                return len(wl.applyworklist)
+        if 'zenhub.admWorkList' not in metricNames:
+            Metrology.gauge('zenhub.admWorkList', ADMWorkList())
+
+        class OtherWorkList(Gauge):
+            @property
+            def value(self):
+                return len(wl.otherworklist)
+        if 'zenhub.otherWorkList' not in metricNames:
+            Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
+
+        class WorkListTotal(Gauge):
+            @property
+            def value(self):
+                return len(wl)
+        if 'zenhub.workList' not in metricNames:
+            Metrology.gauge('zenhub.workList', WorkListTotal())
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
@@ -1032,9 +1064,7 @@ class ZenHub(ZCmdBase):
         r.gauge('services', len(self.services))
         r.counter('totalCallTime', totalTime)
         r.gauge('workListLength', len(self.workList))
-        r.gauge('eventWorkList', len(self.workList.eventworklist))
-        r.gauge('applyWorkList', len(self.workList.applyworklist))
-        r.gauge('otherWorkList', len(self.workList.otherworklist))
+
         for name, value in self.counters.items():
             r.counter(name, value)
 
