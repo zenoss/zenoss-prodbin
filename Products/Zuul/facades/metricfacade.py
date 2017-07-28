@@ -17,7 +17,7 @@ import itertools
 from collections import defaultdict
 from datetime import datetime, timedelta
 from zenoss.protocols.services import ServiceResponseError, ServiceConnectionError
-from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.facades import ZuulFacade, ObjectNotFoundException
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
@@ -547,6 +547,52 @@ class MetricFacade(ZuulFacade):
 
         return None
 
+    def getAggregatedMetric(self, device, componentType, metricName, returnSet=None, start='1h-ago', end='30s-ago', agg="sum", downSample=None):
+        """
+        For a device returns the aggregate time series for a metric belonging to components. e.g. aggregate interface
+        usage for all interfaces.
+        
+        :param device: Device object
+        :type device: Device
+        :param componentType: the name of the component meta type, used to look up metric definition (eg. rate, rpn etc)
+        :type componentType: str
+        :param metricName: name of the metric
+        :type metricName: str
+        :param start: start of time range, defaults to 1 hour ago
+        :type start: str or int,float,long. string can be of the form "1h-ago"
+        :param end: end of time range, defaults to 30s ago. Aggregate metrics benefit from a bit of lag
+        :type end: str or int,float,long. string can be of the form "1h-ago"        
+        :param agg: aggregation function for the time series. e.g. avg, sum
+        :type agg: str
+        :param downSample: how to downsample series. e.g. 1m-avg
+        :type downSample: str
+        :return: series for the metric
+        """
+        components = device.getDeviceComponents(type=componentType)
+        if not components:
+            raise ObjectNotFoundException("No components of type %s found" % componentType)
+        component = components[0] #get the first one to determine datapoint information
+        dataPoint = component.getRRDDataPoint(metricName)
+        if not dataPoint:
+            raise ObjectNotFoundException("Metric %s for %s not found" % (metricName, componentType))
+
+        metric = self._buildMetric(component, dataPoint, agg)[0]
+        #replace context specific tag with just device tag
+        metric['tags'] = {'device': [device.id]}
+        #not needed for these queries
+        if metric.has_key('name'):
+            del metric['name']
+        if metric.has_key('format'):
+            del metric['format']
+
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
+        request = self._buildRequest(None, [metric], start, end, returnSet, downSample)
+        # submit it to the client
+        content = self._metrics_connection.request(METRIC_URL_PATH, request)
+        if content is None:
+            return {}
+        return content
+ 
     def getMetricsForContexts(self, contexts, metricNames, start=None,
                                  end=None, format="%.2lf", cf="avg",
                                  downsample=None, timeout=10, isRate=False):
