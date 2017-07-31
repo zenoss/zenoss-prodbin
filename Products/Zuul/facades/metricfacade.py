@@ -547,7 +547,7 @@ class MetricFacade(ZuulFacade):
 
         return None
 
-    def getAggregatedMetric(self, device, componentType, metricName, returnSet=None, start='1h-ago', end='30s-ago', agg="sum", downSample=None):
+    def getAggregatedMetric(self, device, componentType, metricName, returnSet=None, start='1h-ago', end='30s-ago', agg="sum", downSample=None, format=''):
         """
         For a device returns the aggregate time series for a metric belonging to components. e.g. aggregate interface
         usage for all interfaces.
@@ -576,21 +576,23 @@ class MetricFacade(ZuulFacade):
         if not dataPoint:
             raise ObjectNotFoundException("Metric %s for %s not found" % (metricName, componentType))
 
-        metric = self._buildMetric(component, dataPoint, agg)[0]
+        metric = self._buildMetric(component, dataPoint, agg, format=format)
         #replace context specific tag with just device tag
-        metric['tags'] = {'device': [device.id]}
-        #not needed for these queries
-        if metric.has_key('name'):
-            del metric['name']
-        if metric.has_key('format'):
-            del metric['format']
+        for m in metric:
+            m['tags'] = {'device': [device.id]}
+            #not needed for these queries
 
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
-        request = self._buildRequest(None, [metric], start, end, returnSet, downSample)
+        request = self._buildRequest(None, metric, start, end, returnSet, downSample)
         # submit it to the client
         content = self._metrics_connection.request(METRIC_URL_PATH, request)
         if content is None:
             return {}
+        if format and content.get('results') is not None:
+            for item in content['results']:
+                if item.get('datapoints', False):
+                    for dp in item.get('datapoints'):
+                        dp['value'] = float(format % dp['value'])
         return content
  
     def getMetricsForContexts(self, contexts, metricNames, start=None,
