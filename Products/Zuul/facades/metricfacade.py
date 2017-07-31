@@ -579,8 +579,8 @@ class MetricFacade(ZuulFacade):
         metric = self._buildMetric(component, dataPoint, agg, format=format)
         #replace context specific tag with just device tag
         for m in metric:
+            #remove contextid tag so we can query for component metrics across device
             m['tags'] = {'device': [device.id]}
-            #not needed for these queries
 
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
         request = self._buildRequest(None, metric, start, end, returnSet, downSample)
