@@ -40,7 +40,7 @@ class ZProxyMetricGatherer(MetricGatherer):
     def _extract_data(self, metricdata, timestamp, instance=0):
         metrics = []
         prefix = 'zenoss.zproxy'
-        tags = {'zope_instance': instance}
+        tags = {'zenoss_zope_instance': instance}
         if 'Zope' in metricdata:
             zope_data = metricdata['Zope']
             for name in ["VmData", "VmExe", "VmHWM", "VmLck", "VmLib", "VmPTE",
@@ -94,18 +94,22 @@ class ZProxyMetricGatherer(MetricGatherer):
         if not zopes:
             return []
         for instance, zope in enumerate(zopes):
-            s = requests.Session()
-            result = s.get(self.ZPROXY_STATS_URL % zope)
-            if result.status_code == 200:
-                data = result.json()
-                now = time.time()
-                log.debug("Got stats info for zope %i: %s", instance,
-                          json.dumps(data, indent=2, sort_keys=True))
-                metrics.extend(self._extract_data(data, now, instance))
-            else:
-                log.warning("ZProxy stats request failed for zope %i: %d, %s",
-                            instance, result.status_code, result.text)
+            try:
+                s = requests.Session()
+                result = s.get(self.ZPROXY_STATS_URL % zope)
+                if result.status_code == 200:
+                    data = result.json()
+                    now = time.time()
+                    log.debug("Got stats info for zope %i: %s", instance,
+                              json.dumps(data, indent=2, sort_keys=True))
+                    metrics.extend(self._extract_data(data, now, instance))
+                else:
+                    log.warning("ZProxy stats request failed for zope %i: %d, %s",
+                                instance, result.status_code, result.text)
+            except Exception as e:
+                log.error("Error getting zope %i stats: %s", instance, e.message)
         log.debug("Built metrics: %s" % json.dumps(metrics, indent=2, sort_keys=True))
+        log.info("Gathered %i metrics", len(metrics))
         return metrics
 
 
