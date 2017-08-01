@@ -61,6 +61,8 @@ import sys
 import traceback
 from random import randint
 from itertools import chain
+from metrology import Metrology
+from metrology.instruments import Gauge
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -140,6 +142,9 @@ class ZenModeler(PBDaemon):
         # ZEN-26637
         self.collectorLoopIteration = 0
         self.mainLoopGotDeviceList = False
+
+        self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
+        self._failuresMetric = Metrology.counter("zenmodeler.failures")
 
     def reportError(self, error):
         """
@@ -710,10 +715,12 @@ class ZenModeler(PBDaemon):
             @type result: object
             """
             self.counters['modeledDevicesCount'] += 1
+            self._modeledDevicesMetric.mark(self.counters['modeledDevicesCount'])
             # result is now the result of remote_applyDataMaps (from processClient)
             if result and isinstance(result, (basestring, Failure)):
                 self.log.error("Client %s finished with message: %s" %
                                (device.id, result))
+                self._failuresMetric.increment()
             else:
                 self.log.debug("Client %s finished" % device.id)
 
@@ -792,10 +799,10 @@ class ZenModeler(PBDaemon):
     def postStatisticsImpl(self):
         # save modeled device rate
         self.rrdStats.derive('modeledDevices', self.counters['modeledDevicesCount'])
-        self.rrdStats.derive('zenmodeler.modeledDevices', self.counters['modeledDevicesCount'])
 
         # save running count
         self.rrdStats.gauge('modeledDevicesCount', self.counters['modeledDevicesCount'])
+
 
     def _getCountersFile(self):
         return zenPath('var/%s_%s.pickle' % (self.name, self.options.monitor,))
