@@ -2127,6 +2127,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
     };
 
     displayEditTriggerDialogue = function(data) {
+        /* Sanitize the trigger name to prevent XSS attacks as per ZEN-28005 */
         var title = Ext.String.format("{0} - {1}", _t('Edit Trigger'), data['name']);
         title = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         editTriggerDialogue = Ext.create('Zenoss.trigger.EditTriggerDialogue', {

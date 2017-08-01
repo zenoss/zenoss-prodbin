@@ -116,6 +116,7 @@ Ext.onReady(function() {
             Ext.each(this.keys, function(key) {
                 var v = renderedData[key];
                 if (v && typeof(v) == 'string' && key == 'device') {
+                    /* Sanitize the device name to prevent XSS attacks as per ZEN-28005 */
                     v = v.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 }
                 props[key] = v;
@@ -613,6 +614,7 @@ Ext.onReady(function() {
                 } else {
                     var v = eventData[key];
                     if (v && typeof(v) == 'string' && key == 'device') {
+                        /* Sanitize the device name to prevent XSS attacks as per ZEN-28005 */
                         v = v.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     }
                     renderedData[key] = this.extractData(key, v, eventData);
