@@ -62,7 +62,6 @@ import traceback
 from random import randint
 from itertools import chain
 from metrology import Metrology
-from metrology.instruments import Gauge
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -715,7 +714,7 @@ class ZenModeler(PBDaemon):
             @type result: object
             """
             self.counters['modeledDevicesCount'] += 1
-            self._modeledDevicesMetric.mark(self.counters['modeledDevicesCount'])
+            self._modeledDevicesMetric.mark()
             # result is now the result of remote_applyDataMaps (from processClient)
             if result and isinstance(result, (basestring, Failure)):
                 self.log.error("Client %s finished with message: %s" %
