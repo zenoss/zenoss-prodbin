@@ -2116,9 +2116,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             this.tab_users.globalWrite.setValue(data.globalWrite);
             this.tab_users.globalManage.setValue(data.globalManage);
 
-
             this.tab_users.users_grid.getStore().loadData(data.users);
-
         }
     });
 
@@ -2129,9 +2127,10 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
     };
 
     displayEditTriggerDialogue = function(data) {
-
+        var title = Ext.String.format("{0} - {1}", _t('Edit Trigger'), data['name']);
+        title = title.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         editTriggerDialogue = Ext.create('Zenoss.trigger.EditTriggerDialogue', {
-            title: Ext.String.format("{0} - {1}", _t('Edit Trigger'), data['name']),
+            title: title,
             directFn: router.updateTrigger,
             reloadFn: reloadTriggersGrid,
             validateFn: router.parseFilter
@@ -2151,7 +2150,6 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         } else {
             enableTabContents(editTriggerDialogue.tab_users);
         }
-
     };
 
     addTriggerDialogue = Ext.create('Zenoss.trigger.AddDialogue', {
