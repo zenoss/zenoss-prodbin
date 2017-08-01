@@ -803,7 +803,6 @@ class ZenModeler(PBDaemon):
         # save running count
         self.rrdStats.gauge('modeledDevicesCount', self.counters['modeledDevicesCount'])
 
-
     def _getCountersFile(self):
         return zenPath('var/%s_%s.pickle' % (self.name, self.options.monitor,))
 
