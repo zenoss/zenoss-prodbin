@@ -161,7 +161,7 @@ function hideWindow(button){
 /**
  * @class Zenoss.dialog.HideDialogButton
  * @extends Ext.Button
- * A button that hides it's window.
+ * A button that hides its window.
  * @constructor
  */
 Ext.define("Zenoss.dialog.HideDialogButton", {

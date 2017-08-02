@@ -114,7 +114,12 @@ Ext.onReady(function() {
             var template = new Ext.XTemplate(this.template),
                 props = {};
             Ext.each(this.keys, function(key) {
-                props[key] = renderedData[key];
+                var v = renderedData[key];
+                if (v && typeof(v) == 'string' && key == 'device') {
+                    /* Sanitize the device name to prevent XSS attacks as per ZEN-28005 */
+                    v = v.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                }
+                props[key] = v;
             });
             return template.apply(props);
         }
@@ -139,9 +144,13 @@ Ext.onReady(function() {
                             properties: []
                         };
                     Ext.each(this.keys, function(key) {
+                        var v = renderedData[key];
+                        if (v && typeof(v) == 'string' && key == 'device') {
+                            v = v.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        }
                         props.properties.push({
                             key: key,
-                            value: renderedData[key]
+                            value: v
                         });
                     });
                     return template.apply(props);
@@ -602,9 +611,13 @@ Ext.onReady(function() {
                         });
                     }, this);
                     renderedData[key] = detailsData;
-                }
-                else {
-                    renderedData[key] = this.extractData(key, eventData[key], eventData);
+                } else {
+                    var v = eventData[key];
+                    if (v && typeof(v) == 'string' && key == 'device') {
+                        /* Sanitize the device name to prevent XSS attacks as per ZEN-28005 */
+                        v = v.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    }
+                    renderedData[key] = this.extractData(key, v, eventData);
                 }
             }, this);
 

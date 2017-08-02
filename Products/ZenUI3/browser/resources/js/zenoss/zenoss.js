@@ -1,6 +1,6 @@
 /* global EventActionManager:true, moment:true */
 /* jshint freeze: false, eqeqeq: false */
-/*TODO: move overriding the prototype to a util funciton */
+/*TODO: move overriding the prototype to a util function */
 (function(){ // Local scope
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.

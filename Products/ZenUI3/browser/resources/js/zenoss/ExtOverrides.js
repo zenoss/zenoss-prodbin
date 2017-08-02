@@ -447,8 +447,6 @@ Ext.override(Ext.util.Sorter, {
 
     });
 
-
-
     /*
         Fixes a known issue in Ext where sometimes the target is null and so getTarget cannot connect the
         event to the target at that moment. One suggestion on the forums is to update ExtJs. We're not
