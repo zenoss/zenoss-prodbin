@@ -13,6 +13,19 @@
 Ext.define("Zenoss.form.DataPointItemSelector", {
     alias:['widget.datapointitemselector'],
     extend:"Ext.ux.form.ItemSelector",
+    listeners: {
+        // show datapoint name and its RPN according to datapoints that
+        // were selected in selector form
+        change: function(obj, event) {
+            rpnTextObj = Ext.ComponentQuery.query('[name=rpnused]')[0];
+            if (rpnTextObj) {
+                rpnTextObj.setValue('');
+                Ext.each(obj.getValue(), function(dpname, index){
+                    rpnTextObj.setValue(rpnTextObj.value + dpname + ": " + rpnTextObj.record.allDataPoints[dpname] + "; ");
+                });
+            }
+        }
+    },
     constructor: function(config) {
         var record = config.record;
 
@@ -27,7 +40,7 @@ Ext.define("Zenoss.form.DataPointItemSelector", {
             drawDownIcon: false,
             drawTopIcon: false,
             drawBotIcon: false,
-            store: record.allDataPoints
+            store: Object.keys(record.allDataPoints)
         });
         this.callParent(arguments);
     },

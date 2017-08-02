@@ -583,6 +583,9 @@ class MinMaxThresholdInfo(ThresholdInfo):
     explanation = ProxyProperty("explanation")
     resolution = ProxyProperty("resolution")
 
+    @property
+    def rpnused(self):
+        return '; '.join('{}: {}'.format(key, val) for key, val in self._object.getDataPointsWithRPN().items())
 
 class GraphInfo(InfoBase):
 
