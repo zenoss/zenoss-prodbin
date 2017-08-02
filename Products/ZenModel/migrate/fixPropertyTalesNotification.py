@@ -15,7 +15,7 @@ Setting default values for E-mail notifications.
 import Migrate
 
 class addTalesProperty(Migrate.Step):
-    version = Migrate.Version(114, 0, 0)
+    version = Migrate.Version(115, 0, 0)
 
     def cutover(self, dmd):
         for notif in dmd.NotificationSubscriptions.objectValues():
