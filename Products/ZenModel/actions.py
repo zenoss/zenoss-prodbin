@@ -446,13 +446,18 @@ class EmailAction(IActionBase, TargetableAction):
                 log.debug("Adding recipients defined in the event %s", mail_targets)
                 targets |= set(mail_targets)
 
+            if notification.content.has_key('skipfails'):
+                skipfails = notification.content['skipfails'];
+            else:
+                skipfails = False
+
             if signal.clear:
                 log.debug("Generating a notification at enabled 'Send Clear' option when event was closed")
-                subject = processTalSource(notification.content['clear_subject_format'], notification.content['skipfails'], **data)
-                body = processTalSource(notification.content['clear_body_format'], notification.content['skipfails'], **data)
+                subject = processTalSource(notification.content['clear_subject_format'], skipfails, **data)
+                body = processTalSource(notification.content['clear_body_format'], skipfails, **data)
             else:
-                subject = processTalSource(notification.content['subject_format'], notification.content['skipfails'], **data)
-                body = processTalSource(notification.content['body_format'], notification.content['skipfails'], **data)
+                subject = processTalSource(notification.content['subject_format'], skipfails, **data)
+                body = processTalSource(notification.content['body_format'], skipfails, **data)
 
             log.debug('Sending this subject: %s', subject)
 
@@ -559,11 +564,17 @@ class PageAction(IActionBase, TargetableAction):
         self.setupAction(notification.dmd)
         log.debug('Executing page action: %s', self.name)
         data = self._signalToContextDict(signal, notification)
+
+        if notification.content.has_key('skipfails'):
+            skipfails = notification.content['skipfails']
+        else:
+            skipfails = False
+
         if signal.clear:
             log.debug('This is a clearing signal.')
-            subject = processTalSource(notification.content['clear_subject_format'], notification.content['skipfails'], **data)
+            subject = processTalSource(notification.content['clear_subject_format'], skipfails, **data)
         else:
-            subject = processTalSource(notification.content['subject_format'], notification.content['skipfails'], **data)
+            subject = processTalSource(notification.content['subject_format'], skipfails, **data)
 
         msg = str(subject)
 
