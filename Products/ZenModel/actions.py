@@ -446,10 +446,7 @@ class EmailAction(IActionBase, TargetableAction):
                 log.debug("Adding recipients defined in the event %s", mail_targets)
                 targets |= set(mail_targets)
 
-            if notification.content.has_key('skipfails'):
-                skipfails = notification.content['skipfails'];
-            else:
-                skipfails = False
+            skipfails = notification.content.get('skipfails', False)
 
             if signal.clear:
                 log.debug("Generating a notification at enabled 'Send Clear' option when event was closed")
@@ -565,10 +562,7 @@ class PageAction(IActionBase, TargetableAction):
         log.debug('Executing page action: %s', self.name)
         data = self._signalToContextDict(signal, notification)
 
-        if notification.content.has_key('skipfails'):
-            skipfails = notification.content['skipfails']
-        else:
-            skipfails = False
+        skipfails = notification.content.get('skipfails', False)
 
         if signal.clear:
             log.debug('This is a clearing signal.')
