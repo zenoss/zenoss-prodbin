@@ -17134,13 +17134,13 @@
      "DisableImage": false,
      "LogConfigs": [
        {
-         "Path": "/var/log/rabbitmq/rabbit@rbt{{.InstanceID}}.log",
+         "Path": "/var/log/rabbitmq/rabbit@rbt[0-9]*.log",
          "Type": "rabbitmq",
          "Filters": null,
          "LogTags": null
        },
        {
-         "Path": "/var/log/rabbitmq/rabbit@rbt{{.InstanceID}}-sasl.log",
+         "Path": "/var/log/rabbitmq/rabbit@rbt[0-9]*-sasl.log",
          "Type": "rabbitmq_sasl",
          "Filters": null,
          "LogTags": null
