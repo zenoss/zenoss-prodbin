@@ -35,11 +35,11 @@ class UpdateRabbitMQLogPaths(Migrate.Step):
             for logConfig in svc.logConfigs:
                 if logConfig.logType == "rabbitmq" and "localhost" in logConfig.path:
                     log.info("Updating rabbitmq log file location")
-                    logConfig.path = "/var/log/rabbitmq/rabbit@rbt{{.InstanceID}}.log"
+                    logConfig.path = "/var/log/rabbitmq/rabbit@rbt[0-9]*.log"
                     changed = True
                 if logConfig.logType == "rabbitmq_sasl" and "localhost" in logConfig.path:
                     log.info("Updating rabbitmq_sasl log file location")
-                    logConfig.path = "/var/log/rabbitmq/rabbit@rbt{{.InstanceID}}-sasl.log"
+                    logConfig.path = "/var/log/rabbitmq/rabbit@rbt[0-9]*-sasl.log"
                     changed = True
         if changed:
             # Commit our changes.
