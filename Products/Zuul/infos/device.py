@@ -89,8 +89,8 @@ class DeviceOrganizerNode(TreeNode):
         tree = getattr(self._root, attr_name, None)
         if tree is None:
             node_type = "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-            leave_type = "Products.ZenModel.Device.Device"
-            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leave_type)
+            leaf_type = "Products.ZenModel.Device.Device"
+            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type)
             setattr(self._root, attr_name, tree)
         return tree
 
@@ -153,7 +153,7 @@ class DeviceOrganizerNode(TreeNode):
             if self.load_tree_from_catalog:
                 obj = self._get_object()
                 node_path = "/".join(obj.getPrimaryPath())
-                count = self.tree_from_catalog.get_leave_count(node_path)
+                count = self.tree_from_catalog.get_leaf_count(node_path)
             else:
                 # De-duplicate so we don't repeatedly count the same device in
                 # multiple sub-organizers.

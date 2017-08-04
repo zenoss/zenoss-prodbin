@@ -19,20 +19,20 @@ class ModelCatalogTreeNode(object):
         self.path = path
         self.id = path.split("/")[-1]
         self.child_trees = {}
-        self.partial_leave_count = 0   # count not including children
-        self.total_leave_count = 0     # count including children
+        self.partial_leaf_count = 0   # count not including children
+        self.total_leaf_count = 0     # count including children
 
 
 class ModelCatalogTreeBuilder(object):
     """
     Builds a Navigation Tree using Model Catalog 
     """
-    def __init__(self, root, node_type, leave_type):
+    def __init__(self, root, node_type, leaf_type):
         """
         @param root:        root node of the tree
         @param node_type:   value of the object_implements field to query the catalog for nodes
                                 Ex: "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-        @param leave_type:  value of the object_implements field to query the catalog for leaves
+        @param leaf_type:   value of the object_implements field to query the catalog for leaves
                                 Ex: "Products.ZenModel.Device.Device"
         """
         self.root = root               # root object for which we are building the tree
@@ -42,16 +42,18 @@ class ModelCatalogTreeBuilder(object):
         self.root_path = "/".join(self.root.getPrimaryPath())
         self.model_catalog = IModelCatalogTool(self.root.dmd)
         self.node_objectImplements = node_type
-        self.leave_objectImplements = leave_type
+        self.leaf_objectImplements = leaf_type
         # Build the cache
         self.build_tree()
-        self.load_leave_counts()
+        self.load_leaf_counts()
 
     def _query_catalog(self, objectImplements, filter_permissions=True):
-        type_query = Eq("objectImplements", objectImplements)
-        path_query = MatchGlob("path", "{}*".format(self.root_path))
-        fields = [ UID, "name", "id", "uuid" ]
-        return self.model_catalog.search(query=And(type_query, path_query), fields=fields, filterPermissions=filter_permissions)
+        params = {}
+        params["types"] = objectImplements
+        params["paths"] = self.root_path
+        params["fields"] = [ UID, "name", "id", "uuid" ]
+        params["filterPermissions"] = filter_permissions
+        return self.model_catalog.search(**params)
 
     def build_tree(self):
         """
@@ -92,31 +94,31 @@ class ModelCatalogTreeBuilder(object):
                     self.trees[current_path] = new_tree
                 current_tree = current_tree.child_trees[subtree]
 
-    def load_leave_counts(self):
+    def load_leaf_counts(self):
         # TODO Investigate if this would be faster using solr facets
         # load all leaves for the tree and it subtrees
-        search_results = self._query_catalog(self.leave_objectImplements)
+        search_results = self._query_catalog(self.leaf_objectImplements)
         for child_brain in search_results.results:
             # Get the parent node path
             parent_path = "/".join(child_brain.uid.split("/")[:-2])
             if parent_path in self.trees:
-                self.trees[parent_path].partial_leave_count += 1
+                self.trees[parent_path].partial_leaf_count += 1
 
         # Now get the total child count per node from the bottom up
         nodes_uids = self.trees.keys()
         nodes_uids.sort(reverse=True, key=lambda x: len(x))
         for node_uid in nodes_uids:
             current_tree = self.trees[node_uid]
-            leave_count = 0
+            leaf_count = 0
             for child_tree in current_tree.child_trees.itervalues():
-                leave_count += child_tree.total_leave_count
-            current_tree.total_leave_count = current_tree.partial_leave_count + leave_count
+                leaf_count += child_tree.total_leaf_count
+            current_tree.total_leaf_count = current_tree.partial_leaf_count + leaf_count
 
     def _tree_to_str(self, current_tree=None, level=1):
         lines = []
         if current_tree is None:
             current_tree = self.root_tree
-        lines.append("{}{} ({})".format('  '*level, current_tree.id.ljust(15), current_tree.total_leave_count))
+        lines.append("{}{} ({})".format('  '*level, current_tree.id.ljust(15), current_tree.total_leaf_count))
         for child_tree in current_tree.child_trees.itervalues():
             self._print_tree(child_tree, level+1)
         return "\n".join(lines)
@@ -128,9 +130,9 @@ class ModelCatalogTreeBuilder(object):
         brains = [ self.brains[subtree.path] for subtree in subtrees if self.brains.get(subtree.path)]
         return brains
 
-    def get_leave_count(self, node_path):
+    def get_leaf_count(self, node_path):
         count = 0
         node_tree = self.trees.get(node_path)
         if node_tree:
-            count = node_tree.total_leave_count
+            count = node_tree.total_leaf_count
         return count
