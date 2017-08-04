@@ -50,6 +50,7 @@ var deviceColumns = [
         id: 'status',
         dataIndex: 'status',
         sortable: true,
+        hidden: true,
         filter: {
             xtype: 'multiselect-devicestatus'
         },
