@@ -436,7 +436,7 @@ class ZenPropertyManager(object, PropertyManager):
     def zenPropIsPassword(self, id):
         """Is this field a password field.
         """
-        passwordTypes = ['password', 'passwd', 'multilinecredentials']
+        passwordTypes = ['password', 'passwd', 'multilinecredentials', 'instancecredentials']
         return self.getPropertyType(id) in passwordTypes
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyPath')
