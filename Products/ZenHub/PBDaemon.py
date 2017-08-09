@@ -382,12 +382,14 @@ class EventQueueManager(object):
         self._initQueues()
         self._eventsSent = Metrology.meter("collectordaemon.eventsSent")
         self._discardedEvents = Metrology.meter("collectordaemon.discardedEvent")
-        queue = self
-        class EventQueueGauge(Gauge):
-            @property
-            def value(self):
-                return queue.event_queue_length
-        Metrology.gauge('collectordaemon.eventQueue', EventQueueGauge())
+        metricNames = {x[0] for x in registry}
+        if 'collectordaemon.eventQueue' not in metricNames:
+            queue = self
+            class EventQueueGauge(Gauge):
+                @property
+                def value(self):
+                    return queue.event_queue_length
+            Metrology.gauge('collectordaemon.eventQueue', EventQueueGauge())
 
 
     def _initQueues(self):
