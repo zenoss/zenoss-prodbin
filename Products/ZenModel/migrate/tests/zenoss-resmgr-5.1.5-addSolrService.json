@@ -18565,8 +18565,11 @@
       {
         "Protocol": "tcp",
         "Name": "solr",
-        "Vhosts": [
-          "solr"
+        "VHostList": [
+          {
+            "Enabled": false,
+            "Name": "solr" 
+          }
         ],
         "Application": "zodb_solr",
         "PortNumber": 8983,
