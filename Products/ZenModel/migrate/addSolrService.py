@@ -54,7 +54,10 @@ class AddSolrService(Migrate.Step):
             # Remove zencatalogservice, if it still exists
             if svc.name == "zencatalogservice":
                 svcid = svc._Service__data['ID']
-                ctx._client.deleteService(svcid)
+                # ZEN-28127: during unittests, ctx is an instance of
+                # FakeServiceContext which is set to None.
+                if ctx._client is not None:
+                    ctx._client.deleteService(svcid)
                 ctx.services.remove(svc)
                 changed = True
                 continue
