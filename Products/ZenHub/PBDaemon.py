@@ -27,6 +27,7 @@ from itertools import chain
 from functools import partial
 from metrology import Metrology
 from metrology.instruments import Gauge
+from metrology.registry import registry
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer, task
