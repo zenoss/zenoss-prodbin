@@ -15,13 +15,14 @@ warnings.filterwarnings('ignore', 'assertion is always true', SyntaxWarning)
 
 from twisted.web import xmlrpc
 
+import cgi
 import types
-
 import DateTime
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.Zuul import getFacade
 from Products.ZenUtils.ZenTales import talesEval
+
 
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
@@ -36,6 +37,11 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
 
     def xmlrpc_sendEvent(self, data):
+        # Fix for ZEN-28005 to thwart XSS attacks from incoming events
+        for f in data:
+            if f in ("eventClassKey", "component", "summary", "device", "eventClass"):
+                if data[f] is not None and len(data[f]) > 0:
+                    data[f] = cgi.escape(data[f])
         'XMLRPC requests are processed asynchronously in a thread'
         result = self.zem.sendEvent(data)
         if result is None:
