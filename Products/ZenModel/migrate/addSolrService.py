@@ -115,8 +115,11 @@ def default_solr_service(imageid):
                 "PortNumber": 8983,
                 "Protocol": "tcp",
                 "Purpose": "export",
-                "Vhosts": [
-                    "solr"
+                "VHostList": [
+                    {
+                        "Enabled": false,
+                        "Name": "solr"
+                    }
                 ]
             }
         ],
