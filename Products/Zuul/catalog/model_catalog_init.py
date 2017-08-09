@@ -32,6 +32,7 @@ from Products.Zuul.catalog.model_catalog import get_solr_config
 from Products.Zuul.utils import dottedname
 from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
+from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 
 log = logging.getLogger('zenoss.model_catalog_reindexer')
 log.setLevel(logging.INFO)
@@ -79,7 +80,9 @@ class ReindexProcess(multiprocessing.Process):
 
         self._batch = []
 
-        self.dmd = ZenScriptBase(connect=True).dmd
+        zsb = ZenScriptBase(connect=True)
+        self.dmd = zsb.dmd
+        self._db = zsb.db
         self.index_client = zope.component.createObject('ModelIndex', get_solr_config())
 
     def get_work(self):
@@ -160,46 +163,47 @@ class ReindexProcess(multiprocessing.Process):
         Operates on uids/nodes from get_work until exhausted.
         """
         with worker_context(self):
-            count = 0
-            while True:
-                if self.cancel.is_set() or self.terminate.is_set():
-                    return
-                for uid in self.get_work():
-                    if self.terminate.is_set():
-                        # If terminate is set, we exit immediately, leaving data behind
+            with gc_cache_every(1000, self._db):
+                count = 0
+                while True:
+                    if self.cancel.is_set() or self.terminate.is_set():
                         return
+                    for uid in self.get_work():
+                        if self.terminate.is_set():
+                            # If terminate is set, we exit immediately, leaving data behind
+                            return
 
-                    checkLogging(self.logtoggle)
+                        checkLogging(self.logtoggle)
 
-                    if uid == TERMINATE_SENTINEL:
-                        log.debug('Worker {0} found sentinel'.format(self.idx))
-                        self.cancel.set()
-                        self.notify_parent(True)
-                        break
-                    try:
-                        self.process(uid)
-                    except Exception:
-                        self.handle_exception()
-                        continue
-                    count += 1
-                    # update our counter every so often (less lock usage)
-                    if count >= 1000:
+                        if uid == TERMINATE_SENTINEL:
+                            log.debug('Worker {0} found sentinel'.format(self.idx))
+                            self.cancel.set()
+                            self.notify_parent(True)
+                            break
+                        try:
+                            self.process(uid)
+                        except Exception:
+                            self.handle_exception()
+                            continue
+                        count += 1
+                        # update our counter every so often (less lock usage)
+                        if count >= 1000:
+                            with self.counter.get_lock():
+                                self.counter.value += count
+                            count = 0
+                            log.debug('Worker {0} notifying parent of count update'.format(self.idx))
+                            self.notify_parent()
+                    # Flush the index batch dregs
+                    self.index(True)
+                    if count:
                         with self.counter.get_lock():
                             self.counter.value += count
                         count = 0
-                        log.debug('Worker {0} notifying parent of count update'.format(self.idx))
-                        self.notify_parent()
-                # Flush the index batch dregs
-                self.index(True)
-                if count:
-                    with self.counter.get_lock():
-                        self.counter.value += count
-                    count = 0
-                # Should we die? Or wait for more work from the parent?
-                if self.cancel.is_set() or self.terminate.is_set():
-                    return
-                log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
-                self.notify_parent(True)
+                    # Should we die? Or wait for more work from the parent?
+                    if self.cancel.is_set() or self.terminate.is_set():
+                        return
+                    log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
+                    self.notify_parent(True)
 
 
 class HardReindex(ReindexProcess):
