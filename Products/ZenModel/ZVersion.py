@@ -8,5 +8,5 @@
 ##############################################################################
 
 # this is now generated during the build step
-VERSION="5.3.0"
+VERSION="6.0.0"
 BUILD_NUMBER="DEV"

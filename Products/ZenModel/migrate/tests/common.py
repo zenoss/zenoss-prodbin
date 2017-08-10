@@ -23,6 +23,9 @@ def fakeContextFromFile(jsonfile):
             for datum in json.loads(open(jsonfile, 'r').read()):
                 self.services.append(service.deserialize(datum))
             self.version = self.services[0]._Service__data["Version"]
+            # ZEN-28127 _client is a ref to ZenUtils.controlplane.ControlPlaneClient,
+            # which we don't need during unit-tests. So set it to None
+            self._client = None
 
         def commit(self, filename=None):
             addedServices = []
