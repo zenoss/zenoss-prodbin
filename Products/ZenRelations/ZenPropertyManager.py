@@ -305,7 +305,7 @@ class ZenPropertyManager(object, PropertyManager):
 
     def _setProperty(
             self, id, value, type='string', label=None,
-            visible=True, setter=None):
+            visible=True, setter=None, description=None):
         """For selection and multiple selection properties the value
         argument indicates the select variable of the property.
         """
@@ -318,6 +318,8 @@ class ZenPropertyManager(object, PropertyManager):
                 pschema['setter'] = setter
             if label:
                 pschema['label'] = label
+            if description:
+                pschema['description'] = description
             self._properties = self._properties + (pschema,)
 
         if type in ('selection', 'multiple selection'):

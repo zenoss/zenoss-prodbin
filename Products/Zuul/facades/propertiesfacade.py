@@ -8,12 +8,71 @@
 ##############################################################################
 
 import re
+
+from Acquisition import aq_chain
 from DateTime import DateTime
 from zope.interface import implementer
+
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IPropertiesFacade
 
 iscustprop = re.compile("c[A-Z]").match
+
+
+def _getOwnerAndProperty(obj, propId):
+    # Returns the property dict object and the object that 'owns' the
+    # property.  The return value is a tuple, e.g. (obj, dict).
+    return next((
+        (
+            ob,
+            next((
+                pmap
+                for pmap in ob.propertyMap()
+                if pmap['id'] == propId
+            ), None)
+        )
+        for ob in aq_chain(obj)
+        if isinstance(ob, ZenPropertyManager) and ob.hasProperty(propId)
+    ), (None, None))
+
+
+def _makePropertyData(obj, propId):
+    # Returns a dict containing the following keys:
+    # id, type, select_variable, label, description, uid, islocal, value,
+    # and valueAsString.
+    # The value and valueAsString keys are missing for password properties.
+    propObj, propData = _getOwnerAndProperty(obj, propId)
+    propData = propData.copy()
+    if not propObj:
+        return None
+    # 'visible' and 'mode' are not used in Zenoss.
+    for key in ('visible', 'mode'):
+        if key in propData:
+            propData.pop(key)
+    propData['uid'] = '/'.join(propObj.getPrimaryPath())
+    propData['islocal'] = (propObj is obj)
+    if not propObj.zenPropIsPassword(propId):
+        propData['value'] = propObj.getProperty(propId)
+        propData['valueAsString'] = propObj.zenPropertyString(propId)
+    return propData
+
+
+def _checkConstraints(self, prop, constraints):
+    # 'prop' is the property dict (produced by _makePropertyData).
+    # 'constraints' is a dict of predicates that must be true for the
+    # given property attribute.  If any predicate fails, this function
+    # returns False.
+    # Note: a 'predicate' is a function that returns a boolean value based
+    # on its arguments.
+    for fieldId, predicates in constraints.iteritems():
+        if fieldId not in prop:
+            continue
+        if not isinstance(predicates, (list, tuple)):
+            predicates = [predicates]
+        if not all(predicate(prop) for predicate in predicates):
+            return False
+    return True
 
 
 @implementer(IPropertiesFacade)
@@ -75,7 +134,8 @@ class PropertiesFacade(ZuulFacade):
             value = value.split("\n") if value else []
         return value
 
-    def addCustomProperty(self, id, value, label, uid, type):
+    def addCustomProperty(
+            self, id, value, label, uid, type, description=None):
         """
         Adds a custom property from the UI
         """
@@ -89,7 +149,7 @@ class PropertiesFacade(ZuulFacade):
         elif obj.hasProperty(id):
             raise Exception("Custom Property already exists.")
         else:
-            obj._setProperty(id, value, type, label)
+            obj._setProperty(id, value, type, label, description=description)
 
     def setZenProperty(self, uid, zProperty, value):
         """
@@ -104,9 +164,9 @@ class PropertiesFacade(ZuulFacade):
         @param value: What you want the new value of the property to be
         """
         obj = self._getObject(uid)
-        # make sure it is the correct type
+        # Make sure it is the correct type
         value = self._checkType(obj, zProperty, type, value)
-        # do not save * as passwords
+        # Do not save * as passwords
         if obj.zenPropIsPassword(zProperty) \
                 and value == obj.zenPropertyString(zProperty):
             return
@@ -154,13 +214,10 @@ class PropertiesFacade(ZuulFacade):
                 "path":    obj.zenPropertyPath(cId),
                 "options": obj.zenPropertyOptions(cId),
                 "label":   entry.get("label"),
-                "value":   None,
-                "valueAsString": obj.zenPropertyString(cId)
             }
             if not obj.zenPropIsPassword(cId):
                 prop['value'] = obj.getZ(cId)
-            else:
-                prop['value'] = obj.zenPropertyString(cId)
+                prop['valueAsString'] = obj.zenPropertyString(cId)
             props.append(prop)
         return props
 
@@ -186,3 +243,86 @@ class PropertiesFacade(ZuulFacade):
             prop['value'] = obj.getZ(zProperty)
             prop['valueAsString'] = obj.zenPropertyString(zProperty)
         return prop
+
+    def updateCustomProperty(
+            self, uid, id,
+            select_variable=None, label=None, description=None):
+        """Change the attributes of a custom property.
+        """
+        obj = self._getObject(uid)
+        propId = id.strip()
+
+        if not iscustprop(propId):
+            raise ValueError(
+                "Invalid Custom Property. Name must start with lower case c"
+            )
+
+        owner, pmap = _getOwnerAndProperty(obj, propId)
+        if owner is None:
+            raise ValueError("Custom property does not exist.")
+
+        if select_variable:
+            if not obj.hasProperty(select_variable, useAcquisition=True):
+                raise ValueError(
+                    "Selection source variable does not exist: %s"
+                    % select_variable
+                )
+            if description is None:
+                description = pmap.get("description")
+            if owner != obj:
+                self.addCustomProperty(
+                    id, select_variable, label, uid, 'selection',
+                    description=description
+                )
+            else:
+                obj.propdict()[propId]['select_variable'] = select_variable
+            newowner, newmap = _getOwnerAndProperty(obj, propId)
+
+    def query(self, uid, constraints=None):
+        """Returns a list of properties.
+
+        E.g. to select all custom properties:
+            cprops = facade.query(
+                '/zport/dmd/Devices',
+                constraints=[lambda x: x['id'].startswith('c')]
+            )
+
+        This method returns a list of dicts that resemble the following
+        example:
+
+            {
+                'uid': str,
+                'id': str,
+                'label': str,
+                'description': str,
+                'type': str,
+                'select_variable': str or None,
+                'value': object,
+                'valueAsString': str
+                'islocal': boolean
+            }
+
+        Notes:
+          * For password properties, the 'value' and 'valueAsString'
+            fields are always None.
+          * 'ctxId' is the combination of 'uid' and 'id' and serves as the
+            unique identifer for the dict.
+
+        @param constraints {list} A list of predicate functions.  The
+            property must be valid for all predicates for inclusion
+            in the result.
+        """
+        if constraints is None:
+            constraints = []
+        if not isinstance(constraints, (list, tuple)):
+            constraints = [constraints]
+
+        obj = self._getObject(uid)
+        result = []
+        for pdict in obj.getZenRootNode().propertyMap():
+            propData = _makePropertyData(obj, pdict['id'])
+            if not propData:
+                continue
+            if all(constraint(propData) for constraint in constraints):
+                result.append(propData)
+        return result

@@ -15,6 +15,8 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul.decorators import contextRequire, serviceConnectionError
 
+_exclusions = ('zCollectorPlugins', 'zCredentialsZProperties')
+
 
 def _filterData(params, data):
     """
@@ -42,8 +44,8 @@ def _sortData(sort, data, dir):
     """
     @param data: data to be sorted and returned
     """
-    reverse = bool(dir != 'ASC')
-    return sorted(data, key=lambda row: row[sort], reverse=reverse)
+    reverse = (dir != "ASC")
+    return sorted(data, key=lambda row: row.get(sort, None), reverse=reverse)
 
 
 class PropertiesRouter(DirectRouter):
@@ -62,10 +64,7 @@ class PropertiesRouter(DirectRouter):
         @param uid: unique identifier of an object
         """
         facade = self._getFacade()
-        data = facade.getZenProperties(
-            uid,
-            exclusionList=('zCollectorPlugins', 'zCredentialsZProperties')
-        )
+        data = facade.getZenProperties(uid, exclusionList=_exclusions)
         data = _filterData(params, data)
         if sort:
             data = _sortData(sort, data, dir)
@@ -113,7 +112,7 @@ class PropertiesRouter(DirectRouter):
         facade = self._getFacade()
         facade.addCustomProperty(id, value, label, uid, type)
         return DirectResponse.succeed(
-            msg="Property %s added successfully." % (id)
+            msg="Property %s added successfully." % (id,)
         )
 
     @serviceConnectionError
@@ -145,14 +144,14 @@ class PropertiesRouter(DirectRouter):
             oldProperty = facade.getZenProperty(uid, key)
             oldValue = oldProperty['value'] if 'value' in oldProperty else ''
 
-            # Change it
             facade.setZenProperty(uid, key, value)
-
             data = facade.getZenProperty(uid, key)
+
+            # stringify falsey values
             value = str(value) if not value else value
             oldValue = str(oldValue) if not oldValue else oldValue
-            obj = facade._getObject(uid)
 
+            obj = facade._getObject(uid)
             maskFields = 'value' if obj.zenPropIsPassword(key) else None
             audit('UI.zProperty.Edit', key, maskFields_=maskFields,
                   data_={obj.meta_type: uid, 'value': value},
@@ -177,3 +176,132 @@ class PropertiesRouter(DirectRouter):
         obj = facade._getObject(uid)
         audit('UI.zProperty.Delete', zProperty, data_={obj.meta_type: uid})
         return DirectResponse(data=Zuul.marshal(data))
+
+    @serviceConnectionError
+    def query(self, uid, constraints=None, params=None, **kw):
+        """Returns a list of properties matching the given constraints
+        and parameters.
+
+        There are two constraints that can be specified: idPrefix and type
+
+        idPrefix: Should be 'c' to return only cProperties or 'z' to
+            return only zProperties.  If not specified, then both cProperties
+            and zProperties are returned.
+
+        type: Is a string naming the property type that returned properties
+            should have.  If multiple types are desired, this value can be
+            a list of strings.
+
+        @param uid {str} From properties from this object path
+        @param params {dict} Return properties matching the given fields.
+        @param fields {list} List of fields to return for each property.
+        @param kw {dict} The 'limit', 'sort', 'page', and 'dir' parameters
+            are extracted from here.
+        """
+        requirements = [lambda x: x["id"] not in _exclusions]
+
+        idPrefix = constraints.pop("idPrefix", None)
+        if idPrefix:
+            idPrefix = idPrefix.lower()
+            if idPrefix not in ('c', 'z'):
+                idPrefix = None
+            else:
+                requirements.append(lambda x: x["id"].startswith(idPrefix))
+        if idPrefix is None:
+            requirements.append(lambda x: x["id"].startswith(('c', 'z')))
+
+        propTypes = constraints.pop("type", None)
+        if propTypes:
+            if not isinstance(propTypes, list):
+                propTypes = [propTypes]
+            requirements.append(lambda x: x["type"] in propTypes)
+
+        facade = self._getFacade()
+        data = facade.query(uid, constraints=requirements)
+
+        if params is not None:
+            data = _filterData(params, data)
+
+        totalCount = len(data)
+
+        sort = kw.pop("sort", None)
+        if sort:
+            direction = kw.pop("dir", "ASC")
+            data = _sortData(sort, data, direction)
+
+        limit = kw.pop("limit", None)
+        if limit:
+            start = kw.pop("start", 0)
+            data = data[start:(start + limit)]
+
+        return DirectResponse(totalCount=totalCount, data=Zuul.marshal(data))
+
+    @serviceConnectionError
+    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
+    def add(self, uid, id, value, label, description,
+            type, select_variable=None):
+        """Adds a new property to uid.
+        """
+        facade = self._getFacade()
+        if type == "selection" and select_variable:
+            facade.addCustomProperty(
+                id, select_variable, label, uid, type,
+                description=description
+            )
+            facade.setZenProperty(uid, id, value)
+        else:
+            facade.addCustomProperty(
+                id, value, label, uid, type,
+                description=description
+            )
+        return DirectResponse.succeed(
+            msg="Property %s successfully added." % (id,)
+        )
+
+    @serviceConnectionError
+    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
+    def update(self, uid, id, value, select_variable=None):
+        """Updates an existing property.
+        """
+        facade = self._getFacade()
+        if select_variable:
+            facade.updateCustomProperty(
+                uid, id, select_variable=select_variable
+            )
+        facade.setZenProperty(uid, id, value)
+        return DirectResponse.succeed(
+            msg="Property %s successfully updated." % (id,)
+        )
+
+    @serviceConnectionError
+    @contextRequire(ZEN_ZPROPERTIES_EDIT, 'uid')
+    def remove(self, uid, id=None, properties=None):
+        """Removes the local instance of the each property in properties.
+        Note that the property will only be deleted if a hasProperty is true
+
+        @param uid {str} Path to the object owning the properties.
+        @param id {str} The ID of the property to delete.
+        @param properties {list[str]} List of property IDs to delete.
+
+        Note that specifying both 'id' and 'properties' is valid.
+        Duplicate property IDs skipped.
+        """
+        facade = self._getFacade()
+        names = set()
+        if id is not None:
+            names.add(id)
+        if properties is not None:
+            if not isinstance(properties, (list, tuple)):
+                properties = [properties]
+            names.update(properties)
+        for name in names:
+            facade.deleteZenProperty(uid, name)
+            obj = facade._getObject(uid)
+            audit('UI.zProperty.Delete', name, data_={obj.meta_type: uid})
+        if len(names) == 1:
+            return DirectResponse.succeed(
+                msg="Property %s successfully deleted." % names.pop()
+            )
+        return DirectResponse.succeed(
+            msg="Successfully deleted %s properties." % len(names)
+        )
