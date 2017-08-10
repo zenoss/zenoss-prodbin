@@ -21,7 +21,7 @@ sm.require("1.1.6")
 class addMissedRunsThreshold(Migrate.Step):
     """Adds a threshold for missedRuns for collector services"""
 
-    version = Migrate.Version(110,0,0)
+    version = Migrate.Version(150,0,0)
 
     def cutover(self, dmd):
         try:

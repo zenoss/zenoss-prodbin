@@ -20,7 +20,7 @@ class UpdateRedisBindAddress(Migrate.Step):
      Fixes redis configs to allow remote connections after the introduction of
      protected-mode in newer versions.
     """
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
         try:

@@ -21,7 +21,7 @@ class AddSolrService(Migrate.Step):
     """
     Add Solr service and associated healthchecks.
     """
-    version = Migrate.Version(116, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
         try:

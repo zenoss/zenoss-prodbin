@@ -18,14 +18,14 @@ sm.require("1.0.0")
 class AddHCUserAgents(Migrate.Step):
     """
     Adds a user-agent string to curl-based healthchecks.
-    
+
     There are a lot of unique healthchecks, so each one
     is named by capturing the name of the service and the name
     of the healthcheck.
 
     """
 
-    version = Migrate.Version(111, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
 

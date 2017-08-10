@@ -19,7 +19,7 @@ sm.require("1.0.0")
 class RunRabbitMQViaSupervisord(Migrate.Step):
     """Modify rabbitmq service to run via supervisord. """
 
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
 
