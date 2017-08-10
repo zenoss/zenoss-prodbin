@@ -27,7 +27,7 @@ class UpdateOpenTSDBConfigRandomUIDEnable(Migrate.Step):
         - If the paramter already exists then no change is made to the config file.
     """
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
         """ This method is called by the migration process and overrides the method
