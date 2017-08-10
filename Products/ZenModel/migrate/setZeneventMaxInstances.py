@@ -21,7 +21,7 @@ sm.require("1.0.0")
 class SetZeneventMaxInstances(Migrate.Step):
     """Add `Max = 1` to zeneventserver service"""
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
 
