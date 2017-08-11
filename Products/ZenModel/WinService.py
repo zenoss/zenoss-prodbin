@@ -111,15 +111,6 @@ class WinService(Service):
         return self.serviceclass().monitoredStartModes
 
 
-    def monitored(self):
-        """Should this Windows Service be monitored
-        """
-        startMode = getattr(self, "startMode", None)
-        #don't monitor Disabled services
-        if startMode and startMode == "Disabled": return False
-        return Service.monitored(self)
-
-
     def getStatus(self, statClass=None):
         """
         Return the status number for this WinService
