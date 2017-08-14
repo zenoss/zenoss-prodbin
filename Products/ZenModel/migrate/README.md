@@ -6,7 +6,7 @@
     - [ Service Migrations](#service-migrations)
       - [Writing a new migration](#writing-a-new-migration)
       - [Adding unit tests](#adding-unit-tests)
-    - [Managing Migrate.Version](managing-migrate.version)
+    - [Managing Migrate.Version](managing-migrateversion)
       - [Starting a new release](#starting-a-new-release)
       - [Working with SCHEMA versions](#working-with-schema-versions)
       - [Release Process](#release-process)
