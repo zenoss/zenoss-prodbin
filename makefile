@@ -19,6 +19,14 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # REVISION ?= 1
 # ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(ARTIFACT_TAG).tar.gz
 
+# The SCHEMA_* values define the DB schema version used for upgrades.
+# See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
+# for more information about setting these values.
+# See zenoss-version.mk for more information about make targets that use these values.
+SCHEMA_MAJOR ?= 200
+SCHEMA_MINOR ?= 0
+SCHEMA_REVISION ?= 0
+
 DIST_ROOT := dist
 
 # Define the name, version and tag name for the docker build image
