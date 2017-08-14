@@ -338,7 +338,6 @@
                     removeRepeatedComponent(datapts, cname);
                 }, this);
             }
-            truncateLongLegends(this.datapoints);
 
             // these assume that the graph panel has already been rendered
             var height = this.getEl().getHeight();
