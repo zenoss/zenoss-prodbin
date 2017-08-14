@@ -16,12 +16,13 @@ import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
 from servicemigration import HealthCheck
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class AddSolrService(Migrate.Step):
     """
     Add Solr service and associated healthchecks.
     """
-    version = Migrate.Version(150, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
         try:

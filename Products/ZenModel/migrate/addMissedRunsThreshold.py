@@ -15,13 +15,14 @@ import servicemigration as sm
 import servicemigration.thresholdconfig
 import servicemigration.threshold
 import servicemigration.eventtags
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.6")
 
 class addMissedRunsThreshold(Migrate.Step):
     """Adds a threshold for missedRuns for collector services"""
 
-    version = Migrate.Version(150,0,0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
         try:
@@ -31,6 +32,7 @@ class addMissedRunsThreshold(Migrate.Step):
             return
 
         # Get all collector services
+        changed = False
         collectors = filter(lambda s: "collector" in s.tags, ctx.services)
         for service in collectors:
             for graph_config in service.monitoringProfile.graphConfigs:
@@ -67,9 +69,11 @@ class addMissedRunsThreshold(Migrate.Step):
                             eventTags=event_tags
                         )
                         service.monitoringProfile.thresholdConfigs.append(tc)
+                        changed = True
                         break
 
-        # Commit our changes
-        ctx.commit()
+        if changed:
+            # Commit our changes
+            ctx.commit()
 
 addMissedRunsThreshold()
