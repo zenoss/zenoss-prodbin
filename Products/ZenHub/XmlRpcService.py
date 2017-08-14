@@ -15,7 +15,6 @@ warnings.filterwarnings('ignore', 'assertion is always true', SyntaxWarning)
 
 from twisted.web import xmlrpc
 
-import cgi
 import types
 import DateTime
 
@@ -37,11 +36,6 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
 
     def xmlrpc_sendEvent(self, data):
-        # Fix for ZEN-28005 to thwart XSS attacks from incoming events
-        for f in data:
-            if f in ("eventClassKey", "component", "summary", "device", "eventClass"):
-                if data[f] is not None and len(data[f]) > 0:
-                    data[f] = cgi.escape(data[f])
         'XMLRPC requests are processed asynchronously in a thread'
         result = self.zem.sendEvent(data)
         if result is None:

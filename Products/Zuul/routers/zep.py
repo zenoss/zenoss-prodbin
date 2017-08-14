@@ -923,6 +923,9 @@ class EventsRouter(DirectRouter):
             summary = cgi.escape(summary)
             device = cgi.escape(device)
             component = cgi.escape(component)
+            evclasskey = cgi.escape(evclasskey)
+            if evclass is not None and len(evclass) > 0:
+                evclass = cgi.escape(evclass)
             self.zep.create(summary, severity, device, component,
                             eventClassKey=evclasskey, eventClass=evclass,
                             monitor=monitor, **kwargs)
