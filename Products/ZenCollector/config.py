@@ -18,6 +18,7 @@ import logging
 log = logging.getLogger("zen.collector.config")
 import time
 from functools import partial
+from metrology import Metrology
 
 import zope.component
 import zope.interface
@@ -190,6 +191,7 @@ class ConfigurationLoaderTask(ObservableMixin):
                  scheduleIntervalSeconds=None,
                  taskConfig=None):
         super(ConfigurationLoaderTask, self).__init__()
+        self._fetchConfigTimer = Metrology.timer('collectordaemon.configs')
 
         # Needed for interface
         self.name = name
@@ -288,8 +290,17 @@ class ConfigurationLoaderTask(ObservableMixin):
 
     def _fetchConfig(self, result, devices):
         self.state = self.STATE_FETCH_DEVICE_CONFIG
-        return defer.maybeDeferred(self._configProxy.getConfigProxies,
+        start = time.time()
+        def recordTime(result):
+            #get in milliseconds
+            duration = int((time.time() - start) * 1000)
+            self._fetchConfigTimer.update(duration)
+            return result
+
+        d = defer.maybeDeferred(self._configProxy.getConfigProxies,
                                    self._prefs, devices)
+        d.addCallback(recordTime)
+        return d
 
     def _processPropertyItems(self, propertyItems):
         log.debug("Processing received property items")

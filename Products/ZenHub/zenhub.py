@@ -280,6 +280,8 @@ class WorkerInterceptor(pb.Referenceable):
         self.service = service
         self._serviceCalls = Metrology.meter("zenhub.serviceCalls")
         self.log = logging.getLogger('zen.zenhub.WorkerInterceptor')
+        self._admTimer = Metrology.timer('zenhub.applyDataMap')
+
 
     def remoteMessageReceived(self, broker, message, args, kw):
         """Intercept requests and send them down to workers"""
@@ -302,7 +304,18 @@ class WorkerInterceptor(pb.Referenceable):
             chunkedArgs.append(chunk)
             pickledArgs = pickledArgs[chunkSize:]
 
+        start = time.time()
+        def recordTime(result):
+            #get in milliseconds
+            duration = int((time.time() - start) * 1000)
+            self._admTimer.update(duration)
+            return result
+
         deferred = self.zenhub.deferToWorker(svc, instance, message, chunkedArgs)
+
+        if message == 'applyDataMaps':
+            deferred.addCallback(recordTime)
+
         return broker.serialize(deferred, self.perspective)
 
     def __getattr__(self, attr):
