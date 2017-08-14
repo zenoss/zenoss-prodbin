@@ -1,5 +1,20 @@
 # Migrations
 
+# Table of Contents
+  - [Overview](#overview)
+    - [Model Migrations](#model-migrations)
+    - [ Service Migrations](#service-migrations)
+      - [Writing a new migration](#writing-a-new-migration)
+      - [Adding unit tests](#adding-unit-tests)
+    - [Managing Migrate.Version](managing-migrate.version)
+      - [Starting a new release](#starting-a-new-release)
+      - [Working with SCHEMA versions](#working-with-schema-versions)
+      - [Release Process](#release-process)
+    - [Running unit tests](#running-unit-tests)
+      - [Running a migration manually](#running-a-migration-manually)
+
+# Overview
+
 There are 2 types of migrations, both of which are discussed below
 
 ## Model Migrations
@@ -26,13 +41,14 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.0.0")
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
+sm.require("1.0.0")
 
 class RenameZopeToFoo(Migrate.Step):
     """Rename zope service to Foo."""
 
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
 
@@ -70,6 +86,59 @@ For one, most dictionaries are represented as lists. The key is an attribute of 
 This is done even at the level of ServiceContext.services.
 
 In general, the elements of a service definition are represented as class attributes, usually with a normalized name to keep with Python style and to avoid shadowing builtin names.
+
+
+## Managing Migrate.Version
+
+`Migrate.Version()` is used by the upgrade framework to control which migrations
+are executed when a particular version of Zenoss is upgraded.  The basic idea is
+that the `upgrade` command for the Zope service will execute all of the
+migrations with a value greater than the current value stored in Zope. Upon
+successful completion of the upgrade, the value of the highest migration script
+is then stored in the database.
+
+In order to better manage the values used across a range of different releases,
+we have implemented a semi-automated scheme to minimize the process of manually
+specifying different values for `Migrate.Version()`.
+
+### Starting a new release
+At the start of a new release, the toplevel makefile should be updated to set
+the values of SCHEMA_MAJOR, SCHEMA_MINOR, & SCHEMA_REVISION to the appropriate
+versions for that release.
+
+Each new migration script added for that release should set `Migrate.Version()`
+as follows:
+
+```
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+...
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+```
+
+### Working with SCHEMA versions
+
+The regular `make` process for prodbin, as well as `zendev devimg` and `zendev test`
+will invoke the make target `generate-zversion` which will build ZMigrateVersion.py from ZMigrateVersion.py.in
+using the values of SCHEMA_MAJOR, SCHEMA_MINOR, & SCHEMA_REVISION defined in the
+toplevel makefile.  In this way, developers working on a new release do not need
+to specify explicit versions - they can rely on the build process to inject values
+for a given release.  By the same token, changes can be backported to earlier
+releases without working about which versions to use for different releases because
+the toplevel makefile in each release should define the values unique to that release.
+
+### Release Process
+
+As one of the final steps in the release process, someone must run `make replace-zmigrateversion`
+which will edit all of the files in Products/ZenModel/migrate, replacing the variables
+SCHEMA_MAJOR, SCHEMA_MINOR, & SCHEMA_REVISION with the versions defined in the makefile.
+
+Those changes can be verified with `make verify-explicit-zmigrateversion:` which will fail
+if any files were overlooked.  If `make replace-zmigrateversion` was unable to update
+the a version for some unexpected reason, the migration script can be changed manually
+if necessary at this stage.
+
+After the migration scripts have been updated, then they must be checked into git before
+executing the git-flow-release process.
 
 
 ### Adding unit tests
@@ -114,7 +183,7 @@ Any additional `test_*` functions added to the class will also be discovered and
 
 The service migration tests have also been added to zendev. In the original version of zendev (circa RM 5.0 and 5.1), the tests can be invoked with `zendev test unit Products.ZenModel.migrate`.  In later versions (circa RM 5.2 and higher), the tests can be invoked with `zendev test -- --type=unit --name=Products.ZenModel.migrate -v`
 
-Guidelines for running RM unit-test in general (not just service migrations) is available in the zendev [README](https://github.com/zenoss/zendev/tree/zendev2#testing-with-devimg). 
+Guidelines for running RM unit-test in general (not just service migrations) is available in the zendev [README](https://github.com/zenoss/zendev/tree/zendev2#testing-with-devimg).
 
 ### Running a migration manually
 
