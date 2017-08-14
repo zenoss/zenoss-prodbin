@@ -21,7 +21,7 @@ class ReplicateCollectorRedis(Migrate.Step):
     See ZEN-24094
     """
 
-    version = Migrate.Version(116, 0, 0)
+    version = Migrate.Version(150, 0, 0)
 
     def cutover(self, dmd):
         try:
