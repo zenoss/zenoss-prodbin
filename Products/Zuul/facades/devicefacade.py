@@ -201,7 +201,7 @@ class DeviceFacade(TreeFacade):
             severities = zep.getWorstSeverity(uuids)
             for r in comps:
                 r.setWorstEventSeverity(severities[r.uuid])
-        sortedComps = list(sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse))
+        sortedComps = sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse)
         return SearchResults(iter(sortedComps), total, hash_, False)
 
     # Get components from model catalog. Not used for now
