@@ -16,12 +16,12 @@ warnings.filterwarnings('ignore', 'assertion is always true', SyntaxWarning)
 from twisted.web import xmlrpc
 
 import types
-
 import DateTime
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.Zuul import getFacade
 from Products.ZenUtils.ZenTales import talesEval
+
 
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
