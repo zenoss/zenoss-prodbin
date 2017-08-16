@@ -22,6 +22,7 @@ from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.routers import TreeRouter
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.Zuul.interfaces.info import IInfo
 
 
 class TemplateRouter(TreeRouter):
@@ -290,6 +291,15 @@ class TemplateRouter(TreeRouter):
         data =  Zuul.marshal(dict(record=details, form=form))
         return data
 
+    def _getPasswordFields(self, obj):
+        """
+        Return fields for obj if it has xtype and it is password.
+        """
+        fields = IFormBuilder(IInfo(obj)).fields()
+        return [field for field in fields
+                        if fields[field].get('xtype', None)
+                        and fields[field].get('xtype') == 'password']                      
+
     @require('Manage DMD')
     def setInfo(self, **data):
         """
@@ -306,6 +316,7 @@ class TemplateRouter(TreeRouter):
         uid = data['uid']
         del data['uid']
         obj = self._getFacade()._getObject(uid)
+        passwordFields = self._getPasswordFields(obj)
         oldData = self._getInfoData(obj, data)
         info = self._getFacade().setInfo(uid, data)
         newData = self._getInfoData(obj, data)
@@ -313,7 +324,8 @@ class TemplateRouter(TreeRouter):
         thresholdType = obj.getTypeName() if isinstance(obj, ThresholdClass) else None
         audit(['UI', getDisplayType(obj), 'Edit'], obj, thresholdType=thresholdType,
               data_=newData, oldData_=oldData,
-              skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
+              skipFields_=('newId',), # special case in TemplateFacade.setInfo()
+              askFields_=passwordFields)  
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
     def _getInfoData(self, obj, keys):
