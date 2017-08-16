@@ -455,6 +455,12 @@ class DeviceRouter(TreeRouter):
         if isinstance(params, basestring):
             params = unjson(params)
 
+        if params:
+            # clearing most often issue
+            # - anterior asterisk wildcard (one or more)
+            params = {key:(value.lstrip('*') if isinstance(value, str) else value)
+                     for key, value in params.iteritems()}
+
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
         allKeys = ['name', 'ipAddress', 'productionState', 'events',
                    'ipAddressString', 'serialNumber', 'hwManufacturer',
@@ -1692,11 +1698,12 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         try:
+            old_templateIds = [t.id for t in facade.getBoundTemplates(uid)]
             facade.setBoundTemplates(uid, templateIds)
         except DatapointNameConfict, e:
             log.info("Failed to bind templates for {}: {}".format(uid, e))
             return DirectResponse.exception(e, 'Failed to bind templates.')
-        audit('UI.Device.BindTemplates', uid, templates=templateIds)
+        audit('UI.Device.BindTemplates', uid,new_bound_templates=templateIds, old_bound_templates=old_templateIds )
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')

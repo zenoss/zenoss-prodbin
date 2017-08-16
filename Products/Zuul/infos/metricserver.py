@@ -69,7 +69,15 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
 
     @property
     def type(self):
-        return "line"
+        gType = getattr(self._object, "graphType", "_MARKER_")
+        #graph type not explicitly set, infer from datapoints
+        if gType not in ('line', 'area'):
+            #check if all datapoints are area and stacked
+            for dp in self.datapoints:
+                if dp.type != 'area' or not dp.stacked:
+                    return 'line'
+            gType = 'area'
+        return gType
 
     @property
     def height(self):
@@ -257,6 +265,10 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
     @property
     def type(self):
         return self._object.lineType.lower()
+
+    @property
+    def stacked(self):
+        return self._object.stacked
 
     @property
     def displayFullValue(self):

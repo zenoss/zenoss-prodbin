@@ -775,7 +775,7 @@ class ZenMib(ZCmdBase):
                                   oid, values['oid'])
             
             try:
-                functor(name, **values)
+                functor(name, logger=self.log, **values)
                 entriesAdded += 1
             except BadRequest:
                 try:
