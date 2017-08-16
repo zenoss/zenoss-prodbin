@@ -13,13 +13,15 @@ log.setLevel(logging.INFO)
 
 import Migrate
 import servicemigration as sm
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
 sm.require("1.0.0")
 
 
 class RunRabbitMQViaSupervisord(Migrate.Step):
     """Modify rabbitmq service to run via supervisord. """
 
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
 

@@ -7,35 +7,28 @@
 #
 ##############################################################################
 
+import cgi
+import logging
+import parser
+import zenoss.protocols.protobufs.zep_pb2 as zep
 
 from copy import deepcopy
 from datetime import datetime
-import logging
-import parser
-
-from Acquisition import aq_parent
 from zExceptions import BadRequest
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import providedBy
-
-from Products.Zuul import marshal
-from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import IInfo
-from Products.Zuul.decorators import require
+from zope.schema import getFields
+from zenoss.protocols.interfaces import IQueueSchema
+from zenoss.protocols.jsonformat import to_dict, from_dict
+from zenoss.protocols.services.triggers import TriggerServiceClient
+from AccessControl import getSecurityManager
+from Acquisition import aq_parent
+from Products.ZenModel.interfaces import IAction
 from Products.ZenModel.NotificationSubscription import NotificationSubscription
 from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
 from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType, DuplicateTriggerName
-import zenoss.protocols.protobufs.zep_pb2 as zep
-from zenoss.protocols.jsonformat import to_dict, from_dict
-from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
-from Products.ZenUtils import Utils
-from AccessControl import getSecurityManager
-
-from zenoss.protocols.interfaces import IQueueSchema
-from zenoss.protocols.services.triggers import TriggerServiceClient
-
+from Products.ZenModel.UserSettings import GroupSettings
 from Products.ZenModel.ZenossSecurity import (
     MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER,
     NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE,
@@ -44,13 +37,15 @@ from Products.ZenModel.ZenossSecurity import (
     UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER,
     ZEN_MANAGER_ROLE,
 )
-
-from Products.ZenModel.UserSettings import GroupSettings
-from Products.ZenModel.interfaces import IAction
-from zope.schema import getFields
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils import Utils
+from Products.Zuul import marshal
+from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IInfo
+from Products.Zuul.decorators import require
 
 log = logging.getLogger('zen.TriggersFacade')
-
 
 class TriggersFacade(ZuulFacade):
 
@@ -225,7 +220,8 @@ class TriggersFacade(ZuulFacade):
 
     @require(MANAGE_TRIGGER)
     def createTrigger(self, name, uuid=None, rule=None):
-        name = str(name)
+        # Fix for ZEN-28005 to thwart XSS attacks from incoming triggers
+        name = cgi.escape(str(name))
 
         zodb_triggers = self._getTriggerManager().objectValues()
         zodb_trigger_names = set(t.id for t in zodb_triggers)
@@ -355,7 +351,7 @@ class TriggersFacade(ZuulFacade):
 
         if self.triggerPermissions.userCanUpdateTrigger(user, triggerObj):
             if "name" in data:
-                triggerObj.setTitle(data["name"])
+                triggerObj.setTitle(cgi.escape(data["name"]))
                 parent = triggerObj.getPrimaryParent()
                 path = triggerObj.absolute_url_path()
                 oldId = triggerObj.getId()

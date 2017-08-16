@@ -18,7 +18,7 @@ sm.require("1.0.0")
 
 class addOpenTSDBLogbackConfig(Migrate.Step):
     """ Set Editable Logback configuration file for OpenTSDB. See ZEN-27916 """
-    version = Migrate.Version(114, 0, 0)
+    version = Migrate.Version(116, 0, 0)
 
     def cutover(self, dmd):
         try:

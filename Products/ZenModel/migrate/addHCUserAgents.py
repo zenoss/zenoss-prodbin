@@ -12,20 +12,21 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.0.0")
 
 class AddHCUserAgents(Migrate.Step):
     """
     Adds a user-agent string to curl-based healthchecks.
-    
+
     There are a lot of unique healthchecks, so each one
     is named by capturing the name of the service and the name
     of the healthcheck.
 
     """
 
-    version = Migrate.Version(111, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
 

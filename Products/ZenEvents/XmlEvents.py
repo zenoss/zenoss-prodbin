@@ -99,7 +99,7 @@ def sendXMLEvents(serv, xmlfile, log=None):
 
 
 if __name__ == '__main__':
-    # The following code assumes we are run on a Zenoss box
+    # The following code assumes we are running from within a Zenoss box
     import logging
     log = logging.getLogger('zen.importEvents')
     import Globals
