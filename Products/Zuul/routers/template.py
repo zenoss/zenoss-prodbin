@@ -325,7 +325,7 @@ class TemplateRouter(TreeRouter):
         audit(['UI', getDisplayType(obj), 'Edit'], obj, thresholdType=thresholdType,
               data_=newData, oldData_=oldData,
               skipFields_=('newId',), # special case in TemplateFacade.setInfo()
-              askFields_=passwordFields)  
+              maskFields_=passwordFields)  
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
     def _getInfoData(self, obj, keys):
