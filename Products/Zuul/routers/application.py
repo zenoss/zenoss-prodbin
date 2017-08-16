@@ -165,7 +165,7 @@ class ApplicationRouter(TreeRouter):
         facade = self._getFacade()
         for uid in uids:
             facade.start(uid)
-            audit('UI.Applications.Start', id)
+            audit('UI.Applications.Start', uid)
         if len(uids) > 1:
             return DirectResponse.succeed("Started %s daemons" % len(uids))
         return DirectResponse.succeed()
@@ -185,7 +185,7 @@ class ApplicationRouter(TreeRouter):
         facade = self._getFacade()
         for uid in uids:
             facade.stop(uid)
-            audit('UI.Applications.Stop', id)
+            audit('UI.Applications.Stop', uid)
         if len(uids) > 1:
             return DirectResponse.succeed("Stopped %s daemons" % len(uids))
         return DirectResponse.succeed()
@@ -205,7 +205,7 @@ class ApplicationRouter(TreeRouter):
         facade = self._getFacade()
         for uid in uids:
             facade.restart(uid)
-            audit('UI.Applications.Restart', id)
+            audit('UI.Applications.Restart', uid)
         if len(uids) > 1:
             return DirectResponse.succeed("Restarted %s daemons" % len(uids))
         return DirectResponse.succeed()
@@ -230,7 +230,7 @@ class ApplicationRouter(TreeRouter):
         for app in applications:
             if app.id in uids:
                 app.autostart = enabled
-                audit('UI.Applications.AutoStart', id, {'autostart': enabled})
+                audit('UI.Applications.AutoStart', app.id, {'autostart': enabled})
         return DirectResponse.succeed()
 
     def getInfo(self, id):
