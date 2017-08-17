@@ -57,8 +57,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseI
     security = ClassSecurityInfo()
 
     def __init__(self, id, title=None, buildRelations=True):
-        self.createdTime = DateTime(time.time())
+        self.created_time_stamp = time.time()
         RelationshipManager.__init__(self, id, title, buildRelations)
+
+    @property
+    def createdTime(self):
+        return DateTime(self.created_time_stamp)
 
     security.declareProtected(ZEN_MANAGE_DMD, 'setTitle')
     def setTitle(self, title):
