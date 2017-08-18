@@ -10,6 +10,8 @@
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from DateTime import DateTime
+from time import time
 
 
 class TestZenModelRM(BaseTestCase):
@@ -29,10 +31,8 @@ class TestZenModelRM(BaseTestCase):
 
     def test_createdTime(self):
         '''LEGACY createdTime
-        returns a DateTime (3rd party library) object
+        returns a Zope DateTime object
         '''
-        from DateTime import DateTime
-
         created_time = self.zen_model_rm.createdTime
 
         self.assertIsInstance(created_time, DateTime)
@@ -42,4 +42,13 @@ class TestZenModelRM(BaseTestCase):
         '''
         time_stamp = self.zen_model_rm.created_time_stamp
 
+        self.assertIsInstance(time_stamp, float)
+
+    def test_create_time_stamp_backwards_compat(self):
+        '''ensure create_time_stamp returns a timestamp for legacy objects
+        created with a Zope DateTime object instead of timestamp
+        '''
+        del self.zen_model_rm._created_time_stamp
+
+        time_stamp = self.zen_model_rm.created_time_stamp
         self.assertIsInstance(time_stamp, float)
