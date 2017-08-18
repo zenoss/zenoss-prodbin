@@ -16,28 +16,33 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice, IInfo
-from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty, LockableMixin
+from Products.Zuul.infos import (
+    InfoBase,
+    HasEventsInfoMixin,
+    ProxyProperty,
+    LockableMixin
+)
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_DEBUG
 from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 ORGTYPES = {
-    'Devices':'DeviceClass',
-    'Systems':'Systems',
-    'Locations':'Location',
-    'Groups':'DeviceGroups'
+    'Devices': 'DeviceClass',
+    'Systems': 'Systems',
+    'Locations': 'Location',
+    'Groups': 'DeviceGroups'
 }
+
 
 class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
 
-
     def __init__(self, ob, root=None, parent=None):
         super(DeviceOrganizerNode, self).__init__(ob, root, parent)
         obj = self._get_object()
-        # Calling hasNoGlobalRoles() is expensive in the context of a very large
+        # Calling hasNoGlobalRoles() is expensive in the context of a large
         # organizer tree. Use the same value from the root node if it is
         # available (it doesn't change based on the context of the organizer).
         if root:
@@ -55,12 +60,14 @@ class DeviceOrganizerNode(TreeNode):
                 orgs = obj.children()
             # sort the organizers
             orgs = sorted(orgs, key=lambda org: org.titleOrId())
-            self._cached_children = map(lambda x:DeviceOrganizerNode(x, self._root, self), orgs)
+            self._cached_children = map(
+                lambda x: DeviceOrganizerNode(x, self._root, self), orgs
+            )
         return self._cached_children
 
     def _count_devices(self):
         if getattr(self, '_cached_count', None) is None:
-            # if the user is does not have global permissions do not show a count
+            # if the user does not have global permissions do not show a count
             if self.hasNoGlobalRoles:
                 self._cached_count = None
                 return self._cached_count
@@ -71,12 +78,12 @@ class DeviceOrganizerNode(TreeNode):
         return self._cached_count
 
     def _unique_keys(self):
-       unique_keys = set()
-       for child in self.children:
-           unique_keys.update(child._unique_keys())
-       for device in self._get_object().devices():
-           unique_keys.add(device.id)
-       return unique_keys
+        unique_keys = set()
+        for child in self.children:
+            unique_keys.update(child._unique_keys())
+        for device in self._get_object().devices():
+            unique_keys.add(device.id)
+        return unique_keys
 
     @property
     def text(self):
@@ -97,8 +104,8 @@ class DeviceOrganizerNode(TreeNode):
     def _nonGlobalRoleGetChildren(self):
         """
         See Trac #2725, unrestricted users need to see the nodes they
-        don't have permission to view if they do have permissions on any of the child
-        nodes.
+        don't have permission to view if they do have permissions on any
+        of the child nodes.
         """
         obj = self._get_object()
         user = obj.dmd.ZenUsers.getUserSettings()
@@ -151,10 +158,13 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         if not self._severities:
             # Get UUIDs for all items in the tree
             uuids = self._getUuids(self.root)
-            self._severities = dict(
-                (uuid, self._eventFacade.getSeverityName(severity).lower())
-                    for (uuid, severity) in self._eventFacade.getWorstSeverity(uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)).iteritems()
-            )
+            self._severities = {
+                uuid: self._eventFacade.getSeverityName(severity).lower()
+                for (uuid, severity)
+                in self._eventFacade.getWorstSeverity(
+                    uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)
+                ).iteritems()
+            }
 
         return self._severities
 
@@ -167,16 +177,21 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
             obj['uuid'] = self._getNodeUuid(node)
 
         if iconCls and self.showSeverityIcons:
-            severity = self._allSeverities.get(self._getNodeUuid(node), 'clear')
+            severity = self._allSeverities.get(
+                self._getNodeUuid(node), 'clear'
+            )
             obj['iconCls'] = node.getIconCls(severity)
 
         obj['children'] = []
         for childNode in node.children:
-            obj['children'].append(self._marshalNode(keys, childNode, iconCls=iconCls))
+            obj['children'].append(
+                self._marshalNode(keys, childNode, iconCls=iconCls)
+            )
         return obj
 
     def marshal(self, keys=None, node=None):
-        # Remove iconCls key so we don't get its intrinsic value, instead we want to get it in batches
+        # Remove iconCls key so we don't get its intrinsic value,
+        # instead we want to get it in batches
         keys = keys or self.getKeys()
         iconCls = False
         if 'iconCls' in keys:
@@ -276,7 +291,12 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         result = []
         for obj in objs:
             info = IInfo(obj)
-            result.append(dict(name=info.name, uid=info.uid, uuid=info.uuid, path=info.path))
+            result.append({
+                'name': info.name,
+                'uid': info.uid,
+                'uuid': info.uuid,
+                'path': info.path
+            })
         return result
 
     @property
@@ -293,6 +313,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         if loc:
             info = IInfo(loc)
             return dict(name=info.name, uid=info.uid, uuid=info.uuid)
+
     @property
     def uptime(self):
         return self._object.uptimeStr()
@@ -450,13 +471,18 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     @property
     def deviceConnectionInfo(self):
         connectionInfo = []
-        zprops = self._object.deviceClass().primaryAq().getZ('zCredentialsZProperties', [])
+        zprops = self._object.deviceClass().primaryAq().getZ(
+            'zCredentialsZProperties', []
+        )
         if not zprops:
             return False
         for prop in zprops:
             if not self._object.zenPropIsPassword(prop):
-                connectionInfo.append(str(self._object.zenPropertyString(prop)))
+                connectionInfo.append(
+                    str(self._object.zenPropertyString(prop))
+                )
         return " ".join(connectionInfo)
+
 
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)
@@ -473,6 +499,7 @@ class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     @property
     def path(self):
         return self._object.getPrimaryDmdId()
+
 
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):
