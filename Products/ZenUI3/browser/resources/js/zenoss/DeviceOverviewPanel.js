@@ -892,7 +892,7 @@
                         },{
                             fieldLabel: _t('First Seen'),
                             id: 'first-seen-label',
-                            name: 'created_time_stamp',
+                            name: 'created_timestamp',
                             xtype: "datedisplayfield",
                             renderer: Zenoss.date.renderWithTimeZone()
                         },{
