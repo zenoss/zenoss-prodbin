@@ -410,8 +410,8 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         return self._object._lastChange
 
     @property
-    def created_time_stamp(self):
-        return self._object.created_time_stamp
+    def created_timestamp(self):
+        return self._object.created_timestamp
 
     @property
     def lastCollected(self):

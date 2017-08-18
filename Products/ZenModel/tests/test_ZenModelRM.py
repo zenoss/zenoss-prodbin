@@ -11,7 +11,6 @@
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from DateTime import DateTime
-from time import time
 
 
 class TestZenModelRM(BaseTestCase):
@@ -37,10 +36,10 @@ class TestZenModelRM(BaseTestCase):
 
         self.assertIsInstance(created_time, DateTime)
 
-    def test_created_time_stamp(self):
-        '''ensure created_time_stamp returns a float
+    def test_created_timestamp(self):
+        '''ensure created_timestamp returns a float
         '''
-        time_stamp = self.zen_model_rm.created_time_stamp
+        time_stamp = self.zen_model_rm.created_timestamp
 
         self.assertIsInstance(time_stamp, float)
 
@@ -48,7 +47,7 @@ class TestZenModelRM(BaseTestCase):
         '''ensure create_time_stamp returns a timestamp for legacy objects
         created with a Zope DateTime object instead of timestamp
         '''
-        del self.zen_model_rm._created_time_stamp
+        del self.zen_model_rm._created_timestamp
 
-        time_stamp = self.zen_model_rm.created_time_stamp
+        time_stamp = self.zen_model_rm.created_timestamp
         self.assertIsInstance(time_stamp, float)
