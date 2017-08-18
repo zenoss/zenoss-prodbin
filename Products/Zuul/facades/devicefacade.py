@@ -241,7 +241,15 @@ class DeviceFacade(TreeFacade):
         brains = cat.evalAdvancedQuery(query)
 
         # unbrain the results
-        comps=map(IInfo, map(unbrain, brains))
+        comps = []
+        for brain in brains:
+            try:
+                comps.append(IInfo(unbrain(brain)))
+            except:
+                log.warn('There is broken component "{}" in componentSearch catalog on {} device.'.format(
+                     brain.id, obj.device().id
+                     )
+                )
 
         # filter the components
         if name is not None:
