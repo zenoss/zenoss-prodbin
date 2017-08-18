@@ -70,7 +70,7 @@ Ext.namespace('Zenoss.env');
 Ext.QuickTips.init();
 
 /**
- * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function. 
+ * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function.
  * Currently new version of ExtJs hasn't fixed deprecated calls in GC function
  */
 
@@ -256,7 +256,7 @@ Ext.define('Zenoss.state.PersistentProvider', {
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
                 this.directFn(
-                    {state: Ext.encode(this.state)}, 
+                    {state: Ext.encode(this.state)},
                     function(){
                         this.isDirty = false;
                     });
@@ -1374,7 +1374,8 @@ Ext.apply(Zenoss.date, {
 Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a z";
+            // old default "YYYY-MM-DD hh:mm:ss a z"
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
         }
         return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
     }
