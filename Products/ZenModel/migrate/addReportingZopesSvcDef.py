@@ -30,7 +30,7 @@ sm.require("1.1.8")
 
 class AddReportingZopesSvcDef(Migrate.Step):
     """Adds a svcdef for dedicated reporting Zope"""
-    version = Migrate.Version(112,0,0)
+    version = Migrate.Version(114,0,0)
 
     def __init__(self):
         Migrate.Step.__init__(self)

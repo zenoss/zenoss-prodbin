@@ -188,7 +188,7 @@ class DeviceFacade(TreeFacade):
             brains = brains[start:start+limit]
         return brains, total
 
-    def _typecatComponentPostProcess(self, brains, total):
+    def _typecatComponentPostProcess(self, brains, total, sort='name', reverse=False):
         hash_ = str(total)
         comps = map(IInfo, map(unbrain, brains))
         # fetch any rrd data necessary
@@ -201,7 +201,8 @@ class DeviceFacade(TreeFacade):
             severities = zep.getWorstSeverity(uuids)
             for r in comps:
                 r.setWorstEventSeverity(severities[r.uuid])
-        return SearchResults(iter(comps), total, hash_, False)
+        sortedComps = sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse)
+        return SearchResults(iter(sortedComps), total, hash_, False)
 
     # Get components from model catalog. Not used for now
     def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
@@ -218,12 +219,12 @@ class DeviceFacade(TreeFacade):
 
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
+        reverse = dir=='DESC'
         if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
             brains, total = self._typecatComponentBrains(uid, types, meta_type, start,
                     limit, sort, dir, name, keys)
             if brains is not None:
-                return self._typecatComponentPostProcess(brains, total)
-        reverse = dir=='DESC'
+                return self._typecatComponentPostProcess(brains, total, sort, reverse)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
         if isinstance(types, basestring):

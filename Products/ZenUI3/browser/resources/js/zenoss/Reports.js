@@ -158,11 +158,18 @@ Ext.define('Zenoss.ReportTreePanel', {
             msg: message,
             fn: function(buttonid) {
                 if (buttonid==='ok') {
+                    report_tree._deleteSubNodes();
                     report_tree._deleteSelectedNode();
                 }
             },
             buttons: Ext.MessageBox.OKCANCEL
         });
+    },
+    _deleteSubNodes: function () {
+        var node = this.getSelectionModel().getSelectedNode();
+        while(node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
     },
     _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
