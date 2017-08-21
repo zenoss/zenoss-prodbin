@@ -57,28 +57,28 @@ class ReconnectingPBClientFactory(PBClientFactory,
         self._creds = credentials
 
     def _login(self, credentials, client=None):
-        log.info("_login called")
+        log.debug("_login called")
         d = PBClientFactory.login(self, credentials, client)
         d.addCallback(self._gotPerspective)
         d.addErrback(self.gotPerspectiveFailed)
         return d
 
     def clientConnectionFailed(self, connector, reason):
-        log.info("clientConnectionFailed %s", reason)
+        log.debug("clientConnectionFailed %s", reason)
         self._perspective = None
         self._cancelConnectTimeout()
         PBClientFactory.clientConnectionFailed(self, connector, reason)
         protocol.ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
 
     def clientConnectionLost(self, connector, reason):
-        log.info("clientConnectionLost %s", reason)
+        log.debug("clientConnectionLost %s", reason)
         self._perspective = None
         self._cancelConnectTimeout()
         PBClientFactory.clientConnectionLost(self, connector, reason, reconnecting=1)
         protocol.ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
 
     def clientConnectionMade(self, broker):
-        log.info("clientConnectionMade")
+        log.debug("clientConnectionMade")
         self.resetDelay()
         self._cancelConnectTimeout()
         PBClientFactory.clientConnectionMade(self, broker)
@@ -87,7 +87,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
             self._login(self._creds)
 
     def startedConnecting(self, connector):
-        log.info("Starting connection...")
+        log.debug("Starting connection...")
         self._startConnectTimeout("Initial connect")
         self.connecting()
 
@@ -99,7 +99,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
         pass
 
     def gotPerspective(self, perspective):
-        log.info("gotPerspective")
+        log.debug("gotPerspective")
 
     def gotPerspectiveFailed(self, reason):
         self._cancelConnectTimeout()
