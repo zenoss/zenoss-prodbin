@@ -117,6 +117,17 @@ class ReconnectingPBClientFactory(PBClientFactory,
             reactor.callLater(0, self._startPingCycle)
         self.gotPerspective(perspective)
 
+    def _disconnect(self):
+        if self._broker:
+            self.disconnect()
+        elif self.connector:
+            try:
+                self.connector.disconnect()
+            except Exception:
+                log.exception('Could not disconnect')
+        else:
+            log.debug('No connector or broker to disconnect')
+                
     # methods for connecting and login timeout
     def _startConnectTimeout(self, msg):
         self._cancelConnectTimeout()
