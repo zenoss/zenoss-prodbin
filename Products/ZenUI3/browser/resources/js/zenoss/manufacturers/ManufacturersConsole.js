@@ -555,12 +555,12 @@ Ext.onReady(function(){
                 onSetContext: function(uid) {
                     Zenoss.env.PARENT_CONTEXT = uid;
                 },
+                hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),                
                 onGetMenuItems: function() {
                     var menuItems = [];
                     menuItems.push({
                         xtype: 'menuitem',
                         text: _t('Edit'),
-                        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                         handler: function() {
                             var node = getSelectedManufacturer();
                             var uid = node.data.uid;
@@ -570,7 +570,6 @@ Ext.onReady(function(){
                     {
                         xtype: 'menuitem',
                         text: _t('Add to ZenPack'),
-                        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                         handler: function(){
                             win = Ext.create('Zenoss.AddToZenPackWindow', {});
                             win.target = getSelectedManufacturer().data.uid;
