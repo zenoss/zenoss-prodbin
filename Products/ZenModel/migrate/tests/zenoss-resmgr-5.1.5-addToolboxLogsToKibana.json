@@ -2862,8 +2862,8 @@
          "IsAudit": false
        },
        {
-         "Path": "/opt/zenoss/log/toolbox/zennetworkclean.log",
-         "Type": "toolbox_zennetworkclean_logs",
+         "Path": "/opt/zenoss/log/toolbox/findposkeyerror.log",
+         "Type": "toolbox_findposkeyerror_logs",
          "Filters": [
            "pythondaemon"
          ],
@@ -2889,26 +2889,26 @@
          "IsAudit": false
        },
        {
-         "Path": "/opt/zenoss/log/toolbox/zencatalogscan.log",
-         "Type": "toolbox_zencatalogscan_logs",
-         "Filters": [
-           "pythondaemon"
-         ],
-         "LogTags": null,
-         "IsAudit": false
-       },
-       {
-         "Path": "/opt/zenoss/log/toolbox/findposkeyerror.log",
-         "Type": "toolbox_findposkeyerror_logs",
-         "Filters": [
-           "pythondaemon"
-         ],
-         "LogTags": null,
-         "IsAudit": false
-       },
-       {
          "Path": "/opt/zenoss/log/toolbox/zenrelationscan.log",
          "Type": "toolbox_zenrelationscan_logs",
+         "Filters": [
+           "pythondaemon"
+         ],
+         "LogTags": null,
+         "IsAudit": false
+       },
+       {
+       "Path": "/opt/zenoss/log/toolbox/zencatalogscan.log",
+       "Type": "toolbox_zencatalogscan_logs",
+         "Filters": [
+           "pythondaemon"
+         ],
+         "LogTags": null,
+         "IsAudit": false
+       },
+       {
+       "Path": "/opt/zenoss/log/toolbox/zennetworkclean.log",
+       "Type": "toolbox_zennetworkclean_logs",
          "Filters": [
            "pythondaemon"
          ],
