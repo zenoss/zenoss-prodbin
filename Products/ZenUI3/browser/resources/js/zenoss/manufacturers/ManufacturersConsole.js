@@ -566,6 +566,16 @@ Ext.onReady(function(){
                             var uid = node.data.uid;
                             Zenoss.manufacturers.callEditManufacturerDialog(node.data.text.text, uid);
                         }
+                    },
+                    {
+                        xtype: 'menuitem',
+                        text: _t('Add to ZenPack'),
+                        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                        handler: function(){
+                            win = Ext.create('Zenoss.AddToZenPackWindow', {});
+                            win.target = getSelectedManufacturer().data.uid;
+                            win.show();
+                        }
                     });
                     return menuItems;
                 }
