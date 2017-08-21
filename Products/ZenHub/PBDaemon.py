@@ -41,7 +41,7 @@ from ZODB.POSException import ConflictError
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
-from Products.ZenUtils.PBUtilNew import ReconnectingPBClientFactory
+from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Utils import zenPath, atomicWrite
 from Products.ZenRRD.Thresholds import Thresholds
