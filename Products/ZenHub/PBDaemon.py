@@ -41,7 +41,7 @@ from ZODB.POSException import ConflictError
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
-from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
+from Products.ZenUtils.PBUtilNew import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Utils import zenPath, atomicWrite
 from Products.ZenRRD.Thresholds import Thresholds
@@ -688,6 +688,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         @parameter perspective: Twisted perspective object
         @type perspective: Twisted perspective object
         """
+        self.log.info("PBD gotPerspective")
         self.perspective = perspective
         self.getZenhubInstanceId()
         # Cancel the connection timeout timer as it's no longer needed.
@@ -715,7 +716,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
-        factory.startLogin(c)
+        factory.setCredential(c)
 
         def timeout(d):
             if not d.called:
