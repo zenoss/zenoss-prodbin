@@ -20,7 +20,7 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.1.6")
+sm.require("1.1.5")
 
 
 class ChangeDefaultZauthZserverThreads(Migrate.Step):
