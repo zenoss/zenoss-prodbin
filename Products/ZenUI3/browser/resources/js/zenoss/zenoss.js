@@ -1237,19 +1237,13 @@ Ext.define("Zenoss.DateRange", {
             return errors;
         }
         //Look first for invalid characters, fail fast
-        if (/[^0-9TO :-]/.test(value)) {
+        if (/[^0-9TOampm :-]/.test(value)) {
             errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
             return errors;
         }
         if (value.indexOf("TO") === -1) {
-            if (!Zenoss.date.regex.ISO8601Long.test(value)) {
-                errors.push("Date is formatted incorrectly - format should be " + Zenoss.date.ISO8601Long);
-                return errors;
-            }
-        }
-        else {
-            if (!Zenoss.date.regex.ISO8601LongRange.test(value)) {
-                errors.push("Date range is formatted incorrectly - format should be " + Zenoss.date.ISO8601LongRange.replace(/\\/g, ''));
+            if (!moment(moment(value, Zenoss.date.TimeFormats).format('YYYY-MM-DD HH:mm:ss').isValid())
+                errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
                 return errors;
             }
         }
@@ -1356,6 +1350,7 @@ Ext.apply(Zenoss.date, {
     UniversalSortableDateTime: "Y-m-d H:i:sO",
     YearMonth: "F, Y",
     ISO8601LongRange: "Y-m-d H:i:s \\T\\O Y-m-d H:i:s",
+    TimeFormats: ["MM-DD-YYYY HH:mm:ss", "DD-MM-YYYY HH:mm:ss", "YYYY-MM-DD HH:mm:ss", "MM-DD-YYYY hh:mm:ss a", "DD-MM-YYYY hh:mm:ss a", "YYYY-MM-DD hh:mm:ss a"],
     LongRangeAndDefault: Ext.form.field.Date.prototype.altFormats + '|' + Zenoss.date.ISO8601LongRange,
     regex: {
         ISO8601LongRange: /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]) TO (19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/,
@@ -1373,7 +1368,7 @@ Ext.apply(Zenoss.date, {
 Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a z";
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
         }
         return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
     }
