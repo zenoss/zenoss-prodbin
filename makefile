@@ -23,7 +23,7 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
 # for more information about setting these values.
 # See zenoss-version.mk for more information about make targets that use these values.
-SCHEMA_MAJOR ?= 200
+SCHEMA_MAJOR ?= 118
 SCHEMA_MINOR ?= 0
 SCHEMA_REVISION ?= 0
 
