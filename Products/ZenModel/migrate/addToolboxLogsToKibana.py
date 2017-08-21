@@ -13,13 +13,14 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.5")
 
 class AddToolboxLogsToKibana(Migrate.Step):
     "Pull logs provided by toolbox utilities to logstash."
 
-    version = Migrate.Version(115, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
         try:
@@ -46,14 +47,17 @@ class AddToolboxLogsToKibana(Migrate.Step):
                                  path=log_paths[name],
                                  logType=logType,
                                  filters=['pythondaemon'],
-                                 logTags=None, 
-                                 isAudit=False)
-            )     
+                                 logTags=None, isAudit=False))
 
         zopes = filter(lambda s: s.name == "Zope", ctx.services)
+        changed = False
         for zope in zopes:
-            zope.logConfigs.extend(new_logs)
-        
-        ctx.commit()
+            for new_log in new_logs:
+                if new_log.path not in [log.path for log in zope.logConfigs]:
+                    zope.logConfigs.append(new_log)
+                    changed = True
+
+        if changed:
+            ctx.commit()
 
 AddToolboxLogsToKibana()
