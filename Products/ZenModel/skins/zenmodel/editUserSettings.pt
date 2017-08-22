@@ -208,7 +208,7 @@
               Ext.onReady(function() {
                   var select = Ext.get('user_settings_timezone').dom, zones = Zenoss.date.timeZones.zones, zone, i=0;
                   for (zone in zones) {
-                      select.options[i] = new Option(zone, zone);
+                      select.options[i] = new Option(zone, zones[zone]);
                       if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
                           select.options[i].selected = true;
                       }
@@ -229,13 +229,13 @@
               // build a select list with the current date format selected.
               // Zenoss.data.timeZones comes from moment-timezone-data.js and
               Ext.onReady(function() {
-                  var select = Ext.get('user_settings_dateformat').dom, formats = ['MM/DD/YY', 'DD/MM/YY', 'YY/MM/DD'], format, i;
-                  for (i = 0; i < formats.length; i++) {
-                      format = formats[i];
-                      select.options[i] = new Option(format, format);
-                      if (format === Zenoss.env.CURRENT_USER_DATE_FORMAT) {
+                  var select = Ext.get('user_settings_dateformat').dom, formats = Zenoss.date.dateFormats, format, i=0;
+                  for (var key in formats) {
+                      select.options[i] = new Option(key, formats[key]);
+                      if (formats[key] === Zenoss.env.CURRENT_USER_DATE_FORMAT) {
                           select.options[i].selected = true;
                       }
+                  i++;
                   }
              });
             </script>
@@ -252,13 +252,13 @@
               // build a select list with the current date format selected.
               // Zenoss.data.timeZones comes from moment-timezone-data.js and
               Ext.onReady(function() {
-                  var select = Ext.get('user_settings_timeformat').dom, formats = ['HH:mm:ss', 'hh:mm:ss a'], format, i;
-                  for (i = 0; i < formats.length; i++) {
-                      format = formats[i];
-                      select.options[i] = new Option(format, format);
-                      if (format === Zenoss.env.CURRENT_USER_TIME_FORMAT) {
+                  var select = Ext.get('user_settings_timeformat').dom, formats = Zenoss.date.timeFormats, format, i=0;
+                  for (var key in formats) {
+                      select.options[i] = new Option(key, formats[key]);
+                      if (formats[key] === Zenoss.env.CURRENT_USER_TIME_FORMAT) {
                           select.options[i].selected = true;
                       }
+                  i++;
                   }
              });
             </script>
