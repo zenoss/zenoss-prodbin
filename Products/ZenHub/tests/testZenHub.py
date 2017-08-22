@@ -221,7 +221,7 @@ class TestInternalMetricWriter(BaseTestCase):
         internal_metric = ["name", 0.0, "now", {"internal":True}]
         self.metric_writer.write_metric( *metric)
         self.metric_writer.write_metric( *internal_metric)
-        self.assertEquals( [tuple(internal_metric)], self.internal_publisher.queue)
+        self.assertEquals( [tuple(metric), tuple(internal_metric)], self._internal_publisher.queue)
         self.assertEquals( [tuple(metric), tuple(internal_metric)], self.publisher.queue)
 
 def test_suite():

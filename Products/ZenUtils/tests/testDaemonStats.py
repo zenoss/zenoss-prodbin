@@ -25,7 +25,7 @@ class DaemonStatsTest(BaseTestCase):
         os.environ["CONTROLPLANE_INSTANCE_ID"] = "bar"
         self.daemon_stats.config( "name", "monitor", None, None, None)
         self.assertEqual(
-             {'daemon': 'name', 'instance': 'bar', 'internal': True,
+             {'daemon': 'name', 'instance': 'bar',
               'monitor': 'monitor', 'metricType': 'type', 'serviceId': 'ID',
               'tenantId': 'foo'},
             self.daemon_stats._tags("type")
@@ -40,7 +40,7 @@ class DaemonStatsTest(BaseTestCase):
 
         self.daemon_stats.config( "name", "monitor", None, None, None)
         self.assertEqual(
-             {'daemon': 'name', 'internal': True, 'monitor': 'monitor', 'metricType': 'type'},
+             {'daemon': 'name', 'monitor': 'monitor', 'metricType': 'type'},
             self.daemon_stats._tags("type")
         )
 
