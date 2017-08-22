@@ -1375,9 +1375,10 @@ Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
             // old default "YYYY-MM-DD hh:mm:ss a z"
-            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
+            //format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
+            format = "YYYY-MM-DD hh:mm:ss a z";
         }
-        return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
+        return moment.unix(value).tz(Zenoss.USER_TIMEZONE).format(format);
     }
     return value;
 };
