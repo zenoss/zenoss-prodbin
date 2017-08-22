@@ -1375,8 +1375,7 @@ Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
             // old default "YYYY-MM-DD hh:mm:ss a z"
-            //format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
-            format = "YYYY-MM-DD hh:mm:ss a z";
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
         }
         return moment.unix(value).tz(Zenoss.USER_TIMEZONE).format(format);
     }
@@ -1388,6 +1387,21 @@ Zenoss.date.renderDateColumn = function(format) {
         return Zenoss.date.renderWithTimeZone(v, format||Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
     };
 };
+
+Zenoss.date.dateFormats = {
+    'year-month-day': 'YYYY-MM-DD',
+    'day-month-year': 'DD-MM-YYYY',
+    'month-day-year': 'MM-DD-YYYY',
+    'year/month/day': 'YYYY/MM/DD',
+    'day/month/year': 'DD/MM/YYYY',
+    'month/day/year': 'MM/DD/YYYY',
+}
+
+Zenoss.date.timeFormats = {
+    '12h am/pm': 'hh:mm:ss a',
+    '24h': 'HH:mm:ss'
+}
+
 
 Ext.onReady(function(){
     // For compatibility use the same data format for Zenoss.date.timeZones
