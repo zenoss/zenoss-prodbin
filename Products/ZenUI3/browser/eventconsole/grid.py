@@ -22,6 +22,7 @@ from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG, ARCHIVE_COLUMN_CONFIG, DEFAULT_COLUMN_ORDER, DEFAULT_COLUMNS
 from zenoss.protocols.protobufs.zep_pb2 import EventDetailItem
 from zenoss.protocols.services.zep import ZepConnectionError
+from Products.ZenUtils.Time import FormatToDatePicker
 
 import logging
 log = logging.getLogger('zep.grid')
@@ -109,7 +110,7 @@ def reader_config(archive=False):
 
 
 
-def column_config(request=None, archive=False):
+def column_config(request=None, archive=False, context=None):
     columns = _find_column_definitions(archive)
 
     column_definitions = []
@@ -127,6 +128,10 @@ def column_config(request=None, archive=False):
             col['filter'] = {'xtype':col['filter']}
         col['sortable'] = col.get('sortable', False)
         col['hidden'] = col.get('hidden', field not in DEFAULT_COLUMNS)
+        ### Rewrite Date/Time format ZEN-28204
+        if type(col['filter']) is dict and col['filter'].get('xtype') == "daterange":
+            dmd = context.getPhysicalRoot().zport.dmd
+            col['filter']['format'] = FormatToDatePicker(dmd.ZenUsers.getUserSettings().dateFormat)
 
         if 'renderer' in col:
             col['renderer'] = JavaScript(col['renderer'])
@@ -156,7 +161,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
 
         result = ["Ext.onReady(function(){"]
 
-        defs = column_config(self.request, archive=archive)
+        defs = column_config(self.request, archive=archive, context=self.context)
 
         reader_fields = reader_config(archive=archive)
 

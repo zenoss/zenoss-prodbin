@@ -459,11 +459,11 @@
                     if (timeParam.indexOf(" TO ") != -1) {
                         var dateValues = timeParam.split(" TO ");
                         values[paramKey] = dateValues.map(function(rangeValue){
-                            return moment(rangeValue).utc().format("YYYY-MM-DD HH:mm:ss")
+                            return moment(rangeValue, Zenoss.date.TimeFormats).utc().format("YYYY-MM-DD HH:mm:ss")
                         }).join(" TO ");
                     }
                     else {
-                        values[paramKey] = moment(timeParam).utc().format("YYYY-MM-DD HH:mm:ss")
+                        values[paramKey] = moment(timeParam, Zenoss.date.TimeFormats).utc().format("YYYY-MM-DD HH:mm:ss")
                     }
                 }
             });

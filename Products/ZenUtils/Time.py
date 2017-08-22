@@ -30,6 +30,12 @@ def _maybenow(gmtSecondsSince1970):
         return time.time()
     return int(gmtSecondsSince1970)
 
+def FormatToDatePicker(dfmt = "DD/MM/YY", tfmt = "HH:mm:ss"):
+    dfmts = {'DD/MM/YY': 'd-m-Y', 'MM/DD/YY': 'm-d-Y', 'YY/MM/DD': 'Y-m-d'}
+    tfmts = {'HH:mm:ss': 'H:i:s', 'hh:mm:ss a': 'h:m:s a'}
+    pickerfmt = dfmts.get(dfmt, 'd-m-Y')+' '+tfmts.get(tfmt, 'H:i:s')
+    return pickerfmt
+
 def LocalDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     secs = value % 60
