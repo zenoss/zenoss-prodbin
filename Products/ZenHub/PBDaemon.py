@@ -715,7 +715,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
-        factory.setCredential(c)
+        factory.setCredentials(c)
 
         def timeout(d):
             if not d.called:
