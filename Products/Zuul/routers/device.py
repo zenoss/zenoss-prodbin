@@ -26,6 +26,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
     ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE
 from Products.Zuul import filterUidsByPermission
+from Products.Zuul.facades import ObjectNotFoundException
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
@@ -1329,7 +1330,11 @@ class DeviceRouter(TreeRouter):
         @return:  List of credentials props
         """
         organizerUid = '/zport/dmd/Devices' + deviceClass
-        connInfo = self._getFacade().getConnectionInfo(organizerUid)
+        try:
+            connInfo = self._getFacade().getConnectionInfo(organizerUid)
+        except ObjectNotFoundException as o:
+            connInfo = {}
+
         props = OrderedDict([(item['id'], item.get('valueAsString', '')) for item in connInfo])
         if props.get('zSnmpCommunity'):
             del props['zSnmpCommunity'] # its always on the form
