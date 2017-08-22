@@ -245,7 +245,6 @@ class ZenActionD(ZCmdBase):
         log.debug("Creating async MetricReporter")
         daemonTags = {
             'zenoss_daemon': 'zenactiond',
-            'internal': True
         }
         self.metricreporter = TwistedMetricReporter(prefix='zenoss.', metricWriter=MetricWriter(pub), tags=daemonTags)
         self.metricreporter.start()

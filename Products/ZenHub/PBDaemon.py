@@ -50,7 +50,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
 from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
                                         ICollectorEventTransformer,
                                         TRANSFORM_DROP, TRANSFORM_STOP)
-from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
+from Products.ZenUtils.metricwriter import MetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
@@ -646,9 +646,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             if os.environ.get( "CONTROLPLANE", "0") == "1":
                 internal_publisher = self.internalPublisher()
                 if internal_publisher:
-                  internal_metric_filter = lambda metric, value, timestamp, tags:\
-                      tags and tags.get("internal", False)
-                  internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
+                  internal_metric_writer = MetricWriter(internal_publisher)
                   self._metric_writer = AggregateMetricWriter( [metric_writer, internal_metric_writer])
             else:
                 self._metric_writer = metric_writer
@@ -841,7 +839,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             daemonTags = {
                 'zenoss_daemon': self.name,
                 'zenoss_monitor': self.options.monitor,
-                'internal': True
             }
             self._metrologyReporter = TwistedMetricReporter(self.options.writeStatistics, self.metricWriter(), daemonTags)
             self._metrologyReporter.start()
