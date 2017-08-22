@@ -10,20 +10,23 @@
     Ext.define("Zenoss.form.DateDisplayField", {
         alias:['widget.datedisplayfield'],
         extend:"Ext.form.field.Display",
-        dateFormat: "YYYY-MM-DD HH:mm:ss a",
+        dateFormat: "YYYY-MM-DD hh:mm:ss a z",
+
         constructor: function(config) {
             config = config || {};
             config.value = this.formatDate(config.value);
             this.callParent([config]);
         },
+
         formatDate: function(date) {
             var value = date;
             if (value && Ext.isNumeric(value)){
                 // assume it is a timestamp and format it using the timezone
-                value = Zenoss.date.renderWithTimeZone(value, this.format);
+                value = Zenoss.date.renderWithTimeZone(value);
             }
             return value;
         },
+
         setValue: function(value) {
             this.callParent([this.formatDate(value)]);
         }

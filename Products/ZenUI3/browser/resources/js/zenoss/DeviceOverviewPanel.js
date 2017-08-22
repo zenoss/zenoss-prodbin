@@ -894,19 +894,16 @@
                             id: 'first-seen-label',
                             name: 'created_timestamp',
                             xtype: "datedisplayfield",
-                            renderer: Zenoss.date.renderWithTimeZone()
                         },{
                             fieldLabel: _t('Last Change'),
                             id: 'last-change-label',
                             name: 'lastChanged',
                             xtype: "datedisplayfield",
-                            renderer: Zenoss.date.renderWithTimeZone()
                         },{
                             fieldLabel: _t('Model Time'),
                             id: 'model-time-label',
                             name: 'lastCollected',
                             xtype: "datedisplayfield",
-                            renderer: Zenoss.date.renderWithTimeZone()
                         },{
                             fieldLabel: _t('Locking'),
                             id: 'locking-label',
