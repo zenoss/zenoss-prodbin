@@ -1231,25 +1231,22 @@ Ext.define("Zenoss.DateRange", {
     extend: "Ext.form.field.Date",
     alias: ['widget.DateRange'],
     xtype: "daterange",
+    formatDate: function (date) {
+        return Zenoss.date.renderPickerField(date);
+    },
     getErrors: function(value) {
         var errors = new Array();
         if (value == "") {
             return errors;
         }
         //Look first for invalid characters, fail fast
-        if (/[^0-9TO :-]/.test(value)) {
+        if (/[^0-9/TOampm :-]/.test(value)) {
             errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
             return errors;
         }
         if (value.indexOf("TO") === -1) {
-            if (!Zenoss.date.regex.ISO8601Long.test(value)) {
-                errors.push("Date is formatted incorrectly - format should be " + Zenoss.date.ISO8601Long);
-                return errors;
-            }
-        }
-        else {
-            if (!Zenoss.date.regex.ISO8601LongRange.test(value)) {
-                errors.push("Date range is formatted incorrectly - format should be " + Zenoss.date.ISO8601LongRange.replace(/\\/g, ''));
+            if (!moment(value, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT).isValid()) {
+                errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
                 return errors;
             }
         }
@@ -1373,11 +1370,15 @@ Ext.apply(Zenoss.date, {
 Zenoss.date.renderWithTimeZone = function (value, format) {
     if (Ext.isNumeric(value)) {
         if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a z";
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
         }
         return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
     }
     return value;
+};
+
+Zenoss.date.renderPickerField = function(date){
+    return Ext.isDate(date) ? moment(date).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : date;
 };
 
 Zenoss.date.renderDateColumn = function(format) {
