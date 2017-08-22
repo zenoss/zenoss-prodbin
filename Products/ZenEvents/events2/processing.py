@@ -763,7 +763,7 @@ class TransformAndReidentPipe(EventProcessorPipe):
             for pipe in self.reidentpipes:
                 eventContext = pipe(eventContext)
 
-            if not eventContext.eventProxy.prodState:
+            if not eventContext.eventProxy.prodState and original_prodState:
                 eventContext.eventProxy.prodState = original_prodState
 
         return eventContext
