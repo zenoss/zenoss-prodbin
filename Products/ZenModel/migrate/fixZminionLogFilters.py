@@ -20,7 +20,7 @@ import servicemigration as sm
 from servicemigration import InstanceLimits
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
-sm.require("1.0.0")
+sm.require("1.1.10")
 
 
 class FixZminionLogFilters(Migrate.Step):
