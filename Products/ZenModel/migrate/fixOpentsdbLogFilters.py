@@ -23,8 +23,8 @@ from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA
 sm.require("1.1.10")
 
 
-class FixZminionLogFilters(Migrate.Step):
-    """Correct the LogFilters for zminion (ZEN-28077)"""
+class FixOpentsdbLogFilters(Migrate.Step):
+    """Correct the LogFilters for Opentsdb (ZEN-28084)"""
 
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
@@ -42,43 +42,48 @@ class FixZminionLogFilters(Migrate.Step):
             log.info("Top level service name isn't Zenoss or UCS-PM; skipping.")
             return
 
-        services = filter(lambda s: s.name in ["zminion"], ctx.services)
-        log.info("Found %d services named 'zminion'." % len(services))
+        services = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
+        log.info("Found %i services with 'opentsdb' in their service path." % len(services))
 
         changed = False
+        filterName = "hbasedaemon"
         for service in services:
             servicePath = ctx.getServicePath(service)
+            # First, fix the path and the log filter name
             for logConfig in service.logConfigs:
-                if logConfig.path == "/opt/zenoss/log/zminion.log":
-                    if not logConfig.logTags:
-                        log.info("Updating logtag for %s in %s", logConfig.path, servicePath)
-                        monitor_tag = sm.logtag.LogTag("monitor", "{{(parent .).Name}}")
-                        logConfig.logTags.append(monitor_tag)
-                        changed = True
+                if logConfig.path == "/opt/zenoss/log/opentsdb.log":
+                    log.info("Updating logfilter for %s in %s", logConfig.path, servicePath)
+                    logConfig.path = "/var/log/opentsdb/opentsdb.log"
+                    logConfig.filters = [filterName]
+                    changed = True
+                else:
+                    log.info("No updates necesary for the logfilter for %s", servicePath)
 
-                    if logConfig.filters is None:
-                        log.info("Updating logfilter for %s in %s", logConfig.path, servicePath)
-                        logConfig.filters = ["glog"]
-                        changed = True
-                    else:
-                        log.info("No updates necesary for the logfilter for %s", servicePath)
+            # Second, update the log file config to generate messages in the same format as hbase
+            configFiles = service.originalConfigs + service.configFiles
+            hbaseLogPattern = "%date{ISO8601} %-5level [%thread] %logger{0}: %msg%n"
+            for configFile in filter(lambda f: f.name == '/opt/opentsdb/src/logback.xml', configFiles):
+                if "%d{HH:mm:ss.SSS} %-5level [%logger{0}.%M] - %msg%n" in configFile.content:
+                    log.info("Updating /opt/opentsdb/src/logback.xml for %s", servicePath)
+                    configFile.content = configFile.content.replace("%d{ISO8601} %-5level [%thread] %logger{0}: %msg%n", hbaseLogPattern)
+                    configFile.content = configFile.content.replace("%d{HH:mm:ss.SSS} %-5level [%logger{0}.%M] - %msg%n", hbaseLogPattern)
+                    configFile.content = configFile.content.replace("%date{ISO8601} [%logger.%M] %msg%n", hbaseLogPattern)
+                    changed = True
 
-        filename = 'Products/ZenModel/migrate/data/glog-6.0.0.conf'
+        filename = 'Products/ZenModel/migrate/data/hbasedaemon-6.0.0.conf'
         with open(zenPath(filename)) as filterFile:
             try:
                 filterDef = filterFile.read()
             except Exception, e:
                 log.error("Error reading {0} logfilter file: {1}".format(filename, e))
                 return
-            filterName = "glog"
             log.info("Updating log filter named {0}".format(filterName))
             changed = True
             ctx.addLogFilter(filterName, filterDef)
-
 
         if changed:
             # Commit our changes.
             ctx.commit()
 
 
-FixZminionLogFilters()
+FixOpentsdbLogFilters()
