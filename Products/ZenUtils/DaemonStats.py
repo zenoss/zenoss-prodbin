@@ -60,7 +60,6 @@ class DaemonStats(object):
             'daemon': self.name,
             'monitor': self.monitor,
             'metricType': metric_type,
-            'internal': True
         }
         if self._service_id:
             tags['serviceId'] = self._service_id

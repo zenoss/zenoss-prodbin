@@ -68,7 +68,7 @@ from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
 from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.WorkerSelection import WorkerSelector
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_CLEAR
-from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
+from Products.ZenUtils.metricwriter import MetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher, RedisListPublisher
@@ -391,9 +391,7 @@ def metricWriter():
 
         if internal_url:
             internal_publisher = publisher( internal_username, internal_password, internal_url)
-            internal_metric_filter = lambda metric, value, timestamp, tags:\
-                tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
+            internal_metric_writer = MetricWriter(internal_publisher)
             return AggregateMetricWriter( [metric_writer, internal_metric_writer])
 
     return metric_writer
@@ -1112,7 +1110,6 @@ class ZenHub(ZCmdBase):
             daemonTags = {
                 'zenoss_daemon': 'zenhub',
                 'zenoss_monitor': self.options.monitor,
-                'internal': True
             }
             self.metricreporter = TwistedMetricReporter(metricWriter=self._metric_writer, tags=daemonTags)
             self.metricreporter.start()

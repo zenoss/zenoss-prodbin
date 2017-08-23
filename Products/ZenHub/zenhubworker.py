@@ -99,7 +99,6 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         daemonTags = {
             'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
             'zenoss_monitor': self.options.monitor,
-            'internal': True
         }
         self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
         self.metricreporter.start()
