@@ -34,6 +34,10 @@ log = logging.getLogger("zen.metricreporter")
 
 
 class TimeOnce(object):
+    """
+    a simple context manager to time something and save tag values and
+    a measurement.
+    """
     def __init__(self, gauge, *args):
         if len(gauge.tagKeys) != len(args):
             raise RuntimeError('The number of tag values provided does not match the number of configured tag keys')
@@ -46,6 +50,17 @@ class TimeOnce(object):
 
 
 class QueueGauge(object):
+    """
+    This instrument contains simple point-in-time measurements like a gauge.
+    Unlike a gauge, however, it:
+      - can be configured to have tags whose values can vary with each measurement
+      - contains a queue of values with tag values, which are read only once each
+    Many values or none can be written to this instrument between cycles of its
+    reporter, so for it many or no values will be published.
+    Calling an instance returns something which should append to the instances
+    queue a tuple, which should contain 1 value for each tagKey of the instance,
+    followed by a measurement.
+    """
     def __init__(self, *args):
         self.newContextManager = args[0] if callable(args[0]) else TimeOnce
         self.tagKeys = args if not callable(args[0]) else args[1:]
@@ -169,6 +184,10 @@ def getMetrics(mRegistry, tags, prefix):
     return metrics
 
 def log_queue_gauge(name, metric, tags, prefix):
+    """
+    A QueueGauge needs this unique handler because it does not contain a
+    fixed number of values.
+    """
     results = []
 
     metric_name = prefix + name if prefix else name
@@ -176,6 +195,7 @@ def log_queue_gauge(name, metric, tags, prefix):
     whole_metric_name = "{}.value".format(metric_name)
     try:
         while metric.queue:
+            # each stat should be a tuple with 1 more member than metric.tagKeys
             stat = metric.queue.pop()
             qtags = tags.copy()
             qtags.update(izip(metric.tagKeys, stat))
