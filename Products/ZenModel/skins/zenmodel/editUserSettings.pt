@@ -206,7 +206,9 @@
               // Zenoss.data.timeZones comes from moment-timezone-data.js and
               // Zenoss.USER_TIMEZONE comes from the server
               Ext.onReady(function() {
-                  var select = Ext.get('user_settings_timezone').dom, zones = Zenoss.date.timeZones.zones, zone, i=0;
+                  var select = Ext.get('user_settings_timezone').dom,
+                      zones = Zenoss.date.timeZones.zones,
+                      i=0;
                   for (zone in zones) {
                       select.options[i] = new Option(zone, zones[zone]);
                       if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
@@ -229,7 +231,9 @@
               // build a select list with the current date format selected.
               // Zenoss.data.timeZones comes from moment-timezone-data.js and
               Ext.onReady(function() {
-                  var select = Ext.get('user_settings_dateformat').dom, formats = Zenoss.date.dateFormats, format, i=0;
+                  var select = Ext.get('user_settings_dateformat').dom,
+                      formats = Zenoss.date.dateFormats,
+                      i=0;
                   for (var key in formats) {
                       select.options[i] = new Option(key, formats[key]);
                       if (formats[key] === Zenoss.env.CURRENT_USER_DATE_FORMAT) {
@@ -252,7 +256,9 @@
               // build a select list with the current date format selected.
               // Zenoss.data.timeZones comes from moment-timezone-data.js and
               Ext.onReady(function() {
-                  var select = Ext.get('user_settings_timeformat').dom, formats = Zenoss.date.timeFormats, format, i=0;
+                  var select = Ext.get('user_settings_timeformat').dom,
+                      formats = Zenoss.date.timeFormats,
+                      i=0;
                   for (var key in formats) {
                       select.options[i] = new Option(key, formats[key]);
                       if (formats[key] === Zenoss.env.CURRENT_USER_TIME_FORMAT) {
