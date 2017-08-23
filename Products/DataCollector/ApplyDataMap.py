@@ -65,7 +65,7 @@ class ApplyDataMap(object):
             self._dmd = getattr(datacollector, 'dmd', None)
         metricName = 'applyDataMap.updateRelationship'
         if metricName not in {x[0] for x in registry}:
-            registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname'))
+            registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
         self._urGauge = registry.get(metricName)
 
     def logChange(self, device, compname, eventClass, msg):
@@ -190,7 +190,7 @@ class ApplyDataMap(object):
                 logname = datamap.relname
                 for objmap in datamap:
                     if objmap.modname:
-                        with self._urGauge(device.id, objmap.modname):
+                        with self._urGauge(device.id, objmap.modname, False):
                             changed = self._updateRelationship(tobj, datamap)
                         break
                 else:
