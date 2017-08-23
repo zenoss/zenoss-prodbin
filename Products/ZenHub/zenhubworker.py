@@ -93,7 +93,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         def stop(*args):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
-        factory.startLogin(c)
+        factory.setCredentials(c)
 
         self.log.debug("Creating async MetricReporter")
         daemonTags = {

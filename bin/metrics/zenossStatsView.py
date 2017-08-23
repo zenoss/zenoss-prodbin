@@ -86,6 +86,7 @@ class ZProxyMetricGatherer(MetricGatherer):
         zope_upstream_file = self.ZPROXY_CONF_DIR + 'zope-upstreams.conf'
         zenapi_upstream_file = self.ZPROXY_CONF_DIR + 'apizopes-upstreams.conf'
         zenreports_upstream_file = self.ZPROXY_CONF_DIR + 'zopereports-upstreams.conf'
+        zauth_upstream_file = self.ZPROXY_CONF_DIR + 'zauth-upstreams.conf'
 
         def check_upstream_util(upstream_file):
             upstream_modified = os.path.getmtime(upstream_file)
@@ -111,6 +112,7 @@ class ZProxyMetricGatherer(MetricGatherer):
         check_upstream('Zope', zope_upstream_file)
         check_upstream('zenapi', zenapi_upstream_file)
         check_upstream('zenreports', zenreports_upstream_file)
+        check_upstream('Zauth', zauth_upstream_file)
 
         return self.zopes
 
