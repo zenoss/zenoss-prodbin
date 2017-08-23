@@ -39,14 +39,12 @@ class TimeOnce(object):
     a measurement.
     """
     def __init__(self, gauge, *args):
-        if len(gauge.tagKeys) != len(args):
-            raise RuntimeError('The number of tag values provided does not match the number of configured tag keys')
         self.gauge = gauge
         self.tagValues = args
     def __enter__(self):
         self.interval = Interval.now()
     def __exit__(self, *args):
-        self.gauge.queue.appendleft(self.tagValues + (self.interval.stop(),))
+        self.gauge.update(self.tagValues, self.interval.stop())
 
 
 class QueueGauge(object):
@@ -66,7 +64,11 @@ class QueueGauge(object):
         self.tagKeys = args if not callable(args[0]) else args[1:]
         self.queue = deque()
     def __call__(self, *args):
+        if len(self.tagKeys) != len(args):
+            raise RuntimeError('The number of tag values provided does not match the number of configured tag keys')
         return self.newContextManager(self, *args)
+    def update(self, tagValues, metricValue):
+        self.queue.appendleft(tagValues + (metricValue,))
 
 
 class MetricReporter(Reporter):
