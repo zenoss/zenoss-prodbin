@@ -542,6 +542,17 @@ class IpInterface(OSComponent, Layer2Linkable):
         return []
 
 
+    def monitored(self):
+        '''
+        Return True if this instance should be monitored. False
+        otherwise.
+        '''
+        if self.adminStatus > 1:
+            return False
+        else:
+            return super(IpInterface, self).monitored()
+
+
     def snmpIgnore(self):
         """
         Ignore interface that are administratively down.
