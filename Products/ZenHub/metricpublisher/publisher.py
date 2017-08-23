@@ -45,19 +45,24 @@ class BasePublisher(object):
     Publish metrics to redis
     """
 
-    def __init__(self, buflen, pubfreq):
+    def __init__(self, buflen, pubfreq, tagsToFilter=('internal',)):
         self._buflen = buflen
         self._pubfreq = pubfreq
         self._pubtask = None
         self._mq = deque(maxlen=buflen)
+        self._tagsToFilter = tagsToFilter
 
     def build_metric(self, metric, value, timestamp, tags):
         # guarantee value's a float
         _value = sanitized_float(value)
+        _tags = tags.copy()
+        for key in self._tagsToFilter:
+            if key in _tags:
+                del _tags[key]
         return {"metric": metric,
                 "value": _value,
                 "timestamp": timestamp,
-                "tags": tags}
+                "tags": _tags}
 
     def _publish_failed(self, reason, metrics):
         """
