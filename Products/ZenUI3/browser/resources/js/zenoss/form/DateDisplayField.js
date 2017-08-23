@@ -23,9 +23,10 @@
             if (value && Ext.isNumeric(value)){
                 // assume it is a timestamp and format it using the timezone
                 //value = Zenoss.date.renderWithTimeZone(value);
-                value = moment.unix(value
-                        ).tz(Zenoss.USER_TIMEZONE
-                        ).format(this.dateFormat);
+                value = moment
+                    .unix(value)
+                    .tz(Zenoss.USER_TIMEZONE)
+                    .format(this.dateFormat);
             }
             return value;
         },
