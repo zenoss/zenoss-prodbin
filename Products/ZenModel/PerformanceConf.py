@@ -13,6 +13,7 @@ The configuration object for Performance servers
 """
 
 import logging
+import re
 
 from ipaddr import IPAddress
 
@@ -475,6 +476,7 @@ class PerformanceConf(Monitor, StatusColor):
             performanceMonitor, productionState, REQUEST=None, max_seconds=None):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
+        deviceName = self._escapeParentheses(deviceName)
         zendiscOptions = [
             'run', '--now', '-d', deviceName,
             '--monitor', performanceMonitor,
@@ -568,6 +570,7 @@ class PerformanceConf(Monitor, StatusColor):
             self, deviceName, performanceMonitor, REQUEST=None):
         zm = binPath('zenmodeler')
         cmd = [zm]
+        deviceName = self._escapeParentheses(deviceName)
         options = [
             'run', '--now', '-d', deviceName, '--monitor', performanceMonitor
         ]
@@ -578,6 +581,13 @@ class PerformanceConf(Monitor, StatusColor):
     def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
         result = executeCommand(remoteCommand, REQUEST, write)
         return result
+
+    def _escapeParentheses(self, string):
+        """
+        Escape unascaped parentheses.
+        """
+        compiled = re.compile(r'(?<!\\)(?P<char>[()])')
+        return compiled.sub(r'\\\g<char>', string)
 
 
 class RenderURLUtilContext(object):
