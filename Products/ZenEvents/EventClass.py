@@ -240,11 +240,10 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     def nextSequenceNumber(self, key):
         """Get next sequence number for instance.
         """
-        idx = 0
-        insts = self.find(key)
-        if len(insts) > 0:
-            idx = insts[-1].sequence + 1
-        return idx
+        instances = self.find(key)
+        if len(instances):
+            return max(i.sequence for i in instances) + 1
+        return 0
 
     def prepId(self, id, subchar='_'):
         return globalPrepId(id, subchar)
