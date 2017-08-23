@@ -15,6 +15,9 @@ import time
 from twisted.internet import reactor, defer, task
 
 from metrology.registry import registry
+from astrolabe.interval import Interval
+from itertools import izip
+from collections import deque
 
 from metrology.instruments import (
     Counter,
@@ -28,6 +31,27 @@ from metrology.instruments import (
 from metrology.reporter.base import Reporter
 
 log = logging.getLogger("zen.metricreporter")
+
+
+class TimeOnce(object):
+    def __init__(self, gauge, *args):
+        if len(gauge.tagKeys) != len(args):
+            raise RuntimeError('The number of tag values provided does not match the number of configured tag keys')
+        self.gauge = gauge
+        self.tagValues = args
+    def __enter__(self):
+        self.interval = Interval.now()
+    def __exit__(self, *args):
+        self.gauge.queue.appendleft(self.tagValues + (self.interval.stop(),))
+
+
+class QueueGauge(object):
+    def __init__(self, *args):
+        self.newContextManager = args[0] if callable(args[0]) else TimeOnce
+        self.tagKeys = args if not callable(args[0]) else args[1:]
+        self.queue = deque()
+    def __call__(self, *args):
+        return self.newContextManager(self, *args)
 
 
 class MetricReporter(Reporter):
@@ -122,6 +146,8 @@ def getMetrics(mRegistry, tags, prefix):
         if isinstance(metric, Gauge):
             keys = ['value']
             metrics.extend(log_metric(name, metric, keys, tags, prefix))
+        if isinstance(metric, QueueGauge):
+            metrics.extend(log_queue_gauge(name, metric, tags, prefix))
         if isinstance(metric, UtilizationTimer):
             keys = ['count', 'one_minute_rate', 'five_minute_rate',
                     'fifteen_minute_rate', 'mean_rate', 'min', 'max',
@@ -141,6 +167,26 @@ def getMetrics(mRegistry, tags, prefix):
             keys = ['count', 'min', 'max', 'mean', 'stddev']
             metrics.extend(log_metric(name, metric, keys, tags, prefix, snapshot_keys))
     return metrics
+
+def log_queue_gauge(name, metric, tags, prefix):
+    results = []
+
+    metric_name = prefix + name if prefix else name
+    ts = time.time()
+    whole_metric_name = "{}.value".format(metric_name)
+    try:
+        while metric.queue:
+            stat = metric.queue.pop()
+            qtags = tags.copy()
+            qtags.update(izip(metric.tagKeys, stat))
+            results.append({"metric": whole_metric_name,
+                            "value": stat[-1],
+                            "timestamp": ts,
+                            "tags": qtags})
+
+    except Exception as e:
+        log.error(e)
+    return results
 
 def log_metric(name, metric, keys, tags, prefix, snapshot_keys=None):
     results = []
