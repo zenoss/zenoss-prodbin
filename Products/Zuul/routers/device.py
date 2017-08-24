@@ -1554,14 +1554,17 @@ class DeviceRouter(TreeRouter):
             title = deviceName
 
         # the device name is used as part of the URL, so any unicode characters
-        # will be stripped before saving. Pre-empt this and make the device name
+        # will be stripped before saving. Preempt this and make the device name
         # safe prior to the uniqueness check.
         safeDeviceName = organizer.prepId(deviceName)
 
-        device = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
-        if device and organizer.getZ('zUsesManageIp', True):
-            return DirectResponse.fail(deviceUid=device.getPrimaryId(),
-                                       msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
+        deviceByIp = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
+        deviceByName = facade.getDeviceByName(safeDeviceName)
+        if deviceByIp and organizer.getZ('zUsesManageIp', True) \
+                or deviceByName and deviceClass == deviceByName.getDeviceClassName():
+            primaryId = deviceByName.getPrimaryId() if deviceByName.getDeviceClassName() == deviceClass else deviceByIp.getPrimaryId()
+            return DirectResponse.fail(deviceUid=primaryId,
+                                       msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId))
 
         if isinstance(systemPaths, basestring):
             systemPaths = [systemPaths]
