@@ -44,6 +44,13 @@ class AddSolrService(Migrate.Step):
             ctx.deployService(json.dumps(new_solr), infrastructure)
             changed = True
 
+        # Remove the zencatalogservice-uri global conf option from the top service
+        zenoss = ctx.getTopService()
+        global_conf = zenoss._Service__data.get("Context", None)
+        if global_conf and global_conf.get("global.conf.zencatalogservice-uri", None):
+            del global_conf["global.conf.zencatalogservice-uri"]
+            changed = True
+
         # Now healthchecks
         solr_answering_healthcheck = HealthCheck(
             name="solr_answering",
@@ -62,6 +69,12 @@ class AddSolrService(Migrate.Step):
                 ctx.services.remove(svc)
                 changed = True
                 continue
+            # Remove zencatalogservice response prereq and add solr one
+            for pr in svc.prereqs[:]:
+                if pr.name == "zencatalogservice response":
+                    svc.prereqs.remove(pr)
+                    svc.prereqs.append(sm.Prereq(name='Solr answering', script="""curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"""))
+                    changed = True
             # If we've got a solr_answering health check, we can stop.
             # Otherwise, remove catalogservice health checks and add Solr ones
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
@@ -82,6 +95,7 @@ class AddSolrService(Migrate.Step):
 
 def default_solr_service(imageid):
     return {
+        "ID": "abcd",
         "CPUCommitment": 2,
         "Command": "/bin/supervisord -n -c /opt/solr/zenoss/etc/supervisor.conf",
         "ConfigFiles": {
