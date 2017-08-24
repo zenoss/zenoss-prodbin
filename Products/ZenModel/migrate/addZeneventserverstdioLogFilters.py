@@ -55,11 +55,14 @@ class AddZeneventserverstdioLogFilters(Migrate.Step):
         for service in services:
             for logConfig in service.logConfigs:
                 if logConfig.logType == "zeneventserver_stdio":
-                    if len(logConfig.filters) < 1:
-                        log.info("Updating logfilter for %s", logConfig.path)
+                    if not logConfig.filters:
+                        log.info("Adding logfilter for %s", logConfig.logType)
+                        logConfig.filters = ["zeneventserver-stdio"]
+                    elif logConfig.filters[0] != "zeneventserver-stdio":
+                        log.info("Updating logfilter for %s", logConfig.logType)
                         logConfig.filters[0] = "zeneventserver-stdio"
                     else:
-                        log.info("No updates necesary for the logfilter for %s", logConfig.path)
+                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
 
 
         # Note that the logstash.conf will not be properly updated until a later
