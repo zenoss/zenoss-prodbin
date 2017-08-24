@@ -15,8 +15,8 @@ incl_mimetypes_pat = re.compile(r'include mime\.types;(?:(?:\\r)?\\n)?')
 zauth_upstream_pat = re.compile("\\n\s+upstream zauth {\\n\s+least_conn;\\n\s+include zauth-upstreams\.conf;\\n\s+keepalive 64;\\n\s+}(?:(?:\\r)?\\n)")
 zauth_upstreams_decl = '\n\n    upstream zauth {\n        least_conn;\n        include zauth-upstreams.conf;\n        keepalive 64;\n    }'
 zauth_location_pat = re.compile('location .* \/zauth\/')
-include_pat = '\n            # ZAuth requests should always be allowed\n            include zenoss-authenticated-nginx.cfg;'
-proxy_pass_pat = '\n            proxy_pass http://zauth;'
+old_zauth_location = '\n        location ^~ /zauth/ {\n            # ZAuth requests should always be allowed\n            include zenoss-authenticated-nginx.cfg;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n        }'
+new_zauth_location = '\n        location ^~ /zauth/ {\n            proxy_pass http://zauth;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n            rewrite /api/zauth/api/login /authorization/login break;\n            rewrite /zauth/api/validate /authorization/validate break;\n        }'
 
 def find_insertion_point(conf, patterns):
     insertion_point = 0
@@ -41,7 +41,7 @@ def modify_zauth_location(conf):
     if not zauth_location_pat.search(conf):
         return conf
 
-    conf = conf.replace(include_pat, proxy_pass_pat)
+    conf = conf.replace(old_zauth_location, new_zauth_location)
     return conf
 
 def update_zproxy_conf(zproxy_conf):
