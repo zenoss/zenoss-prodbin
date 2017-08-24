@@ -87,13 +87,13 @@ class LogSeverityOption(Option):
 
 
 class CmdBase(object):
-    """
-    Class used for all Zenoss commands
-    """
 
     doesLogging = True
 
-    def __init__(self, noopts=0, args=None):
+    """
+    Class used for all Zenoss commands
+    """
+    def __init__(self, noopts=0, args=None, should_log=None):
         zope.component.provideAdapter(DefaultTraversable, (None,))
         # This explicitly loads all of the products - must happen first!
         from OFS.Application import import_products
@@ -135,6 +135,9 @@ class CmdBase(object):
             # the command-line
             self.parseOptions()
 
+        if should_log is not None:
+            self.doesLogging = should_log
+            
         if self.doesLogging:
             self.setupLogging()
 
