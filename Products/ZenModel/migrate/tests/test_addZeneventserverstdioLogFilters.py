@@ -17,6 +17,7 @@ class test_addZeneventserverstdioLogFilters(unittest.TestCase, common.ServiceMig
     """
     initial_servicedef = 'zenoss-resmgr-5.1.3.json'
     expected_servicedef = 'zenoss-resmgr-5.1.3-updatedZeneventserverstdioLogFilter.json' # the filter spec was added
+
     migration_module_name = 'addZeneventserverstdioLogFilters'
     migration_class_name = 'AddZeneventserverstdioLogFilters'
     expected_log_filters = dict()

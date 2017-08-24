@@ -15,6 +15,9 @@ import time
 from twisted.internet import reactor, defer, task
 
 from metrology.registry import registry
+from astrolabe.interval import Interval
+from itertools import izip
+from collections import deque
 
 from metrology.instruments import (
     Counter,
@@ -28,6 +31,44 @@ from metrology.instruments import (
 from metrology.reporter.base import Reporter
 
 log = logging.getLogger("zen.metricreporter")
+
+
+class TimeOnce(object):
+    """
+    a simple context manager to time something and save tag values and
+    a measurement.
+    """
+    def __init__(self, gauge, *args):
+        self.gauge = gauge
+        self.tagValues = args
+    def __enter__(self):
+        self.interval = Interval.now()
+    def __exit__(self, *args):
+        self.gauge.update(self.tagValues, self.interval.stop())
+
+
+class QueueGauge(object):
+    """
+    This instrument contains simple point-in-time measurements like a gauge.
+    Unlike a gauge, however, it:
+      - can be configured to have tags whose values can vary with each measurement
+      - contains a queue of values with tag values, which are read only once each
+    Many values or none can be written to this instrument between cycles of its
+    reporter, so for it many or no values will be published.
+    Calling an instance returns something which should append to the instances
+    queue a tuple, which should contain 1 value for each tagKey of the instance,
+    followed by a measurement.
+    """
+    def __init__(self, *args):
+        self.newContextManager = args[0] if callable(args[0]) else TimeOnce
+        self.tagKeys = args if not callable(args[0]) else args[1:]
+        self.queue = deque()
+    def __call__(self, *args):
+        if len(self.tagKeys) != len(args):
+            raise RuntimeError('The number of tag values provided does not match the number of configured tag keys')
+        return self.newContextManager(self, *args)
+    def update(self, tagValues, metricValue):
+        self.queue.appendleft(tagValues + (metricValue,))
 
 
 class MetricReporter(Reporter):
@@ -122,6 +163,8 @@ def getMetrics(mRegistry, tags, prefix):
         if isinstance(metric, Gauge):
             keys = ['value']
             metrics.extend(log_metric(name, metric, keys, tags, prefix))
+        if isinstance(metric, QueueGauge):
+            metrics.extend(log_queue_gauge(name, metric, tags, prefix))
         if isinstance(metric, UtilizationTimer):
             keys = ['count', 'one_minute_rate', 'five_minute_rate',
                     'fifteen_minute_rate', 'mean_rate', 'min', 'max',
@@ -141,6 +184,31 @@ def getMetrics(mRegistry, tags, prefix):
             keys = ['count', 'min', 'max', 'mean', 'stddev']
             metrics.extend(log_metric(name, metric, keys, tags, prefix, snapshot_keys))
     return metrics
+
+def log_queue_gauge(name, metric, tags, prefix):
+    """
+    A QueueGauge needs this unique handler because it does not contain a
+    fixed number of values.
+    """
+    results = []
+
+    metric_name = prefix + name if prefix else name
+    ts = time.time()
+    whole_metric_name = "{}.value".format(metric_name)
+    try:
+        while metric.queue:
+            # each stat should be a tuple with 1 more member than metric.tagKeys
+            stat = metric.queue.pop()
+            qtags = tags.copy()
+            qtags.update(izip(metric.tagKeys, stat))
+            results.append({"metric": whole_metric_name,
+                            "value": stat[-1],
+                            "timestamp": ts,
+                            "tags": qtags})
+
+    except Exception as e:
+        log.error(e)
+    return results
 
 def log_metric(name, metric, keys, tags, prefix, snapshot_keys=None):
     results = []

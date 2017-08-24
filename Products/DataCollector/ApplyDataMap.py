@@ -19,7 +19,9 @@ from ZODB.transact import transact
 from zope.event import notify
 from zope.container.contained import ObjectMovedEvent
 from Acquisition import aq_base
+from metrology.registry import registry
 
+from Products.ZenUtils.MetricReporter import QueueGauge
 from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
@@ -61,6 +63,10 @@ class ApplyDataMap(object):
         self._dmd = None
         if datacollector:
             self._dmd = getattr(datacollector, 'dmd', None)
+        metricName = 'applyDataMap.updateRelationship'
+        if metricName not in {x[0] for x in registry}:
+            registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
+        self._urGauge = registry.get(metricName)
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -182,7 +188,13 @@ class ApplyDataMap(object):
 
             if hasattr(datamap, "relname"):
                 logname = datamap.relname
-                changed = self._updateRelationship(tobj, datamap)
+                for objmap in datamap:
+                    if objmap.modname:
+                        with self._urGauge(device.id, objmap.modname, False):
+                            changed = self._updateRelationship(tobj, datamap)
+                        break
+                else:
+                    changed = self._updateRelationship(tobj, datamap)
             elif hasattr(datamap, 'modname'):
                 logname = datamap.compname
                 changed = self._updateObject(tobj, datamap)
