@@ -75,7 +75,6 @@ class AddSolrService(Migrate.Step):
                     svc.prereqs.remove(pr)
                     svc.prereqs.append(sm.Prereq(name='Solr answering', script="""curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"""))
                     changed = True
-                    break
             # If we've got a solr_answering health check, we can stop.
             # Otherwise, remove catalogservice health checks and add Solr ones
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
