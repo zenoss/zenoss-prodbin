@@ -637,6 +637,9 @@ class DeviceFacade(TreeFacade):
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
+    def getDeviceByName(self, deviceName):
+        return self.context.Devices.findDeviceByIdExact(deviceName)
+
     @info
     def setCollector(self, uids, collector, moveData=False, asynchronous=True):
         # Keep 'moveData' in signature even though it's unused now
