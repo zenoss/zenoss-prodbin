@@ -55,7 +55,7 @@ class AddZeneventserverstdioLogFilters(Migrate.Step):
         for service in services:
             for logConfig in service.logConfigs:
                 if logConfig.logType == "zeneventserver_stdio":
-                    if logConfig.filters[0] != "zeneventserver-stdio":
+                    if len(logConfig.filters) < 1:
                         log.info("Updating logfilter for %s", logConfig.path)
                         logConfig.filters[0] = "zeneventserver-stdio"
                     else:
