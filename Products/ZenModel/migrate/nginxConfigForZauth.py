@@ -14,9 +14,7 @@ sm.require("1.0.0")
 incl_mimetypes_pat = re.compile(r'include mime\.types;(?:(?:\\r)?\\n)?')
 zauth_upstream_pat = re.compile("\\n\s+upstream zauth {\\n\s+least_conn;\\n\s+include zauth-upstreams\.conf;\\n\s+keepalive 64;\\n\s+}(?:(?:\\r)?\\n)")
 zauth_upstreams_decl = '\n\n    upstream zauth {\n        least_conn;\n        include zauth-upstreams.conf;\n        keepalive 64;\n    }'
-zauth_location_pat = re.compile('location .* \/zauth\/')
-old_zauth_location = '\n        location ^~ /zauth/ {\n            # ZAuth requests should always be allowed\n            include zenoss-authenticated-nginx.cfg;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n        }'
-new_zauth_location = '\n        location ^~ /zauth/ {\n            proxy_pass http://zauth;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n            rewrite /api/zauth/api/login /authorization/login break;\n            rewrite /zauth/api/validate /authorization/validate break;\n        }'
+zauth_location_pat = re.compile(r'location .* /zauth/')
 
 def find_insertion_point(conf, patterns):
     insertion_point = 0
@@ -29,7 +27,8 @@ def find_insertion_point(conf, patterns):
     return insertion_point
 
 def insert_zauth_upstreams(conf):
-    if zauth_upstream_pat.search(conf) is not None:
+    if zauth_upstream_pat.search(conf):
+        log.info('Zauth upstream block already exists.')
         return conf
     insertion_point = find_insertion_point(conf, [incl_mimetypes_pat])
     if insertion_point > 0:
@@ -37,12 +36,63 @@ def insert_zauth_upstreams(conf):
     else:
         return conf
 
+def indent_str(string, indent):
+    return string.rjust(indent + len(string))
+
 def modify_zauth_location(conf):
     if not zauth_location_pat.search(conf):
+        log.info('Zauth location block not found.')
         return conf
 
-    conf = conf.replace(old_zauth_location, new_zauth_location)
-    return conf
+    new_conf = []
+    lines = conf.split('\n')
+    in_zauth_loc = False
+    add_rewrite_login = True
+    add_rewrite_validate = True
+
+    for line in lines:
+        if line.strip().startswith('location ^~ /zauth/ {'):
+            in_zauth_loc = True # We are inside zauth location block.
+            stack = [] # To figure out the end of the zauth location block
+        if in_zauth_loc:
+            if '{' in line:
+                stack.append('{')
+
+            if '}' in line:
+                stack.pop()
+
+            if line.strip().startswith('# ZAuth requests should always be allowed'):
+                # Skip this line. Don't need any more.
+                continue
+
+            if line.strip().startswith('include zenoss-authenticated-nginx.cfg'):
+                indent = len(line) - len(line.lstrip())
+                line = indent_str('proxy_pass http://zauth;', indent)
+
+            if line.strip().startswith('rewrite /zauth/api/login /authorization/login break;'):
+                add_rewrite_login = False
+
+            if line.strip().startswith('rewrite /zauth/api/validate /authorization/validate break;'):
+                add_rewrite_validate = False
+
+            if len(stack) == 0: # End of the zauth location block
+                indent = len(line) - len(line.lstrip())
+
+                if add_rewrite_login:
+                    string = 'rewrite /zauth/api/login /authorization/login break;'
+                    indented = indent_str(string, indent + 4)
+                    new_conf.append(indented)
+
+                if add_rewrite_validate:
+                    string = 'rewrite /zauth/api/validate /authorization/validate break;'
+                    indented = indent_str(string, indent + 4)
+                    new_conf.append(indented)
+
+                in_zauth_loc = False
+
+        new_conf.append(line)
+
+    return '\n'.join(new_conf)
 
 def update_zproxy_conf(zproxy_conf):
     conf = insert_zauth_upstreams(zproxy_conf.content)
