@@ -69,14 +69,13 @@ class AddSolrService(Migrate.Step):
                 ctx.services.remove(svc)
                 changed = True
                 continue
-            # Remove zencatalogservice response prereq from zenhub and add solr one
-            if svc.name == "zenhub":
-                for pr in svc.prereqs[:]:
-                    if pr.name == "zencatalogservice response":
-                        svc.prereqs.remove(pr)
-                        svc.prereqs.append(sm.Prereq(name='Solr answering', script="""curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"""))
-                        changed = True
-                        break
+            # Remove zencatalogservice response prereq and add solr one
+            for pr in svc.prereqs[:]:
+                if pr.name == "zencatalogservice response":
+                    svc.prereqs.remove(pr)
+                    svc.prereqs.append(sm.Prereq(name='Solr answering', script="""curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"""))
+                    changed = True
+                    break
             # If we've got a solr_answering health check, we can stop.
             # Otherwise, remove catalogservice health checks and add Solr ones
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
