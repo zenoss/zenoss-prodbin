@@ -97,6 +97,7 @@ class AddSolrService(Migrate.Step):
 
 def default_solr_service(imageid):
     return {
+        "ID": "abcd",
         "CPUCommitment": 2,
         "Command": "/bin/supervisord -n -c /opt/solr/zenoss/etc/supervisor.conf",
         "ConfigFiles": {
