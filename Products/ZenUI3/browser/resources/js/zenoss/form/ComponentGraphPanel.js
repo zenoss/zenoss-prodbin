@@ -214,7 +214,7 @@
         updateGraphs: function() {
             var meta_type = this.compType, uid = this.uid,
                 graphId = this.graphId, allOnSame = this.allOnSame.checked;
-            if (graphId != undefined) {
+            if (graphId !== undefined) {
                 Zenoss.remote.DeviceRouter.getComponentGraphs({
                     uid: uid,
                     meta_type: meta_type,
