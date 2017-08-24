@@ -188,7 +188,9 @@ class ApplyDataMap(object):
 
             if hasattr(datamap, "relname"):
                 logname = datamap.relname
-                for objmap in datamap:
+                # a 'naked' ObjectMap can have a relname but is not iterable
+                maps = datamap if hasattr(datamap, 'maps') else [datamap]
+                for objmap in maps:
                     if objmap.modname:
                         with self._urGauge(device.id, objmap.modname, False):
                             changed = self._updateRelationship(tobj, datamap)
