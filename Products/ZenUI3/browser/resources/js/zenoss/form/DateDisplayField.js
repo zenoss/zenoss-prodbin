@@ -22,7 +22,6 @@
             var value = date;
             if (value && Ext.isNumeric(value)){
                 // assume it is a timestamp and format it using the timezone
-                //value = Zenoss.date.renderWithTimeZone(value);
                 value = moment
                     .unix(value)
                     .tz(Zenoss.USER_TIMEZONE)
@@ -36,9 +35,9 @@
         },
 
         afterRender: function(){
-            Ext.create('Ext.tip.ToolTip', {
-                target: this.bodyEl.dom.id,
-                html: Zenoss.USER_TIMEZONE
+            Zenoss.registerTooltip({
+                html: Zenoss.USER_TIMEZONE,
+                target: this.getInputId()
             });
         }
     });
