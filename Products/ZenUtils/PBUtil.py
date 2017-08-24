@@ -53,7 +53,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
         connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
         connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
 
-    def setCredential(self, credentials):
+    def setCredentials(self, credentials):
         self._creds = credentials
 
     def _login(self, credentials, client=None):
