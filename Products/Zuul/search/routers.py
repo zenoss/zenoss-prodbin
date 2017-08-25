@@ -7,6 +7,7 @@
 # 
 ##############################################################################
 
+import re
 
 from zope.interface import implements
 from zope.component import adapts
@@ -84,6 +85,7 @@ class SearchRouter(DirectRouter):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
         """
+        query = re.compile(r'(?<!\\)(?P<char>[*])').sub(r'\\\g<char>', query)
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query,
                                                _RESULT_SORTER, maxResults=maxResults)
