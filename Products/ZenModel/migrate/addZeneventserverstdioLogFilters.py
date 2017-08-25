@@ -57,7 +57,7 @@ class AddZeneventserverstdioLogFilters(Migrate.Step):
                 if logConfig.logType == "zeneventserver_stdio":
                     if not logConfig.filters:
                         log.info("Adding logfilter for %s", logConfig.logType)
-                        logConfig.filters = ["zeneventserver-stdio"]
+                        logConfig.filters = [filterName]
                     else:
                         log.info("No updates necessary for the logfilter for %s", logConfig.logType)
 
