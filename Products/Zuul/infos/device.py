@@ -90,7 +90,12 @@ class DeviceOrganizerNode(TreeNode):
         if tree is None:
             node_type = "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
             leaf_type = "Products.ZenModel.Device.Device"
-            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type)
+            facet_field = "deviceOrganizers"
+            unique_leaves = True
+            splitted_path = self._root._get_object().getPrimaryPath()
+            if splitted_path[3] in [ "Systems", "Groups" ]:
+                unique_leaves = False
+            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type, facet_field, unique_leaves)
             setattr(self._root, attr_name, tree)
         return tree
 

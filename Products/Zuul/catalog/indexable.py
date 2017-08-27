@@ -67,7 +67,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             -------------------------------------------------------------------------------------------------------------------
             |  idx_text_ipAddress        |  text_ipAddress         |              |     Y   |    Y    |   str     |     Y     |
             |  idx_deviceClassPath       |  deviceClassPath        |              |     Y   |    N    |   str     |     N     |
-            |  idx_deviceOrganizers      |  deviceOrganizers       |              |     Y   |    N    |   str     |     N     |
+            |  idx_deviceOrganizers      |  deviceOrganizers       |              |     Y   |    Y    |   str     |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -306,7 +306,7 @@ class DeviceIndexable(object):   # Device inherits from this class
     def idx_deviceClassPath(self):
         return self.getDeviceClassPath()
 
-    @indexed(ListOfUntokenizedStringsFieldType(indexed=True, stored=False), attr_query_name="deviceOrganizers")
+    @indexed(ListOfUntokenizedStringsFieldType(indexed=True, stored=True), attr_query_name="deviceOrganizers")
     def idx_deviceOrganizers(self):
         """
         device organizers the device belongs to as untokenized strings so we can use facets
