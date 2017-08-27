@@ -67,6 +67,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             -------------------------------------------------------------------------------------------------------------------
             |  idx_text_ipAddress        |  text_ipAddress         |              |     Y   |    Y    |   str     |     Y     |
             |  idx_deviceClassPath       |  deviceClassPath        |              |     Y   |    N    |   str     |     N     |
+            |  idx_deviceOrganizers      |  deviceOrganizers       |              |     Y   |    N    |   str     |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -98,7 +99,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             ---------------------------------------------------------------------------------------------------------------------------
             |   idx_interfaceId                  |   interfaceId        |                 |     Y   |    Y    |   str     |     Y     |
             |   idx_ipAddressId                  |   ipAddressId        |                 |     Y   |    Y    |   str     |     Y     |
-            |   idx_networkId                    |   networkId          |                 |     Y   |    Y    |   str     |     Y     |
+            |   idx_networkId                    |   networkId          |                 |     Y   |    Y    |   str     |     N     |
             |   idx_deviceId                     |   deviceId           |                 |     Y   |    Y    |   str     |     Y     |
             |   idx_decimal_ipAddress            |   NOINDEX_TYPE       | DISABLE SUPERCLASS SPEC FIELD                               |
             |   idx_ipaddress_decimal_ipAddress  |   decimal_ipAddress  |                 |     Y   |    Y    |   str     |     Y     |
@@ -305,6 +306,23 @@ class DeviceIndexable(object):   # Device inherits from this class
     def idx_deviceClassPath(self):
         return self.getDeviceClassPath()
 
+    @indexed(ListOfUntokenizedStringsFieldType(indexed=True, stored=False), attr_query_name="deviceOrganizers")
+    def idx_deviceOrganizers(self):
+        """
+        device organizers the device belongs to as untokenized strings so we can use facets
+        to get the device organizer counts in the infrastructure page
+        """
+        paths = self.idx_path()
+        relevant_organizers = { "Devices", "Groups", "Locations", "Systems" }
+        organizers = []
+        for path in paths:
+            sp = path.split("/")
+            if len(sp) >= 6 and sp[3] in relevant_organizers and sp[-2] == "devices":
+                # remove the devices/device_id from the end
+                organizers.append( "/".join(sp[:-2]) )
+        return organizers
+
+
 class ComponentIndexable(object):     # DeviceComponent inherits from this class
 
     @indexed(StringFieldType(stored=True), attr_query_name="deviceId")
@@ -370,7 +388,7 @@ class IpAddressIndexable(object):  # IpAddress inherits from this class
     def idx_ipAddressId(self):
         return self.ipAddressId()
 
-    @indexed(StringFieldType(stored=True), attr_query_name="networkId")
+    @indexed(UntokenizedStringFieldType(stored=True), attr_query_name="networkId")
     def idx_networkId(self):
         return self.networkId()
 
