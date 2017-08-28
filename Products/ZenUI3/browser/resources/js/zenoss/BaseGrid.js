@@ -743,8 +743,8 @@
 
             var paging_tb = this.down('pagingtoolbar');
             if (paging_tb) {
-                // If we have an infinite grid we hide the paging toolbar
-                if (this.getStore().buffered) {
+                // If we have an infinite grid or NonPagination store we hide the paging toolbar
+                if (this.getStore().buffered || this.getStore().alias[0] === "store.directcombo") {
                     paging_tb.hide();
                 }
                 else {

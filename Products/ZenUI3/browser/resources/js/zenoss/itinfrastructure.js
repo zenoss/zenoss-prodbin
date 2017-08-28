@@ -1291,12 +1291,43 @@ Ext.define("Zenoss.InfraDetailNav", {
     }
 });
 
+var truncate = function(cmp_name, width, uid) {
+    var path = uid.replace('/zport/dmd', ''),
+        textwidth = Ext.util.TextMetrics.measure(cmp_name, path).width;
+    if (textwidth < width) {
+        return path;
+    } else {
+        var path_array = path.split('/'),
+            device_class = path_array[path_array.length-1];
+
+        // check if DeviceClass's name length > field's length
+        if (Ext.util.TextMetrics.measure(cmp_name, ('/../'+device_class)).width < width) {
+            path_array[path_array.length-2] = '..';
+            while (path_array.length > 3 && Ext.util.TextMetrics.measure(cmp_name, path_array.join('/')).width >= width) {
+                path_array.splice(path_array.length-3, 1);
+            }
+            return path_array.join('/');
+        } else {
+            return '/../'+device_class;
+        }
+    }
+}
 
 var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
     ddGroup: 'devicegriddd',
     id: 'device_grid',
     multiSelect: true,
-    title: _t('/'),
+    header: {
+        titlePosition: 0,
+        items: [{
+           xtype:'displayfield',
+           value: _t('/'),
+           width: 'auto',
+           id: 'device_panel_header',
+           allowBlank : true,
+           readOnly: true
+       }]
+    },
     viewConfig: {
         plugins: {
             ptype: 'gridviewdragdrop',
@@ -1324,29 +1355,27 @@ var device_grid = Ext.create('Zenoss.DeviceGridPanel', {
                 if (Zenoss.env.contextUid && Zenoss.env.contextUid !== uid) {
                     return;
                 }
-                var title = result.data.name,
-                desc = [''];
+                var cmp_name = 'device_panel_header',
+                    cmp = Ext.getCmp(cmp_name),
+                    width = this.header.getWidth(),
+                    title = truncate(cmp_name, width, uid),
+                    desc = [''];
                 if ( result.data.address ) {
                     desc.push(result.data.address);
                 }
                 if ( result.data.description ) {
                     desc.push(result.data.description);
                 }
-
                 function encoder(element, index, array) { array[index] = Ext.htmlEncode(element); }
                 Ext.Array.each(desc, encoder);
-
-                // avoid a rendering of the grid if the title
-                // hasn't changed
-                if (this.title !== title) {
-                    if ( desc.length ) {
-                        Ext.QuickTips.register({target: this.headerCt, text: Ext.util.Format.nl2br(desc.join('<hr>')), title: result.data.name});
-                        this.setTitle(Ext.String.format("{0} {1}", title, desc.join(' - ')));
-                    }else {
-                        this.setTitle(title);
+                // avoid a rendering of the grid if the title hasn't changed
+                if (cmp.value !== title) {
+                    if ( desc.length && Ext.util.TextMetrics.measure(cmp_name, title+desc).width < width) {
+                        cmp.setValue(Ext.String.format("{0} {1}", title, desc.join(' - ')));
+                    } else {
+                        cmp.setValue(title);
                     }
                 }
-
             }, this);
         },
         scope: device_grid
