@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2017, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -16,7 +16,6 @@ Event class objects
 import logging
 log = logging.getLogger("zen.Events")
 
-import transaction
 from zope.interface import implements
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -37,6 +36,7 @@ from Products.ZenMessaging.audit import audit
 
 __pychecker__ = 'no-argsused'
 
+
 def manage_addEventClass(context, id="Events", REQUEST=None):
     """make a event class"""
     ed = EventClass(id)
@@ -46,9 +46,13 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
         ed.createCatalog()
         ed.buildZProperties()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(
+            context.absolute_url_path() + '/manage_main'
+        )
 
-class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable):
+
+class EventClass(EventClassPropertyMixin, Organizer,
+                 ManagedEntity, ZenPackable):
     """
     EventClass organizer
     """
@@ -67,52 +71,49 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     default_catalog = "eventClassSearch"
 
     _relations = ZenPackable._relations + (
-        ("instances", ToManyCont(ToOne, "Products.ZenEvents.EventClassInst", "eventClass")),
-        )
+        (
+            "instances",
+            ToManyCont(
+                ToOne,
+                "Products.ZenEvents.EventClassInst",
+                "eventClass"
+            )
+        ),
+    )
 
-
-    _properties = Organizer._properties + \
-                  EventClassPropertyMixin._properties
-
+    _properties = Organizer._properties + EventClassPropertyMixin._properties
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = (
-        {
-            'id'             : 'EventClass',
-            'meta_type'      : 'EventClass',
-            'description'    : """Base class for all event classes""",
-            'icon'           : 'EventClass.gif',
-            'product'        : 'ZenEvents',
-            'factory'        : 'manage_addEventClass',
-            'immediate_view' : 'eventClassStatus',
-            'actions'        :
-            (
-                { 'id'            : 'classes'
-                , 'name'          : 'Classes'
-                , 'action'        : 'eventClassStatus'
-                , 'permissions'   : (
-                  Permissions.view,)
-                },
-                { 'id'            : 'eventList'
-                , 'name'          : 'Mappings'
-                , 'action'        : 'eventMappingList'
-                , 'permissions'   : (
-                  Permissions.view,)
-                },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  Permissions.view,)
-                },
-                { 'id'            : 'config'
-                , 'name'          : 'Configuration Properties'
-                , 'action'        : 'zPropertyEditNew'
-                , 'permissions'   : ("Change Device",)
-                },
-            )
-         },
-        )
+    factory_type_information = ({
+        'id':             'EventClass',
+        'meta_type':      'EventClass',
+        'description':    'Base class for all event classes',
+        'icon':           'EventClass.gif',
+        'product':        'ZenEvents',
+        'factory':        'manage_addEventClass',
+        'immediate_view': 'eventClassStatus',
+        'actions': ({
+            'id':          'classes',
+            'name':        'Classes',
+            'action':      'eventClassStatus',
+            'permissions': (Permissions.view,)
+        }, {
+            'id':          'eventList',
+            'name':        'Mappings',
+            'action':      'eventMappingList',
+            'permissions': (Permissions.view,)
+        }, {
+            'id':          'events',
+            'name':        'Events',
+            'action':      'viewEvents',
+            'permissions': (Permissions.view,)
+        }, {
+            'id':          'config',
+            'name':        'Configuration Properties',
+            'action':      'zPropertyEditNew',
+            'permissions': ("Change Device",)
+        },)
+    },)
 
     security = ClassSecurityInfo()
 
@@ -139,7 +140,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             evts.extend(subgroup.getSubEventClasses())
         return evts
 
-
     security.declareProtected(ZEN_COMMON, "getOrganizerNames")
     def getOrganizerNames(self, addblank=False, checkPerm=False):
         """
@@ -154,7 +154,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         """
         return Organizer.getOrganizerNames(
             self, addblank=addblank, checkPerm=checkPerm)
-
 
     def find(self, evClassKey):
         """
@@ -174,7 +173,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             insts.extend(self.find("defaultmapping"))
         return insts
 
-
     def lookup(self, evt, device):
         """
         Given an event, return an event class organizer object
@@ -192,7 +190,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 log.debug("Looking for event class named in event: %s",
                           evt.eventClass)
                 path = evt.eventClass
-                if path.startswith("/"): path = path[1:]
+                if path.startswith("/"):
+                    path = path[1:]
                 return self.getDmdRoot('Events').findChild(path)
             except (AttributeError, KeyError):
                 log.debug("Unable to find '%s' organizer" % evt.eventClass)
@@ -221,12 +220,10 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 log.debug("Unable to find 'Unknown' organizer")
         return evtcl
 
-
     def applyExtraction(self, evt):
         """Don't have extraction on event class.
         """
         return evt
-
 
     def getInstances(self):
         """Return all EventClassInstances from this node down.
@@ -235,7 +232,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         for subclass in self.children():
             insts.extend(subclass.getInstances())
         return insts
-
 
     def nextSequenceNumber(self, key):
         """Get next sequence number for instance.
@@ -263,41 +259,49 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             self.instances._setObject(id, ecr)
             if REQUEST:
                 audit('UI.EventClassMapping.Add', ecr)
-        if REQUEST: return self()
+        if REQUEST:
+            return self()
         return self.instances._getOb(id)
-
 
     security.declareProtected(ZEN_DELETE, 'removeInstances')
     def removeInstances(self, ids=None, REQUEST=None):
         """Remove Instances from an EventClass.
         """
-        if not ids: return self()
-        if isinstance(ids, basestring): ids = (ids,)
+        if not ids:
+            return self()
+        if isinstance(ids, basestring):
+            ids = (ids,)
         for id in ids:
             self.instances._delObject(id)
             if REQUEST:
                 audit('UI.EventClassMapping.Delete', id)
-        if REQUEST: return self()
-
+        if REQUEST:
+            return self()
 
     security.declareProtected(ZEN_MANAGE_DMD, 'moveInstances')
     def moveInstances(self, moveTarget, ids=None, REQUEST=None):
         """Move instances from this EventClass to moveTarget.
         """
-        if not moveTarget or not ids: return self()
-        if isinstance(ids, basestring): ids = (ids,)
+        if not moveTarget or not ids:
+            return self()
+        if isinstance(ids, basestring):
+            ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
             rec = self.instances._getOb(id, None)
-            if rec is None: continue
+            if rec is None:
+                continue
             rec._operation = 1  # moving object state
             self.instances._delObject(id)
             target.instances._setObject(id, rec)
             if REQUEST:
-                audit('UI.EventClassMapping.Move', id, data_={'from':getDisplayName(self), 'to':getDisplayName(target)})
+                audit('UI.EventClassMapping.Move', id,
+                      data_={
+                          'from': getDisplayName(self),
+                          'to': getDisplayName(target)
+                      })
         if REQUEST:
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
-
 
     def countInstances(self):
         """count all instances with in an event dict"""
@@ -306,10 +310,10 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             count += group.countInstances()
         return count
 
-
     def buildZProperties(self):
         edict = self.getDmdRoot("Events")
-        if getattr(aq_base(edict), "zEventAction", False): return
+        if getattr(aq_base(edict), "zEventAction", False):
+            return
         edict._setProperty("zEventClearClasses", [], type="lines")
         edict._setProperty("zEventAction", "status")
         edict._setProperty("zEventSeverity", -1, type="int")
@@ -336,13 +340,19 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         except:
             return "color:#FF0000;"
 
-    security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_editEventClassTransform')
+    security.declareProtected(
+        ZEN_MANAGE_EVENTS,
+        'manage_editEventClassTransform'
+    )
     def manage_editEventClassTransform(self, transform='', REQUEST=None):
         """Save the transform"""
         oldTransform = self.transform
         self.transform = transform
         if REQUEST:
-            audit('UI.EventClass.EditTransform', self, transform=transform, oldData_={'transform':oldTransform})
+            audit(
+                'UI.EventClass.EditTransform', self,
+                transform=transform, oldData_={'transform': oldTransform}
+            )
             return self.callZenScreen(REQUEST)
 
     def getEventSeverities(self):
@@ -368,17 +378,14 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             for ip in evtclass.instances():
                 ip.index_object()
 
-
     security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """Create a catalog for EventClassRecord searching"""
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
-        manage_addZCatalog(self, self.default_catalog,
-                            self.default_catalog)
+        manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         zcat.addIndex('eventClassKey', 'FieldIndex')
         zcat.addColumn('getPrimaryId')
-
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname, showDevices=False):
@@ -413,12 +420,15 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 "<img class='device-icon' src='%s'/> "
                 "</div>") % self.getIconPath()
         name = self.getPrimaryDmdId()
-        if noicon: icon = ''
-        if shortDesc: name = self.id
+        if noicon:
+            icon = ''
+        if shortDesc:
+            name = self.id
         rendered = icon + name
         if not self.checkRemotePerm("View", self):
             return rendered
         else:
             return linktemplate % rendered
+
 
 InitializeClass(EventClass)
