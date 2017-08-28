@@ -472,7 +472,7 @@ class EventQueueManager(object):
         self.log.debug("Queued event (total of %d) %r", len(self.event_queue),
                        event)
         if discarded:
-            self.log.debug("Discarded event - queue overflow: %r", discarded)
+            self.log.warn("Discarded event - queue overflow: %r", discarded)
             self._removeDiscardedEventFromClearState(discarded)
             self.discarded_events += 1
             self._discardedEvents.mark()
@@ -900,6 +900,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
+        if self.eventQueueManager.event_queue_length >= self.options.eventflushchunksize:
+            self.log.debug("Pushing events, eventflushchunksize reached")
+            return self.pushEvents()
 
     def generateEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
@@ -945,6 +948,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             return
         if self._pushEventsDeferred:
             self.log.debug("Skipping event sending - previous call active.")
+            yield self._pushEventsDeferred
             return
         try:
             self._pushEventsDeferred = defer.Deferred()
@@ -968,7 +972,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
             send_events_fn = partial(evtSvc.callRemote, 'sendEvents')
             try:
-                yield self.eventQueueManager.sendEvents(send_events_fn)
+                while self.eventQueueManager.event_queue_length:
+                    yield self.eventQueueManager.sendEvents(send_events_fn)
             except ConnectionLost as ex:
                 self.log.error('Error sending event: %s', ex)
         except Exception as ex:
