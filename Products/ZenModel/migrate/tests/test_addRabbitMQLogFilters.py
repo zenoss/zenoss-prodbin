@@ -16,7 +16,7 @@ class test_addRabbitMQLogFilters(unittest.TestCase, common.ServiceMigrationTestC
     Test adding LogFilters for RabbitMQ logs issue addressed by ZEN-28095
     """
     initial_servicedef = 'zenoss-resmgr-5.1.3-updateRabbitMQLogPaths.json'
-    expected_servicedef = initial_servicedef        # because addRabbitMQLogFilters doesn't change Service objects
+    expected_servicedef = 'zenoss-resmgr-5.1.3-addRabbitMQLogFilters.json' # Check against modified def
     migration_module_name = 'addRabbitMQLogFilters'
     migration_class_name = 'AddRabbitMQLogFilters'
     expected_log_filters = dict()
