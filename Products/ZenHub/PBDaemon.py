@@ -900,8 +900,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
-        if self.eventQueueManager.event_queue_length >= self.options.eventflushchunksize:
-            self.log.debug("Pushing events, eventflushchunksize reached")
+        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen / 2:
+            self.log.debug("Pushing events, event queue length is %s", self.eventQueueManager.event_queue_length)
             return self.pushEvents()
 
     def generateEvent(self, event, **kw):
