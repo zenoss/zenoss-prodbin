@@ -18579,6 +18579,9 @@
     "StartLevel": 1,
     "LogConfigs": [
       {
+				"filters": [
+					"solr"
+				],
         "path": "/var/solr/logs/solr.log",
         "type": "solr"
       }
