@@ -29,7 +29,7 @@ def createOID(dmd, container, new_node, logger=None):
             # Brain's path not found, so delete it.
             dmd.mibSearch.uncatalog_object(brain.getPath())
             continue
-        if old_node.moduleName != new_node.moduleName:
+        if logger and (old_node.moduleName != new_node.moduleName):
             logger.warn(
                 "OID '%s' will be removed from organizer '%s' "
                 "and added to organizer '%s'.",
