@@ -12,6 +12,7 @@ from zope.interface import implements
 from zope.component import adapts
 from AccessControl import getSecurityManager
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.QueryTimeout import timeout
 from Products import Zuul
 from Products.Zuul.search import ISearchResult
 from Products.Zuul.search import IQuickSearchResultSnippet
@@ -80,6 +81,7 @@ class SearchRouter(DirectRouter):
         securityManager = getSecurityManager()
         return securityManager.getUser()._login
 
+    @timeout(15)
     def getLiveResults(self, query, maxResults=100):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
