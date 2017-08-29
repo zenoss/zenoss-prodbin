@@ -24,13 +24,17 @@ class ReplaceLegacyCatalogs(Migrate.Step):
     version = Migrate.Version(112, 0, 0)
 
     def _replace_ZCatalog(self, cat_parent, cat_name, context):
-        if hasattr(cat_parent, cat_name):
-            cat = getattr(cat_parent, cat_name)
-            if isinstance(cat, ZCatalog):
+        create_adapter = True
+        zcatalog = getattr(cat_parent, cat_name, None)
+        if zcatalog is not None:
+            if isinstance(zcatalog, ZCatalog):
                 cat_parent._delObject(cat_name)
-                catalog_adapter = LegacyCatalogAdapter(context, cat_name)
-                setattr(cat_parent, cat_name, catalog_adapter)
-                log.info("Legacy '{}' catalog replaced with Model Catalog adapter".format(cat_name))
+            else:
+                create_adapter = False
+        if create_adapter:
+            catalog_adapter = LegacyCatalogAdapter(context, cat_name)
+            setattr(cat_parent, cat_name, catalog_adapter)
+            log.info("Legacy '{}' catalog replaced with Model Catalog adapter".format(cat_name))
 
     def cutover(self, dmd):
         to_replace = [
