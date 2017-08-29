@@ -14,8 +14,9 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.0.0")
+sm.require("1.1.10")
 from servicemigration import HealthCheck
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class AddSolrService(Migrate.Step):
@@ -88,6 +89,18 @@ class AddSolrService(Migrate.Step):
                     svc.healthChecks.append(solr_answering_healthcheck)
                     changed = True
                     break
+
+        filterName = 'solr'
+        filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
+        with open(zenPath(filename)) as filterFile:
+            try:
+                filterDef = filterFile.read()
+            except Exception, e:
+                log.error("Error reading {0} logfilter file: {1}".format(filename, e))
+                return
+            log.info("Updating log filter named {0}".format(filterName))
+            changed = True
+            ctx.addLogFilter(filterName, filterDef)
 
         if changed:
             ctx.commit()
@@ -164,6 +177,9 @@ def default_solr_service(imageid):
         "Launch": "auto",
         "LogConfigs": [
             {
+                "filters": [
+                    "solr"
+                ],
                 "path": "/var/solr/logs/solr.log",
                 "type": "solr"
             }
