@@ -17,9 +17,9 @@ from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.10")
 
-class AddRabbitMQLogFilters(Migrate.Step):
+class AddZookeeperLogFilters(Migrate.Step):
     """
-    Add LogFilters for RabbitMQ logs issue addressed by ZEN-28095
+    Add LogFilters for Zookeeper logs issue addressed by ZEN-28089
     """
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
@@ -36,7 +36,7 @@ class AddRabbitMQLogFilters(Migrate.Step):
             log.info("Top level service name isn't Zenoss or UCS-PM; skipping.")
             return
 
-        filterName = "rabbitmq"
+        filterName = "zookeeper"
         filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
         with open(zenPath(filename)) as filterFile:
             try:
@@ -50,23 +50,16 @@ class AddRabbitMQLogFilters(Migrate.Step):
         """
         Add in the "filter" part to the service def
         """
-        services = filter(lambda s: s.name == "RabbitMQ", ctx.services)
-        log.info("Found %d services named 'RabbitMQ'." % len(services))
+        services = filter(lambda s: s.name == "ZooKeeper", ctx.services)
+        log.info("Found %d services named 'ZooKeeper'." % len(services))
         for service in services:
             for logConfig in service.logConfigs:
-                if logConfig.logType == "rabbitmq":
+                if logConfig.path == "/var/log/zookeeper/zookeeper.log":
                     if not logConfig.filters:
-                        log.info("Adding logfilter for %s", logConfig.logType)
+                        log.info("Adding logfilter for %s", filterName)
                         logConfig.filters = [filterName]
                     else:
-                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
-
-                if logConfig.logType == "rabbitmq_sasl":
-                    if not logConfig.filters:
-                        log.info("Adding logfilter for %s", logConfig.logType)
-                        logConfig.filters = [filterName]
-                    else:
-                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
+                        log.info("No updates necessary for the logfilter for %s", filterName)
 
 
         # Note that the logstash.conf will not be properly updated until a later
@@ -74,4 +67,4 @@ class AddRabbitMQLogFilters(Migrate.Step):
         # service to 6.0.0
         ctx.commit()
 
-AddRabbitMQLogFilters()
+AddZookeeperLogFilters()

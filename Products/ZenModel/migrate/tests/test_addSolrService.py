@@ -6,6 +6,8 @@ import unittest
 import Globals
 import common
 
+from Products.ZenUtils.Utils import zenPath
+
 
 class Test_addSolrService(unittest.TestCase, common.ServiceMigrationTestCase):
     """
@@ -16,6 +18,12 @@ class Test_addSolrService(unittest.TestCase, common.ServiceMigrationTestCase):
     migration_module_name = 'addSolrService'
     migration_class_name = 'AddSolrService'
 
+    expected_log_filters = dict()
+    filterName = "solr"
+    filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
+    with open(zenPath(filename)) as filterFile:
+        filterDef = filterFile.read()
+        expected_log_filters[filterName] = filterDef
 
 if __name__ == '__main__':
     unittest.main()
