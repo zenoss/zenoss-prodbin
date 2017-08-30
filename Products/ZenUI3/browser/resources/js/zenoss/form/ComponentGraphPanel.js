@@ -214,21 +214,22 @@
         updateGraphs: function() {
             var meta_type = this.compType, uid = this.uid,
                 graphId = this.graphId, allOnSame = this.allOnSame.checked;
-            Zenoss.remote.DeviceRouter.getComponentGraphs({
-                uid: uid,
-                meta_type: meta_type,
-                graphId: graphId,
-                allOnSame: allOnSame
-            }, function(response){
-                if (response.success) {
-                    var graphs=[], fn;
-                    this.removeAll();
-                    fn = ZC.getComponentGraphRenderer(meta_type);
-                    graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
-                    this.add(graphs);
-                }
-            }, this);
-
+            if (graphId !== undefined) {
+                Zenoss.remote.DeviceRouter.getComponentGraphs({
+                    uid: uid,
+                    meta_type: meta_type,
+                    graphId: graphId,
+                    allOnSame: allOnSame
+                }, function(response){
+                    if (response.success) {
+                        var graphs=[], fn;
+                        this.removeAll();
+                        fn = ZC.getComponentGraphRenderer(meta_type);
+                        graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
+                        this.add(graphs);
+                    }
+                }, this);
+            }
         }
     });
 

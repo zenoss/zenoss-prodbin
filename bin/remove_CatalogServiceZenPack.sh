@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Removing Catalog Service"
-CATALOG_SERVICE_EGG=`find /opt/zenoss/.ZenPacks/ -name ZenPacks.zenoss.CatalogService*`
+CATALOG_SERVICE_EGG=`find /opt/zenoss/.ZenPacks/ -name ZenPacks.zenoss.CatalogService* | head -n 1`
 if [[ -z "$CATALOG_SERVICE_EGG" ]]; then
   echo "Catalog Service egg not found.  Exiting removal script."
   exit

@@ -80,7 +80,7 @@ class ReindexProcess(multiprocessing.Process):
 
         self._batch = []
 
-        zsb = ZenScriptBase(connect=True)
+        zsb = ZenScriptBase(connect=True, should_log=False)
         self.dmd = zsb.dmd
         self._db = zsb.db
         self.index_client = zope.component.createObject('ModelIndex', get_solr_config())
@@ -407,7 +407,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
         parent_queue.put(uid)
 
     if not hard:
-        # Put the terminate sentinal at the end of the queue
+        # Put the terminate sentinel at the end of the queue
         parent_queue.put(TERMINATE_SENTINEL)
 
     log.info("Waiting for processes to finish")

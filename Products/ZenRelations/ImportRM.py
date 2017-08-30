@@ -191,6 +191,29 @@ for a ZenPack.
         else:
             self.log.warning( "Ignoring an unknown XML element type: %s" % name )
 
+    def _ensureUniqueOID(self, node):
+        # Removes MibNode/MibNotification objects that have the same 'oid'
+        # value as the given 'node' object but are contained by a different
+        # MibModule object.
+        for brain in self.dmd.Mibs.mibSearch(oid=node.oid):
+            try:
+                indexed_node = brain.getObject()
+                # Equal moduleName values means that index_node and node
+                # are (probably) the same object.
+                if indexed_node.moduleName == node.moduleName:
+                    continue
+            except KeyError as ex:
+                self.log.warn(
+                    "Invalid catalog entry; path '%s': %s", brain.getPath(), ex
+                )
+            else:
+                self.log.debug(
+                    "OID '%s' will be removed from organizer '%s' "
+                    "and added to organizer '%s'.",
+                    node.oid, indexed_node.moduleName, node.moduleName
+                )
+                indexed_node.getParentNode()._delObject(indexed_node.id)
+
     def endElement(self, name):
         """
         Function called when the parser finds the starting element
@@ -209,18 +232,7 @@ for a ZenPack.
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
             if obj.getNodeName() in ('MibNode', 'MibNotification'):
-                oid_list = [
-                    brain.getObject()
-                    for brain in self.dmd.Mibs.mibSearch(oid=obj.oid)
-                ]
-                for old_oid in oid_list:
-                    if old_oid.moduleName != obj.moduleName:
-                        self.log.debug(
-                            "OID '%s' will be removed from organizer '%s' "
-                            "and added to organizer '%s'.",
-                            obj.oid, old_oid.moduleName, obj.moduleName
-                        )
-                    old_oid.getParentNode()._delObject(old_oid.id)
+                self._ensureUniqueOID(obj)
 
             notify(IndexingEvent(obj))
             if hasattr(aq_base(obj), 'index_object'):

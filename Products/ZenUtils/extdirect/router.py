@@ -11,6 +11,8 @@ import inspect
 import os
 import logging
 import time
+
+from Products.ZenUtils.Redactor import redact
 from Products.ZenUtils.jsonutils import json, unjson
 import transaction
 from uuid import uuid4
@@ -182,7 +184,7 @@ class DirectRouter(object):
             response.result = _targetfn(**data)
         except Exception as e:
             import traceback
-            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, directRequest))
+            log.info("Direct request failed: {0}: {1[action]}.{1[method]} {1[data]}".format(e, redact(directRequest, ["managerPassword"])))
             log.info("DirectRouter suppressed the following exception (Response {0}):\n{1}".format(response.uuid, traceback.format_exc()))
             response.result = DirectResponse.exception(e)
 

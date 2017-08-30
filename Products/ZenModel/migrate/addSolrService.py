@@ -14,8 +14,9 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.0.0")
+sm.require("1.1.10")
 from servicemigration import HealthCheck
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class AddSolrService(Migrate.Step):
@@ -44,6 +45,13 @@ class AddSolrService(Migrate.Step):
             ctx.deployService(json.dumps(new_solr), infrastructure)
             changed = True
 
+        # Remove the zencatalogservice-uri global conf option from the top service
+        zenoss = ctx.getTopService()
+        global_conf = zenoss._Service__data.get("Context", None)
+        if global_conf and global_conf.get("global.conf.zencatalogservice-uri", None):
+            del global_conf["global.conf.zencatalogservice-uri"]
+            changed = True
+
         # Now healthchecks
         solr_answering_healthcheck = HealthCheck(
             name="solr_answering",
@@ -62,6 +70,12 @@ class AddSolrService(Migrate.Step):
                 ctx.services.remove(svc)
                 changed = True
                 continue
+            # Remove zencatalogservice response prereq and add solr one
+            for pr in svc.prereqs[:]:
+                if pr.name == "zencatalogservice response":
+                    svc.prereqs.remove(pr)
+                    svc.prereqs.append(sm.Prereq(name='Solr answering', script="""curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"""))
+                    changed = True
             # If we've got a solr_answering health check, we can stop.
             # Otherwise, remove catalogservice health checks and add Solr ones
             if filter(lambda c: c.name == 'solr_answering', svc.healthChecks):
@@ -76,12 +90,25 @@ class AddSolrService(Migrate.Step):
                     changed = True
                     break
 
+        filterName = 'solr'
+        filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
+        with open(zenPath(filename)) as filterFile:
+            try:
+                filterDef = filterFile.read()
+            except Exception, e:
+                log.error("Error reading {0} logfilter file: {1}".format(filename, e))
+                return
+            log.info("Updating log filter named {0}".format(filterName))
+            changed = True
+            ctx.addLogFilter(filterName, filterDef)
+
         if changed:
             ctx.commit()
 
 
 def default_solr_service(imageid):
     return {
+        "ID": "abcd",
         "CPUCommitment": 2,
         "Command": "/bin/supervisord -n -c /opt/solr/zenoss/etc/supervisor.conf",
         "ConfigFiles": {
@@ -150,6 +177,9 @@ def default_solr_service(imageid):
         "Launch": "auto",
         "LogConfigs": [
             {
+                "filters": [
+                    "solr"
+                ],
                 "path": "/var/solr/logs/solr.log",
                 "type": "solr"
             }
