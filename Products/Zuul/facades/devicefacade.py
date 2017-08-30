@@ -711,7 +711,7 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobrecords
 
-    def remodel(self, deviceUid, collectPlugins, background):
+    def remodel(self, deviceUid, collectPlugins='', background=True):
         #fake_request will break not a background command 
         fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
