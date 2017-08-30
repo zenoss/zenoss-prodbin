@@ -711,11 +711,13 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobrecords
 
-    def remodel(self, deviceUid):
-        fake_request = {'CONTENT_TYPE': 'xml'}
+    def remodel(self, deviceUid, collectPlugins, background):
+        #fake_request will break not a background command 
+        fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
-            device, background=True, REQUEST=fake_request)
+            device, background=background, collectPlugins=collectPlugins,
+            REQUEST=fake_request)
 
     def addLocalTemplate(self, deviceUid, templateId):
         """
