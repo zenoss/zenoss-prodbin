@@ -498,6 +498,23 @@ Ext.apply(Zenoss.render, {
 
         data = Zenoss.render.conditionalEscaping(data);
         return data;
+    },
+
+    zProperty: function(value, record) {
+        // if value is an object or array, it must be stringified via JSON
+        if (typeof value === "object") {
+            value = JSON.stringify(value);
+        }
+        var severityFields = ['zEventSeverity', 'zFlappingSeverity'];
+        if (severityFields.includes(record.data.id)) {
+            if (value === -1) {
+                value = 'Default (-1)';
+            } else {
+                value = Ext.String.format('{0} ({1})', Zenoss.util.convertSeverity(value), value);
+                value = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+        }
+        return Ext.htmlEncode(value);
     }
 
 
