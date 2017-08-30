@@ -19249,9 +19249,7 @@
       },
       "solr_answering": {
         "Script": "curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'",
-        "Timeout": 0,
-        "Interval": 10,
-        "Tolerance": 0
+        "Interval": 10
       },
       "mariadb_answering": {
         "Script": "/opt/zenoss/bin/healthchecks/mariadb_answering",
