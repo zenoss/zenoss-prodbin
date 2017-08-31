@@ -5836,12 +5836,6 @@ textarea.x-form-field {
   background-color: transparent;
   background-image: none;
   background-color: #cbdbef;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dde8f5), color-stop(100%, #cbdbef));
-  background-image: -webkit-linear-gradient(top, #dde8f5, #cbdbef);
-  background-image: -moz-linear-gradient(top, #dde8f5, #cbdbef);
-  background-image: -o-linear-gradient(top, #dde8f5, #cbdbef);
-  background-image: -ms-linear-gradient(top, #dde8f5, #cbdbef);
-  background-image: linear-gradient(top, #dde8f5, #cbdbef);
   font-size: 11px; }
 
 .x-nlg .x-tab-bar {
@@ -5854,19 +5848,13 @@ textarea.x-form-field {
   border-style: solid;
   border-color: #99bce8;
   position: relative;
-  z-index: 2;
-  zoom: 1; }
+  z-index: 2; }
 
 /* Top Tabs */
 .x-tab-bar-top .x-tab-bar-body {
   height: 20px;
   border-width: 1px 1px 0;
   padding: 1px 0 3px; }
-.x-tab-bar-top .x-tab-bar-strip {
-  /*position strip from top rather than bottom to avoid off-by-one error in IE6*/
-  top: 22px;
-  border-width: 1px 1px 0;
-  height: 2px; }
 
 .x-border-box .x-tab-bar-top .x-tab-bar-body {
   height: 25px; }
@@ -5877,11 +5865,6 @@ textarea.x-form-field {
   height: 20px;
   border-width: 0;
   padding: 0 0 2px; }
-.x-tab-bar-top .x-tab-bar-strip-default-plain {
-  /*position strip from top rather than bottom to avoid off-by-one error in IE6*/
-  top: 20px;
-  border-width: 1px 1px 0 1px;
-  height: 2px; }
 
 .x-border-box .x-tab-bar-top .x-tab-bar-body-default-plain {
   height: 22px; }
@@ -5935,8 +5918,7 @@ textarea.x-form-field {
   border-style: solid;
   overflow: hidden;
   border-color: #99bce8;
-  background-color: #deecfd;
-  zoom: 1; }
+  background-color: #deecfd; }
 
 .x-tab-default-top {
   -moz-border-radius-topleft: 4px;
@@ -5967,13 +5949,7 @@ textarea.x-form-field {
   border-width: 1px 1px 0 1px;
   border-style: solid;
   background-image: none;
-  background-color: #deecfd;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ccdef6), color-stop(25%, #d6e6fa), color-stop(45%, #deecfd));
-  background-image: -webkit-linear-gradient(top, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -moz-linear-gradient(top, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -o-linear-gradient(top, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -ms-linear-gradient(top, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: linear-gradient(top, #ccdef6, #d6e6fa 25%, #deecfd 45%); }
+  background-color: #deecfd; }
 
 .x-nlg .x-tab-default-top-mc {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-bg.gif');
@@ -5991,10 +5967,8 @@ textarea.x-form-field {
   background-color: transparent;
   background-position: 1100404px 1000000px; }
 .x-nbr .x-tab-default-top-tl, .x-nbr .x-tab-default-top-bl, .x-nbr .x-tab-default-top-tr, .x-nbr .x-tab-default-top-br, .x-nbr .x-tab-default-top-tc, .x-nbr .x-tab-default-top-bc, .x-nbr .x-tab-default-top-ml, .x-nbr .x-tab-default-top-mr {
-  zoom: 1;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-corners.gif'); }
 .x-nbr .x-tab-default-top-ml, .x-nbr .x-tab-default-top-mr {
-  zoom: 1;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-sides.gif');
   background-position: 0 0; }
 .x-nbr .x-tab-default-top-mc {
@@ -6033,13 +6007,7 @@ textarea.x-form-field {
   border-width: 0 1px 1px 1px;
   border-style: solid;
   background-image: none;
-  background-color: #deecfd;
-  background-image: -webkit-gradient(linear, 50% 100%, 50% 0%, color-stop(0%, #ccdef6), color-stop(25%, #d6e6fa), color-stop(45%, #deecfd));
-  background-image: -webkit-linear-gradient(bottom, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -moz-linear-gradient(bottom, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -o-linear-gradient(bottom, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: -ms-linear-gradient(bottom, #ccdef6, #d6e6fa 25%, #deecfd 45%);
-  background-image: linear-gradient(bottom, #ccdef6, #d6e6fa 25%, #deecfd 45%); }
+  background-color: #deecfd; }
 
 .x-nlg .x-tab-default-bottom-mc {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-bottom-bg.gif');
@@ -6057,10 +6025,8 @@ textarea.x-form-field {
   background-color: transparent;
   background-position: 1100000px 1000404px; }
 .x-nbr .x-tab-default-bottom-tl, .x-nbr .x-tab-default-bottom-bl, .x-nbr .x-tab-default-bottom-tr, .x-nbr .x-tab-default-bottom-br, .x-nbr .x-tab-default-bottom-tc, .x-nbr .x-tab-default-bottom-bc, .x-nbr .x-tab-default-bottom-ml, .x-nbr .x-tab-default-bottom-mr {
-  zoom: 1;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-bottom-corners.gif'); }
 .x-nbr .x-tab-default-bottom-ml, .x-nbr .x-tab-default-bottom-mr {
-  zoom: 1;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-bottom-sides.gif');
   background-position: 0 0; }
 .x-nbr .x-tab-default-bottom-mc {
@@ -6074,8 +6040,6 @@ textarea.x-form-field {
   z-index: 1;
   margin: 0 0 0 2px;
   display: inline-block;
-  zoom: 1;
-  *display: inline;
   white-space: nowrap;
   height: 20px;
   border-color: #8db3e3;
@@ -6115,23 +6079,18 @@ textarea.x-form-field {
   overflow: hidden; }
 .x-tab img {
   display: none; }
-
 .x-border-box .x-tab-default-top {
   height: 21px; }
 .x-border-box .x-tab-default-bottom {
   height: 21px; }
-
 * html .x-ie .x-tab button {
   width: 1px; }
-
 .x-strict .x-ie6 .x-tab .x-frame-mc, .x-strict .x-ie7 .x-tab .x-frame-mc {
   height: 100%; }
-
 .x-ie .x-tab-active button:active {
   position: relative;
   top: -1px;
   left: -1px; }
-
 .x-tab-default-top {
   -moz-box-shadow: white 0 1px 0px 0 inset, white -1px 0 0px 0 inset, white 1px 0 0px 0 inset;
   -webkit-box-shadow: white 0 1px 0px 0 inset, white -1px 0 0px 0 inset, white 1px 0 0px 0 inset;
@@ -6143,16 +6102,12 @@ textarea.x-form-field {
 .x-tab-default-top button, .x-tab-default-top .x-tab-inner {
   height: 13px;
   line-height: 13px; }
-
 .x-safari4 .x-tab-default-top .x-tab-inner, .x-safari5_0 .x-tab-default-top .x-tab-inner {
   line-height: 11px; }
-
 .x-nbr .x-tab-default-top {
   border-bottom-width: 1px !important; }
-
 .x-tab-default-top-active {
   border-bottom-color: #deecfd !important; }
-
 .x-tab-default-bottom {
   -moz-box-shadow: white 0 -1px 0px 0 inset, white -1px 0 0px 0 inset, white 1px 0 0px 0 inset;
   -webkit-box-shadow: white 0 -1px 0px 0 inset, white -1px 0 0px 0 inset, white 1px 0 0px 0 inset;
@@ -6168,33 +6123,21 @@ textarea.x-form-field {
 .x-tab-default-bottom button, .x-tab-default-bottom .x-tab-inner {
   height: 13px;
   line-height: 13px; }
-
 .x-nbr .x-tab-default-bottom {
   border-top-width: 1px !important; }
-
 .x-tab-default-bottom-active {
   border-top-color: #deecfd !important; }
-
 .x-tab-default-disabled {
   cursor: default;
   border-color: #bbd2ef;
   background-image: none;
-  background-color: #e1ecfa;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #e1ecfa), color-stop(100%, #ecf4fe));
-  background-image: -webkit-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -moz-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -o-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -ms-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: linear-gradient(top, #e1ecfa, #ecf4fe); }
+  background-color: #e1ecfa; }
 .x-tab-default-disabled button {
   color: #c3b3b3 !important; }
-
 .x-tab-icon-text-left .x-tab-inner {
   padding-left: 20px; }
-
 .x-tab button {
   position: relative; }
-
 .x-tab-icon {
   position: absolute;
   background-repeat: no-repeat;
@@ -6205,92 +6148,43 @@ textarea.x-form-field {
   bottom: 0;
   width: 18px;
   height: 18px; }
-
 .x-strict .x-ie8 .x-tab button, .x-strict .x-ie9 .x-tab button {
   overflow-y: visible; }
-
 .x-tab-default-disabled .x-tab-icon {
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
   opacity: 0.5; }
-
 /* In IE a disabled icon needs to be hidden or the opacity effect covers some of the text */
 .x-tab-noicon .x-tab-icon {
   display: none; }
-
 .x-tab-top-over {
   background-image: none;
-  background-color: #e8f2ff;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #d7e5fd), color-stop(25%, #e0edff), color-stop(45%, #e8f2ff));
-  background-image: -webkit-linear-gradient(top, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -moz-linear-gradient(top, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -o-linear-gradient(top, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -ms-linear-gradient(top, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: linear-gradient(top, #d7e5fd, #e0edff 25%, #e8f2ff 45%); }
-
+  background-color: #e8f2ff; }
 .x-tab-bottom-over {
   background-image: none;
-  background-color: #e8f2ff;
-  background-image: -webkit-gradient(linear, 50% 100%, 50% 0%, color-stop(0%, #d7e5fd), color-stop(25%, #e0edff), color-stop(45%, #e8f2ff));
-  background-image: -webkit-linear-gradient(bottom, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -moz-linear-gradient(bottom, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -o-linear-gradient(bottom, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: -ms-linear-gradient(bottom, #d7e5fd, #e0edff 25%, #e8f2ff 45%);
-  background-image: linear-gradient(bottom, #d7e5fd, #e0edff 25%, #e8f2ff 45%); }
-
+  background-color: #e8f2ff; }
 .x-tab-active {
   z-index: 3; }
 .x-tab-active button {
   color: #15498b; }
-
 .x-tab-top-active {
   background-image: none;
-  background-color: #deecfd;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(25%, #f5f9fe), color-stop(45%, #deecfd));
-  background-image: -webkit-linear-gradient(top, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -moz-linear-gradient(top, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -o-linear-gradient(top, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -ms-linear-gradient(top, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: linear-gradient(top, #ffffff, #f5f9fe 25%, #deecfd 45%); }
-
+  background-color: #deecfd; }
 .x-tab-bottom-active {
   background-image: none;
-  background-color: #deecfd;
-  background-image: -webkit-gradient(linear, 50% 100%, 50% 0%, color-stop(0%, #ffffff), color-stop(25%, #f5f9fe), color-stop(45%, #deecfd));
-  background-image: -webkit-linear-gradient(bottom, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -moz-linear-gradient(bottom, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -o-linear-gradient(bottom, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: -ms-linear-gradient(bottom, #ffffff, #f5f9fe 25%, #deecfd 45%);
-  background-image: linear-gradient(bottom, #ffffff, #f5f9fe 25%, #deecfd 45%); }
-
+  background-color: #deecfd; }
 .x-tab-disabled {
   border-color: #bbd2ef; }
 .x-tab-disabled button {
   color: #c3b3b3; }
-
 .x-tab-top-disabled {
   background-image: none;
   background: transparent;
   background-image: none;
-  background-color: #e1ecfa;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #e1ecfa), color-stop(100%, #ecf4fe));
-  background-image: -webkit-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -moz-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -o-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: -ms-linear-gradient(top, #e1ecfa, #ecf4fe);
-  background-image: linear-gradient(top, #e1ecfa, #ecf4fe); }
-
+  background-color: #e1ecfa; }
 .x-tab-bottom-disabled {
   background-image: none;
   background: transparent;
   background-image: none;
-  background-color: #e1ecfa;
-  background-image: -webkit-gradient(linear, 50% 100%, 50% 0%, color-stop(0%, #e1ecfa), color-stop(100%, #ecf4fe));
-  background-image: -webkit-linear-gradient(bottom, #e1ecfa, #ecf4fe);
-  background-image: -moz-linear-gradient(bottom, #e1ecfa, #ecf4fe);
-  background-image: -o-linear-gradient(bottom, #e1ecfa, #ecf4fe);
-  background-image: -ms-linear-gradient(bottom, #e1ecfa, #ecf4fe);
-  background-image: linear-gradient(bottom, #e1ecfa, #ecf4fe); }
-
+  background-color: #e1ecfa; }
 .x-nlg .x-tab-top {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-bg.gif'); }
 .x-nlg .x-tab-bottom {
@@ -6307,10 +6201,8 @@ textarea.x-form-field {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-disabled-bg.gif') !important; }
 .x-nlg .x-tab-bottom-disabled {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-bottom-disabled-bg.gif') !important; }
-
 .x-tab-closable em {
   padding-right: 14px; }
-
 .x-tab-close-btn {
   position: absolute;
   top: 2px;
@@ -6322,23 +6214,14 @@ textarea.x-form-field {
   text-indent: -999px;
   background: no-repeat;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-close.gif');
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=60);
   opacity: 0.6; }
-
 .x-nbr .x-tab-close-btn {
   top: 0px;
   right: 0px; }
-
-/* Include the element name otherwise Internet Explorer 7 & 8 take a performance hit */
 a.x-tab-close-btn:hover {
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
   opacity: 1; }
-
-/* Include the element name to raise the specificity to equal the :hover */
 .x-tab-default-disabled a.x-tab-close-btn {
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=30);
   opacity: 0.3; }
-
 .x-nbr .x-tab-top-over .x-frame-tl, .x-nbr .x-tab-top-over .x-frame-bl, .x-nbr .x-tab-top-over .x-frame-tr, .x-nbr .x-tab-top-over .x-frame-br, .x-nbr .x-tab-top-over .x-frame-tc, .x-nbr .x-tab-top-over .x-frame-bc {
   background-image: url('../img/xtheme-zenoss/tab/tab-default-top-over-corners.gif'); }
 .x-nbr .x-tab-top-over .x-frame-ml, .x-nbr .x-tab-top-over .x-frame-mr {
@@ -10265,7 +10148,6 @@ CORE TRIGGER PAGE STUFF
   margin-right: 8px !important; }
 
 .dark .x-tab-bar {
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0, 0, 0, 0.85)), color-stop(100%, rgba(0, 0, 0, 0.85)));
   background-image: -webkit-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
   background-image: -moz-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
   background-image: -o-linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
@@ -10281,7 +10163,6 @@ CORE TRIGGER PAGE STUFF
   background-color: #222222; }
 .dark .x-tab {
   border-color: #111111;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #6e6e6e), color-stop(100%, #000000));
   background-image: -webkit-linear-gradient(#6e6e6e, #000000);
   background-image: -moz-linear-gradient(#6e6e6e, #000000);
   background-image: -o-linear-gradient(#6e6e6e, #000000);
@@ -10296,7 +10177,6 @@ CORE TRIGGER PAGE STUFF
   border-bottom-color: #444444 !important; }
 .dark .x-tab-default-disabled {
   border-color: #222222;
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #222222));
   background-image: -webkit-linear-gradient(#bbbbbb, #222222);
   background-image: -moz-linear-gradient(#bbbbbb, #222222);
   background-image: -o-linear-gradient(#bbbbbb, #222222);
@@ -10305,7 +10185,6 @@ CORE TRIGGER PAGE STUFF
 .dark .x-tab-default-disabled button {
   color: #666666 !important; }
 .dark .x-tab-over {
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #888888), color-stop(100%, #222222));
   background-image: -webkit-linear-gradient(#888888, #222222);
   background-image: -moz-linear-gradient(#888888, #222222);
   background-image: -o-linear-gradient(#888888, #222222);
@@ -10322,7 +10201,6 @@ CORE TRIGGER PAGE STUFF
 .dark .x-tab-active button {
   color: white; }
 .dark .x-tab-top-active {
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #444444));
   background-image: -webkit-linear-gradient(#bbbbbb, #444444);
   background-image: -moz-linear-gradient(#bbbbbb, #444444);
   background-image: -o-linear-gradient(#bbbbbb, #444444);
@@ -10333,7 +10211,6 @@ CORE TRIGGER PAGE STUFF
 .dark .x-tab-disabled button {
   color: #666666; }
 .dark .x-tab-top-disabled {
-  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #bbbbbb), color-stop(100%, #222222));
   background-image: -webkit-linear-gradient(#bbbbbb, #222222);
   background-image: -moz-linear-gradient(#bbbbbb, #222222);
   background-image: -o-linear-gradient(#bbbbbb, #222222);

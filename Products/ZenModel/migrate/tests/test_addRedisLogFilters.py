@@ -9,17 +9,17 @@ import common
 from Products.ZenUtils.Utils import zenPath
 
 
-class Test_addSolrService(unittest.TestCase, common.ServiceMigrationTestCase):
+class Test_addRedisLogFilters(unittest.TestCase, common.ServiceMigrationTestCase):
     """
-    Test that missedRuns threshold is added to collector services.
+    Test that the log filter for Redis is added as expected.
     """
-    initial_servicedef = 'zenoss-resmgr-5.1.5_badSolrEP.json'
-    expected_servicedef = 'zenoss-resmgr-5.1.5-addSolrService.json'
-    migration_module_name = 'addSolrService'
-    migration_class_name = 'AddSolrService'
+    initial_servicedef = 'zenoss-resmgr-5.2.3.json'
+    expected_servicedef = 'zenoss-resmgr-5.2.3-addRedisLogFilters.json'
+    migration_module_name = 'addRedisLogFilters'
+    migration_class_name = 'AddRedisLogFilters'
 
     expected_log_filters = dict()
-    filterName = "solr"
+    filterName = "redis"
     filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
     with open(zenPath(filename)) as filterFile:
         filterDef = filterFile.read()
