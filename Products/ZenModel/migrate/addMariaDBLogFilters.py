@@ -41,7 +41,7 @@ class AddMariaDBLogFilters(Migrate.Step):
             log.info("Top level service name isn't Zenoss or UCS-PM; skipping.")
             return
 
-        services = filter(lambda s: s.name in ["mariadb"], ctx.services)
+        services = filter(lambda s: s.name in ["mariadb-model", "mariadb-events"], ctx.services)
         log.info("Found %d mariadb services," % len(services))
 
         filterName = "mariadb"
