@@ -17,9 +17,9 @@ from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.10")
 
-class AddRabbitMQLogFilters(Migrate.Step):
+class AddZeneventserverstdioLogFilters(Migrate.Step):
     """
-    Add LogFilters for RabbitMQ logs issue addressed by ZEN-28095
+    Add LogFilters for zeneventserver-stdio logs issue addressed by ZEN-28081
     """
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
@@ -36,7 +36,7 @@ class AddRabbitMQLogFilters(Migrate.Step):
             log.info("Top level service name isn't Zenoss or UCS-PM; skipping.")
             return
 
-        filterName = "rabbitmq"
+        filterName = "zeneventserver-stdio"
         filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
         with open(zenPath(filename)) as filterFile:
             try:
@@ -50,18 +50,11 @@ class AddRabbitMQLogFilters(Migrate.Step):
         """
         Add in the "filter" part to the service def
         """
-        services = filter(lambda s: s.name == "RabbitMQ", ctx.services)
-        log.info("Found %d services named 'RabbitMQ'." % len(services))
+        services = filter(lambda s: s.name == "zeneventserver", ctx.services)
+        log.info("Found %d services named 'zeneventserver'." % len(services))
         for service in services:
             for logConfig in service.logConfigs:
-                if logConfig.logType == "rabbitmq":
-                    if not logConfig.filters:
-                        log.info("Adding logfilter for %s", logConfig.logType)
-                        logConfig.filters = [filterName]
-                    else:
-                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
-
-                if logConfig.logType == "rabbitmq_sasl":
+                if logConfig.logType == "zeneventserver_stdio":
                     if not logConfig.filters:
                         log.info("Adding logfilter for %s", logConfig.logType)
                         logConfig.filters = [filterName]
@@ -74,4 +67,4 @@ class AddRabbitMQLogFilters(Migrate.Step):
         # service to 6.0.0
         ctx.commit()
 
-AddRabbitMQLogFilters()
+AddZeneventserverstdioLogFilters()

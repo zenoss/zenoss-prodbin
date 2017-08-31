@@ -11,17 +11,18 @@ import common
 import unittest
 from Products.ZenUtils.Utils import zenPath
 
-class test_addRabbitMQLogFilters(unittest.TestCase, common.ServiceMigrationTestCase):
+class test_addZookeeperLogFilters(unittest.TestCase, common.ServiceMigrationTestCase):
     """
-    Test adding LogFilters for RabbitMQ logs issue addressed by ZEN-28095
+    Test adding LogFilters for Zookeeper logs issue addressed by ZEN-28089
     """
-    initial_servicedef = 'zenoss-resmgr-5.1.3-updateRabbitMQLogPaths.json'
-    expected_servicedef = 'zenoss-resmgr-5.1.3-addRabbitMQLogFilters.json' # Check against modified def
-    migration_module_name = 'addRabbitMQLogFilters'
-    migration_class_name = 'AddRabbitMQLogFilters'
+    initial_servicedef = 'zenoss-resmgr-5.1.5.json'
+    expected_servicedef = 'zenoss-resmgr-5.1.5-addZookeeperLogFilters.json' # the filter spec was added
+
+    migration_module_name = 'addZookeeperLogFilters'
+    migration_class_name = 'AddZookeeperLogFilters'
     expected_log_filters = dict()
 
-    filterName = "rabbitmq"
+    filterName = "zookeeper"
     filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
     with open(zenPath(filename)) as filterFile:
         filterDef = filterFile.read()

@@ -466,11 +466,9 @@
        "Interval": 15,
        "Tolerance": 0
      },
-     "catalogservice_answering": {
-       "Script": "/opt/zenoss/bin/healthchecks/catalogservice_answering",
-       "Timeout": 0,
-       "Interval": 10,
-       "Tolerance": 0
+     "solr_answering": {
+       "Interval": 10.0,
+       "Script": "curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"
      },
      "mariadb_answering": {
        "Script": "/opt/zenoss/bin/healthchecks/mariadb_answering",

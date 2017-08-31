@@ -387,7 +387,6 @@ class DeviceFacade(TreeFacade):
         return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
 
     def deleteComponents(self, uids):
-        parents = set()
         comps = imap(self._getObject, uids)
         for comp in comps:
             if comp.isLockedFromDeletion():
@@ -395,14 +394,10 @@ class DeviceFacade(TreeFacade):
 
             if hasattr(comp, 'manage_deleteComponent'):
                 comp.manage_deleteComponent()
-                parents.add(comp.getPrimaryParent())
             else:
                 raise Exception("%s %s cannot be manually deleted" %
                             (getattr(comp,'meta_type','component'),comp.id))
 
-        for parent in parents:
-            parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
-            parent.setCount()
 
     def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
@@ -415,10 +410,6 @@ class DeviceFacade(TreeFacade):
                 parent = dev.getPrimaryParent()
                 dev.deleteDevice(deleteStatus=deleteEvents,
                                  deletePerf=deletePerf)
-                # Make absolutely sure that the count gets updated
-                # when we delete a device.
-                parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
-                parent.setCount()
             return deletedIds
 
         def uidChunks(uids, chunksize=10):
@@ -637,6 +628,9 @@ class DeviceFacade(TreeFacade):
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
+    def getDeviceByName(self, deviceName):
+        return self.context.Devices.findDeviceByIdExact(deviceName)
+
     @info
     def setCollector(self, uids, collector, moveData=False, asynchronous=True):
         # Keep 'moveData' in signature even though it's unused now
@@ -708,11 +702,13 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobrecords
 
-    def remodel(self, deviceUid):
-        fake_request = {'CONTENT_TYPE': 'xml'}
+    def remodel(self, deviceUid, collectPlugins='', background=True):
+        #fake_request will break not a background command 
+        fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
-            device, background=True, REQUEST=fake_request)
+            device, background=background, collectPlugins=collectPlugins,
+            REQUEST=fake_request)
 
     def addLocalTemplate(self, deviceUid, templateId):
         """
