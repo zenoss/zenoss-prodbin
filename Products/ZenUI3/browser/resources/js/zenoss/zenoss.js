@@ -1240,7 +1240,7 @@ Ext.define("Zenoss.DateRange", {
             return errors;
         }
         //Look first for invalid characters, fail fast
-        if (/[^0-9/TOampm :-]/.test(value)) {
+        if (/[^0-9/TOampm :]/.test(value)) {
             errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
             return errors;
         }
@@ -1251,31 +1251,6 @@ Ext.define("Zenoss.DateRange", {
             }
         }
         return errors;
-    },
-    getValue: function() {
-        // Counting on getErrors() to sanitize input before executing this code
-        var value = this.getRawValue();
-        if (!value) {
-            return "";
-        }
-        var has_TO = (value.indexOf("TO") === -1);
-        if (has_TO) {
-            var retVal = value.replace(" TO ", "/");
-            return retVal.replace(" ", "T");
-        }
-        else {
-            return value.replace(" ", "T");
-        }
-    },
-    parseDate: function(value) {
-        var newVal = Ext.form.field.Date.prototype.parseDate.call(this, value);
-        Ext.iterate(Zenoss.date.regex, function(key, regex) {
-            if (regex.test(value)) {
-                newVal = value;
-                return false;
-            }
-        });
-        return newVal;
     }
 });
 
