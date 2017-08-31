@@ -55,6 +55,16 @@ class AddMariaDBLogFilters(Migrate.Step):
                     else:
                         log.info("No updates necessary for the logfilter for {0}".format(logConfig.logType))
 
+        filename = 'Products/ZenModel/migrate/data/%s-6.0.0.conf' % filterName
+        with open(zenPath(filename)) as filterFile:
+            try:
+                filterDef = filterFile.read()
+            except Exception, e:
+                log.error("Error reading {0} logfilter file: {1}".format(filename, e))
+                return
+            log.info("Updating log filter named {0}".format(filterName))
+            ctx.addLogFilter(filterName, filterDef)
+
         ctx.commit()
 
 AddMariaDBLogFilters()
