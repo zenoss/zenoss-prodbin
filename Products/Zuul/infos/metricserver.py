@@ -74,7 +74,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         if gType not in ('line', 'area'):
             #check if all datapoints are area and stacked
             for dp in self.datapoints:
-                if dp.type != 'area' and not dp.stacked:
+                if dp.type != 'area' or not dp.stacked:
                     return 'line'
             gType = 'area'
         return gType

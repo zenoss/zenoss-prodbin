@@ -23,6 +23,10 @@ def fakeContextFromFile(jsonfile):
             for datum in json.loads(open(jsonfile, 'r').read()):
                 self.services.append(service.deserialize(datum))
             self.version = self.services[0]._Service__data["Version"]
+            # ZEN-28127 _client is a ref to ZenUtils.controlplane.ControlPlaneClient,
+            # which we don't need during unit-tests. So set it to None
+            self._client = None
+            self.__logFilters = dict()
 
         def commit(self, filename=None):
             addedServices = []
@@ -51,6 +55,16 @@ def fakeContextFromFile(jsonfile):
             It's only here for testing purposes.
             """
             return sorted([service.serialize(s) for s in self.services], key=lambda s: s['Name'])
+
+        def addLogFilter(self, name, value):
+            self.__logFilters[name] = {
+                "Name": name,
+                "Filter": value,
+            }
+
+        @property
+        def logFilters(self):
+            return self.__logFilters
 
     return FakeServiceContext()
 
@@ -133,15 +147,18 @@ class ServiceMigrationTestCase(object):
     expected_servicedef = ''
     migration_module_name = ''
     migration_class_name = ''
+    expected_log_filters = dict()
 
     def setUp(self):
+        self._fakeContext = None
         pass
 
     def tearDown(self):
+        self._fakeContext = None
         pass
 
     def _test_cutover(self, svcdef_before, svcdef_after):
-        context = fakeContextFromFile(svcdef_before)
+        self._fakeContext = fakeContextFromFile(svcdef_before)
         module_name = 'Products.ZenModel.migrate.%s' % self.migration_module_name
         sm_context = '%s.sm.ServiceContext' % module_name
         migration = importlib.import_module(module_name)
@@ -149,10 +166,10 @@ class ServiceMigrationTestCase(object):
             dmd = self.dmd
         else:
             dmd = FakeDmd()
-        with mock.patch(sm_context, new=lambda: context):
+        with mock.patch(sm_context, new=lambda: self._fakeContext):
             with mock.patch.dict('os.environ', {'SERVICED_SERVICE_IMAGE': '67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest'}):
                 getattr(migration, self.migration_class_name)().cutover(dmd)
-        actual = context.servicedef()
+        actual = self._fakeContext.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath, rdiff = compare(actual, expected)
         if not result:
@@ -163,9 +180,22 @@ class ServiceMigrationTestCase(object):
                 self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
                         % (rpath, "\n".join(rdiff)))
 
-
     def test_cutover_correctness(self):
         self._test_cutover(self.initial_servicedef, self.expected_servicedef)
+
+        if len(self.expected_log_filters) != len(self._fakeContext.logFilters):
+            self.fail("Migration failed: Expected %d log filters; found %d" %
+                (len(self.expected_log_filters), len(self._fakeContext.logFilters)))
+
+        elif len(self.expected_log_filters)  > 0:
+            for name, value in self.expected_log_filters.iteritems():
+                if not self._fakeContext.logFilters.has_key(name):
+                    self.fail("Migration failed: Did not find expected log filter '%s'" % name)
+                else:
+                    actual = self._fakeContext.logFilters[name]["Filter"]
+                    if value != actual:
+                        self.fail("Migration failed: for log filter '%s', Expected:\n%s\n\nGot:\n%s\n\n"
+                            % (name, value, actual))
 
     def test_cutover_idempotence(self):
         self._test_cutover(self.expected_servicedef, self.expected_servicedef)

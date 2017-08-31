@@ -26,6 +26,8 @@ from hashlib import sha1
 from itertools import chain
 from functools import partial
 from metrology import Metrology
+from metrology.instruments import Gauge
+from metrology.registry import registry
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer, task
@@ -380,6 +382,16 @@ class EventQueueManager(object):
         self.clear_events_count = {}
         self._initQueues()
         self._eventsSent = Metrology.meter("collectordaemon.eventsSent")
+        self._discardedEvents = Metrology.meter("collectordaemon.discardedEvent")
+        metricNames = {x[0] for x in registry}
+        if 'collectordaemon.eventQueue' not in metricNames:
+            queue = self
+            class EventQueueGauge(Gauge):
+                @property
+                def value(self):
+                    return queue.event_queue_length
+            Metrology.gauge('collectordaemon.eventQueue', EventQueueGauge())
+
 
     def _initQueues(self):
         maxlen = self.options.maxqueuelen
@@ -463,6 +475,7 @@ class EventQueueManager(object):
             self.log.debug("Discarded event - queue overflow: %r", discarded)
             self._removeDiscardedEventFromClearState(discarded)
             self.discarded_events += 1
+            self._discardedEvents.mark()
 
     def addEvent(self, event):
         self._addEvent(self.event_queue, event)
@@ -524,11 +537,14 @@ class EventQueueManager(object):
             perf_events.extend(prev_perf_event_queue)
             discarded_perf_events = self.perf_event_queue.extendleft(perf_events)
             self.discarded_events += len(discarded_perf_events)
+            self._discardedEvents.mark(len(discarded_perf_events))
 
             # Restore events that failed to send
             events.extend(prev_event_queue)
             discarded_events = self.event_queue.extendleft(events)
             self.discarded_events += len(discarded_events)
+            self._discardedEvents.mark(len(discarded_events))
+
 
             # Remove any clear state for events that were discarded
             for discarded in chain(discarded_perf_events, discarded_events):
@@ -699,7 +715,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
-        factory.startLogin(c)
+        factory.setCredentials(c)
 
         def timeout(d):
             if not d.called:

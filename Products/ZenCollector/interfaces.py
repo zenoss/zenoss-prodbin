@@ -271,6 +271,11 @@ class IScheduledTask(IObservable):
            needed.
         """)
 
+    suppress_late = zope.interface.Attribute("""
+        Some tasks (e.g. config loaders) may not want to be counted as 'late'
+         to avoid muddying the meaning of our 'missedRuns' metrics on daemons.
+        """)
+
 #    childIds = zope.interface.Attribute("""
 #        Optional attribute: List of configIds of tasks that are associated with this task. When a task is
 #        removed any tasks with a configId in childIds will be removed as well.

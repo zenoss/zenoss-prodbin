@@ -14,13 +14,16 @@ Operations for Events.
 Available at:  /zport/dmd/evconsole_router
 """
 
-import time
+import cgi
 import logging
 import re
+import time
 from json import loads
-from AccessControl import getSecurityManager
+from lxml.html.clean import clean_html
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
+from zenoss.protocols.services import ServiceResponseError
+from AccessControl import getSecurityManager
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
@@ -38,8 +41,6 @@ from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUI3.security.security import permissionsForContext
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
-from zenoss.protocols.services import ServiceResponseError
-from lxml.html.clean import clean_html
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
@@ -893,7 +894,6 @@ class EventsRouter(DirectRouter):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
-
     @require(ZEN_MANAGE_EVENTS)
     def add_event(self, summary, device, component, severity, evclasskey,
                   evclass=None, monitor=None, **kwargs):
@@ -919,6 +919,13 @@ class EventsRouter(DirectRouter):
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
+            # Fix for ZEN-28005 to thwart XSS attacks from incoming events
+            summary = cgi.escape(summary)
+            device = cgi.escape(device)
+            component = cgi.escape(component)
+            evclasskey = cgi.escape(evclasskey)
+            if evclass is not None and len(evclass) > 0:
+                evclass = cgi.escape(evclass)
             self.zep.create(summary, severity, device, component,
                             eventClassKey=evclasskey, eventClass=evclass,
                             monitor=monitor, **kwargs)

@@ -20,7 +20,7 @@ class UpdateMemcachedMaxObjectSize(Migrate.Step):
     that memcached clients can send
     """
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     OPTIONS_TEXT = '''{{ $size := (getContext . "global.conf.zodb-cache-max-object-size") }}
 OPTIONS="-v -R 4096 -I {{if $size}} {{$size}} {{else}} 1048576 {{end}}"'''

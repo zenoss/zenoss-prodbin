@@ -61,6 +61,7 @@ import sys
 import traceback
 from random import randint
 from itertools import chain
+from metrology import Metrology
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -68,6 +69,7 @@ defaultProtocol = "ssh"
 defaultPort = 22
 
 _DEFAULT_CYCLE_INTERVAL = 720
+_CONFIG_PULLING_TIMEOUT = 15 # seconds
 
 # needed for Twisted's PB (Perspective Broker) to work
 from Products.DataCollector import DeviceProxy
@@ -114,6 +116,7 @@ class ZenModeler(PBDaemon):
         self.devicegen = None
         self.counters = collections.Counter()
         self.configFilter = None
+        self.configLoaded = False
 
         # Make sendEvent() available to plugins
         zope.component.provideUtility(self, IEventService)
@@ -141,6 +144,9 @@ class ZenModeler(PBDaemon):
         self.collectorLoopIteration = 0
         self.mainLoopGotDeviceList = False
 
+        self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
+        self._failuresMetric = Metrology.counter("zenmodeler.failures")
+
     def reportError(self, error):
         """
         Log errors that have occurred
@@ -154,15 +160,31 @@ class ZenModeler(PBDaemon):
         """
         Called after connected to the zenhub service
         """
+        reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
 
+    
+    def _checkConfigLoad(self):
+        """
+        Looping call to check whether zenmodeler got configuration
+        from ZenHub.
+        """
+        if not self.configLoaded:
+            self.log.info(
+                "Modeling has not started pending configuration "
+                "pull from ZenHub. Is ZenHub overloaded?"
+            )
+            reactor.callLater(_CONFIG_PULLING_TIMEOUT, self._checkConfigLoad)
+
+    
     def configure(self):
         """
         Get our configuration from zenhub
         """
         # add in the code to fetch cycle time, etc.
+        self.log.info("Getting configuration from ZenHub...")
         def inner(driver):
             """
             Generator function to gather our configuration
@@ -200,6 +222,8 @@ class ZenModeler(PBDaemon):
             self.log.debug("Getting collector plugins for each DeviceClass")
             yield self.config().callRemote('getClassCollectorPlugins')
             self.classCollectorPlugins = driver.next()
+
+            self.configLoaded = True
 
         return drive(inner)
 
@@ -710,10 +734,12 @@ class ZenModeler(PBDaemon):
             @type result: object
             """
             self.counters['modeledDevicesCount'] += 1
+            self._modeledDevicesMetric.mark()
             # result is now the result of remote_applyDataMaps (from processClient)
             if result and isinstance(result, (basestring, Failure)):
                 self.log.error("Client %s finished with message: %s" %
                                (device.id, result))
+                self._failuresMetric.increment()
             else:
                 self.log.debug("Client %s finished" % device.id)
 
@@ -784,15 +810,16 @@ class ZenModeler(PBDaemon):
                 # This stuff relies on ARBITRARY_BEAT being < 60s
                 if self.timeMatches():
                     self.started = True
+                    self.log.info("Starting modeling...")
                     reactor.callLater(1, self.main)
             else:
                 self.started = True
+                self.log.info("Starting modeling in %s seconds.", self.startDelay)
                 reactor.callLater(self.startDelay, self.main)
 
     def postStatisticsImpl(self):
         # save modeled device rate
         self.rrdStats.derive('modeledDevices', self.counters['modeledDevicesCount'])
-        self.rrdStats.derive('zenmodeler.modeledDevices', self.counters['modeledDevicesCount'])
 
         # save running count
         self.rrdStats.gauge('modeledDevicesCount', self.counters['modeledDevicesCount'])
