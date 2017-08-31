@@ -2779,6 +2779,33 @@
            "EndpointName": ""
          },
          "PortList": null
+       },
+       {
+         "Name": "zencatalogservice",
+         "Purpose": "import",
+         "Protocol": "tcp",
+         "PortNumber": 8085,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zodb_zencatalogservice",
+         "ApplicationTemplate": "zodb_zencatalogservice",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": [],
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": []
        }
      ],
      "Tasks": null,
