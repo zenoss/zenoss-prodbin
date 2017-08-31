@@ -85,10 +85,12 @@ class AddSolrService(Migrate.Step):
                     svc.healthChecks.remove(hc)
                     changed = True
 
-            # Get rid of erroneous "solr" endpoints that some older migrations added
-            for ep in svc.endpoints:
-                if ep.purpose == 'import' and ep.application == 'solr':
-                    svc.endpoints.remove(ep)
+            # Get rid of erroneous "solr" endpoints that some older migrations added and the "zodb_zencatalogservice" endpoint import that zenimpactstate may have
+            eps_to_remove = filter(lambda ep: ep.purpose == 'import' and (ep.application == 'solr' or ep.application == 'zodb_zencatalogservice'), svc.endpoints)
+
+            for ep in eps_to_remove:
+                changed = True
+                svc.endpoints.remove(ep)
 
             for ep in svc.endpoints:
                 if ep.purpose == 'import' and ep.application == 'zodb_.*':
