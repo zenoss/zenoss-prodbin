@@ -84,6 +84,12 @@ class AddSolrService(Migrate.Step):
                 if hc.name == "catalogservice_answering":
                     svc.healthChecks.remove(hc)
                     changed = True
+
+            # Get rid of erroneous "solr" endpoints that some older migrations added
+            for ep in svc.endpoints:
+                if ep.purpose == 'import' and ep.application == 'solr':
+                    svc.endpoints.remove(ep)
+
             for ep in svc.endpoints:
                 if ep.purpose == 'import' and ep.application == 'zodb_.*':
                     svc.healthChecks.append(solr_answering_healthcheck)
