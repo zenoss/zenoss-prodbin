@@ -498,6 +498,7 @@ class EventQueueManager(object):
 
         perf_events = []
         events = []
+        sent = 0
         try:
             def chunk_events():
                 chunk_remaining = self.options.eventflushchunksize
@@ -527,11 +528,13 @@ class EventQueueManager(object):
                     "Sending %d events, %d perf events, %d heartbeats",
                     len(events), len(perf_events), len(heartbeat_events))
                 yield event_sender_fn(heartbeat_events + perf_events + events)
+                sent += len(events) + len(perf_events) + len(heartbeat_events)
                 self._eventsSent.mark(len(events))
                 self._eventsSent.mark(len(perf_events))
                 self._eventsSent.mark(len(heartbeat_events))
                 heartbeat_events, perf_events, events = chunk_events()
 
+            defer.returnValue(sent)
         except Exception:
             # Restore performance events that failed to send
             perf_events.extend(prev_perf_event_queue)
@@ -567,6 +570,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatTimeout = 60*3
     _customexitcode = 0
     _pushEventsDeferred = None
+    _eventHighWaterMark = None
     _healthMonitorInterval = 30
 
     def __init__(self, noopts=0, keeproot=False, name=None):
@@ -900,9 +904,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
-        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen / 2:
-            self.log.debug("Pushing events, event queue length is %s", self.eventQueueManager.event_queue_length)
-            return self.pushEvents()
+
+        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueLowWaterMark:
+            self.pushEvents()
+
+        if self._eventHighWaterMark:
+            return self._eventHighWaterMark
+        else:
+            return defer.succeed(None)
 
     def generateEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
@@ -946,18 +955,35 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if not reactor.running:
             self.log.debug("Skipping event sending - reactor not running.")
             return
+
+        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueHighWaterMark and not self._eventHighWaterMark:
+            self.log.debug("Queue length exceeded high water mark, %s ;creating high water mark deferred", self.eventQueueManager.event_queue_length)
+            self._eventHighWaterMark = defer.Deferred()
+
         if self._pushEventsDeferred:
             self.log.debug("Skipping event sending - previous call active.")
-            yield self._pushEventsDeferred
-            return
+            defer.returnValue(None)
+        sent = 0
         try:
-            self._pushEventsDeferred = defer.Deferred()
-
             # are still connected to ZenHub?
             evtSvc = self.services.get('EventService', None)
             if not evtSvc:
                 self.log.error("No event service: %r", evtSvc)
-                return
+                yield task.deferLater(reactor, 0, lambda:None)
+                if self._eventHighWaterMark:
+                    d, self._eventHighWaterMark = self._eventHighWaterMark, None
+                    #not connected, release throttle and let things queue
+                    d.callback("No Event Service")
+                defer.returnValue(None)
+
+            def repush(val):
+                if self.eventQueueManager.event_queue_length:# >= self.options.eventflushchunksize:
+                    self.pushEvents()
+                return val
+            # conditionally push more events after this pushEvents call finishes
+            #only set _pushEventsDeferred after we know we have an evtSvc/connectivity
+            self._pushEventsDeferred = defer.Deferred()
+            self._pushEventsDeferred.addCallback(repush)
 
             discarded_events = self.eventQueueManager.discarded_events
             if discarded_events:
@@ -972,15 +998,23 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
             send_events_fn = partial(evtSvc.callRemote, 'sendEvents')
             try:
-                while self.eventQueueManager.event_queue_length:
-                    yield self.eventQueueManager.sendEvents(send_events_fn)
+                sent = yield self.eventQueueManager.sendEvents(send_events_fn)
             except ConnectionLost as ex:
                 self.log.error('Error sending event: %s', ex)
+                #let the reactor have time to clean up any connection errors and make callbacks
+                yield task.deferLater(reactor, 0, lambda:None)
         except Exception as ex:
             self.log.exception(ex)
+            #let the reactor have time to clean up any connection errors and make callbacks
+            yield task.deferLater(reactor, 0, lambda:None)
         finally:
-            d, self._pushEventsDeferred = self._pushEventsDeferred, None
-            d.callback('sent')
+            if self._pushEventsDeferred:
+                d, self._pushEventsDeferred = self._pushEventsDeferred, None
+                d.callback('sent %s' % sent)
+            if  self._eventHighWaterMark and self.eventQueueManager.event_queue_length < self.options.maxqueuelen * self.options.queueLowWaterMark:
+                self.log.debug("Queue restored to below low water mark: %s", self.eventQueueManager.event_queue_length)
+                d, self._eventHighWaterMark = self._eventHighWaterMark, None
+                d.callback("Queue length below low water mark")
 
     def heartbeat(self):
         """if cycling, send a heartbeat, else, shutdown"""
@@ -1167,6 +1201,18 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=5000,
                                type='int',
                                help='Maximum number of events to queue')
+
+        self.parser.add_option('--queuewighwatermark',
+                               dest='queueHighWaterMark',
+                               default=0.75,
+                               type='float',
+                               help='The size, in percent, of the event queue when event pushback starts')
+
+        self.parser.add_option('--queuelowwatermark',
+                               dest='queueLowWaterMark',
+                               default=0.25,
+                               type='float',
+                               help='The size, in percent, of when to clear pushback')
 
         self.parser.add_option('--zenhubpinginterval',
                                dest='zhPingInterval',
