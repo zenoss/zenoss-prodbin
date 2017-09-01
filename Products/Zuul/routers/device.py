@@ -1564,19 +1564,33 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(new_jobs=Zuul.marshal(jobrecords, keys=('uuid', 'description')))
 
     @require('Manage Device')
-    def remodel(self, deviceUid):
+    def remodel(self, deviceUid, collectPlugins='', background=True):
         """
         Submit a job to have a device remodeled.
 
         @type  deviceUid: string
         @param deviceUid: Device uid to have local template
+        @type  collectPlugins: string
+        @param collectPlugins: (optional) Modeler plugins to use.
+                               Takes a regular expression (default: '')
+        @type  background: boolean
+        @param background: (optional) False to not schedule a job
+                           (default: True)
         @rtype:   DirectResponse
         @return:  B{Properties}:
-             - jobId: (string) ID of the add device job
+             - status: (string) ID of the add device job or command exit status
         """
-        jobStatus = self._getFacade().remodel(deviceUid)
+        status = self._getFacade().remodel(deviceUid, collectPlugins=collectPlugins, background=background)
         audit('UI.Device.Remodel', deviceUid)
-        return DirectResponse.succeed(jobId=jobStatus.id)
+        if background:
+           response = DirectResponse.succeed(jobId=status.id)
+        else:
+           #returned value is exit status of a command
+           #if command end up successfully None is returned
+           #make from None a zero value to make it clear
+           status = status or 0
+           response = DirectResponse.succeed(exitStatus=status)
+        return response
 
     @require('Edit Local Templates')
     def addLocalTemplate(self, deviceUid, templateId):
