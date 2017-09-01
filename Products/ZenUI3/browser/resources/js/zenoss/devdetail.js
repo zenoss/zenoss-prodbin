@@ -436,14 +436,17 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 
 // find out how many columns the graph panel should be based on
 // on the width of the detail panel
-var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
-    extra_column_threshold = 1000;
+var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275;
+var extra_column_threshold = 1000;
+var userColumns = Zenoss.settings.graphColumns;
 
+if (userColumns === 0) { // graphColumns 0 is "Auto"
+    userColumns = (center_panel_width > extra_column_threshold) ? 2 : 1;
+}
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
-    columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
+    columns: userColumns,
     id: 'device_graphs'
 });
-
 
 /**
  * Show either one column of graphs or two depending on how much space is available
@@ -451,13 +454,16 @@ var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
  **/
 device_graphs.on('resize', function(panel, width) {
     var columns = panel.columns;
-
-    if (width >= extra_column_threshold && columns === 1) {
-        panel.columns = 2;
-    }
-
-    if (width < extra_column_threshold && columns === 2) {
-        panel.columns = 1;
+    if (Zenoss.settings.graphColumns === 0) {
+        // graphColumns 0 is "Auto"
+        if (width >= extra_column_threshold && columns === 1) {
+            panel.columns = 2;
+        }
+        if (width < extra_column_threshold && columns === 2) {
+            panel.columns = 1;
+        }
+    } else {
+        panel.columns = Zenoss.settings.graphColumns;
     }
     // always redraw the graphs completely when we resize the page,
     // this way the svg's are the correct size.
