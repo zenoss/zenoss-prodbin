@@ -158,12 +158,13 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         if not self._severities:
             # Get UUIDs for all items in the tree
             uuids = self._getUuids(self.root)
+            events = self._eventFacade.getWorstSeverity(
+                uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)
+            )
             self._severities = {
                 uuid: self._eventFacade.getSeverityName(severity).lower()
                 for (uuid, severity)
-                in self._eventFacade.getWorstSeverity(
-                    uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)
-                ).iteritems()
+                in events.iteritems()
             }
 
         return self._severities
