@@ -23,30 +23,24 @@ from Products.Zuul import getFacade
 import logging
 log = logging.getLogger('zen.EventService')
 
-from metrology import Metrology
-
 class EventService(HubService, ThresholdMixin):
 
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
-        self._eventsSent = Metrology.meter("zenhub.eventsSent")
 
     @translateError
     def remote_sendEvent(self, evt):
         try:
             val =  self.zem.sendEvent(evt)
-            self._eventsSent.mark()
             return val
         except Exception, ex:
             log.exception(ex)
 
     @translateError
     def remote_sendEvents(self, evts):
-        count = self.zem.sendEvents(evts)
-        self._eventsSent.mark(count)
-        return count
+        return self.zem.sendEvents(evts)
 
     @translateError
     def remote_getDevicePingIssues(self, *args, **kwargs):
