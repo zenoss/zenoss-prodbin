@@ -62,8 +62,14 @@ def onIndexingEvent(ob, event):
         idxs = [idxs]
 
     if idxs:
+        s_idxs = set(idxs)
+        obj_indexes = set(model_catalog.get_indexes(object_to_index))
+        # Every time we index "path" we also need to index "deviceOrganizers"
+        if "path" in s_idxs and "deviceOrganizers" in obj_indexes:
+           s_idxs.add("deviceOrganizers")
+           idxs = s_idxs
         # check idxs are valid indexes
-        bad_idxs = set(idxs) - set(model_catalog.get_indexes(object_to_index))
+        bad_idxs = s_idxs - obj_indexes
         if bad_idxs:
             raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
     if object_to_index:
@@ -110,7 +116,7 @@ def onOrganizerBeforeDelete(ob, event):
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
         for device in ob.devices.objectValuesGen():
-            notify(IndexingEvent(device, idxs=['path'], triggered_by_zope_event=True))
+            notify(IndexingEvent(device, idxs='path', triggered_by_zope_event=True))
 
 
 #-------------------------------------------------------------
