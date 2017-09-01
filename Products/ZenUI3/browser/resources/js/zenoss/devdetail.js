@@ -439,9 +439,10 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275;
 var extra_column_threshold = 1000;
 var userColumns = Zenoss.settings.graphColumns;
-// graphColumns 0 is "Auto"
-userColumns = ((Zenoss.settings.graphColumns === 0) && (center_panel_width > extra_column_threshold)) ? 2 : 1;
 
+if (userColumns === 0) { // graphColumns 0 is "Auto"
+    userColumns = (center_panel_width > extra_column_threshold) ? 2 : 1;
+}
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
     columns: userColumns,
     id: 'device_graphs'
