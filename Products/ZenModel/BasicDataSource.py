@@ -20,7 +20,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, escapeSpecChars
 from Products.ZenWidgets import messaging
 from copy import copy
 import cgi, time
@@ -208,6 +208,14 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            if snmpinfo.get('zSnmpCommunity', None):
+                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity'])
+                if '$' in snmpinfo['zSnmpCommunity']:
+                    errorLog(
+                        'Test Failed',
+                        'Don\'t use dollar sign in community strings',
+                        priority=messaging.WARNING)
+                    return self.callZenScreen(REQUEST)
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
             snmpCommand = SnmpCommand(snmpinfo)
