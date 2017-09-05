@@ -8,6 +8,7 @@
 ##############################################################################
 
 import logging
+import time
 from collections import defaultdict
 
 from Products.AdvancedQuery import And, Eq, MatchGlob
@@ -21,25 +22,26 @@ class ModelCatalogTreeNode(object):
     def __init__(self, path):
         self.path = path
         self.id = path.split("/")[-1]
-        self.child_trees = {}
+        self.child_trees = {}         # { partial_path_from_self.path : ModelCatalogTreeNode }
         self.partial_leaf_count = 0   # count not including children
         self.total_leaf_count = 0     # count including children
+        self.leaves = set()           # leaves' uids
+        self.all_leaves = set()       # this node and its subnodes leaves' uids
 
 
 class ModelCatalogTreeBuilder(object):
     """
     Builds a Navigation Tree using Model Catalog 
     """
-    def __init__(self, root, node_type, leaf_type, facet_field=None, unique_leaves=True):
+    def __init__(self, root, node_type, leaf_type, load_leaves=False, facet_field=None):
         """
         @param root:            root node of the tree
         @param node_type:       value of the object_implements field to query the catalog for nodes
                                     Ex: "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
         @param leaf_type:       value of the object_implements field to query the catalog for leaves
                                     Ex: "Products.ZenModel.Device.Device"
+        @param load_leaves:     load leaves' brains from catalog or not
         @param facet_field:     field to retrieve leaf count using facets
-        @param unique_leaves:   indicates if a leave can belong to more than one node or not. It conditions
-                                how the total leaf count is calculated
         """
         self.root = root               # root object for which we are building the tree
         self.brains = {}               # obj_uid : obj brain
@@ -49,13 +51,31 @@ class ModelCatalogTreeBuilder(object):
         self.model_catalog = IModelCatalogTool(self.root.dmd)
         self.node_objectImplements = node_type
         self.leaf_objectImplements = leaf_type
+        self.load_leaves = load_leaves
         self.facet_field = facet_field
-        self.unique_leaves = unique_leaves
-        # Build the cache
+        # Leaf brain field to use to determine the leaf's parent in case
+        # parent and leaves primary paths dont belong to the same tree.
+        # Example:
+        #   Group:   uid => /zport/dmd/Groups/my_group
+        #   Device:  uid => /zport/dmd/Devices/blabla/my_device
+        #            we need a different field to get the parent - child relationship
+        #
+        self.parenthood_field = "uid"
+        self.get_node_uid_from_parenthood_field = lambda x: "/".join(x.split("/")[:-2])
+        if self.root_path.startswith("/zport/dmd/Groups") or \
+           self.root_path.startswith("/zport/dmd/Systems") or \
+           self.root_path.startswith("/zport/dmd/Locations"):
+           self.parenthood_field = "deviceOrganizers"
+           self.get_node_uid_from_parenthood_field = lambda x: x
+
+        # Build the tree
+        start = time.time()
         self.build_tree()
+        msg = "Building tree for {} took {} seconds."
+        log.debug(msg.format(self.root_path, time.time()-start))
 
     def _query_catalog(self, objectImplements, filter_permissions=True, limit=None, fields=None, facet_field=None):
-        requested_fields = set([ UID, "name", "id", "uuid" ])
+        requested_fields = set([ UID, "name", "id", "uuid", "meta_type" ])
         params = {}
         params["types"] = objectImplements
         params["paths"] = self.root_path
@@ -111,14 +131,50 @@ class ModelCatalogTreeBuilder(object):
                     self.trees[current_path] = new_tree
                 current_tree = current_tree.child_trees[subtree]
 
-        # Two ways of calculating the total leaf count depending on if leaves are unique in the tree or not:
-        #    - Adding the partial counts starting from the bottom of the tree and going up
-        #    - If leaves can be under more than one node, to calculate the total we need to
-        #      get all the leaves and manually count them so they are no accounted more than once
-        if self.unique_leaves:
-            self._load_leaf_counts_using_facets()
+        if self.load_leaves or not self.facet_field:
+            # We need to load all leaves
+            self._load_leaves()
+            self._load_leaf_counts() # gets count counting unique leaves
         else:
-            self._load_not_unique_leaf_counts()
+            # Get all the counts in just one solr call
+            self._load_leaf_counts_using_facets()
+
+    def _load_leaves(self):
+        """
+        Loads the leaves for each node
+        """
+        search_results = self._query_catalog(self.leaf_objectImplements, fields=self.parenthood_field)
+        for leaf_brain in search_results:
+            nodes = set()
+            self.brains[leaf_brain.uid] = leaf_brain
+            parenthood_field_value = getattr(leaf_brain, self.parenthood_field, None)
+            if parenthood_field_value:
+                if isinstance(parenthood_field_value, basestring):
+                    parenthood_field_value = [parenthood_field_value]
+                # get the nodes this leaf belongs to
+                for v in parenthood_field_value:
+                    node_uid = self.get_node_uid_from_parenthood_field(v)
+                    if node_uid.startswith(self.root_path):
+                        nodes.add(node_uid)
+                # add the leaf uid to the organizers it belongs to
+                for node_uid in nodes:
+                    if node_uid in self.trees:
+                        log.debug("adding leaf {} to node {} ".format(leaf_brain.uid, node_uid))
+                        self.trees[node_uid].leaves.add(leaf_brain.uid)
+
+    def _load_leaf_counts(self):
+        # Load leaves for all nodes from the bottom up and
+        # calculate the leaf count
+        nodes_uids = self.trees.keys()
+        nodes_uids.sort(reverse=True, key=lambda x: len(x.split("/")))
+        for node_uid in nodes_uids:
+            current_tree = self.trees[node_uid]
+            all_leaves = set(current_tree.leaves)
+            for child_tree in current_tree.child_trees.itervalues():
+                all_leaves = all_leaves | child_tree.all_leaves
+            current_tree.all_leaves = all_leaves
+            current_tree.partial_leave_count = len(current_tree.leaves)
+            current_tree.total_leaf_count = len(current_tree.all_leaves)
 
     def _load_leaf_counts_using_facets(self):
         # facets values are returned in lower case
@@ -139,53 +195,13 @@ class ModelCatalogTreeBuilder(object):
                     self.trees[real_path].partial_leaf_count = count
             # Calculate the total leaf count adding up the partial counts
             nodes_uids = self.trees.keys()
-            nodes_uids.sort(reverse=True, key=lambda x: len(x))
+            nodes_uids.sort(reverse=True, key=lambda x: len(x.split("/")))
             for node_uid in nodes_uids:
                 current_tree = self.trees[node_uid]
                 leaf_count = 0
                 for child_tree in current_tree.child_trees.itervalues():
                     leaf_count += child_tree.total_leaf_count
                 current_tree.total_leaf_count = current_tree.partial_leaf_count + leaf_count
-
-    def _get_child_trees(self, node_uid):
-        """
-        Given a node's uid, it returns the uids of all the nodes
-        under it including itself
-        """
-        child_trees = set()
-        to_process = { self.trees[node_uid] }
-        while to_process:
-            current_tree = to_process.pop()
-            child_trees.add(current_tree.path)
-            for child_tree in current_tree.child_trees.itervalues():
-                to_process.add(child_tree)
-        return child_trees
-
-    def _load_not_unique_leaf_counts(self):
-        leaves_per_node = defaultdict(set)
-        # load all leaves for the tree and it subtrees
-        search_results = self._query_catalog(self.leaf_objectImplements, fields="deviceOrganizers")
-        for child_brain in search_results.results:
-            nodes = set()
-            # get the organizers this leaf belongs to
-            for node_uid in child_brain.deviceOrganizers:
-                if node_uid.startswith(self.root_path):
-                    nodes.add(node_uid)
-            # add the leaf uid to the organizers it belongs to
-            for node_uid in nodes:
-                if node_uid in self.trees:
-                    leaves_per_node[node_uid].add(child_brain.uid)
-
-        # Get the total count by counting the number of unique leaves under each node
-        nodes_uids = self.trees.keys()
-        nodes_uids.sort(reverse=True, key=lambda x: len(x))
-        for node_uid in nodes_uids:
-            current_tree = self.trees[node_uid]
-            leaves_under_current_tree = set()
-            subtrees = self._get_child_trees(node_uid)
-            for subtree_uid in subtrees:
-                leaves_under_current_tree |= leaves_per_node[subtree_uid]
-            current_tree.total_leaf_count = len(leaves_under_current_tree)
 
     def get_children(self, node_path):
         tree = self.trees[node_path]
@@ -200,3 +216,28 @@ class ModelCatalogTreeBuilder(object):
         if node_tree:
             count = node_tree.total_leaf_count
         return count
+    
+    def _get_sorted_brains(self, uids, order_by="name"):
+        brains = [ self.brains[uid] for uid in uids ]
+        if brains and order_by:
+            brains.sort(reverse=False, key=lambda x: getattr(x, order_by, x.id).lower())
+        return brains
+
+    def get_child_nodes_brains(self, node_path, order_by="name"):
+        brains = []
+        if self.trees.get(node_path):
+            node_tree = self.trees[node_path]
+            children_uids = [ tree.path for tree in node_tree.child_trees.values() ]
+            brains = self._get_sorted_brains(children_uids, order_by)
+        return brains
+
+    def get_node_leaves(self, node_path, include_subnodes=False, order_by="name"):
+        """
+        return the leaves brains for the received node
+        """
+        brains = []
+        if self.load_leaves:
+            node_tree = self.trees[node_path]
+            leaves = node_tree.all_leaves if include_subnodes else node_tree.leaves
+            brains = self._get_sorted_brains(leaves, order_by)
+        return brains

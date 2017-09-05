@@ -47,9 +47,8 @@ class IpNetworkNode(TreeNode):
             node_type = "Products.ZenModel.IpNetwork.IpNetwork"
             leaf_type = "Products.ZenModel.IpAddress.IpAddress"
             facet_field = "networkId"
-            unique_leaves = True
-            cache = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type,
-                                            facet_field, unique_leaves)
+            cache = ModelCatalogTreeBuilder(self._root._get_object(), node_type,
+                                            leaf_type, facet_field=facet_field)
             setattr(self._root, '_cache', cache)
         return cache
 
