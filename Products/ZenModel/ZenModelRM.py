@@ -66,7 +66,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseI
         try:
             return self._created_timestamp
         except AttributeError:
-            return self.createdTime.timeTime()
+            self._created_timestamp = self.createdTime.timeTime()
+            return self._created_timestamp
 
     security.declareProtected(ZEN_MANAGE_DMD, 'setTitle')
     def setTitle(self, title):
