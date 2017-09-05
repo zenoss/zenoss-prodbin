@@ -29,7 +29,9 @@ class RemoveEmptyProductClassRelationships(Migrate.Step):
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
-        if not hasattr(dmd.Manufacturers, PRODUCT_CLASS_MIGRATED_MARKER):
+        # This needs to get run a second time after re-indexing has occurred
+        run_count = getattr(dmd.Manufacturers, PRODUCT_CLASS_MIGRATED_MARKER, 0)
+        if run_count < 2:
             for brain in IModelCatalogTool(dmd).search("Products.ZenModel.MEProduct.MEProduct"):
                 try:
                     product = brain.getObject()
@@ -39,6 +41,6 @@ class RemoveEmptyProductClassRelationships(Migrate.Step):
                     if hasattr(aq_base(product), "productClass") and isinstance(product.productClass, ToOneRelationship):
                         if not product.productClass():
                             product._delObject("productClass", suppress_events=True)
-            setattr(dmd.Manufacturers, PRODUCT_CLASS_MIGRATED_MARKER, True)
+            setattr(dmd.Manufacturers, PRODUCT_CLASS_MIGRATED_MARKER, run_count + 1)
 
 RemoveEmptyProductClassRelationships()
