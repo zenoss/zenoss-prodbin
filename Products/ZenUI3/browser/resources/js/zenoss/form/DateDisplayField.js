@@ -19,15 +19,7 @@
         },
 
         formatDate: function(date) {
-            var value = date;
-            if (value && Ext.isNumeric(value)){
-                // assume it is a timestamp and format it using the timezone
-                value = moment
-                    .unix(value)
-                    .tz(Zenoss.USER_TIMEZONE)
-                    .format(this.dateFormat);
-            }
-            return value;
+            return Zenoss.render.date(date, this.dateFormat)
         },
 
         setValue: function(value) {
