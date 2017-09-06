@@ -905,7 +905,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
 
-        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueLowWaterMark:
+        if self.eventQueueManager.event_queue_length >= min(self.options.eventflushchunksize * 2, self.options.maxqueuelen * self.options.queueHighWaterMark):
+            self.log.debug("Pushing Event Queue, size %d", self.eventQueueManager.event_queue_length)
             self.pushEvents()
 
         if self._eventHighWaterMark:
@@ -977,9 +978,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 defer.returnValue(None)
 
             def repush(val):
-                if self.eventQueueManager.event_queue_length:# >= self.options.eventflushchunksize:
+                if self.eventQueueManager.event_queue_length >= self.options.eventflushchunksize:
                     self.pushEvents()
                 return val
+
             # conditionally push more events after this pushEvents call finishes
             #only set _pushEventsDeferred after we know we have an evtSvc/connectivity
             self._pushEventsDeferred = defer.Deferred()
@@ -1011,7 +1013,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             if self._pushEventsDeferred:
                 d, self._pushEventsDeferred = self._pushEventsDeferred, None
                 d.callback('sent %s' % sent)
-            if  self._eventHighWaterMark and self.eventQueueManager.event_queue_length < self.options.maxqueuelen * self.options.queueLowWaterMark:
+            if  self._eventHighWaterMark and self.eventQueueManager.event_queue_length < self.options.maxqueuelen * self.options.queueHighWaterMark:
                 self.log.debug("Queue restored to below low water mark: %s", self.eventQueueManager.event_queue_length)
                 d, self._eventHighWaterMark = self._eventHighWaterMark, None
                 d.callback("Queue length below low water mark")
@@ -1207,13 +1209,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                default=0.75,
                                type='float',
                                help='The size, in percent, of the event queue when event pushback starts')
-
-        self.parser.add_option('--queuelowwatermark',
-                               dest='queueLowWaterMark',
-                               default=0.25,
-                               type='float',
-                               help='The size, in percent, of when to clear pushback')
-
         self.parser.add_option('--zenhubpinginterval',
                                dest='zhPingInterval',
                                default=120,
