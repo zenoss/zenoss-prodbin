@@ -76,6 +76,10 @@ function pingStatusBase(bool) {
 
 Ext.apply(Zenoss.render, {
 
+    date: function(d, format) {
+        return Zenoss.date.renderWithTimeZone(d, format)
+    },
+
     conditionalEscaping: function(data) {
         if (!Zenoss.settings.enableHtmlInEventFields)
             return Ext.htmlEncode(data);
