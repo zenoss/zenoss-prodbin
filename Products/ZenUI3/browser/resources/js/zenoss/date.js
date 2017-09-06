@@ -41,19 +41,7 @@ Ext.apply(Zenoss.date, {
  * NOTE: value here must be in seconds, not milliseconds
  **/
 Zenoss.date.renderWithTimeZone = function (date, format) {
-    if (!format) {
-        // old default "YYYY-MM-DD hh:mm:ss a z"
-        format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
-    }
-    // Unix ms timestamps
-    if (Ext.isNumeric(date)) {
-        return moment.unix(date).tz(Zenoss.USER_TIMEZONE).format(format);
-    }
-    // Ext Datetime object
-    if (Ext.isDate(date)) {
-        return moment.tz(date, Zenoss.USER_TIMEZONE).format(format);
-    }
-    return date;
+    return Zenoss.render.date(date, format)
 };
 
 Zenoss.date.renderDateColumn = function(format) {
