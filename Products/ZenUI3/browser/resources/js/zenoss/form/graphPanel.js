@@ -233,6 +233,7 @@
             }
             // width is not customizable - always fills column
             delete config.width;
+            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
 
             // dynamically adjust the height;
             config.graphPadding = padding;
@@ -246,9 +247,9 @@
                     padding: "5px"
                 },
                 graph_params: {
-                    drange: DATE_RANGES[0][0],
+                    drange: DATE_RANGES[ZSDTR][0],
                     end: config.end || CURRENT_TIME,
-                    start: config.start || DATE_RANGES[0][0]
+                    start: config.start || DATE_RANGES[ZSDTR][0]
                 },
                 dockedItems: [{
                     xtype: 'toolbar',
@@ -776,7 +777,6 @@
                 forceSelection: true,
                 autoSelect: true,
                 triggerAction: 'all',
-                value: '1h-ago',
                 queryMode: 'local',
                 store: new Ext.data.ArrayStore({
                     id: 0,
@@ -1039,9 +1039,10 @@
         cls: "graphpanel",
         constructor: function(config) {
             config = config || {};
+            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
 
             Ext.applyIf(config, {
-                drange: DATE_RANGES[0][0],
+                drange: DATE_RANGES[ZSDTR][0],
                 newWindowButton: true,
                 columns: 1,
                 // images show up after Ext has calculated the
