@@ -85,6 +85,16 @@ loader.insert();
             tal:attributes="value here/smtpPort" />
       </td>
     </tr>
+    <tr>
+      <td class="tablevalues" hidden="true">
+        <input class="tablevalues" hidden="true" autocomplete="off" title="Hidden field for preventing username autofill" type="text" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tablevalues" hidden="true">
+        <input class="tablevalues" hidden="true" autocomplete="off" title="Hidden field for preventing password autofill" type="password" />
+      </td>
+    </tr>
     <tr class="odd">
       <td class="noselect tableheader" i18n:attributes="title" title="Use this only if authentication is required" i18n:translate='' align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
