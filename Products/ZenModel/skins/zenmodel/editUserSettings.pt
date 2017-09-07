@@ -3,6 +3,15 @@
 
 <script type="text/javascript">
 
+    function add_select_options(select_id, opts_list, current_selection){
+        var select = Ext.get(select_id).dom;
+        for (var key in opts_list) {
+            select.add(new Option(
+                key, opts_list[key], false,
+                (opts_list[key] === current_selection)
+            ));
+    }}
+
     function ConfirmEmailTest() {
         return confirm(
             "Make sure you have saved any changes to this form." +
@@ -202,21 +211,16 @@
                  Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
              '></script>
             <script>
-              // build a select list with the current timezone selected.
-              // Zenoss.data.timeZones comes from moment-timezone-data.js and
-              // Zenoss.USER_TIMEZONE comes from the server
-              Ext.onReady(function() {
-                  var select = Ext.get('user_settings_timezone').dom,
-                      zones = Zenoss.date.timeZones.zones,
-                      i=0;
-                  for (zone in zones) {
-                      select.options[i] = new Option(zone, zones[zone]);
-                      if (zone == Zenoss.env.CURRENT_USER_TIMEZONE) {
-                          select.options[i].selected = true;
-                      }
-                  i++;
-                  }
-             });
+                // build a select list with the current timezone selected.
+                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                // Zenoss.USER_TIMEZONE comes from the server
+                Ext.onReady(function() {
+                    add_select_options(
+                        'user_settings_timezone',
+                        Zenoss.date.timeZones.zones,
+                        Zenoss.env.CURRENT_USER_TIMEZONE
+                    );
+                });
             </script>
           </td>
         </tr>
@@ -228,20 +232,17 @@
                  Zenoss.env.CURRENT_USER_DATE_FORMAT = "${context/dateFormat}" || Zenoss.USER_DATE_FORMAT;
              '></script>
             <script>
-              // build a select list with the current date format selected.
-              // Zenoss.data.timeZones comes from moment-timezone-data.js and
-              Ext.onReady(function() {
-                  var select = Ext.get('user_settings_dateformat').dom,
-                      formats = Zenoss.date.dateFormats,
-                      i=0;
-                  for (var key in formats) {
-                      select.options[i] = new Option(key, formats[key]);
-                      if (formats[key] === Zenoss.env.CURRENT_USER_DATE_FORMAT) {
-                          select.options[i].selected = true;
-                      }
-                  i++;
-                  }
-             });
+                // build a select list with the current date format selected.
+                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                // Zenoss.env.CURRENT_USER_DATE_FORMAT comes from the server
+                Ext.onReady(function() {
+                    add_select_options(
+                        'user_settings_dateformat',
+                        Zenoss.date.dateFormats,
+                        Zenoss.env.CURRENT_USER_DATE_FORMAT
+                    );
+                });
+
             </script>
           </td>
         </tr>
@@ -253,20 +254,16 @@
                  Zenoss.env.CURRENT_USER_TIME_FORMAT = "${context/timeFormat}" || Zenoss.USER_TIME_FORMAT;
              '></script>
             <script>
-              // build a select list with the current date format selected.
-              // Zenoss.data.timeZones comes from moment-timezone-data.js and
-              Ext.onReady(function() {
-                  var select = Ext.get('user_settings_timeformat').dom,
-                      formats = Zenoss.date.timeFormats,
-                      i=0;
-                  for (var key in formats) {
-                      select.options[i] = new Option(key, formats[key]);
-                      if (formats[key] === Zenoss.env.CURRENT_USER_TIME_FORMAT) {
-                          select.options[i].selected = true;
-                      }
-                  i++;
-                  }
-             });
+                // build a select list with the current time format selected.
+                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                // Zenoss.env.CURRENT_USER_TIME_FORMAT comes from the server
+                Ext.onReady(function() {
+                    add_select_options(
+                        'user_settings_timeformat',
+                        Zenoss.date.timeFormats,
+                        Zenoss.env.CURRENT_USER_TIME_FORMAT
+                    );
+                });
             </script>
           </td>
         </tr>
