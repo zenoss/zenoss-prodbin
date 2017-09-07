@@ -669,6 +669,7 @@ Ext.apply(Zenoss.devices, {
                         handler: function() {
                             var form = win.childPanel.getForm(),
                                 opts = form.getValues();
+                            delete opts.autocompleteUsername;
                             delete opts.autocompletePassword;
                             REMOTE.getCredentialsProps({deviceClass: opts.deviceClass}, function(data) {
                                 var zProps = {},
