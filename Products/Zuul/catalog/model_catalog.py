@@ -58,6 +58,7 @@ class SearchResults(object):
         self.total = total
         self.hash_ = hash_
         self.areBrains = areBrains
+        self.facets = None
 
     def __hash__(self):
         return self.hash_
@@ -467,8 +468,11 @@ class ModelCatalogDataManager(object):
             # undo changes to search_params
             search_params.start = original_start
             search_params.limit = original_limit
-
-        return SearchResults(brains, total=count, hash_=str(count))
+        
+        results = SearchResults(brains, total=count, hash_=str(count))
+        if catalog_results.facets:
+            results.facets = catalog_results.facets
+        return results
 
     def do_mid_transaction_commit(self):
         """

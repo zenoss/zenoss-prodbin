@@ -47,6 +47,28 @@ class AddRabbitMQLogFilters(Migrate.Step):
             log.info("Updating log filter named {0}".format(filterName))
             ctx.addLogFilter(filterName, filterDef)
 
+        """
+        Add in the "filter" part to the service def
+        """
+        services = filter(lambda s: s.name == "RabbitMQ", ctx.services)
+        log.info("Found %d services named 'RabbitMQ'." % len(services))
+        for service in services:
+            for logConfig in service.logConfigs:
+                if logConfig.logType == "rabbitmq":
+                    if not logConfig.filters:
+                        log.info("Adding logfilter for %s", logConfig.logType)
+                        logConfig.filters = [filterName]
+                    else:
+                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
+
+                if logConfig.logType == "rabbitmq_sasl":
+                    if not logConfig.filters:
+                        log.info("Adding logfilter for %s", logConfig.logType)
+                        logConfig.filters = [filterName]
+                    else:
+                        log.info("No updates necessary for the logfilter for %s", logConfig.logType)
+
+
         # Note that the logstash.conf will not be properly updated until a later
         # step in the overall upgrade process sets the Version of the toplevel
         # service to 6.0.0

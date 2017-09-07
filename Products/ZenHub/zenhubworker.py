@@ -93,7 +93,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         def stop(*args):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
-        factory.startLogin(c)
+        factory.setCredentials(c)
 
         self.log.debug("Creating async MetricReporter")
         daemonTags = {
@@ -101,9 +101,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             'zenoss_monitor': self.options.monitor,
             'internal': True
         }
+
+        def stopReporter():
+            if self.metricreporter:
+                return self.metricreporter.stop()
+
+        # Order of the shutdown triggers matter. Want to stop reporter first, calling metricWriter() below
+        # registers shutdown triggers for the actual metric http and redis publishers.
+        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
         self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
         self.metricreporter.start()
-        reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
 
     def audit(self, action):
         """

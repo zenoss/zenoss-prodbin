@@ -5321,8 +5321,8 @@
          "Script": "su - zenoss -c '/opt/zenoss/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb zodb --execsql=\";\"'"
        },
        {
-         "Name": "zencatalogservice response",
-         "Script": "curl -s http://localhost:8085/zencatalogservice/api/1.0/catalog/acceptingRequests | grep -q True"
+         "Name": "Solr answering",
+         "Script": "curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"
        }
      ],
      "MonitoringProfile": {
@@ -17489,7 +17489,6 @@
        "global.conf.amqpvhost": "/zenoss",
        "global.conf.zauth-password": "MY_PASSWORD",
        "global.conf.zauth-username": "zenoss_system",
-       "global.conf.zencatalogservice-uri": "http://127.0.0.1:8085",
        "global.conf.zep-admin-password": "",
        "global.conf.zep-admin-user": "root",
        "global.conf.zep-db": "zenoss_zep",
@@ -18488,6 +18487,7 @@
      "DatabaseVersion": 5
    },
   {
+    "ID": "abcd",
     "Tags": [
       "daemon"
     ],
@@ -18568,7 +18568,7 @@
         "VHostList": [
           {
             "Enabled": false,
-            "Name": "solr" 
+            "Name": "solr"
           }
         ],
         "Application": "zodb_solr",
@@ -18579,6 +18579,9 @@
     "StartLevel": 1,
     "LogConfigs": [
       {
+				"filters": [
+					"solr"
+				],
         "path": "/var/solr/logs/solr.log",
         "type": "solr"
       }

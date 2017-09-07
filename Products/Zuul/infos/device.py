@@ -90,7 +90,16 @@ class DeviceOrganizerNode(TreeNode):
         if tree is None:
             node_type = "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
             leaf_type = "Products.ZenModel.Device.Device"
-            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type)
+            facet_field = "deviceOrganizers"
+            load_leaves = False
+            splitted_path = self._root._get_object().getPrimaryPath()
+            if splitted_path[3] in [ "Systems", "Groups" ]:
+                # Bc a device can belong to more than one system or group, we need
+                # to load all devices in order to retrieve the total count of unique devices
+                #
+                load_leaves = True
+            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type,
+                                           load_leaves=load_leaves, facet_field=facet_field)
             setattr(self._root, attr_name, tree)
         return tree
 

@@ -1,6 +1,8 @@
 /* global EventActionManager:true, moment:true */
 /* jshint freeze: false, eqeqeq: false */
 /*TODO: move overriding the prototype to a util funciton */
+
+
 (function(){ // Local scope
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.
@@ -39,7 +41,6 @@ Ext.apply(Ext.direct.RemotingProvider.prototype, {
         }
     })
 });
-
 
 /**
  * Constants
@@ -1000,6 +1001,8 @@ Zenoss.util.isSuccessful = function(response) {
     return response.result && response.result.success;
 };
 
+Zenoss.env.ACTIONS = ['history', 'drop', 'status', 'heartbeat', 'log', 'alert_state', 'detail'];
+
 Zenoss.env.SEVERITIES = [
     [5, 'Critical'],
     [4, 'Error'],
@@ -1046,7 +1049,6 @@ Zenoss.util.render_linkable = function(name, col, record) {
         return title;
     }
 };
-
 
 Zenoss.util.render_device_group_link = function(name, col, record) {
     var links = record.data.DeviceGroups.split('|'),
@@ -1335,7 +1337,6 @@ Ext.apply(Zenoss.date, {
     }
 });
 
-
 /**
  * This takes a unix timestamp and renders it in the
  * logged in users's selected timezone.
@@ -1372,7 +1373,6 @@ Ext.onReady(function(){
     });
     Zenoss.date.timeZones = {zones: zones};
 });
-
 
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
@@ -1547,7 +1547,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
     }
 };
 
-
 // The data for all states
     Zenoss.util.states = [
         {"abbr":"AL","name":"Alabama","slogan":"The Heart of Dixie"},
@@ -1602,7 +1601,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
         {"abbr":"WI","name":"Wisconsin","slogan":"America's Dairyland"},
         {"abbr":"WY","name":"Wyoming","slogan":"Like No Place on Earth"}
     ];
-
 
 // Create a portlets object
 //

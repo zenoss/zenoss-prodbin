@@ -942,6 +942,7 @@
         cls:'livegridinfopanel',
         constructor: function(config){
             this.emptyMsg = _t('NO RESULTS');
+            this.firstRender = true;
             config = config || {};
             Ext.applyIf(config,{
                 text: this.emptyMsg
@@ -1041,7 +1042,7 @@
         onScroll: function(e, t) {
             // introduce a small delay so that we are
             // are not constantly updating the text when they are scrolling like crazy
-            if (!this.onScrollTask){
+            if (!this.onScrollTask || this.firstRender){
                 this.onScrollTask = new Ext.util.DelayedTask(this._doOnScroll, this);
             }
             this.onScrollTask.delay(250);
@@ -1056,6 +1057,9 @@
             // ext will fire the scroll event sometimes before the data is even set
             if (!this.totalCount) {
                 return this.setText(this.emptyMsg);
+            }
+            if (this.firstRender) {
+                this.firstRender = false;
             }
             if (pagingScroller) {
                 var start = Math.max(this.getStartCount(), 0),

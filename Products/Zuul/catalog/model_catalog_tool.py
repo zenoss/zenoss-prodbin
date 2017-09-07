@@ -191,7 +191,7 @@ class ModelCatalogTool(object):
         return (search_query, not_indexed_user_filters)
 
     def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False,
-                             fields=None, commit_dirty=False):
+                             fields=None, commit_dirty=False, facets_for_field=None):
         """
         @returns: SearchResults
         """
@@ -199,6 +199,8 @@ class ModelCatalogTool(object):
         brains = []
         count = 0
         search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
+        if facets_for_field:
+            search_params.facet_field=facets_for_field
         catalog_results = self.model_catalog_client.search(search_params, self.context, commit_dirty=commit_dirty)
         return catalog_results
 
@@ -272,13 +274,14 @@ class ModelCatalogTool(object):
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None,
-               fields=None, commit_dirty=False):
+               fields=None, commit_dirty=False, facets_for_field=None):
         """
         Build and execute a query against the global catalog.
         @param query: Advanced Query query
         @param globFilters: dict {field: value}
         @param fields: Fields we want model index to return. The fewer 
                        fields we need to retrieve the faster the query will be
+        @param facets_for_field: Field for which we want to retrieve its facets
         """
         available_indexes = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
@@ -293,7 +296,7 @@ class ModelCatalogTool(object):
 
         catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
                                                     order_by=queryOrderby, reverse=reverse,
-                                                    fields=fields, commit_dirty=commit_dirty)
+                                                    fields=fields, commit_dirty=commit_dirty, facets_for_field=facets_for_field)
         if len(not_indexed_user_filters) > 0:
             # unbrain everything and filter
             results = self._filterQueryResults(catalog_results, not_indexed_user_filters)
@@ -317,8 +320,10 @@ class ModelCatalogTool(object):
             else:
                 stop = start + limit
             results = islice(sorted_results, start, stop)
-
-        return SearchResults(results, totalCount, str(hash_), areBrains)
+        search_results = SearchResults(results, totalCount, str(hash_), areBrains)
+        if catalog_results.facets:
+            search_results.facets = catalog_results.facets
+        return search_results
 
     def __call__(self, *args, **kwargs):
         return self.search(*args, **kwargs)
