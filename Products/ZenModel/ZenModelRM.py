@@ -276,7 +276,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     def viewName(self):
         return self.titleOrId()
 
-    # actions?
     def getTreeItems(self):
         nodes = []
         for item in self.objectValues():
@@ -307,7 +306,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for sobj in self.objectValues():
             RelationshipManager._delObject(self, sobj.getId())
             if not hasattr(nobj, sobj.id) and sobj.id in nrelations:
-                # confuse pychecker:
                 setObject = RelationshipManager._setObject
                 setObject(nobj, sobj.id, sobj)
         nobj.buildRelations()  # build out any missing relations
@@ -334,13 +332,10 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         if not getattr(aq_base(self), "deviceMoveTargets", False):
             return False
 
-        if (
+        return bool(
             self.isManager() or
             self.checkRemotePerm(ZEN_CHANGE_DEVICE_PRODSTATE, self)
-        ):
-            return True
-
-        return False
+        )
 
     def creator(self):
         """
