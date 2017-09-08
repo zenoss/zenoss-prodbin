@@ -102,23 +102,22 @@ class BaseDeviceLoader(object):
             deviceName = deviceName.replace(' ', '')
             manageIp = manageIp.replace(' ', '')
 
-            # Check to see if we got passed in an IPv6 address
-            try:
-                IPAddress(deviceName)
-                manageIp = deviceName
-                deviceName = ipwrap(deviceName)
-                deviceProperties.setdefault('title', manageIp)
-            except ValueError:
-                pass
+            if not manageIp:
+                try:
+                    IPAddress(deviceName)
+                    manageIp = deviceName
+                    deviceName = ipwrap(deviceName)
+                    deviceProperties.setdefault('title', manageIp)
+                except ValueError:
+                    pass
 
             # If we're not discovering and we have no IP, attempt the IP lookup
             # locally
-            if discoverProto=='none':
-                if not manageIp:
-                    try:
-                        manageIp = getHostByName(deviceName)
-                    except socket.error:
-                        pass
+            if discoverProto=='none' and not manageIp:
+                try:
+                    manageIp = getHostByName(deviceName)
+                except socket.error:
+                    pass
 
             # move the zProperties required by manage_createDevice to
             # deviceProperties
