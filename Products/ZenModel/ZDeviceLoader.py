@@ -1,14 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-__doc__="""ZDeviceLoader.py
+__doc__ = """ZDeviceLoader.py
 
 load devices from a GUI screen in the ZMI
 
@@ -16,6 +16,7 @@ load devices from a GUI screen in the ZMI
 
 import socket
 from logging import StreamHandler, Formatter, getLogger
+
 log = getLogger("zen.DeviceLoader")
 
 from ipaddr import IPAddress
@@ -43,15 +44,19 @@ from Products.ZenModel.interfaces import IDeviceLoader
 from ZenossSecurity import ZEN_CHANGE_DEVICE
 
 
-def manage_addZDeviceLoader(context, id="", REQUEST = None):
-    """make a DeviceLoader"""
-    if not id: id = "DeviceLoader"
+def manage_addZDeviceLoader(context, id="", REQUEST=None):
+    """
+    Make a DeviceLoader.
+    """
+    if not id:
+        id = "DeviceLoader"
     d = ZDeviceLoader(id)
     context._setObject(id, d)
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url_path()
-                                     +'/manage_main')
+                                     + '/manage_main')
+
 
 class BaseDeviceLoader(object):
     implements(IDeviceLoader)
@@ -63,7 +68,8 @@ class BaseDeviceLoader(object):
     def __init__(self, context):
         self.context = context
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor,
+                    productionState):
         """
         Various ways of doing this should be implemented in subclasses.
         """
@@ -80,8 +86,8 @@ class BaseDeviceLoader(object):
                 pass
             else:
                 if self.deviceobj.isTempDevice():
-                    # Flag's still True, so discovery failed somehow.  Clean up
-                    # the device object.
+                    # Flag's still True, so discovery failed somehow.
+                    # Clean up the device object.
                     self.deviceobj.deleteDevice(True, True, True)
                     self.deviceobj = None
 
@@ -113,7 +119,7 @@ class BaseDeviceLoader(object):
 
             # If we're not discovering and we have no IP, attempt the IP lookup
             # locally
-            if discoverProto=='none' and not manageIp:
+            if discoverProto == 'none' and not manageIp:
                 try:
                     manageIp = getHostByName(deviceName)
                 except socket.error:
@@ -126,26 +132,26 @@ class BaseDeviceLoader(object):
                     deviceProperties[key] = zProperties.pop(key)
 
             # Make a device object in the database
-            self.deviceobj = manage_createDevice(self.context, deviceName,
-                                 devicePath,
-                                 performanceMonitor=performanceMonitor,
-                                 manageIp=manageIp,
-                                 zProperties=zProperties,
-                                 **deviceProperties)
+            self.deviceobj = manage_createDevice(
+                self.context, deviceName, devicePath,
+                performanceMonitor=performanceMonitor, manageIp=manageIp,
+                zProperties=zProperties, **deviceProperties
+            )
 
-            # Flag this device as temporary. If discovery goes well, zendisc will
-            # flip this to False.
+            # Flag this device as temporary.
+            # If discovery goes well, zendisc will flip this to False.
             self.deviceobj._temp_device = True
 
             # If we're not discovering, we're done
-            if discoverProto=='none':
+            if discoverProto == 'none':
                 return self.deviceobj
 
             # Pass production state from device properties
             productionState = deviceProperties.get('productionState', 1000)
 
             # Otherwise, time for zendisc to do its thing
-            self.run_zendisc(deviceName, devicePath, performanceMonitor, productionState)
+            self.run_zendisc(deviceName, devicePath, performanceMonitor,
+                             productionState)
 
         finally:
             # Check discovery's success and clean up accordingly
@@ -157,7 +163,8 @@ class BaseDeviceLoader(object):
 class JobDeviceLoader(BaseDeviceLoader):
     implements(IDeviceLoader)
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor,
+                    productionState):
         """
         In this subclass, just commit to database,
         so everybody can find the new device
@@ -183,33 +190,34 @@ class CreateDeviceJob(Job):
     @classmethod
     def getJobDescription(cls, *args, **kwargs):
         return "Create %(name)s under %(path)s" % {
-                'name': args[0], 'path': kwargs.get('devicePath')
-            }
+            'name': args[0], 'path': kwargs.get('devicePath')
+        }
 
     def _run(self, deviceName, devicePath="/Discovered", tag="",
-            serialNumber="", rackSlot=0, productionState=1000, comments="",
-            hwManufacturer="", hwProductName="", osManufacturer="",
-            osProductName="", locationPath="", groupPaths=[], systemPaths=[],
-            performanceMonitor="localhost", discoverProto="snmp", priority=3,
-            manageIp="", zProperties=None, cProperties=None, title="", zendiscCmd=[]):
+             serialNumber="", rackSlot=0, productionState=1000, comments="",
+             hwManufacturer="", hwProductName="", osManufacturer="",
+             osProductName="", locationPath="", groupPaths=[], systemPaths=[],
+             performanceMonitor="localhost", discoverProto="snmp", priority=3,
+             manageIp="", zProperties=None, cProperties=None, title="",
+             zendiscCmd=[]):
         """
         Returns the 'physical' path of the device.
         """
         loader = JobDeviceLoader(self.dmd)
         deviceProps = dict(tag=tag,
-                          serialNumber=serialNumber,
-                          rackSlot=rackSlot,
-                          productionState=productionState,
-                          comments=comments,
-                          hwManufacturer=hwManufacturer,
-                          hwProductName = hwProductName,
-                          osManufacturer = osManufacturer,
-                          osProductName = osProductName,
-                          locationPath = locationPath,
-                          groupPaths = groupPaths,
-                          systemPaths = systemPaths,
-                          priority = priority,
-                          title= title)
+                           serialNumber=serialNumber,
+                           rackSlot=rackSlot,
+                           productionState=productionState,
+                           comments=comments,
+                           hwManufacturer=hwManufacturer,
+                           hwProductName=hwProductName,
+                           osManufacturer=osManufacturer,
+                           osProductName=osProductName,
+                           locationPath=locationPath,
+                           groupPaths=groupPaths,
+                           systemPaths=systemPaths,
+                           priority=priority,
+                           title=title)
 
         def createDevice():
             # set the status properties that were modified up until this
@@ -218,9 +226,9 @@ class CreateDeviceJob(Job):
             self.setProperties(**deviceProps)
             # create the device
             return loader.load_device(
-                    deviceName, devicePath, discoverProto,
-                    performanceMonitor, manageIp, zProperties, deviceProps
-                )
+                deviceName, devicePath, discoverProto,
+                performanceMonitor, manageIp, zProperties, deviceProps
+            )
 
         try:
             device = createDevice()
@@ -254,22 +262,26 @@ class CreateDeviceJob(Job):
         if ztype == 'string':
             value = str(value)
         if ztype == 'date':
-            value = value.replace('%20', ' ') # Ugh. Manually decode spaces
+            value = value.replace('%20', ' ')  # Ugh. Manually decode spaces
             value = DateTime(value)
         # do not save * as passwords
-        if dev.zenPropIsPassword(cProperty) and value == dev.zenPropertyString(cProperty):
+        if dev.zenPropIsPassword(cProperty) \
+                and value == dev.zenPropertyString(cProperty):
             return
         return dev.setZenProperty(cProperty, value)
-    
+
+
 # alias the DeviceCreationJob so zenpacks don't break
 DeviceCreationJob = CreateDeviceJob
+
 
 class WeblogDeviceLoader(BaseDeviceLoader):
     def __init__(self, context, request):
         self.context = context
         self.request = request
 
-    def run_zendisc(self, deviceName, devicePath, performanceMonitor, productionState):
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor,
+                    productionState):
         # Commit to database so everybody can find the new device
         transaction.commit()
         collector = self.deviceobj.getPerformanceServer()
@@ -278,52 +290,47 @@ class WeblogDeviceLoader(BaseDeviceLoader):
                                          REQUEST=self.request)
 
 
-class ZDeviceLoader(ZenModelItem,SimpleItem):
+class ZDeviceLoader(ZenModelItem, SimpleItem):
     """Load devices into the DMD database"""
 
     portal_type = meta_type = 'DeviceLoader'
 
-    manage_options = ((
-            {'label':'ManualDeviceLoader', 'action':'manualDeviceLoader'},
-            ) + SimpleItem.manage_options)
-
+    manage_options = (
+        ({'label': 'ManualDeviceLoader', 'action': 'manualDeviceLoader'},)
+        + SimpleItem.manage_options
+    )
 
     security = ClassSecurityInfo()
 
-    factory_type_information = (
-        {
-            'immediate_view' : 'addDevice',
-            'actions'        :
-            (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : 'addDevice'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
-            )
-        },
-        )
+    factory_type_information = ({
+        'immediate_view': 'addDevice',
+        'actions': ({
+            'id':          'status',
+            'name':        'Status',
+            'action':      'addDevice',
+            'permissions': (permissions.view,)
+        },)
+    },)
 
     def __init__(self, id):
         self.id = id
 
-
     def loadDevice(self, deviceName, devicePath="/Discovered",
-            tag="", serialNumber="",
-            zSnmpCommunity="", zSnmpPort=161, zSnmpVer=None,
-            rackSlot=0, productionState=1000, comments="",
-            hwManufacturer="", hwProductName="",
-            osManufacturer="", osProductName="",
-            locationPath="", groupPaths=[], systemPaths=[],
-            performanceMonitor="localhost", manageIp="",
-            discoverProto="snmp",priority=3, title=None, REQUEST=None):
+                   tag="", serialNumber="",
+                   zSnmpCommunity="", zSnmpPort=161, zSnmpVer=None,
+                   rackSlot=0, productionState=1000, comments="",
+                   hwManufacturer="", hwProductName="",
+                   osManufacturer="", osProductName="",
+                   locationPath="", groupPaths=[], systemPaths=[],
+                   performanceMonitor="localhost", manageIp="",
+                   discoverProto="snmp", priority=3, title=None, REQUEST=None):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration.
         """
         device = None
-        if not deviceName: return self.callZenScreen(REQUEST)
+        if not deviceName:
+            return self.callZenScreen(REQUEST)
         xmlrpc = isXmlRpc(REQUEST)
         if REQUEST and not xmlrpc:
             handler = setupLoggingHeader(self, REQUEST)
@@ -357,33 +364,39 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                                         ))
         except (SystemExit, KeyboardInterrupt):
             raise
-        except ZentinelException, e:
+        except ZentinelException as e:
             log.info(e)
-            if xmlrpc: return 1
-        except DeviceExistsError, e:
+            if xmlrpc:
+                return 1
+        except DeviceExistsError as e:
             log.info(e)
-            if xmlrpc: return 2
-        except NoSnmp, e:
+            if xmlrpc:
+                return 2
+        except NoSnmp as e:
             log.info(e)
-            if xmlrpc: return 3
-        except Exception, e:
+            if xmlrpc:
+                return 3
+        except Exception as e:
             log.exception(e)
-            log.exception('load of device %s failed' % deviceName)
+            log.exception('load of device %s failed', deviceName)
             transaction.abort()
         if device is None:
-            log.error("Unable to add the device %s" % deviceName)
+            log.error("Unable to add the device %s", deviceName)
         else:
-            log.info("Device %s loaded!" % deviceName)
+            log.info("Device %s loaded!", deviceName)
 
         if REQUEST and not xmlrpc:
             self.loaderFooter(device, REQUEST.RESPONSE)
             clearWebLoggingStream(handler)
-        if xmlrpc: return 0
+        if xmlrpc:
+            return 0
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addManufacturer')
     def addManufacturer(self, newHWManufacturerName=None,
                         newSWManufacturerName=None, REQUEST=None):
-        """add a manufacturer to the database"""
+        """
+        Add a manufacturer to the database.
+        """
         mname = newHWManufacturerName
         field = 'hwManufacturer'
         if not mname:
@@ -391,7 +404,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             field = 'osManufacturer'
         try:
             self.getDmdRoot("Manufacturers").createManufacturer(mname)
-        except BadRequest, e:
+        except BadRequest as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
@@ -405,10 +418,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             REQUEST[field] = mname
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWProduct')
     def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
-        """set the productName of this device"""
+        """
+        Set the productName of this device.
+        """
         if not hwManufacturer and REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
@@ -418,15 +432,16 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
         self.getDmdRoot("Manufacturers").createHardwareProduct(
-                                        newHWProductName, hwManufacturer)
+            newHWProductName, hwManufacturer)
         if REQUEST:
             REQUEST['hwProductName'] = newHWProductName
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setOSProduct')
     def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
-        """set the productName of this device"""
+        """
+        Set the productName of this device.
+        """
         if not osManufacturer and REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
@@ -436,15 +451,16 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             return self.callZenScreen(REQUEST)
 
         self.getDmdRoot("Manufacturers").createSoftwareProduct(
-                                        newOSProductName, osManufacturer, isOS=True)
+            newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
             REQUEST['osProductName'] = newOSProductName
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
-        """add a location to the database"""
+        """
+        Add a location to the database.
+        """
         try:
             self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         except BadRequest, e:
@@ -461,10 +477,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             REQUEST['locationPath'] = newLocationPath
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
-        """add a system to the database"""
+        """
+        Add a system to the database.
+        """
         try:
             self.getDmdRoot("Systems").createOrganizer(newSystemPath)
         except BadRequest, e:
@@ -483,10 +500,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             REQUEST['systemPaths'] = syss
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
-        """add a device group to the database"""
+        """
+        Add a device group to the database.
+        """
         try:
             self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
         except BadRequest, e:
@@ -505,12 +523,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             REQUEST['groupPaths'] = groups
             return self.callZenScreen(REQUEST)
 
-
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setPerformanceMonitor')
     def setPerformanceMonitor(self, newPerformanceMonitor, REQUEST=None):
-        """add new performance monitor to the database"""
+        """
+        Add new performance monitor to the database.
+        """
         try:
-            self.getDmdRoot("Monitors").getPerformanceMonitor(newPerformanceMonitor)
+            self.getDmdRoot("Monitors").getPerformanceMonitor(
+                newPerformanceMonitor)
         except BadRequest, e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -524,9 +544,10 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             REQUEST['performanceMonitor'] = newPerformanceMonitor
             return self.callZenScreen(REQUEST)
 
-
     def setupLog(self, response):
-        """setup logging package to send to browser"""
+        """
+        Setup logging package to send to browser.
+        """
         root = getLogger()
         self._v_handler = StreamHandler(response)
         fmt = Formatter("""<tr class="tablevalues">
@@ -537,18 +558,19 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         root.addHandler(self._v_handler)
         root.setLevel(10)
 
-
     def clearLog(self):
         alog = getLogger()
         if getattr(self, "_v_handler", False):
             alog.removeHandler(self._v_handler)
 
-
     def loaderFooter(self, devObj, response):
-        """add navigation links to the end of the loader output"""
-        if not devObj: return
+        """
+        Add navigation links to the end of the loader output.
+        """
+        if not devObj:
+            return
         devurl = devObj.absolute_url_path()
         response.write("""<tr class="tableheader"><td colspan="4">
             Navigate to device <a href=%s>%s</a></td></tr>"""
-            % (devurl, devObj.getId()))
+                       % (devurl, devObj.getId()))
         response.write("</table></body></html>")
