@@ -36,8 +36,10 @@ class SolrMetricGatherer(MetricGatherer):
         self.prefix = 'zenoss.solr'
         self.core_value_metrics = ["INDEX.sizeInBytes"]
         self.core_counter_metrics = ["QUERY./select.timeouts", "QUERY./select.serverErrors",
-                                     "UPDATE.updateHandler.commits", "UPDATE.updateHandler.cumulativeAdds"]
+                                     "UPDATE.updateHandler.commits", "UPDATE.updateHandler.cumulativeAdds",
+                                     "UPDATE./update/json.serverErrors", "UPDATE./update/json.timeouts"]
         self.core_timer_metrics = ["QUERY./%s.requestTimes" % action for action in ['get', 'query', 'select']]
+        self.core_timer_metrics.append("UPDATE./update/json.requestTimes")
         self.jvm_value_metrics = ['memory.heap.used', 'memory.total.used', 'threads.deadlock.count',
                                   'threads.blocked.count', 'threads.daemon.count', 'threads.count']
 
@@ -79,8 +81,7 @@ class SolrMetricGatherer(MetricGatherer):
             for stat in stat_names:
                 metric_name = '%s.%s.%s' % (self.prefix, dn.replace('/', ''), stat)
                 metric_value = data.get(dn).get(stat)
-                data.get(dn).get(stat)
-                log.info("Adding metric '%s': '%s'", metric_name, metric_value)
+                log.debug("Adding metric '%s': '%s'", metric_name, metric_value)
                 metrics.append(self.build_metric(metric_name, metric_value,
                                                  timestamp, tags))
         return metrics
