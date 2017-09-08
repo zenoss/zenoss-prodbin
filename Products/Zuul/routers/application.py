@@ -286,6 +286,10 @@ class ApplicationRouter(TreeRouter):
         newConfigs = []
         for deployedAppConfig in deployedApp.configurations:
             if deployedAppConfig.filename in [ cf['filename'] for cf in configFiles ]:
+                audit('UI.Applications.UpdateConfigFiles',
+                      service=id,
+                      servicename=deployedApp.name,
+                      filename=deployedAppConfig.filename)
                 deployedAppConfig.content = next((cf['content'] for cf in configFiles if cf['filename'] == deployedAppConfig.filename))
             newConfigs.append(deployedAppConfig)
         deployedApp.configurations = newConfigs
