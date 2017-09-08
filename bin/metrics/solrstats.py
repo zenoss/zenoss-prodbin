@@ -58,6 +58,7 @@ class SolrMetricGatherer(MetricGatherer):
                                                                                          '15minRate']))
             metrics.extend(self._extract_sub_data(solr_core, self.core_timer_metrics, ['count', 'meanRate', '1minRate',
                                                                                        '5minRate', '15minRate',
+                                                                                       'mean_ms', 'stddev_ms',
                                                                                        'p75_ms', 'p95_ms', 'p99_ms']))
 
             # jvm data
