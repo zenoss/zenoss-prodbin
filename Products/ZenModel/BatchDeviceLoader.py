@@ -469,6 +469,10 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 deviceLoader = None
                 devobj = None
                 if self.validDeviceSpec(processed, device_specs):
+                    try:
+                        device_specs['manageIp'] = device_specs.pop('setManageIp')
+                    except KeyError:
+                        pass
                     devobj = self.getDevice(device_specs)
 
             if devobj is None:
