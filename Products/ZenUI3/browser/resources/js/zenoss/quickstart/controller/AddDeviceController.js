@@ -187,14 +187,6 @@
                 if (item.type !== "password") {
                     item.value = property.value || property.valueAsString;
                 }
-                // if it seems like credentials make it required
-                // do not make fields required if the category is SNMP per ZEN-18954
-                if (!isSnmp &&
-                    (item.name.toLowerCase().indexOf('username') !== -1 ||
-                    item.name.toLowerCase().indexOf('password') !== -1 ||
-                    item.name.toLowerCase().indexOf('community') !== -1)) {
-                    item.allowBlank = false;
-                }
 
                 if (property.description) {
                     item.inputAttrTpl = " data-qtip='" + property.description + "' ";
