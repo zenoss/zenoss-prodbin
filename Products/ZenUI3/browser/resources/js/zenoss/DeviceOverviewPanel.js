@@ -892,18 +892,18 @@
                         },{
                             fieldLabel: _t('First Seen'),
                             id: 'first-seen-label',
-                            name: 'firstSeen',
-                            xtype: "datedisplayfield"
+                            name: 'created_timestamp',
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Last Change'),
                             id: 'last-change-label',
                             name: 'lastChanged',
-                            xtype: "datedisplayfield"
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Model Time'),
                             id: 'model-time-label',
                             name: 'lastCollected',
-                            xtype: "datedisplayfield"
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Locking'),
                             id: 'locking-label',
@@ -920,7 +920,10 @@
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
                             setValue: function(val) {
                                 if (val) {
-                                    val = Ext.String.format("<a href='{0}'>{1}</a>", val, _t('Connect to this device'));
+                                    val = Ext.String.format(
+                                        "<a href='{0}'>{1}</a>",
+                                        val, _t('Connect to this device')
+                                    );
                                     Ext.form.field.Display.prototype.setValue.apply(this, [val]);
                                 }
                             }
