@@ -459,11 +459,11 @@
                     if (timeParam.indexOf(" TO ") != -1) {
                         var dateValues = timeParam.split(" TO ");
                         values[paramKey] = dateValues.map(function(rangeValue){
-                            return moment(rangeValue).utc().format("YYYY-MM-DD HH:mm:ss")
+                            return moment.unix(moment.tz(rangeValue, Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE)).format("X")
                         }).join(" TO ");
                     }
                     else {
-                        values[paramKey] = moment(timeParam).utc().format("YYYY-MM-DD HH:mm:ss")
+                        values[paramKey] = moment.unix(moment.tz(timeParam, Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE)).format("X")
                     }
                 }
             });
