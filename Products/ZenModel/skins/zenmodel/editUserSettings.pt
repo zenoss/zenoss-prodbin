@@ -134,6 +134,17 @@
           </td>
         </tr>
 
+        <tr>
+          <td class="tablevalues" hidden="true">
+            <input class="tablevalues" type="text" title="Hidden field for preventing username autofill" hidden="true" />
+          </td>
+        </tr>
+        <tr>
+          <td class="tablevalues" hidden="true">
+            <input class="tablevalues" type="password" title="Hidden field for preventing password autofill" autocomplete="off" hidden="true"/>
+           </td>
+        </tr>
+
         <tr tal:condition="here/isManager">
           <td class="tableheader" align="left">Roles</td>
           <td class="tablevalues">
