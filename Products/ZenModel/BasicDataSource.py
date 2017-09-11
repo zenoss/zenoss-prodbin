@@ -209,17 +209,12 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
             if snmpinfo.get('zSnmpCommunity', None):
-                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity'])
-                if '$' in snmpinfo['zSnmpCommunity']:
-                    errorLog(
-                        'Test Failed',
-                        'Don\'t use dollar sign in community strings',
-                        priority=messaging.WARNING)
-                    return self.callZenScreen(REQUEST)
+                # escape dollar sign if any by $ as it's used in zope templating system
+                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity']).replace("$", "$$")
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
             snmpCommand = SnmpCommand(snmpinfo)
-            displayCommand = snmpCommand.display
+            displayCommand = snmpCommand.display.replace("\\", "").replace("$$", "$")
             # modify snmp command to be run with zminion
             command = self.compile(snmpCommand, device)
         else:

@@ -2214,6 +2214,6 @@ def executeSshCommand(device, cmd, writefunc):
 
 
 def escapeSpecChars(value):
-    escape_re = re.compile(r'(?<!\\)(?P<char>[&|+\-!(){}[\]^~*?:])')
+    escape_re = re.compile(r'(?<!\\)(?P<char>[$&|+\-!(){}[\]^~*?:])')
     return escape_re.sub(r'\\\g<char>', value)
 
