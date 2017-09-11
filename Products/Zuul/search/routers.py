@@ -7,6 +7,7 @@
 # 
 ##############################################################################
 
+import re
 
 from zope.interface import implements
 from zope.component import adapts
@@ -80,10 +81,18 @@ class SearchRouter(DirectRouter):
         securityManager = getSecurityManager()
         return securityManager.getUser()._login
 
+    def _sanitizeQuery(self, query):
+        lst = query.split(' ')
+        s = set([x.strip('*') for x in lst])
+        no_emtpy = [x for x in s if x]
+        out_lst = [re.sub('[*]{2,}', '*', x) for x in no_emtpy]
+        return ' '.join(out_lst)
+
     def getLiveResults(self, query, maxResults=100):
         """
         Returns IQuickSearchResultSnippets for the results of the query.
         """
+        query = self._sanitizeQuery(query)
         facade = self._getFacade()
         results = facade.getQuickSearchResults(query,
                                                _RESULT_SORTER, maxResults=maxResults)
