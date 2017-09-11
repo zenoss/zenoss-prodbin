@@ -1242,7 +1242,7 @@ Ext.define("Zenoss.DateRange", {
             return errors;
         }
         //Look first for invalid characters, fail fast
-        if (/[^0-9/TOampm :]/.test(value)) {
+        if (/[^0-9/TOampm :-]/.test(value)) {
             errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
             return errors;
         }
