@@ -148,6 +148,8 @@ class IMinMaxThresholdInfo(IThresholdInfo):
     """
     minval = schema.TextLine(title=_t(u'Minimum Value'), order=6)
     maxval = schema.TextLine(title=u'Maximum Value', order=7)
+    rpnused = schema.Text(title=_t(u'RPN is used'),
+                          readonly=True, order=8)
     escalateCount = schema.Int(title=_t(u'Escalate Count'), order=9)
 
     description = schema.TextLine(title=u'Description', order=2)

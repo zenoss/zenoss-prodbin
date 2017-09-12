@@ -92,3 +92,16 @@ class ThresholdClass(ZenModelRM, ZenPackable):
             else:
                 names.append('%s(<span style="color: red">missing</span>)' % dsName)
         return ','.join(names)
+
+
+    def getDataPointsWithRPN(self, all=False):
+        """
+        Return a dictionary where key is datapoint name and value
+        is rpn used to that datapoint.
+        """
+        dpsrpn = []
+        dpsnames = self.rrdTemplate.getRRDDataPointNames() if all else self.dsnames
+        for point in dpsnames:
+            for graph in self.rrdTemplate.getGraphDefs():
+                dpsrpn.extend([(point, pobj.rpn if pobj.rpn else 'No RPN') for pobj in graph.getDataPointGraphPoints(point)])
+        return dict(dpsrpn)

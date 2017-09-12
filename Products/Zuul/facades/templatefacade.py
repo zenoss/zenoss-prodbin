@@ -280,11 +280,12 @@ class TemplateFacade(ZuulFacade):
         @param String uid: the id of the threshold
         @returns IThresholdInfo
         """
+        alldp = True
         threshold = self._getObject(uid)
         template = threshold.rrdTemplate()
         info = IInfo(threshold)
         # don't show the "selected one" in the list of avaialble
-        info.allDataPoints = [point for point in template.getRRDDataPointNames()]
+        info.allDataPoints = threshold.getDataPointsWithRPN(alldp)
         return info
 
     def addDataPoint(self, dataSourceUid, name):
