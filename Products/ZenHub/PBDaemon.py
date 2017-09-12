@@ -1017,9 +1017,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 d, self._pushEventsDeferred = self._pushEventsDeferred, None
                 d.callback('sent %s' % sent)
             if  self._eventHighWaterMark and self.eventQueueManager.event_queue_length < self.options.maxqueuelen * self.options.queueHighWaterMark:
-                self.log.debug("Queue restored to below low water mark: %s", self.eventQueueManager.event_queue_length)
+                self.log.debug("Queue restored to below high water mark: %s", self.eventQueueManager.event_queue_length)
                 d, self._eventHighWaterMark = self._eventHighWaterMark, None
-                d.callback("Queue length below low water mark")
+                d.callback("Queue length below high water mark")
 
     def heartbeat(self):
         """if cycling, send a heartbeat, else, shutdown"""
@@ -1207,7 +1207,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                help='Maximum number of events to queue')
 
-        self.parser.add_option('--queuewighwatermark',
+        self.parser.add_option('--queuehighwatermark',
                                dest='queueHighWaterMark',
                                default=0.75,
                                type='float',
