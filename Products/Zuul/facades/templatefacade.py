@@ -31,6 +31,7 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenRRD.utils import rpneval
 
 
 log = logging.getLogger('zen.TemplateFacade')
@@ -565,3 +566,26 @@ class TemplateFacade(ZuulFacade):
         except ObjectNotFoundException:
             pass
         return templates
+ 
+    def getDataPointsRPNValues(self, maxval, thuid, selecteddps, minval):
+        threshold = self._getObject(thuid)
+        dpsrpn = []
+        for point in selecteddps:
+            dpParams = {}
+            for graph in threshold.rrdTemplate.getGraphDefs():
+                dpParams.update({
+                    'rpnvalue': pobj.rpn if pobj.rpn else ''
+                    for pobj in graph.getDataPointGraphPoints(point)
+                })
+            dpParams['name'] = point
+            #if we can't use rpn to the entered values, return raw values back
+            try:
+                dpParams.update({'maxrpn': rpneval(maxval, dpParams.get('rpnvalue', ''))})
+            except:
+                dpParams.update({'maxrpn': maxval})
+            try:
+                dpParams.update({'minrpn': rpneval(minval, dpParams.get('rpnvalue', ''))})
+            except:
+                dpParams.update({'minrpn': minval})
+            dpsrpn.append(dpParams)
+        return dpsrpn
