@@ -7,21 +7,18 @@
 #
 ##############################################################################
 
-import json
 import logging
-import os
 log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
 sm.require("1.1.10")
-from servicemigration import HealthCheck
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
 
 class UpdateRegionServerGraphs(Migrate.Step):
     """
-    Add Solr service and associated healthchecks.
+    Convert RegionServer operation counts graphs to display as rate.
     """
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
