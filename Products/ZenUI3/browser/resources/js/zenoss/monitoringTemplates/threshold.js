@@ -204,8 +204,8 @@
             } else {
                 selecteddps = dpsobj.value
             }
-            minval = Ext.ComponentQuery.query('[name="minval"]')[0];
-            maxval = Ext.ComponentQuery.query('[name="maxval"]')[0];
+            var minval = Ext.ComponentQuery.query('[name="minval"]')[0],
+                maxval = Ext.ComponentQuery.query('[name="maxval"]')[0];
             router.getDataPointsRPNValues({thuid: record.data.uid, selecteddps: selecteddps,
                                            minval: minval.value, maxval:maxval.value}, addRPNtable)
         }
@@ -410,12 +410,7 @@
 
     Ext.define('RPNValues', {
         extend: 'Ext.data.Model',
-        fields: [
-            {name: 'name', mapping: 'name'},
-            {name: 'maxrpn', mapping: 'maxrpn'},
-            {name: 'minrpn', mapping: 'minrpn'},
-            {name: 'rpnvalue', mapping: 'rpnvalue'}
-        ]
+        fields: ['name', 'maxrpn', 'minrpn', 'rpnvalue']
     });
 
     Ext.define("Zenoss.stats.RPNValues", {

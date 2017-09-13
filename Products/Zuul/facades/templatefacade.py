@@ -574,14 +574,19 @@ class TemplateFacade(ZuulFacade):
         for point in selecteddps:
             dpParams = {}
             for graph in threshold.rrdTemplate.getGraphDefs():
-                dpParams.update({'rpnvalue': pobj.rpn if pobj.rpn else '' for pobj in graph.getDataPointGraphPoints(point)})
+                dpParams.update({
+                    'rpnvalue': pobj.rpn if pobj.rpn else ''
+                    for pobj in graph.getDataPointGraphPoints(point)
+                })
             dpParams['name'] = point
             #if we can't use rpn to the entered values, return raw values back
             try:
-                dpParams.update({'maxrpn': rpneval(maxval,  dpParams.get('rpnvalue', ''))})
-                dpParams.update({'minrpn': rpneval(minval,  dpParams.get('rpnvalue', ''))})
+                dpParams.update({'maxrpn': rpneval(maxval, dpParams.get('rpnvalue', ''))})
             except:
                 dpParams.update({'maxrpn': maxval})
+            try:
+                dpParams.update({'minrpn': rpneval(minval, dpParams.get('rpnvalue', ''))})
+            except:
                 dpParams.update({'minrpn': minval})
             dpsrpn.append(dpParams)
         return dpsrpn
