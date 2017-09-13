@@ -744,3 +744,8 @@ class TemplateRouter(TreeRouter):
         facade = self._getFacade()
         templates = facade.getCollectorTemplate()
         return Zuul.marshal(templates)
+
+    def getDataPointsRPNValues(self, maxval, thuid, selecteddps, minval):
+        facade = self._getFacade()
+        dpRPN = facade.getDataPointsRPNValues(maxval, thuid, selecteddps, minval)
+        return DirectResponse.succeed(dpRPN=dpRPN)

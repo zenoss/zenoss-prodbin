@@ -471,7 +471,7 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric,
+            yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 
     def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
