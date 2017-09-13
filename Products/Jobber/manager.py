@@ -46,10 +46,12 @@ def _dispatchTask(task, **kwargs):
     opts = dict(kwargs)
     # Have to use a closure because of Celery's funky signature inspection
     # and because of the status argument transaction passes
-    def hook(ignored):
-        log.info("Dispatching %s job to zenjobs", type(task))
-        # Push the task out to AMQP (ignore returned object).
-        task.apply_async(**opts)
+    def hook(status, **kw):
+        log.debug("Commit hook status: %s args: %s", status, kw)
+        if status:
+            log.info("Dispatching %s job to zenjobs", type(task))
+            # Push the task out to AMQP (ignore returned object).
+            task.apply_async(**opts)
     transaction.get().addAfterCommitHook(hook)
 
 
