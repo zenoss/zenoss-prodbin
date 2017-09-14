@@ -16,6 +16,9 @@
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
         },{
+            "text": "date.js",
+            "path": "resources/js/zenoss/"
+        },{
             "text": "BaseGrid.js",
             "path": "resources/js/zenoss/"
         }, {
