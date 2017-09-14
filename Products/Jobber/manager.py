@@ -224,7 +224,7 @@ class JobManager(ZenModelRM):
 
     security.declareProtected(ZEN_ADD, 'addJob')
     def addJob(self, jobclass,
-            description=None, args=None, kwargs=None, properties=None):
+            description=None, args=None, kwargs=None, properties=None, skipPruning=False):
         """
         Schedule a new L{Job} from the class specified.
 
@@ -253,7 +253,8 @@ class JobManager(ZenModelRM):
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
 
         # Clear out old jobs
-        self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
+        if not skipPruning:
+            self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
 
         return jobrecord
 
