@@ -464,6 +464,17 @@ Ext.apply(Zenoss.devices, {
         permission: 'Manage Device',
         handler: function() {
             var snmpAndRackItems = [{
+                    //Add hidden input fields for preventing username/password autocomplete
+                    xtype: 'textfield',
+                    id: 'autocompleteUsername',
+                    name: 'autocompleteUsername',
+                    hidden: true
+                }, {
+                    xtype: 'password',
+                    id: 'autocompletePassword',
+                    name: 'autocompletePassword',
+                    hidden: true
+                }, {
                     xtype: 'textfield',
                     name: 'snmpCommunity',
                     fieldLabel: _t('Snmp Community')
@@ -517,12 +528,6 @@ Ext.apply(Zenoss.devices, {
                     emptyText: _t('None...'),
                     multiSelect: true,
                     width: 200
-                },{
-                    //Add hidden input field to prevent password autocomplete
-                    xtype: 'password',
-                    id: 'autocompletePassword',
-                    name: 'autocompletePassword',
-                    hidden: true
                 }];
 
             // this is an attempt to provide some coarse consistency without
@@ -664,6 +669,7 @@ Ext.apply(Zenoss.devices, {
                         handler: function() {
                             var form = win.childPanel.getForm(),
                                 opts = form.getValues();
+                            delete opts.autocompleteUsername;
                             delete opts.autocompletePassword;
                             REMOTE.getCredentialsProps({deviceClass: opts.deviceClass}, function(data) {
                                 var zProps = {},
