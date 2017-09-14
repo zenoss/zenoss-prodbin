@@ -433,7 +433,7 @@
                 chart.zoomTo = function (zoomTime) {
                     if (Ext.isNumeric(zoomTime) && zoomTime > 0) {
 
-                        var curStart, curEnd, zoom_factor = 1.25;
+                        var zoom_factor = 1.25;
                         var chart_min_range = 1000 * 60 * 20;
                         var curRange = rangeToMilliseconds(self.graph_params.drange);
 
