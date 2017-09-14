@@ -53,9 +53,7 @@ class RabbitMetricGatherer(MetricGatherer):
 
     def _extract_data(self, queue, timestamp, without_consumers_aggregate):
         metrics = []
-        if not 'zenoss' in queue['name']:
-            return metrics
-
+        
         if not queue.has_key('consumers'):
             log.error('queue %s does not have a consumers item' % queue['name'])
         log.debug('%s: %s', queue['name'], queue['consumers'])
