@@ -61,7 +61,7 @@ Ext.define("Zenoss.DateRange", {
     alias: ['widget.DateRange'],
     xtype: "daterange",
     formatDate: function (date) {
-        return Zenoss.date.renderPickerField(date);
+            return Ext.isDate(date) ? moment(date).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : date;
     },
     getErrors: function(value) {
         var errors = new Array();
@@ -81,10 +81,6 @@ Ext.define("Zenoss.DateRange", {
         return errors;
     }
 });
-
-Zenoss.date.renderPickerField = function(date){
-    return Ext.isDate(date) ? moment(date).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : date;
-};
 
 /* For UserInterfaceSettings */
 
