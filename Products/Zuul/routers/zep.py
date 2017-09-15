@@ -27,7 +27,6 @@ from AccessControl import getSecurityManager
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import isoToTimestamp
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
@@ -234,7 +233,7 @@ class EventsRouter(DirectRouter):
             values = []
             splitter = ' TO ' if ' TO ' in value else '/'
             for t in value.split(splitter):
-                values.append(int(isoToTimestamp(t)) * 1000)
+                values.append(int(t))
             return values
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
