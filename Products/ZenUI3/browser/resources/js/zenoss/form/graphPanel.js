@@ -431,6 +431,32 @@
                         });
                     });
                 };
+                chart.zoomTo = function (zoomTime) {
+                    if (Ext.isNumeric(zoomTime) && zoomTime > 0) {
+
+                        var zoom_factor = 1.25;
+                        var chart_min_range = 1000 * 60 * 20;
+                        var curRange = rangeToMilliseconds(self.graph_params.drange);
+
+                        var zoomedRange = Math.floor(curRange / zoom_factor);
+                        zoomedRange = Math.max(zoomedRange, chart_min_range);
+                        var zoomStart = zoomTime - Math.floor(zoomedRange / 2);
+                        var zoomEnd = zoomStart + zoomedRange;
+
+                        var gParams = {
+                            'drange': zoomedRange,
+                            'start': zoomStart,
+                            'end': zoomEnd
+                        };
+                        if (self.dockedItems.items.length) {
+                            // handle own chart changes
+                            self.updateGraph(gParams);
+                        } else {
+                            // handle update at graphPanel level
+                            self.fireEvent("zoomPanel", gParams);
+                        }
+                    }
+                }
             });
 
         },
@@ -1215,6 +1241,9 @@
                 graphs[graphs.length-1].on("updatelimits", function(limits){
                     this.setLimits(limits.start, limits.end);
                 }, this);
+                graphs[graphs.length-1].on("zoomPanel", function(gParams){
+                    this.setGraph(gParams);
+                }, this);
             }
 
             // set up for the next page
@@ -1312,6 +1341,12 @@
             this.refresh();
         },
 
+        setGraph: function(gParams) {
+            this.setLimits(gParams.start, gParams.end);
+            this.drange = gParams.drange;
+            this.refresh();
+        },
+
         setLimits: function(start, end){
             // TODO - validate end is greater than start
             this.start = moment.utc(start);
@@ -1351,6 +1386,7 @@
             this.startDatePicker.setValue(this.start.valueOf(), false);
             this.startDatePicker.resumeEvents(false);
         },
+
         updateEndDatePicker: function(){
             this.endDatePicker.suspendEvents();
             this.endDatePicker.setValue(this.end.valueOf(), false);
@@ -1361,15 +1397,18 @@
             // show date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].show();
         },
+
         hideDatePicker: function(){
             // hide date picker stuff
             this.toolbar.query("container[cls='date_picker_container']")[0].hide();
         },
+
         updateStart: function(){
             // indicate to the panel that a graph is loading
             this.graphBusy++;
             this.disableControls();
         },
+
         updateEnd: function(){
             // indicate to the panel that a graph has completed loading / refreshing. Note that the controls should
             // only be re-enabled when all graphs are ready
@@ -1381,6 +1420,7 @@
                 this.enableControls();
             }
         },
+
         disableControls: function() {
             // this function disables controls for combined graphs with a single panel
             var items = this.getDockedItems()[0].items.items;
@@ -1397,6 +1437,7 @@
             }, 1000);
             this.controlsDisableTimer = disableTimer;
         },
+
         enableControls: function(){
             // re-enable controls for combined graphs with a single panel
             clearTimeout(this.controlsDisableTimer);
