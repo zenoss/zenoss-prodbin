@@ -77,8 +77,8 @@ class LegacyFieldTranslation(object):
 GLOBAL_CATALOG_TRANSLATIONS =[
     LegacyFieldTranslation(old="uid", new="uid",
                            value_converter=TranslationValueConverter(
-                                            search=add_zport_dmd_value_converter,
-                                            result=strip_zport_dmd_value_converter)),
+                                            search=add_zport_dmd_value_converter
+                                            )),
     LegacyFieldTranslation(old="id", new="id"),
     LegacyFieldTranslation(old="name", new="name"),
     LegacyFieldTranslation(old="meta_type", new="meta_type"),

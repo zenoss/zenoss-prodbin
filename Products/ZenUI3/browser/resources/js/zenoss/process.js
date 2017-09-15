@@ -86,14 +86,7 @@ var MoveProcessCallback = Ext.extend(Object, {
             tree = this.tree;
         node.setId(response.result.id);
         node.data.uid = response.result.uid;
-        tree.selectPath(this.node.getPath());
-        tree.refresh({
-            callback: function() {
-                tree.expandAll();
-                // select the node that just moved
-                tree.selectByToken(node.get("uid"));
-            }
-        });
+        tree.refresh();
 
         Ext.History.add(tree.id + Ext.History.DELIMITER + node.get("id"));
     }
@@ -128,14 +121,14 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
 
     },
     onNodeDrop: function(element, event, target) {
-        var uid, targetUid, params, callback;
-        uid = event.records[0].get("uid");
-        target.expand();
+        var uid, targetUid, params, callback, dropped;
+        dropped = event.records[0];
+        uid = dropped.get("uid");
         targetUid = target.get("uid");
         params = {uid: uid, targetUid: targetUid};
-        callback = new MoveProcessCallback(this, target);
+        callback = new MoveProcessCallback(this, dropped);
         router.moveProcess(params, callback.call, callback);
-        return false;
+        return true;
     },
 
     onExpandnode: function(node) {

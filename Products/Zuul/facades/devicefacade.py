@@ -124,9 +124,10 @@ class DeviceFacade(TreeFacade):
             for i, b in enumerate(comps):
                 if '/'.join(b._object.getPrimaryPath())==componentUid:
                     return i
-        for i, b in enumerate(brains):
-            if b.getPath() == componentUid:
-                return i
+        else:
+            for i, b in enumerate(brains):
+                if b.getPath() == componentUid:
+                    return i
 
     def _filterComponents(self, comps, keys, query):
         """

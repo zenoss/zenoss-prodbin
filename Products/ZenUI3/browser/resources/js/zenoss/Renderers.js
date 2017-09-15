@@ -76,6 +76,22 @@ function pingStatusBase(bool) {
 
 Ext.apply(Zenoss.render, {
 
+    date: function(date, format) {
+        if (!format) {
+            // old default "YYYY-MM-DD hh:mm:ss a z"
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
+        }
+        // Unix ms timestamps
+        if (Ext.isNumeric(date)) {
+            return moment.unix(date).tz(Zenoss.USER_TIMEZONE).format(format);
+        }
+        // Ext Datetime object
+        if (Ext.isDate(date)) {
+            return moment.tz(date, Zenoss.USER_TIMEZONE).format(format);
+        }
+        return date;
+    },
+
     conditionalEscaping: function(data) {
         if (!Zenoss.settings.enableHtmlInEventFields)
             return Ext.htmlEncode(data);

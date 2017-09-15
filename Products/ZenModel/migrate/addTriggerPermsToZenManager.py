@@ -8,6 +8,7 @@
 ##############################################################################
 
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGER_ROLE, MANAGE_TRIGGER, UPDATE_TRIGGER, UPDATE_NOTIFICATION, MANAGE_NOTIFICATION_SUBSCRIPTIONS
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 __doc__ = '''
 This migration script adds the Manage Trigger permission to the ZenManager role.
@@ -17,7 +18,7 @@ import Migrate
 
 
 class AddTriggerPermToZenManager(Migrate.Step):
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:

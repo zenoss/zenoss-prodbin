@@ -16,7 +16,12 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice, IInfo
-from Products.Zuul.infos import InfoBase, HasEventsInfoMixin, ProxyProperty, LockableMixin
+from Products.Zuul.infos import (
+    InfoBase,
+    HasEventsInfoMixin,
+    ProxyProperty,
+    LockableMixin
+)
 from Products.Zuul import getFacade, info
 from Products.Zuul.marshalling import TreeNodeMarshaller
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_DEBUG
@@ -27,10 +32,10 @@ from Products.Zuul.infos.catalog_tree_builder import ModelCatalogTreeBuilder
 
 
 ORGTYPES = {
-    'Devices':'DeviceClass',
-    'Systems':'Systems',
-    'Locations':'Location',
-    'Groups':'DeviceGroups'
+    'Devices': 'DeviceClass',
+    'Systems': 'Systems',
+    'Locations': 'Location',
+    'Groups': 'DeviceGroups'
 }
 
 
@@ -41,7 +46,7 @@ class DeviceOrganizerNode(TreeNode):
     def __init__(self, ob, root=None, parent=None):
         super(DeviceOrganizerNode, self).__init__(ob, root, parent)
         obj = self._get_object()
-        # Calling hasNoGlobalRoles() is expensive in the context of a very large
+        # Calling hasNoGlobalRoles() is expensive in the context of a large
         # organizer tree. Use the same value from the root node if it is
         # available (it doesn't change based on the context of the organizer).
         if root:
@@ -71,15 +76,15 @@ class DeviceOrganizerNode(TreeNode):
                     # the tree we are building
                     allowed_uids.add(uid_tuple)
             viewable_uids = set()
-            # See Trac #2725, unrestricted users need to see the nodes they don't have
-            # permission to view if they do have permissions on any of the child nodes.
-            #
+            # See Trac #2725, unrestricted users need to see the nodes
+            # they don't have permission to view if they do have permissions
+            # on any of the child nodes.
             root_depth = len(root_uid_tuple)
             for uid_tuple in allowed_uids:
                 for i in range(root_depth, len(uid_tuple)):
-                    viewable_uids.add("/".join(uid_tuple[:i+1]))
+                    viewable_uids.add("/".join(uid_tuple[:i + 1]))
             if viewable_uids:
-                viewable_uids.add(root_uid) # add the root
+                viewable_uids.add(root_uid)  # add the root
             setattr(self._root, attr_name, viewable_uids)
         return viewable_uids
 
@@ -91,11 +96,17 @@ class DeviceOrganizerNode(TreeNode):
             node_type = "Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
             leaf_type = "Products.ZenModel.Device.Device"
             facet_field = "deviceOrganizers"
-            unique_leaves = True
+            load_leaves = False
             splitted_path = self._root._get_object().getPrimaryPath()
-            if splitted_path[3] in [ "Systems", "Groups" ]:
-                unique_leaves = False
-            tree = ModelCatalogTreeBuilder(self._root._get_object(), node_type, leaf_type, facet_field, unique_leaves)
+            if splitted_path[3] in ["Systems", "Groups"]:
+                # Bc a device can belong to more than one system or group,
+                # we need to load all devices in order to retrieve the total
+                # count of unique devices
+                load_leaves = True
+            tree = ModelCatalogTreeBuilder(
+                self._root._get_object(), node_type, leaf_type,
+                load_leaves=load_leaves, facet_field=facet_field
+            )
             setattr(self._root, attr_name, tree)
         return tree
 
@@ -105,14 +116,19 @@ class DeviceOrganizerNode(TreeNode):
         use_it = getattr(self._root, attr_name, None)
         if use_it is None:
             root = self._root._get_object()
-            use_it = root.dmd.UserInterfaceSettings.getInterfaceSettings().get('loadDeviceTreeFromCatalog')
+            use_it = root.dmd.UserInterfaceSettings.getInterfaceSettings().get(
+                'loadDeviceTreeFromCatalog'
+            )
             setattr(self._root, attr_name, use_it)
         return use_it
 
     @property
     def children(self):
         if getattr(self, '_cached_children', None) is None:
-            self._cached_children = map(lambda x:DeviceOrganizerNode(x, self._root, self), self._get_children())
+            self._cached_children = map(
+                lambda x: DeviceOrganizerNode(x, self._root, self),
+                self._get_children()
+            )
         return self._cached_children
 
     def _get_children(self):
@@ -122,16 +138,16 @@ class DeviceOrganizerNode(TreeNode):
             children = self.tree_from_catalog.get_children(node_path)
         else:
             if self.hasNoGlobalRoles:
-                # if user has no global roles we cant use children bc it returns
-                # organizers for which the user has perms. We need all of them
-                # in case the user has access to just some devices in organizers
-                # for which the user does not have permissions
+                # if user has no global roles we cant use children bc it
+                # returns organizers for which the user has perms.
+                # We need all of them in case the user has access to devices
+                # in organizers for which the user does not have permissions
                 children = obj.objectValues(spec=obj.meta_type)
             else:
                 children = obj.children()
             children = sorted(children, key=lambda org: org.titleOrId())
 
-        if self.hasNoGlobalRoles: # filter children
+        if self.hasNoGlobalRoles:  # filter children
             children = filter(self._nonGlobalRole_child_filter, children)
         return children
 
@@ -167,12 +183,12 @@ class DeviceOrganizerNode(TreeNode):
         return self._cached_count
 
     def _unique_keys(self):
-       unique_keys = set()
-       for child in self.children:
-           unique_keys.update(child._unique_keys())
-       for device in self._get_object().devices():
-           unique_keys.add(device.id)
-       return unique_keys
+        unique_keys = set()
+        for child in self.children:
+            unique_keys.update(child._unique_keys())
+        for device in self._get_object().devices():
+            unique_keys.add(device.id)
+        return unique_keys
 
     @property
     def text(self):
@@ -226,10 +242,14 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
         if not self._severities:
             # Get UUIDs for all items in the tree
             uuids = self._getUuids(self.root)
-            self._severities = dict(
-                (uuid, self._eventFacade.getSeverityName(severity).lower())
-                    for (uuid, severity) in self._eventFacade.getWorstSeverity(uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)).iteritems()
+            events = self._eventFacade.getWorstSeverity(
+                uuids, ignore=(SEVERITY_INFO, SEVERITY_DEBUG)
             )
+            self._severities = {
+                uuid: self._eventFacade.getSeverityName(severity).lower()
+                for (uuid, severity)
+                in events.iteritems()
+            }
 
         return self._severities
 
@@ -242,16 +262,21 @@ class DeviceOrganizerTreeNodeMarshaller(TreeNodeMarshaller):
             obj['uuid'] = self._getNodeUuid(node)
 
         if iconCls and self.showSeverityIcons:
-            severity = self._allSeverities.get(self._getNodeUuid(node), 'clear')
+            severity = self._allSeverities.get(
+                self._getNodeUuid(node), 'clear'
+            )
             obj['iconCls'] = node.getIconCls(severity)
 
         obj['children'] = []
         for childNode in node.children:
-            obj['children'].append(self._marshalNode(keys, childNode, iconCls=iconCls))
+            obj['children'].append(
+                self._marshalNode(keys, childNode, iconCls=iconCls)
+            )
         return obj
 
     def marshal(self, keys=None, node=None):
-        # Remove iconCls key so we don't get its intrinsic value, instead we want to get it in batches
+        # Remove iconCls key so we don't get its intrinsic value,
+        # instead we want to get it in batches
         keys = keys or self.getKeys()
         iconCls = False
         if 'iconCls' in keys:
@@ -350,7 +375,12 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         result = []
         for obj in objs:
             info = IInfo(obj)
-            result.append(dict(name=info.name, uid=info.uid, uuid=info.uuid, path=info.path))
+            result.append({
+                'name': info.name,
+                'uid': info.uid,
+                'uuid': info.uuid,
+                'path': info.path
+            })
         return result
 
     @property
@@ -367,6 +397,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
         if loc:
             info = IInfo(loc)
             return dict(name=info.name, uid=info.uid, uuid=info.uuid)
+
     @property
     def uptime(self):
         return self._object.uptimeStr()
@@ -378,6 +409,10 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     @property
     def lastChanged(self):
         return self._object._lastChange
+
+    @property
+    def created_timestamp(self):
+        return self._object.created_timestamp
 
     @property
     def lastCollected(self):
@@ -524,17 +559,22 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
     @property
     def deviceConnectionInfo(self):
         connectionInfo = []
-        zprops = self._object.deviceClass().primaryAq().getZ('zCredentialsZProperties', [])
+        zprops = self._object.deviceClass().primaryAq().getZ(
+            'zCredentialsZProperties', []
+        )
         if not zprops:
             return False
         for prop in zprops:
             if not self._object.zenPropIsPassword(prop):
-                connectionInfo.append(str(self._object.zenPropertyString(prop)))
+                connectionInfo.append(
+                    str(self._object.zenPropertyString(prop))
+                )
         return " ".join(connectionInfo)
 
     @property
     def renameInProgress(self):
         return self._object.renameInProgress
+
 
 class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     implements(IDeviceOrganizerInfo)
@@ -551,6 +591,7 @@ class DeviceOrganizerInfo(InfoBase, HasEventsInfoMixin):
     @property
     def path(self):
         return self._object.getPrimaryDmdId()
+
 
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):
