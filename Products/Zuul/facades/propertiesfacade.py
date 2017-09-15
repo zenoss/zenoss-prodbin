@@ -7,17 +7,17 @@
 #
 ##############################################################################
 
-
 import re
-from zope.interface import implements
+from DateTime import DateTime
+from zope.interface import implementer
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IPropertiesFacade
-from DateTime import DateTime
+
 iscustprop = re.compile("c[A-Z]").match
 
 
+@implementer(IPropertiesFacade)
 class PropertiesFacade(ZuulFacade):
-    implements(IPropertiesFacade)
 
     def getZenProperties(self, uid, exclusionList=()):
         """
@@ -26,7 +26,8 @@ class PropertiesFacade(ZuulFacade):
         @type  uid: string
         @param uid: unique identifier of an object
         @type  exclusionList: Collection
-        @param exclusionList: List of zproperty ids that we do not wish to retrieve
+        @param exclusionList: List of zproperty ids that we do not
+            wish to retrieve
         """
         obj = self._getObject(uid)
         return obj.exportZProperties(exclusionList)
@@ -38,15 +39,18 @@ class PropertiesFacade(ZuulFacade):
         @type  uid: String
         @param uid: unique identifier of an object
         @type  properties: Array
-        @param properties: list of zenproperty identifiers that we wish to delete
+        @param properties: list of zenproperty identifiers that
+            we wish to delete
         """
         obj = self._getObject(uid)
         if obj.hasProperty(zProperty):
             prop = self.getZenProperty(uid, zProperty)
             if not iscustprop(zProperty):
                 if prop['path'] == '/':
-                    raise Exception('Unable to delete root definition of a property')
-
+                    raise Exception(
+                        "Unable to delete root definition of a property '%s'"
+                        % (zProperty,)
+                    )
             obj.deleteZenProperty(zProperty)
 
     def _checkType(self, obj, prop, type, value):
@@ -65,32 +69,27 @@ class PropertiesFacade(ZuulFacade):
         if ztype == 'string':
             value = str(value)
         if ztype == 'date':
-            value = value.replace('%20', ' ') # Ugh. Manually decode spaces
+            value = value.replace('%20', ' ')  # Ugh. Manually decode spaces
             value = DateTime(value)
         if ztype == "lines" and isinstance(value, basestring):
-            if value:
-                value = value.split("\n")
-            else:
-                # if there is an empty string passed in save it as an empty array
-                value = []
+            value = value.split("\n") if value else []
         return value
 
     def addCustomProperty(self, id, value, label, uid, type):
         """
-        adds a custom property from the UI
+        Adds a custom property from the UI
         """
         obj = self._getObject(uid)
-
         value = self._checkType(obj, id, type, value)
-
         id = id.strip()
         if not iscustprop(id):
-            raise Exception("Invalid Custom Property. Must start with lower case c")
+            raise Exception(
+                "Invalid Custom Property. Must start with lower case c"
+            )
         elif obj.hasProperty(id):
             raise Exception("Custom Property already exists.")
         else:
             obj._setProperty(id, value, type, label)
-
 
     def setZenProperty(self, uid, zProperty, value):
         """
@@ -108,9 +107,9 @@ class PropertiesFacade(ZuulFacade):
         # make sure it is the correct type
         value = self._checkType(obj, zProperty, type, value)
         # do not save * as passwords
-        if obj.zenPropIsPassword(zProperty) and value == obj.zenPropertyString(zProperty):
+        if obj.zenPropIsPassword(zProperty) \
+                and value == obj.zenPropertyString(zProperty):
             return
-
         return obj.setZenProperty(zProperty, value)
 
     def getCustomProperties(self, uid, exclusionList=()):
@@ -120,7 +119,8 @@ class PropertiesFacade(ZuulFacade):
         @type  uid: string
         @param uid: unique identifier of an object
         @type  exclusionList: Collection
-        @param exclusionList: List of cproperty ids that we do not wish to retrieve
+        @param exclusionList: List of cproperty ids that we do not
+            wish to retrieve
         """
         obj = self._getObject(uid)
         return self.exportCustomProperties(obj, exclusionList)
@@ -147,16 +147,16 @@ class PropertiesFacade(ZuulFacade):
             cId = entry["id"]
             if cId in exclusionList:
                 continue
-            prop = dict(
-                    id=cId,
-                    islocal=obj.hasProperty(cId),
-                    type=obj.getPropertyType(cId),
-                    path=obj.zenPropertyPath(cId),
-                    options=obj.zenPropertyOptions(cId),
-                    label=entry.get("label"),
-                    value=None,
-                    valueAsString=obj.zenPropertyString(cId)
-                    )
+            prop = {
+                "id":      cId,
+                "islocal": obj.hasProperty(cId),
+                "type":    obj.getPropertyType(cId),
+                "path":    obj.zenPropertyPath(cId),
+                "options": obj.zenPropertyOptions(cId),
+                "label":   entry.get("label"),
+                "value":   None,
+                "valueAsString": obj.zenPropertyString(cId)
+            }
             if not obj.zenPropIsPassword(cId):
                 prop['value'] = obj.getZ(cId)
             else:
@@ -177,12 +177,11 @@ class PropertiesFacade(ZuulFacade):
              - valueAsString (string)
         """
         obj = self._getObject(uid)
-        prop = dict(
-            path = obj.zenPropertyPath(zProperty),
-            options = obj.zenPropertyOptions(zProperty),
-            type=obj.getPropertyType(zProperty),
-            )
-
+        prop = {
+            "path":    obj.zenPropertyPath(zProperty),
+            "options": obj.zenPropertyOptions(zProperty),
+            "type":    obj.getPropertyType(zProperty),
+        }
         if not obj.zenPropIsPassword(zProperty):
             prop['value'] = obj.getZ(zProperty)
             prop['valueAsString'] = obj.zenPropertyString(zProperty)

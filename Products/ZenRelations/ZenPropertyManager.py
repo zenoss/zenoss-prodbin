@@ -1,36 +1,41 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-import re
 import logging
+import re
 
+from AccessControl import ClassSecurityInfo
+from Acquisition import aq_base, aq_chain
 from OFS.PropertyManager import PropertyManager
 from zExceptions import BadRequest
-from Globals import DTMLFile
-from Globals import InitializeClass
-from Acquisition import aq_base, aq_chain
 from ZPublisher.Converters import type_converters
+
+from Globals import DTMLFile, InitializeClass
+
 from Products.ZenMessaging.audit import audit
-from Products.ZenModel.ZenossSecurity import *
-from AccessControl import ClassSecurityInfo
-from Exceptions import zenmarker
-from Products.ZenWidgets.interfaces import IMessageSender
-from Products.ZenRelations.zPropertyCategory import getzPropertyCategory, setzPropertyCategory
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_ZPROPERTIES_EDIT, ZEN_ZPROPERTIES_VIEW
+)
+from Products.ZenRelations.zPropertyCategory import (
+    getzPropertyCategory, setzPropertyCategory
+)
 from Products.ZenUtils.Utils import unused, getDisplayType
+from Products.ZenWidgets.interfaces import IMessageSender
+
+from .Exceptions import zenmarker
 
 iszprop = re.compile("z[A-Z]").match
-
 log = logging.getLogger('zen.PropertyManager')
-Z_PROPERTY_META_DATA = dict()
-# Z_PROPERTIES is a list of (id, type, value) pairs that define all the
-# zProperties.  The values are set on dmd.Devices in the
+
+Z_PROPERTY_META_DATA = {}
+# Z_PROPERTIES is a list of (id, value, type, name, description) tuples that
+# define all the zProperties.  The values are set on dmd.Devices in the
 # buildDeviceTreeProperties of DeviceClass
 Z_PROPERTIES = [
 
@@ -126,7 +131,8 @@ Z_PROPERTIES = [
     ('zSshConcurrentSessions', 10, 'int', 'SSH Concurrent Sessions', 'How many SSH sessions to open up to one device (some SSH servers have a limit)'),
 
     ('zCredentialsZProperties', [], 'lines', 'Connection Information', 'Used by ZenPack authors to denote which zProperties comprise the credentials for this device class.'),
-    ]
+]
+
 
 class PropertyDescriptor(object):
     """
@@ -190,10 +196,10 @@ class PropertyDescriptor(object):
             del instance.__dict__[self.id]
             instance._p_changed = True
         for dct in instance._properties:
-            if dct['id'] == self.id:                
+            if dct['id'] == self.id:
                 if dct['type'] != self.type:
                     dct['type'] = self.type
-                    instance._p_changed = True                
+                    instance._p_changed = True
                 if dct.get('label') != self.label:
                     dct['label'] = self.label
                     instance._p_changed = True
@@ -217,14 +223,15 @@ class PropertyDescriptor(object):
         """
         return getattr(self.transformer, method)(value)
 
+
 class ZenPropertyDoesNotExist(ValueError):
     pass
 
+
 class ZenPropertyManager(object, PropertyManager):
     """
-
     ZenPropertyManager adds keyedselection type to PropertyManager.
-    A keyedselection displayes a different name in the popup then
+    A keyedselection displays a different name in the popup than
     the actual value the popup will have.
 
     It also has management for zenProperties which are properties that can be
@@ -263,59 +270,65 @@ class ZenPropertyManager(object, PropertyManager):
     attribute, but when you access it as an attribute the property transformer
     is again applied, but this time using its transformForGet method.
     """
-    __pychecker__='no-override'
 
     security = ClassSecurityInfo()
 
-    manage_propertiesForm=DTMLFile('dtml/properties', globals(),
-                                   property_extensible_schema__=1)
+    manage_propertiesForm = DTMLFile(
+        'dtml/properties', globals(), property_extensible_schema__=1
+    )
 
     def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks and ip creation"""
+        """Override from PerpertyManager to handle checks and ip creation.
+        """
         self._wrapperCheck(value)
         propType = self.getPropertyType(id)
-        if  propType == 'keyedselection':
+        if propType == 'keyedselection':
             value = int(value)
-        if not getattr(self,'_v_propdict',False):
+        if not getattr(self, '_v_propdict', False):
             self._v_propdict = self.propdict()
         if 'setter' in self._v_propdict:
             settername = self._v_propdict['setter']
             setter = getattr(aq_base(self), settername, None)
             if not setter:
-                raise ValueError("setter %s for property %s doesn't exist"
-                                    % (settername, id))
+                raise ValueError(
+                    "setter %s for property %s doesn't exist"
+                    % (settername, id)
+                )
             if not callable(setter):
-                raise TypeError("setter %s for property %s not callable"
-                                    % (settername, id))
+                raise TypeError(
+                    "setter %s for property %s not callable"
+                    % (settername, id)
+                )
             setter(value)
         else:
             setattr(self, id, value)
 
-
-    def _setProperty(self, id, value, type='string', label=None,
-                    visible=True, setter=None):
-        """for selection and multiple selection properties
-        the value argument indicates the select variable
-        of the property
+    def _setProperty(
+            self, id, value, type='string', label=None,
+            visible=True, setter=None):
+        """For selection and multiple selection properties the value
+        argument indicates the select variable of the property.
         """
         self._wrapperCheck(value)
         if not self.valid_property_id(id):
-            raise BadRequest, 'Id %s is invalid or duplicate' % id
+            raise BadRequest('Id %s is invalid or duplicate' % id)
 
         def setprops(**pschema):
-            self._properties=self._properties+(pschema,)
-            if setter: pschema['setter'] = setter
-            if label: pschema['label'] = label
+            if setter:
+                pschema['setter'] = setter
+            if label:
+                pschema['label'] = label
+            self._properties = self._properties + (pschema,)
 
         if type in ('selection', 'multiple selection'):
+
             # NOTE: Moved `import messaging` here to lazify code and
             # remove circular import.
             from Products.ZenWidgets import messaging
 
             if not hasattr(self, value):
                 IMessageSender(self).sendToBrowser(
-                    'Wrong value in the `Value` field.',
-                    'Object has no %s attribute.' % value,
+                    "Selection variable '%s' not found" % value,
                     priority=messaging.WARNING,
                 )
                 return
@@ -327,25 +340,21 @@ class ZenPropertyManager(object, PropertyManager):
             if not (isinstance(select_values, (list, tuple)) and
                     all(isinstance(v, basestring) for v in select_values)):
                 IMessageSender(self).sendToBrowser(
-                    'Wrong value in the `Value` field.',
-                    'Property in Value field should contain a list of strings.',
+                    "Selection variable '%s' must be a LINES type" % value,
                     priority=messaging.WARNING,
                 )
                 return
 
-            setprops(id=id, type=type, visible=visible,
-                     select_variable=value)
-
-            if type=='selection':
-                self._setPropValue(id, '')
-            else:
-                self._setPropValue(id, [])
+            setprops(
+                id=id, type=type, visible=visible, select_variable=value
+            )
+            self._setPropValue(id, '' if (type == 'selection') else [])
         else:
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
 
     def _updateProperty(self, id, value):
-        """ This method sets a property on a zope object. It overrides the
+        """This method sets a property on a zope object. It overrides the
         method in PropertyManager. If Zope is upgraded you will need to check
         that this method has not changed! It is overridden so that we can catch
         the ValueError returned from the field2* converters in the class
@@ -354,52 +363,50 @@ class ZenPropertyManager(object, PropertyManager):
         try:
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:
-            msg = "Error Saving Property '%s'. New value '%s' is of invalid "
-            msg += "type. It should be type '%s'."
             proptype = self.getPropertyType(id)
-            args = (id, value, proptype)
-            log.error(msg % args)
-
+            log.error(
+                "Error Saving Property '%s'. New value '%s' is of invalid "
+                "type. It should be type '%s'.", id, value, proptype
+            )
 
     _onlystars = re.compile("^\*+$").search
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'manage_editProperties')
     def manage_editProperties(self, REQUEST):
-        """
-        Edit object properties via the web.
+        """Edit object properties via the web.
         The purpose of this method is to change all property values,
         even those not listed in REQUEST; otherwise checkboxes that
         get turned off will be ignored.  Use manage_changeProperties()
         instead for most situations.
         """
         for prop in self._propertyMap():
-            name=prop['id']
+            name = prop['id']
             if 'w' in prop.get('mode', 'wd'):
-                value=REQUEST.get(name, '')
+                value = REQUEST.get(name, '')
                 if self.zenPropIsPassword(name) and self._onlystars(value):
                     continue
                 self._updateProperty(name, value)
         if getattr(self, "index_object", False):
             self.index_object()
         if REQUEST:
-            message="Saved changes."
-            return self.manage_propertiesForm(self,REQUEST,
-                                              manage_tabs_message=message)
-
+            return self.manage_propertiesForm(
+                self, REQUEST, manage_tabs_message="Saved changes."
+            )
 
     def getZenRootNode(self):
-        """sub class must implement to use zenProperties."""
+        """Sub class must implement to use zenProperties.
+        """
         raise NotImplementedError
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyIds')
     def zenPropertyIds(self, all=True, pfilt=iszprop):
-        """
-        Return list of device tree property names.
+        """Return list of device tree property names.
         If all use list from property root node.
         """
         if all:
             rootnode = self.getZenRootNode()
         else:
-            if self.id == self.dmdRootName: return []
+            if self.id == self.dmdRootName:
+                return []
             rootnode = aq_base(self)
         return sorted(prop for prop in rootnode.propertyIds() if pfilt(prop))
 
@@ -411,37 +418,54 @@ class ZenPropertyManager(object, PropertyManager):
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyMap')
     def zenPropertyMap(self, pfilt=iszprop):
-        """Return property mapping of device tree properties."""
+        """Return property mapping of device tree properties.
+        """
         rootnode = self.getZenRootNode()
-        return sorted((pdict for pdict in rootnode.propertyMap()
-                         if pfilt(pdict['id'])),
-                        key=lambda x : x['id'])
+        return sorted(
+            (
+                pdict
+                for pdict in rootnode.propertyMap()
+                if pfilt(pdict['id'])
+            ),
+            key=lambda x: x['id']
+        )
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyString')
     def zenPropertyString(self, id):
-        """Return the value of a device tree property as a string"""
+        """Return the value of a device tree property as a string.
+        """
         def displayLines(lines):
             return '\n'.join(str(line) for line in lines)
+
         def displayPassword(password):
             return '*' * len(password)
+
         def displayOthers(other):
             return other
-        displayFunctions = {'lines': displayLines,
-                            'password': displayPassword}
-        display = displayFunctions.get(self.getPropertyType(id),
-                                       displayOthers)
+
+        displayFunctions = {
+            'lines': displayLines,
+            'password': displayPassword
+        }
+        display = displayFunctions.get(
+            self.getPropertyType(id), displayOthers
+        )
         return display(self.getProperty(id, ''))
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropIsPassword')
     def zenPropIsPassword(self, id):
         """Is this field a password field.
         """
-        passwordTypes = ['password', 'passwd', 'multilinecredentials', 'instancecredentials']
+        passwordTypes = [
+            'password', 'passwd',
+            'multilinecredentials', 'instancecredentials'
+        ]
         return self.getPropertyType(id) in passwordTypes
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyPath')
     def zenPropertyPath(self, id):
-        """Return the primaryId of where a device tree property is found."""
+        """Return the primaryId of where a device tree property is found.
+        """
         ob = self._findParentWithProperty(id)
         if ob is None:
             path = None
@@ -451,8 +475,7 @@ class ZenPropertyManager(object, PropertyManager):
 
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'setZenProperty')
     def setZenProperty(self, propname, propvalue, REQUEST=None):
-        """
-        Add or set the propvalue of the property propname on this node of
+        """Add or set the propvalue of the property propname on this node of
         the device Class tree.
         """
         ptype = self.getPropertyType(propname)
@@ -465,15 +488,19 @@ class ZenPropertyManager(object, PropertyManager):
         if getattr(aq_base(self), propname, zenmarker) != zenmarker:
             self._updateProperty(propname, propvalue)
         else:
-            if ptype in ("selection", 'multiple selection'): ptype="string"
+            if ptype in ("selection", 'multiple selection'):
+                ptype = "string"
             if ptype in type_converters:
-                propvalue=type_converters[ptype](propvalue)
-            if ptype == "password" and propvalue == self.zenPropertyString(propname):
-                    # Don't save passwords that haven't changed and don't save "*" passwords
-                    pass
+                propvalue = type_converters[ptype](propvalue)
+            if ptype == "password" \
+                    and propvalue == self.zenPropertyString(propname):
+                # Don't save passwords that haven't changed
+                # and don't save "*" passwords
+                pass
             elif getattr(self, propname, None) != propvalue:
                 self._setProperty(propname, propvalue, type=ptype)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'saveZenProperties')
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
@@ -481,7 +508,7 @@ class ZenPropertyManager(object, PropertyManager):
         """
         oldValues = {}
         newValues = {}
-        maskFields=[]
+        maskFields = []
         for name, value in REQUEST.form.items():
             if pfilt(name):
                 if self.zenPropIsPassword(name):
@@ -516,21 +543,25 @@ class ZenPropertyManager(object, PropertyManager):
             try:
                 self._delProperty(propname)
             except AttributeError:
-                #occasional object corruption where the propName is in
-                #_properties but not set as an attribute. filter out the prop
-                #and create a new _properties tuple
+                # Occasional object corruption where the propName is in
+                # _properties but not set as an attribute. filter out the prop
+                # and create a new _properties tuple
                 newProps = [x for x in self._properties if x['id'] != propname]
-                self._properties=tuple(newProps)
+                self._properties = tuple(newProps)
             except ValueError:
                 raise ZenPropertyDoesNotExist()
         if REQUEST:
             if propname:
-                audit(('UI',getDisplayType(self),'DeleteZProperty'), self, property=propname)
+                audit(
+                    ('UI', getDisplayType(self), 'DeleteZProperty'),
+                    self, property=propname
+                )
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
     def zenPropertyOptions(self, propname):
-        "Provide a set of default options for a ZProperty"
+        """Provide a set of default options for a ZProperty.
+        """
         unused(propname)
         return []
 
@@ -543,7 +574,7 @@ class ZenPropertyManager(object, PropertyManager):
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname, showDevices=False):
-        """ Get the objects that override a property somewhere below in the tree
+        """Get the objects that override a property somewhere below in the tree
         """
         if showDevices:
             objects = []
@@ -557,26 +588,22 @@ class ZenPropertyManager(object, PropertyManager):
                     if inst not in objects:
                         objects.append(inst)
             return objects
-
-        return [ org for org in self.getSubOrganizers()
-            if org.isLocal(propname) ]
+        return [
+            org for org in self.getSubOrganizers() if org.isLocal(propname)
+        ]
 
     def _findParentWithProperty(self, id):
+        """Returns self or the first acquisition parent that has a property
+        with the id.  Returns None if no parent had the id.
         """
-        Returns self or the first acquisition parent that has a property with
-        the id.  Returns None if no parent had the id.
-        """
-        for ob in aq_chain(self):
-            if isinstance(ob, ZenPropertyManager) and ob.hasProperty(id):
-                parentWithProperty = ob
-                break
-        else:
-            parentWithProperty = None
-        return parentWithProperty
+        return next((
+            ob
+            for ob in aq_chain(self)
+            if isinstance(ob, ZenPropertyManager) and ob.hasProperty(id)
+        ), None)
 
     def hasProperty(self, id, useAcquisition=False):
-        """
-        Override method in PropertyManager to support acquisition.
+        """Override method in PropertyManager to support acquisition.
         """
         if useAcquisition:
             hasProp = self._findParentWithProperty(id) is not None
@@ -585,36 +612,26 @@ class ZenPropertyManager(object, PropertyManager):
         return hasProp
 
     def getProperty(self, id, d=None):
-        """
-        Get property value and apply transformer.  Overrides method in Zope's
-        PropertyManager class.  Acquire values from aquisiton parents if
-        needed.
+        """Get property value and apply transformer.  Overrides method in
+        Zope's PropertyManager class.  Acquire values from aquisiton parents
+        if needed.
         """
         ob = self._findParentWithProperty(id)
-        if ob is None:
-            value = d
-        else:
-            value = PropertyManager.getProperty(ob, id, d)
-        return value
+        return d if (ob is None) else PropertyManager.getProperty(ob, id, d)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getPropertyType')
     def getPropertyType(self, id):
-        """
-        Overrides methods from PropertyManager to support acquistion.
+        """Overrides methods from PropertyManager to support acquistion.
         """
         ob = self._findParentWithProperty(id)
-        if ob is None:
-            type = None
-        else:
-            type = PropertyManager.getPropertyType(ob, id)
-        return type
+        if ob is not None:
+            return PropertyManager.getPropertyType(ob, id)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getZ')
     def getZ(self, id, default=None):
-        """
-        Return the value of a zProperty on this object.  This method is used to
-        lookup zProperties for a user with a role that doesn't have direct
-        access to an attribute further up the acquisition path.  If the
+        """Return the value of a zProperty on this object.  This method is
+        used to lookup zProperties for a user with a role that doesn't have
+        direct access to an attribute further up the acquisition path.  If the
         requested property is a password, then None is returned.
 
         @param id: id of zProperty
@@ -629,10 +646,8 @@ class ZenPropertyManager(object, PropertyManager):
         """
         if self.hasProperty(id, useAcquisition=True) \
                 and not self.zenPropIsPassword(id):
-            returnValue = self.getProperty(id)
-        else:
-            returnValue = default
-        return returnValue
+            return self.getProperty(id)
+        return default
 
     def exportZProperties(self, exclusionList=()):
         """
@@ -659,9 +674,9 @@ class ZenPropertyManager(object, PropertyManager):
             else:
                 prop['value'] = self.zenPropertyString(zId)
 
-            # look up the description and label from the root            
+            # look up the description and label from the root
             props.append(prop)
-            
+
         return props
 
     def exportZProperty(self, zId, root=None):
@@ -677,10 +692,12 @@ class ZenPropertyManager(object, PropertyManager):
             value=None,
             valueAsString=self.zenPropertyString(zId),
             label=root.propertyLabel(zId),
-            description= root.propertyDescription(zId)
-            )
+            description=root.propertyDescription(zId)
+        )
+
 
 InitializeClass(ZenPropertyManager)
+
 
 class IdentityTransformer(object):
     "A do-nothing transformer to use as the default"
@@ -691,6 +708,7 @@ class IdentityTransformer(object):
     def transformForSet(self, value):
         return value
 
+
 def monkeypatchDescriptors(zprops, transformerFactories):
     """
     monkeypatch ZenPropertyManager adding an instance of the descriptor class
@@ -700,6 +718,7 @@ def monkeypatchDescriptors(zprops, transformerFactories):
         factory = transformerFactories.get(type, IdentityTransformer)
         descriptor = PropertyDescriptor(id, type, factory())
         setattr(ZenPropertyManager, id, descriptor)
+
 
 def setDescriptors(dmd):
     """
@@ -737,9 +756,8 @@ def setDescriptors(dmd):
                 if p_id in zprops:
                     log.warning(
                         "%s tried to override existing %s property.",
-                        zpkg.module_name,
-                        p_id)
-
+                        zpkg.module_name, p_id
+                    )
                     continue
 
                 zprops[p_id] = (p_id, p_data['type'])
@@ -754,7 +772,7 @@ def setDescriptors(dmd):
                     'label': p_data.get('label'),
                     'description': p_data.get('description'),
                     'category': category,
-                    }
+                }
 
     # add zProps from dmd.Devices to catch any that are undefined elsewhere
     for p_id in dmd.Devices.zenPropertyIds():
@@ -762,10 +780,12 @@ def setDescriptors(dmd):
         if p_id not in zprops:
             zprops[p_id] = (p_id, p_type)
             log.debug(
-                "Property %s is deprecated. It should be removed from the system.",
-                p_id)
+                "Property %s is deprecated. It should be removed "
+                "from the system.", p_id
+            )
 
     monkeypatchDescriptors(zprops.values(), dmd.propertyTransformers)
+
 
 def updateDescriptors(type, transformer):
     """
