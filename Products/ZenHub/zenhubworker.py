@@ -118,7 +118,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         """
         pass
 
-    def sighandler_USR1(self, *args):
+    def sighandler_USR1(self, signum, frame):
         try:
             if self.options.profiling:
                 self.profiler.dump_stats()
