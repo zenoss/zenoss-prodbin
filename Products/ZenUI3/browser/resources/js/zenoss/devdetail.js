@@ -426,7 +426,7 @@ var configuration_properties = Ext.create('Zenoss.form.ConfigPropertyPanel', {
     id: 'device_config_properties'
 });
 
-var custom_properties = Ext.create('Zenoss.form.CustomPropertyPanel', {
+var custom_properties = Ext.create('widget.custompropertypanel', {
     id: 'custom_device_properties'
 });
 
