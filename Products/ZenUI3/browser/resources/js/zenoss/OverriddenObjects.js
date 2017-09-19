@@ -74,46 +74,62 @@
     };
 
     function showEditCustPropertyDialog(data, grid){
-        var path = data.devicelink;
-        var pathMsg = '<div style="padding-top:10px;">';
-        pathMsg += _t(" Object Path:");
-        pathMsg += '<div style="color:#aaa;padding-top:3px;">';
-        pathMsg += '<div class="x-grid-cell-inner" style="color:#fff;background:#111;margin:2px 7px 2px 0;padding:5px;"> '+path+' </div>';
-        pathMsg += '</div></div>';
-
-        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>';
-        var items = [
-                {
-                    xtype: 'label',
-                    width: 500,
-                    height: 50,
-                    html: Ext.String.format(lbltemplate, _t("Name:"), Ext.getCmp('propsCombo').getValue())
-                },{
-                    xtype: 'label',
-                    width: 500,
-                    height: 50,
-                    html: Ext.String.format(lbltemplate, _t("Type:"),data.proptype)
-                },{
-                    xtype: 'label',
-                    width: 300,
-                    height: 90,
-                    html: pathMsg
+        var s = Ext.data.StoreManager.lookup('propertyTypeFields'),
+            fieldConfig = s.getById(data.proptype).data.field,
+            dialog = Ext.create('Zenoss.dialog.Form', {
+                title: _t('Edit Configuration Property'),
+                minWidth: 480,
+                submitHandler: function(form) {
+                    var values = form.getValues();
+                    Zenoss.remote.PropertiesRouter.setZenProperty(values, function(response){
+                        if (response.success) {
+                            grid.refresh();
+                        }
+                    });
+                },
+                form: {
+                    layout: 'anchor',
+                    defaults: {
+                        xtype: 'displayfield',
+                        padding: '0 0 10 0',
+                        margin: 0,
+                        anchor: '100%'
+                    },
+                    fieldDefaults: {
+                        labelAlign: 'left',
+                        labelWidth: 50,
+                        labelStyle: 'color:#aaccaa'
+                    },
+                    items: [{
+                        name: 'zProperty',
+                        fieldLabel: 'Name',
+                        submitValue: true
+                    }, {
+                        name: 'uid',
+                        fieldLabel: 'Path',
+                        renderer: Zenoss.render.PropertyPath,
+                        submitValue: true
+                    }, {
+                        name: 'type',
+                        fieldLabel: 'Type',
+                    },
+                    Ext.applyIf(Ext.clone(fieldConfig), {
+                        name: 'value',
+                        fieldLabel: 'Value',
+                    })]
                 }
-            ];
-
-        var pkg = {
-            'items': items,
-            'uid': path,
-            'type': data.proptype,
-            'value': data.props,
-            'name': Ext.getCmp('propsCombo').getValue(),
-            'grid': grid,
-            'dialogId': 'editOverriddenDialog',
-            'minHeight': 200,
-            'width': 500,
-            'options': 0
-        };
-        Zenoss.zproperties.showEditPropertyDialog(pkg);
+            }),
+            record = { data: {
+                zProperty: grid.up('overriddenobjects').down('combo').getValue(),
+                uid: (function() {
+                    var needPrefix = (data.devicelink.search(/^\/zport\/dmd/) === -1);
+                    return (needPrefix) ? '/zport/dmd' + data.devicelink : data.devicelink;
+                })(),
+                type: data.proptype,
+                value: data.props
+            }};
+        dialog.down('form').loadRecord(record);
+        dialog.show();
     }
 
 
@@ -238,13 +254,12 @@
             otherGrid.getSelectionModel().deselectAll();
         },
         onRowDblClick: function() {
-            var data,
-                selected = this.getSelectionModel().getSelection();
-            if(!selected){
-                return;
+            var selected = this.getSelectionModel().getSelection(),
+                data = (selected) ? selected[0].data : null,
+                disabled = this.up('overriddenobjects').down('button').isDisabled();
+            if (!disabled && data != null) {
+                showEditCustPropertyDialog(data, this);
             }
-            data = selected[0].data;
-            showEditCustPropertyDialog(data, this);
         },
         disableButtons: function(bool) {
             var btns = this.query("button");
@@ -320,13 +335,12 @@
             otherGrid.getSelectionModel().deselectAll();
         },
         onRowDblClick: function() {
-            var data,
-                selected = this.getSelectionModel().getSelection();
-            if(!selected){
-                return;
+            var selected = this.getSelectionModel().getSelection(),
+                data = (selected) ? selected[0].data : null,
+                disabled = this.up('overriddenobjects').down('button').isDisabled();
+            if (!disabled && data != null) {
+                showEditCustPropertyDialog(data, this);
             }
-            data = selected[0].data;
-            showEditCustPropertyDialog(data, this);
         }
     });
 

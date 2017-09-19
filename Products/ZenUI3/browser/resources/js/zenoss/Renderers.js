@@ -531,8 +531,14 @@ Ext.apply(Zenoss.render, {
             }
         }
         return Ext.htmlEncode(value);
-    }
+    },
 
+    // Renders the paths of properties by removing the '/zport/dmd/Devices' from the start.
+    PropertyPath: function(path) {
+        var exclusions = ['zport', 'dmd', 'Devices'],
+            exclude = function(v) { return exclusions.indexOf(v) === -1; };
+        return '/' + path.split('/').slice(1).filter(exclude).join('/');
+    }
 
 }); // Ext.apply
 
