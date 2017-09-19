@@ -17,6 +17,7 @@ import errno
 import signal
 import subprocess
 import socket
+from datetime import datetime, timedelta
 
 import transaction
 from AccessControl.SecurityManagement import (
@@ -315,6 +316,16 @@ class Job(Task):
         except Queue.Empty:
             return None
         finally:
+            # Prune old jobs
+#            if not self.dmd.JobManager.pruneInProgress and datetime.now() - self.dmd.JobManager.lastPruneTime > timedelta(minutes=2): # TODO: change back to 1 hr
+            self.dmd.JobManager.addJob(
+                PruneJob,
+                description='',
+                kwargs=dict(
+                    untiltime=datetime.now() - timedelta(hours=168)
+                )
+            )
+
             # Remove our signal handler and re-install the original handler
             if signal.getsignal(signal.SIGTERM) == self._sigtermhandler:
                 signal.signal(signal.SIGTERM, self._origsigtermhandler)
@@ -428,3 +439,21 @@ class SubprocessJob(Job):
             
             raise SubprocessJobFailed(exitcode)
         return exitcode
+
+class PruneJob(Job):
+    """
+    Prune jobs in the job catalog.
+    """
+    @classmethod
+    def getJobType(cls):
+        return "Prune Job"
+
+    @classmethod
+    def getJobDescription(cls, **kwargs):
+        return "Prune jobs in the job catalog"
+
+    def _run(self, untiltime, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.log.info("Prune jobs older than %s " % untiltime)
+        self.dmd.JobManager.deleteUntil(untiltime)

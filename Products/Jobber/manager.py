@@ -157,6 +157,8 @@ class JobManager(ZenModelRM):
 
     security = ClassSecurityInfo()
     meta_type = portal_type = 'JobManager'
+    lastPruneTime = datetime.now()
+    pruneInProgress = False
 
     def getCatalog(self):
         try:
@@ -194,9 +196,6 @@ class JobManager(ZenModelRM):
         """
         subtasks = []
         records = []
-        skipPruning = options.get('skipPruning', False)
-        if options.has_key('skipPruning'):
-            del options['skipPruning']
         for subjob in joblist:
             task_id = str(uuid4())
             opts = dict(task_id=task_id, **options)
@@ -214,17 +213,11 @@ class JobManager(ZenModelRM):
         # Dispatch job to zenjobs queue
         _dispatchTask(task)
 
-        # Clear out old jobs
-        # skipPruning option added because doing this deletion in a
-        # subscriber for ZopeApplicationOpenedEvent does not work
-        if not skipPruning:
-            self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
-
         return records
 
     security.declareProtected(ZEN_ADD, 'addJob')
     def addJob(self, jobclass,
-            description=None, args=None, kwargs=None, properties=None, skipPruning=False):
+            description=None, args=None, kwargs=None, properties=None):
         """
         Schedule a new L{Job} from the class specified.
 
@@ -251,10 +244,6 @@ class JobManager(ZenModelRM):
 
         # Dispatch job to zenjobs queue
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
-
-        # Clear out old jobs
-        if not skipPruning:
-            self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
 
         return jobrecord
 
@@ -395,6 +384,8 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
+        log.info('Deleting old jobs')
+        self.pruneInProgress = True
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
@@ -404,6 +395,8 @@ class JobManager(ZenModelRM):
                     self.deleteJob(ob.getId())
             except ConflictError:
                 pass
+        self.pruneInProgress = False
+        self.lastPruneTime = datetime.now()
 
     security.declareProtected(ZEN_MANAGE_DMD, 'clearJobs')
     def clearJobs(self):
@@ -420,7 +413,6 @@ class JobManager(ZenModelRM):
         """
         for job in self.getUnfinishedJobs():
             job.abort()
-
 
 class JobLogDownload(BrowserView):
 
