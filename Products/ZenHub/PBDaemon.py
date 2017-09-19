@@ -1057,7 +1057,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(zenPath(self._pickleName())))
+            pass
+            #self.counters = pickle.load(open(zenPath(self._pickleName())))
         except Exception:
             pass
 

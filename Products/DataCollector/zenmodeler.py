@@ -836,7 +836,8 @@ class ZenModeler(PBDaemon):
 
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(self._getCountersFile()))
+            pass
+#            self.counters = pickle.load(open(self._getCountersFile()))
         except Exception:
             self.counters = collections.Counter()
 

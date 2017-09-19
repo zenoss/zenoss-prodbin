@@ -1248,9 +1248,7 @@ class ZenHub(ZCmdBase):
 
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(zenPath(
-                'var/zenhub_counters.pickle'
-            )))
+#            self.counters = pickle.load(open(zenPath('var/zenhub_counters.pickle')))
         except Exception:
             pass
 
