@@ -36,9 +36,9 @@ Ext.onReady(function(){
 
     function doLastUpdated() {
         var box = Ext.getCmp('lastupdated'),
-            dt = new Date(),
-            dtext = Ext.Date.format(dt, 'g:i:sA');
-        box.setText(_t('Last updated at ') + dtext);
+            dtext = Zenoss.date.renderWithTimeZone(new Date()/1000);
+            dtext += " (" + Zenoss.USER_TIMEZONE + ")";
+	box.setText(_t('Last updated at ') + dtext);
         }
 
         // Show filters by default on history console
