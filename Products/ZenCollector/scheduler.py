@@ -1,6 +1,6 @@
 #
 #
-# Copyright (C) Zenoss, Inc. 2009,2013 all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2017 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -191,6 +191,8 @@ class CallableTask(object):
         elif self.paused and self.task.state is not TaskStates.STATE_PAUSED:
             self.task.state = TaskStates.STATE_PAUSED
 
+        self._scheduler.setNextExpectedRun(self.task.name, self.task.interval)
+
         if self.task.state in [TaskStates.STATE_IDLE, TaskStates.STATE_PAUSED]:
             if not self.paused:
                 self.task.state = TaskStates.STATE_QUEUED
@@ -230,6 +232,7 @@ class CallableTask(object):
     def _run(self):
         self.task.state = TaskStates.STATE_RUNNING
         self.running()
+
         return self.task.doTask()
 
     def _finished(self, result):
@@ -438,8 +441,6 @@ class Scheduler(object):
             startDelay = 0 if now else self._getStartDelay(newTask)
         d = defer.Deferred()
         d.addCallback(self._startTask, newTask.name, newTask.interval, newTask.configId, startDelay)
-        # explicitly set, next expected call in case task was never executed/schedule
-        loopingCall._expectNextCallAt = time.time() + startDelay
         reactor.callLater(startDelay, d.callback, None)
 
         # just in case someone does not implement scheduled, lets be careful
@@ -505,11 +506,23 @@ class Scheduler(object):
 
     def getNextExpectedRun(self, taskName):
         """
-        Get the next expected execution time for given task
+        Get the next expected execution time for given task.
         """
         loopingCall = self._loopingCalls.get(taskName, None)
         if loopingCall:
-            return loopingCall._expectNextCallAt
+            return getattr(loopingCall, '_expectNextCallAt', None)
+
+    def setNextExpectedRun(self, taskName, taskInterval):
+        """
+        Set the next expected execution time for given task.
+        """
+        loopingCall = self._loopingCalls.get(taskName, None)
+        if loopingCall:
+            loopingCall._expectNextCallAt = time.time() + taskInterval
+            log.debug(
+                "Next expected run %s has been set for task %s", 
+                loopingCall._expectNextCallAt, 
+                taskName)
 
     def removeTasks(self, taskNames):
         """

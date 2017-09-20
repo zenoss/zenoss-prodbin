@@ -76,6 +76,9 @@
         'zSnmpCommunity': {
             xtype: Zenoss.Security.doesNotHavePermission('zProperties Edit') ? 'password' : 'textfield'
         },
+        'zEventAction': {
+            xtype: 'eventaction'
+        },
         'zEventSeverity': {
             xtype: 'defaultseverity'
         },
@@ -300,14 +303,13 @@
                     {
                     xtype: 'button',
                     iconCls: 'customize',
-                    toolTip: _t('Customize'),
+                    tooltip: _t('Customize'),
                     disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     ref: 'customizeButton',
                     handler: function(button) {
                         var grid = button.up("configpropertygrid"),
                             data,
                             selected = grid.getSelectionModel().getSelection();
-
                         if (Ext.isEmpty(selected)) {
                             return;
                         }
@@ -318,7 +320,7 @@
                     }, {
                     xtype: 'button',
                     iconCls: 'refresh',
-                        toolTip: _t('Refresh'),
+                    tooltip: _t('Refresh'),
                     ref: '../refreshButton',
                     disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     handler: function(button) {
@@ -328,7 +330,7 @@
                     },{
                         xtype: 'button',
                         ref: '../deleteButton',
-                        toolTip: _t('Delete'),
+                        tooltip: _t('Delete'),
                         text: _t('Delete Local Copy'),
                         handler: function(button) {
                             var grid = button.up("configpropertygrid"),
@@ -403,20 +405,13 @@
                     },{
                         dataIndex: 'valueAsString',
                         header: _t('Value'),
-                        width: 180,
+                        width: 150,
                         renderer: function(v, row, record) {
                             if (Zenoss.Security.doesNotHavePermission("zProperties Edit") &&
                                 record.data.id === 'zSnmpCommunity') {
                                 return "*******";
                             }
-
-                            // if v is an object or array, it must be
-                            // stringified via JSON
-                            if(typeof v === "object"){
-                                v = JSON.stringify(v);
-                            }
-
-                            return Ext.htmlEncode(v);
+                            return Zenoss.render.zProperty(v, record);
                         },
                         sortable: false
                     },{
@@ -432,7 +427,7 @@
                         //id: 'path',
                         dataIndex: 'path',
                         header: _t('Path'),
-                        width: 200,
+                        width: 380,
                         sortable: true,
                         renderer: function(value) {
                             return Ext.htmlEncode(value);
@@ -549,8 +544,6 @@
             }
         });
     };
-
-
 
 
     Zenoss.zproperties.configPropertyConfigs = {};

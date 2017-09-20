@@ -7,7 +7,7 @@
 # a value like "support/5.2.x" is NOT valid because it will result in an
 # incorrect file name when full value of ARTIFACT is expanded by make.
 #
-VERSION  ?= 5.3.1
+VERSION  ?= 5.3.2
 BUILD_NUMBER ?= DEV
 BRANCH ?= support-5.3.x
 
@@ -18,6 +18,14 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 #
 # REVISION ?= 1
 # ARTIFACT := prodbin-$(VERSION)-$(REVISION)-$(ARTIFACT_TAG).tar.gz
+
+# The SCHEMA_* values define the DB schema version used for upgrades.
+# See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
+# for more information about setting these values.
+# See zenoss-version.mk for more information about make targets that use these values.
+SCHEMA_MAJOR ?= 118
+SCHEMA_MINOR ?= 0
+SCHEMA_REVISION ?= 0
 
 DIST_ROOT := dist
 
