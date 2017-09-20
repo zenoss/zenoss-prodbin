@@ -17,7 +17,6 @@ import errno
 import signal
 import subprocess
 import socket
-from datetime import datetime, timedelta
 
 import transaction
 from AccessControl.SecurityManagement import (
