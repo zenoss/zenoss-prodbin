@@ -434,6 +434,7 @@ class JobManager(ZenModelRM):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'pruneOldJobs')
     def pruneOldJobs(self):
+        self.dmd._p_jar.sync()
         if (not self.pruneInProgress
                 and datetime.now() - self.lastPruneTime > timedelta(hours=1)):
             self._addJob(
