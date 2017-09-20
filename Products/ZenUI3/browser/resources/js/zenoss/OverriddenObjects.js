@@ -75,8 +75,11 @@
 
     function showEditCustPropertyDialog(data, grid){
         var s = Ext.data.StoreManager.lookup('propertyTypeFields'),
-            fieldConfig = s.getById(data.proptype).data.field,
-            dialog = Ext.create('Zenoss.dialog.Form', {
+            fieldConfig = (data.proptype) ? s.getById(data.proptype).data.field : null;
+        if (fieldConfig == null) {
+            return;
+        }
+        var dialog = Ext.create('Zenoss.dialog.Form', {
                 title: _t('Edit Configuration Property'),
                 minWidth: 480,
                 submitHandler: function(form) {
