@@ -419,6 +419,11 @@ class MetricFacade(ZuulFacade):
                 return content
             return content.get('results')
 
+    def _formatDownsample(self, downsample):
+        if isinstance(downsample, int):
+            downsample = "%ss-avg" % downsample
+        return downsample
+
     def _buildRequest(self, contexts, metrics, start, end, returnSet, downsample):
         request = {
             'returnset': returnSet,
@@ -427,10 +432,7 @@ class MetricFacade(ZuulFacade):
             'metrics': metrics
         }
         if downsample is not None:
-            if isinstance(downsample, int):
-                request['downsample'] = "%ss-avg" % downsample
-            else:
-                request['downsample'] = downsample
+            request['downsample'] = self._formatDownsample(downsample)
         return request
 
     def _buildTagsFromContextAndMetric(self, context, dsId):
@@ -489,7 +491,7 @@ class MetricFacade(ZuulFacade):
 
     def _buildWildCardMetrics(self, device, metricName, cf='avg', isRate=False, format="%.2lf"):
         """
-        method only works with 
+        method only works with
         """
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
@@ -551,7 +553,7 @@ class MetricFacade(ZuulFacade):
         """
         For a device returns the aggregate time series for a metric belonging to components. e.g. aggregate interface
         usage for all interfaces.
-        
+
         :param device: Device object
         :type device: Device
         :param componentType: the name of the component meta type, used to look up metric definition (eg. rate, rpn etc)
@@ -561,7 +563,7 @@ class MetricFacade(ZuulFacade):
         :param start: start of time range, defaults to 1 hour ago
         :type start: str or int,float,long. string can be of the form "1h-ago"
         :param end: end of time range, defaults to 30s ago. Aggregate metrics benefit from a bit of lag
-        :type end: str or int,float,long. string can be of the form "1h-ago"        
+        :type end: str or int,float,long. string can be of the form "1h-ago"
         :param agg: aggregation function for the time series. e.g. avg, sum
         :type agg: str
         :param downSample: how to downsample series. e.g. 1m-avg
@@ -594,7 +596,7 @@ class MetricFacade(ZuulFacade):
                     for dp in item.get('datapoints'):
                         dp['value'] = float(format % dp['value'])
         return content
- 
+
     def getMetricsForContexts(self, contexts, metricNames, start=None,
                                  end=None, format="%.2lf", cf="avg",
                                  downsample=None, timeout=10, isRate=False):
@@ -627,6 +629,10 @@ class MetricFacade(ZuulFacade):
 
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         metricRequests = []
+
+        if downsample is not None:
+            downsample = self._formatDownsample(downsample)
+
         for seriesName, ctxKeys in seriesToCtxKey.items():
             contextKeys=ctxKeys
             #if we have a bunch just do a wildcard.
@@ -638,14 +644,15 @@ class MetricFacade(ZuulFacade):
                 aggregator=agg,
                 format=format,
                 tags={'key': contextKeys},
-                rate=isRate
+                rate=isRate,
+                downsample=downsample
             )
             metricRequests.append(metricReq)
 
         # Only EXACT resultsets are supported yet.
         returnSet = 'EXACT'
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
-        request = self._buildRequest([], metricRequests, start, end, returnSet, downsample)
+        request = self._buildRequest([], metricRequests, start, end, returnSet, downsample=None)
         request['queries'] = request['metrics']
         del request['metrics']
 
