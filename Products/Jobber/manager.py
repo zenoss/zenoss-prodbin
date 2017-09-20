@@ -29,7 +29,7 @@ from ZODB.POSException import ConflictError
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 
 from .exceptions import NoSuchJobException
-from .jobs import Job
+from .jobs import Job, PruneJob
 
 from logging import getLogger
 log = getLogger("zen.JobManager")
@@ -176,8 +176,7 @@ class JobManager(ZenModelRM):
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
-    security.declareProtected(ZEN_ADD, 'addJobChain')
-    def addJobChain(self, *joblist, **options):
+    def _addJobChain(self, *joblist, **options):
         """
         Submit a list of SubJob objects that will execute in list order.
         If options are specified, they are applied to each subjob; options
@@ -215,8 +214,16 @@ class JobManager(ZenModelRM):
 
         return records
 
-    security.declareProtected(ZEN_ADD, 'addJob')
-    def addJob(self, jobclass,
+    security.declareProtected(ZEN_MANAGE_DMD, 'addJobChain')
+    def addJobChain(self, *joblist, **options):
+
+        records = self._addJobChain(*joblist, **options)
+
+        self.pruneOldJobs()
+
+        return records
+
+    def _addJob(self, jobclass,
             description=None, args=None, kwargs=None, properties=None):
         """
         Schedule a new L{Job} from the class specified.
@@ -244,6 +251,16 @@ class JobManager(ZenModelRM):
 
         # Dispatch job to zenjobs queue
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
+
+        return jobrecord
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'addJob')
+    def addJob(self, jobclass,
+            description=None, args=None, kwargs=None, properties=None):
+
+        jobrecord = self._addJob(jobclass, description=description, args=args, kwargs=kwargs, properties=properties)
+
+        self.pruneOldJobs()
 
         return jobrecord
 
@@ -384,8 +401,8 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
-        log.info('Deleting old jobs')
         self.pruneInProgress = True
+        transaction.commit()
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
@@ -397,6 +414,7 @@ class JobManager(ZenModelRM):
                 pass
         self.pruneInProgress = False
         self.lastPruneTime = datetime.now()
+        transaction.commit()
 
     security.declareProtected(ZEN_MANAGE_DMD, 'clearJobs')
     def clearJobs(self):
@@ -413,6 +431,15 @@ class JobManager(ZenModelRM):
         """
         for job in self.getUnfinishedJobs():
             job.abort()
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'pruneOldJobs')
+    def pruneOldJobs(self):
+        if (not self.pruneInProgress
+                and datetime.now() - self.lastPruneTime > timedelta(hours=1)):
+            self._addJob(
+                PruneJob,
+                kwargs=dict(untiltime=datetime.now()-timedelta(weeks=1))
+        )
 
 class JobLogDownload(BrowserView):
 

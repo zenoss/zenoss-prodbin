@@ -316,16 +316,6 @@ class Job(Task):
         except Queue.Empty:
             return None
         finally:
-            # Prune old jobs
-#            if not self.dmd.JobManager.pruneInProgress and datetime.now() - self.dmd.JobManager.lastPruneTime > timedelta(minutes=2): # TODO: change back to 1 hr
-            self.dmd.JobManager.addJob(
-                PruneJob,
-                description='',
-                kwargs=dict(
-                    untiltime=datetime.now() - timedelta(hours=168)
-                )
-            )
-
             # Remove our signal handler and re-install the original handler
             if signal.getsignal(signal.SIGTERM) == self._sigtermhandler:
                 signal.signal(signal.SIGTERM, self._origsigtermhandler)
@@ -442,7 +432,7 @@ class SubprocessJob(Job):
 
 class PruneJob(Job):
     """
-    Prune jobs in the job catalog.
+    Prune old jobs in the job catalog.
     """
     @classmethod
     def getJobType(cls):
@@ -450,7 +440,7 @@ class PruneJob(Job):
 
     @classmethod
     def getJobDescription(cls, **kwargs):
-        return "Prune jobs in the job catalog"
+        return "Prune jobs older than %s" % kwargs['untiltime']
 
     def _run(self, untiltime, *args, **kwargs):
         self.args = args
