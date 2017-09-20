@@ -10,6 +10,8 @@
 import logging
 import time
 import argparse
+import os
+import re
 from collections import defaultdict
 
 import requests
@@ -21,6 +23,26 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log.setLevel(logging.INFO)
 
 
+# _KEYVALUE and globalConfToDict COPIED from Products.ZenUtils.GlobalConfig
+# to avoid having to use the entire zenoss python env just to read 1 file
+_KEYVALUE = re.compile("^[\s ]*(?P<key>[a-z_]+[a-z0-9_-]*)[\s]+(?P<value>[^\s#]+)", re.IGNORECASE).search
+
+def globalConfToDict():
+    settings = {}
+    # the line below is the only change, previously used zenPath()
+    globalConfFile = '/opt/zenoss/etc/global.conf'
+    if os.path.exists(globalConfFile):
+        with open(globalConfFile, 'r') as f:
+            for line in f.xreadlines():
+                match = _KEYVALUE(line)
+                if match:
+                    value = match.group('value')
+                    if value.isdigit():
+                        value = int(value)
+                    settings[match.group('key')] = value
+    return settings
+
+
 class RabbitMetrics(ServiceMetrics):
 
     def build_gatherer(self):
@@ -29,7 +51,10 @@ class RabbitMetrics(ServiceMetrics):
 
 class RabbitMetricGatherer(MetricGatherer):
     def __init__(self):
-        MetricGatherer.__init__(self)
+        super(RabbitMetricGatherer, self).__init__()
+        config = globalConfToDict()
+        self._amqpuser = config.get('amqpuser', 'zenoss')
+        self._amqppassword = config.get('amqppassword', 'zenoss')
 
     BASE_QUEUE_URL = 'http://localhost:15672/api/queues/%2Fzenoss/'
     HUB_QUEUE_TYPES = ('invalidations', 'collectorcalls')
@@ -38,7 +63,7 @@ class RabbitMetricGatherer(MetricGatherer):
     def get_metrics(self):
         metrics = []
         s = requests.Session()
-        s.auth = ('zenoss', 'zenoss')
+        s.auth = (self._amqpuser, self._amqppassword)
         result = s.get(self.BASE_QUEUE_URL)
         if result.status_code == 200:
             ts = time.time()
