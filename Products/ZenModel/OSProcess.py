@@ -89,8 +89,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     _properties = OSComponent._properties + (
         {'id':'displayName', 'type':'string', 'mode':'w'},
-        {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
-        {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
         {'id':'minProcessCount', 'type':'int', 'mode':'w'},
         {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
         {'id':'includeRegex', 'type':'string', 'mode':'w'},
