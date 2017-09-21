@@ -32,10 +32,10 @@ class updateOpenTSDBOriginalConfig(Migrate.Step):
             return
 
         tsdbs = filter(lambda s: "opentsdb" in ctx.getServicePath(s), ctx.services)
-        log.info("Found %i services with 'opentsdb' in their service path." % len(tsdbs))
+        log.info("Found {} services with 'opentsdb' in their service path.".format(len(tsdbs)))
 
         tsdbs = filter(lambda s: "/opt/zenoss/etc/opentsdb/opentsdb.conf" in [i.name for i in s.originalConfigs], tsdbs)
-        log.info("Of those, %i services use /opt/zenoss/etc/opentsdb/opentsdb.conf." % len(tsdbs))
+        log.info("Of those, {} services use /opt/zenoss/etc/opentsdb/opentsdb.conf.".format(len(tsdbs)))
         
         commit = False
 
@@ -49,7 +49,7 @@ class updateOpenTSDBOriginalConfig(Migrate.Step):
 
         for tsdb in tsdbs:
             original_configs = filter(lambda f: f.name == "/opt/zenoss/etc/opentsdb/opentsdb.conf", tsdb.originalConfigs)
-            log.info("Found %i original config files named '/opt/zenoss/etc/opentsdb/opentsdb.conf'." % len(original_configs))
+            log.info("Found {} original config files named '/opt/zenoss/etc/opentsdb/opentsdb.conf'.".format(len(original_configs)))
             for config in original_configs:
                 if config.content != configCnt:
                     config.content = configCnt
