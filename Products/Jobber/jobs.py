@@ -17,6 +17,7 @@ import errno
 import signal
 import subprocess
 import socket
+from datetime import datetime
 
 import transaction
 from AccessControl.SecurityManagement import (
@@ -446,3 +447,4 @@ class PruneJob(Job):
         self.kwargs = kwargs
         self.log.info("Prune jobs older than %s " % untiltime)
         self.dmd.JobManager.deleteUntil(untiltime)
+        self.dmd.JobManager.lastPruneTime = datetime.now()

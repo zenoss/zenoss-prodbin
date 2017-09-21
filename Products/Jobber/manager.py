@@ -157,8 +157,8 @@ class JobManager(ZenModelRM):
 
     security = ClassSecurityInfo()
     meta_type = portal_type = 'JobManager'
-    lastPruneTime = datetime.now()
-    pruneInProgress = False
+    lastPruneJobAddTime = datetime.now()
+    lastPruneTime = lastPruneJobAddTime
 
     def getCatalog(self):
         try:
@@ -401,8 +401,6 @@ class JobManager(ZenModelRM):
         """
         Delete all jobs older than untiltime.
         """
-        self.pruneInProgress = True
-        transaction.commit()
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
@@ -412,9 +410,6 @@ class JobManager(ZenModelRM):
                     self.deleteJob(ob.getId())
             except ConflictError:
                 pass
-        self.pruneInProgress = False
-        self.lastPruneTime = datetime.now()
-        transaction.commit()
 
     security.declareProtected(ZEN_MANAGE_DMD, 'clearJobs')
     def clearJobs(self):
@@ -434,9 +429,9 @@ class JobManager(ZenModelRM):
 
     security.declareProtected(ZEN_MANAGE_DMD, 'pruneOldJobs')
     def pruneOldJobs(self):
-        self.dmd._p_jar.sync()
-        if (not self.pruneInProgress
-                and datetime.now() - self.lastPruneTime > timedelta(hours=1)):
+        if (datetime.now() - self.lastPruneTime > timedelta(hours=1)
+                and datetime.now() - self.lastPruneJobAddTime > timedelta(hours=1)):
+            self.lastPruneJobAddTime = datetime.now()
             self._addJob(
                 PruneJob,
                 kwargs=dict(untiltime=datetime.now()-timedelta(weeks=1))
