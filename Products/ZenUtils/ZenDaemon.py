@@ -21,6 +21,7 @@ import socket
 import logging
 
 from twisted.python import log as twisted_log
+from twisted.logger import globalLogBeginner
 
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.CmdBase import CmdBase
@@ -152,6 +153,9 @@ class ZenDaemon(CmdBase):
         """
         Create formating for log entries and set default log level
         """
+        # Initialize twisted logging to go nowhere. (it may be re-enabled by SIGUSR1)
+        globalLogBeginner.beginLoggingTo([lambda x: None], redirectStandardIO=False, discardBuffer=True)
+
         # Setup python logging module
         rootLog = logging.getLogger()
         rootLog.setLevel(logging.WARN)
