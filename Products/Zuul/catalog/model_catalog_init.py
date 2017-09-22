@@ -384,6 +384,13 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     def soft_index_is_done():
         return cancel.is_set() or terminator.is_set()
 
+    # In the case of early termination, we only want to wait up to 30 seconds
+    # In the case of straggler processes, we wait up to an hour
+    def get_timeout():
+        if cancel.is_set():
+            return 3600
+        return 30
+
     if hard:
         log.info("Clearing Solr data")
         index_client.clear_data()
@@ -457,7 +464,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     log.info("Indexing complete, waiting for workers to clean up")
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join(60)
+        proc.join(get_timeout())
         if proc.is_alive():
             log.warn("Worker {} did not exit within timeout, terminating...".format(proc.idx))
             proc.terminate()
