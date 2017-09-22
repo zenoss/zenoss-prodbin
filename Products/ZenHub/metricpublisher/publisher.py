@@ -89,7 +89,7 @@ class BasePublisher(object):
         if not scheduled and self._pubtask:
             self._pubtask.cancel()
 
-        self._pubtask = reactor.callLater(self._pubfreq, self._put, True)
+        self._pubtask = reactor.callLater(self._pubfreq, self._putLater, True)
 
     def _put(self, scheduled):
         """
@@ -112,7 +112,7 @@ class BasePublisher(object):
         in the buffer when fired
         """
         if not self._pubtask:
-            self._pubtask = reactor.callLater(self._pubfreq, self._put, True)
+            self._pubtask = reactor.callLater(self._pubfreq, self._putLater, True)
 
         mv = self.build_metric(metric, value, timestamp, tags)
         log.debug("writing: %s", mv)
@@ -123,6 +123,12 @@ class BasePublisher(object):
             return defer.succeed(len(self._mq))
         else:
             return self._put(False)
+
+    def _putLater(self, scheduled):
+        def handleError(val):
+            log.warn("Error sending metric: %s", val)
+        d = self._put(scheduled=scheduled)
+        d.addErrback(handleError)
 
 
 class RedisListPublisher(BasePublisher):
@@ -179,7 +185,7 @@ class RedisListPublisher(BasePublisher):
                                    defaultMetricBufferSize)
 
         if remaining:
-            reactor.callLater(0, self._put, False, False)
+            reactor.callLater(0, self._putLater, False, False)
         return 0
 
     def _get_batch_size(self):
@@ -318,7 +324,7 @@ class HttpPostPublisher(BasePublisher):
         finished = defer.Deferred()
         response.deliverBody(ResponseReceiver(finished))
         if remaining:
-            reactor.callLater(0, self._put, False)
+            reactor.callLater(0, self._putLater, False)
         return finished
 
     def _response_finished(self, result):
