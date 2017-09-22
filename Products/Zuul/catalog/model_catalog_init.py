@@ -387,9 +387,9 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     # In the case of early termination, we only want to wait up to 30 seconds
     # In the case of straggler processes, we wait up to an hour
     def get_timeout():
-        if cancel.is_set():
-            return 3600
-        return 30
+        if terminator.is_set():
+            return 30
+        return 3600
 
     if hard:
         log.info("Clearing Solr data")
