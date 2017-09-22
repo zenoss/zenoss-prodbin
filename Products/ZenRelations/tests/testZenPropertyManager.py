@@ -113,17 +113,15 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
         old_properties = subnode._properties
         subnode._setProperty("zSelectWrong", "zSometingWrong", type='selection')
         self.assertEqual(old_properties, subnode._properties)
-        mock_args = ('Wrong value in the `Value` field.',
-                     'Object has no zSometingWrong attribute.')
+        mock_args = (("Selection variable 'zSometingWrong' not found"),)
         mock_kwargs = {'priority': messaging.WARNING}
         self.assertEqual([(mock_args, mock_kwargs)], subnode._mock_calls)
 
         # Check that a new property was not added and sendToBrowser() was called
         subnode._setProperty("zSelectWrong", "zInt", type='selection')
         self.assertEqual(old_properties, subnode._properties)
-        mock_args = (
-            'Wrong value in the `Value` field.',
-            'Property in Value field should contain a list of strings.')
+        mock_args = ((
+            "Selection variable 'zInt' must be a LINES type"),)
         mock_kwargs = {'priority': messaging.WARNING}
         self.assertEqual([(mock_args, mock_kwargs)], subnode._mock_calls)
 

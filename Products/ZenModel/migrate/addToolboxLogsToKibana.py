@@ -53,7 +53,8 @@ class AddToolboxLogsToKibana(Migrate.Step):
         changed = False
         for zope in zopes:
             for new_log in new_logs:
-                if new_log.path not in [log.path for log in zope.logConfigs]:
+                # ZEN-28564 prevent UnboundLocalError by renaming log into log_
+                if new_log.path not in [log_.path for log_ in zope.logConfigs]:
                     zope.logConfigs.append(new_log)
                     changed = True
 
