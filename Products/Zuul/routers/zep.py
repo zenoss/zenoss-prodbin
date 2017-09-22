@@ -233,7 +233,7 @@ class EventsRouter(DirectRouter):
             values = []
             splitter = ' TO ' if ' TO ' in value else '/'
             for t in value.split(splitter):
-                values.append(int(t))
+                values.append(float(t))
             return values
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
