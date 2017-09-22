@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from DateTime import DateTime
+
 from Products import Zuul
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ZenossSecurity import ZEN_ZPROPERTIES_EDIT
@@ -234,6 +236,12 @@ class PropertiesRouter(DirectRouter):
             start = kw.pop("start", 0)
             data = data[start:(start + limit)]
 
+        # transform some data since there isn't any IInfo support
+        # for properties (properties don't have a type other than dict).
+        for prop in data:
+            if isinstance(prop.get("value"), DateTime):
+                prop["value"] = prop.get("value").timeTime()
+
         return DirectResponse(totalCount=totalCount, data=Zuul.marshal(data))
 
     @serviceConnectionError
@@ -268,6 +276,16 @@ class PropertiesRouter(DirectRouter):
             facade.updateCustomProperty(
                 uid, id, select_variable=select_variable
             )
+
+        # Transform date value from milliseconds into DateTime object.
+        prop = facade.getZenProperty(uid, id)
+        if prop.get("type") == "date":
+            userfacade = Zuul.getFacade('properties', self.context)
+            usersettings = userfacade._dmd.ZenUsers.getUserSettings()
+            tz = usersettings.timezone
+            dt = DateTime(value, tz) if tz else DateTime(value)
+            value = dt.ISO8601()
+
         facade.setZenProperty(uid, id, value)
         return DirectResponse.succeed(
             msg="Property %s successfully updated." % (id,)
