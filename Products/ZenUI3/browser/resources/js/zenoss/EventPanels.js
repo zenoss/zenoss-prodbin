@@ -470,6 +470,39 @@
         dialog.show();
     };
 
+    Zenoss.events.Exp = function(gridId, type, format){
+        var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+        if (context === "/zport/dmd/Events") {
+	    context = location.pathname.replace('/viewEvents', '');
+        }
+        var grid = Ext.getCmp(gridId),
+            state = grid.getState(),
+            historyCombo = Ext.getCmp('history_combo'),
+            params = {
+                type: type,
+	        options: {
+	            fmt: format,
+		    datefmt: Zenoss.USER_DATE_FORMAT,
+		    timefmt: Zenoss.USER_TIME_FORMAT,
+		    tz: Zenoss.USER_TIMEZONE 
+		},
+                isHistory: false,
+                params: {
+                    uid: context,
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        if (historyCombo && historyCombo.getValue() === 1) {
+	    params.isHistory = true;
+        }
+        Ext.get('export_body').dom.value =
+        Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+    };
+
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
@@ -917,60 +950,51 @@
                         menu: {
                             items: [{
                                 text: 'XML',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context === "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
+				menu: {
+				    items: [{
+				        text: 'Unix format',
+					handler: function(){
+					    Zenoss.events.Exp(gridId, 'xml', 'unix');
+					}
+				    },
+				    {
+	                                text: 'ISO format',
+                                        handler: function(){
+	                                    Zenoss.events.Exp(gridId, 'xml', 'iso');
+	                                }
 
-                                    var grid = Ext.getCmp(gridId),
-                                        state = grid.getState(),
-                                        historyCombo = Ext.getCmp('history_combo'),
-                                        params = {
-                                            type: 'xml',
-                                            isHistory: false,
-                                            params: {
-                                                uid: context,
-                                                fields: Ext.Array.pluck(state.columns, 'id'),
-                                                sort: state.sort.property,
-                                                dir: state.sort.direction,
-                                                params: grid.getExportParameters()
-                                            }
-                                        };
-                                    if (historyCombo && historyCombo.getValue() === 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
-                                }
+           			    },
+				    {
+				        text: 'User settings format',
+					handler: function(){
+					     Zenoss.events.Exp(gridId, 'xml', 'user')
+				        }
+				    }
+				    ]
+				}
                             }, {
                                 text: 'CSV',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context === "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
-                                    var grid = Ext.getCmp(gridId),
-                                    state = Ext.getCmp(gridId).getState(),
-                                    historyCombo = Ext.getCmp('history_combo'),
-                                    params = {
-                                        type: 'csv',
-                                        params: {
-                                            uid: context,
-                                            fields: Ext.Array.pluck(state.columns, 'id'),
-                                            sort: state.sort.property,
-                                            dir: state.sort.direction,
-                                            params: grid.getExportParameters()
-                                        }
-                                    };
-                                    if (historyCombo && historyCombo.getValue() === 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
-                                }
+                                menu: {
+				   items: [{
+				          text: 'Unix format',
+				          handler: function(){
+					      Zenoss.events.Exp(gridId, 'csv', 'unix');
+					  }
+				      },
+				      {
+				          text: 'ISO format',
+				          handler: function(){
+					      Zenoss.events.Exp(gridId, 'csv', 'iso');
+					  }
+				      },
+				      {
+				          text: 'User settings format',
+				          handler: function(){
+					      Zenoss.events.Exp(gridId, 'csv', 'user');
+					  }
+				      }
+				   ]
+				}
                             }]
                         }
                     },

@@ -13,6 +13,31 @@ Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
 
+    Zenoss.ui.EvHistory.Exp = function(type, format){
+        var grid = Ext.getCmp('events_grid'),
+            state = grid.getState(),
+            params = {
+                type: type,
+                isHistory: true,
+                options: {
+	                   fmt: format,
+	                   datefmt: Zenoss.USER_DATE_FORMAT,
+	                   timefmt: Zenoss.USER_TIME_FORMAT,
+	                   tz: Zenoss.USER_TIMEZONE
+               },
+ 		params: {
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        Ext.get('export_body').dom.value =
+        Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+
+    };
+
     // Get references to the panels
     var detail_panel = Ext.getCmp('detail_panel');
     var master_panel = Ext.getCmp('master_panel');
@@ -84,42 +109,48 @@ Ext.onReady(function(){
                 menu: {
                 items: [{
                     text: 'XML',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'xml',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
-                                }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
-                    }
+                    menu: {
+                    items: [{
+                       text: 'Unix format',
+                             handler: function(){
+                                 Zenoss.ui.EvHistory.Exp('xml', 'unix');
+                             }
+                        },
+                        {
+                        text: 'ISO format',
+                              handler: function(){
+                                  Zenoss.ui.EvHistory.Exp('xml', 'iso');
+                              }
+                        },
+                        {
+                        text: 'User settings format',
+                               handler: function(){
+                                   Zenoss.ui.EvHistory.Exp('xml', 'user');
+                               }
+                        }
+                    ]}
                 }, {
                     text: 'CSV',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'csv',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
-                                }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
-                    }
+                    menu: {
+                    items: [{
+                       text: 'Unix format',
+                             handler: function(){
+                                 Zenoss.ui.EvHistory.Exp('csv', 'unix');
+                             }
+                        },
+                        {
+                        text: 'ISO format',
+                              handler: function(){
+                                  Zenoss.ui.EvHistory.Exp('csv', 'iso');
+                              }
+                        },
+                        {
+                        text: 'User settings format',
+                               handler: function(){
+                                   Zenoss.ui.EvHistory.Exp('csv', 'user');
+                               }
+                        }
+                    ]}
                 }]
                 }
             },{
