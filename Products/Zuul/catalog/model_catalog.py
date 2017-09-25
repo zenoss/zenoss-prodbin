@@ -564,8 +564,7 @@ class ModelCatalogDataManager(object):
                 try:
                     self.model_index.process_batched_updates(updates)
                     self._delete_temporary_tx_documents()
-                    # @TODO TEMP LOGGING
-                    log.warn("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
+                    log.debug("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
                 except Exception as e:
                     log.exception("Exception in tcp_finish: {0} / {1}".format(e, e.message))
                     self.abort(transaction)
