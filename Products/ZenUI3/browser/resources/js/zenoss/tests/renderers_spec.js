@@ -30,3 +30,45 @@ describe("Zenoss.render.date Test Suite", function(){
         ).toBe('2017-01-11 05:05:07 am SGT')
     });
 });
+
+describe('Zenoss.render.PropertyPath Test Suite', function() {
+    it('render.PropertyPath renders /zport/dmd/Devices as /', function() {
+        expect(
+            Zenoss.render.PropertyPath('/zport/dmd/Devices')
+        ).toBe(
+            '/'
+        );
+    });
+
+    it('render.PropertyPath removes /zport/dmd/Devices from path', function() {
+        expect(
+            Zenoss.render.PropertyPath('/zport/dmd/Devices/Server/Linux')
+        ).toBe(
+            '/Server/Linux'
+        );
+    });
+
+    it('render.PropertyPath accepts paths without /zport/dmd/Devices starting the path', function() {
+        expect(
+            Zenoss.render.PropertyPath('/Server/Linux')
+        ).toBe(
+            '/Server/Linux'
+        );
+    });
+
+    it('render.PropertyPath accepts paths without /zport/dmd starting the path', function() {
+        expect(
+            Zenoss.render.PropertyPath('/Devices/Server/Linux')
+        ).toBe(
+            '/Server/Linux'
+        );
+    });
+
+    it('render.PropertyPath accepts paths without /zport starting the path', function() {
+        expect(
+            Zenoss.render.PropertyPath('/dmd/Devices/Server/Linux')
+        ).toBe(
+            '/Server/Linux'
+        );
+    });
+});
