@@ -2196,3 +2196,9 @@ def executeSshCommand(device, cmd, writefunc):
     # or [] when cmd was not executed in some reasons (e.g. wrong path)
     for x in connection.getResults():
         [writefunc(y) for y in x if y]
+
+
+def escapeSpecChars(value):
+    escape_re = re.compile(r'(?<!\\)(?P<char>[$&|+\-!(){}[\]^~*?:])')
+    return escape_re.sub(r'\\\g<char>', value)
+
