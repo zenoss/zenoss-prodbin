@@ -78,5 +78,9 @@ class ValueChangeThresholdInstance(MetricThresholdInstance):
     def _getDpKey(self, dp):
         return ':'.join(self.context().key()) + ':' + dp
 
+    def getGraphValues(self, relatedGps, context):
+        # currently, no visualization implemented for this threshold type
+        return ()
+
 from twisted.spread import pb
 pb.setUnjellyableForClass(ValueChangeThresholdInstance, ValueChangeThresholdInstance)
