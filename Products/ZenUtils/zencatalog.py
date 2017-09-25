@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import logging
@@ -41,10 +41,10 @@ def drop_all_arguments():
     sys.argv[:] = sys.argv[:1]
 
 
-def _run_model_catalog_init(worker_count, hard, idxs, terminate, toggle_debug):
+def _run_model_catalog_init(worker_count, hard, idxs, terminator, toggle_debug):
     ignore_interruptions()
     drop_all_arguments()
-    run_model_catalog_init(worker_count, hard, indexes=idxs, terminate=terminate, toggle_debug=toggle_debug)
+    run_model_catalog_init(worker_count, hard, indexes=idxs, terminator=terminator, toggle_debug=toggle_debug)
 
 
 # Note: We are very careful not to connect to the database nor memcache until
@@ -131,7 +131,7 @@ class ZenCatalogBase(ZenDaemon):
 
     def _process(self, worker_count, hard, permissions_only=False):
         idxs = ["allowedRolesAndUsers"] if permissions_only else []
-        terminate = Event()
+        terminator = Event()
         toggle_debug = Event()
 
         def handle_SIGUSR1(signum, frame):
@@ -144,14 +144,14 @@ class ZenCatalogBase(ZenDaemon):
 
         p = Process(
             target=_run_model_catalog_init,
-            args=(worker_count, hard, idxs, terminate, toggle_debug)
+            args=(worker_count, hard, idxs, terminator, toggle_debug)
         )
         try:
             p.start()
             p.join()
         except KeyboardInterrupt:
             log.info("Received signal to terminate, stopping subprocess")
-            terminate.set()
+            terminator.set()
             p.join(90)
             if p.is_alive():
                 log.info("Timeout waiting for subprocess to exit gracefully")
