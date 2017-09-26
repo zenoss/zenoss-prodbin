@@ -12,6 +12,7 @@ import Migrate
 from Products.ZCatalog.ZCatalog import ZCatalog
 from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
 from Products.Zuul.utils import safe_hasattr as hasattr
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 import logging
 log = logging.getLogger("zen.migrate")
@@ -21,7 +22,7 @@ class ReplaceLegacyCatalogs(Migrate.Step):
     Remove layer2, layer3, device, ip and global catalogs and
     replace them with a Model Catalog adapter
     """
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def _replace_ZCatalog(self, cat_parent, cat_name, context):
         create_adapter = True
