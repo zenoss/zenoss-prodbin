@@ -29,7 +29,7 @@ from ZODB.POSException import ConflictError
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 
 from .exceptions import NoSuchJobException
-from .jobs import Job
+from .jobs import Job, PruneJob
 
 from logging import getLogger
 log = getLogger("zen.JobManager")
@@ -157,6 +157,8 @@ class JobManager(ZenModelRM):
 
     security = ClassSecurityInfo()
     meta_type = portal_type = 'JobManager'
+    lastPruneJobAddTime = datetime.now()
+    lastPruneTime = lastPruneJobAddTime
 
     def getCatalog(self):
         try:
@@ -174,8 +176,7 @@ class JobManager(ZenModelRM):
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
-    security.declareProtected(ZEN_ADD, 'addJobChain')
-    def addJobChain(self, *joblist, **options):
+    def _addJobChain(self, *joblist, **options):
         """
         Submit a list of SubJob objects that will execute in list order.
         If options are specified, they are applied to each subjob; options
@@ -194,9 +195,6 @@ class JobManager(ZenModelRM):
         """
         subtasks = []
         records = []
-        skipPruning = options.get('skipPruning', False)
-        if options.has_key('skipPruning'):
-            del options['skipPruning']
         for subjob in joblist:
             task_id = str(uuid4())
             opts = dict(task_id=task_id, **options)
@@ -214,16 +212,18 @@ class JobManager(ZenModelRM):
         # Dispatch job to zenjobs queue
         _dispatchTask(task)
 
-        # Clear out old jobs
-        # skipPruning option added because doing this deletion in a
-        # subscriber for ZopeApplicationOpenedEvent does not work
-        if not skipPruning:
-            self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
+        return records
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'addJobChain')
+    def addJobChain(self, *joblist, **options):
+
+        records = self._addJobChain(*joblist, **options)
+
+        self.pruneOldJobs()
 
         return records
 
-    security.declareProtected(ZEN_ADD, 'addJob')
-    def addJob(self, jobclass,
+    def _addJob(self, jobclass,
             description=None, args=None, kwargs=None, properties=None):
         """
         Schedule a new L{Job} from the class specified.
@@ -252,8 +252,15 @@ class JobManager(ZenModelRM):
         # Dispatch job to zenjobs queue
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
 
-        # Clear out old jobs
-        self.deleteUntil(datetime.now() - timedelta(hours=168)) # 1 week
+        return jobrecord
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'addJob')
+    def addJob(self, jobclass,
+            description=None, args=None, kwargs=None, properties=None):
+
+        jobrecord = self._addJob(jobclass, description=description, args=args, kwargs=kwargs, properties=properties)
+
+        self.pruneOldJobs()
 
         return jobrecord
 
@@ -420,6 +427,15 @@ class JobManager(ZenModelRM):
         for job in self.getUnfinishedJobs():
             job.abort()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'pruneOldJobs')
+    def pruneOldJobs(self):
+        if (datetime.now() - self.lastPruneTime > timedelta(hours=1)
+                and datetime.now() - self.lastPruneJobAddTime > timedelta(hours=1)):
+            self.lastPruneJobAddTime = datetime.now()
+            self._addJob(
+                PruneJob,
+                kwargs=dict(untiltime=datetime.now()-timedelta(weeks=1))
+        )
 
 class JobLogDownload(BrowserView):
 

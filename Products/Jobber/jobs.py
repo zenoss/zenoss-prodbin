@@ -17,6 +17,7 @@ import errno
 import signal
 import subprocess
 import socket
+from datetime import datetime
 
 import transaction
 from AccessControl.SecurityManagement import (
@@ -428,3 +429,22 @@ class SubprocessJob(Job):
             
             raise SubprocessJobFailed(exitcode)
         return exitcode
+
+class PruneJob(Job):
+    """
+    Prune old jobs in the job catalog.
+    """
+    @classmethod
+    def getJobType(cls):
+        return "Prune Job"
+
+    @classmethod
+    def getJobDescription(cls, **kwargs):
+        return "Prune jobs older than %s" % kwargs['untiltime']
+
+    def _run(self, untiltime, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.log.info("Prune jobs older than %s " % untiltime)
+        self.dmd.JobManager.deleteUntil(untiltime)
+        self.dmd.JobManager.lastPruneTime = datetime.now()

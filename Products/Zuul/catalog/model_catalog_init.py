@@ -59,7 +59,7 @@ def checkLogging(evt):
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminate,
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminator,
                  fields=None, logtoggle=None):
         super(ReindexProcess, self).__init__()
 
@@ -72,7 +72,7 @@ class ReindexProcess(multiprocessing.Process):
         self.semaphore = semaphore
         self.cond = cond
         self.cancel = cancel
-        self.terminate = terminate
+        self.terminator = terminator
         self.fields = fields
         self.logtoggle = logtoggle
 
@@ -166,11 +166,11 @@ class ReindexProcess(multiprocessing.Process):
             with gc_cache_every(1000, self._db):
                 count = 0
                 while True:
-                    if self.cancel.is_set() or self.terminate.is_set():
+                    if self.cancel.is_set() or self.terminator.is_set():
                         return
                     for uid in self.get_work():
-                        if self.terminate.is_set():
-                            # If terminate is set, we exit immediately, leaving data behind
+                        if self.terminator.is_set():
+                            # If terminator is set, we exit immediately, leaving data behind
                             return
 
                         checkLogging(self.logtoggle)
@@ -200,7 +200,7 @@ class ReindexProcess(multiprocessing.Process):
                             self.counter.value += count
                         count = 0
                     # Should we die? Or wait for more work from the parent?
-                    if self.cancel.is_set() or self.terminate.is_set():
+                    if self.cancel.is_set() or self.terminator.is_set():
                         return
                     log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
                     self.notify_parent(True)
@@ -347,7 +347,7 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     return index_client
 
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminate=None, toggle_debug=None):
+def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminator=None, toggle_debug=None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
@@ -367,8 +367,8 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     semaphore = multiprocessing.Semaphore(processor_count)
     cond = multiprocessing.Condition()
 
-    if not terminate:
-        terminate = multiprocessing.Event()
+    if not terminator:
+        terminator = multiprocessing.Event()
 
     cancel = multiprocessing.Event()
 
@@ -379,10 +379,17 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     proc_start = time.time()
 
     def hard_index_is_done():
-        return terminate.is_set() or (semaphore.get_value() == 0 and parent_queue.empty())
+        return terminator.is_set() or (semaphore.get_value() == 0 and parent_queue.empty())
 
     def soft_index_is_done():
-        return cancel.is_set() or terminate.is_set()
+        return cancel.is_set() or terminator.is_set()
+
+    # In the case of early termination, we only want to wait up to 30 seconds
+    # In the case of straggler processes, we wait up to an hour
+    def get_timeout():
+        if terminator.is_set():
+            return 30
+        return 3600
 
     if hard:
         log.info("Clearing Solr data")
@@ -398,7 +405,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminate, indexes,
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminator, indexes,
                    toggle_debug)
         processes.append(p)
         p.start()
@@ -457,7 +464,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     log.info("Indexing complete, waiting for workers to clean up")
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join(60)
+        proc.join(get_timeout())
         if proc.is_alive():
             log.warn("Worker {} did not exit within timeout, terminating...".format(proc.idx))
             proc.terminate()
