@@ -64,12 +64,18 @@ class TestShardedBTree(BaseTestCase):
         # __setitem__ and __getitem__
         for key, val in data.iteritems():
             self.assertEqual(tree[key], val)
+        tree[None] = 42
+        self.assertEqual(tree[None], None)
         # get
         a_key = data.iterkeys().next()
         self.assertTrue(tree.has_key(a_key))
+        self.assertFalse(tree.has_key("bad_key")) 
+        self.assertFalse(tree.has_key(None))
         self.assertEqual(tree.get(a_key), data[a_key])
         self.assertEqual(tree.get("bad_key"), None)
+        self.assertEqual(tree.get(None), None)
         self.assertEqual(tree.get("bad_key", "default value"), "default value")
+        self.assertEqual(tree.get(None, "default value"), "default value")
         # __delitem__ and has_key
         a_key = data.iterkeys().next()
         self.assertTrue(tree.has_key(a_key))
@@ -77,6 +83,7 @@ class TestShardedBTree(BaseTestCase):
         self.assertFalse(tree.has_key(a_key))
         del data[a_key]
         self.assertEqual(len(tree), len(data))
+        del tree[None]
         # keys, values and items
         self.assertEqual(set(data.keys()), set(tree.keys()))
         self.assertEqual(set(data.values()), set(tree.values()))

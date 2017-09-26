@@ -74,7 +74,11 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertIsNotNone(getattr(result, TX_STATE_FIELD))
             self.assertTrue(getattr(result, TX_STATE_FIELD) != 0)
         self.assertEquals(set(found_object_uids), set(expected_object_uids))
-
+    
+    def _simulate_tx_commit(self):
+        tx = transaction.get()
+        self.data_manager.tpc_vote(tx)
+        self.data_manager.tpc_finish(tx)
 
     def testPartialUpdates(self):
         # for this test we need to create a test device and commit the changes to
@@ -91,7 +95,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         updated_uids = set(tx_state.pending_updates.keys()) | tx_state.temp_indexed_uids
         try:
             # simulate the transaction was committed and do a few partial updates
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             # make sure the device was correctly indexed
             fields = ["productionState", "text_ipAddress"]
             search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
@@ -138,7 +142,7 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertEquals(expected_fields, index_update.idxs)
 
             # simulate another transaction commit and check everything went well
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
             self.assertEquals(search_results.total, 1)
             brain = search_results.results.next()
@@ -287,7 +291,7 @@ class TestModelCatalogTransactions(BaseTestCase):
             mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
             self.assertTrue( mi_results.total_count == 2 )
             # Lets do the commit
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             self.assertIsNone(self._get_transaction_state())
             # Check we only have one doc matching "/zport/dmd/Devices/device_class*"
             search_results = self.model_catalog.search(query=query, commit_dirty=False)

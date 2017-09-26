@@ -42,7 +42,21 @@
             {name: 'type'},
             {name: 'select_variable'},  // Only valid if 'type' is 'selection'
             {name: 'value'},
-            {name: 'valueAsString', persist: false},
+            {
+                name: 'valueAsString',
+                persist: false,
+                convert: function(value, record) {
+                    var value = record.get('value');
+                    switch (record.get('type')) {
+                        case 'date':
+                            return Zenoss.render.date(value);
+                        case 'lines':
+                            return (value) ? value.join(', ') : '';
+                        default:
+                            return value;
+                    }
+                }
+            },
             {name: 'islocal', persist: false}
         ]
     });
@@ -60,7 +74,7 @@
         ['int',       { xtype: 'numberfield', allowDecimals: false }],
         ['float',     { xtype: 'numberfield' }],
         ['long',      { xtype: 'numberfield' }],
-        ['date',      { xtype: 'datefield' }],
+        ['date',      { xtype: 'zendatetimefield' }],
         ['string',    { xtype: 'textfield' }],
         ['lines',     { xtype: 'lines' }],
         ['boolean',   { xtype: 'checkbox' }],
@@ -525,7 +539,6 @@
                         dataIndex: 'valueAsString',
                         flex: 1
                     }, {
-                        //xtype: 'propertypathcolumn',
                         header: _t('Path'),
                         dataIndex: 'uid',
                         width: 90,
