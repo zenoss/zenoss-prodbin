@@ -881,7 +881,10 @@ class ZenHub(ZCmdBase):
             job.deferred.errback(result)
         else:
             try:
-                self.log.debug("worker %s result -> %s", wId, result)
+                # log messages that do not contain passwords
+                result_str = "worker %s result -> %s" % (wId, result)
+                if ' -p ' not in result_str:
+                    self.log.debug(result_str)
                 result = pickle.loads(''.join(result))
             except Exception as e:
                 error = e
