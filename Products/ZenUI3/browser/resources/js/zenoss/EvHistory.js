@@ -103,17 +103,17 @@ Ext.onReady(function(){
                     ]
                 }
             },{
-		text: _t('Export'),
+                text: _t('Export'),
                 //iconCls: 'export',
-		handler: function(){
+                handler: function(){
 
-	        var dialog = Ext.create('Zenoss.dialog.Form', {
+                var dialog = Ext.create('Zenoss.dialog.Form', {
                     title: _t('Export events'),
                     minWidth: 350,
                     submitHandler: function(form) {
                         var values = form.getValues();
                         Zenoss.ui.EvHistory.Exp(values['ftype'], values['ffmt']);
-		    },
+                    },
                     form: {
                         layout: 'anchor',
                         defaults: {
@@ -130,65 +130,63 @@ Ext.onReady(function(){
                         items: [{
                             name: 'ftype',
                             fieldLabel: 'File type',
-			    value: '',
-			    xtype: 'combo',
-			    allowBlank: false,
+                            value: '',
+                            xtype: 'combo',
+                            allowBlank: false,
                             displayField:'name',
-			    valueField:'id',
-			    store: Ext.create('Ext.data.Store',{
-			          fields:['id','name'],
-			          data:[
-			                {id:'xml', name:'XML'},
-			                {id:'csv', name:'CSV'}
-			          ]
-			    }),
-			    editable: false,
-			    disableKeyFilter: false,
-			    submitValue: true
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                  fields:['id','name'],
+                                  data:[
+                                        {id:'xml', name:'XML'},
+                                        {id:'csv', name:'CSV'}
+                                  ]
+                            }),
+                            editable: false,
+                            disableKeyFilter: false,
+                            submitValue: true
+                        },{
+                            name: 'ffmt',
+                            fieldLabel: 'Date/Time format',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                       fields:['id','name'],
+                                       data:[
+                                            {id:'iso',  name:'ISO'},
+                                            {id:'unix', name:'Unix'},
+                                            {id:'user', name:'User settings'}
+                                       ]
+                            }),
+                            listeners: {'select': function (combo, record){
+                                if(record[0].data.id == "unix"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
+                                } else if(record[0].data.id == "iso"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
+                                } else if(record[0].data.id == "user"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
+                                }
+                            }
                         },
-		        {
-		            name: 'ffmt',
-		            fieldLabel: 'Date/Time format',
-			    xtype: 'combo',
-			    allowBlank: false,
-			    displayField:'name',
-			    valueField:'id',
-			    store: Ext.create('Ext.data.Store',{
-			               fields:['id','name'],
-				       data:[
-				            {id:'iso',  name:'ISO'},
-				            {id:'unix', name:'Unix'},
-				            {id:'user', name:'User settings'}
-				       ]
-		 	    }),
-			    listeners: {'select': function (combo, record){
-				if(record[0].data.id == "unix"){
-				    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
-				} else if(record[0].data.id == "iso"){
-				    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
-			        } else if(record[0].data.id == "user"){
-				    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
-				}
-			    }
-			},
-			editable: false,
-			disableKeyFilter: false,
-		        submitValue: true
-		    },
-		    {
-		        name: 'example',
-			id: 'fexample',
-			fieldLabel:'Format example',
-			value: '',
-			hidden: true,
-			submitValue: false
-		    }
-		    ]
+                        editable: false,
+                        disableKeyFilter: false,
+                        submitValue: true
+                    },{
+                        name: 'example',
+                        id: 'fexample',
+                        fieldLabel:'Format example',
+                        value: '',
+                        hidden: true,
+                        submitValue: false
+                    }
+                   ]
                 }
             });
             dialog.down('form');
             dialog.show();
-		}
+            }
             },{
                 /*
                  * CONFIGURE MENU

@@ -473,19 +473,19 @@
     Zenoss.events.Exp = function(gridId, type, format){
         var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
         if (context === "/zport/dmd/Events") {
-	    context = location.pathname.replace('/viewEvents', '');
+            context = location.pathname.replace('/viewEvents', '');
         }
         var grid = Ext.getCmp(gridId),
             state = grid.getState(),
             historyCombo = Ext.getCmp('history_combo'),
             params = {
                 type: type,
-	        options: {
-	            fmt: format,
-		    datefmt: Zenoss.USER_DATE_FORMAT,
-		    timefmt: Zenoss.USER_TIME_FORMAT,
-		    tz: Zenoss.USER_TIMEZONE 
-		},
+          options: {
+              fmt: format,
+              datefmt: Zenoss.USER_DATE_FORMAT,
+              timefmt: Zenoss.USER_TIME_FORMAT,
+              tz: Zenoss.USER_TIMEZONE 
+          },
                 isHistory: false,
                 params: {
                     uid: context,
@@ -496,10 +496,10 @@
                 }
             };
         if (historyCombo && historyCombo.getValue() === 1) {
-	    params.isHistory = true;
+            params.isHistory = true;
         }
         Ext.get('export_body').dom.value =
-        Ext.encode(params);
+            Ext.encode(params);
         Ext.get('exportform').dom.submit();
     };
 

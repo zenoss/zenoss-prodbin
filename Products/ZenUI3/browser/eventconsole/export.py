@@ -112,9 +112,11 @@ class EventsExporter(BrowserView):
             yield header, event
 
     def _convert(self, fmt):
-         d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d', 'HH': '%H', 'hh': '%I', 'mm': '%M', 'ss': '%S', 'a': '%p'}
-         pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
-         return pattern.sub(lambda x: d[x.group()], fmt)
+        d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
+             'HH': '%H', 'hh': '%I', 'mm': '%M',
+             'ss': '%S', 'a': '%p'}
+        pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
+        return pattern.sub(lambda x: d[x.group()], fmt)
 
     def _timeformat(self, value, options):
         utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(value)))
@@ -125,7 +127,9 @@ class EventsExporter(BrowserView):
         if options['fmt'] == "unix":
             return str(int(value))
         if options['fmt'] == "user":
-            return str(tval.strftime(self._convert(options['datefmt']+" "+options['timefmt'])))
+            return str(tval.strftime(
+                self._convert(options['datefmt']+" "+options['timefmt']))
+            )
 
     def csv(self, response, archive, options, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
