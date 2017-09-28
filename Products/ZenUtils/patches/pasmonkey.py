@@ -142,7 +142,7 @@ def validate(self, request, auth='', roles=_noroles):
 
     anonymous = self._createAnonymousUser(plugins)
     if self._authorizeUser(anonymous, accessed, container, name, value, roles):
-        if name == 'login':
+        if name == 'login' and '/authorization/login' not in request.environ.get('PATH_INFO', ''):
             username_ = request.form.get('__ac_name', 'Unknown')
             audit('UI.Authentication.Failed', username_=username_, ipaddress=ipaddress)
         return anonymous
