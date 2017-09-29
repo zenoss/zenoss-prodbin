@@ -469,6 +469,7 @@ Ext.apply(Zenoss.devices, {
                         handler: function() {
                             var form = win.childPanel.getForm();
                             var opts = form.getValues();
+                            delete opts.autocompleteUsername;
                             delete opts.autocompletePassword;
                             Zenoss.remote.DeviceRouter.addDevice(opts, function(response) {
                                 if (!response.success) {
@@ -655,6 +656,17 @@ Ext.apply(Zenoss.devices, {
                                 anchor: '65%'
                             },
                             items: [{
+                                //Add hidden input fields for preventing username/password autocomplete
+                                xtype: 'textfield',
+                                id: 'autocompleteUsername',
+                                name: 'autocompleteUsername',
+                                hidden: true
+                            }, {
+                                xtype: 'password',
+                                id: 'autocompletePassword',
+                                name: 'autocompletePassword',
+                                hidden: true
+                            }, {
                                 xtype: 'textfield',
                                 name: 'snmpCommunity',
                                 fieldLabel: _t('Snmp Community')
@@ -730,12 +742,6 @@ Ext.apply(Zenoss.devices, {
                                 emptyText: _t('None...'),
                                 multiSelect: true,
                                 width: 200
-                            },{
-                                //Add hidden input field to prevent password autocomplete
-                                xtype: 'password',
-                                id: 'autocompletePassword',
-                                name: 'autocompletePassword',
-                                hidden: true
                             },{
                                 xtype: 'textfield',
                                 inputType: 'password',
