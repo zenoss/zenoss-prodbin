@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -91,6 +91,10 @@ class NotificationWindowInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
+
+    @property
+    def start_ts(self):
+        return self._object.start
 
     def _getStart(self):
         # is a unix timestamp convert to string

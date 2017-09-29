@@ -21,7 +21,8 @@ from Products.ZenModel.Trigger import DuplicateTriggerName
 
 import logging
 
-log = logging.getLogger('zen.triggers');
+log = logging.getLogger('zen.triggers')
+
 
 class TriggersRouter(DirectRouter):
     """
@@ -43,7 +44,7 @@ class TriggersRouter(DirectRouter):
     def addTrigger(self, newId):
         try:
             data = self._getFacade().addTrigger(newId)
-        except DuplicateTriggerName, tnc:
+        except DuplicateTriggerName as tnc:
             log.debug("Exception DuplicateTriggerName: %s" % tnc)
             return DirectResponse.fail(str(tnc))
         else:
@@ -131,7 +132,9 @@ class TriggersRouter(DirectRouter):
     # subscription windows
     @serviceConnectionError
     def getWindows(self, uid, **kwargs):
+        log.info('TRACER: triggerRouter.getWindows(%s)', uid)
         response = self._getFacade().getWindows(uid)
+        log.info('TRACER: triggerRouter.getWindows: response = %s', response)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     @serviceConnectionError
@@ -146,11 +149,13 @@ class TriggersRouter(DirectRouter):
         audit('UI.NotificationWindow.Remove', uid)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
+    #TRACER
     @serviceConnectionError
     def getWindow(self, uid):
         response = self._getFacade().getWindow(uid)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
+    #TRACER
     @serviceConnectionError
     def updateWindow(self, **data):
         windowUid = data['uid']

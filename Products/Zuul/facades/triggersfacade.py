@@ -592,7 +592,13 @@ class TriggersFacade(ZuulFacade):
         )
 
     def getWindows(self, uid):
-        notification = self._getObject(uid)
+        log.info('TRACER: triggersFacade.getWindows(%s)', uid)
+        try:
+            notification = self._getObject(uid)
+        except Exception:
+            log.exception('TRACER: Facade getWindows failed')
+
+        log.info('TRACER: triggersFacade.getWindows: notification = %s', notification)
         for window in notification.windows():
             yield IInfo(window)
 
@@ -618,16 +624,8 @@ class TriggersFacade(ZuulFacade):
             raise Exception('Could not find window to update: %s' % uid)
         for field in window._properties:
             if field['id'] == 'start':
-                start = data['start']
-                start = start + " T" + data['starttime']
-                startDT = datetime.strptime(start, "%m-%d-%Y T%H:%M")
-                setattr(window, 'start', int(startDT.strftime('%s')))
-            elif field['id'] == 'duration':
-                setattr(window, 'duration', int(data['duration']))
-            elif field['id'] == 'skip':
-                skip = data.get('skip')
-                if skip is not None:
-                    window.skip = skip
+                # expect a unix timestamp
+                setattr(window, 'start', int(data['start_ts']))
             else:
                 setattr(window, field['id'], data.get(field['id']))
 
@@ -1065,4 +1063,3 @@ class NotificationPermissionManager(object):
              NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE),
             acquire=False
         )
-
