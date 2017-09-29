@@ -13,6 +13,31 @@ Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
 
+    Zenoss.ui.EvHistory.Exp = function(type, format){
+        var grid = Ext.getCmp('events_grid'),
+            state = grid.getState(),
+            params = {
+                type: type,
+                isHistory: true,
+                options: {
+	                   fmt: format,
+	                   datefmt: Zenoss.USER_DATE_FORMAT,
+	                   timefmt: Zenoss.USER_TIME_FORMAT,
+	                   tz: Zenoss.USER_TIMEZONE
+               },
+ 		params: {
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        Ext.get('export_body').dom.value =
+        Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+
+    };
+
     // Get references to the panels
     var detail_panel = Ext.getCmp('detail_panel');
     var master_panel = Ext.getCmp('master_panel');
@@ -79,49 +104,89 @@ Ext.onReady(function(){
                 }
             },{
                 text: _t('Export'),
-                id: 'export-button',
                 //iconCls: 'export',
-                menu: {
-                items: [{
-                    text: 'XML',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'xml',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
+                handler: function(){
+
+                var dialog = Ext.create('Zenoss.dialog.Form', {
+                    title: _t('Export events'),
+                    minWidth: 350,
+                    submitHandler: function(form) {
+                        var values = form.getValues();
+                        Zenoss.ui.EvHistory.Exp(values['ftype'], values['ffmt']);
+                    },
+                    form: {
+                        layout: 'anchor',
+                        defaults: {
+                            xtype: 'displayfield',
+                            padding: '0 0 10 0',
+                            margin: 0,
+                            anchor: '100%'
+                        },
+                        fieldDefaults: {
+                            labelAlign: 'left',
+                            labelWidth: 75,
+                            labelStyle: 'color:#aaccaa'
+                        },
+                        items: [{
+                            name: 'ftype',
+                            fieldLabel: 'File type',
+                            value: '',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                  fields:['id','name'],
+                                  data:[
+                                        {id:'xml', name:'XML'},
+                                        {id:'csv', name:'CSV'}
+                                  ]
+                            }),
+                            editable: false,
+                            disableKeyFilter: false,
+                            submitValue: true
+                        },{
+                            name: 'ffmt',
+                            fieldLabel: 'Date/Time format',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                       fields:['id','name'],
+                                       data:[
+                                            {id:'iso',  name:'ISO'},
+                                            {id:'unix', name:'Unix'},
+                                            {id:'user', name:'User settings'}
+                                       ]
+                            }),
+                            listeners: {'select': function (combo, record){
+                                if(record[0].data.id == "unix"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
+                                } else if(record[0].data.id == "iso"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
+                                } else if(record[0].data.id == "user"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
                                 }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
+                            }
+                        },
+                        editable: false,
+                        disableKeyFilter: false,
+                        submitValue: true
+                    },{
+                        name: 'example',
+                        id: 'fexample',
+                        fieldLabel:'Format example',
+                        value: '',
+                        hidden: true,
+                        submitValue: false
                     }
-                }, {
-                    text: 'CSV',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'csv',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
-                                }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
-                    }
-                }]
+                   ]
                 }
+            });
+            dialog.down('form');
+            dialog.show();
+            }
             },{
                 /*
                  * CONFIGURE MENU

@@ -10,6 +10,7 @@
 
 import logging
 import sys
+import time
 import transaction
 import zope.component
 from zope.component.factory import Factory
@@ -217,28 +218,25 @@ class ModelCatalogTransactionState(object):
     def __init__(self, tid):
         """ """
         self.tid = tid
-        # @TODO For the time being we only have two index operations INDEX and UNINDEX
-        # Once we are able to index only certain indexes and use solr
-        # atomic updates this will become more complex in order to send as few requests to solr
-        # as possible
         #
-        # model_update may become a list of updates when we support more
-        # operations other than INDEX, UNINDEX
-        #
-        self.pending_updates = {}  # { object_uid :  model_update }
-        self.indexed_updates = {}  # { object_uid :  model_update }
+        self.pending_updates = {}  # { object_uid :  ObjectUpdate }
+        self.indexed_updates = {}  # { object_uid :  IndexUpdate }
         # ^^
         # In indexed_updates we store updates that we indexed mid transaction
         # because a search came in. Only this transaction should see such changes
         self.temp_indexed_uids = set() # object uids of temporary indexed documents
         self.temp_deleted_uids = set() # object uids of temporary deleted documents
 
+        # During the tpc_vote phase, IndexUpdates are created for each
+        # object we need to index
+        self._updates_to_finish_tx = {} # { object_uid: modelindex.IndexUpdate}
+
         self.commits_metric = []
 
     def add_model_update(self, object_update):
         """
-        Generates and stores a IndexUpdate from the received ObjectUpdate taking into account
-        any previous model update (if any)
+        Generates and stores an ObjectUpdate than combines the received ObjectUpdate
+        with any previous updates to the same object (if any)
         """
         uid = object_update.uid
         op = object_update.op
@@ -263,32 +261,47 @@ class ModelCatalogTransactionState(object):
         if idxs: # make sure mandatory idxs are always sent
             idxs.update( MANDATORY_FIELDS ) # Mandatory fields
 
-        model_update = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
-        self.pending_updates[object_update.uid] = model_update
-        del object_update # Make sure we dont keep references to the object
+        # store the ObjectUpdate. Defer creating the IndexUpdate
+        # until the end of the transaction or before a dirty search
+        self.pending_updates[object_update.uid] = ObjectUpdate(object_update.obj, op=op , idxs=idxs)
 
     def get_pending_updates(self):
         """ return updates that have not been sent to the index """
-        return self.pending_updates.values()
+        # build the IndexUpdate from the ObjectUpdate buffered in self.pending_updates
+        modelindex_updates = {}
+        for object_update in self.pending_updates.values():
+            uid = object_update.uid
+            op = object_update.op
+            idxs = object_update.idxs
+            modelindex_updates[uid] = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
+        return modelindex_updates
 
     def get_indexed_updates(self):
+        # self.indexed_updates stores the IndexUpdate
         return self.indexed_updates.values()
 
     def get_updates_to_finish_transaction(self):
-        #
+        """
+        This is called during tpc.finish
+        """
+        return self._updates_to_finish_tx.values()
+
+    def prepare_updates_to_finish_transaction(self):
+        """
+        This is called during tx tpc_vote phase. return all
+        modelindex.IndexUpdate that need to be commited in solr
+        """
         self.commits_metric.append(len(self.pending_updates))
         # Get all updates
-        final_updates = {}
+        self._updates_to_finish_tx = {}
         for uid, update in self.indexed_updates.iteritems():
             # update the uid and tx_state
             if update.op == INDEX:
                 update.spec.set_field_value(MODEL_INDEX_UID_FIELD, uid)
                 update.spec.set_field_value(TX_STATE_FIELD, 0)
-            final_updates[uid] = update
-        # now update overwriting in case we had a new update for any
-        # of the already indexed objects
-        final_updates.update(self.pending_updates)
-        return final_updates.values()
+            self._updates_to_finish_tx[uid] = update
+        # Any non mid tx commit update overwrites any previous update
+        self._updates_to_finish_tx.update(self.get_pending_updates())
 
     def are_there_pending_updates(self):
         return len(self.pending_updates) > 0
@@ -296,16 +309,18 @@ class ModelCatalogTransactionState(object):
     def are_there_indexed_updates(self):
         return len(self.indexed_updates) > 0
 
-    def mark_pending_updates_as_indexed(self, indexed_uids, deleted_uids):
+    def mark_pending_updates_as_indexed(self, indexed_updates, indexed_uids, deleted_uids):
         """
+        @param indexed_updates: dict {uid: IndexUpdate} containing the IndexUpdates
+                                that were just sent to solr
         @param indexed_uids: temporary uids we indexed the docs with
         """
-        self.commits_metric.append(len(self.pending_updates))
+        self.commits_metric.append(len(indexed_updates))
         self.temp_indexed_uids = self.temp_indexed_uids | indexed_uids
         self.temp_deleted_uids = self.temp_deleted_uids | deleted_uids
         self.temp_indexed_uids = self.temp_indexed_uids - deleted_uids
         self.temp_deleted_uids = self.temp_deleted_uids - indexed_uids
-        self.indexed_updates.update(self.pending_updates)
+        self.indexed_updates.update(indexed_updates)
         self.pending_updates = {} # clear pending updates
         #log.info("SEARCH TRIGGERED TEMP INDEXING. {0}".format(traceback.format_stack()))   # @TODO TEMP LOGGING
 
@@ -337,7 +352,7 @@ class ModelCatalogDataManager(object):
         return self.model_index.get_indexes()
 
     def _process_pending_updates(self, tx_state):
-        """ index all pending updates """
+        """ index all pending updates during a mid transaction commit """
         updates = tx_state.get_pending_updates()
         # we are going to index all pending updates setting the MODEL_INDEX_UID_FIELD
         # field as the OBJECT_UID_FIELD appending the tid and setting tx_state field
@@ -345,10 +360,10 @@ class ModelCatalogDataManager(object):
         tweaked_updates = []
         indexed_uids = set()
         deleted_uids = set()
-        for update in updates:
+        for update in updates.values():
             tid = tx_state.tid
             if update.op == UNINDEX:
-                # we dont do anything for unindexed objects, we just add the to
+                # dont do anything for unindexed objects, just add them to
                 # a set to be able to blacklist them from search results
                 deleted_uids.add(update.uid)
             else:
@@ -371,7 +386,7 @@ class ModelCatalogDataManager(object):
         # send and commit indexed docs to solr
         self.model_index.process_batched_updates(tweaked_updates)
         # marked docs as indexed
-        tx_state.mark_pending_updates_as_indexed(indexed_uids, deleted_uids)
+        tx_state.mark_pending_updates_as_indexed(updates, indexed_uids, deleted_uids)
 
     def _add_tx_state_query(self, search_params, tx_state):
         """
@@ -477,10 +492,10 @@ class ModelCatalogDataManager(object):
     def do_mid_transaction_commit(self):
         """
         When commit_dirty is True, objects that have been modified as a part of a transaction
-        that has not been commited yet, will be commited with tx_state = tid so they can be searched.
+        that has not been commited yet, will be commited with TX_STATE_FIELD = tid so they can be searched.
         These "dirty" objects will remain in the catalog until transaction.abort is called,
         which will remove them from the catalog, or transaction.commit is called, which will remove
-        them as a "dirty" object, then add them to the catalog with tx_state = 0.
+        them as a "dirty" object, then add them to the catalog with TX_STATE_FIELD = 0.
         """
         tx_state = self._get_tx_state()
         # Lets add tx_state filters
@@ -554,6 +569,12 @@ class ModelCatalogDataManager(object):
         # Check connection to SOLR
         if not self.ping_index():
             raise ModelCatalogUnavailableError()
+        # Get the modelindex.IndexUpdate of all updated objects
+        tx_state = self._get_tx_state(transaction)
+        if tx_state:
+            start = time.time()
+            tx_state.prepare_updates_to_finish_transaction()
+            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def tpc_finish(self, transaction):
         try:
@@ -564,8 +585,7 @@ class ModelCatalogDataManager(object):
                 try:
                     self.model_index.process_batched_updates(updates)
                     self._delete_temporary_tx_documents()
-                    # @TODO TEMP LOGGING
-                    log.warn("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
+                    log.debug("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
                 except Exception as e:
                     log.exception("Exception in tcp_finish: {0} / {1}".format(e, e.message))
                     self.abort(transaction)
