@@ -254,7 +254,7 @@ class PortalGenerator:
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
-        print "Starting setup of default permissions."
+        #print("Starting setup of default permissions.")
         mp = p.manage_permission
         mp(ZEN_CHANGE_SETTINGS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
@@ -306,7 +306,7 @@ class PortalGenerator:
         mp(VIEW_TRIGGER,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE,], 1)
         mp(UPDATE_NOTIFICATION,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(MANAGE_NOTIFICATION_SUBSCRIPTIONS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        print "End setup of default permissions."
+        #print("End setup of default permissions.")
 
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
