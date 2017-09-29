@@ -52,6 +52,24 @@ describe('Moment', function() {
             'Y-m-d h:i:s A'
         )
     });
+
+    it('momentFormat has correct value when dateOnly is set', function() {
+        var moment = Ext.create('Zenoss.date.Moment', {dateOnly: true});
+        expect(
+            moment.momentFormat
+        ).toBe(
+            'YYYY-MM-DD'
+        )
+    });
+
+    it('extFormat has correct value when dateOnly is set', function() {
+        var moment = Ext.create('Zenoss.date.Moment', {dateOnly: true});
+        expect(
+            moment.extFormat
+        ).toBe(
+            'Y-m-d'
+        )
+    });
     describe('asMoment', function(){
         it('accepts second timestamps', function() {
             var seconds = moment.tz(
@@ -171,6 +189,18 @@ describe('Moment', function() {
             );
         });
 
+        it('returns only the date when dateOnly is true', function() {
+            var cmp = Ext.create('Zenoss.date.Moment', {dateOnly: true});
+            var seconds = moment.tz(
+                    '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
+                ).valueOf() / 1000;
+            expect(
+                cmp.asDateTimeString(seconds)
+            ).toBe(
+                '2005-03-15'
+            );
+        });
+
         it('returns null for no arguments', function() {
             expect(
                 this.cmp.asDateTimeString()
@@ -208,6 +238,24 @@ describe('Zenoss.form.field.DateTime', function() {
             this.cmp.format
         ).toBe(
             'Y-m-d h:i:s A'
+        )
+    });
+
+    it('momentFormat has correct value when dateOnly is set', function() {
+        var moment = Ext.create('Zenoss.form.field.DateTime', {dateOnly: true});
+        expect(
+            moment.momentFormat
+        ).toBe(
+            'YYYY-MM-DD'
+        )
+    });
+
+    it('extFormat has correct value when dateOnly is set', function() {
+        var moment = Ext.create('Zenoss.form.field.DateTime', {dateOnly: true});
+        expect(
+            moment.extFormat
+        ).toBe(
+            'Y-m-d'
         )
     });
 
