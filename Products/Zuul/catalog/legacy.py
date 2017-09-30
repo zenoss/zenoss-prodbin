@@ -209,6 +209,11 @@ class LegacyFieldsTranslator(object):
         return self.new_fields.keys()
 
 
+class MockZCatalog(object):
+    def delIndex(self, index):
+        pass
+
+
 class LegacyCatalogAdapter(SimpleItem):
     """
     Adapt the ZCatalog interface to use model catalog for searching.
@@ -226,6 +231,7 @@ class LegacyCatalogAdapter(SimpleItem):
         """
         self.context = context
         self.zcatalog_name = zcatalog_name
+        self._catalog = MockZCatalog()
 
     def _get_translator(self):
         translator = LegacyFieldsTranslator()
