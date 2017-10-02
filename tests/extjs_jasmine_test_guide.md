@@ -8,7 +8,7 @@
 
 2. Open Jasmine/SpecRunner.html in a browser.
 
-    `file:///<path to>/zenoss-prodbin/Products/ZenUI3/browser/resources/js/jasmine/SpecRunner.html?`
+    `file:///<path to>/zenoss-prodbin/tests/jasmine/SpecRunner.html?`
 
 
 ## Creating new Unit Tests
@@ -26,13 +26,13 @@ Jasmine Spec files should match 1to1 with the code-under-test.  If we are testin
 Using relative paths, add the file-under-test and its spec file to SpecRunner
 
 ```
-  <!-- include source under test -->
-  <script src="../zenoss/date.js"></script>
-  <script src="../zenoss/<your source>.js"></script>
+<!-- include source under test -->
+<script src="../../Products/ZenUI3/browser/resources/js/zenoss/date.js"></script>
+<script src="../../Products/ZenUI3/browser/resources/js/zenoss/Renderers.js"></script>
 
-  <!-- include spec files here... -->
-  <script src="../zenoss/tests/date_spec.js"></script>
-  <script src="../zenoss/tests/<your source>_spec.js"></script>
+<!-- include spec files here... -->
+<script src="../../Products/ZenUI3/browser/resources/js/zenoss/tests/date_spec.js"></script>
+<script src="../../Products/ZenUI3/browser/resources/js/zenoss/tests/renderers_spec.js"></script>
 ```
 
 Run your tests by refreshing the jasmine window in your browser.
