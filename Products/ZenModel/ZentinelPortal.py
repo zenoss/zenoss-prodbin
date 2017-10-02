@@ -32,7 +32,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.deprecated import deprecated
 
-import ZenossSecurity as zs
+from ZenossSecurity import *
 
 
 class ZentinelPortal(PortalObjectBase):
@@ -84,7 +84,7 @@ class ZentinelPortal(PortalObjectBase):
 
         return DELIMITER.join(textwrap.wrap(msg, WIDTH))
 
-    security.declareProtected(zs.ZEN_COMMON, 'searchDevices')
+    security.declareProtected(ZEN_COMMON, 'searchDevices')
     @deprecated
     def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
@@ -93,7 +93,7 @@ class ZentinelPortal(PortalObjectBase):
         # TODO: Remove. Not used anymore in Zenoss code --Ian
         return []
 
-    security.declareProtected(zs.ZEN_COMMON, 'searchComponents')
+    security.declareProtected(ZEN_COMMON, 'searchComponents')
     @deprecated
     def searchComponents(self, device='', component='', REQUEST=None):
         """
@@ -102,7 +102,7 @@ class ZentinelPortal(PortalObjectBase):
         # TODO: Remove. Not used anymore in Zenoss code --Ian
         return []
 
-    security.declareProtected(zs.ZEN_COMMON, 'dotNetProxy')
+    security.declareProtected(ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):
         """
         Logs in to Zenoss.net using the user's credentials and retrieves data,
@@ -145,7 +145,7 @@ class ZentinelPortal(PortalObjectBase):
         """
         user = self.dmd.ZenUsers.getUser()
         if user:
-            return user.has_role((zs.MANAGER_ROLE, zs.ZEN_MANAGER_ROLE), obj)
+            return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
 
     def has_role(self, role, obj=None):
         """Check to see of a user has a role.
@@ -241,84 +241,69 @@ class PortalGenerator:
 
     def setupRoles(self, p):
         # Set up the suggested roles.
-        p.__ac_roles__ += (zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,)
+        p.__ac_roles__ += (ZEN_USER_ROLE, ZEN_MANAGER_ROLE,)
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
-        mp(zs.ZEN_CHANGE_SETTINGS,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_CHANGE_DEVICE,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_CHANGE_DEVICE_PRODSTATE,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_MANAGE_DMD,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_DELETE,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_DELETE_DEVICE,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_ADD,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+
+        role_owner_manager = [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE]
+        mp(ZEN_CHANGE_SETTINGS,         role_owner_manager, 1)
+        mp(ZEN_CHANGE_DEVICE,           role_owner_manager, 1)
+        mp(ZEN_CHANGE_DEVICE_PRODSTATE, role_owner_manager, 1)
+        mp(ZEN_MANAGE_DMD,              role_owner_manager, 1)
+        mp(ZEN_DELETE,                  role_owner_manager, 1)
+        mp(ZEN_DELETE_DEVICE,           role_owner_manager, 1)
+        mp(ZEN_ADD,                     role_owner_manager, 1)
         mp(
-            zs.ZEN_VIEW,
-            [zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,
-             zs.MANAGER_ROLE, zs.OWNER_ROLE]
+            ZEN_VIEW,
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
+             MANAGER_ROLE, OWNER_ROLE]
         )
-        mp(zs.ZEN_COMMON,
-            ["Authenticated", zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,
-             zs.MANAGER_ROLE, zs.OWNER_ROLE],
+        mp(ZEN_COMMON,
+            ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
+             MANAGER_ROLE, OWNER_ROLE],
             1)
 
         # Events
-        mp(zs.ZEN_MANAGE_EVENTMANAGER,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_MANAGE_EVENTS,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_SEND_EVENTS,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(ZEN_MANAGE_EVENTMANAGER,     role_owner_manager, 1)
+        mp(ZEN_MANAGE_EVENTS,           role_owner_manager, 1)
+        mp(ZEN_SEND_EVENTS,             role_owner_manager, 1)
 
-        mp(zs.ZEN_CHANGE_ALERTING_RULES,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.OWNER_ROLE], 1)
-        mp(zs.ZEN_CHANGE_ADMIN_OBJECTS,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_CHANGE_EVENT_VIEWS,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_ADMIN_DEVICE, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_MANAGE_DEVICE, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_ZPROPERTIES_EDIT, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_ZPROPERTIES_VIEW,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
-        mp(zs.ZEN_EDIT_LOCAL_TEMPLATES,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_RUN_COMMANDS,
-            [zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_DEFINE_COMMANDS_EDIT,
-            [zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_DEFINE_COMMANDS_VIEW,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
-        mp(zs.ZEN_MAINTENANCE_WINDOW_EDIT,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_MAINTENANCE_WINDOW_VIEW,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
-        mp(zs.ZEN_ADMINISTRATORS_EDIT,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.ZEN_ADMINISTRATORS_VIEW,
-            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
+        manager_role = [ZEN_MANAGER_ROLE, MANAGER_ROLE]
+        mp(ZEN_CHANGE_ADMIN_OBJECTS,    manager_role, 1)
+        mp(ZEN_CHANGE_EVENT_VIEWS,      manager_role, 1)
+        mp(ZEN_ADMIN_DEVICE,            manager_role, 1)
+        mp(ZEN_MANAGE_DEVICE,           manager_role, 1)
+        mp(ZEN_ZPROPERTIES_EDIT,        manager_role, 1)
+        mp(ZEN_EDIT_LOCAL_TEMPLATES,    manager_role, 1)
+        mp(ZEN_MAINTENANCE_WINDOW_EDIT, manager_role, 1)
+        mp(ZEN_ADMINISTRATORS_EDIT,     manager_role, 1)
+
+        manager_role_usr = [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE]
+        mp(ZEN_ZPROPERTIES_VIEW,        manager_role_usr, 1)
+        mp(ZEN_DEFINE_COMMANDS_VIEW,    manager_role_usr, 1)
+        mp(ZEN_MAINTENANCE_WINDOW_VIEW, manager_role_usr, 1)
+        mp(ZEN_ADMINISTRATORS_VIEW,     manager_role_usr, 1)
+
+        mp(ZEN_CHANGE_ALERTING_RULES,
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+
+        mp(ZEN_RUN_COMMANDS,
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+
+        mp(ZEN_DEFINE_COMMANDS_EDIT,
+            [MANAGER_ROLE], 1)
 
         # Triggers
-        mp(zs.MANAGE_TRIGGER,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.UPDATE_TRIGGER,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.VIEW_TRIGGER,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE,
-             zs.MANAGER_ROLE, zs.ZEN_USER_ROLE],
+        mp(MANAGE_TRIGGER,                      role_owner_manager, 1)
+        mp(UPDATE_TRIGGER,                      role_owner_manager, 1)
+        mp(UPDATE_NOTIFICATION,                 role_owner_manager, 1)
+        mp(MANAGE_NOTIFICATION_SUBSCRIPTIONS,   role_owner_manager, 1)
+        mp(VIEW_TRIGGER,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,
+             MANAGER_ROLE, ZEN_USER_ROLE],
             1)
-        mp(zs.UPDATE_NOTIFICATION,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
-        mp(zs.MANAGE_NOTIFICATION_SUBSCRIPTIONS,
-            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
 
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
