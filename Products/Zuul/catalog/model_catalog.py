@@ -227,7 +227,7 @@ class ModelCatalogTransactionState(object):
         self.temp_indexed_uids = set() # object uids of temporary indexed documents
         self.temp_deleted_uids = set() # object uids of temporary deleted documents
 
-        # During the tpc_vote phase, IndexUpdates are created for each
+        # During the tpc_begin phase, IndexUpdates are created for each
         # object we need to index
         self._updates_to_finish_tx = {} # { object_uid: modelindex.IndexUpdate}
 

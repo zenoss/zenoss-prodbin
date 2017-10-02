@@ -77,7 +77,7 @@ class TestModelCatalogTransactions(BaseTestCase):
     
     def _simulate_tx_commit(self):
         tx = transaction.get()
-        self.data_manager.tpc_vote(tx)
+        self.data_manager.tpc_begin(tx)
         self.data_manager.tpc_finish(tx)
 
     def testPartialUpdates(self):
