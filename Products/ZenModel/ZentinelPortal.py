@@ -35,7 +35,7 @@ from Products.ZenUtils.deprecated import deprecated
 import ZenossSecurity as zs
 
 
-class ZentinelPortal (PortalObjectBase):
+class ZentinelPortal(PortalObjectBase):
     """
     The *only* function this class should have is to help in the setup
     of a new ZentinelPortal. It should not assist in the functionality at all.
