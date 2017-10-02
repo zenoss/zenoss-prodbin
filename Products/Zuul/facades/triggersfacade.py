@@ -773,8 +773,8 @@ class TriggersFacade(ZuulFacade):
         }
         existingUsers.update({
             "{} (Group)".format(x.id): IGlobalIdentifier(x).getGUID()
-            for x in self._dmd.ZenUsers.getAllGroupSettings()}
-        )
+            for x in self._dmd.ZenUsers.getAllGroupSettings()
+        })
 
         removeDataList = ['subscriptions']
 

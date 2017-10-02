@@ -840,14 +840,11 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype: 'checkbox',
                         name: 'enabled',
                         id: 'edit_notification_schedule_enabled_checkbox',
-                        //ref: 'enabled',
                         fieldLabel: _t('Enabled')
-                    },{ //TRACER
+                    },{
                         xtype: 'zendatetimefield',
                         name: 'start_ts',
-                        //ref: 'start',
                         id: 'edit_notification_schedule_start_datefield',
-                        //format: 'm-d-Y',
                         allowBlank: false,
                         fieldLabel: _t('Start Date')
                     },
