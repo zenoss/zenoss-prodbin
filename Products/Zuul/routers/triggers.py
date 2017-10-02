@@ -144,9 +144,7 @@ class TriggersRouter(DirectRouter):
     # subscription windows
     @serviceConnectionError
     def getWindows(self, uid, **kwargs):
-        log.info('TRACER: triggerRouter.getWindows(%s)', uid)
         response = self._getFacade().getWindows(uid)
-        log.info('TRACER: triggerRouter.getWindows: response = %s', response)
         return DirectResponse.succeed(data=Zuul.marshal(response))
 
     @serviceConnectionError
