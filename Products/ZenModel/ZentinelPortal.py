@@ -13,32 +13,29 @@
 $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
-import urllib, urlparse
+import urlparse
 import re
 import time
 import textwrap
 
 import Globals
-from zExceptions import Redirect
 from AccessControl import getSecurityManager, ClassSecurityInfo
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
-from Products.BeakerSessionDataManager.sessiondata import addBeakerSessionDataManager
+from Products.BeakerSessionDataManager.sessiondata import (
+    addBeakerSessionDataManager
+)
 
 from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security, Time
-from Products.ZenUtils.Utils import prepId
 from Products.ZenUtils.deprecated import deprecated
-from Products.ZenUI3.browser.interfaces import IErrorMessage
+
+import ZenossSecurity as zs
 
 
-from ZenossSecurity import *
-
-from Products.AdvancedQuery import MatchGlob, Eq, Or
-
-class ZentinelPortal ( PortalObjectBase ):
+class ZentinelPortal (PortalObjectBase):
     """
     The *only* function this class should have is to help in the setup
     of a new ZentinelPortal. It should not assist in the functionality at all.
@@ -46,16 +43,16 @@ class ZentinelPortal ( PortalObjectBase ):
     meta_type = 'ZentinelPortal'
 
     _properties = (
-        {'id':'title', 'type':'string'},
-        {'id':'description', 'type':'text'},
-        )
+        {'id': 'title', 'type': 'string'},
+        {'id': 'description', 'type': 'text'},
+    )
     title = ''
     description = ''
 
     security = ClassSecurityInfo()
 
-    def __init__( self, id, title='' ):
-        PortalObjectBase.__init__( self, id, title )
+    def __init__(self, id, title=''):
+        PortalObjectBase.__init__(self, id, title)
 
     def server_time(self):
         return time.time()
@@ -80,13 +77,14 @@ class ZentinelPortal ( PortalObjectBase ):
             msg = session.get('login_message')
             del session['login_message']
         elif 'submitted' in url:
-            msg = "Your session has expired or you have entered an incorrect username or password."
+            msg = ("Your session has expired or you have entered an incorrect"
+                   " username or password.")
         else:
             msg = ""
 
         return DELIMITER.join(textwrap.wrap(msg, WIDTH))
 
-    security.declareProtected(ZEN_COMMON, 'searchDevices')
+    security.declareProtected(zs.ZEN_COMMON, 'searchDevices')
     @deprecated
     def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
@@ -95,7 +93,7 @@ class ZentinelPortal ( PortalObjectBase ):
         # TODO: Remove. Not used anymore in Zenoss code --Ian
         return []
 
-    security.declareProtected(ZEN_COMMON, 'searchComponents')
+    security.declareProtected(zs.ZEN_COMMON, 'searchComponents')
     @deprecated
     def searchComponents(self, device='', component='', REQUEST=None):
         """
@@ -104,7 +102,7 @@ class ZentinelPortal ( PortalObjectBase ):
         # TODO: Remove. Not used anymore in Zenoss code --Ian
         return []
 
-    security.declareProtected(ZEN_COMMON, 'dotNetProxy')
+    security.declareProtected(zs.ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):
         """
         Logs in to Zenoss.net using the user's credentials and retrieves data,
@@ -147,23 +145,25 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         user = self.dmd.ZenUsers.getUser()
         if user:
-            return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
-
+            return user.has_role((zs.MANAGER_ROLE, zs.ZEN_MANAGER_ROLE), obj)
 
     def has_role(self, role, obj=None):
         """Check to see of a user has a role.
         """
-        if obj is None: obj = self
+        if obj is None:
+            obj = self
         user = getSecurityManager().getUser()
-        if user: return user.has_role(role, obj)
-
+        if user:
+            return user.has_role(role, obj)
 
     def has_permission(self, perm, obj=None):
         """Check to see of a user has a permission.
         """
-        if obj is None: obj = self
+        if obj is None:
+            obj = self
         user = getSecurityManager().getUser()
-        if user: return user.has_permission(perm, obj)
+        if user:
+            return user.has_permission(perm, obj)
 
     def getCurrentYear(self):
         """
@@ -228,85 +228,97 @@ class PortalGenerator:
         addCMFCoreTool = p.manage_addProduct['CMFCore'].manage_addTool
         addCMFCoreTool('CMF Skins Tool', None)
 
-
     def setupMailHost(self, p):
         p.manage_addProduct['MailHost'].manage_addMailHost(
             'MailHost', smtp_host='localhost')
 
-
     def setupUserFolder(self, p):
-        #p.manage_addProduct['OFSP'].manage_addUserFolder()
         Security.createPASFolder(p)
         Security.setupPASFolder(p)
 
-
     def setupCookieAuth(self, p):
-        # XXX PAS is handling this now, right?
-        #p.manage_addProduct['CMFCore'].manage_addCC(
-        #    id='cookie_authentication')
         pass
-
 
     def setupRoles(self, p):
         # Set up the suggested roles.
-        p.__ac_roles__ += (ZEN_USER_ROLE, ZEN_MANAGER_ROLE,)
-
+        p.__ac_roles__ += (zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,)
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
-        #print("Starting setup of default permissions.")
         mp = p.manage_permission
-        mp(ZEN_CHANGE_SETTINGS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_CHANGE_DEVICE_PRODSTATE,
-            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_DELETE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_VIEW, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
-                        MANAGER_ROLE, OWNER_ROLE])
-        mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
-                        MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_SETTINGS,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_DEVICE,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_DEVICE_PRODSTATE,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_MANAGE_DMD,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_DELETE,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_DELETE_DEVICE,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_ADD,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(
+            zs.ZEN_VIEW,
+            [zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,
+             zs.MANAGER_ROLE, zs.OWNER_ROLE]
+        )
+        mp(zs.ZEN_COMMON,
+            ["Authenticated", zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE,
+             zs.MANAGER_ROLE, zs.OWNER_ROLE],
+            1)
 
         # Events
-        mp(ZEN_MANAGE_EVENTMANAGER,
-            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_MANAGE_EVENTS,
-            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_SEND_EVENTS,
-            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(zs.ZEN_MANAGE_EVENTMANAGER,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_MANAGE_EVENTS,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_SEND_EVENTS,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
 
-        mp(ZEN_CHANGE_ALERTING_RULES,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ADMIN_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_MANAGE_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ZPROPERTIES_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ZPROPERTIES_VIEW,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
-        mp(ZEN_EDIT_LOCAL_TEMPLATES, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_RUN_COMMANDS, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_DEFINE_COMMANDS_EDIT, [MANAGER_ROLE], 1)
-        mp(ZEN_DEFINE_COMMANDS_VIEW,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
-        mp(ZEN_MAINTENANCE_WINDOW_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_MAINTENANCE_WINDOW_VIEW,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
-        mp(ZEN_ADMINISTRATORS_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_ADMINISTRATORS_VIEW,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
-        #mp(ZEN_EDIT_USER, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        #mp(ZEN_EDIT_USERGROUP, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_ALERTING_RULES,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.OWNER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_ADMIN_OBJECTS,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_CHANGE_EVENT_VIEWS,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_ADMIN_DEVICE, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_MANAGE_DEVICE, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_ZPROPERTIES_EDIT, [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_ZPROPERTIES_VIEW,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
+        mp(zs.ZEN_EDIT_LOCAL_TEMPLATES,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_RUN_COMMANDS,
+            [zs.ZEN_USER_ROLE, zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_DEFINE_COMMANDS_EDIT,
+            [zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_DEFINE_COMMANDS_VIEW,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
+        mp(zs.ZEN_MAINTENANCE_WINDOW_EDIT,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_MAINTENANCE_WINDOW_VIEW,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
+        mp(zs.ZEN_ADMINISTRATORS_EDIT,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.ZEN_ADMINISTRATORS_VIEW,
+            [zs.ZEN_MANAGER_ROLE, zs.MANAGER_ROLE, zs.ZEN_USER_ROLE], 1)
 
         # Triggers
-        mp(MANAGE_TRIGGER,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(UPDATE_TRIGGER,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(VIEW_TRIGGER,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE,], 1)
-        mp(UPDATE_NOTIFICATION,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(MANAGE_NOTIFICATION_SUBSCRIPTIONS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        #print("End setup of default permissions.")
+        mp(zs.MANAGE_TRIGGER,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.UPDATE_TRIGGER,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.VIEW_TRIGGER,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE,
+             zs.MANAGER_ROLE, zs.ZEN_USER_ROLE],
+            1)
+        mp(zs.UPDATE_NOTIFICATION,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
+        mp(zs.MANAGE_NOTIFICATION_SUBSCRIPTIONS,
+            [zs.ZEN_MANAGER_ROLE, zs.OWNER_ROLE, zs.MANAGER_ROLE], 1)
 
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
@@ -315,7 +327,6 @@ class PortalGenerator:
         ps.manage_addProduct['OFSP'].manage_addFolder(id='custom')
         ps.addSkinSelection('Basic', "custom, zenmodel", make_default=1)
         p.setupCurrentSkin()
-
 
     def setupSessionManager(self, p):
         """build a session manager and brower id manager for zport"""
@@ -329,14 +340,12 @@ class PortalGenerator:
     def setup(self, p, create_userfolder):
         if create_userfolder:
             self.setupUserFolder(p)
-        #self.setupCookieAuth(p)
         self.setupTools(p)
         self.setupMailHost(p)
         self.setupRoles(p)
         self.setupPermissions(p)
         self.setupDefaultSkins(p)
         self.setupSessionManager(p)
-
 
     def create(self, parent, id, create_userfolder):
         id = str(id)
@@ -346,7 +355,6 @@ class PortalGenerator:
         p = parent.this()._getOb(id)
         self.setup(p, create_userfolder)
         return p
-
 
     def setupDefaultProperties(self, p, title, description,
                                email_from_address, email_from_name,
@@ -362,12 +370,13 @@ class PortalGenerator:
 manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
+
 def manage_addZentinelPortal(obj, id="zport", title='Zentinel Portal',
-                         description='',
-                         create_userfolder=True,
-                         email_from_address='postmaster@localhost',
-                         email_from_name='Portal Administrator',
-                         validate_email=0, RESPONSE=None):
+                             description='',
+                             create_userfolder=True,
+                             email_from_address='postmaster@localhost',
+                             email_from_name='Portal Administrator',
+                             validate_email=0, RESPONSE=None):
     '''
     Adds a portal instance.
     '''
@@ -379,4 +388,4 @@ def manage_addZentinelPortal(obj, id="zport", title='Zentinel Portal',
                                email_from_address, email_from_name,
                                validate_email)
     if RESPONSE is not None:
-        RESPONSE.redirect(obj.absolute_url_path()+'/manage_main')
+        RESPONSE.redirect(obj.absolute_url_path() + '/manage_main')
