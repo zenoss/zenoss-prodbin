@@ -227,7 +227,7 @@ class ModelCatalogTransactionState(object):
         self.temp_indexed_uids = set() # object uids of temporary indexed documents
         self.temp_deleted_uids = set() # object uids of temporary deleted documents
 
-        # During the tpc_vote phase, IndexUpdates are created for each
+        # During the tpc_begin phase, IndexUpdates are created for each
         # object we need to index
         self._updates_to_finish_tx = {} # { object_uid: modelindex.IndexUpdate}
 
@@ -269,7 +269,7 @@ class ModelCatalogTransactionState(object):
         """ return updates that have not been sent to the index """
         # build the IndexUpdate from the ObjectUpdate buffered in self.pending_updates
         modelindex_updates = {}
-        for object_update in self.pending_updates.values():
+        for object_update in self.pending_updates.itervalues():
             uid = object_update.uid
             op = object_update.op
             idxs = object_update.idxs
@@ -360,7 +360,7 @@ class ModelCatalogDataManager(object):
         tweaked_updates = []
         indexed_uids = set()
         deleted_uids = set()
-        for update in updates.values():
+        for update in updates.itervalues():
             tid = tx_state.tid
             if update.op == UNINDEX:
                 # dont do anything for unindexed objects, just add them to
@@ -553,6 +553,10 @@ class ModelCatalogDataManager(object):
                 log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))
                 raise ModelCatalogError("Model Catalog error trying to abort transaction")
 
+    #---------------------------------------------------------------------------
+    # Two-phase commit protocol sequence of calls:
+    #     tpc_begin commit tpc_vote (tpc_finish | tpc_abort)
+    #---------------------------------------------------------------------------
     def abort(self, tx):
         try:
             self._delete_temporary_tx_documents()
@@ -560,7 +564,13 @@ class ModelCatalogDataManager(object):
             self.reset_tx_state(tx)
 
     def tpc_begin(self, transaction):
-        pass
+        # Get the modelindex.IndexUpdate of all updated objects
+        # Doing this in any of the following tpc phases can cause PosKeyErrors
+        tx_state = self._get_tx_state(transaction)
+        if tx_state:
+            start = time.time()
+            tx_state.prepare_updates_to_finish_transaction()
+            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def commit(self, transaction):
         pass
@@ -569,12 +579,6 @@ class ModelCatalogDataManager(object):
         # Check connection to SOLR
         if not self.ping_index():
             raise ModelCatalogUnavailableError()
-        # Get the modelindex.IndexUpdate of all updated objects
-        tx_state = self._get_tx_state(transaction)
-        if tx_state:
-            start = time.time()
-            tx_state.prepare_updates_to_finish_transaction()
-            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def tpc_finish(self, transaction):
         try:
