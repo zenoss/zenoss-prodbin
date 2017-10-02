@@ -198,9 +198,19 @@ Ext.define('Zenoss.date.Moment', {
      */
     toMomentFormat: ext2moment,
 
-    constructor: function() {
-        this.momentFormat = Zenoss.USER_DATE_FORMAT + " " + Zenoss.USER_TIME_FORMAT;
-        this.extFormat = moment2ext(Zenoss.USER_DATE_FORMAT + " " + Zenoss.USER_TIME_FORMAT);
+    constructor: function(config) {
+        var config = config || {};
+        Ext.applyIf(config, {
+            dateOnly: false
+        });
+
+        if (config.dateOnly) {
+            this.momentFormat = Zenoss.USER_DATE_FORMAT;
+            this.extFormat = moment2ext(Zenoss.USER_DATE_FORMAT);
+        } else {
+            this.momentFormat = Zenoss.USER_DATE_FORMAT + " " + Zenoss.USER_TIME_FORMAT;
+            this.extFormat = moment2ext(Zenoss.USER_DATE_FORMAT + " " + Zenoss.USER_TIME_FORMAT);
+        }
     },
 
     /**
@@ -264,7 +274,7 @@ Ext.define('Zenoss.form.field.DateTime', {
     mixins: ['Zenoss.date.Moment'],
     constructor: function(config) {
         // Calling the mixin constructor because Ext does not.
-        this.mixins['Zenoss.date.Moment'].constructor.call(this);
+        this.mixins['Zenoss.date.Moment'].constructor.call(this, config);
 
         var config = config || {};
         config = Ext.applyIf(config, {
@@ -287,5 +297,6 @@ Ext.define('Zenoss.form.field.DateTime', {
         return this.getValue();
     }
 });
+
 
 })(); // End local scope

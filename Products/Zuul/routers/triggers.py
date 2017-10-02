@@ -21,7 +21,8 @@ from Products.ZenModel.Trigger import DuplicateTriggerName
 
 import logging
 
-log = logging.getLogger('zen.triggers');
+log = logging.getLogger('zen.triggers')
+
 
 class TriggersRouter(DirectRouter):
     """
@@ -43,7 +44,7 @@ class TriggersRouter(DirectRouter):
     def addTrigger(self, newId):
         try:
             data = self._getFacade().addTrigger(newId)
-        except DuplicateTriggerName, tnc:
+        except DuplicateTriggerName as tnc:
             log.debug("Exception DuplicateTriggerName: %s" % tnc)
             return DirectResponse.fail(str(tnc))
         else:
@@ -56,9 +57,9 @@ class TriggersRouter(DirectRouter):
         updated_count = self._getFacade().removeTrigger(uuid)
         audit('UI.Trigger.Remove', trigger['name'])
         msg = "Trigger removed successfully. {count} {noun} {verb} updated.".format(
-            count = updated_count,
-            noun = 'notification' if updated_count == 1 else 'notifications',
-            verb = 'was' if updated_count == 1 else 'were'
+            count=updated_count,
+            noun='notification' if updated_count == 1 else 'notifications',
+            verb='was' if updated_count == 1 else 'were'
         )
         return DirectResponse.succeed(msg=msg, data=None)
 
@@ -73,18 +74,21 @@ class TriggersRouter(DirectRouter):
         triggerUid = data['uuid']
         response = self._getFacade().updateTrigger(**data)
         audit('UI.Trigger.Edit', triggerUid, data_=data)
-        return DirectResponse.succeed(msg="Trigger updated successfully.", data=response)
+        return DirectResponse.succeed(
+            msg="Trigger updated successfully.", data=response
+        )
 
     @serviceConnectionError
     def parseFilter(self, source):
         try:
             response = self._getFacade().parseFilter(source)
             return DirectResponse.succeed(data=response)
-        except Exception, e:
-            log.exception(e)
-            return DirectResponse.exception(e,
-                'Error parsing filter source. Please check your syntax.')
-
+        except Exception as err:
+            log.exception()
+            return DirectResponse.exception(
+                err,
+                'Error parsing filter source. Please check your syntax.'
+            )
 
     # notification subscriptions
     @serviceConnectionError
@@ -102,12 +106,17 @@ class TriggersRouter(DirectRouter):
     def removeNotification(self, uid):
         response = self._getFacade().removeNotification(uid)
         audit('UI.Notification.Remove', uid)
-        return DirectResponse.succeed(msg="Notification removed successfully.", data=response)
+        return DirectResponse.succeed(
+            msg="Notification removed successfully.", data=response
+        )
 
     @serviceConnectionError
     def getNotificationTypes(self, query=''):
         utils = getUtilitiesFor(IAction)
-        actionTypes = sorted((dict(id=id, name=util.name) for id, util in utils), key=itemgetter('id'))
+        actionTypes = sorted(
+            (dict(id=id, name=util.name) for id, util in utils),
+            key=itemgetter('id')
+        )
         log.debug('notification action types are: %s' % actionTypes)
         return DirectResponse.succeed(data=actionTypes)
 
@@ -120,13 +129,17 @@ class TriggersRouter(DirectRouter):
     def updateNotification(self, **data):
         notificationUid = data['uid']
         response = self._getFacade().updateNotification(**data)
-        audit('UI.Notification.Edit', notificationUid, data_=data, maskFields_='password')
-        return DirectResponse.succeed(msg="Notification updated successfully.", data=Zuul.marshal(response))
+        audit('UI.Notification.Edit', notificationUid,
+              data=data, maskFields='password')
+        return DirectResponse.succeed(
+            msg="Notification updated successfully.",
+            data=Zuul.marshal(response)
+        )
 
     @serviceConnectionError
     def getRecipientOptions(self, **kwargs):
         data = self._getFacade().getRecipientOptions()
-        return DirectResponse.succeed(data=data);
+        return DirectResponse.succeed(data=data)
 
     # subscription windows
     @serviceConnectionError
@@ -161,13 +174,18 @@ class TriggersRouter(DirectRouter):
     @serviceConnectionError
     def exportConfiguration(self, triggerIds=None, notificationIds=None):
         facade = self._getFacade()
-        triggers, notifications = facade.exportConfiguration(triggerIds, notificationIds)
+        triggers, notifications = facade.exportConfiguration(
+            triggerIds, notificationIds
+        )
         msg = "Exported %d triggers and %d notifications" % (
-                 len(triggers), len(notifications))
+            len(triggers), len(notifications)
+        )
         audit('UI.TriggerNotification.Export', msg)
-        return DirectResponse.succeed(triggers=Zuul.marshal(triggers),
-                                      notifications=Zuul.marshal(notifications),
-                                      msg=msg)
+        return DirectResponse.succeed(
+            triggers=Zuul.marshal(triggers),
+            notifications=Zuul.marshal(notifications),
+            msg=msg
+        )
 
     @serviceConnectionError
     def importConfiguration(self, triggers=None, notifications=None):
@@ -175,13 +193,19 @@ class TriggersRouter(DirectRouter):
             tcount = len(triggers) if triggers is not None else 0
             ncount = len(notifications) if notifications is not None else 0
             facade = self._getFacade()
-            itcount, incount = facade.importConfiguration(triggers, notifications)
+            itcount, incount = facade.importConfiguration(
+                triggers, notifications
+            )
             msg = "Imported %d of %d triggers and %d of %d notifications" % (
-                        tcount, itcount, ncount, incount)
+                tcount, itcount, ncount, incount
+            )
             audit('UI.TriggerNotification.Import', msg)
             return DirectResponse.succeed(msg=msg)
         except Exception as ex:
-            audit('UI.TriggerNotification.Import', "Failed to import trigger/notification data")
-            log.exception("Unable to import data:\ntriggers=%s\nnotifications=%s",
-                          repr(triggers), repr(notifications))
+            audit('UI.TriggerNotification.Import',
+                  "Failed to import trigger/notification data")
+            log.exception(
+                "Unable to import data:\ntriggers=%s\nnotifications=%s",
+                repr(triggers), repr(notifications)
+            )
             return DirectResponse.fail(str(ex))
