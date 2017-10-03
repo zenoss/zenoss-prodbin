@@ -366,9 +366,7 @@ class ZenPackCmd(ZenScriptBase):
         linkedPacks = []
 
         # find any new zenpacks to be installed
-        from_version = self.dmd.version
-        from_version = ' '.join([x for x in from_version.split()
-                                 if x[0].isdigit() and x[-1].isdigit()])
+        from_version = self.dmd.About.getZenossVersionShort()
         from_version = parse_version(from_version)
         to_version = parse_version(VERSION)
         if os.path.isfile(ZPHISTORY):
