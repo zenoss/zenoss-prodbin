@@ -457,6 +457,28 @@
                         }
                     }
                 }
+                chart.normalizeTimeToMs = function (val){
+                    var TIME_UNITS = {
+                        s: 1000,
+                        m: 1000 * 60,
+                        h: 1000 * 60 * 60,
+                        d: 1000 * 60 * 60 * 24
+                    };
+                    var timeUnitsRegExp = /[smhd]/;
+                    var timeNow = new Date().getTime();
+                    var agoMatch, unitMatch, count, unit, msTime;
+
+                    agoMatch = /ago/.exec(val);
+                    if (agoMatch === null ) {
+                        msTime = val;
+                    } else {
+                        unitMatch = timeUnitsRegExp.exec(val);
+                        count = +val.slice(0, unitMatch.index);
+                        unit = val.slice(unitMatch.index, agoMatch.index - 1);
+                        msTime = timeNow - count * TIME_UNITS[unit];
+                    }
+                    return msTime;
+                }
             });
 
         },
