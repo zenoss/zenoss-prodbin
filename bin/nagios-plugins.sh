@@ -63,7 +63,7 @@ install() {
 
     # /usr/sbin/rpcinfo is needed for nagios-plugins-rpc.
     yum install -y rpcbind
-	RC=$?
+    RC=$?
     if [ $RC -ne 0 ]; then
         echo "Error installing rpcbind! rpcbind is needed for installing nagios-plugins-rpc."
         return $RC
