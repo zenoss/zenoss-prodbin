@@ -26,7 +26,6 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             return false;
         },
         getStartTime: function(startTime){
-            console.log(startTime);
             startTime = moment.tz(moment.utc(startTime, "YYYY/MM/DD HH:mm:ss"), Zenoss.USER_TIMEZONE).format("YYYY/MM/DD HH:mm:ss");
             // @startTime format: 2012/10/22 08:05:00.000
             // break it up for the form elements
