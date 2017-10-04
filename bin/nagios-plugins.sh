@@ -93,12 +93,12 @@ install() {
 if [[ "$1" == "install" ]]; then
     shift
     install $@
-	exit $?
+    exit $?
 elif [[ "$1" == "download" ]]; then
     shift
     download $@
-	exit $?
+    exit $?
 else
     help
-	exit $?
+    exit $?
 fi
