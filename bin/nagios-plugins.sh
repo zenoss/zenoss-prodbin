@@ -69,26 +69,6 @@ install() {
         return $RC
     fi
 
-    # Check if the rpm files exist
-    if [[ ! -z "$1" ]]; then
-        RPM_DIR=$1
-        shift
-    fi
-
-    FILENAME=$COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
-    if [ ! -f "$RPM_DIR/$FILENAME" ]; then
-        echo "Error: $FILENAME does not exist in $RPM_DIR"
-		return 1
-    fi
-
-    for PLUGIN_NAME in $PLUGIN_NAMES; do
-        FILENAME=$PLUGIN_NAME-$PLUGIN_VER-$PKG_SUFFIX
-        if [ ! -f "$RPM_DIR/$FILENAME" ]; then
-            echo "Error: $FILENAME does not exist in $RPM_DIR"
-			return 1
-        fi
-    done
-
     # Installation
 
     pushd $RPM_DIR
@@ -113,10 +93,12 @@ install() {
 if [[ "$1" == "install" ]]; then
     shift
     install $@
+	exit $?
 elif [[ "$1" == "download" ]]; then
     shift
     download $@
+	exit $?
 else
     help
+	exit $?
 fi
-return $?
