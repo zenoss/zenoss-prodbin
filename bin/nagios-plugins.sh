@@ -27,18 +27,17 @@ PKG_SUFFIX="2.sdl7.x86_64.rpm"
 RPM_DIR=/root/rpm/nagios
 
 download() {
-    DEST=$RPM_DIR
     if [[ ! -z "$1" ]]; then
-        DEST=$1
+        RPM_DIR=$1
         shift
     fi
-    mkdir -p $DEST
+    mkdir -p $RPM_DIR
     URL_BASE="http://get.zenoss.io/yum/zenoss/stable/centos/el7/os/x86_64"
 
     FILENAME=$COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
     URL="$URL_BASE/$FILENAME"
     echo "Downloading $COMMON_NAME..."
-    wget "$URL" -O "$DEST/$FILENAME"
+    wget "$URL" -O "$RPM_DIR/$FILENAME"
     RC=$?
     if [ $RC -ne 0 ]; then
         echo "Error downloading $COMMON_NAME from $URL_BASE!"
@@ -49,7 +48,7 @@ download() {
         FILENAME=$PLUGIN_NAME-$PLUGIN_VER-$PKG_SUFFIX
         URL="$URL_BASE/$FILENAME"
         echo "Downloading $PLUGIN_NAME..."
-        wget "$URL" -O "$DEST/$FILENAME"
+        wget "$URL" -O "$RPM_DIR/$FILENAME"
         RC=$?
         if [ $RC -ne 0 ]; then
             echo "Error downloading $PLUGIN_NAME from $URL_BASE!"
@@ -71,29 +70,28 @@ install() {
     fi
 
     # Check if the rpm files exist
-    DEST=$RPM_DIR
     if [[ ! -z "$1" ]]; then
-        DEST=$1
+        RPM_DIR=$1
         shift
     fi
 
     FILENAME=$COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
-    if [ ! -f "$DEST/$FILENAME" ]; then
-        echo "Error: $FILENAME does not exist in $DEST"
+    if [ ! -f "$RPM_DIR/$FILENAME" ]; then
+        echo "Error: $FILENAME does not exist in $RPM_DIR"
 		return 1
     fi
 
     for PLUGIN_NAME in $PLUGIN_NAMES; do
         FILENAME=$PLUGIN_NAME-$PLUGIN_VER-$PKG_SUFFIX
-        if [ ! -f "$DEST/$FILENAME" ]; then
-            echo "Error: $FILENAME does not exist in $DEST"
+        if [ ! -f "$RPM_DIR/$FILENAME" ]; then
+            echo "Error: $FILENAME does not exist in $RPM_DIR"
 			return 1
         fi
     done
 
-	# Installation
+    # Installation
 
-    pushd $DEST
+    pushd $RPM_DIR
     yum localinstall -y $COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
     RC=$?
     if [ $RC -ne 0 ]; then
