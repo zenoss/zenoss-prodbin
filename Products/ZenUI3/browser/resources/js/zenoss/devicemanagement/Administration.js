@@ -26,6 +26,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             return false;
         },
         getStartTime: function(startTime){
+            console.log(startTime);
+            startTime = moment.tz(moment.utc(startTime, "YYYY/MM/DD HH:mm:ss"), Zenoss.USER_TIMEZONE).format("YYYY/MM/DD HH:mm:ss");
             // @startTime format: 2012/10/22 08:05:00.000
             // break it up for the form elements
             var t = startTime.split(" ");
@@ -33,6 +35,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
             _start.date = t[0].split("/")[1]+"/"+t[0].split("/")[2]+"/"+t[0].split("/")[0];
             _start.hr = t[1].split(":")[0];
             _start.min = t[1].split(":")[1];
+            _start.datefmt = moment.tz(moment.utc(startTime, "YYYY/MM/DD HH:mm:ss"), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT);$
             return _start;
         },
         getDuration: function(duration){
@@ -177,7 +180,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                             function(record){
                                 switch(record.getName()){
                                     case "start_state"    : record.setValue(prodState);  break;
-                                    case "start_date"     : record.setValue(startTime.date);  break;
+                                    case "start_date"     : record.setValue(startTime.datefmt);  break;
                                     case "start_hr"       : record.setValue(startTime.hr); break;
                                     case "start_min"      : record.setValue(startTime.min); break;
                                     case "name"           : record.setValue(data.name);  break;
@@ -238,9 +241,13 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     items: [
                         {
                             xtype: 'datefield',
+                            formated: false,
+                            format: Ext.create('Zenoss.date.Moment', {dateOnly: true}).extFormat,
+                            altFormats: 'Y-d-m|m-d-Y|d-m-Y|Y/m/d|d/m/Y|m/d/Y',
+                            submitFormat: 'm/d/Y',
                             allowBlank: false,
                             name: 'start_date',
-                            fieldLabel: _t('Start Date and Time')
+                            fieldLabel: _t('Start Date and Time'),
                         },{
                             xtype: 'panel',
                             layout: 'hbox',
@@ -961,9 +968,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         filter: false,
                         sortable: true,
                         renderer: function(val){
-                            var chunk = val.split(".");
-                            var tz = val.split(" ")[2]
-                            return chunk[0]+" "+tz;
+                            return moment.tz(moment.utc(val, "YYYY/MM/DD HH:mm:ss"), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT);
                         }
                     },{
                         id: 'maint_duration_data',
@@ -1019,11 +1024,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             maintDialog(this, data);
         },
         beforeRender: function() {
-            Zenoss.remote.DeviceManagementRouter.getTimeZone({}, function(response){
-                if(response.success){
-                    timeZone = response.data;
-                }
-            });
+            timeZone = Zenoss.USER_TIMEZONE;
         }
     });
 
