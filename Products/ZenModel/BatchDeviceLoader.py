@@ -36,13 +36,15 @@ from Products.ZenModel.ZenModelBase import iscustprop
 from Products.ZenEvents.ZenEventClasses import Change_Add
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import unused
-# We import DateTime so that we can set properties of type DateTime in the batchload
+# import DateTime to set properties of type DateTime in the zenbatchload
 from DateTime import DateTime
+
 unused(DateTime)
 
 from Products.ZenUtils.IpUtil import isip
 
 from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_INFO, SEVERITY_ERROR
+
 
 def transactional(f):
     def wrapper(obj, *args, **kwargs):
@@ -50,15 +52,18 @@ def transactional(f):
             return f.__call__(obj, *args, **kwargs)
         else:
             return transact(f).__call__(obj, *args, **kwargs)
+
     return wrapper
+
 
 class BatchDeviceLoader(ZCmdBase):
     """
     Base class wrapping around dmd.DeviceLoader
     """
 
-# ZEN-9930 - Pulled these options from sample config
-# setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
+    # ZEN-9930 - Pulled these options from sample config
+    # setHWProduct=('myproductName','manufacturer')
+    # setOSProduct=('OS Name','manufacturer')
 
     sample_configs = """#
 # Example zenbatchloader file (Groups, Systems Locations, Devices, etc.)
@@ -158,14 +163,12 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
 #   setGroups
 #   setSystems
 """
+
     def __init__(self, *args, **kwargs):
         ZCmdBase.__init__(self, *args, **kwargs)
         self.defaults = {}
-
         self.collectorNames = self.dmd.Monitors.getPerformanceMonitorNames()
-
         self.loader = self.dmd.DeviceLoader.loadDevice
-
         self.fqdn = socket.getfqdn()
         self.baseEvent = dict(
             device=self.fqdn,
@@ -174,12 +177,13 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             monitor='localhost',
             manager=self.fqdn,
             severity=SEVERITY_ERROR,
-            # Note: Change_Add events get sent to history by the event class' Zen property
+            # Note: Change_Add events get sent to history
+            # by the event class' Zen property
             eventClass=Change_Add,
         )
 
         # Create the list of options we want people to know about
-        self.loader_args = dict.fromkeys( self.loader.func_code.co_varnames )
+        self.loader_args = dict.fromkeys(self.loader.func_code.co_varnames)
         unsupportable_args = [
             'REQUEST', 'device', 'self', 'xmlrpc', 'e', 'handler',
         ]
@@ -205,7 +209,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         for filename in args:
             if filename.strip() != '':
                 try:
-                    data = open(filename,'r').readlines()
+                    data = open(filename, 'r').readlines()
                 except IOError:
                     msg = "Unable to open the file '%s'" % filename
                     self.reportException(msg)
@@ -228,44 +232,62 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         @parameter device_specs: device creation dictionary
         @type device_specs: dictionary
         """
-        self.log.debug( "Applying zProperties..." )
+        self.log.debug("Applying zProperties...")
         # Returns a list of (key, value) pairs.
         # Convert it to a dictionary.
-        dev_zprops = dict( device.zenPropertyItems() )
+        dev_zprops = dict(device.zenPropertyItems())
 
         for zprop, value in device_specs.items():
-            self.log.debug( "Evaluating zProperty <%s -> %s> on %s" % (zprop, value, device.id) )
+            self.log.debug(
+                "Evaluating zProperty <%s -> %s> on %s",
+                zprop, value, device.id
+            )
             if not iszprop(zprop):
-                self.log.debug( "Evaluating zProperty <%s -> %s> on %s: not iszprop()" % (zprop, value, device.id) )
+                self.log.debug(
+                    "Evaluating zProperty <%s -> %s> on %s: not iszprop()",
+                    zprop, value, device.id
+                )
                 continue
 
             if zprop in dev_zprops:
                 try:
-                    self.log.debug( "Setting zProperty <%s -> %s> on %s (currently set to %s)" % (
-                       zprop, value, device.id, getattr(device, zprop, 'notset')) )
+                    self.log.debug(
+                        "Setting zProperty <%s -> %s> on %s "
+                        "(currently set to %s)",
+                        zprop, value, device.id,
+                        getattr(device, zprop, 'notset')
+                    )
                     device.setZenProperty(zprop, value)
                 except BadRequest:
-                    self.log.warn( "Object %s zproperty %s is invalid or duplicate" % (
-                       device.titleOrId(), zprop) )
-                except Exception, ex:
-                    self.log.warn( "Object %s zproperty %s not set (%s)" % (
-                       device.titleOrId(), zprop, ex) )
-                self.log.debug( "Set zProperty <%s -> %s> on %s (now set to %s)" % (
-                   zprop, value, device.id, getattr(device, zprop, 'notset')) )
+                    self.log.warn(
+                        "Object %s zproperty %s is invalid or duplicate",
+                        device.titleOrId(), zprop
+                    )
+                except Exception as ex:
+                    self.log.warn(
+                        "Object %s zproperty %s not set (%s)",
+                        device.titleOrId(), zprop, ex
+                    )
+                self.log.debug(
+                    "Set zProperty <%s -> %s> on %s (now set to %s)",
+                    zprop, value, device.id, getattr(device, zprop, 'notset')
+                )
             else:
-                self.log.warn( "The zproperty %s doesn't exist in %s" % (
-                   zprop, device_specs.get('deviceName', device.id)))
+                self.log.warn(
+                    "The zproperty %s doesn't exist in %s",
+                    zprop, device_specs.get('deviceName', device.id)
+                )
 
     def applyCustProps(self, device, device_specs):
         """
         Custom schema properties
         """
-        self.log.debug( "Applying custom schema properties..." )
+        self.log.debug("Applying custom schema properties...")
         dev_cprops = device.custPropertyMap()
 
         for cprop, value in device_specs.items():
             if not iscustprop(cprop):
-               continue
+                continue
 
             matchProps = [prop for prop in dev_cprops if prop['id'] == cprop]
             if matchProps:
@@ -274,19 +296,22 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                     ctype = 'string'
                 if ctype in type_converters and value:
                     value = type_converters[ctype](value)
-                device.setZenProperty( cprop, value)
+                device.setZenProperty(cprop, value)
             else:
-                self.log.warn( "The cproperty %s doesn't exist in %s" % (
-                       cprop, device_specs.get('deviceName', device.id)))
+                self.log.warn(
+                    "The cproperty %s doesn't exist in %s",
+                    cprop, device_specs.get('deviceName', device.id)
+                )
 
     def addAllLGSOrganizers(self, device_specs):
         location = device_specs.get('setLocation')
         if location:
-            self.addLGSOrganizer('Locations', (location,) )
+            self.addLGSOrganizer('Locations', (location,))
 
         systems = device_specs.get('setSystems')
         if systems:
-            if not isinstance(systems, list) and not isinstance(systems, tuple):
+            if not isinstance(systems, list) \
+                    and not isinstance(systems, tuple):
                 systems = (systems,)
             self.addLGSOrganizer('Systems', systems)
 
@@ -296,7 +321,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 groups = (groups,)
             self.addLGSOrganizer('Groups', groups)
 
-    def addLGSOrganizer(self, lgsType, paths=[]):
+    def addLGSOrganizer(self, lgsType, paths=()):
         """
         Add any new locations, groups or organizers
         """
@@ -304,8 +329,8 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         base = getattr(self.dmd, lgsType)
         if hasattr(base, 'sync'):
             base.sync()
-        existing = [x.getPrimaryUrlPath().replace(prefix, '') \
-                                      for x in base.getSubOrganizers()]
+        existing = [x.getPrimaryUrlPath().replace(prefix, '')
+                    for x in base.getSubOrganizers()]
         for path in paths:
             if path in existing:
                 continue
@@ -323,8 +348,10 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         baseOrg = path.split('/', 2)[1]
         base = getattr(self.dmd, baseOrg, None)
         if base is None:
-            self.log.error("The base of path %s (%s) does not exist -- skipping",
-                           baseOrg, path)
+            self.log.error(
+                "The base of path %s (%s) does not exist -- skipping",
+                baseOrg, path
+            )
             return
 
         try:
@@ -332,13 +359,18 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         except KeyError:
             try:
                 self.log.info("Creating organizer %s", path)
+
                 @transactional
                 def inner(self):
                     base.manage_addOrganizer(path)
+
                 inner(self)
                 org = base.getDmdObj(path)
             except IOError:
-                self.log.error("Unable to create organizer! Is Rabbit up and configured correctly?")
+                self.log.error(
+                    "Unable to create organizer! "
+                    "Is Rabbit up and configured correctly?"
+                )
                 sys.exit(1)
         self.applyZProps(org, device_specs)
         self.applyCustProps(org, device_specs)
@@ -353,18 +385,19 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         @parameter device_specs: device creation dictionary
         @type device_specs: dictionary
         """
-        self.log.debug( "Applying other properties..." )
+        self.log.debug("Applying other properties...")
         internalVars = [
-           'deviceName', 'devicePath', 'loader', 'loader_arg_keys',
+            'deviceName', 'devicePath', 'loader', 'loader_arg_keys',
         ]
+
         @transactional
         def setNamedProp(self, org, name, description):
             setattr(org, name, description)
 
         for functor, value in device_specs.items():
-
-            if iszprop(functor) or iscustprop(functor) or functor in internalVars:
-               continue
+            if iszprop(functor) or \
+                    iscustprop(functor) or functor in internalVars:
+                continue
 
             # Special case for organizers which can take a description
             if functor in ('description', 'address', 'comments', 'rackSlot'):
@@ -373,24 +406,32 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 continue
 
             try:
-                self.log.debug("For %s, calling device.%s(%s)",
-                              device.id, functor, value)
+                self.log.debug(
+                    "For %s, calling device.%s(%s)",
+                    device.id, functor, value
+                )
                 func = getattr(device, functor, None)
                 if func is None or not callable(func):
-                    self.log.warn("The function '%s' for device %s is not found.",
-                                  functor, device.id)
+                    self.log.warn(
+                        "The function '%s' for device %s is not found.",
+                        functor, device.id
+                    )
                 elif isinstance(value, (list, tuple)):
                     # The function either expects a list or arguments
-                    try: # arguments
+                    # So, try as an arguments
+                    try:
                         func(*value)
-                    except TypeError: # Try as a list
+                    # Try as a list
+                    except TypeError:
                         func(value)
                 else:
                     func(value)
             except ConflictError:
                 raise
             except Exception:
-                msg = "Device %s device.%s(%s) failed" % (device.id, functor, value)
+                msg = "Device %s device.%s(%s) failed" % (
+                    device.id, functor, value
+                )
                 self.reportException(msg, device.id)
 
     def runLoader(self, loader, device_specs):
@@ -430,45 +471,58 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         @rtype: dictionary
         """
 
-        # If nocommit is set, tell the DistributedCollector not to modify the controlplane services
+        # If nocommit is set, tell the DistributedCollector
+        # not to modify the controlplane services
         if self.options.nocommit:
             try:
-                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                from ZenPacks.zenoss.DistributedCollector import \
+                    ExtendedControlPlaneClient
                 ExtendedControlPlaneClient.readonly = True
             except ImportError:
                 pass
 
-
-        processed = {'processed':0, 'errors':0, 'no_IP':0}
+        processed = {'processed': 0, 'errors': 0, 'no_IP': 0}
 
         @transactional
         def _process(self, device_specs):
             # Get the latest bits
             self.dmd.zport._p_jar.sync()
 
-
             loaderName = device_specs.get('loader')
             if loaderName is not None:
                 try:
                     orgName = device_specs['devicePath']
                     organizer = self.dmd.getObjByPath('dmd' + orgName)
-                    deviceLoader = getUtility(IDeviceLoader, loaderName, organizer)
+                    deviceLoader = getUtility(
+                        IDeviceLoader, loaderName, organizer
+                    )
                     devobj = self.runLoader(deviceLoader, device_specs)
                 except ConflictError:
                     raise
                 except ComponentLookupError:
-                    self.log.critical("Unknown device loader '%s'", loaderName)
+                    self.log.critical(
+                        "Unknown device loader '%s'", loaderName
+                    )
                     sys.exit(1)
                 except Exception:
-                    devName = device_specs.get('device_specs', 'Unknown Device')
+                    devName = device_specs.get(
+                        'device_specs', 'Unknown Device'
+                    )
                     msg = "Ignoring device loader issue for %s" % devName
-                    self.reportException(msg, devName, specs=str(device_specs))
+                    self.reportException(
+                        msg, devName, specs=str(device_specs)
+                    )
                     processed['errors'] += 1
                     return
             else:
                 deviceLoader = None
                 devobj = None
                 if self.validDeviceSpec(processed, device_specs):
+                    try:
+                        device_specs['manageIp'] = \
+                            device_specs.pop('setManageIp')
+                    except KeyError:
+                        pass
                     devobj = self.getDevice(device_specs)
 
             if devobj is None:
@@ -498,7 +552,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 devobj.collectDevice(setlog=self.options.showModelOutput)
             except ConflictError:
                 raise
-            except Exception, ex:
+            except Exception as ex:
                 msg = "Modeling error for %s" % devobj.id
                 self.reportException(msg, devobj.id, exception=str(ex))
                 processed['errors'] += 1
@@ -509,7 +563,8 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
 
             # We need to commit in order to model, so don't bother
             # trying to model unless we can do both
-            if devobj and not self.options.nocommit and not self.options.nomodel:
+            if devobj and not self.options.nocommit \
+                    and not self.options.nomodel:
                 _snmp_community(self, device_specs, devobj)
                 _model(self, devobj)
 
@@ -518,7 +573,8 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         # This should be unnecessary, but just to be safe:
         if self.options.nocommit:
             try:
-                from ZenPacks.zenoss.DistributedCollector import ExtendedControlPlaneClient
+                from ZenPacks.zenoss.DistributedCollector import \
+                    ExtendedControlPlaneClient
                 ExtendedControlPlaneClient.readonly = False
             except ImportError:
                 pass
@@ -529,9 +585,9 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         if 'deviceName' not in device_specs:
             return False
 
-        if self.options.must_be_resolvable and \
-           'setManageIp' not in device_specs and \
-           not isip(device_specs['deviceName']):
+        if self.options.must_be_resolvable \
+                and 'setManageIp' not in device_specs \
+                and not isip(device_specs['deviceName']):
             try:
                 socket.gethostbyname(device_specs['deviceName'])
             except socket.error:
@@ -561,7 +617,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         Report the success + total counts from loading devices.
         """
         msg = "Processed %d of %d devices, with %d errors" % (
-                  processed['processed'], processed['total'], processed['errors'] )
+            processed['processed'], processed['total'], processed['errors'])
         self.log.info(msg)
         self.log.info("Unable to process %d entries", processed['unparseable'])
 
@@ -585,7 +641,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             evt = self.baseEvent.copy()
             evt.update(dict(
                 severity=SEVERITY_INFO,
-                summary= "Added new device %s" % deviceName
+                summary="Added new device %s" % deviceName
             ))
             self.dmd.ZenEventManager.sendEvent(evt)
 
@@ -612,16 +668,20 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 specs[key] = device_specs[key]
 
         try:
-            self.log.info("Creating initial device %s (customized properties are set after creation)" % name)
+            self.log.info(
+                "Creating initial device %s "
+                "(customized properties are set after creation)", name
+            )
 
             # Do NOT model at this time
             specs['discoverProto'] = 'none'
 
             self.loader(**specs)
-            devobj  = self.dmd.Devices.findDevice(name)
+            devobj = self.dmd.Devices.findDevice(name)
             if devobj is None:
-                self.log.error("Unable to find newly created device %s -- skipping" \
-                              % name)
+                self.log.error(
+                    "Unable to find newly created device %s -- skipping", name
+                )
             else:
                 self.notifyNewDeviceCreated(name)
 
@@ -638,37 +698,42 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         ZCmdBase.buildOptions(self)
 
         self.parser.add_option('--show_options',
-            dest="show_options", default=False,
-            action="store_true",
-            help="Show the various options understood by the loader")
+                               dest="show_options", default=False,
+                               action="store_true",
+                               help="Show the various options understood by "
+                                    "the loader")
 
         self.parser.add_option('--sample_configs',
-            dest="sample_configs", default=False,
-            action="store_true",
-            help="Show an example configuration file.")
+                               dest="sample_configs", default=False,
+                               action="store_true",
+                               help="Show an example configuration file.")
 
         self.parser.add_option('--showModelOutput',
-            dest="showModelOutput", default=True,
-            action="store_false",
-            help="Show modelling activity")
+                               dest="showModelOutput", default=True,
+                               action="store_false",
+                               help="Show modelling activity")
 
         self.parser.add_option('--nocommit',
-            dest="nocommit", default=False,
-            action="store_true",
-            help="Don't commit changes to the ZODB. Use for verifying config file.")
+                               dest="nocommit", default=False,
+                               action="store_true",
+                               help="Don't commit changes to the ZODB. "
+                                    "Use for verifying config file.")
 
         self.parser.add_option('--nomodel',
-            dest="nomodel", default=False,
-            action="store_true",
-            help="Don't model the remote devices. Must be able to commit changes.")
+                               dest="nomodel", default=False,
+                               action="store_true",
+                               help="Don't model the remote devices. "
+                                    "Must be able to commit changes.")
 
         self.parser.add_option('--reject_file', dest="reject_file",
-            help="If specified, use as the name of a file to store unparseable lines")
+                               help="If specified, use as the name of a file "
+                                    "to store unparseable lines")
 
         self.parser.add_option('--must_be_resolvable',
-            dest="must_be_resolvable", default=False,
-            action="store_true",
-            help="Do device entries require an IP address or be DNS resolvable?")
+                               dest="must_be_resolvable", default=False,
+                               action="store_true",
+                               help="Do device entries require an IP address "
+                                    "or be DNS resolvable?")
 
     def parseDevices(self, data):
         """
@@ -685,7 +750,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
 
         comment = re.compile(r'^\s*#.*')
 
-        defaults = {'devicePath':"/Discovered" }
+        defaults = {'devicePath': "/Discovered"}
         finalList = []
         unparseable = []
         i = 0
@@ -702,10 +767,10 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 line = line[:-1] + data[i]
                 line = re.sub(comment, '', line).strip()
 
-            if line[0] == '/' or line[1] == '/': # Found an organizer
+            if line[0] == '/' or line[1] == '/':  # Found an organizer
                 defaults = self.parseDeviceEntry(line, {})
                 if defaults is None:
-                    defaults = {'devicePath':"/Discovered" }
+                    defaults = {'devicePath': "/Discovered"}
                 else:
                     defaults['devicePath'] = defaults['deviceName']
                     del defaults['deviceName']
@@ -738,11 +803,13 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
             delim = line[0]
             eom = line.find(delim, 1)
             if eom == -1:
-                self.log.error("While reading name, unable to parse" \
-                               " the entry for %s -- skipping", line )
+                self.log.error(
+                    "While reading name, unable to parse the entry "
+                    "for %s -- skipping", line
+                )
                 return None
             name = line[1:eom]
-            options = line[eom+1:]
+            options = line[eom + 1:]
 
         else:
             options = line.split(None, 1)
@@ -763,12 +830,16 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                 collector = configs.get('performanceMonitor')
                 if collector is not None:
                     if collector not in self.collectorNames:
-                        self.log.warn("'%s' collector '%s' does not exist --"
-                                      " resetting to 'localhost'", name, collector)
+                        self.log.warn(
+                            "'%s' collector '%s' does not exist "
+                            "-- resetting to 'localhost'", name, collector
+                        )
                         del configs['performanceMonitor']
 
             except Exception:
-                self.log.error("Unable to parse the entry for %s -- skipping", name)
+                self.log.error(
+                    "Unable to parse the entry for %s -- skipping", name
+                )
                 self.log.error("Raw string: %s", options)
                 return None
 
@@ -788,10 +859,10 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
                            name, ex)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     batchLoader = BatchDeviceLoader()
     if batchLoader.options.show_options:
-        print "Options = %s" % sorted( batchLoader.loader_args.keys() )
+        print "Options = %s" % sorted(batchLoader.loader_args.keys())
         help(batchLoader.loader)
         sys.exit(0)
 
@@ -801,7 +872,9 @@ if __name__=='__main__':
 
     device_list, unparseable = batchLoader.loadDeviceList()
     if unparseable and batchLoader.options.reject_file is not None:
-        batchLoader.writeRejectFile(batchLoader.options.reject_file, unparseable)
+        batchLoader.writeRejectFile(
+            batchLoader.options.reject_file, unparseable
+        )
 
     if not device_list:
         msg = "No device entries found to load"
