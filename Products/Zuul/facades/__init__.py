@@ -208,7 +208,7 @@ class TreeFacade(ZuulFacade):
 
         # ZEN-10057 - Handle the case of empty results for a filter with no matches
         if not brains:
-            return SearchResults([], 0, [])
+            return SearchResults(iter([]), 0, '0')
 
         devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
 
