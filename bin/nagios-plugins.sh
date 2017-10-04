@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2015, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -24,8 +24,10 @@ PLUGIN_VER="2.1.4"
 
 PKG_SUFFIX="2.sdl7.x86_64.rpm"
 
+RPM_DIR=/root/rpm/nagios
+
 download() {
-    DEST=/root/rpm/nagios
+    DEST=$RPM_DIR
     if [[ ! -z "$1" ]]; then
         DEST=$1
         shift
@@ -39,7 +41,7 @@ download() {
     wget "$URL" -O "$DEST/$FILENAME"
     RC=$?
     if [ $RC -ne 0 ]; then
-        echo "Error downloading $COMMON_NAME!"
+        echo "Error downloading $COMMON_NAME from $URL_BASE!"
         return $RC
     fi
 
@@ -50,7 +52,7 @@ download() {
         wget "$URL" -O "$DEST/$FILENAME"
         RC=$?
         if [ $RC -ne 0 ]; then
-            echo "Error downloading $PLUGIN_NAME!"
+            echo "Error downloading $PLUGIN_NAME from $URL_BASE!"
             return $RC
         fi
     done
@@ -58,6 +60,8 @@ download() {
 }
 
 install() {
+    # Pre-requsites
+
     # /usr/sbin/rpcinfo is needed for nagios-plugins-rpc.
     yum install -y rpcbind
 	RC=$?
@@ -66,13 +70,36 @@ install() {
         return $RC
     fi
 
-    DEST=/root/rpm/nagios
+    # Check if the rpm files exist
+    DEST=$RPM_DIR
     if [[ ! -z "$1" ]]; then
         DEST=$1
         shift
     fi
+
+    FILENAME=$COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
+    if [ ! -f "$DEST/$FILENAME" ]; then
+        echo "Error: $FILENAME does not exist in $DEST"
+		return 1
+    fi
+
+    for PLUGIN_NAME in $PLUGIN_NAMES; do
+        FILENAME=$PLUGIN_NAME-$PLUGIN_VER-$PKG_SUFFIX
+        if [ ! -f "$DEST/$FILENAME" ]; then
+            echo "Error: $FILENAME does not exist in $DEST"
+			return 1
+        fi
+    done
+
+	# Installation
+
     pushd $DEST
     yum localinstall -y $COMMON_NAME-$COMMON_VER-$PKG_SUFFIX
+    RC=$?
+    if [ $RC -ne 0 ]; then
+        echo "Error installing $COMMON_NAME!"
+        return $RC
+    fi
     for PLUGIN_NAME in $PLUGIN_NAMES; do
         yum localinstall -y $PLUGIN_NAME-$PLUGIN_VER-$PKG_SUFFIX
         RC=$?
@@ -89,8 +116,8 @@ if [[ "$1" == "install" ]]; then
     shift
     install $@
 elif [[ "$1" == "download" ]]; then
-	shift
-  	download $@
+    shift
+    download $@
 else
     help
 fi
