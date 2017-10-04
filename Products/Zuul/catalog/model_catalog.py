@@ -17,7 +17,7 @@ from zope.component.factory import Factory
 from zope.component.interfaces import IFactory
 from zExceptions import NotFound
 
-from Acquisition import aq_parent, Implicit
+from Acquisition import aq_parent, Implicit, aq_base
 from interfaces import IModelCatalog
 from collections import defaultdict
 from Products.AdvancedQuery import And, Or, Eq, Not, In
@@ -132,7 +132,7 @@ class ModelCatalogBrain(Implicit):
 class ObjectUpdate(object):
     """ Contains the info needed to create a modelindex.IndexUpdate """
     def __init__(self, obj, op=INDEX, idxs=None):
-        self.uid = obj.idx_uid()
+        self.uid = aq_base(obj).getPrimaryId()
         self.obj = obj
         self.op = op
         self.idxs = idxs
