@@ -172,8 +172,8 @@ class MaintenanceWindow(ZenModelRM):
         return Time.USDate(self.start)
 
     def niceStartDateTime(self):
-        "Return start time as a string with nice sort qualities"
-        return "%s %s" % (Time.LocalDateTime(self.start), Time.getLocalTimezone())
+        "Return start time as a timestamp"
+        return self.start
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
@@ -197,9 +197,7 @@ class MaintenanceWindow(ZenModelRM):
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
-                                     startDate='',
-                                     startHours='',
-                                     startMinutes='00',
+                                     startDateTime='',
                                      durationDays='0',
                                      durationHours='00',
                                      durationMinutes='00',
@@ -239,22 +237,9 @@ class MaintenanceWindow(ZenModelRM):
 
         oldAuditData = self.getAuditData()
         msgs = []
-        # startHours, startMinutes come from menus.  No need to catch
-        # ValueError on the int conversion.
-        startHours = int(startHours)
-        startMinutes = int(startMinutes)
         self.enabled = bool(enabled)
-        import re
-        try:
-            month, day, year = re.split('[^ 0-9]', startDate)
-        except ValueError:
-            msgs.append("Date needs three number fields")
-        day = int(day)
-        month = int(month)
-        year = int(year)
         if not msgs:
-            t = time.mktime((year, month, day, startHours, startMinutes,
-                             0, 0, 0, -1))
+            t = startDateTime
         if not msgs:
             durationDays = makeInt(durationDays, 'Duration days',
                                         minv=0)
