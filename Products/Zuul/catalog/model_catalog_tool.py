@@ -119,7 +119,6 @@ class ModelCatalogTool(object):
         permissions_query = None
 
         partial_queries = []
-
         if query:
             """
             # if query is a dict, we convert it to AdvancedQuery
@@ -141,9 +140,9 @@ class ModelCatalogTool(object):
             for key, value in globFilters.iteritems():
                 if key in available_indexes:
                     if user_filters_query:
-                        user_filters_query = And(query, MatchRegexp(key, '*%s*' % value))
+                        user_filters_query = And(query, MatchRegexp(key, '.*%s.*' % value))
                     else:
-                        user_filters_query = MatchRegexp(key, '*%s*' % value)
+                        user_filters_query = MatchRegexp(key, '.*%s.*' % value)
                 else:
                     not_indexed_user_filters[key] = value
 
