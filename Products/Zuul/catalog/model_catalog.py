@@ -117,7 +117,6 @@ class ModelCatalogBrain(Implicit):
         except (NotFound, KeyError, AttributeError):
             info = sys.exc_info()
             msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
-            msg += "Will attempt to delete the object from model catalog."
             log.error(msg.format(self.uid))
             raise info[0], info[1], info[2]
         return obj
