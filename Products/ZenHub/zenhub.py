@@ -36,7 +36,7 @@ import os
 import subprocess
 import itertools
 from random import choice
-from zope.component import getAdapters, subscribers
+from zope.component import subscribers
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -54,25 +54,47 @@ from ZODB.POSException import POSKeyError
 from Products.DataCollector.Plugins import loadPlugins
 from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage, unused, load_config, load_config_override, ipv6_available, atomicWrite, wait
+from Products.ZenUtils.Utils import (
+    zenPath, getExitMessage, unused, load_config, load_config_override,
+    ipv6_available, atomicWrite, wait
+)
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
-from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
+from Products.ZenRelations.PrimaryPathObjectManager import (
+    PrimaryPathObjectManager
+)
 from Products.ZenModel.DeviceComponent import DeviceComponent
-from Products.ZenHub.interfaces import IInvalidationProcessor, IServiceAddedEvent, IHubCreatedEvent, IHubWillBeCreatedEvent, IInvalidationOid, IHubConfProvider, IHubHeartBeatCheck
-from Products.ZenHub.interfaces import IParserReadyForOptionsEvent, IInvalidationFilter
-from Products.ZenHub.interfaces import FILTER_INCLUDE, FILTER_EXCLUDE
+from Products.ZenHub.interfaces import (
+    IInvalidationProcessor,
+    IServiceAddedEvent,
+    IHubCreatedEvent,
+    IHubWillBeCreatedEvent,
+    IInvalidationOid,
+    IHubConfProvider,
+    IHubHeartBeatCheck,
+    IParserReadyForOptionsEvent,
+    IInvalidationFilter,
+    FILTER_INCLUDE,
+    FILTER_EXCLUDE
+)
 from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.WorkerSelection import WorkerSelector
-from zenoss.protocols.protobufs.zep_pb2 import SEVERITY_CRITICAL, SEVERITY_CLEAR
-from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
-from Products.ZenUtils.metricwriter import ThresholdNotifier
-from Products.ZenUtils.metricwriter import DerivativeTracker
-from Products.ZenHub.metricpublisher.publisher import HttpPostPublisher, RedisListPublisher
-
+from zenoss.protocols.protobufs.zep_pb2 import (
+    SEVERITY_CRITICAL, SEVERITY_CLEAR
+)
+from Products.ZenUtils.metricwriter import (
+    MetricWriter,
+    FilteredMetricWriter,
+    AggregateMetricWriter,
+    ThresholdNotifier,
+    DerivativeTracker
+)
+from Products.ZenHub.metricpublisher.publisher import (
+    HttpPostPublisher, RedisListPublisher
+)
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
@@ -97,14 +119,23 @@ from Products.ZenHub import CONNECT_TIMEOUT
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
-HubWorklistItem = collections.namedtuple('HubWorklistItem', 'priority recvtime deferred servicename instance method args')
-WorkerStats = collections.namedtuple('WorkerStats', 'status description lastupdate previdle')
-LastCallReturnValue = collections.namedtuple('LastCallReturnValue', 'returnvalue')
+HubWorklistItem = collections.namedtuple(
+    'HubWorklistItem',
+    'priority recvtime deferred servicename instance method args'
+)
+WorkerStats = collections.namedtuple(
+    'WorkerStats',
+    'status description lastupdate previdle'
+)
+LastCallReturnValue = collections.namedtuple(
+    'LastCallReturnValue', 'returnvalue'
+)
 
 try:
     NICE_PATH = subprocess.check_output('which nice', shell=True).strip()
 except Exception:
     NICE_PATH = None
+
 
 class AuthXmlRpcService(XmlRpcService):
     """Provide some level of authentication for XML/RPC calls"""
@@ -149,8 +180,10 @@ class AuthXmlRpcService(XmlRpcService):
                     c = credentials.UsernamePassword(user, passwd)
                     d = self.checker.requestAvatarId(c)
                     d.addCallback(self.doRender, request)
+
                     def error(unused, request):
                         self.unauthorized(request)
+
                     d.addErrback(error, request)
             except Exception:
                 self.unauthorized(request)
@@ -173,9 +206,9 @@ class HubAvitar(pb.Avatar):
 
     def perspective_getService(self,
                                serviceName,
-                               instance = None,
-                               listener = None,
-                               options = None):
+                               instance=None,
+                               listener=None,
+                               options=None):
         """
         Allow a collector to find a Hub service by name.  It also
         associates the service with a collector so that changes can be
@@ -265,7 +298,7 @@ class HubRealm(object):
     def requestAvatar(self, collName, mind, *interfaces):
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
-        return pb.IPerspective, self.hubAvitar, lambda:None
+        return pb.IPerspective, self.hubAvitar, lambda: None
 
 
 class WorkerInterceptor(pb.Referenceable):
@@ -290,14 +323,16 @@ class WorkerInterceptor(pb.Referenceable):
         instance = self.service.instance
         args = broker.unserialize(args)
         kw = broker.unserialize(kw)
-        # hide the types in the args: subverting the jelly protection mechanism,
+        # hide the types in the args: subverting the jelly protection mechanism
         # but the types just passed through and the worker may not have loaded
         # the required service before we try passing types for that service
         # PB has a 640k limit, not bytes but len of sequences. When args are
         # pickled the resulting string may be larger than 640k, split into
         # 100k chunks
-        pickledArgs = pickle.dumps( (args, kw), pickle.HIGHEST_PROTOCOL )
-        chunkedArgs=[]
+        pickledArgs = pickle.dumps(
+            (args, kw), pickle.HIGHEST_PROTOCOL
+        )
+        chunkedArgs = []
         chunkSize = 102400
         while pickledArgs:
             chunk = pickledArgs[:chunkSize]
@@ -305,13 +340,16 @@ class WorkerInterceptor(pb.Referenceable):
             pickledArgs = pickledArgs[chunkSize:]
 
         start = time.time()
+
         def recordTime(result):
-            #get in milliseconds
+            # get in milliseconds
             duration = int((time.time() - start) * 1000)
             self._admTimer.update(duration)
             return result
 
-        deferred = self.zenhub.deferToWorker(svc, instance, message, chunkedArgs)
+        deferred = self.zenhub.deferToWorker(
+            svc, instance, message, chunkedArgs
+        )
         if message == 'sendEvents':
             if args and len(args) == 1:
                 self._eventsSent.mark(len(args[0]))
@@ -323,7 +361,9 @@ class WorkerInterceptor(pb.Referenceable):
         return broker.serialize(deferred, self.perspective)
 
     def __getattr__(self, attr):
-        """Implement the HubService interface by forwarding to the local service"""
+        """Implement the HubService interface
+        by forwarding to the local service
+        """
         return getattr(self.service, attr)
 
 
@@ -334,8 +374,8 @@ class _ZenHubWorklist(object):
         self.otherworklist = []
         self.applyworklist = []
 
-        #priority lists for eventual task selection. All queues are appended in case
-        #any of them are empty.
+        # priority lists for eventual task selection.
+        # All queues are appended in caseany of them are empty.
         self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
         self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
         self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
@@ -353,22 +393,35 @@ class _ZenHubWorklist(object):
 
     def pop(self, allowADM=True):
         """
-        Select a single task to be distributed to a worker. We prioritize tasks as follows:
+        Select a single task to be distributed to a worker.
+        We prioritize tasks as follows:
             sendEvents > configuration service calls > applyDataMaps
-        To prevent starving any queue in an event storm, we randomize the task selection,
+        To prevent starving any queue in an event storm,
+        we randomize the task selection,
         preferring tasks according to the above priority.
 
-        allowADM controls whether we should allow popping jobs from the applyDataMaps list,
-        this should be False while models are changing (like during a zenpack install/upgrade/removal)
+        allowADM controls whether we should allow popping jobs from the
+        applyDataMaps list, this should be False while models are changing
+        (like during a zenpack install/upgrade/removal)
         """
-        # the priority lists have eventworklist, otherworklist, and applyworklist
-        # when we don't want to allow ApplyDataMaps, we should exclude the possibility of popping from applyworklist
-        eventchain = filter(None, self.eventPriorityList if allowADM else [self.eventworklist, self.otherworklist])
-        otherchain = filter(None, self.otherPriorityList if allowADM else [self.otherworklist, self.eventworklist])
-        applychain = filter(None, self.applyPriorityList if allowADM else [self.eventworklist, self.otherworklist])
+        # the priority lists have eventworklist, otherworklist, and
+        # applyworklist when we don't want to allow ApplyDataMaps,
+        # we should exclude the possibility of popping from applyworklist
+        eventchain = filter(
+            None,
+            self.eventPriorityList if allowADM
+            else [self.eventworklist, self.otherworklist])
+        otherchain = filter(
+            None,
+            self.otherPriorityList if allowADM
+            else [self.otherworklist, self.eventworklist])
+        applychain = filter(
+            None,
+            self.applyPriorityList if allowADM
+            else [self.eventworklist, self.otherworklist])
 
         # choose a job to pop based on weighted random
-        choice_list = [eventchain]*4 + [otherchain]*2 + [applychain]
+        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
         chosen_list = choice(choice_list)
         if len(chosen_list) > 0:
             item = heapq.heappop(chosen_list[0])
@@ -380,25 +433,38 @@ class _ZenHubWorklist(object):
         heapq.heappush(self[job.method], job)
     append = push
 
+
 def publisher(username, password, url):
-    return HttpPostPublisher( username, password, url)
+    return HttpPostPublisher(username, password, url)
+
 
 def redisPublisher():
     return RedisListPublisher()
 
+
 def metricWriter():
     metric_writer = MetricWriter(redisPublisher())
-    if os.environ.get( "CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get( "CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get( "CONTROLPLANE_CONSUMER_USERNAME", "")
-        internal_password = os.environ.get( "CONTROLPLANE_CONSUMER_PASSWORD", "")
+    if os.environ.get("CONTROLPLANE", "0") == "1":
+        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
+        internal_username = os.environ.get(
+            "CONTROLPLANE_CONSUMER_USERNAME", ""
+        )
+        internal_password = os.environ.get(
+            "CONTROLPLANE_CONSUMER_PASSWORD", ""
+        )
 
         if internal_url:
-            internal_publisher = publisher( internal_username, internal_password, internal_url)
+            internal_publisher = publisher(
+                internal_username, internal_password, internal_url
+            )
             internal_metric_filter = lambda metric, value, timestamp, tags:\
                 tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(internal_publisher, internal_metric_filter)
-            return AggregateMetricWriter( [metric_writer, internal_metric_writer])
+            internal_metric_writer = FilteredMetricWriter(
+                internal_publisher, internal_metric_filter
+            )
+            return AggregateMetricWriter(
+                [metric_writer, internal_metric_writer]
+            )
 
     return metric_writer
 
@@ -454,11 +520,12 @@ class ZenHub(ZCmdBase):
         # list of remote worker references
         self.workers = []
         self.workTracker = {}
-        # zenhub execution stats: [count, idle_total, running_total, last_called_time]
+        # zenhub execution stats:
+        # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
         self.workList = _ZenHubWorklist()
         # set of worker processes
-        self.worker_processes=set()
+        self.worker_processes = set()
         # map of worker pids -> worker processes
         self.workerprocessmap = {}
         self.shutdown = False
@@ -467,6 +534,7 @@ class ZenHub(ZCmdBase):
 
         wl = self.workList
         metricNames = {x[0] for x in registry}
+
         class EventWorkList(Gauge):
             @property
             def value(self):
@@ -504,7 +572,7 @@ class ZenHub(ZCmdBase):
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
 
-        #Worker selection handler
+        # Worker selection handler
         self.workerselector = WorkerSelector(self.options)
         self.workList.log = self.log
 
@@ -525,28 +593,40 @@ class ZenHub(ZCmdBase):
         checker = self.loadChecker()
         pt = portal.Portal(er, [checker])
         interface = '::' if ipv6_available() else ''
-        pbport = reactor.listenTCP(self.options.pbport, pb.PBServerFactory(pt), interface=interface)
+        pbport = reactor.listenTCP(
+            self.options.pbport, pb.PBServerFactory(pt), interface=interface
+        )
         self.setKeepAlive(pbport.socket)
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
-        reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc), interface=interface)
+        reactor.listenTCP(
+            self.options.xmlrpcport, server.Site(xmlsvc), interface=interface
+        )
 
         # responsible for sending messages to the queues
         import Products.ZenMessaging.queuemessaging
-        load_config_override('twistedpublisher.zcml', Products.ZenMessaging.queuemessaging)
+        load_config_override(
+            'twistedpublisher.zcml',
+            Products.ZenMessaging.queuemessaging
+        )
         notify(HubCreatedEvent(self))
         self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
                        severity=0)
 
         self._initialize_invalidation_filters()
-        reactor.callLater(self.options.invalidation_poll_interval, self.processQueue)
+        reactor.callLater(
+            self.options.invalidation_poll_interval,
+            self.processQueue
+        )
 
         self._metric_writer = metricWriter()
         self.rrdStats = self.getRRDStats()
 
         if self.options.workers:
-            self.workerconfig = zenPath('var', 'zenhub', '%s_worker.conf' % self._getConf().id)
+            self.workerconfig = zenPath(
+                'var', 'zenhub', '{}_worker.conf'.format(self._getConf().id)
+            )
             self._createWorkerConf()
             for i in range(self.options.workers):
                 self.createWorker(i)
@@ -562,7 +642,8 @@ class ZenHub(ZCmdBase):
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
             pass
-        # ZEN-26671 Wait at least this duration in secs before signaling a worker process
+        # ZEN-26671 Wait at least this duration in secs
+        # before signaling a worker process
         self.SIGUSR_TIMEOUT = 5
 
     def setKeepAlive(self, sock):
@@ -572,10 +653,11 @@ class ZenHub(ZCmdBase):
         interval = max(CONNECT_TIMEOUT / 4, 10)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
-        self.log.debug("set socket%s  CONNECT_TIMEOUT:%d  TCP_KEEPINTVL:%d", sock.getsockname(), CONNECT_TIMEOUT, interval)
+        self.log.debug("set socket%s  CONNECT_TIMEOUT:%d  TCP_KEEPINTVL:%d",
+                       sock.getsockname(), CONNECT_TIMEOUT, interval)
 
     def sighandler_USR2(self, signum, frame):
-        #log zenhub's worker stats
+        # log zenhub's worker stats
         self._workerStats()
 
         # send SIGUSR2 signal to all workers
@@ -583,7 +665,10 @@ class ZenHub(ZCmdBase):
         for worker in self.workerprocessmap.values():
             try:
                 elapsed_since_spawn = now - worker.spawn_time
-                self.log.debug('{} secs elapsed since this worker proc was spawned'.format(elapsed_since_spawn))
+                self.log.debug(
+                    '%s secs elapsed since this worker proc was spawned',
+                    elapsed_since_spawn
+                )
                 if elapsed_since_spawn >= self.SIGUSR_TIMEOUT:
                     worker.signalProcess(signal.SIGUSR2)
                 time.sleep(0.5)
@@ -591,7 +676,7 @@ class ZenHub(ZCmdBase):
                 pass
 
     def sighandler_USR1(self, signum, frame):
-        #handle it ourselves
+        # handle it ourselves
         if self.options.profiling:
             self.profiler.dump_stats()
 
@@ -647,19 +732,22 @@ class ZenHub(ZCmdBase):
         else:
             try:
                 self.doProcessQueue()
-            except Exception, ex:
+            except Exception:
                 self.log.exception("Unable to poll invalidations.")
-        reactor.callLater(self.options.invalidation_poll_interval, self.processQueue)
+        reactor.callLater(
+            self.options.invalidation_poll_interval,
+            self.processQueue
+        )
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
     def _initialize_invalidation_filters(self):
         filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
         self._invalidation_filters = []
-        for fltr in sorted(filters, key=lambda f:getattr(f, 'weight', 100)):
+        for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
             fltr.initialize(self.dmd)
             self._invalidation_filters.append(fltr)
-        self.log.debug('Registered %s invalidation filters.' %
+        self.log.debug('Registered %s invalidation filters.',
                        len(self._invalidation_filters))
 
     def _filter_oids(self, oids):
@@ -673,7 +761,10 @@ class ZenHub(ZCmdBase):
                 # State is gone from the database. Send it along.
                 yield oid
             else:
-                if isinstance(obj, (PrimaryPathObjectManager, DeviceComponent)):
+                if isinstance(
+                    obj,
+                    (PrimaryPathObjectManager, DeviceComponent)
+                ):
                     try:
                         obj = obj.__of__(self.dmd).primaryAq()
                     except (AttributeError, KeyError):
@@ -726,23 +817,29 @@ class ZenHub(ZCmdBase):
         changes_dict = self.storage.poll_invalidations()
         if changes_dict is not None:
             processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(tuple(set(self._filter_oids(changes_dict))))
+            d = processor.processQueue(
+                tuple(set(self._filter_oids(changes_dict)))
+            )
 
             def done(n):
                 if n == INVALIDATIONS_PAUSED:
-                    self.sendEvent({'summary': "Invalidation processing is "
-                                               "currently paused. To resume, set "
-                                               "'dmd.pauseHubNotifications = False'",
-                                    'severity': SEVERITY_CRITICAL,
-                                    'eventkey': INVALIDATIONS_PAUSED})
+                    self.sendEvent({
+                        'summary': "Invalidation processing is "
+                                   "currently paused. To resume, set "
+                                   "'dmd.pauseHubNotifications = False'",
+                        'severity': SEVERITY_CRITICAL,
+                        'eventkey': INVALIDATIONS_PAUSED
+                    })
                     self._invalidations_paused = True
                 else:
                     msg = 'Processed %s oids' % n
                     self.log.debug(msg)
                     if self._invalidations_paused:
-                        self.sendEvent({'summary': msg,
-                                        'severity': SEVERITY_CLEAR,
-                                        'eventkey': INVALIDATIONS_PAUSED})
+                        self.sendEvent({
+                            'summary': msg,
+                            'severity': SEVERITY_CLEAR,
+                            'eventkey': INVALIDATIONS_PAUSED
+                        })
                         self._invalidations_paused = False
             d.addCallback(done)
 
@@ -754,9 +851,9 @@ class ZenHub(ZCmdBase):
         @param kw: the values for an event: device, summary, etc.
         @return: None
         """
-        if not 'device' in kw:
+        if 'device' not in kw:
             kw['device'] = self.options.monitor
-        if not 'component' in kw:
+        if 'component' not in kw:
             kw['component'] = self.name
         try:
             self.zem.sendEvent(Event(**kw))
@@ -778,7 +875,7 @@ class ZenHub(ZCmdBase):
             u, p = checker._loadCredentials().next()
             self.workerUsername, self.workerPassword = u, p
             return checker
-        except Exception, ex:
+        except Exception:
             self.log.exception("Unable to load %s", self.options.passwordfile)
         return []
 
@@ -837,7 +934,8 @@ class ZenHub(ZCmdBase):
         @type method: string
         @param method: the name of the method on the hub service to call
         @type args: tuple
-        @param args: the remaining arguments to the remote_execute() method in the worker
+        @param args: the remaining arguments to the remote_execute()
+            method in the worker
         @return: a Deferred for the eventual results of the method call
         """
         d = defer.Deferred()
@@ -845,8 +943,10 @@ class ZenHub(ZCmdBase):
         priority = service.getMethodPriority(method)
 
         self.workList.append(
-            HubWorklistItem(priority, time.time(), d, svcName, instance, method,
-                            (svcName, instance, method, args)))
+            HubWorklistItem(
+                priority, time.time(), d, svcName, instance, method,
+                (svcName, instance, method, args)
+            ))
 
         reactor.callLater(0, self.giveWorkToWorkers)
         return d
@@ -859,7 +959,8 @@ class ZenHub(ZCmdBase):
         self.executionTimer[job.method][0] += 1
         self.executionTimer[job.method][1] += idletime
         self.executionTimer[job.method][3] = now
-        self.log.debug("Giving %s to worker %d, (%s)", job.method, wId, jobDesc)
+        self.log.debug("Giving %s to worker %d, (%s)",
+                       job.method, wId, jobDesc)
         self.workTracker[wId] = WorkerStats('Busy', jobDesc, now, idletime)
 
     def updateStatusAtFinish(self, wId, job, error=None):
@@ -869,9 +970,12 @@ class ZenHub(ZCmdBase):
         if stats:
             elapsed = now - stats.lastupdate
             self.executionTimer[job.method][2] += elapsed
-            self.log.debug("worker %s, work %s finished in %s" % (wId, stats.description, elapsed))
-        self.workTracker[wId] = WorkerStats('Error: %s' % error if error else 'Idle',
-                                            stats.description, now, 0)
+            self.log.debug("worker %s, work %s finished in %s",
+                           wId, stats.description, elapsed)
+        self.workTracker[wId] = WorkerStats(
+            'Error: %s' % error if error else 'Idle',
+            stats.description, now, 0
+        )
 
     @inlineCallbacks
     def finished(self, job, result, finishedWorker, wId):
@@ -886,16 +990,17 @@ class ZenHub(ZCmdBase):
                 error = e
                 self.log.exception("Error un-pickling result from worker")
 
-            # if zenhubworker is about to shutdown, it will wrap the actual result
-            # in a LastCallReturnValue tuple - remove worker from worker list to
-            # keep from accidentally sending it any more work while it shuts down
+            # if zenhubworker is about to shutdown, it will wrap the actual
+            # result in a LastCallReturnValue tuple - remove worker from worker
+            # list to keep from accidentally sending it any more work while
+            # it shuts down
             if isinstance(result, LastCallReturnValue):
-                self.log.debug("worker %s is shutting down" % wId)
+                self.log.debug("worker %s is shutting down", wId)
                 result = result.returnvalue
                 if finishedWorker in self.workers:
                     self.workers.remove(finishedWorker)
 
-            #the job contains a deferred to be used to return the actual value
+            # the job contains a deferred to be used to return the actual value
             job.deferred.callback(result)
 
         self.updateStatusAtFinish(wId, job, error)
@@ -918,11 +1023,17 @@ class ZenHub(ZCmdBase):
             allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
             job = self.workList.pop(allowADM)
             if job is None:
-                self.log.info("Got None from the job worklist.  ApplyDataMaps may be paused for zenpack install/upgrade/removal.")
+                self.log.info("Got None from the job worklist.  ApplyDataMaps"
+                              " may be paused for zenpack"
+                              " install/upgrade/removal.")
                 yield wait(0.1)
                 break
 
-            candidateWorkers = list(self.workerselector.getCandidateWorkerIds(job.method, self.workers))
+            candidateWorkers = [
+                self.workerselector.getCandidateWorkerIds(
+                    job.method, self.workers
+                )
+            ]
             for i in candidateWorkers:
                 worker = self.workers[i]
                 worker.busy = True
@@ -937,16 +1048,17 @@ class ZenHub(ZCmdBase):
                     yield self.finished(job, result, worker, i)
                 break
             else:
-                #could not complete this job, put it back in the queue once
-                #we're finished saturating the workers
+                # could not complete this job, put it back in the queue once
+                # we're finished saturating the workers
                 incompleteJobs.append(job)
 
         for job in reversed(incompleteJobs):
-            #could not complete this job, put it back in the queue
+            # could not complete this job, put it back in the queue
             self.workList.push(job)
 
         if incompleteJobs:
-            self.log.debug("No workers available for %d jobs." % len(incompleteJobs))
+            self.log.debug("No workers available for %d jobs.",
+                           len(incompleteJobs))
             reactor.callLater(0.1, self.giveWorkToWorkers)
 
         if requeue and not self.shutdown:
@@ -954,19 +1066,23 @@ class ZenHub(ZCmdBase):
 
     def _workerStats(self):
         now = time.time()
-        lines = ['Worklist Stats:',
-                 '\tEvents:\t%s' % len(self.workList.eventworklist),
-                 '\tOther:\t%s' % len(self.workList.otherworklist),
-                 '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
-                 '\tTotal:\t%s' % len(self.workList),
-                 '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
-                 ]
+        lines = [
+            'Worklist Stats:',
+            '\tEvents:\t%s' % len(self.workList.eventworklist),
+            '\tOther:\t%s' % len(self.workList.otherworklist),
+            '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
+            '\tTotal:\t%s' % len(self.workList),
+            '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
+        ]
 
         statline = " - %-32s %8d %12.2f %8.2f  %s"
         for method, stats in sorted(self.executionTimer.iteritems(), key=lambda v: -v[1][2]):
-            lines.append(statline %
-                         (method, stats[0], stats[1], stats[2],
-                          time.strftime("%Y-%d-%m %H:%M:%S", time.localtime(stats[3]))))
+            lines.append(statline % (
+                method, stats[0], stats[1], stats[2],
+                time.strftime(
+                    "%Y-%d-%m %H:%M:%S", time.localtime(stats[3])
+                )
+            ))
 
         lines.append('\nWorker Stats:')
         for wId, worker in enumerate(self.workers):
@@ -976,13 +1092,21 @@ class ZenHub(ZCmdBase):
                 wId,
                 '{}'.format(worker.pid),
                 'Busy' if worker.busy else 'Idle',
-                '%s %s' % (stat.status, stat.description) if stat else 'No Stats',
-                ' Idle:%.3fs' % stat.previdle if stat and stat.previdle else '',
+                '%s %s' % (stat.status, stat.description) if stat
+                else 'No Stats',
+                ' Idle:%.3fs' % stat.previdle if stat and stat.previdle
+                else '',
                 now - stat.lastupdate if stat else 0
             ))
-            if stat:
-                if (worker.busy and stat.status is 'Idle') or (not worker.busy and stat.status is 'Busy'):
-                    self.log.warn('worker.busy: {} and stat.status: {} do not match!'.format(worker.busy, stat.status))
+            if stat and (
+                (worker.busy and stat.status is 'Idle')
+                or
+                (not worker.busy and stat.status is 'Busy')
+            ):
+                self.log.warn(
+                    'worker.busy: %s and stat.status: %s do not match!',
+                    worker.busy, stat.status
+                )
         self.log.info('\n'.join(lines))
 
     def _createWorkerConf(self):
@@ -1006,7 +1130,8 @@ class ZenHub(ZCmdBase):
         """
         # this probably can't happen, but let's make sure
         if len(self.worker_processes) >= self.options.workers:
-            self.log.info("already at maximum number of worker processes, no worker will be created")
+            self.log.info("already at maximum number of worker processes,"
+                          " no worker will be created")
             return
 
         # watch for output, and generally just take notice
@@ -1027,21 +1152,25 @@ class ZenHub(ZCmdBase):
                 reactor.callLater(1, self.parent.giveWorkToWorkers)
 
             def outReceived(self, data):
-                self.log.debug("Worker %d (%d) reports %s" % (self.workerNum, self.pid, data.rstrip(),))
+                self.log.debug("Worker %s (%s) reports %s",
+                               self.workerNum, self.pid, data.rstrip())
 
             def errReceived(self, data):
-                self.log.info("Worker %d (%d) reports %s" % (self. workerNum, self.pid, data.rstrip(),))
+                self.log.info("Worker %s (%s) reports %s",
+                              self. workerNum, self.pid, data.rstrip())
 
             def processEnded(self, reason):
                 self.parent.worker_processes.discard(self)
                 ended_proc = self.parent.workerprocessmap.pop(self.pid, None)
                 ended_proc_age = time.time() - ended_proc.spawn_time
-                self.log.warning("Worker %d (%d), age %f secs, exited with status: %d (%s)",
-                                 self.workerNum,
-                                 self.pid,
-                                 ended_proc_age,
-                                  reason.value.exitCode or -1,
-                                  getExitMessage(reason.value.exitCode))
+                self.log.warning(
+                    "Worker %s (%s), age %f secs, exited with status: %s (%s)",
+                    self.workerNum,
+                    self.pid,
+                    ended_proc_age,
+                    reason.value.exitCode or -1,
+                    getExitMessage(reason.value.exitCode)
+                )
                 # if not shutting down, restart a new worker
                 if not self.parent.shutdown:
                     self.log.info("Starting new zenhubworker")
@@ -1049,8 +1178,13 @@ class ZenHub(ZCmdBase):
 
         if NICE_PATH:
             exe = NICE_PATH
-            args = (NICE_PATH, "-n", "%+d" % self.options.hubworker_priority,
-                    zenPath('bin', 'zenhubworker'), 'run', '--workernum', '%s' % workerNum, '-C', self.workerconfig)
+            args = (
+                NICE_PATH,
+                "-n", "%+d" % self.options.hubworker_priority,
+                zenPath('bin', 'zenhubworker'), 'run',
+                '--workernum', '%s' % workerNum,
+                '-C', self.workerconfig
+            )
         else:
             exe = zenPath('bin', 'zenhubworker')
             args = (exe, 'run', '-C', self.workerconfig)
@@ -1069,7 +1203,9 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         seconds = 30
-        evt = EventHeartbeat(self.options.monitor, self.name, self.options.heartbeatTimeout)
+        evt = EventHeartbeat(
+            self.options.monitor, self.name, self.options.heartbeatTimeout
+        )
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
@@ -1101,7 +1237,9 @@ class ZenHub(ZCmdBase):
 
     def loadCounters(self):
         try:
-            self.counters = pickle.load(open(zenPath('var/zenhub_counters.pickle')))
+            self.counters = pickle.load(open(zenPath(
+                'var/zenhub_counters.pickle'
+            )))
         except Exception:
             pass
 
@@ -1117,9 +1255,13 @@ class ZenHub(ZCmdBase):
                 'zenoss_monitor': self.options.monitor,
                 'internal': True
             }
-            self.metricreporter = TwistedMetricReporter(metricWriter=self._metric_writer, tags=daemonTags)
+            self.metricreporter = TwistedMetricReporter(
+                metricWriter=self._metric_writer, tags=daemonTags
+            )
             self.metricreporter.start()
-            reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
+            reactor.addSystemEventTrigger(
+                'before', 'shutdown', self.metricreporter.stop
+            )
 
         reactor.run()
         self.shutdown = True
@@ -1132,7 +1274,7 @@ class ZenHub(ZCmdBase):
                 pass
             except Exception:
                 pass
-        workerconfig = getattr(self,'workerconfig', None)
+        workerconfig = getattr(self, 'workerconfig', None)
         if workerconfig and os.path.exists(workerconfig):
             os.unlink(self.workerconfig)
         getUtility(IEventPublisher).close()
@@ -1144,46 +1286,61 @@ class ZenHub(ZCmdBase):
         Adds our command line options to ZCmdBase command line options.
         """
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--xmlrpcport', '-x', dest='xmlrpcport',
+        self.parser.add_option(
+            '--xmlrpcport', '-x', dest='xmlrpcport',
             type='int', default=XML_RPC_PORT,
             help='Port to use for XML-based Remote Procedure Calls (RPC)')
-        self.parser.add_option('--pbport', dest='pbport',
+        self.parser.add_option(
+            '--pbport', dest='pbport',
             type='int', default=PB_PORT,
             help="Port to use for Twisted's pb service")
-        self.parser.add_option('--passwd', dest='passwordfile',
-            type='string', default=zenPath('etc','hubpasswd'),
+        self.parser.add_option(
+            '--passwd', dest='passwordfile',
+            type='string', default=zenPath('etc', 'hubpasswd'),
             help='File where passwords are stored')
-        self.parser.add_option('--monitor', dest='monitor',
+        self.parser.add_option(
+            '--monitor', dest='monitor',
             default='localhost',
             help='Name of the distributed monitor this hub runs on')
-        self.parser.add_option('--workers', dest='workers',
+        self.parser.add_option(
+            '--workers', dest='workers',
             type='int', default=2,
             help="Number of worker instances to handle requests")
-        self.parser.add_option('--hubworker-priority', type='int', default=5,
+        self.parser.add_option(
+            '--hubworker-priority',
+            type='int', default=5,
             help="Relative process priority for hub workers (%default)")
-        self.parser.add_option('--prioritize', dest='prioritize',
+        self.parser.add_option(
+            '--prioritize', dest='prioritize',
             action='store_true', default=False,
             help="Run higher priority jobs before lower priority ones")
-        self.parser.add_option('--anyworker', dest='anyworker',
+        self.parser.add_option(
+            '--anyworker', dest='anyworker',
             action='store_true', default=False,
             help='Allow any priority job to run on any worker')
-        self.parser.add_option('--workers-reserved-for-events', dest='workersReservedForEvents',
+        self.parser.add_option(
+            '--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,
             help="Number of worker instances to reserve for handling events")
-        self.parser.add_option('--worker-call-limit', dest='worker_call_limit',
+        self.parser.add_option(
+            '--worker-call-limit', dest='worker_call_limit',
             type='int', default=200,
             help="Maximum number of remote calls a worker can run before restarting")
-        self.parser.add_option('--invalidation-poll-interval',
+        self.parser.add_option(
+            '--invalidation-poll-interval',
             type='int', default=30,
             help="Interval at which to poll invalidations (default: %default)")
-        self.parser.add_option('--profiling', dest='profiling',
+        self.parser.add_option(
+            '--profiling', dest='profiling',
             action='store_true', default=False,
             help="Run with profiling on")
-        self.parser.add_option('--modeling-pause-timeout',
+        self.parser.add_option(
+            '--modeling-pause-timeout',
             type='int', default=3600,
             help="Maximum number of seconds to pause modeling during ZenPack install/upgrade/removal (default: %default)")
 
         notify(ParserReadyForOptionsEvent(self.parser))
+
 
 class DefaultConfProvider(object):
     implements(IHubConfProvider)
@@ -1194,7 +1351,10 @@ class DefaultConfProvider(object):
 
     def getHubConf(self):
         zenhub = self._zenhub
-        return zenhub.dmd.Monitors.Performance._getOb(zenhub.options.monitor, None)
+        return zenhub.dmd.Monitors.Performance._getOb(
+            zenhub.options.monitor, None
+        )
+
 
 class DefaultHubHeartBeatCheck(object):
     implements(IHubHeartBeatCheck)
