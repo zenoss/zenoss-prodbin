@@ -119,8 +119,6 @@ class ModelCatalogBrain(Implicit):
             msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
             msg += "Will attempt to delete the object from model catalog."
             log.error(msg.format(self.uid))
-            # unindex uid
-            getUtility(IModelCatalog).get_client(self).unindex_uid(self.uid)
             raise info[0], info[1], info[2]
         return obj
 
@@ -136,17 +134,6 @@ class ObjectUpdate(object):
         self.obj = obj
         self.op = op
         self.idxs = idxs
-
-class ObjectToUnindex(object):
-    """
-    Dummy class that allows to unindex an uid. ModelIndex does not check the
-    object when we are unindexing as long as we pass an uid to the IndexUpdate
-    """
-    def __init__(self, uid):
-        self.uid = uid
-
-    def idx_uid(self):
-        return self.uid
 
 
 class ModelCatalogClient(object):
@@ -186,15 +173,6 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception unindexing object")
-
-    def unindex_uid(self, uid):
-        obj = ObjectToUnindex(uid)
-        try:
-            self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
-        except IndexException as e:
-            log.error("EXCEPTION {0} {1}".format(e, e.message))
-            self._data_manager.raise_model_catalog_error("Exception unindexing uid")
-
 
     def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
