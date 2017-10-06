@@ -42,7 +42,7 @@ from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
 banana.SIZE_LIMIT = 1024 * 1024 * 10
 
-from twisted.internet import reactor, protocol, defer
+from twisted.internet import reactor, protocol, defer, task
 from twisted.web import server, xmlrpc
 from twisted.internet.error import ProcessExitedAlready
 from twisted.internet.defer import inlineCallbacks, returnValue
@@ -52,7 +52,7 @@ from zope.component import getUtility, getUtilitiesFor, adapts
 from ZODB.POSException import POSKeyError
 
 from Products.DataCollector.Plugins import loadPlugins
-from Products.Five import zcml
+#from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import (
     zenPath, getExitMessage, unused, load_config, load_config_override,
@@ -116,6 +116,8 @@ from Products.ZenHub import PB_PORT
 from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
 
+# How often we check the number of running workers in Seconds
+CHECK_WORKER_INTERVAL = 60
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
@@ -1160,40 +1162,49 @@ class ZenHub(ZCmdBase):
                               self. workerNum, self.pid, data.rstrip())
 
             def processEnded(self, reason):
-                self.parent.worker_processes.discard(self)
-                ended_proc = self.parent.workerprocessmap.pop(self.pid, None)
-                ended_proc_age = time.time() - ended_proc.spawn_time
-                self.log.warning(
-                    "Worker %s (%s), age %f secs, exited with status: %s (%s)",
-                    self.workerNum,
-                    self.pid,
-                    ended_proc_age,
-                    reason.value.exitCode or -1,
-                    getExitMessage(reason.value.exitCode)
-                )
-                # if not shutting down, restart a new worker
-                if not self.parent.shutdown:
-                    self.log.info("Starting new zenhubworker")
-                    self.parent.createWorker(self.workerNum)
+                try:
+                    self.parent.worker_processes.discard(self)
+                    ended_proc = self.parent.workerprocessmap.pop(
+                        self.pid, None
+                    )
+                    ended_proc_age = time.time() - ended_proc.spawn_time
+                    self.log.warning(
+                        "Worker %s (%s), age %f secs, exited with status: %s (%s)",
+                        self.workerNum,
+                        self.pid,
+                        ended_proc_age,
+                        reason.value.exitCode or -1,
+                        getExitMessage(reason.value.exitCode)
+                    )
+                    # if not shutting down, restart a new worker
+                    if not self.parent.shutdown:
+                        self.log.info("Starting new zenhubworker")
+                        self.parent.createWorker(self.workerNum)
+                except Exception:
+                    self.log.exception('Exception in zenhub worker'
+                                       ' processEnded')
 
-        if NICE_PATH:
-            exe = NICE_PATH
-            args = (
-                NICE_PATH,
-                "-n", "%+d" % self.options.hubworker_priority,
-                zenPath('bin', 'zenhubworker'), 'run',
-                '--workernum', '%s' % workerNum,
-                '-C', self.workerconfig
-            )
-        else:
-            exe = zenPath('bin', 'zenhubworker')
-            args = (exe, 'run', '-C', self.workerconfig)
-        self.log.debug("Starting %s", ' '.join(args))
-        prot = WorkerRunningProtocol(self, workerNum)
-        proc = reactor.spawnProcess(prot, exe, args, os.environ)
-        proc.spawn_time = time.time()
-        self.workerprocessmap[proc.pid] = proc
-        self.worker_processes.add(prot)
+        try:
+            if NICE_PATH:
+                exe = NICE_PATH
+                args = (
+                    NICE_PATH,
+                    "-n", "%+d" % self.options.hubworker_priority,
+                    zenPath('bin', 'zenhubworker'), 'run',
+                    '--workernum', '%s' % workerNum,
+                    '-C', self.workerconfig
+                )
+            else:
+                exe = zenPath('bin', 'zenhubworker')
+                args = (exe, 'run', '-C', self.workerconfig)
+            self.log.debug("Starting %s", ' '.join(args))
+            prot = WorkerRunningProtocol(self, workerNum)
+            proc = reactor.spawnProcess(prot, exe, args, os.environ)
+            proc.spawn_time = time.time()
+            self.workerprocessmap[proc.pid] = proc
+            self.worker_processes.add(prot)
+        except Exception:
+            self.log.exception('Exception in createWorker')
 
     def heartbeat(self):
         """
@@ -1243,6 +1254,16 @@ class ZenHub(ZCmdBase):
         except Exception:
             pass
 
+    def check_workers(self):
+        try:
+            self.log.debug("ZenHub check on workers")
+            for _ in range(
+                0, len(self.worker_processes) - self.options.workers
+            ):
+                self.createWorker()
+        except Exception:
+            self.log.exception("Failure in check_workers")
+
     def main(self):
         """
         Start the main event loop.
@@ -1263,7 +1284,11 @@ class ZenHub(ZCmdBase):
                 'before', 'shutdown', self.metricreporter.stop
             )
 
+        self.check_workers_task = task.LoopingCall(self.check_workers)
+        self.check_workers_task.start(CHECK_WORKER_INTERVAL)
+
         reactor.run()
+
         self.shutdown = True
         self.log.debug("Killing workers")
         for proc in self.workerprocessmap.itervalues():
