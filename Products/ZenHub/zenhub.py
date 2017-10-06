@@ -52,7 +52,6 @@ from zope.component import getUtility, getUtilitiesFor, adapts
 from ZODB.POSException import POSKeyError
 
 from Products.DataCollector.Plugins import loadPlugins
-#from Products.Five import zcml
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import (
     zenPath, getExitMessage, unused, load_config, load_config_override,
@@ -377,7 +376,7 @@ class _ZenHubWorklist(object):
         self.applyworklist = []
 
         # priority lists for eventual task selection.
-        # All queues are appended in caseany of them are empty.
+        # All queues are appended in case any of them are empty.
         self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
         self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
         self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
