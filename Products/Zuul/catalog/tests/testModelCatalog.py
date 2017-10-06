@@ -44,14 +44,14 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         brain = results.results.next()
         self.assertTrue(brain.getPath() == bad_uid)
         # Ensure getObject raises an exception
-        expception_raised = False
+        # where such an exception is handled, it may be appropriate to unindex
+        # an object, but it is not done by ModelCatalogBrain.getObject() :
+        exception_raised = False
         try:
             obj = brain.getObject()
         except:
-            expception_raised = True
-        self.assertTrue(expception_raised)
-        results = self.model_catalog.search(query={UID:bad_uid})
-        self.assertTrue( results.total == 0 )
+            exception_raised = True
+        self.assertTrue(exception_raised)
 
     def test_zproperty_with_invalid_chars(self):
         bad_zproperty = ("zTestBadProp", '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95')
