@@ -246,7 +246,7 @@ class ModelCatalogTransactionState(object):
         """ return updates that have not been sent to the index """
         # build the IndexUpdate from the ObjectUpdate buffered in self.pending_updates
         modelindex_updates = {}
-        for object_update in self.pending_updates.itervalues():
+        for object_update in self.pending_updates.values():
             uid = object_update.uid
             op = object_update.op
             idxs = object_update.idxs
