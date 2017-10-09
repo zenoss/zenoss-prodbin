@@ -164,7 +164,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                             function(record){
                                 switch(record.getName()){
                                     case "start_state"    : record.setValue(prodState);  break;
-                                    case "startdatetime"  : record.setValue(data.startTime); break;
+                                    case "startdatetime"  : record.setValue(data.start); break;
                                     case "name"           : record.setValue(data.name);  break;
                                     case "id"             : record.setValue(data.name);  break;
                                     case "duration_days"  : record.setValue(duration.days);  break;
@@ -693,6 +693,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
         fields: [
             {name: 'name'},
             {name: 'enabled'},
+            {name: 'start'},
             {name: 'startTime'},
             {name: 'startTime_data', mapping:'startTime'},
             {name: 'duration'},
@@ -881,7 +882,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         hidden:true
                     },{
                         id: 'maint_start',
-                        dataIndex: 'startTime',
+                        dataIndex: 'start',
                         header: _t('Start'),
                         width: 140,
                         filter: false,
