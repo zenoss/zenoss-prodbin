@@ -211,7 +211,7 @@ class MaintenanceWindow(ZenModelRM):
                                      enabled=True,
                                      skip=1,
                                      REQUEST=None,
-                                     startDateTime=''):
+                                     startDateTime=None):
         "Update the maintenance window from GUI elements"
         def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
             if acceptBlanks:
@@ -242,7 +242,7 @@ class MaintenanceWindow(ZenModelRM):
         msgs = []
         self.enabled = bool(enabled)
         if startDateTime:
-            t = startDateTime
+            t = int(startDateTime)
         else:
             # startHours, startMinutes come from menus.  No need to catch
             # ValueError on the int conversion.
