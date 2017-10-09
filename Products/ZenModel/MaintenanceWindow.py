@@ -210,7 +210,8 @@ class MaintenanceWindow(ZenModelRM):
                                      stopProductionState=RETURN_TO_ORIG_PROD_STATE,
                                      enabled=True,
                                      skip=1,
-                                     REQUEST=None):
+                                     REQUEST=None,
+                                     startDateTime=None):
         "Update the maintenance window from GUI elements"
         def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
             if acceptBlanks:
@@ -239,21 +240,24 @@ class MaintenanceWindow(ZenModelRM):
 
         oldAuditData = self.getAuditData()
         msgs = []
-        # startHours, startMinutes come from menus.  No need to catch
-        # ValueError on the int conversion.
-        startHours = int(startHours)
-        startMinutes = int(startMinutes)
         self.enabled = bool(enabled)
-        import re
-        try:
-            month, day, year = re.split('[^ 0-9]', startDate)
-        except ValueError:
-            msgs.append("Date needs three number fields")
-        day = int(day)
-        month = int(month)
-        year = int(year)
-        if not msgs:
-            t = time.mktime((year, month, day, startHours, startMinutes,
+        if startDateTime:
+            t = int(startDateTime)
+        else:
+            # startHours, startMinutes come from menus.  No need to catch
+            # ValueError on the int conversion.
+            startHours = int(startHours)
+            startMinutes = int(startMinutes)
+            self.enabled = bool(enabled)
+            try:
+                month, day, year = re.split('[^ 0-9]', startDate)
+            except ValueError:
+                msgs.append("Date needs three number fields")
+            day = int(day)
+            month = int(month)
+            year = int(year)
+            if not msgs:
+                t = time.mktime((year, month, day, startHours, startMinutes,
                              0, 0, 0, -1))
         if not msgs:
             durationDays = makeInt(durationDays, 'Duration days',
