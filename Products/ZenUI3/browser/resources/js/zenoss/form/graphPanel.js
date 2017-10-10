@@ -430,6 +430,57 @@
                         });
                     });
                 };
+
+                chart.zoomTo = function (zoomTime) {
+                    if (Ext.isNumeric(zoomTime) && zoomTime > 0) {
+
+                        var zoom_factor = 1.25;
+                        var chart_min_range = 1000 * 60 * 20;
+                        var curRange = rangeToMilliseconds(self.graph_params.drange);
+
+                        var zoomedRange = Math.floor(curRange / zoom_factor);
+                        zoomedRange = Math.max(zoomedRange, chart_min_range);
+                        var zoomStart = zoomTime - Math.floor(zoomedRange / 2);
+                        var zoomEnd = zoomStart + zoomedRange;
+
+                        var gParams = {
+                            'drange': zoomedRange,
+                            'start': zoomStart,
+                            'end': zoomEnd
+                        };
+                        if (self.dockedItems.items.length) {
+                            // handle own chart changes
+                            self.updateGraph(gParams);
+                        } else {
+                            // handle update at graphPanel level
+                            self.fireEvent("zoomPanel", gParams);
+                        }
+                    }
+                }
+
+                chart.normalizeTimeToMs = function (val) {
+                    var TIME_UNITS = {
+                        s: 1000,
+                        m: 1000 * 60,
+                        h: 1000 * 60 * 60,
+                        d: 1000 * 60 * 60 * 24
+                    };
+                    var timeUnitsRegExp = /[smhd]/;
+                    var timeNow = new Date().getTime();
+                    var agoMatch, unitMatch, count, unit, msTime;
+
+                    agoMatch = /ago/.exec(val);
+                    if (agoMatch === null) {
+                        msTime = val;
+                    } else {
+                        unitMatch = timeUnitsRegExp.exec(val);
+                        count = +val.slice(0, unitMatch.index);
+                        unit = val.slice(unitMatch.index, agoMatch.index - 1);
+                        msTime = timeNow - count * TIME_UNITS[unit];
+                    }
+                    return msTime;
+                }
+
             });
 
         },
@@ -1216,6 +1267,9 @@
                 graphs[graphs.length-1].on("updatelimits", function(limits){
                     this.setLimits(limits.start, limits.end);
                 }, this);
+                graphs[graphs.length - 1].on("zoomPanel", function (gParams) {
+                    this.setGraph(gParams);
+                }, this);
             }
 
             // set up for the next page
@@ -1310,6 +1364,12 @@
             this.updateStartDatePicker();
             this.updateEndDatePicker();
 
+            this.refresh();
+        },
+
+        setGraph: function (gParams) {
+            this.setLimits(gParams.start, gParams.end);
+            this.drange = gParams.drange;
             this.refresh();
         },
 
