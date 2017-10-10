@@ -820,7 +820,6 @@ class ZenHub(ZCmdBase):
             job.deferred.errback(result)
         else:
             try:
-                self.log.debug("worker %s result -> %s", wId, result)
                 result = pickle.loads(''.join(result))
             except Exception as e:
                 error = e
