@@ -200,7 +200,9 @@ class Commandable:
             if collector:
                 command = 'zminion --minion-name zminion_%s run -- "%s"' % (target.getPerformanceServerName(), command.replace('\n', ' '))
         exp = "string:"+ command
+        exp = exp.replace("$", "dollar")
         compiled = talesCompile(exp)
+        compiled._expr = compiled._expr.replace("dollar", "$")
         environ = target.getUserCommandEnvironment()
         res = compiled(getEngine().getContext(environ))
         if isinstance(res, Exception):
