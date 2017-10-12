@@ -179,10 +179,11 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         """
         # Perform a TALES eval on the expression using self
         if cmd is None:
-            cmd = self.commandTemplate
+            cmd = self.commandTemplate.replace("$", "dollar")
         if not cmd.startswith('string:') and not cmd.startswith('python:'):
             cmd = 'string:%s' % cmd
         compiled = talesCompile(cmd)
+        compiled._expr = compiled._expr.replace("dollar", "$")
         d = device if device is not None else context.device()
         environ = {'dev' : d,
                    'device': d,
