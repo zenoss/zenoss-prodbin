@@ -770,8 +770,11 @@ class DeviceFacade(TreeFacade):
 
     def _getBoundTemplates(self, uid, isBound):
         obj = self._getObject(uid)
-        templates = (template for template in obj.getAvailableTemplates()
-             if (template.id in obj.zDeviceTemplates) == isBound)
+        templates = (
+            template
+            for template in obj.getAvailableTemplates()
+            if (template.id in obj.zDeviceTemplates) == isBound
+        )
         if isBound:
             templates = sorted(
                 templates, key=lambda x: obj.zDeviceTemplates.index(x.id)
