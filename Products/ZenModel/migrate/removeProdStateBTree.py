@@ -40,6 +40,8 @@ class RemoveProdStateBTree(Migrate.Step):
                 # 'ProdState' code no longer exists so 'states' object is going to be broken
                 # Setting it this way instead of using 'setProdState' will NOT trigger a re-index
                 #  but anybody upgrading to this version is going to have to run a full re-index post-upgrade
+                if not obj:
+                    continue
                 try:
                     obj.productionState = states.__Broken_state__['productionState']
                     obj.preMWProductionState = states.__Broken_state__['preMWProductionState']
