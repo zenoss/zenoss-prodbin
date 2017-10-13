@@ -331,6 +331,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             xmlfile = devExport(dev, module, klass)
             log.debug('Removing device %s from %s', devname, source)
             source.devices._delObject(devname)
+            # doing this search will cause the deletion to commit to solr:
+            IModelCatalogTool(self.getDmd()).search(limit=0, commit_dirty=True)
             log.debug('Importing device %s to %s', devname, target)
             devImport(xmlfile)
             exported = True
