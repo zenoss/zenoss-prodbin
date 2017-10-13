@@ -1031,6 +1031,7 @@ class ZenHub(ZCmdBase):
                 break
 
             candidateWorkers = [
+                x for x in
                 self.workerselector.getCandidateWorkerIds(
                     job.method, self.workers
                 )
