@@ -13,6 +13,7 @@ import transaction
 log = logging.getLogger("zen.migrate")
 
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 import Migrate
 
@@ -23,7 +24,7 @@ class RemoveProdStateBTree(Migrate.Step):
     """
     Move production states from the BTree back to the objects
     """
-    version = Migrate.Version(116, 0, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
 
@@ -39,8 +40,13 @@ class RemoveProdStateBTree(Migrate.Step):
                 # 'ProdState' code no longer exists so 'states' object is going to be broken
                 # Setting it this way instead of using 'setProdState' will NOT trigger a re-index
                 #  but anybody upgrading to this version is going to have to run a full re-index post-upgrade
-                obj.productionState = states.__Broken_state__['productionState']
-                obj.preMWProductionState = states.__Broken_state__['preMWProductionState']
+                try:
+                    obj.productionState = states.__Broken_state__['productionState']
+                    obj.preMWProductionState = states.__Broken_state__['preMWProductionState']
+                except AttributeError:
+                    log.warning("Coulnd't get production state for %s, setting up 'Production' to it", obj)
+                    obj.productionState = 1000
+                    obj.preMWProductionState = 1000
 
                 count += 1
 

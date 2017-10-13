@@ -17,7 +17,7 @@ from zope.component.factory import Factory
 from zope.component.interfaces import IFactory
 from zExceptions import NotFound
 
-from Acquisition import aq_parent, Implicit
+from Acquisition import aq_parent, Implicit, aq_base
 from interfaces import IModelCatalog
 from collections import defaultdict
 from Products.AdvancedQuery import And, Or, Eq, Not, In
@@ -117,10 +117,7 @@ class ModelCatalogBrain(Implicit):
         except (NotFound, KeyError, AttributeError):
             info = sys.exc_info()
             msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
-            msg += "Will attempt to delete the object from model catalog."
             log.error(msg.format(self.uid))
-            # unindex uid
-            getUtility(IModelCatalog).get_client(self).unindex_uid(self.uid)
             raise info[0], info[1], info[2]
         return obj
 
@@ -132,21 +129,10 @@ class ModelCatalogBrain(Implicit):
 class ObjectUpdate(object):
     """ Contains the info needed to create a modelindex.IndexUpdate """
     def __init__(self, obj, op=INDEX, idxs=None):
-        self.uid = obj.idx_uid()
+        self.uid = aq_base(obj).getPrimaryId()
         self.obj = obj
         self.op = op
         self.idxs = idxs
-
-class ObjectToUnindex(object):
-    """
-    Dummy class that allows to unindex an uid. ModelIndex does not check the
-    object when we are unindexing as long as we pass an uid to the IndexUpdate
-    """
-    def __init__(self, uid):
-        self.uid = uid
-
-    def idx_uid(self):
-        return self.uid
 
 
 class ModelCatalogClient(object):
@@ -187,15 +173,6 @@ class ModelCatalogClient(object):
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception unindexing object")
 
-    def unindex_uid(self, uid):
-        obj = ObjectToUnindex(uid)
-        try:
-            self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
-        except IndexException as e:
-            log.error("EXCEPTION {0} {1}".format(e, e.message))
-            self._data_manager.raise_model_catalog_error("Exception unindexing uid")
-
-
     def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
         spec = self._data_manager.model_index.get_object_spec(obj, idxs=fields)
@@ -227,7 +204,7 @@ class ModelCatalogTransactionState(object):
         self.temp_indexed_uids = set() # object uids of temporary indexed documents
         self.temp_deleted_uids = set() # object uids of temporary deleted documents
 
-        # During the tpc_vote phase, IndexUpdates are created for each
+        # During the tpc_begin phase, IndexUpdates are created for each
         # object we need to index
         self._updates_to_finish_tx = {} # { object_uid: modelindex.IndexUpdate}
 
@@ -360,7 +337,7 @@ class ModelCatalogDataManager(object):
         tweaked_updates = []
         indexed_uids = set()
         deleted_uids = set()
-        for update in updates.values():
+        for update in updates.itervalues():
             tid = tx_state.tid
             if update.op == UNINDEX:
                 # dont do anything for unindexed objects, just add them to
@@ -553,6 +530,10 @@ class ModelCatalogDataManager(object):
                 log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))
                 raise ModelCatalogError("Model Catalog error trying to abort transaction")
 
+    #---------------------------------------------------------------------------
+    # Two-phase commit protocol sequence of calls:
+    #     tpc_begin commit tpc_vote (tpc_finish | tpc_abort)
+    #---------------------------------------------------------------------------
     def abort(self, tx):
         try:
             self._delete_temporary_tx_documents()
@@ -560,7 +541,13 @@ class ModelCatalogDataManager(object):
             self.reset_tx_state(tx)
 
     def tpc_begin(self, transaction):
-        pass
+        # Get the modelindex.IndexUpdate of all updated objects
+        # Doing this in any of the following tpc phases can cause PosKeyErrors
+        tx_state = self._get_tx_state(transaction)
+        if tx_state:
+            start = time.time()
+            tx_state.prepare_updates_to_finish_transaction()
+            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def commit(self, transaction):
         pass
@@ -569,12 +556,6 @@ class ModelCatalogDataManager(object):
         # Check connection to SOLR
         if not self.ping_index():
             raise ModelCatalogUnavailableError()
-        # Get the modelindex.IndexUpdate of all updated objects
-        tx_state = self._get_tx_state(transaction)
-        if tx_state:
-            start = time.time()
-            tx_state.prepare_updates_to_finish_transaction()
-            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def tpc_finish(self, transaction):
         try:

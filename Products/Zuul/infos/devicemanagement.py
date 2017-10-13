@@ -1,4 +1,3 @@
-
 ##############################################################################
 #
 # Copyright (C) Zenoss, Inc. 2012, all rights reserved.
@@ -23,26 +22,24 @@ class MaintenanceWindowInfo(InfoBase):
     startState = ProxyProperty('startProductionState')
 
     @property
-    def startProdState(self):    
+    def startProdState(self):
         return self._object.niceStartProductionState()
 
     @property
-    def niceRepeat(self):    
+    def niceRepeat(self):
         return self._object.niceRepeat()
-        
-    @property
-    def duration(self):    
-        return self._object.niceDuration()          
 
-    @property    
+    @property
+    def duration(self):
+        return self._object.niceDuration()
+
+    @property
     def startTime(self):
-        return self._object.niceStartDateTime() 
-    
+        return self._object.niceStartDateTime()
+
     def updateWindow(self, p):
         self._object.manage_editMaintenanceWindow( 
-                                     startDate=p['startDate'],
-                                     startHours=p['startHours'],
-                                     startMinutes=p['startMinutes'],
+                                     startDateTime=p['startDateTime'],
                                      durationDays=p['durationDays'],
                                      durationHours=p['durationHours'],
                                      durationMinutes=p['durationMinutes'],
@@ -51,26 +48,25 @@ class MaintenanceWindowInfo(InfoBase):
                                      occurrence=p.get('occurrence', '1st'),
                                      startProductionState=p['startProductionState'],
                                      enabled=p['enabled']
-                                )      
-                                     
-    
+                                )
+
 class UserCommandManagementInfo(InfoBase):
     id = ProxyProperty('id')
     command = ProxyProperty('command')
     description = ProxyProperty('description')
-    
+
     def updateUserCommand(self, params):
         self._object.updateUserCommand(params)
 
 class AdminRoleManagementInfo(InfoBase):
     id = ProxyProperty('id')
-    description = ProxyProperty('description')   
+    description = ProxyProperty('description')
     role = ProxyProperty('role')
-    
+
     @property
-    def email(self):    
+    def email(self):
         return self._object.email()
 
-    @property    
+    @property
     def pager(self):
         return self._object.pager()
