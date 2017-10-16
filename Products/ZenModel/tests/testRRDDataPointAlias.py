@@ -59,6 +59,39 @@ class TestRRDDataPointAlias(ZenModelBaseTest):
         self.assert_(alias.id == aliasName)
         self.assert_(alias.formula == aliasFormula)
 
+    def testInvalidAliasId(self):
+        with self.assertRaises(ValueError):
+            RRDDataPointAlias('an alias')
+
+        with self.assertRaises(ValueError):
+            RRDDataPointAlias('an$alias')
+
+        t = createTemplate(self.dmd)
+        ds0 = t.datasources()[0]
+        dp0 = ds0.datapoints()[0]
+        with self.assertRaises(ValueError):
+            manage_addDataPointAlias(dp0, 'an alias', '')
+        with self.assertRaises(ValueError):
+            manage_addDataPointAlias(dp0, 'an$alias', '')
+
+    def testTrimmedAliasId(self):
+        alias = RRDDataPointAlias(' alias1')
+        self.assert_(alias.id == 'alias1')
+        alias = RRDDataPointAlias('alias1 ')
+        self.assert_(alias.id == 'alias1')
+        alias = RRDDataPointAlias(' alias1 ')
+        self.assert_(alias.id == 'alias1')
+
+        t = createTemplate(self.dmd)
+        ds0 = t.datasources()[0]
+        dp0 = ds0.datapoints()[0]
+        alias1 = manage_addDataPointAlias(dp0, ' alias1', '')
+        self.assert_(alias1.id == 'alias1')
+        alias2 = manage_addDataPointAlias(dp0, 'alias2 ', '')
+        self.assert_(alias2.id == 'alias2')
+        alias3 = manage_addDataPointAlias(dp0, ' alias3 ', '')
+        self.assert_(alias3.id == 'alias3')
+
     def testNoFormula(self):
         alias = RRDDataPointAlias('alias1')
         self.assert_(alias.evaluate(self.device) is None)

@@ -14,6 +14,7 @@ a pair of a name and an rpn formula.  The formula should convert the datapoint
 to the form represented by the name.
 """
 
+import re
 from AccessControl import Permissions
 
 import Globals
@@ -30,12 +31,22 @@ unused(Globals)
 ALIAS_DELIMITER = ','
 EVAL_KEY = '__EVAL:'
 
+_validAliasIDPattern = re.compile("^[\w]+$")
+
+
+def _validateAliasID(id):
+    id = str(id).strip()
+    if _validAliasIDPattern.match(id) is None:
+        raise ValueError("Invalid value for DataPoint alias ID: %s" % (id,))
+    return id
+
 
 @deprecated
 def manage_addDataPointAlias(context, id, formula=None):
     """
     Add a datapoint alias to the datapoint given
     """
+    id = _validateAliasID(id)
     alias = RRDDataPointAlias(id)
     alias.formula = formula
     context.aliases._setObject(id, alias)
@@ -66,6 +77,10 @@ class RRDDataPointAlias(ZenModelRM, ZenPackable):
             'permissions': (Permissions.view,)
         },)
     },)
+
+    def __init__(self, id):
+        id = _validateAliasID(id)
+        super(RRDDataPointAlias, self).__init__(id)
 
     def evaluate(self, context):
         """
