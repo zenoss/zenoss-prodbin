@@ -14,6 +14,7 @@ Base class module that other servers will subclass.
 import logging
 log = logging.getLogger("zen.mail")
 
+import re
 import email
 import time
 import socket
@@ -97,8 +98,9 @@ class MessageProcessor(object):
                         % fromAddr)
             return
         
-        fromAddr = message.get('From').split('@')[1].rstrip('>')
-        fromAddr = fromAddr.split(' ')[0]
+        pattern = re.compile(r'(.*) <(.*?)>$')
+        match = pattern.match(fromAddr)
+        fromAddr = match.group(2).split('@')[-1]
         log.debug("The from address after processing is '%s'" % fromAddr)
         try:
             fromIp = socket.gethostbyname(fromAddr)
