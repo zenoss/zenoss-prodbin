@@ -498,6 +498,19 @@ class DeviceRouter(TreeRouter):
         newUid = facade.renameDevice(uid, newId, retainGraphData)
         return DirectResponse.succeed(uid=newUid)
 
+    def doesMoveRequireRemodel(self, uid, target):
+        """
+        Determine if the device will need to be remodeled if it is moved.
+
+        @type  uid: string
+        @param uid: Uid of device in current location
+        @type  target: string
+        @param target: Uid of the organizer to move the device to
+        """
+        facade = self._getFacade()
+        remodelRequired = facade.doesMoveRequireRemodel(uid, target)
+        return DirectResponse.succeed(remodelRequired=remodelRequired)
+
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC', asynchronous=True):
         """
