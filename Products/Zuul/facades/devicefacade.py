@@ -592,6 +592,15 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
 
+    def doesMoveRequireRemodel(self, uid, target):
+        # Resolve target if a path
+        if isinstance(target, basestring):
+            target = self._getObject(target)
+        assert isinstance(target, DeviceClass)
+        targetClass = target.getPythonDeviceClass()
+        dev = self._getObject(uid)
+        return dev and dev.__class__ != targetClass
+
     @info
     def moveDevices(self, uids, target, asynchronous=True):
         if asynchronous:
