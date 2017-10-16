@@ -60,6 +60,8 @@ class MessagePrePublishingEvent(object):
     Rabbit.
     """
     implements(IMessagePrePublishingEvent)
-    def __init__(self, msgs):
+
+    def __init__(self, msgs, maintWindowChange=False):
         self.msgs = msgs
+        self.maintWindowChange = maintWindowChange
 

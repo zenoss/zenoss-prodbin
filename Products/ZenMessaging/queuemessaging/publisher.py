@@ -48,6 +48,7 @@ class ModelChangePublisher(object):
         self._publishable = []
         self._discarded = 0
         self._total = 0
+        self._maintWindowChange = False
 
     def _createModelEventProtobuf(self, ob, eventType):
         """
@@ -143,8 +144,9 @@ class ModelChangePublisher(object):
         else:
             self._discarded+=1
 
-    def publishModified(self, ob):
-        self._total+=1
+    def publishModified(self, ob, maintWindowChange=False):
+        self._total += 1
+        self._maintWindowChange = maintWindowChange
         guid = self._getGUID(ob)
 
         def _createModified(object):
@@ -271,7 +273,7 @@ class PublishSynchronizer(object):
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
                 with _getPrepublishingTimer():
-                    notify(MessagePrePublishingEvent(msgs))
+                    notify(MessagePrePublishingEvent(msgs, maintWindowChange=publisher._maintWindowChange))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
                     dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)

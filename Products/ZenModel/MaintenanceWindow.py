@@ -621,7 +621,7 @@ class MaintenanceWindow(ZenModelRM):
         self.started = now
         self.setProdState(self.startProductionState, batchSize=batchSize,
                           inTransaction=inTransaction)
-
+        log.info("Finished start of maintenance window %s" % self.displayName())
 
 
     def end(self, batchSize=None, inTransaction=False):
@@ -634,6 +634,7 @@ class MaintenanceWindow(ZenModelRM):
         self.started = None
         self.setProdState(self.stopProductionState, ending=True,
                           batchSize=batchSize, inTransaction=inTransaction)
+        log.info("Finished end of maintenance window %s" % self.displayName())
 
 
     def execute(self, now=None, batchSize=None, inTransaction=False):
