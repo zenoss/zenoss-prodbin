@@ -34,7 +34,10 @@ def publishRemove(ob, event):
 @adapter(IGloballyIdentifiable, IIndexingEvent)
 def publishModified(ob, event):
     publisher = getModelChangePublisher()
-    publisher.publishModified(ob)
+    fromMaintWindow = False
+    if event and event.idxs and len(event.idxs) == 1 and 'productionState' in event.idxs:
+        fromMaintWindow = True
+    publisher.publishModified(ob, fromMaintWindow)
 
 
 @adapter(IGloballyIdentifiable, IObjectAddedToOrganizerEvent)
