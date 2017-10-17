@@ -1,11 +1,12 @@
 
+/* These tests assume the following:
+ *
+ *  Zenoss.USER_DATE_FORMAT = 'YYYY-MM-DD';
+ *  Zenoss.USER_TIME_FORMAT = 'hh:mm:ss a';
+ *  Zenoss.USER_TIMEZONE = 'Singapore';
+ *
+ */
 describe('Zenoss.date', function(){
-    beforeEach(function(){
-        Zenoss.USER_DATE_FORMAT = 'YYYY-MM-DD';
-        Zenoss.USER_TIME_FORMAT = 'hh:mm:ss a';
-        Zenoss.USER_TIMEZONE = 'Singapore';
-    });
-
     it('formatWithTimezone applies user format and timezone', function(){
         expect(
             Zenoss.date.renderWithTimeZone(1)
@@ -70,6 +71,27 @@ describe('Moment', function() {
             'Y-m-d'
         )
     });
+
+    describe('now', function() {
+        it('returns a momentjs object', function() {
+            expect(moment.isMoment(Zenoss.date.Moment.now())).toBe(true);
+        });
+
+        it('returns a momentjs object with correct timezone', function() {
+            expect(
+                Zenoss.date.Moment.now().tz()
+            ).toBe(
+                Zenoss.USER_TIMEZONE
+            );
+        });
+    });
+
+    describe('tzstring', function() {
+        it('has the correct value', function() {
+            expect(Zenoss.date.Moment.tzstring).toBe('SGT');
+        });
+    });
+
     describe('asMoment', function(){
         it('accepts second timestamps', function() {
             var seconds = moment.tz(
@@ -105,6 +127,14 @@ describe('Moment', function() {
                 '2005-02-13 17:30:15'
             )
         });
+        it('accepts other momentjs objects', function() {
+            var m = moment.tz('2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE);
+            expect(
+                this.cmp.asMoment(m).isSame(m)
+            ).toBe(
+                true
+            )
+        });
         it('returns a momentjs object', function() {
             expect(
                 moment.isMoment(this.cmp.asMoment(Date.now()))
@@ -126,19 +156,6 @@ describe('Moment', function() {
         it('returns null for unsupported argument types', function() {
             expect(this.cmp.asMoment([1,2,3])).toBe(null);
             expect(this.cmp.asMoment({})).toBe(null);
-        });
-    });
-    describe('now', function() {
-        it('returns a momentjs object', function() {
-            expect(moment.isMoment(this.cmp.now())).toBe(true);
-        });
-
-        it('returns a momentjs object with correct timezone', function() {
-            expect(
-                this.cmp.now().tz()
-            ).toBe(
-                Zenoss.USER_TIMEZONE
-            );
         });
     });
     describe('asDateTimeString', function() {
@@ -179,9 +196,9 @@ describe('Moment', function() {
         });
 
         it('accepts timestamps in seconds', function() {
-                var seconds = moment.tz(
-                    '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
-                ).valueOf() / 1000;
+            var seconds = moment.tz(
+                '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
+            ).valueOf() / 1000;
             expect(
                 this.cmp.asDateTimeString(seconds)
             ).toBe(
@@ -190,8 +207,8 @@ describe('Moment', function() {
         });
 
         it('returns only the date when dateOnly is true', function() {
-            var cmp = Ext.create('Zenoss.date.Moment', {dateOnly: true});
-            var seconds = moment.tz(
+            var cmp = Ext.create('Zenoss.date.Moment', {dateOnly: true}),
+                seconds = moment.tz(
                     '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
                 ).valueOf() / 1000;
             expect(
@@ -282,7 +299,6 @@ describe('Zenoss.form.field.DateTime', function() {
             )
         });
         it('accepts formatted String objects', function() {
-                dtstr = new String('2005-02-13 05:30:15 pm');
             expect(
                 this.cmp.setValue(this.date_string).getValue()
             ).toBe(
@@ -290,20 +306,27 @@ describe('Zenoss.form.field.DateTime', function() {
             )
         });
         it('accepts timestamps in seconds', function() {
-                seconds = moment.tz(
-                    '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
-                ).unix();
+            var seconds = moment.tz(
+                '2005-03-15 21:35:12', 'YYYY-MM-DD HH:mm:ss', Zenoss.USER_TIMEZONE
+            ).unix();
             expect(
                 this.cmp.setValue(seconds).getValue()
             ).toBe(
                 seconds
             )
         });
-        it('accepts no arguments', function() {
-            // No argument means use current time, but not sure how to test for 'current' time as it changes.
-                seconds = this.cmp.setValue().getValue();
+        it('accepts momentjs objects', function() {
+            var m = moment.tz(this.date_string, 'YYYY-MM-DD hh:mm:ss a', Zenoss.USER_TIMEZONE);
             expect(
-                seconds !== undefined && seconds !== null
+                this.cmp.setValue(m).getValue()
+            ).toBe(
+                this.expected_value
+            )
+        });
+        it('accepts no arguments', function() {
+            var seconds = this.cmp.setValue().getValue();
+            expect(
+                seconds === undefined || seconds === null
             ).toBe(
                 true
             )

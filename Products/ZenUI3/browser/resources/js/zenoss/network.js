@@ -84,13 +84,9 @@ var deleteNetwork = function() {
     tree.router.deleteNode({uid:uid},
         function(data) {
             if (data.success) {
-                tree.getStore().load({
-                    scope: this,
-                    callback: function() {
-                        tree.selectByToken(parentNode.get("id"));
-                        tree.addHistoryToken(tree.getView(), parentNode);
-                    }
-                });
+                tree.selectByToken(parentNode.get("id"));
+                tree.addHistoryToken(tree.getView(), parentNode);
+                tree.refresh();
             }
         }
     );

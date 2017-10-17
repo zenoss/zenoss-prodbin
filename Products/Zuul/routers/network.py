@@ -112,7 +112,7 @@ class NetworkRouter(TreeRouter):
         """
         self.api.deleteSubnet(uid)
         audit('UI.Network.DeleteSubnet', subnet=uid)
-        return DirectResponse.succeed(tree=self.getTree())
+        return DirectResponse.succeed("Network removed")
 
 
     def getTree(self, id='/zport/dmd/Networks'):

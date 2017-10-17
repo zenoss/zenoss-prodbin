@@ -817,41 +817,62 @@ var editDeviceClass = function(deviceClass, uid) {
             ref: '../savebtn',
             disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
             handler: function(btn) {
-                var vals = btn.refOwner.editForm.getForm().getValues();
-                var submitVals = {
-                    uids: [uid],
-                    asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
-                    target: '/zport/dmd/Devices' + vals.deviceClass,
-                    hashcheck: ''
-                };
-                Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
-                    var moveToNewDevicePage = function() {
-                        var hostString = window.location.protocol + '//' +
-                            window.location.host;
-                        window.location = hostString + '/zport/dmd/Devices' +
-                            vals.deviceClass + '/devices' +
-                            uid.slice(uid.lastIndexOf('/'));
+                var vals = btn.refOwner.editForm.getForm().getValues(),
+                    target = '/zport/dmd/Devices' + vals.deviceClass,
+                    needRemodelVals = {
+                        uid: uid,
+                        target: target
                     };
+                Zenoss.remote.DeviceRouter.doesMoveRequireRemodel(needRemodelVals, function(data) {
                     if (data.success) {
-                        if (data.exports) {
-                         new Zenoss.dialog.SimpleMessageDialog({
+                        var moveToNewDevicePage = function() {
+                                var hostString = window.location.protocol + '//' +
+                                    window.location.host;
+                                window.location = hostString + '/zport/dmd/Devices' +
+                                    vals.deviceClass + '/devices' +
+                                    uid.slice(uid.lastIndexOf('/'));
+                                },
+                            submitVals = {
+                                uids: [uid],
+                                asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
+                                target: target,
+                                hashcheck: ''
+                            };
+                        if (data.remodelRequired) {
+                            new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Remodel Required'),
-                                message: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                message: _t("Not all of the configuration can be preserved, so a remodel of the device will be required. Performance templates will be reset to the defaults for the device class. Continue with move?"),
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
                                     handler: function() {
-                                        moveToNewDevicePage();
+                                        Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                            if (data.success) {
+                                                moveToNewDevicePage();
+                                            }
+                                        });
                                     }
                                 }, {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
                             }).show();
+                        } else {
+                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                if (data.success) {
+                                    moveToNewDevicePage();
+                                }
+                            });
                         }
-                        else {
-                            moveToNewDevicePage();
-                        }
+                    } else {
+                        new Zenoss.dialog.SimpleMessageDialog({
+                            title: _t('Unable To Move'),
+                            message: _t("A test to determine if the move would require a remodel has encountered an unexpected error, unable to move the device."),
+                            buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK')
+                            }]
+                        }).show();
                     }
                 });
                 win.destroy();
