@@ -24,7 +24,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from Products.PageTemplates.Expressions import getEngine
 
-from Products.ZenUtils.ZenTales import talesCompile
+from Products.ZenUtils.ZenTales import talesCompile, talesEvalStr
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 
@@ -46,7 +46,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     eventKey = ''
     severity = 3
     commandTemplate = ""
-    cycletime = 300
+    cycletime = '${here/zCommandCollectionInterval}'
 
     _properties = (
         {'id':'sourcetype', 'type':'selection',
@@ -57,7 +57,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         {'id':'eventKey', 'type':'string', 'mode':'w'},
         {'id':'severity', 'type':'int', 'mode':'w'},
         {'id':'commandTemplate', 'type':'string', 'mode':'w'},
-        {'id':'cycletime', 'type':'int', 'mode':'w'},
+        {'id':'cycletime', 'type':'string', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (
@@ -83,6 +83,26 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
 
     
+    def talesEval(self, text, context):
+        if text is None:
+            return
+
+        device = context.device()
+        extra = {
+            'device': device,
+            'dev': device,
+            'devname': device.id,
+            'datasource': self,
+            'ds': self,
+        }
+
+        return talesEvalStr(str(text), context, extra=extra)
+
+
+    def getCycleTime(self, context):
+        return int(self.talesEval(self.cycletime, context))
+        
+
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
