@@ -40,7 +40,8 @@
                  xtype: 'textfield',
                  width:'150',
                  value: id,
-                 regex: /^[\w]+$/
+                 regex: /^[^\s]+$/,
+                 maxLength: 30
              },{
                  aliasType: 'formula',
                  xtype: 'textfield',
