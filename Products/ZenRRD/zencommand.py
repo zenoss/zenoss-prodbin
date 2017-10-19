@@ -388,7 +388,8 @@ class SshPerformanceCollectionTask(BaseTask):
             'eventClass': Cmd_Fail,
             'component': 'command',
             'device': self._devId,
-            'summary': 'Unknown host',
+            'summary': 'IP address not set, collection will be attempted\
+                        with host name',
             'component' : COLLECTOR_NAME,
         }
 
