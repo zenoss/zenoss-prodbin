@@ -404,12 +404,12 @@ class SshPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
-            if not self._manageIp:
-                raise Exception("Unknown host")                
-
-            yield self._connector.connect(self)
+            if not self._manageIp and self._useSsh:
+                raise Exception('IP address not set, collection '
+                    'will be attempted with host name')
 
             if self._useSsh:
+                yield self._connector.connect(self)
                 msg = "Connected to %s [%s]" % (self._devId, self._manageIp)
                 self._eventService.sendEvent(STATUS_EVENT,
                                              device=self._devId,
