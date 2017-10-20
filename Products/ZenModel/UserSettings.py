@@ -814,7 +814,7 @@ class UserSettings(ZenModelRM):
         if self.id == "admin" and curuser != "admin":
             messaging.IMessageSender(self).sendToBrowser(
                 'Error',
-                '{0} cannot edit admin settings. Settings not updated.'.format(curuser),
+                'No permissions to edit admin settings, only admin can edit own settings.',
                 priority=messaging.WARNING
             )
             return self.callZenScreen(self.REQUEST)
