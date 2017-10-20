@@ -809,8 +809,16 @@ class UserSettings(ZenModelRM):
 
         # update only email and page size if true
         outOfTurnUpdate = False
-        # Verify existing password
         curuser = self.getUser().getId()
+        # ZEN-28813
+        if self.id == "admin" and curuser != "admin":
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'No permissions to edit admin settings, only admin can edit own settings.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(self.REQUEST)
+        # Verify existing password
         if not oldpassword or not self.ZenUsers.authenticateCredentials(curuser, oldpassword):
             if REQUEST:
                 reqSettings = REQUEST.form
