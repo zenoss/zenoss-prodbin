@@ -734,6 +734,15 @@ class UserSettings(ZenModelRM):
             )
             return self.callZenScreen(self.REQUEST)
 
+        curuser = self.getUser().getId()
+        if self.id == "admin" and curuser != "admin":
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                '{0} cannot update admin password. Password not updated.'.format(curuser),
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(self.REQUEST)
+
         newpw = self.generatePassword()
         body = """
         Your Zenoss password has been reset at %s's request.
@@ -945,6 +954,16 @@ class UserSettings(ZenModelRM):
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords don't match")
+            elif self.id == "admin" and curuser != "admin":
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        '{0} cannot update admin password. Password not updated.'.format(curuser),
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("You cannot update admin password")
             else:
                 try:
                     userManager.updateUserPassword(self.id, password)
