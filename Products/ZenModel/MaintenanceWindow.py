@@ -573,9 +573,10 @@ class MaintenanceWindow(ZenModelRM):
                               device.id, self.displayName())
                     continue
 
+                # ZEN-26444: MW don't recover from a production state below 300
                 # ZEN-13197: skip decommissioned devices
-                if device.getProductionState() < 300:
-                        continue
+                if device.getPreMWProductionState() < 300:
+                    continue
 
                 self._p_changed = 1
                 # Changes the current state for a device, but *not*
