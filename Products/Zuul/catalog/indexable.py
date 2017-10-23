@@ -17,7 +17,7 @@ from Products.ZenUtils.IpUtil import ipunwrap, isip
 
 from zenoss.modelindex import indexed, index
 from zenoss.modelindex.constants import INDEX_UNIQUE_FIELD
-from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType, ListOfUntokenizedStringsFieldType
+from zenoss.modelindex.field_types import StringFieldType, ListOfStringsFieldType, IntFieldType, UntokenizedStringFieldType, ListOfUntokenizedStringsFieldType, ListOfPathStringsFieldType
 from zenoss.modelindex.field_types import DictAsBase64StringsFieldType, LongFieldType, NotIndexedFieldType, BooleanFieldType
 from zenoss.modelindex.field_types import IPAddressFieldType
 from zenoss.modelindex.constants import NOINDEX_TYPE
@@ -217,7 +217,7 @@ class BaseIndexable(TransactionIndexable):    # ZenModelRM inherits from this cl
         """
         return IIndexableWrapper(self).meta_type()
 
-    @indexed(ListOfStringsFieldType(stored=True), attr_query_name="path") # Device already has a method called path
+    @indexed(ListOfPathStringsFieldType(stored=True), attr_query_name="path") # Device already has a method called path
     def idx_path(self):
         """
         Paths under which this object may be found.
