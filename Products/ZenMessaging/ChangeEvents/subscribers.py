@@ -34,8 +34,9 @@ def publishRemove(ob, event):
 @adapter(IGloballyIdentifiable, IIndexingEvent)
 def publishModified(ob, event):
     publisher = getModelChangePublisher()
+
     fromMaintWindow = False
-    if event and event.idxs and len(event.idxs) == 1 and 'productionState' in event.idxs:
+    if hasattr(event, 'triggered_by_maint_window') and event.triggered_by_maint_window:
         fromMaintWindow = True
     publisher.publishModified(ob, fromMaintWindow)
 
