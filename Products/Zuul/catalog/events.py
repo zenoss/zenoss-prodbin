@@ -33,6 +33,7 @@ class IndexingEvent(object):
         self.idxs = idxs
         self.update_metadata = update_metadata
         self.triggered_by_zope_event = triggered_by_zope_event
+        self.triggered_by_maint_window = False
 
 
 def _get_object_to_index(ob):
