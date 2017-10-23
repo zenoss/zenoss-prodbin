@@ -53,6 +53,29 @@ class ModelCatalogTestsDrawer(BaseTestCase):
             exception_raised = True
         self.assertTrue(exception_raised)
 
+    def test_path_searches(self):
+        # create a thing
+        dc = self.dmd.Devices.createOrganizer("intruder")
+        uid = dc.getPrimaryId()
+        # find it
+        results = self.model_catalog.search(query={'path':uid})
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+        # try again, use a trailing slash
+        results = self.model_catalog.search(query={'path':'%s/' % uid})
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+        # now create another one, whose id is similar:
+        dc2 = self.dmd.Devices.createOrganizer("intruder-foo")
+        # search for the first thing again
+        results = self.model_catalog.search(query={'path':uid})
+        # we don't want to find multiple results
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+
     def test_zproperty_with_invalid_chars(self):
         bad_zproperty = ("zTestBadProp", '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95')
         good_zproperty = ("zTestGoodProp", 'hola :)')
