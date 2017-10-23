@@ -226,6 +226,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     priority = 3
     macaddresses = None
     renameInProgress = False
+    # ZEN-28849: set a default production state for devices
+    privateattr_productionState = DEFAULT_PRODSTATE
+    privateattr_preMWProductionState = DEFAULT_PRODSTATE
 
     # Flag indicating whether device is in process of creation
     _temp_device = False
