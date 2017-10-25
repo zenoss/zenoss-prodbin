@@ -554,7 +554,8 @@ class TriggersFacade(ZuulFacade):
 
         if not note:
             raise Exception('Could not find notification to update: %s' % uid)
-        if 'password' in note.content:
+        orig_password_masked = ''
+        if 'password' in note.content and note.content['password'] is not None:
             orig_password_masked = '*' * len(note.content['password'])
         if 'password' in data and data['password'] == orig_password_masked:
             del data['password']
