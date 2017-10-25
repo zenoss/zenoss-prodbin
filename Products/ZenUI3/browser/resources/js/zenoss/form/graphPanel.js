@@ -63,35 +63,12 @@
         });
     }
 
-    function truncateLongLegends(pts) {
-        var uRex1 = /[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/gi;
-        var uRex2 = /[0-9a-f]{64}/gi;
-
+    function removeRepeatedContext(pts) {
+        var uRex = /([^ ]+ [^ ]+ )/gi;
         pts.forEach(function (pt) {
-            // ZEN-26498 truncate UUIDs when present.
-            var uDashed = pt.legend.match(uRex1) || [];
-            uDashed.forEach(function (u) {
-                var trunc = u.substr(0, 2) + ".." + u.substr(31);
-                pt.legend = pt.legend.replace(u, trunc);
-            }, this);
-            var uHexed = pt.legend.match(uRex2) || [];
-            uHexed.forEach(function (u) {
-                var truncd = u.substr(0, 2) + ".." + u.substr(59);
-                pt.legend = pt.legend.replace(u, truncd);
-            }, this);
-            // remove used redundancy
             var usedused = pt.legend.indexOf('usedBlocks Used');
             if ( usedused > -1) {
                 pt.legend = pt.legend.substr(0, usedused) + "Used";
-            }
-            // Now impose 40 characters max length but keep last word
-            if (pt.legend.length > 40) {
-                var allWords = pt.legend.split(' ');
-                var lastWord = allWords[allWords.length-1];
-                if (lastWord.length > 30) {
-                    lastWord = lastWord.substr(lastWord.length -8);
-                }
-                pt.legend = pt.legend.substr(0,40-lastWord.length) + "..." + lastWord;
             }
         });
     }
@@ -339,6 +316,8 @@
                     removeRepeatedComponent(datapts, cname);
                 }, this);
             }
+
+            removeRepeatedContext(this.datapoints);
 
             // these assume that the graph panel has already been rendered
             var height = this.getEl().getHeight();
