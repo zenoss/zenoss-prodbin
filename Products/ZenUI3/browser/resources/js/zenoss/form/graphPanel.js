@@ -64,7 +64,6 @@
     }
 
     function removeRepeatedContext(pts) {
-        var uRex = /([^ ]+ [^ ]+ )/gi;
         pts.forEach(function (pt) {
             var usedused = pt.legend.indexOf('usedBlocks Used');
             if ( usedused > -1) {
