@@ -384,6 +384,15 @@ class SshPerformanceCollectionTask(BaseTask):
         self.executed = 0
         self._lastErrorMsg = ''
 
+        self.manage_ip_event = {
+            'eventClass': Cmd_Fail,
+            'component': 'command',
+            'device': self._devId,
+            'summary': 'IP address not set, collection will be attempted\
+                        with host name',
+            'component' : COLLECTOR_NAME,
+        }
+
     def __str__(self):
         return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
                self.name, self.configId, len(self._datasources))
@@ -404,12 +413,14 @@ class SshPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
-            if not self._manageIp:
-                raise Exception("Unknown host")                
-
-            yield self._connector.connect(self)
+            if not self._manageIp and self._useSsh:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Warning)
+            else:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Clear)
 
             if self._useSsh:
+                # we need connection only when we use ssh.
+                yield self._connector.connect(self)
                 msg = "Connected to %s [%s]" % (self._devId, self._manageIp)
                 self._eventService.sendEvent(STATUS_EVENT,
                                              device=self._devId,
