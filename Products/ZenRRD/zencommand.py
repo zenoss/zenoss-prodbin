@@ -414,13 +414,13 @@ class SshPerformanceCollectionTask(BaseTask):
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
             if not self._manageIp and self._useSsh:
-                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Warning)
+                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Info)
             else:
                 self._eventService.sendEvent(self.manage_ip_event, severity=Clear)
 
+            yield self._connector.connect(self)
+
             if self._useSsh:
-                # we need connection only when we use ssh.
-                yield self._connector.connect(self)
                 msg = "Connected to %s [%s]" % (self._devId, self._manageIp)
                 self._eventService.sendEvent(STATUS_EVENT,
                                              device=self._devId,
