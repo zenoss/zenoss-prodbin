@@ -8,6 +8,7 @@
 ##############################################################################
 
 import unittest
+import sys
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.Zuul.catalog.indexable import MODEL_INDEX_UID_FIELD as MI_UID, OBJECT_UID_FIELD as UID
@@ -81,6 +82,7 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         good_zproperty = ("zTestGoodProp", 'hola :)')
         zProperty_key = "zTestProp"
         zProperty_value = '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95'
+        expected_value = zProperty_value.decode(sys.getdefaultencoding(), "ignore").encode(sys.getdefaultencoding(), "ignore")
         dc = self.dmd.Devices.createOrganizer("dc_with_invalid_chars")
         dc.setZenProperty(bad_zproperty[0], bad_zproperty[1])
         dc.setZenProperty(good_zproperty[0], good_zproperty[1])
@@ -90,7 +92,7 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         results = self.model_catalog.search(query={UID:dc_uid}, fields="zProperties")
         self.assertTrue( results.total == 1 )
         brain = results.results.next()
-        self.assertEquals(brain.zProperties[bad_zproperty[0]], bad_zproperty[1])
+        self.assertEquals(brain.zProperties[bad_zproperty[0]], expected_value)
         self.assertEquals(brain.zProperties[good_zproperty[0]], good_zproperty[1])
 
 

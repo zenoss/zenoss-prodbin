@@ -218,11 +218,15 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     def legend(self):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
+        """
+        Multicontext legend definitions require device identification.
+        If not present, prepend user legend value with self.id
+        containing device name and metric name
+        """
         if self._multiContext:
-            if legend not in self.id:
+            device = self._context.device().titleOrId()
+            if  device not in legend:
                 legend = self.id + " " + legend
-            else:
-               legend = self.id
         return legend
 
     @property
