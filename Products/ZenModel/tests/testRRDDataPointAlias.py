@@ -12,6 +12,8 @@ if __name__ == '__main__':
     framework = None                    # quiet pyflakes
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
+from mock import patch
+
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenModel.RRDDataPointAlias import (
@@ -59,21 +61,6 @@ class TestRRDDataPointAlias(ZenModelBaseTest):
         self.assert_(alias.id == aliasName)
         self.assert_(alias.formula == aliasFormula)
 
-    def testInvalidAliasId(self):
-        with self.assertRaises(ValueError):
-            RRDDataPointAlias('an alias')
-
-        with self.assertRaises(ValueError):
-            RRDDataPointAlias('an$alias')
-
-        t = createTemplate(self.dmd)
-        ds0 = t.datasources()[0]
-        dp0 = ds0.datapoints()[0]
-        with self.assertRaises(ValueError):
-            manage_addDataPointAlias(dp0, 'an alias', '')
-        with self.assertRaises(ValueError):
-            manage_addDataPointAlias(dp0, 'an$alias', '')
-
     def testTrimmedAliasId(self):
         alias = RRDDataPointAlias(' alias1')
         self.assert_(alias.id == 'alias1')
@@ -91,6 +78,34 @@ class TestRRDDataPointAlias(ZenModelBaseTest):
         self.assert_(alias2.id == 'alias2')
         alias3 = manage_addDataPointAlias(dp0, ' alias3 ', '')
         self.assert_(alias3.id == 'alias3')
+
+    @patch("Products.ZenModel.RRDDataPointAlias.LOG")
+    def testInvalidWhitespace(self, mock_logging):
+        alias = RRDDataPointAlias('an alias')
+        self.assertEqual(mock_logging.warn.call_count, 1)
+        args = mock_logging.warn.call_args[0]
+        self.assertTrue("contains whitespace" in args[0])
+        self.assert_(alias.id == 'an alias')
+
+    @patch("Products.ZenModel.RRDDataPointAlias.LOG")
+    def testInvalidLength(self, mock_logging):
+        aliasId = ('alias' * 6) + 'a'
+        alias = RRDDataPointAlias(aliasId)
+        self.assertEqual(mock_logging.warn.call_count, 1)
+        args = mock_logging.warn.call_args[0]
+        self.assertTrue("exceeds 30 character limit" in args[0])
+        self.assert_(alias.id == aliasId)
+
+    @patch("Products.ZenModel.RRDDataPointAlias.LOG")
+    def testInvalid(self, mock_logging):
+        aliasId = ('alias ' * 5) + 'a'
+        alias = RRDDataPointAlias(aliasId)
+        self.assertEqual(mock_logging.warn.call_count, 2)
+        self.assert_(alias.id == aliasId)
+
+    def testAliasWithUnderbar(self):
+        alias = RRDDataPointAlias('alias_1')
+        self.assert_(alias.id == 'alias_1')
 
     def testNoFormula(self):
         alias = RRDDataPointAlias('alias1')
