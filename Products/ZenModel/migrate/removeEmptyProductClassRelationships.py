@@ -12,7 +12,6 @@ import logging
 
 from Acquisition import aq_base
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.utils import safe_hasattr as hasattr
@@ -26,7 +25,7 @@ class RemoveEmptyProductClassRelationships(Migrate.Step):
     This migrate script completes the work of RemoveProductClassInstancesRelationship to delete
     the productClass relationship from products that have a empty productClass relationship.
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         # This needs to get run a second time after re-indexing has occurred

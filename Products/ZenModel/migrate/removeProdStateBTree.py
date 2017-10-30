@@ -13,7 +13,6 @@ import transaction
 log = logging.getLogger("zen.migrate")
 
 from Products.ZenUtils.guid.interfaces import IGUIDManager
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 import Migrate
 
@@ -24,7 +23,7 @@ class RemoveProdStateBTree(Migrate.Step):
     """
     Move production states from the BTree back to the objects
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 
