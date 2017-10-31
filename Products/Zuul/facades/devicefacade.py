@@ -932,7 +932,7 @@ class DeviceFacade(TreeFacade):
                 proptype = inst.getPropertyType(propname)
                 objects.append({
                     'devicelink':inst.getPrimaryDmdId(),
-                    'props':self.maskPropertyPassword(getattr(inst, propname), proptype),
+                    'props':self.maskPropertyPassword(inst, propname),
                     'proptype':proptype
                 })
                 if relName == 'devices':
@@ -945,7 +945,7 @@ class DeviceFacade(TreeFacade):
             proptype = inst.getPropertyType(propname)
             objects.append({
                 'devicelink':inst.getPrimaryDmdId(),
-                'props':self.maskPropertyPassword(getattr(inst, propname), proptype),
+                'props':self.maskPropertyPassword(inst, propname),
                 'proptype':proptype
             })
         return objects
@@ -957,7 +957,7 @@ class DeviceFacade(TreeFacade):
             proptype = ''
         else:
             proptype = obj.getPropertyType(propname)
-            prop = self.maskPropertyPassword(getattr(obj, propname), proptype)
+            prop = self.maskPropertyPassword(obj, propname)
         return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
 
     def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
@@ -1110,11 +1110,8 @@ class DeviceFacade(TreeFacade):
                 props[prop] = prop
         return props.keys()
 
-    def maskPropertyPassword(self, prop, proptype):
-        passwordTypes = [
-            'password', 'passwd',
-            'multilinecredentials', 'instancecredentials'
-        ]
-        if proptype in passwordTypes:
+    def maskPropertyPassword(self, inst, propname):
+        prop = getattr(inst, propname)
+        if inst.zenPropIsPassword(propname):
             prop = "*" * len(prop)
         return prop
