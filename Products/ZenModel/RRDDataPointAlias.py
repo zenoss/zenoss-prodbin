@@ -14,6 +14,7 @@ a pair of a name and an rpn formula.  The formula should convert the datapoint
 to the form represented by the name.
 """
 
+import logging
 import re
 from AccessControl import Permissions
 
@@ -28,16 +29,22 @@ from Products.ZenUtils.Utils import unused
 
 unused(Globals)
 
+LOG = logging.getLogger("zen.RRDDataPointAlias")
+
 ALIAS_DELIMITER = ','
 EVAL_KEY = '__EVAL:'
 
-_validAliasIDPattern = re.compile("^[\w]+$")
+_validAliasIDPattern = re.compile("^[^\s]+$")
 
 
 def _validateAliasID(id):
     id = str(id).strip()
+    if len(id) > 30:
+        LOG.warn(
+            "Invalid DataPoint alias ID, exceeds 30 character limit: %s", id
+        )
     if _validAliasIDPattern.match(id) is None:
-        raise ValueError("Invalid value for DataPoint alias ID: %s" % (id,))
+        LOG.warn("Invalid DataPoint alias ID, contains whitespace: %s", id)
     return id
 
 

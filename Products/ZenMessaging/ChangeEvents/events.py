@@ -60,6 +60,9 @@ class MessagePrePublishingEvent(object):
     Rabbit.
     """
     implements(IMessagePrePublishingEvent)
-    def __init__(self, msgs):
+
+    def __init__(self, msgs, maintWindowChanges):
         self.msgs = msgs
+        # list of guids changed because of maintWindow (prodState only)
+        self.maintWindowChanges = maintWindowChanges
 
