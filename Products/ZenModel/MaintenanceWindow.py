@@ -574,8 +574,8 @@ class MaintenanceWindow(ZenModelRM):
                     continue
 
                 # ZEN-13197: skip decommissioned devices
-                if device.getProductionState() < 300:
-                        continue
+                if device.getPreMWProductionState() < 300:
+                    continue
 
                 self._p_changed = 1
                 # Changes the current state for a device, but *not*
