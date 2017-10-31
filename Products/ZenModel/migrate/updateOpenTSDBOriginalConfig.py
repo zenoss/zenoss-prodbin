@@ -12,7 +12,6 @@ import Migrate
 import os
 import servicemigration as sm
 from Products.ZenUtils.Utils import zenPath
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.5")
@@ -22,7 +21,7 @@ class updateOpenTSDBOriginalConfig(Migrate.Step):
     Overwrite Original OpenTSDB config to match the lastest.
     This is needed for the systems that were originaly upgraded from 5.0.5 and lower. 
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:
