@@ -12,7 +12,6 @@ import Migrate
 import os
 import servicemigration as sm
 from Products.ZenUtils.Utils import zenPath
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.10")
@@ -21,7 +20,7 @@ class AddThebeLogFilters(Migrate.Step):
     """
     Add LogFilters for issues addressed by ZEN-27982
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:

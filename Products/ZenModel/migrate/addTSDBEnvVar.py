@@ -12,7 +12,6 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.10")
 
@@ -20,7 +19,7 @@ sm.require("1.1.10")
 class AddTSDBEnvVar(Migrate.Step):
     "Add RAMCommitment to environment as -xmx flag for opentsdb services."
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:

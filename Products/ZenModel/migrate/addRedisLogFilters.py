@@ -18,7 +18,6 @@ from Products.ZenUtils.Utils import zenPath
 import Migrate
 import servicemigration as sm
 from servicemigration import InstanceLimits
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.10")
 
@@ -26,7 +25,7 @@ sm.require("1.1.10")
 class AddRedisLogFilters(Migrate.Step):
     """Add LogFilters for Redis (ZEN-28092)"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 
