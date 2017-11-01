@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 """
@@ -83,7 +83,7 @@ class ZodbPackMonkeyHelper(object):
 
     def create_reverse_ref_index(self, cursor):
         """
-        Checks if the reverser reference index exists on the 
+        Checks if the reverser reference index exists on the
         reference table and creates the index if it does not exist
         """
         sql = """ SHOW INDEX FROM {0} WHERE key_name="{1}"; """.format(self.REF_TABLE_NAME, self.REVERSE_REF_INDEX)
@@ -193,11 +193,11 @@ class ZodbPackMonkeyHelper(object):
         return valid
 
     def group_oids(self, cursor, to_remove):
-    	"""
-    	Return a list of grouped oids. Each group represents oids that are part
-    	of the same 'zenoss object'. All oids in a group have to be deleted in a
-    	transactional way to avoid PKE (todos o ninguno)
-    	"""
+        """
+        Return a list of grouped oids. Each group represents oids that are part
+        of the same 'zenoss object'. All oids in a group have to be deleted in a
+        transactional way to avoid PKE (todos o ninguno)
+        """
         references = self._get_oid_references(cursor, to_remove)
         oids_to_remove = { oid for (oid, tid) in to_remove }  # Let's work only with oids to make code more readable
         visited = { oid:False for oid in oids_to_remove }
@@ -254,7 +254,7 @@ class ZodbPackMonkeyHelper(object):
         log.info("{0}{1}".format(text, result.rjust(8)))
 
     def run_post_pack_tests(self, cursor, marked_for_removal, to_remove, oids_not_removed):
-        """ 
+        """
         Checks that the db tables have been left in a consistent state
         """
         if len(to_remove) == 0:
@@ -266,9 +266,9 @@ class ZodbPackMonkeyHelper(object):
         removed = to_remove - to_remove.intersection(not_removed)
         log.info("Validating results: {0} oids marked for removal / {1} oids removed / {2} oids skipped.".format(marked_for_removal, len(to_remove), len(not_removed)))
 
-        # Check tables state, deleted oids must not be in any of the tables and 
+        # Check tables state, deleted oids must not be in any of the tables and
         # not deleted oids must be in all tables
-        # 
+        #
         tables = [ "object_state", "object_refs_added" ]
         for table in tables:
             removed_count = self._get_count_in_table(cursor, removed, table, "zoid", "zoid")
@@ -314,7 +314,7 @@ class ZodbPackMonkeyHelper(object):
 
             data = set(object_state_data) - set(skipped_oids)
             return [ str(oid) for oid, tid in data ]
-            
+
     def export_rolledback_oids_to_file(self, cursor, skipped_oids, filename):
         """ Export to a file the oids that changed between prepack and pack phases """
         try:
@@ -368,6 +368,40 @@ try:
 
     from relstorage.adapters.packundo import PackUndo
     from relstorage.adapters.packundo import HistoryFreePackUndo
+    from persistent.TimeStamp import TimeStamp # pylint:disable=import-error
+    from ZODB.POSException import ReadOnlyError
+    from ZODB.utils import u64
+    from ZODB.utils import p64
+
+    @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
+    def pre_pack(self, pack_tid, get_references):
+        """Decide what the garbage collector should delete.
+
+        Objects created or modified after pack_tid will not be
+        garbage collected.
+
+        get_references is a function that accepts a pickled state and
+        returns a set of OIDs that state refers to.
+
+        The self.options.pack_gc flag indicates whether to run garbage
+        collection.  If pack_gc is false, this method does nothing.
+        """
+        if not self.options.pack_gc:
+            log.warning("pre_pack: garbage collection is disabled on a "
+                        "history-free storage, so doing nothing")
+            return
+
+        conn, cursor = self.connmanager.open_for_pre_pack()
+        conn.ping(True)
+        try:
+            try:
+                self._pre_pack_main(conn, cursor, pack_tid, get_references)
+            except:
+                log.exception("pre_pack: failed")
+                conn.rollback()
+                raise
+        finally:
+            self.connmanager.close(conn, cursor)
 
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
@@ -375,6 +409,10 @@ try:
         """
         Determine what to garbage collect.
         """
+        ################################
+        ### BEGIN ZENOSS CUSTOM CODE ###
+        ################################
+
         log.info("Running with the following options: {0}".format(GLOBAL_OPTIONS))
         # Create reverse ref index
         MONKEY_HELPER.create_reverse_ref_index(cursor)
@@ -386,7 +424,60 @@ try:
             if not all(map(lambda x: x=="innodb", engines.values())):
                 log.warn("Reference tables engines should be InnoDB to run zenossdbpack -t. {0}".format(engines))
 
-        original(self, conn, cursor, pack_tid, get_references)
+        try:
+
+        ##############################
+        ### END ZENOSS CUSTOM CODE ###
+        ##############################
+
+            stmt = self._script_create_temp_pack_visit
+            if stmt:
+                self.runner.run_script(cursor, stmt)
+
+            self.fill_object_refs(conn, cursor, get_references)
+
+        ################################
+        ### BEGIN ZENOSS CUSTOM CODE ###
+        ################################
+
+        except:
+            log.exception("pre_pack: failed")
+            conn.rollback()
+            raise
+        finally:
+            self.connmanager.close(conn, cursor)
+
+
+        # That might easily have taken longer than the MariaDB connection
+        # timeout, so refresh the connection
+        conn, cursor = self.connmanager.open_for_pre_pack()
+        conn.ping(True)
+
+        ##############################
+        ### END ZENOSS CUSTOM CODE ###
+        ##############################
+
+        log.info("pre_pack: filling the pack_object table")
+        # Fill the pack_object table with all known OIDs.
+        stmt = """
+        %(TRUNCATE)s pack_object;
+
+        INSERT INTO pack_object (zoid, keep, keep_tid)
+        SELECT zoid, %(FALSE)s, tid
+        FROM object_state;
+
+        -- Keep the root object.
+        UPDATE pack_object SET keep = %(TRUE)s
+        WHERE zoid = 0;
+
+        -- Keep objects that have been revised since pack_tid.
+        UPDATE pack_object SET keep = %(TRUE)s
+        WHERE keep_tid > %(pack_tid)s;
+        """
+        self.runner.run_script(cursor, stmt, {'pack_tid': pack_tid})
+
+        # Traverse the graph, setting the 'keep' flags in pack_object
+        self._traverse_graph(cursor)
 
 
     #------------------ Functions related to pack method ---------------------
@@ -541,6 +632,7 @@ try:
 
         # Read committed mode is sufficient.
         conn, cursor = self.connmanager.open()
+        conn.ping(True)
         try:
             try:
                 stmt = """
@@ -674,7 +766,7 @@ try:
         for step in xrange(0, len(oids), OIDS_PER_TASK):
             task = oids[step:step+OIDS_PER_TASK]
             tasks.append(task)
-        return tasks      
+        return tasks
 
     @monkeypatch('relstorage.adapters.packundo.HistoryFreePackUndo')
     def workerized_ref_tables_builder(self, oids, conn, cursor, get_references):
@@ -911,6 +1003,72 @@ try:
             self._patched_traverse_graph(cursor)
         else:
             original(self, cursor)
+
+    @monkeypatch('relstorage.storage.RelStorage')
+    def pack(self, t, referencesf, prepack_only=False, skip_prepack=False,
+             sleep=None):
+        """Pack the storage. Holds the pack lock for the duration."""
+        # pylint:disable=too-many-branches
+        if self._is_read_only:
+            raise ReadOnlyError()
+
+        prepack_only = prepack_only or self._options.pack_prepack_only
+        skip_prepack = skip_prepack or self._options.pack_skip_prepack
+
+        if prepack_only and skip_prepack:
+            raise ValueError('Pick either prepack_only or skip_prepack.')
+
+        def get_references(state):
+            """Return an iterable of the set of OIDs the given state refers to."""
+            if not state:
+                return ()
+
+            assert isinstance(state, bytes), type(state) # XXX PY3: str(state)
+            return {u64(oid) for oid in referencesf(state)}
+
+        # Use a private connection (lock_conn and lock_cursor) to
+        # hold the pack lock.  Have the adapter open temporary
+        # connections to do the actual work, allowing the adapter
+        # to use special transaction modes for packing.
+        adapter = self._adapter
+        if not skip_prepack:
+            # Find the latest commit before or at the pack time.
+            pack_point = repr(TimeStamp(*time.gmtime(t)[:5] + (t % 60,)))
+            tid_int = adapter.packundo.choose_pack_transaction(
+                u64(pack_point))
+            if tid_int is None:
+                log.debug("all transactions before %s have already "
+                            "been packed", time.ctime(t))
+                return
+
+            if prepack_only:
+                log.info("pack: beginning pre-pack")
+
+            s = time.ctime(TimeStamp(p64(tid_int)).timeTime())
+            log.info("pack: analyzing transactions committed "
+                        "%s or before", s)
+
+            # In pre_pack, the adapter fills tables with
+            # information about what to pack.  The adapter
+            # must not actually pack anything yet.
+            adapter.packundo.pre_pack(tid_int, get_references)
+        else:
+            # Need to determine the tid_int from the pack_object table
+            tid_int = adapter.packundo._find_pack_tid()
+
+        if prepack_only:
+            log.info("pack: pre-pack complete")
+        else:
+            # Now pack.
+            if self.blobhelper is not None:
+                packed_func = self.blobhelper.after_pack
+            else:
+                packed_func = None
+            adapter.packundo.pack(tid_int, sleep=sleep,
+                                    packed_func=packed_func)
+        self.sync()
+
+        self._pack_finished()
 
 
 except ImportError as e:
