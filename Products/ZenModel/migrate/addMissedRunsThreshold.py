@@ -15,14 +15,13 @@ import servicemigration as sm
 import servicemigration.thresholdconfig
 import servicemigration.threshold
 import servicemigration.eventtags
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.6")
 
 class addMissedRunsThreshold(Migrate.Step):
     """Adds a threshold for missedRuns for collector services"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:
