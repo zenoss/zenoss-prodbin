@@ -110,7 +110,7 @@ class ModelCatalogTool(object):
 
         @return: tuple (AdvancedQuery query, not indexed filters dict)
         """
-        available_indexes = self.model_catalog_client.get_indexes()
+        indexed, stored, _ = self.model_catalog_client.get_indexes()
         not_indexed_user_filters = {} # Filters that use not indexed fields
 
         user_filters_query = None
@@ -138,7 +138,7 @@ class ModelCatalogTool(object):
         # Build query from filters passed by user
         if globFilters:
             for key, value in globFilters.iteritems():
-                if key in available_indexes:
+                if key in indexed:
                     if user_filters_query:
                         user_filters_query = And(query, MatchRegexp(key, '.*%s.*' % value))
                     else:
@@ -282,9 +282,9 @@ class ModelCatalogTool(object):
                        fields we need to retrieve the faster the query will be
         @param facets_for_field: Field for which we want to retrieve its facets
         """
-        available_indexes = self.model_catalog_client.get_indexes()
+        indexed, stored, _ = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
-        areBrains = orderby in available_indexes or orderby is None
+        areBrains = orderby in indexed or orderby is None
         queryOrderby = orderby if areBrains else None
         
         query, not_indexed_user_filters = self._build_query(types, paths, depth, query, filterPermissions, globFilters)

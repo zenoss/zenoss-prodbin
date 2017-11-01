@@ -68,6 +68,15 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             |  idx_text_ipAddress        |  text_ipAddress         |              |     Y   |    Y    |   str     |     Y     |
             |  idx_deviceClassPath       |  deviceClassPath        |              |     Y   |    N    |   str     |     N     |
             |  idx_deviceOrganizers      |  deviceOrganizers       |              |     Y   |    Y    |   str     |     N     |
+            |  idx_tagNumber             |  tagNumber              |              |     Y   |    Y    |   str     |     N     |
+            |  idx_pythonClass           |  pythonClass            |              |     Y   |    Y    |   str     |     N     |     
+            |  idx_priority              |  priority               |              |     Y   |    Y    |   str     |     N     |
+            |  idx_collector             |  collector              |              |     Y   |    Y    |   str     |     N     |
+            |  idx_osModel               |  osModel                |              |     Y   |    Y    |   str     |     N     |
+            |  idx_osManufacturer        |  osManufacturer         |              |     Y   |    Y    |   str     |     N     |
+            |  idx_hwModel               |  hwModel                |              |     Y   |    Y    |   str     |     N     |
+            |  idx_hwManufacturer        |  hwManufacturer         |              |     Y   |    Y    |   str     |     N     |
+            |  idx_serialNumber          |  serialNumber           |              |     Y   |    Y    |   str     |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -321,6 +330,50 @@ class DeviceIndexable(object):   # Device inherits from this class
                 # remove the devices/device_id from the end
                 organizers.append( "/".join(sp[:-2]) )
         return organizers
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="tagNumber")
+    def idx_tagNumber(self):
+        return self.hw.tag
+ 
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="pythonClass")
+    def idx_pythonClass(self):
+        return self.__class__.__module__
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="priority")
+    def idx_priority(self):
+        return self.priority
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="collector")
+    def idx_collector(self):
+        return self.getPerformanceServerName()
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="osModel")
+    def idx_osModel(self):
+        if self.os.productClass():
+            return self.os.productClass().id
+
+        return None
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="osManufacturer")
+    def idx_osManufacturer(self):
+        if self.os.productClass():
+            return self.os.productClass().manufacturer().id
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="hwModel")
+    def idx_hwModel(self):
+        if self.hw.productClass():
+            return self.hw.productClass().id
+
+        return None
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="hwManufacturer")
+    def idx_hwManufacturer(self):
+        if self.hw.productClass():
+            return self.hw.productClass().manufacturer().id
+
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="serialNumber")
+    def idx_serialNumber(self):
+        return self.hw.serialNumber
 
 
 class ComponentIndexable(object):     # DeviceComponent inherits from this class

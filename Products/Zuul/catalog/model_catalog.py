@@ -125,6 +125,16 @@ class ModelCatalogBrain(Implicit):
         """Return the record ID for this object."""
         return getattr(self, "uuid")
 
+    def to_dict(self, idxs=None):
+        
+        if idxs:
+            if isinstance(idxs, basestring):
+                idxs = [idxs]
+        else:
+            idxs = self.idxs
+        return {idx:getattr(self, idx) for idx in idxs}
+        
+
 
 class ObjectUpdate(object):
     """ Contains the info needed to create a modelindex.IndexUpdate """
