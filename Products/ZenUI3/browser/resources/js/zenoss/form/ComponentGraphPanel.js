@@ -130,6 +130,17 @@
                         xtype: 'container',
                         width: 10
                     }, {
+                    xtype: 'compgraphrefreshbutton',
+                    iconCls: 'refresh',
+                    text: _t('Refresh'),
+                    ref: '../refreshButton',
+                        handler: function(button) {
+                            var grid = button.up("componentgraphpanel");
+                            if(grid && grid.isVisible()) {
+                                grid.updateGraphs();
+                            }
+                        }
+                    }, {
                         xtype: 'checkbox',
                         baseCls: 'zencheckbox_allonsame',
                         fieldLabel: _t('All on same graph'),
@@ -141,7 +152,8 @@
                             change: this.updateGraphs,
                             scope: this
                         }
-                    }]
+                    }
+                    ]
                 }]
             });
             Zenoss.form.ComponentGraphPanel.superclass.constructor.apply(this, arguments);
@@ -223,9 +235,9 @@
                 }, function(response){
                     if (response.success) {
                         var graphs=[], fn;
-                        this.removeAll();
                         fn = ZC.getComponentGraphRenderer(meta_type);
                         graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
+                        this.removeAll();
                         this.add(graphs);
                     }
                 }, this);
@@ -233,6 +245,57 @@
         }
     });
 
+    Ext.define("Zenoss.form.CompGraphRefreshButton", {
+        alias:['widget.compgraphrefreshbutton'],
+        extend:"Zenoss.RefreshMenuButton",
+        constructor: function(config) {
+            config = config || {};
+            var menu = {
+                xtype: 'statefulrefreshmenu',
+                id: config.stateId || Ext.id(),
+                trigger: this,
+                items: [{
+                    cls: 'refreshevery',
+                    text: _t('Refresh every')
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('1 minute'),
+                    value: 60,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('5 minutes'),
+                    value: 300,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('10 Minutes'),
+                    value: 600,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('30 Minutes'),
+                    checked: true,
+                    value: 1800,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('1 Hour'),
+                    value: 3600,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: _t('Manually'),
+                    value: -1,
+                    group: 'refreshgroup'
+                }]
+            };
+            Ext.apply(config, {
+                menu: menu
+            });
+            this.callParent(arguments);
+        }
+    });
 
 
 }());
