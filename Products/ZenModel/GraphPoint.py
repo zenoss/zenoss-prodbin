@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -45,7 +45,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
     DEFAULT_FORMAT = '%5.2lf%s'
     DEFAULT_LEGEND = '${graphPoint/id}'
     DEFAULT_MULTIGRAPH_LEGEND = '${here/name | here/id} ${graphPoint/id}'
-    
+
     sequence = 0
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
@@ -54,12 +54,12 @@ class GraphPoint(ZenModelRM, ZenPackable):
     _relations = ZenPackable._relations + (
         ("graphDef", ToOne(ToManyCont,"Products.ZenModel.GraphDefinition","graphPoints")),
         )
-    
-    factory_type_information = ( 
-        { 
+
+    factory_type_information = (
+        {
             'immediate_view' : 'editGraphPoint',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'edit'
                 , 'name'          : 'Graph Point'
                 , 'action'        : 'editGraphPoint'
@@ -100,6 +100,17 @@ class GraphPoint(ZenModelRM, ZenPackable):
         validation on fields and either return error message or save
         results.
         '''
+
+        lineType = REQUEST.get('lineType', '').strip().lower()
+        stacked = str(REQUEST.get('stacked', '')).strip().lower()
+        stackedLine = lineType == 'line' and stacked == 'true'
+        if stackedLine:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Invalid definition',
+                'Only Area graphs may be stacked. ',
+                priority=messaging.WARNING
+            )
+
         def IsHex(s):
             try:
                 _ = long(color, 16)
@@ -125,7 +136,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         ''' Return a description
         '''
         return self.id
-        
+
 
     def getTalesContext(self, thing=None, **kw):
         '''
@@ -153,10 +164,10 @@ class GraphPoint(ZenModelRM, ZenPackable):
         except Exception:
             result = '(Tales expression error)'
         return result
-            
+
 
     ## Graphing Support
-    
+
     def getColor(self, index):
         """
         Return a string apprpriate for use as the color part of an
@@ -174,7 +185,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             index %= len(self.colors)
             color = self.colors[index]
         color = '#%s' % color.lstrip('#')
-        
+
         return color
 
 
@@ -185,14 +196,14 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return color
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx,
                     multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         from Products.ZenUtils.Utils import unused
         unused(multiid, prefix, rrdDir)
         return cmds
-        
+
 
     def getDsName(self, base, multiid=-1, prefix=''):
         name = self.addPrefix(prefix, base)
@@ -212,7 +223,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             s = '_'.join((prefix, base))
         s = self.scrubForRRD(s)
         return s
-        
+
 
     def scrubForRRD(self, value, namespace=None):
         ''' scrub value so it is a valid rrd variable name.  If namespace

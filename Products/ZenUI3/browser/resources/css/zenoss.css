@@ -1761,6 +1761,7 @@ img.europaGraphGear.spinnerino {
   font-style: italic;
 }
 .zenfooter {
+    margin: 0 20px;
     position: relative;
     top: -15px;
     max-height: 200px;
@@ -1775,6 +1776,10 @@ img.europaGraphGear.spinnerino {
 .zenfooter_data_text {
   height: 18px;
 }
+.zenfooter_content > tbody > tr td,
+.zenfooter_content > tbody > tr th {
+    padding: 1px 3px;
+  }
 
 /* style the graph titles */
 .graph_title {
