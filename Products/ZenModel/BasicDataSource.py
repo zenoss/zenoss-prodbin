@@ -20,7 +20,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, escapeSpecChars
 from Products.ZenWidgets import messaging
 from copy import copy
 import cgi, time
@@ -199,19 +199,24 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
         # Get the command to run
         command = None
         if self.sourcetype=='COMMAND':
+            # create self.command to compile a command for zminion
+            # it's only used by the commandable mixin
+            self.command = self.commandTemplate
+            zminionCommand = self.compile(self, device)
             # to prevent command injection, get these from self rather than the browser REQUEST
-            self.command = self.getCommand(device, self.get('commandTemplate'))
-            displayCommand = self.command
-            # modify ssh command to be run with zminion
-            command = self.compile(self, device)
+            command = self.getCommand(device, self.get('commandTemplate'))
+            displayCommand = command
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            if snmpinfo.get('zSnmpCommunity', None):
+                # escape dollar sign if any by $ as it's used in zope templating system
+                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity']).replace("$", "$$")
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
             snmpCommand = SnmpCommand(snmpinfo)
-            displayCommand = snmpCommand.display
+            displayCommand = snmpCommand.display.replace("\\", "").replace("$$", "$")
             # modify snmp command to be run with zminion
             command = self.compile(snmpCommand, device)
         else:
@@ -245,14 +250,14 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
                 if remoteCollector:
                     # if device is on remote collector modify command to be run via zenhub
                     self.command = "/opt/zenoss/bin/zentestds run --device {} --cmd '{}'".format(
-                        device.manageIp, self.command)
-                    command = self.compile(self, device)
+                        device.manageIp, self.commandTemplate)
+                    zminionCommand = self.compile(self, device)
                     # zminion executes call back to zenhub
-                    executeStreamCommand(command, write)
+                    executeStreamCommand(zminionCommand, write)
                 else:
-                    executeSshCommand(device, self.command, write)
+                    executeSshCommand(device, command, write)
             else:
-                executeStreamCommand(command, write)
+                executeStreamCommand(zminionCommand, write)
         except:
             import sys
             write('exception while executing command')

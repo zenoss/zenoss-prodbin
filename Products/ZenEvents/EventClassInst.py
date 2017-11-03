@@ -221,8 +221,8 @@ Transform:
         )
         zem.sendEvent(badEvt)
 
-        transform_enabled = eventclass.transformEnabled
-        if transform_enabled:
+        use_blocking_mechanism = eventclass.getProperty(MAX_TRANSFORM_FAILS) > 0 and eventclass.transformEnabled
+        if use_blocking_mechanism:
             disableEvt = self._updateBadTransformCounter(evt, eventclass)
             if disableEvt:
                 disable_msg = "Transform for Event Class %s is disabled due to %d attempts to apply it: line %d, %s, " \

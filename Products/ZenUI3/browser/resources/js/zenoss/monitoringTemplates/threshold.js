@@ -1,5 +1,4 @@
 /*****************************************************************************
- *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
  *
  * This content is made available according to terms specified in
@@ -152,6 +151,25 @@
 
         function displayEditDialog(response) {
 
+            var thrtypes = ["PredictiveThreshold", "MinMaxThreshold"]
+            if (thrtypes.includes(response.record.type)){
+                //test button should always be at the bottom of the form
+                response.form.items[response.form.items.length - 1].items.push({
+                    xtype:'panel',
+                    columnWidth: 0.5,
+                    baseCls: 'show-rpn-values',
+                    items:[{
+                        xtype: 'displayfield',
+                        value: _t('Show values after RPN used'),
+                        width: 300,
+                    },{
+                        xtype: 'button',
+                        text: _t('Test with RPN'),
+                        id: 'testDeviceButton',
+                        handler: showRPNValues
+                  }]});
+            }
+
             var win = Ext.create( 'Zenoss.form.DataSourceEditDialog', {
                 record: response.record,
                 items: response.form,
@@ -171,6 +189,32 @@
 
             win.show();
         }
+ 
+        function showRPNValues (){
+            //This is for picking up datapoints name in different type of thresholds
+            var dpsobj, selectedds;
+            dpsobj = Ext.ComponentQuery.query('[fieldLabel=DataPoints]')[0] ||
+                     Ext.ComponentQuery.query('[fieldLabel=DataPoint]')[0]
+            if (dpsobj.fieldLabel == 'DataPoint'){
+                if (dpsobj.value == null){
+                    selecteddps = [];
+                } else {
+                    selecteddps = [dpsobj.value];
+                }
+            } else {
+                selecteddps = dpsobj.value
+            }
+            var minval = Ext.ComponentQuery.query('[name="minval"]')[0],
+                maxval = Ext.ComponentQuery.query('[name="maxval"]')[0];
+            router.getDataPointsRPNValues({thuid: record.data.uid, selecteddps: selecteddps,
+                                           minval: minval.value, maxval:maxval.value}, addRPNtable)
+        }
+
+        function addRPNtable(response){
+            Ext.create('Zenoss.stats.RPNValues', {
+                        response: response
+            }).show();
+        };
 
         // send the request for all of the threshold's info to the server
         router.getThresholdDetails({uid: record.data.uid}, displayEditDialog);
@@ -361,6 +405,53 @@
             if (node) {
                 return node.data.uid;
             }
+        }
+    });
+
+    Ext.define('RPNValues', {
+        extend: 'Ext.data.Model',
+        fields: ['name', 'maxrpn', 'minrpn', 'rpnvalue']
+    });
+
+    Ext.define("Zenoss.stats.RPNValues", {
+        extend: "Zenoss.dialog.BaseDialog",
+        constructor: function(config) {
+           var dialogStore = Ext.create('Ext.data.Store', {
+               model: 'RPNValues',
+               data: config.response.dpRPN
+           });
+           config = config || {};
+           Ext.applyIf(config, {
+               title: _t('Values with RPN used'),
+               minWidth: 500,
+               minHeight: 200,
+               height: 400,
+               autoScroll: true,
+               items: Ext.create('Ext.grid.Panel', {
+                   stripeRows: true,
+                   store: dialogStore,
+                   sortable: false,
+                   columns: [{
+                       header: "Datapoint Name",
+                       sortable: false,
+                       dataIndex: 'name',
+                       flex: 2,
+                   },{
+                       header: "RPN formula",
+                       dataIndex: 'rpnvalue',
+                       flex: 2
+                   },{
+                       header: "Min value after rpn",
+                       dataIndex: 'minrpn',
+                       flex: 2
+                   },{
+                       header: "Max value after rpn",
+                       dataIndex: 'maxrpn',
+                       flex: 2
+                   }]
+               }),
+           });
+           this.callParent([config]);
         }
     });
 
