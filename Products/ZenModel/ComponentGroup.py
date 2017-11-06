@@ -50,7 +50,8 @@ class ComponentGroup(ComponentOrganizer):
     def getSubComponents(self):
         cat = IModelCatalogTool(self)
         # @TODO: Can we avoid NOTs ?
-        query = And(Not(Eq('objectImplements', 'Products.ZenModel.ComponentGroup.ComponentGroup')),
+        query = And(Not(Eq('objectImplements', 'Products.ZenModel.MaintenanceWindow.MaintenanceWindow')),
+                    Not(Eq('objectImplements', 'Products.ZenModel.ComponentGroup.ComponentGroup')),
                     Not(Eq('objectImplements', 'Products.ZenModel.Device.Device')))
         brains = cat.search(query=query)
         children = []

@@ -555,6 +555,11 @@ class MaintenanceWindow(ZenModelRM):
 
         def _setProdState(devices_batch):
             for device in devices_batch:
+                # In case we try to move Component Group into MW
+                # some of objects in CG may not have production state
+                # we skip them.
+                if not hasattr(device, "privateattr_productionState"):
+                    continue
                 if ending:
                     # Note: If no maintenance windows apply to a device, then the
                     #       device won't exist in minDevProdStates
