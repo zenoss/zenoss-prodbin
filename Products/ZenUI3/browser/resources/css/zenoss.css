@@ -1783,7 +1783,7 @@ img.europaGraphGear.spinnerino {
 
 /* style the graph titles */
 .graph_title {
-    margin: -6px 0 10px 0;
+    margin: 6px 0 10px 0;
     display: inline-block;
     margin-bottom: -10px;
     overflow: auto;
