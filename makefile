@@ -7,7 +7,7 @@
 # a value like "support/5.2.x" is NOT valid because it will result in an
 # incorrect file name when full value of ARTIFACT is expanded by make.
 #
-VERSION  ?= 5.3.3
+VERSION  ?= 5.3.4
 BUILD_NUMBER ?= DEV
 BRANCH ?= support-5.3.x
 
@@ -24,7 +24,7 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # for more information about setting these values.
 # See zenoss-version.mk for more information about make targets that use these values.
 SCHEMA_MAJOR ?= 118
-SCHEMA_MINOR ?= 0
+SCHEMA_MINOR ?= 2
 SCHEMA_REVISION ?= 0
 
 DIST_ROOT := dist
