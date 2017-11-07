@@ -463,8 +463,6 @@ class CollectorDaemon(RRDDaemon):
                 min = 0
 
             dkey = "%s:%s" % (contextUUID, metric)
-            #TODO: remove this write
-            yield defer.maybeDeferred(self._metric_writer.write_metric, "%s.count" % metric_name, value, timestamp, tags)
             value = self._derivative_tracker.derivative(
                 dkey, (float(value), timestamp), min, max)
 

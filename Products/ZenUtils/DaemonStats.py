@@ -96,8 +96,7 @@ class DaemonStats(object):
                 metric_min = 0
             else:
                 metric_min = 'U'
-            #TODO: remove this write
-            self._metric_writer.write_metric("%s.count" % name, value, timestamp, tags)
+
             value = self._derivative_tracker.derivative(
                 '%s:%s' % (context_id, name), (float(value), timestamp),
                 min=metric_min)

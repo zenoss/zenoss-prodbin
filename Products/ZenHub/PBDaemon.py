@@ -892,11 +892,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 d.addBoth(lambda unused: self.pushEvents())
             else:
                 d = self.pushEvents()
-            d.addBoth(lambda unused: self.saveCounters())
             return d
 
         self.log.debug("No event sent as no EventService available.")
-        self.saveCounters()
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
@@ -1041,26 +1039,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.rrdStats.counter(name, value)
 
         # persist counters values
-        self.saveCounters()
         self.postStatisticsImpl()
-
-    def saveCounters(self):
-        atomicWrite(
-            zenPath(self._pickleName()),
-            pickle.dumps(self.counters),
-            raiseException=False,
-        )
 
     def _pickleName(self):
         instance_id = os.environ.get('CONTROLPLANE_INSTANCE_ID')
         return 'var/%s_%s_counters.pickle' % (self.name, instance_id)
-
-    def loadCounters(self):
-        try:
-            pass
-            #self.counters = pickle.load(open(zenPath(self._pickleName())))
-        except Exception:
-            pass
 
     def remote_getName(self):
         return self.name
