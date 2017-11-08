@@ -1713,14 +1713,15 @@ a.z-entity:hover{
 }
 .timeout,
 .nodata {
+  color: #a6a6a6;
   display: block;
-  position: relative;
+  font-family: monospace;
+  font-size: 18px;
+  letter-spacing: -0.05rem;
   margin: auto;
-  top: 40px;
-  color: blue;
+  position: relative;
   text-align: center;
-  font-size: 18pt;
-  font-style: italic;
+  top: 40px;
 }
 
 /* customize graph appearance */
@@ -1783,7 +1784,7 @@ img.europaGraphGear.spinnerino {
 
 /* style the graph titles */
 .graph_title {
-    margin: -6px 0 10px 0;
+    margin: 6px 0 10px 0;
     display: inline-block;
     margin-bottom: -10px;
     overflow: auto;
