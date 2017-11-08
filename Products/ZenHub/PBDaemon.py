@@ -607,7 +607,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.initialConnect = defer.Deferred()
         self.stopped = False
         self.counters = collections.Counter()
-        self.loadCounters()
         self._pingedZenhub = None
         self._connectionTimeout = None
         self._publisher = None

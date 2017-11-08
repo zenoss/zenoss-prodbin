@@ -1378,8 +1378,4 @@ class DefaultHubHeartBeatCheck(object):
 if __name__ == '__main__':
     from Products.ZenHub.zenhub import ZenHub
     z = ZenHub()
-
-    # during startup, restore performance counters
-    z.loadCounters()
-
     z.main()
