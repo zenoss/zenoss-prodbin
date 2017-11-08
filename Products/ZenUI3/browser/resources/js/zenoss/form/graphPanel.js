@@ -217,7 +217,6 @@
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
-                // maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
                     padding: "5px"
