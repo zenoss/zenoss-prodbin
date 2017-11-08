@@ -551,15 +551,13 @@ class MaintenanceWindow(ZenModelRM):
         #       following takes into account our window state too.
         #       Conversely, self.end() ends the window before calling this code.
         devices = self.fetchDevices()
-        minDevProdStates = self.fetchDeviceMinProdStates( devices )
+        minDevProdStates = self.fetchDeviceMinProdStates(devices)
 
         def _setProdState(devices_batch):
             for device in devices_batch:
                 # In case we try to move Component Group into MW
                 # some of objects in CG may not have production state
                 # we skip them.
-                if not hasattr(device, "privateattr_productionState"):
-                    continue
                 if ending:
                     # Note: If no maintenance windows apply to a device, then the
                     #       device won't exist in minDevProdStates
@@ -579,7 +577,7 @@ class MaintenanceWindow(ZenModelRM):
                     continue
 
                 # ZEN-13197: skip decommissioned devices
-                if device.getPreMWProductionState() < 300:
+                if device.getPreMWProductionState() and device.getPreMWProductionState() < 300:
                     continue
 
                 self._p_changed = 1
@@ -594,7 +592,10 @@ class MaintenanceWindow(ZenModelRM):
                     maintenanceWindow=self.displayName(),
                     productionState=newProductionState,
                     oldData_={'productionState':oldProductionState})
-                device.setProdState(minProdState, maintWindowChange=True)
+                if minProdState is None:
+                    device.resetProductionState()
+                else:
+                    device.setProdState(minProdState, maintWindowChange=True)
 
         if inTransaction:
             processFunc = transact(_setProdState)
