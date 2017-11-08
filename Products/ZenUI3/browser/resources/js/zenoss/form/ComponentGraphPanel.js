@@ -236,14 +236,13 @@
         extend: "Ext.Panel",
         tbar: tbarCmpGrphConfig,
         cls: 'compgraphpanel',
-        compType: "",
+        layout: 'column',
         pan_factor: 1.25,
         constructor: function (config) {
             config = config || {};
             var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
-
+            // var userColumns = Zenoss.settings.graphColumns || 1;
             Ext.applyIf(config, {
-                columns: 3,
                 drange: DATE_RANGES[ZSDTR][0],
                 newWindowButton: true,
                 bodyStyle: {
@@ -363,7 +362,6 @@
                 this.toolbar.hide();
             }
 
-
         },
         setContext: function (uid) {
             this.uid = uid;
@@ -440,51 +438,50 @@
         updateGraphs: function () {
             var meta_type = this.compType, uid = this.uid,
                 graphId = this.graphId, allOnSame = this.allOnSame.checked;
-            if (graphId !== undefined) {
-                Zenoss.remote.DeviceRouter.getComponentGraphs({
-                    uid: uid,
-                    meta_type: meta_type,
-                    graphId: graphId,
-                    allOnSame: allOnSame
-                }, function (response) {
-                    if (response.success) {
-                        var graphs = [], fn;
-                        fn = ZC.getComponentGraphRenderer(meta_type);
-                        graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
-                        this.removeAll();
-                        this.add(graphs);
-                        var cols = Zenoss.settings.graphColumns || 1;
-                        cols = this.allOnSame.checked ? 1 : cols;
-                        this.organizeGraphsIntoColumns(graphs, cols);
+                if (graphId !== undefined) {
+                    Zenoss.remote.DeviceRouter.getComponentGraphs({
+                        uid: uid,
+                        meta_type: meta_type,
+                        graphId: graphId,
+                        allOnSame: allOnSame
+                    }, function (response) {
+                        if (response.success) {
+                            var graphs = [], fn;
+                            fn = ZC.getComponentGraphRenderer(meta_type);
+                            graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
+                            this.removeAll();
+
+                            // grab user-specified column count
+                            var colCount = Zenoss.settings.graphColumns || 1;
+                            // reduce column count if graphs would not fill columns
+                            colCount = Math.min(graphs.length, colCount);
+
+                            var grCols = [], i, c;
+                            for (i = 0; i < colCount; i++) {
+                                grCols.push({
+                                    xtype: 'container',
+                                    items: [],
+                                    columnWidth: 1 / colCount
+                                });
+                            }
+
+                        var gp = {
+                            'drange': this.rangeToMilliseconds(this.drange),
+                            'end': this.end.unix(),
+                            'start': this.start.unix()
+                        };
+
+                        // push graphs into appropriate column
+                        for (i = 0; i < graphs.length; i++) {
+                            c = i % colCount;
+                            graphs[i].graph_params = gp;
+                            grCols[c].items.push(graphs[i]);
+                        }
+
+                        this.add(grCols);
                     }
                 }, this);
             }
-        },
-        organizeGraphsIntoColumns: function (graphs, numCols) {
-            var columns = [], i, col = 0;
-            // create a column container for each column specified
-            for (i = 0; i < numCols; i++) {
-                columns.push({
-                    xtype: 'container',
-                    items: [],
-                    // make them equal space
-                    columnWidth: 1 / numCols
-                });
-            }
-
-            // divide the graphs into buckets based on the order in which they were defined.
-            for (i = 0; i < graphs.length; i++) {
-                columns[col].items.push(graphs[i]);
-                col++;
-                if (col >= numCols) {
-                    col = 0;
-                }
-            }
-
-            this.add({
-                layout: 'column',
-                items: columns
-            });
         },
         rangeToMilliseconds: function (range) {
             if (RANGE_TO_MILLISECONDS[range]) {
