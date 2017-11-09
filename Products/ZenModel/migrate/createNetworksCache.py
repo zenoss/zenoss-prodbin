@@ -20,7 +20,7 @@ log = logging.getLogger("zen.migrate")
 
 class createNetworksCache(Migrate.Step):
 
-    version = Migrate.Version(115, 0, 0)
+    version = Migrate.Version(200, 0, 1)
 
     def cutover(self, dmd):
         for network_root in [ dmd.Networks, dmd.IPv6Networks ]:

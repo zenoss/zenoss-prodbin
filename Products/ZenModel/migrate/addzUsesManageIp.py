@@ -17,7 +17,7 @@ import Migrate
 
 class addzUsesManageIp(Migrate.Step):
 
-    version = Migrate.Version(115, 0, 0)
+    version = Migrate.Version(200, 0, 1)
 
     def cutover(self, dmd):
         if not hasattr(dmd.Devices, 'zUsesManageIp'):
