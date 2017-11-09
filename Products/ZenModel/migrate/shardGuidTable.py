@@ -14,7 +14,7 @@ from Products.ZenUtils.guid.guid import GUID_TABLE_PATH, DEFAULT_NUMBER_OF_SHARD
 
 
 class ShardGuidTable(Migrate.Step):
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(200, 0, 1)
 
     def cutover(self, dmd):
         old_table = dmd.unrestrictedTraverse(GUID_TABLE_PATH)
