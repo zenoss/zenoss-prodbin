@@ -584,7 +584,11 @@ class MaintenanceWindow(ZenModelRM):
                 # Changes the current state for a device, but *not*
                 # the preMWProductionState
                 oldProductionState = self.dmd.convertProdState(device.getProductionState())
-                newProductionState = self.dmd.convertProdState(minProdState)
+                # When MW ends Components will acquire production state from device
+                if not minProdState:
+                    newProductionState = "Acquired from parent"
+                else:
+                    newProductionState = self.dmd.convertProdState(minProdState)
                 log.info("MW %s changes %s's production state from %s to %s",
                          self.displayName(), device.id, oldProductionState,
                          newProductionState)
