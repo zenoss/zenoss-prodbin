@@ -19,7 +19,7 @@ import Migrate
 
 
 class UpdateUserDatetimeSettings(Migrate.Step):
-    version = Migrate.Version(118, 0, 0)
+    version = Migrate.Version(200, 0, 1)
 
     def cutover(self, dmd):
         df_map = {
