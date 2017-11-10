@@ -226,6 +226,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     priority = 3
     macaddresses = None
     renameInProgress = False
+    # ZEN-28849: set a default production state for devices
+    privateattr_productionState = DEFAULT_PRODSTATE
+    _preMWProductionState = DEFAULT_PRODSTATE
 
     # Flag indicating whether device is in process of creation
     _temp_device = False
@@ -506,9 +509,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Return list of monitored DeviceComponents on this device.
         Wrapper method for getDeviceComponents
         """
-        return self.getDeviceComponents(monitored=True,
+        components = self.getDeviceComponents(monitored=True,
                                         collector=collector, type=type)
-
+        return filter(lambda x: x.getProductionState() >= x.zProdStateThreshold, components)
 
     security.declareProtected(ZEN_VIEW, 'getReportableComponents')
     def getReportableComponents(self, collector=None, type=None):

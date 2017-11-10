@@ -11,7 +11,6 @@ import logging
 import Migrate
 import os
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
@@ -21,7 +20,7 @@ class UpdateRedisBindAddress(Migrate.Step):
      Fixes redis configs to allow remote connections after the introduction of
      protected-mode in newer versions.
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:

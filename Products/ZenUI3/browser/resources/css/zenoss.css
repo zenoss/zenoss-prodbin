@@ -1713,14 +1713,15 @@ a.z-entity:hover{
 }
 .timeout,
 .nodata {
+  color: #a6a6a6;
   display: block;
-  position: relative;
+  font-family: monospace;
+  font-size: 18px;
+  letter-spacing: -0.05rem;
   margin: auto;
-  top: 40px;
-  color: blue;
+  position: relative;
   text-align: center;
-  font-size: 18pt;
-  font-style: italic;
+  top: 40px;
 }
 
 /* customize graph appearance */
@@ -1761,6 +1762,7 @@ img.europaGraphGear.spinnerino {
   font-style: italic;
 }
 .zenfooter {
+    margin: 0 20px;
     position: relative;
     top: -15px;
     max-height: 200px;
@@ -1775,10 +1777,14 @@ img.europaGraphGear.spinnerino {
 .zenfooter_data_text {
   height: 18px;
 }
+.zenfooter_content > tbody > tr td,
+.zenfooter_content > tbody > tr th {
+    padding: 1px 3px;
+  }
 
 /* style the graph titles */
 .graph_title {
-    margin: -6px 0 10px 0;
+    margin: 6px 0 10px 0;
     display: inline-block;
     margin-bottom: -10px;
     overflow: auto;
