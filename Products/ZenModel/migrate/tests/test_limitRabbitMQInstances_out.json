@@ -1,0 +1,334 @@
+[
+  {
+     "ID": "8k880lx3y7n3sqqfcvrkay4u1",
+     "Name": "RabbitMQ",
+     "Title": "",
+     "Version": "",
+     "Context": null,
+     "Environment": null,
+     "Startup": "/usr/sbin/rabbitmq-server",
+     "Description": "RabbitMQ server",
+     "Tags": [
+       "daemon"
+     ],
+     "OriginalConfigs": {
+       "/etc/rabbitmq/rabbitmq-env.conf": {
+         "Filename": "/etc/rabbitmq/rabbitmq-env.conf",
+         "Owner": "root:root",
+         "Permissions": "0664",
+         "Content": "NODENAME=rabbit@rbt{{.InstanceID}}\nNODE_IP_ADDRESS=0.0.0.0\nRABBITMQ_MNESIA_BASE=/var/lib/rabbitmq/mnesia{{if ne .InstanceID 0}}-node{{end}}\n"
+       },
+       "/etc/rabbitmq/rabbitmq.config": {
+         "Filename": "/etc/rabbitmq/rabbitmq.config",
+         "Owner": "root:root",
+         "Permissions": "0664",
+         "Content": "[\n  {rabbit, [\n    {log_levels, [{connection, error}]},\n    {cluster_nodes, {[{{with $rabbits := .Instances}}{{range (each $rabbits) }}'rabbit@rbt{{.}}'{{if ne (plus 1 .) $rabbits}},{{end}}{{end}}{{end}}], disc}}\n  ]},\n  {kernel, [\n    {inet_dist_listen_max, 44001},\n    {inet_dist_listen_min, 44001}\n  ]}\n].\n"
+       }
+     },
+     "ConfigFiles": {
+       "/etc/rabbitmq/rabbitmq-env.conf": {
+         "Filename": "/etc/rabbitmq/rabbitmq-env.conf",
+         "Owner": "root:root",
+         "Permissions": "0664",
+         "Content": "NODENAME=rabbit@rbt{{.InstanceID}}\nNODE_IP_ADDRESS=0.0.0.0\nRABBITMQ_MNESIA_BASE=/var/lib/rabbitmq/mnesia{{if ne .InstanceID 0}}-node{{end}}\n"
+       },
+       "/etc/rabbitmq/rabbitmq.config": {
+         "Filename": "/etc/rabbitmq/rabbitmq.config",
+         "Owner": "root:root",
+         "Permissions": "0664",
+         "Content": "[\n  {rabbit, [\n    {log_levels, [{connection, error}]},\n    {cluster_nodes, {[{{with $rabbits := .Instances}}{{range (each $rabbits) }}'rabbit@rbt{{.}}'{{if ne (plus 1 .) $rabbits}},{{end}}{{end}}{{end}}], disc}}\n  ]},\n  {kernel, [\n    {inet_dist_listen_max, 44001},\n    {inet_dist_listen_min, 44001}\n  ]}\n].\n"
+       }
+     },
+     "Instances": 1,
+     "InstanceLimits": {
+       "Min": 1,
+       "Max": 1,
+       "Default": 1
+     },
+     "ChangeOptions": null,
+     "ImageID": "6a0proo9z80gt2za95en58khv/resmgr_5.3:latest",
+     "PoolID": "default",
+     "DesiredState": 0,
+     "CurrentState": "stopped",
+     "HostPolicy": "",
+     "Hostname": "rbt{{.InstanceID}}",
+     "Privileged": true,
+     "Launch": "auto",
+     "Endpoints": [
+       {
+         "Name": "rabbitmq admin",
+         "Purpose": "export",
+         "Protocol": "tcp",
+         "PortNumber": 15672,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "rabbitmq_admin",
+         "ApplicationTemplate": "rabbitmq_admin",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": [
+           {
+             "Name": "rabbitmq",
+             "Enabled": true
+           }
+         ],
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmq",
+         "Purpose": "export",
+         "Protocol": "tcp",
+         "PortNumber": 5672,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "rabbitmq",
+         "ApplicationTemplate": "rabbitmq",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmq_epmd",
+         "Purpose": "export",
+         "Protocol": "tcp",
+         "PortNumber": 4369,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "rabbitmq_epmd",
+         "ApplicationTemplate": "rabbitmq_epmd",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmq_inet_dist",
+         "Purpose": "export",
+         "Protocol": "tcp",
+         "PortNumber": 44001,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "rabbitmq_inet_dist",
+         "ApplicationTemplate": "rabbitmq_inet_dist",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmq_epmds",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 4369,
+         "PortTemplate": "{{plus .InstanceID 14369}}",
+         "VirtualAddress": "rbt{{.InstanceID}}:4369",
+         "Application": "rabbitmq_epmd",
+         "ApplicationTemplate": "rabbitmq_epmd",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmq_inet_dists",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 44001,
+         "PortTemplate": "{{plus .InstanceID 49001}}",
+         "VirtualAddress": "rbt{{.InstanceID}}:44001",
+         "Application": "rabbitmq_inet_dist",
+         "ApplicationTemplate": "rabbitmq_inet_dist",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "rabbitmqs",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 5672,
+         "PortTemplate": "{{plus .InstanceID 35672}}",
+         "VirtualAddress": "rbt{{.InstanceID}}:5672",
+         "Application": "rabbitmq",
+         "ApplicationTemplate": "rabbitmq",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       }
+     ],
+     "ParentServiceID": "8vaye287e3ytyn6eq4djijx9g",
+     "Volumes": [
+       {
+         "Owner": "rabbitmq:rabbitmq",
+         "Permission": "0750",
+         "ResourcePath": "rabbitmq/{{.InstanceID}}",
+         "ContainerPath": "/var/lib/rabbitmq",
+         "Type": "",
+         "InitContainerPath": "",
+         "ExcludeFromBackups": false
+       }
+     ],
+     "CreatedAt": "2017-11-07T06:24:10.538126701Z",
+     "UpdatedAt": "2017-11-07T06:24:10.538126701Z",
+     "DeploymentID": "aws_deployment",
+     "DisableImage": false,
+     "LogConfigs": [
+       {
+         "Path": "/var/log/rabbitmq/rabbit@rbt[0-9]*.log",
+         "Type": "rabbitmq",
+         "Filters": null,
+         "LogTags": null,
+         "IsAudit": false
+       },
+       {
+         "Path": "/var/log/rabbitmq/rabbit@rbt[0-9]*-sasl.log",
+         "Type": "rabbitmq_sasl",
+         "Filters": null,
+         "LogTags": null,
+         "IsAudit": false
+       }
+     ],
+     "Snapshot": {
+       "Pause": "PAUSE_CHECK_TIMEOUT=60 ${ZENHOME:-/opt/zenoss}/bin/quiesce-rabbitmq.sh pause",
+       "Resume": "${ZENHOME:-/opt/zenoss}/bin/quiesce-rabbitmq.sh resume"
+     },
+     "DisableShell": false,
+     "Runs": null,
+     "Commands": null,
+     "RAMCommitment": "256M",
+     "CPUCommitment": 1,
+     "Actions": null,
+     "HealthChecks": {
+       "admin": {
+         "Script": "curl -s -u {{(getContext . \"global.conf.amqpuser\")}}:{{(getContext . \"global.conf.amqppassword\")}} http://localhost:15672/api/vhosts | grep -q /zenoss",
+         "Timeout": 0,
+         "Interval": 10,
+         "Tolerance": 0
+       },
+       "publishing": {
+         "Script": "curl -s -u {{(getContext . \"global.conf.amqpuser\")}}:{{(getContext . \"global.conf.amqppassword\")}} http://localhost:15672/api/aliveness-test/%2Fzenoss | grep -q '{\"status\":\"ok\"}'",
+         "Timeout": 0,
+         "Interval": 10,
+         "Tolerance": 0
+       },
+       "user": {
+         "Script": "/opt/zenoss/bin/healthchecks/RabbitMQ/user {{(getContext . \"global.conf.amqpuser\")}} {{(getContext . \"global.conf.amqppassword\")}}",
+         "Timeout": 0,
+         "Interval": 15,
+         "Tolerance": 0
+       }
+     },
+     "Prereqs": [
+       {
+         "Name": "Cluster Leader Start",
+         "Script": "[ $(hostname) == 'rbt0' ] || rabbitmqctl -n rabbit@rbt0 status | grep nodedown || sleep 5"
+       }
+     ],
+     "MonitoringProfile": {
+       "MetricConfigs": [],
+       "GraphConfigs": [],
+       "ThresholdConfigs": []
+     },
+     "MemoryLimit": 0,
+     "CPUShares": 0,
+     "PIDFile": "",
+     "StartLevel": 1,
+     "EmergencyShutdownLevel": 2,
+     "EmergencyShutdown": false,
+     "DatabaseVersion": 1
+   }
+]
