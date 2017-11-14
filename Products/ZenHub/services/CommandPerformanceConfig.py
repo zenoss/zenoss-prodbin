@@ -73,7 +73,7 @@ class CommandPerformanceConfig(CollectorConfigService):
     def _getDsCycleTime(self, comp, templ, ds):
         cycleTime = 300
         try:
-            cycleTime = int(ds.cycletime)
+            cycleTime = int(ds.getCycleTime(comp))
         except ValueError:
             message = "Unable to convert the cycle time '%s' to an " \
                           "integer for %s/%s on %s" \
