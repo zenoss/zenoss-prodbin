@@ -23,4 +23,4 @@ def PUT(self, REQUEST, RESPONSE):
     """
     Disable HTTP PUT for preventing upload to dmd without authentication
     """
-    raise MethodNotAllowed, 'Method not supported for this resource.'
+    raise MethodNotAllowed('Method not supported for this resource.')
