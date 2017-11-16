@@ -25,10 +25,15 @@ from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 from Products.ZenModel.OSProcessMatcher import OSProcessDataMatcher
 from Products.ZenModel.OSProcessState import determineProcessState
 
-
 # Keep track of state between runs
 # (device, cmdAndArgs)
 Globals.MostRecentMonitoredTimePids = getattr(Globals, "MostRecentMonitoredTimePids", {})
+
+
+# For use in unit tests, to reset MostRecentMonitoredTimePids between tests.
+def resetRecentlySeenPids():
+    Globals.MostRecentMonitoredTimePids = {}
+
 
 def parseCpuTime(cputime):
     """
@@ -123,6 +128,10 @@ class ps(CommandParser):
         return combinedPids, combinedRss, combinedCpu
 
     def processResults(self, cmd, results):
+        if cmd.result.exitCode != 0:
+            log.warn("Processing skipped: command has a non-zero exit code")
+            return
+
         matcher = OSProcessDataMatcher(
             includeRegex   = cmd.includeRegex,
             excludeRegex   = cmd.excludeRegex,
@@ -134,9 +143,9 @@ class ps(CommandParser):
         def matches(processMetrics):
             pid, rss, cpu, cmdAndArgs = processMetrics
             return matcher.matches(cmdAndArgs)
-	
-	data = unicode(cmd.result.output, errors="replace")  # without relying on "ps" command output
-	lines = data.splitlines()[1:]
+        
+        data = unicode(cmd.result.output, errors="replace")  # without relying on "ps" command output
+        lines = data.splitlines()[1:]
         metrics = map(self._extractProcessMetrics, lines)
         matchingMetrics = filter(matches, metrics)
         
@@ -185,6 +194,7 @@ class ps(CommandParser):
                         severity=failSeverity)
                     log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
                     missingeventSent = summary
+
         # When not instantiated for each call fixes missing messages
         missingeventSent = False
 
