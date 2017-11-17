@@ -423,7 +423,8 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminat
     last = start
     while True:
         with cond:
-            if is_done():
+            # soft_index_is_done is actually appropriate in both cases
+            if soft_index_is_done():
                 log.info("Terminating condition met. Done!")
                 cancel.set()
                 # In case we were terminated before we were waiting
