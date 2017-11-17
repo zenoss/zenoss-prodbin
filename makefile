@@ -1,4 +1,4 @@
-VERSION  ?= 6.0.1
+VERSION  ?= 6.0.2
 BUILD_NUMBER ?= DEV
 BRANCH   ?= support-6.0.x
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
