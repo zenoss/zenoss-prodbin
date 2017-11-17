@@ -298,8 +298,7 @@
                 projections: this.projections,
                 printOptimized: this.printOptimized,
                 type: this.type,
-                // lose the footer and yaxis label as the image gets smaller
-                footer: (height >= 350) ? true : false,
+                footer: true,
                 yAxisLabel: this.units,
                 supressLegend: true,
                 miny: (this.miny !== -1) ? this.miny : null,
