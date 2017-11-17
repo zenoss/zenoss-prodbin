@@ -15,7 +15,7 @@ import Migrate
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import servicemigration as sm
 
-sm.require("1.1.11.dev0")
+sm.require("1.1.11")
 
 class RateCutoff(Migrate.Step):
     """Fix the credentials for consumer and query services"""
