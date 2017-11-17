@@ -88,10 +88,8 @@ class DaemonStats(object):
     def post_metrics(self, name, value, metric_type):
         tags = self._tags(metric_type)
         timestamp = time.time()
-        self._metric_writer.write_metric(name, value, timestamp, tags)
 
         context_id = self._context_id()
-
         if metric_type in {'DERIVE', 'COUNTER'}:
             # compute (and cache) a rate for COUNTER/DERIVE
             if metric_type == 'COUNTER':
@@ -100,9 +98,11 @@ class DaemonStats(object):
                 metric_min = 'U'
 
             value = self._derivative_tracker.derivative(
-                context_id, (float(value), timestamp),
+                '%s:%s' % (context_id, name), (float(value), timestamp),
                 min=metric_min)
 
-        # check for threshold breaches and send events when needed
-        self._threshold_notifier.notify(
-            self._contextKey(), context_id, self.name+'_'+name, timestamp, value)
+        if value is not None:
+            self._metric_writer.write_metric(name, value, timestamp, tags)
+            # check for threshold breaches and send events when needed
+            self._threshold_notifier.notify(
+                self._contextKey(), context_id, self.name+'_'+name, timestamp, value)
