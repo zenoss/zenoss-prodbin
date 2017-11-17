@@ -10,7 +10,6 @@
 __doc__ = """
 add --queuehighwatermark option to daemons configuration files
 """
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import logging
 log = logging.getLogger("zen.migrate")
 
@@ -20,7 +19,7 @@ sm.require("1.0.0")
 
 class AddQueueHighWaterMarkOption(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
     def cutover(self, dmd):
         try:
             ctx = sm.ServiceContext()

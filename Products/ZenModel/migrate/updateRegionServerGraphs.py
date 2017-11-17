@@ -13,14 +13,13 @@ log = logging.getLogger("zen.migrate")
 import Migrate
 import servicemigration as sm
 sm.require("1.1.10")
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class UpdateRegionServerGraphs(Migrate.Step):
     """
     Convert RegionServer operation counts graphs to display as rate.
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     legends = {'totalRequestCount': 'Total',
                'readRequestCount': 'Read',
