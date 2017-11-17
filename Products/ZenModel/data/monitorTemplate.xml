@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-09-12 18:51:14.143328
+    Zenoss RelationshipManager export completed on 2017-10-18 12:23:10.968671
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 6.0.0]" export_date="2017-09-12 18:51:14.143328" zenoss_server="6040d3b83cbb" >
+<objects version="[Zenoss, version 6.0.0]" export_date="2017-10-18 12:23:10.968671" zenoss_server="43782ef18f2f" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -38,7 +38,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -118,7 +118,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -182,7 +182,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -262,7 +262,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -318,7 +318,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -414,7 +414,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -478,7 +478,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -534,7 +534,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -1907,7 +1907,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -1987,7 +1987,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2051,7 +2051,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2131,7 +2131,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2187,7 +2187,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2283,7 +2283,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2347,7 +2347,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
@@ -2403,7 +2403,7 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>

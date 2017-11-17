@@ -185,7 +185,7 @@ class RedisListPublisher(BasePublisher):
                                    defaultMetricBufferSize)
 
         if remaining:
-            reactor.callLater(0, self._putLater, False, False)
+            reactor.callLater(0, self._putLater, False)
         return 0
 
     def _get_batch_size(self):

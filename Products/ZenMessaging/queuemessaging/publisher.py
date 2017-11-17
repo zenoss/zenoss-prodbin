@@ -425,7 +425,9 @@ class BlockingQueuePublisher(object):
                 declareExchange=True):
         if createQueues:
             for queue in createQueues:
-                self._client.createQueue(queue)
+                if not self._client.queueExists(queue):
+                    self.reconnect()
+                    self._client.createQueue(queue)
         self._client.publish(exchange, routing_key, message,
                              mandatory=mandatory, headers=headers,
                              declareExchange=declareExchange)
