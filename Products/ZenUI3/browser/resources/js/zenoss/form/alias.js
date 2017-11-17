@@ -39,7 +39,9 @@
                  aliasType: 'id',
                  xtype: 'textfield',
                  width:'150',
-                 value: id
+                 value: id,
+                 regex: /^[^\s]+$/,
+                 maxLength: 30
              },{
                  aliasType: 'formula',
                  xtype: 'textfield',

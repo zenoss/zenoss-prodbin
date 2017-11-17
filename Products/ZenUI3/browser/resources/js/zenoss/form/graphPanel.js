@@ -63,35 +63,11 @@
         });
     }
 
-    function truncateLongLegends(pts) {
-        var uRex1 = /[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/gi;
-        var uRex2 = /[0-9a-f]{64}/gi;
-
+    function removeRepeatedContext(pts) {
         pts.forEach(function (pt) {
-            // ZEN-26498 truncate UUIDs when present.
-            var uDashed = pt.legend.match(uRex1) || [];
-            uDashed.forEach(function (u) {
-                var trunc = u.substr(0, 2) + ".." + u.substr(31);
-                pt.legend = pt.legend.replace(u, trunc);
-            }, this);
-            var uHexed = pt.legend.match(uRex2) || [];
-            uHexed.forEach(function (u) {
-                var truncd = u.substr(0, 2) + ".." + u.substr(59);
-                pt.legend = pt.legend.replace(u, truncd);
-            }, this);
-            // remove used redundancy
             var usedused = pt.legend.indexOf('usedBlocks Used');
             if ( usedused > -1) {
                 pt.legend = pt.legend.substr(0, usedused) + "Used";
-            }
-            // Now impose 40 characters max length but keep last word
-            if (pt.legend.length > 40) {
-                var allWords = pt.legend.split(' ');
-                var lastWord = allWords[allWords.length-1];
-                if (lastWord.length > 30) {
-                    lastWord = lastWord.substr(lastWord.length -8);
-                }
-                pt.legend = pt.legend.substr(0,40-lastWord.length) + "..." + lastWord;
             }
         });
     }
@@ -241,7 +217,6 @@
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
-                maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
                     padding: "5px"
@@ -251,41 +226,7 @@
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[ZSDTR][0]
                 },
-                dockedItems: [{
-                    xtype: 'toolbar',
-                    dock: 'top',
-                    items: ['->',{
-                        text: _t('Open in New Tab'),
-                        ref: "../newtab",
-                        handler: Ext.bind(function(btn, e) {
-                                this.newTab(this);
-                        }, this)
-                    },{
-                        text: '&lt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                                this.onPanLeft(this);
-                        }, this)
-                    },{
-                        text: _t('Zoom In'),
-                        ref: '../zoomin',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, 1/this.zoom_factor);
-                        }, this)
-                    },{
-                        text: _t('Zoom Out'),
-                        ref: '../zoomout',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, this.zoom_factor);
-                        }, this)
-                    },{
-                        text: '&gt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanRight(this);
-                        }, this)
-                    }]
-                }]
+                dockedItems: []
             });
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
@@ -340,6 +281,8 @@
                 }, this);
             }
 
+            removeRepeatedContext(this.datapoints);
+
             // these assume that the graph panel has already been rendered
             var height = this.getEl().getHeight();
             var visconfig = {
@@ -382,11 +325,11 @@
                 chart.afterRender = function(){
                     var legenddiv = chart.$div.find(".nv-legend").length;
                     // 40 will trigger resize below.
-                    var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 0;
+                    var legendHeight = legenddiv ? Number(chart.$div.find(".nv-legend")[0].getBBox().height) : 0;
 
                     // adjust height based on graph content
-                    var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
-                        graphHeight = self.height,
+                    var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
+                        graphHeight = Number(self.height),
                         adjustedHeight = footerHeight + graphHeight + legendHeight;
 
                     // if tall footer is squishing the chart, recalculate panel height
@@ -448,7 +391,12 @@
                             'start': zoomStart,
                             'end': zoomEnd
                         };
-                        if (self.dockedItems.items.length) {
+
+                        compGraphPanel = self.up("componentgraphpanel");
+
+                        if (compGraphPanel) {
+                            compGraphPanel.zoomUpdate(gParams);
+                        } else if (self.dockedItems.items.length) {
                             // handle own chart changes
                             self.updateGraph(gParams);
                         } else {
@@ -1157,7 +1105,7 @@
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
             // measurement like "1h-ago"
-	    this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
+	        this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
             this.drange = rangeToMilliseconds(config.drange);
 
             // default start and end values in UTC time

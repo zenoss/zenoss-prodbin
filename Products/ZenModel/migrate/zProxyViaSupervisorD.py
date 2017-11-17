@@ -4,7 +4,6 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.8")
 
@@ -54,7 +53,7 @@ stdout_logfile=/opt/zenoss/log/%(program_name)s.log
 class ZProxyViaSupervisorD(Migrate.Step):
     """Run zproxy via supervisord."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 

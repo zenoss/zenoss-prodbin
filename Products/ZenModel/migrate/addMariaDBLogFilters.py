@@ -17,7 +17,6 @@ from Products.ZenUtils.Utils import zenPath
 import Migrate
 import servicemigration as sm
 from servicemigration import InstanceLimits
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.10")
 
@@ -25,7 +24,7 @@ sm.require("1.1.10")
 class AddMariaDBLogFilters(Migrate.Step):
     """Add LogFilters for MariaDB (ZEN-28087)"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 

@@ -5,7 +5,6 @@ import re
 
 import servicemigration as sm
 from Products.ZenUtils.Utils import zenPath
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.0.0")
@@ -108,7 +107,7 @@ class NginxConfigForZauth(Migrate.Step):
     """
     Nginx configuration change for Zauth (ZEN-28297)
     """
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:

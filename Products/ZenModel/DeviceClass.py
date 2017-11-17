@@ -331,6 +331,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             xmlfile = devExport(dev, module, klass)
             log.debug('Removing device %s from %s', devname, source)
             source.devices._delObject(devname)
+            # doing this search will cause the deletion to commit to solr:
+            IModelCatalogTool(self.getDmd()).search(limit=0, commit_dirty=True)
             log.debug('Importing device %s to %s', devname, target)
             devImport(xmlfile)
             exported = True
@@ -507,7 +509,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
         fields = [ "name", "id", "text_ipAddress" ]
-        search_results = IModelCatalogTool(self).search(query=query, fields=fields, commit_dirty=commit_dirty)
+        search_results = IModelCatalogTool(self.dmd.Devices).search(query=query, fields=fields, commit_dirty=commit_dirty)
         return list(search_results.results)
 
     def findDevicePath(self, devicename, commit_dirty=False):
@@ -541,7 +543,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         if devicename:
             query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
-            search_results = IModelCatalogTool(self).search(query=query)
+            search_results = IModelCatalogTool(self.dmd.Devices).search(query=query)
             for brain in search_results.results:
                 dev = brain.getObject()
                 if dev.id == devicename:

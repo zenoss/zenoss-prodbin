@@ -111,40 +111,18 @@ Ext.onReady(function(){
 
 
 /* Readable dates */
-var _time_units = [
-    ['year',   60*60*24*365],
-    ['month',  60*60*24*30],
-    ['week',   60*60*24*7],
-    ['day',    60*60*24],
-    ['hour',   60*60],
-    ['minute', 60],
-    ['second', 1]
-];
-
-Date.prototype.readable = function(precision) {
-    var diff = (new Date().getTime() - this.getTime())/1000,
-        remaining = Math.abs(diff),
-        result = [], i;
-    for (i=0;i<_time_units.length;i++) {
-        var unit = _time_units[i],
-            unit_name = unit[0],
-            unit_mult = unit[1],
-            num = Math.floor(remaining/unit_mult);
-        remaining = remaining - num * unit_mult;
-        if (num) {
-            result.push(num + " " + unit_name + (num>1 ? 's' : ''));
-        }
-        if (result.length === precision) {
-            break;
-        }
-    }
-    var base = result.join(' ');
-    return diff >= 0 ? base + " ago" : "in " + base;
-};
-
-// Note: 'e2mTokens' is Ext.Date to MomentJS date format token mappings
-// and 'm2eTokens' is MomentJs to Ext.Date date format token mappings
-var e2mTokens = {
+var time_units = [
+        ['year',   60*60*24*365],
+        ['month',  60*60*24*30],
+        ['week',   60*60*24*7],
+        ['day',    60*60*24],
+        ['hour',   60*60],
+        ['minute', 60],
+        ['second', 1]
+    ],
+    // Note: 'e2mTokens' is Ext.Date to MomentJS date format token mappings
+    // and 'm2eTokens' is MomentJs to Ext.Date date format token mappings
+    e2mTokens = {
         'Y': 'YYYY',
         'm': 'MM',
         'd': 'DD',
@@ -152,7 +130,7 @@ var e2mTokens = {
         'H': 'HH',
         'i': 'mm',
         's': 'ss',
-        'A': 'a',
+        'A': 'a'
     },
     m2eTokens = Object.keys(e2mTokens).reduce(function(o, k) { o[e2mTokens[k]] = k; return o; }, {}),
     moment2ext = function(format) {
@@ -169,8 +147,34 @@ var e2mTokens = {
             target.push((ch in e2mTokens) ? e2mTokens[ch] : ch);
         }
         return target.join('');
+    },
+    toMillis = function(value) {
+        return Ext.isNumeric(value) ? (parseInt(value) * 1000) : null;
+    },
+    toSeconds = function(value) {
+        return Ext.isNumeric(value) ? (parseInt(value) / 1000) : null;
     };
 
+Date.prototype.readable = function(precision) {
+    var diff = toSeconds(new Date().getTime() - this.getTime()),
+        remaining = Math.abs(diff),
+        result = [];
+    for (var i = 0; i < time_units.length; ++i) {
+        var unit = time_units[i],
+            unit_name = unit[0],
+            unit_mult = unit[1],
+            num = Math.floor(remaining/unit_mult);
+        remaining = remaining - num * unit_mult;
+        if (num) {
+            result.push(num + " " + unit_name + (num>1 ? 's' : ''));
+        }
+        if (result.length === precision) {
+            break;
+        }
+    }
+    var base = result.join(' ');
+    return diff >= 0 ? base + " ago" : "in " + base;
+};
 
 /**
  * A mixin class that provides support for handling momentjs objects and integrating them with ExtJS components.
@@ -180,23 +184,36 @@ var e2mTokens = {
  */
 Ext.define('Zenoss.date.Moment', {
 
-    /**
-     * Convert a Moment format string into an Ext.Date format string.
-     *
-     * @private
-     * @param {format} A string containing a momentjs format.
-     * @return {string} A string containing an Ext.Date format.
-     */
-    fromMomentFormat: moment2ext,
+    statics: {
+        /**
+         * Convert a Moment format string into an Ext.Date format string.
+         *
+         * @private
+         * @param {format} A string containing a momentjs format.
+         * @return {string} A string containing an Ext.Date format.
+         */
+        fromMomentFormat: moment2ext,
 
-    /**
-     * Convert an Ext.Date format string into a Moment format string.
-     *
-     * @private
-     * @param {format} A string containing an Ext.Date format.
-     * @return {string} A string containing a momentjs format.
-     */
-    toMomentFormat: ext2moment,
+        /**
+         * Convert an Ext.Date format string into a Moment format string.
+         *
+         * @private
+         * @param {format} A string containing an Ext.Date format.
+         * @return {string} A string containing a momentjs format.
+         */
+        toMomentFormat: ext2moment,
+
+        /**
+         * Returns a momentjs object representing the current time.
+         */
+        now: function() {
+            return moment.tz(Zenoss.USER_TIMEZONE);
+        },
+
+        tzstring: (function() {
+            return moment.tz(Zenoss.USER_TIMEZONE).format('z');
+        })()
+    },
 
     constructor: function(config) {
         var config = config || {};
@@ -230,26 +247,23 @@ Ext.define('Zenoss.date.Moment', {
      */
     asMoment: function(obj, format) {
         var args = [],
+            value = Ext.isNumeric(obj) ? parseInt(obj) : obj,
             format = (format === undefined) ? this.extFormat : format;
-        if (obj instanceof Date) {
-            var repr = Ext.Date.format(obj, format),
-                reprFmt = this.toMomentFormat(format);
+        if (moment.isMoment(obj)) {
+            args.push(obj)
+        }
+        else if (value instanceof Date) {
+            var repr = Ext.Date.format(value, format),
+                reprFmt = Zenoss.date.Moment.toMomentFormat(format);
             args.push(repr, reprFmt);
         }
-        else if (typeof obj == "string" || obj instanceof String) {
-            args.push(obj, this.toMomentFormat(format));
+        else if (typeof value == "string" || value instanceof String) {
+            args.push(value, Zenoss.date.Moment.toMomentFormat(format));
         }
-        else if (typeof obj == "number" || moment.isMoment(obj)) {
-            args.push(obj * 1000)
+        else if (typeof value == "number" || moment.isMoment(value)) {
+            args.push(toMillis(value))
         }
         return (args.length > 0) ? moment.tz.apply(this, args.concat(Zenoss.USER_TIMEZONE)) : null;
-    },
-
-    /**
-     * Returns a momentjs object representing the current time.
-     */
-    now: function() {
-        return moment.tz(Zenoss.USER_TIMEZONE);
     },
 
     /**
@@ -273,6 +287,42 @@ Ext.define('Zenoss.form.field.DateTime', {
     alias: 'widget.zendatetimefield',
     mixins: ['Zenoss.date.Moment'],
     constructor: function(config) {
+        var config = config || {};
+
+        // Calling the mixin constructor because Ext does not.
+        // Note: call this first.
+        this.mixins['Zenoss.date.Moment'].constructor.call(this, config);
+
+        config = Ext.applyIf(config, {
+            format: this.extFormat
+        });
+        this.callParent([config]);
+    },
+    setValue: function(timestamp) {
+        var value = this.asMoment(timestamp, this.format),
+            repr = (value != null) ? this.asDateTimeString(value) : null,
+            input = (repr != null) ? repr : undefined;
+        return this.callParent([input]);
+    },
+    getValue: function() {
+        var value = this.callParent(arguments),
+            output = (value !== null) ? this.asMoment(value, this.format) : null;
+        return (output !== null) ? toSeconds(output.valueOf()) : null;
+    },
+    getSubmitValue: function() {
+        return this.getValue();
+    }
+});
+
+
+/**
+ * Form field for handling datetimes with timezones.
+ */
+Ext.define('Zenoss.form.field.DateTimeDisplay', {
+    extend: 'Ext.form.field.Date',
+    alias: 'widget.zendatetimedisplayfield',
+    mixins: ['Zenoss.date.Moment'],
+    constructor: function(config) {
         // Calling the mixin constructor because Ext does not.
         this.mixins['Zenoss.date.Moment'].constructor.call(this, config);
 
@@ -285,18 +335,41 @@ Ext.define('Zenoss.form.field.DateTime', {
     setValue: function(timestamp) {
         var value = this.asMoment(timestamp, this.format),
             repr = (value != null) ? this.asDateTimeString(value) : null,
-            input = (repr != null) ? repr : this.asDateTimeString(this.now());
+            input = (repr != null) ? repr : this.asDateTimeString(Zenoss.date.Moment.now());
         return this.callParent([input]);
     },
     getValue: function() {
         var value = this.callParent(arguments),
             output = this.asMoment(value, this.format);
-        return output.valueOf() / 1000;
+        return toSeconds(output.valueOf());
     },
     getSubmitValue: function() {
         return this.getValue();
     }
 });
 
+
+/**
+ * Grid column for handling datetimes with timezones.
+ */
+Ext.define('Zenoss.grid.column.DateTime', {
+    extend: 'Ext.grid.column.Column',
+    alias: 'widget.zendatetimecolumn',
+    mixins: ['Zenoss.date.Moment'],
+    constructor: function(config) {
+        // Calling the mixin constructor because Ext does not.
+        this.mixins['Zenoss.date.Moment'].constructor.call(this);
+
+        var config = config || {};
+        config = Ext.applyIf(config, {
+            scope: this  // make sure the renderer is called using the Zenoss.grid.column.DateTime context
+        });
+        this.callParent([config]);
+    },
+    renderer: function(value, metadata, record) {
+        metadata.tdAttr = 'data-qtip="' + Zenoss.date.Moment.tzstring + '"';
+        return Zenoss.render.date(value, this.momentFormat);
+    }
+});
 
 })(); // End local scope

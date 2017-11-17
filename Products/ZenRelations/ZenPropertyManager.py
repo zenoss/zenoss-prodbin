@@ -102,6 +102,7 @@ Z_PROPERTIES = [
     ('zCommandSearchPath', [], 'lines', 'Command Search Path', 'Sets the path to search for any commands.'),
     ('zCommandExistanceTest', 'test -f %s', 'string', 'Command Existance Test', ''),
     ('zCommandPath', '/usr/local/zenoss/libexec', 'string', 'Command Path', 'Sets the default path where ZenCommand plug-ins are installed on the local Resource Manager box (or on a remote box where SSH is used to run the command).'),
+    ('zCommandCollectionInterval', 300, 'int', 'Command Collection Interval', 'Defines, in seconds, the default collection interval for command datasources.'),
     ('zTelnetLoginRegex', 'ogin:.$', 'string', 'Telnet Login', 'Regular expression to match the login prompt.'),
     ('zTelnetPasswordRegex', 'assword:', 'string', 'Telnet Password Regex', 'Regular expression to match the password prompt.'),
     ('zTelnetSuccessRegexList', ['\\$.$', '\\#.$'], 'lines', 'Telnet Success Regex', 'List of regular expressions to match the command prompt.'),

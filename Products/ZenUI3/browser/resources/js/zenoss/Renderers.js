@@ -77,11 +77,10 @@ function pingStatusBase(bool) {
 Ext.apply(Zenoss.render, {
 
     date: function(date, format) {
-        if (!format) {
-            // old default "YYYY-MM-DD hh:mm:ss a z"
+        if (!format && typeof format !== "string" && !(format instanceof String)) {
             format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
         }
-        // Unix ms timestamps
+        // timestamp in seconds (UNIX style)
         if (Ext.isNumeric(date)) {
             return moment.unix(date).tz(Zenoss.USER_TIMEZONE).format(format);
         }

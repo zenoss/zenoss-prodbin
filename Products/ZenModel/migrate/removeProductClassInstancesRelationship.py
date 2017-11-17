@@ -13,7 +13,6 @@ from Acquisition import aq_base
 from zope.event import notify
 
 from Products.ZenModel.Manufacturer import Manufacturer
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 from Products.ZenRelations.ToManyRelationship import ToManyRelationship
 from Products.Zuul.catalog.events import IndexingEvent
@@ -23,7 +22,7 @@ from Products.ZenModel.migrate.removeEmptyProductClassRelationships import PRODU
 
 class RemoveProductClassInstancesRelationship(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         if not hasattr(dmd.Manufacturers, PRODUCT_CLASS_MIGRATED_MARKER):

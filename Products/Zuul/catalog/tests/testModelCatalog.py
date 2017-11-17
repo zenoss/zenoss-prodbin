@@ -8,6 +8,7 @@
 ##############################################################################
 
 import unittest
+import sys
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.Zuul.catalog.indexable import MODEL_INDEX_UID_FIELD as MI_UID, OBJECT_UID_FIELD as UID
@@ -53,11 +54,35 @@ class ModelCatalogTestsDrawer(BaseTestCase):
             exception_raised = True
         self.assertTrue(exception_raised)
 
+    def test_path_searches(self):
+        # create a thing
+        dc = self.dmd.Devices.createOrganizer("intruder")
+        uid = dc.getPrimaryId()
+        # find it
+        results = self.model_catalog.search(query={'path':uid})
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+        # try again, use a trailing slash
+        results = self.model_catalog.search(query={'path':'%s/' % uid})
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+        # now create another one, whose id is similar:
+        dc2 = self.dmd.Devices.createOrganizer("intruder-foo")
+        # search for the first thing again
+        results = self.model_catalog.search(query={'path':uid})
+        # we don't want to find multiple results
+        self.assertTrue( results.total == 1 )
+        brain = results.results.next()
+        self.assertTrue(brain.getPath() == uid)
+
     def test_zproperty_with_invalid_chars(self):
         bad_zproperty = ("zTestBadProp", '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95')
         good_zproperty = ("zTestGoodProp", 'hola :)')
         zProperty_key = "zTestProp"
         zProperty_value = '\x9fg`\x00\x1f\x18\xc3\xfd7\x95#\x06\xd01\x05\x95'
+        expected_value = zProperty_value.decode(sys.getdefaultencoding(), "ignore").encode(sys.getdefaultencoding(), "ignore")
         dc = self.dmd.Devices.createOrganizer("dc_with_invalid_chars")
         dc.setZenProperty(bad_zproperty[0], bad_zproperty[1])
         dc.setZenProperty(good_zproperty[0], good_zproperty[1])
@@ -67,7 +92,7 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         results = self.model_catalog.search(query={UID:dc_uid}, fields="zProperties")
         self.assertTrue( results.total == 1 )
         brain = results.results.next()
-        self.assertEquals(brain.zProperties[bad_zproperty[0]], bad_zproperty[1])
+        self.assertEquals(brain.zProperties[bad_zproperty[0]], expected_value)
         self.assertEquals(brain.zProperties[good_zproperty[0]], good_zproperty[1])
 
 

@@ -592,6 +592,15 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
 
+    def doesMoveRequireRemodel(self, uid, target):
+        # Resolve target if a path
+        if isinstance(target, basestring):
+            target = self._getObject(target)
+        assert isinstance(target, DeviceClass)
+        targetClass = target.getPythonDeviceClass()
+        dev = self._getObject(uid)
+        return dev and dev.__class__ != targetClass
+
     @info
     def moveDevices(self, uids, target, asynchronous=True):
         if asynchronous:
@@ -770,9 +779,16 @@ class DeviceFacade(TreeFacade):
 
     def _getBoundTemplates(self, uid, isBound):
         obj = self._getObject(uid)
-        for template in obj.getAvailableTemplates():
-            if (template.id in obj.zDeviceTemplates) == isBound:
-                yield template
+        templates = (
+            template
+            for template in obj.getAvailableTemplates()
+            if (template.id in obj.zDeviceTemplates) == isBound
+        )
+        if isBound:
+            templates = sorted(
+                templates, key=lambda x: obj.zDeviceTemplates.index(x.id)
+            )
+        return templates
 
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
@@ -916,7 +932,7 @@ class DeviceFacade(TreeFacade):
                 proptype = inst.getPropertyType(propname)
                 objects.append({
                     'devicelink':inst.getPrimaryDmdId(),
-                    'props':"******" if proptype == 'password' else getattr(inst, propname),
+                    'props':self.maskPropertyPassword(inst, propname),
                     'proptype':proptype
                 })
                 if relName == 'devices':
@@ -929,7 +945,7 @@ class DeviceFacade(TreeFacade):
             proptype = inst.getPropertyType(propname)
             objects.append({
                 'devicelink':inst.getPrimaryDmdId(),
-                'props':"******" if proptype == 'password' else getattr(inst, propname),
+                'props':self.maskPropertyPassword(inst, propname),
                 'proptype':proptype
             })
         return objects
@@ -940,8 +956,8 @@ class DeviceFacade(TreeFacade):
             prop = ''
             proptype = ''
         else:
-            prop = getattr(obj, propname)
             proptype = obj.getPropertyType(propname)
+            prop = self.maskPropertyPassword(obj, propname)
         return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
 
     def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
@@ -1093,3 +1109,9 @@ class DeviceFacade(TreeFacade):
             for prop in org.zCredentialsZProperties:
                 props[prop] = prop
         return props.keys()
+
+    def maskPropertyPassword(self, inst, propname):
+        prop = getattr(inst, propname)
+        if inst.zenPropIsPassword(propname):
+            prop = "*" * len(prop)
+        return prop
