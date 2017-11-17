@@ -325,11 +325,11 @@
                 chart.afterRender = function(){
                     var legenddiv = chart.$div.find(".nv-legend").length;
                     // 40 will trigger resize below.
-                    var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 0;
+                    var legendHeight = legenddiv ? Number(chart.$div.find(".nv-legend")[0].getBBox().height) : 0;
 
                     // adjust height based on graph content
-                    var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
-                        graphHeight = self.height,
+                    var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
+                        graphHeight = Number(self.height),
                         adjustedHeight = footerHeight + graphHeight + legendHeight;
 
                     // if tall footer is squishing the chart, recalculate panel height
