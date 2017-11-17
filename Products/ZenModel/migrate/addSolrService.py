@@ -14,7 +14,7 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-sm.require("1.1.10")
+sm.require("1.1.11")
 from servicemigration import HealthCheck
 from Products.ZenUtils.Utils import zenPath
 
@@ -46,8 +46,8 @@ class AddSolrService(Migrate.Step):
 
         # Remove the zencatalogservice-uri global conf option from the top service
         zenoss = ctx.getTopService()
-        global_conf = zenoss._Service__data.get("Context", None)
-        if global_conf and global_conf.get("global.conf.zencatalogservice-uri", None):
+        global_conf = zenoss.context
+        if global_conf and "global.conf.zencatalogservice-uri" in global_conf:
             del global_conf["global.conf.zencatalogservice-uri"]
             changed = True
 
