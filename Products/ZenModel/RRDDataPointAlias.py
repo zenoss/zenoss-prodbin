@@ -85,9 +85,9 @@ class RRDDataPointAlias(ZenModelRM, ZenPackable):
         },)
     },)
 
-    def __init__(self, id):
+    def __init__(self, id, title=None, buildRelations=True):
         id = _validateAliasID(id)
-        super(RRDDataPointAlias, self).__init__(id)
+        super(RRDDataPointAlias, self).__init__(id, title, buildRelations)
 
     def evaluate(self, context):
         """

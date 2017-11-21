@@ -456,9 +456,6 @@ class CollectorDaemon(RRDDaemon):
         if deviceId:
             tags['device'] = deviceId
 
-        # write the raw metric to Redis
-        yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
-
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
             if metricType == 'COUNTER' and min == 'U':
@@ -471,6 +468,11 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
+            # write the  metric to Redis
+            try:
+                yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
+            except Exception as e:
+                self.log.debug("Error sending metric %s", e)
             yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 

@@ -6,7 +6,7 @@
  * License.zenoss under the directory where your Zenoss product is installed.
  *
  ****************************************************************************/
-(function(){
+(function () {
     Ext.ns('Zenoss');
     var ZC = Ext.ns('Zenoss.component');
 
@@ -15,7 +15,7 @@
     /**
      * Register a custom handler for displaying graphs.
      **/
-    ZC.registerComponentGraphRenderer = function(meta_type, fn, scope) {
+    ZC.registerComponentGraphRenderer = function (meta_type, fn, scope) {
         if (scope) {
             ZC.renderMap[meta_type] = Ext.bind(fn, scope);
         } else {
@@ -28,7 +28,7 @@
      * component. If a custom renderer is not found the 'default' one is
      * returned.
      **/
-    ZC.getComponentGraphRenderer = function(meta_type) {
+    ZC.getComponentGraphRenderer = function (meta_type) {
         return ZC.renderMap[meta_type] || ZC.renderMap['default'];
     };
 
@@ -37,9 +37,9 @@
      * a europa graph for each result returned.
      **/
     ZC.registerComponentGraphRenderer('default',
-        function(meta_type, uid, graphId, allOnSame, data) {
+        function (meta_type, uid, graphId, allOnSame, data) {
             var id, graph, graphTitle, i, graphs = [];
-            for(i=0; i< data.length; i++) {
+            for (i = 0; i < data.length; i++) {
                 graph = data[i];
                 graphTitle = graph.contextTitle || graph.title;
                 delete graph.title;
@@ -54,117 +54,329 @@
                 })));
             }
             return graphs;
-    });
+        });
 
+    CURRENT_TIME = "0s-ago",
+        DATE_RANGES = [
+            ["1h-ago", _t('Last Hour')],
+            ["1d-ago", _t('Last 24 Hours')],
+            ["7d-ago", _t('Last Week')],
+            ["30d-ago", _t('Last 30 days')],
+            ["1y-ago", _t('Last Year')]
+        ],
+        RANGE_TO_MILLISECONDS = {
+            '1h-ago': 3600000,
+            '1d-ago': 86400000,
+            '7d-ago': 604800000,
+            '30d-ago': 2419200000,
+            '1y-ago': 31536000000
+        },
 
-    /**
-     * An example of using a custom renderer to show stacked graphs
-     * for processes if you are viewing the memory or cpu and
-     * viewing all the graphs on the same page.
-     * Notice that it uses the default renderer to actually
-     * construct the graphs.
-     **/
-    ZC.registerComponentGraphRenderer('OSProcess',
-        function(meta_type, uid, graphId, allOnSame, data) {
-            var fn = ZC.getComponentGraphRenderer('default'), graphs, i;
-            for (i=0;i<data.length;i++) {
-                if (allOnSame && (graphId === 'Memory' || graphId === 'CPU Utilization')) {
-                    data[i].type = 'area';
+        /**
+         * An example of using a custom renderer to show stacked graphs
+         * for processes if you are viewing the memory or cpu and
+         * viewing all the graphs on the same page.
+         * Notice that it uses the default renderer to actually
+         * construct the graphs.
+         **/
+        ZC.registerComponentGraphRenderer('OSProcess',
+            function (meta_type, uid, graphId, allOnSame, data) {
+                var fn = ZC.getComponentGraphRenderer('default'), graphs, i;
+                for (i = 0; i < data.length; i++) {
+                    if (allOnSame && (graphId === 'Memory' || graphId === 'CPU Utilization')) {
+                        data[i].type = 'area';
+                    }
+                }
+
+                graphs = fn(meta_type, uid, graphId, allOnSame, data);
+                return graphs;
+            });
+
+    var tbarCmpGrphConfig = [
+        '->',
+        "-",
+        {
+            xtype: 'drangeselector',
+            cls: 'drange_select',
+            labelWidth: 40,
+            labelAlign: "right",
+            listeners: {
+                select: function (self, records, index) {
+                    var value = records[0].data.id,
+                        panel = self.up("componentgraphpanel");
+
+                    // if value is "custom", then reveal the date
+                    // picker container
+                    if (value === "custom") {
+                        panel.showDatePicker();
+
+                        // if user selected the separator, select custom
+                    } else if (value === 0) {
+                        self.setValue("custom");
+                        panel.showDatePicker();
+
+                        // otherwise, update graphs
+                    } else {
+                        // all ranges are relative to now, so set
+                        // end to current time
+                        panel.setEndToNow();
+                        panel.hideDatePicker();
+                        // update drange and start values based
+                        // on the new end value
+                        panel.setDrange(value);
+                    }
                 }
             }
-
-            graphs = fn(meta_type, uid, graphId, allOnSame, data);
-            return graphs;
-    });
-
-    Ext.define("Zenoss.form.ComponentGraphPanel", {
-        alias:['widget.componentgraphpanel'],
-        extend:"Ext.Panel",
-        compType: "",
-        constructor: function(config) {
-            config = config || {};
-
-
-            Ext.applyIf(config, {
-                style: {
-                    paddingTop: "10px",
-                    paddingLeft: "10px"
-                },
-                bodyStyle: {
-                    overflow: 'auto'
-                },
-                dockedItems: [{
-                    layout: 'hbox',
-                    dock: 'top',
-                    style: {
-                        paddingBottom: "10px"
-                    },
-                    items: [{
-                        xtype: 'combo',
-                        queryMode: 'local',
-                        displayField: 'name',
-                        valueField:'value',
-                        ref: '../component',
-                        fieldLabel: _t('Component Type'),
-                        listeners: {
-                            scope: this,
-                            select: this.onSelectComponentType
-                        }
-                    }, {
-                        xtype: 'container',
-                        width: 10
-                    },{
-                        xtype: 'combo',
-                        disabled: true,
-                        queryMode: 'local',
-                        labelWidth: 50,
-                        ref: '../graphTypes',
-                        fieldLabel: _t('Graph'),
-                        displayField: 'name',
-                        valueField: 'name',
-                        listeners: {
-                            scope: this,
-                            select: this.onSelectGraph
-                        }
-                    }, {
-                        xtype: 'container',
-                        width: 10
-                    }, {
-                    xtype: 'compgraphrefreshbutton',
-                    iconCls: 'refresh',
-                    text: _t('Refresh'),
-                    ref: '../refreshButton',
-                        handler: function(button) {
-                            var grid = button.up("componentgraphpanel");
-                            if(grid && grid.isVisible()) {
-                                grid.updateGraphs();
-                            }
-                        }
-                    }, {
-                        xtype: 'checkbox',
-                        baseCls: 'zencheckbox_allonsame',
-                        fieldLabel: _t('All on same graph'),
-                        labelAlign: 'right',
-                        labelSeparator: '',
-                        labelWidth: 272,
-                        ref: '../allOnSame',
-                        listeners: {
-                            change: this.updateGraphs,
-                            scope: this
+        },
+        {
+            xtype: "container",
+            layout: "hbox",
+            cls: "date_picker_container",
+            padding: "0 10 0 0",
+            items: [
+                {
+                    xtype: 'utcdatefield',
+                    cls: 'start_date',
+                    width: 175,
+                    fieldLabel: _t('Start'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    format: 'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
+                    listeners: {
+                        change: function (self, val) {
+                            var panel = self.up("graphpanel");
+                            //update graphpanel.start with *UTC time*
+                            //NOTE: panel.start should *always* be UTC!
+                            panel.start = moment.utc(self.getValue());
                         }
                     }
-                    ]
-                }]
-            });
-            Zenoss.form.ComponentGraphPanel.superclass.constructor.apply(this, arguments);
+                }, {
+                    xtype: 'utcdatefield',
+                    cls: 'end_date',
+                    width: 175,
+                    fieldLabel: _t('End'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    disabled: true,
+                    format: 'Y-m-d H:i:s',
+                    displayTZ: Zenoss.USER_TIMEZONE,
+                    listeners: {
+                        change: function (self, val) {
+                            var panel = self.up("graphpanel");
+                            //update graphpanel.end with *UTC time*
+                            //NOTE: panel.end should *always* be UTC!
+                            panel.end = moment.utc(self.getValue());
+                        }
+                    }
+                }, {
+                    xtype: 'checkbox',
+                    cls: 'checkbox_now',
+                    fieldLabel: _t('Now'),
+                    labelWidth: 40,
+                    labelAlign: "right",
+                    checked: true,
+                    listeners: {
+                        change: function (self, val) {
+                            var panel = self.up("componentgraphpanel");
+                            panel.query("datefield[cls='end_date']")[0].setDisabled(val);
+
+                            // if it should be now, update it
+                            if (val) {
+                                panel.setEndToNow();
+                                panel.refresh();
+                            }
+                        }
+                    }
+                }
+            ]
         },
-        setContext: function(uid) {
+        '-',
+        {
+            xtype: 'compgraphrefreshbutton',
+            ref: '../refreshmenu',
+            iconCls: 'refresh',
+            handler: function (button) {
+                var panel = button.up("componentgraphpanel");
+                if (panel && panel.isVisible()) {
+                    panel.refresh();
+                }
+            }
+        },
+        '-',
+        {
+            xtype: 'button',
+            ref: '../newwindow',
+            iconCls: 'newwindow',
+            hidden: false,
+            handler: function (btn) {
+                var panel = btn.refOwner;
+                var config = panel.initialConfig,
+                    win = Ext.create('Zenoss.dialog.BaseWindow', {
+                        cls: 'white-background-panel',
+                        layout: 'fit',
+                        items: [Ext.apply(config, {
+                            id: 'component_graphs_window',
+                            xtype: 'componentgraphpanel',
+                            ref: 'componentgraphPanel',
+                            uid: panel.uid,
+                            newWindowButton: false
+                        })],
+                        maximized: true
+                    });
+                win.show();
+                win.componentgraphPanel.setContext(panel.uid);
+            }
+        }
+    ];
+
+
+    Ext.define("Zenoss.form.ComponentGraphPanel", {
+        alias: ['widget.componentgraphpanel'],
+        extend: "Ext.Panel",
+        tbar: tbarCmpGrphConfig,
+        cls: 'compgraphpanel',
+        layout: 'column',
+        pan_factor: 1.25,
+        constructor: function (config) {
+            config = config || {};
+            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
+            // var userColumns = Zenoss.settings.graphColumns || 1;
+            Ext.applyIf(config, {
+                drange: DATE_RANGES[ZSDTR][0],
+                newWindowButton: true,
+                bodyStyle: {
+                    overflow: 'auto',
+                    paddingTop: '15px'
+                }
+            });
+
+            Zenoss.form.ComponentGraphPanel.superclass.constructor.apply(this, arguments);
+            this.toolbar = this.getDockedItems()[0];
+
+            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
+            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
+            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
+            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            // this variable stores the number of current graphs which are actively loading or refreshing
+            this.graphBusy = 0;
+
+            this.toolbar.insert(0, [
+                {
+                    xtype: 'tbtext',
+                    text: _t('Component')
+                },
+                {
+                    xtype: 'combo',
+                    queryMode: 'local',
+                    displayField: 'name',
+                    valueField: 'value',
+                    ref: '../component',
+                    width: 100,
+                    listeners: {
+                        scope: this,
+                        select: this.onSelectComponentType
+                    }
+                }, {
+                    xtype: 'combo',
+                    disabled: true,
+                    queryMode: 'local',
+                    labelAlign: 'left',
+                    labelWidth: 40,
+                    ref: '../graphTypes',
+                    fieldLabel: _t('Graph'),
+                    displayField: 'name',
+                    valueField: 'name',
+                    width: 140,
+                    listeners: {
+                        scope: this,
+                        select: this.onSelectGraph
+                    }
+                },
+                {
+                    xtype: 'checkbox',
+                    baseCls: 'zencheckbox_allonsame',
+                    fieldLabel: _t('All on same graph'),
+                    labelAlign: 'right',
+                    width: 130,
+                    labelSeparator: '',
+                    ref: '../allOnSame',
+                    listeners: {
+                        change: this.updateGraphs,
+                        scope: this
+                    }
+                },
+                {
+                    xtype: 'button',
+                    text: '&lt;',
+                    width: 40,
+                    handler: Ext.bind(function (btn, e) {
+                        panel = btn.up("componentgraphpanel");
+                        panel.panLeft();
+                    }, this)
+                }, {
+                    xtype: 'button',
+                    text: _t('Zoom In'),
+                    handler: Ext.bind(function (btn, e) {
+                        panel = btn.up("componentgraphpanel");
+                        panel.zoomIn();
+                    }, this)
+                }, {
+                    xtype: 'button',
+                    text: _t('Zoom Out'),
+                    handler: Ext.bind(function (btn, e) {
+                        panel = btn.up("componentgraphpanel");
+                        panel.zoomOut();
+                    }, this)
+                }, {
+                    xtype: 'button',
+                    text: '&gt;',
+                    width: 40,
+                    handler: Ext.bind(function (btn, e) {
+                        panel = btn.up("componentgraphpanel");
+                        panel.panRight();
+                    }, this)
+                },
+
+
+
+            ]); // toolbar inserts
+
+            // grab default timerange value from user settings
+            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
+            this.drange = this.rangeToMilliseconds(config.drange);
+
+            // default start and end values in UTC time
+            // NOTE: do not apply timezone adjustments to these values!
+            this.start = moment.utc().subtract(this.drange, "ms");
+            this.setEndToNow();
+
+            // set start and end dates
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+
+            this.hideDatePicker();
+
+            if (config.hideToolbar) {
+                this.toolbar.hide();
+            }
+
+        },
+        setContext: function (uid) {
             this.uid = uid;
+            if (this.newwindow) {
+                if (this.newWindowButton) {
+                    this.newwindow.show();
+                } else {
+                    this.newwindow.hide();
+                }
+            }
             Zenoss.remote.DeviceRouter.getGraphDefintionsForComponents({
                 uid: this.uid
             }, this.updateComboStores, this);
         },
-        updateComboStores: function(response){
+        updateComboStores: function (response) {
             if (response.success) {
                 this.componentGraphs = response.data;
 
@@ -173,7 +385,7 @@
                 for (componentType in this.componentGraphs) {
                     if (this.componentGraphs.hasOwnProperty(componentType) && this.componentGraphs[componentType].length) {
                         data.push([Zenoss.component.displayName(componentType)[0],
-                               componentType]);
+                            componentType]);
                     }
 
                 }
@@ -184,16 +396,16 @@
                 this.component.bindStore(store, true);
                 if (data.length) {
                     this.component.select(data[0][0]);
-                    this.onSelectComponentType(this.component,[
+                    this.onSelectComponentType(this.component, [
                         this.component.store.getAt(0)
                     ]);
                 }
             }
         },
-        onSelectComponentType: function(combo, selected) {
+        onSelectComponentType: function (combo, selected) {
             this.compType = selected[0].get('value');
-            var store, i, graphIds = this.componentGraphs[this.compType], data=[];
-            for (i=0;i<graphIds.length;i++) {
+            var store, i, graphIds = this.componentGraphs[this.compType], data = [];
+            for (i = 0; i < graphIds.length; i++) {
                 data.push([
                     graphIds[i]
                 ]);
@@ -211,11 +423,11 @@
                 // go ahead and show the graphs for the first
                 // selected option
                 this.onSelectGraph(this.graphTypes,
-                                   [this.graphTypes.store.getAt(0)]
-                                  );
+                    [this.graphTypes.store.getAt(0)]
+                );
             }
         },
-        onSelectGraph: function(combo, selected) {
+        onSelectGraph: function (combo, selected) {
             // go to the server and return a list of graph configs
             // from which we can create EuropaGraphs from
             var graphId = selected[0].get('name');
@@ -223,32 +435,218 @@
             this.updateGraphs();
 
         },
-        updateGraphs: function() {
+        updateGraphs: function () {
             var meta_type = this.compType, uid = this.uid,
                 graphId = this.graphId, allOnSame = this.allOnSame.checked;
-            if (graphId !== undefined) {
-                Zenoss.remote.DeviceRouter.getComponentGraphs({
-                    uid: uid,
-                    meta_type: meta_type,
-                    graphId: graphId,
-                    allOnSame: allOnSame
-                }, function(response){
-                    if (response.success) {
-                        var graphs=[], fn;
-                        fn = ZC.getComponentGraphRenderer(meta_type);
-                        graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
-                        this.removeAll();
-                        this.add(graphs);
+                if (graphId !== undefined) {
+                    Zenoss.remote.DeviceRouter.getComponentGraphs({
+                        uid: uid,
+                        meta_type: meta_type,
+                        graphId: graphId,
+                        allOnSame: allOnSame
+                    }, function (response) {
+                        if (response.success) {
+                            var graphs = [], fn;
+                            fn = ZC.getComponentGraphRenderer(meta_type);
+                            graphs = fn(meta_type, uid, graphId, allOnSame, response.data);
+                            this.removeAll();
+
+                            // grab user-specified column count
+                            var colCount = Zenoss.settings.graphColumns || 1;
+                            // reduce column count if graphs would not fill columns
+                            colCount = Math.min(graphs.length, colCount);
+
+                            var grCols = [], i, c;
+                            for (i = 0; i < colCount; i++) {
+                                grCols.push({
+                                    xtype: 'container',
+                                    items: [],
+                                    columnWidth: 1 / colCount
+                                });
+                            }
+
+                        var gp = {
+                            'drange': this.rangeToMilliseconds(this.drange),
+                            'end': this.end.unix(),
+                            'start': this.start.unix()
+                        };
+
+                        // push graphs into appropriate column
+                        for (i = 0; i < graphs.length; i++) {
+                            c = i % colCount;
+                            graphs[i].graph_params = gp;
+                            grCols[c].items.push(graphs[i]);
+                        }
+
+                        this.add(grCols);
                     }
                 }, this);
             }
+        },
+        rangeToMilliseconds: function (range) {
+            if (RANGE_TO_MILLISECONDS[range]) {
+                return RANGE_TO_MILLISECONDS[range];
+            }
+            return range;
+        },
+        setLimits: function (start, end) {
+            // TODO - validate end is greater than start
+            this.start = moment.utc(start);
+            this.end = moment.utc(end);
+
+            // these limits require a custom date range
+            this.drange = end - start;
+
+            // set the range combo to custom
+            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue("custom");
+
+            // uncheck `now` checkbox since we're using a custom range
+            this.nowCheck.setValue(false);
+
+            this.showDatePicker();
+
+            //  set the start and end dates to the selected range.
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+        },
+        setEndToNow: function () {
+            this.end = moment.utc();
+            this.updateEndDatePicker();
+
+            // if the "now" checkbox is set and range isn't custom, start time should be updated as well
+            if (this.nowCheck.getValue() && this.toolbar.query("drangeselector")[0].getValue() !== "custom") {
+                this.start = this.end.clone().subtract(this.drange, "ms");
+                this.updateStartDatePicker();
+            }
+        },
+        updateStartDatePicker: function () {
+            this.startDatePicker.suspendEvents();
+            this.startDatePicker.setValue(this.start.valueOf(), false);
+            this.startDatePicker.resumeEvents(false);
+        },
+        updateEndDatePicker: function () {
+            this.endDatePicker.suspendEvents();
+            this.endDatePicker.setValue(this.end.valueOf(), false);
+            this.endDatePicker.resumeEvents(false);
+        },
+        hideDatePicker: function () {
+            // hide date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].hide();
+        },
+        showDatePicker: function () {
+            // show date picker stuff
+            this.toolbar.query("container[cls='date_picker_container']")[0].show();
+        },
+        setDrange: function (drange) {
+            this.drange = drange || this.drange;
+
+            // if drange is relative measurement, convert to ms
+            if (!Ext.isNumeric(this.drange)) {
+                this.drange = this.rangeToMilliseconds(this.drange);
+            }
+
+            // check `now` checkbox since drange is always set from now
+            this.nowCheck.setValue(true);
+
+            // update start to reflect new range
+            this.start = this.end.clone().subtract(this.drange, "ms");
+
+            this.refresh();
+        },
+        refresh: function () {
+            // if end should be set to `now`, set it
+            if (this.nowCheck.getValue()) {
+                this.setEndToNow();
+            }
+
+            var graphConfig = {
+                drange: this.drange,
+                // start and end are moments so they need to be
+                // converted to millisecond values
+                start: this.start.valueOf(),
+                end: this.end.valueOf()
+            };
+
+            // if we are rendered but not visible do not refresh
+            if (this.isVisible()) {
+                var gs = this.getGraphs();
+                Ext.each(this.getGraphs(), function (g) {
+                    g.fireEvent("updateimage", graphConfig, this);
+                });
+            }
+            this.updateStartDatePicker();
+            this.updateEndDatePicker();
+        },
+        getGraphs: function () {
+            return this.query('europagraph');
+        },
+        panLeft: function () {
+            var curRange = this.rangeToMilliseconds(this.drange);
+            var panAmt = Math.round(curRange - curRange / this.pan_factor);
+            var newstart = this.start + panAmt > 0 ? this.start - panAmt : 0;
+            var newend = parseInt(newstart + curRange);
+
+            this.setLimits(newstart, newend);
+            this.refresh();
+        },
+        panRight: function () {
+            var curRange = this.rangeToMilliseconds(this.drange);
+            var panAmt = Math.round(curRange - curRange / this.pan_factor);
+            var newstart = this.start + panAmt > 0 ? this.start + panAmt : 0;
+            var newend = parseInt(newstart + curRange);
+
+            this.setLimits(newstart, newend);
+            this.refresh();
+        },
+        zoomIn: function () {
+            var curRange = this.rangeToMilliseconds(this.drange);
+            var zoomedRange = Math.round(curRange / this.pan_factor);
+            var delta = Math.floor((curRange - zoomedRange));
+            var newstart = this.start + delta > 0 ? this.start + delta : this.start;
+            var newend = parseInt(newstart + zoomedRange);
+
+            this.setLimits(newstart, newend);
+            this.refresh();
+        },
+        zoomOut: function () {
+            var curRange = this.rangeToMilliseconds(this.drange);
+            var zoomedRange = Math.round(curRange * this.pan_factor);
+            var delta = Math.floor((zoomedRange - curRange));
+            var newstart = this.start - delta > 0 ? this.start - delta : this.start;
+            var newend = parseInt(newstart + zoomedRange);
+
+            this.setLimits(newstart, newend);
+            this.refresh();
+        },
+        convertStartToAbsoluteTime: function (start) {
+            if (Ext.isNumber(start)) {
+                return start;
+            }
+            return parseInt(new Date() - this.rangeToMilliseconds(start));
+        },
+        convertEndToAbsolute: function (end) {
+            if (end === CURRENT_TIME) {
+                return now();
+            }
+            return end;
+        },
+        rangeToMilliseconds: function (range) {
+            if (RANGE_TO_MILLISECONDS[range]) {
+                return RANGE_TO_MILLISECONDS[range];
+            }
+            return range;
+        },
+        zoomUpdate: function (gp) {
+            this.setLimits(gp.start, gp.end);
+            this.refresh();
         }
+
     });
 
     Ext.define("Zenoss.form.CompGraphRefreshButton", {
-        alias:['widget.compgraphrefreshbutton'],
-        extend:"Zenoss.RefreshMenuButton",
-        constructor: function(config) {
+        alias: ['widget.compgraphrefreshbutton'],
+        extend: "Zenoss.RefreshMenuButton",
+        constructor: function (config) {
             config = config || {};
             var menu = {
                 xtype: 'statefulrefreshmenu',
@@ -257,33 +655,33 @@
                 items: [{
                     cls: 'refreshevery',
                     text: _t('Refresh every')
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('1 minute'),
                     value: 60,
                     group: 'refreshgroup'
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('5 minutes'),
                     value: 300,
                     group: 'refreshgroup'
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('10 Minutes'),
                     value: 600,
                     group: 'refreshgroup'
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('30 Minutes'),
                     checked: true,
                     value: 1800,
                     group: 'refreshgroup'
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('1 Hour'),
                     value: 3600,
                     group: 'refreshgroup'
-                },{
+                }, {
                     xtype: 'menucheckitem',
                     text: _t('Manually'),
                     value: -1,
@@ -296,6 +694,5 @@
             this.callParent(arguments);
         }
     });
-
 
 }());

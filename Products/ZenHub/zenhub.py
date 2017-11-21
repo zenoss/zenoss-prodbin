@@ -1231,28 +1231,11 @@ class ZenHub(ZCmdBase):
         for name, value in self.counters.items():
             r.counter(name, value)
 
-        # persist counters values
-        self.saveCounters()
         try:
             hbcheck = IHubHeartBeatCheck(self)
             hbcheck.check()
         except:
             self.log.exception("Error processing heartbeat hook")
-
-    def saveCounters(self):
-        atomicWrite(
-            zenPath('var/zenhub_counters.pickle'),
-            pickle.dumps(self.counters),
-            raiseException=False,
-        )
-
-    def loadCounters(self):
-        try:
-            self.counters = pickle.load(open(zenPath(
-                'var/zenhub_counters.pickle'
-            )))
-        except Exception:
-            pass
 
     def check_workers(self):
         try:
@@ -1395,11 +1378,4 @@ class DefaultHubHeartBeatCheck(object):
 if __name__ == '__main__':
     from Products.ZenHub.zenhub import ZenHub
     z = ZenHub()
-
-    # during startup, restore performance counters
-    z.loadCounters()
-
     z.main()
-
-    # during shutdown, attempt to save our performance counters
-    z.saveCounters()

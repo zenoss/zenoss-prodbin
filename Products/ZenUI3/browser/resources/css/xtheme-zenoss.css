@@ -571,20 +571,17 @@ table.x-container:before, tbody.x-container:before, tr.x-container:before {
   top: 0;
   left: 0;
   padding: 2px;
-  border: 1px solid;
-  border-color: #99bce8;
   background-image: none;
-  background-color: #dfe9f6; }
+  }
 .x-mask-msg div {
-  padding: 5px 10px 5px 25px;
   background-image: url('../img/xtheme-zenoss/grid/loading.gif');
   background-repeat: no-repeat;
   background-position: 5px center;
   cursor: wait;
-  border: 1px solid #a3bad9;
-  background-color: #eeeeee;
-  color: #222222;
-  font: normal 11px helvetica, arial, sans-serif; }
+  color: #a6a6a6;
+  font: normal 18px monospace;
+  letter-spacing: -0.05rem;
+  padding: 5px 10px 5px 25px; }
 
 /**
  * @mixin extjs-progress-ui
