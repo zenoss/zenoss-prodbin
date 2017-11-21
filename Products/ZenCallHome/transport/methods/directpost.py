@@ -14,6 +14,7 @@ from urllib import urlencode
 import urllib2
 
 from Products.ZenCallHome.transport import CallHome
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 POST_CHECKIN_URL = 'https://callhome.zenoss.com/callhome/v2/post'
 _URL_TIMEOUT = 5
@@ -23,6 +24,7 @@ logger = logging.getLogger('zen.callhome')
 
 def direct_post(dmd):
     callhome = CallHome(dmd)
+    chs = CallHomeStatus()
     if not callhome.attempt('directpost'):
         return
 
@@ -34,12 +36,15 @@ def direct_post(dmd):
 
     params = urlencode({'enc': payload})
 
+    chs.stage("Request to CallHome server")
     try:
         httpreq = urllib2.urlopen(POST_CHECKIN_URL, params, _URL_TIMEOUT)
         returnPayload = httpreq.read()
     except Exception as e:
+        chs.stage("Request to CallHome server", "FAILED", str(e))
         logger.warning('Error retrieving data from callhome server %s', e)
     else:
+        chs.stage("Request to CallHome server", "FINISHED")
         callhome.save_return_payload(returnPayload)
 
     return

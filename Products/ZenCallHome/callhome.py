@@ -14,6 +14,7 @@ from datetime import datetime
 
 from zope.interface import implements
 from zope.component import getUtilitiesFor
+from Products.ZenCallHome.transport import CallHome
 
 from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
                                   ICallHomeCollector,
@@ -21,6 +22,7 @@ from Products.ZenCallHome import (IZenossData, IHostData, IZenossEnvData,
                                   IVersionHistoryCallHomeCollector)
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 import logging
 log = logging.getLogger("zen.callhome")
@@ -197,6 +199,8 @@ class Main(ZenScriptBase):
         else:
             self.dmd = None
 
+        chs = CallHomeStatus()
+        chs.stage("CallHome Collect")
         chd = CallHomeData(self.dmd, self.options.master)
         data = chd.getData()
         if self.options.pretty:
@@ -208,6 +212,7 @@ class Main(ZenScriptBase):
                 sort = True
             print(json.dumps(data, indent=self.options.jsonIndent,
                              sort_keys=sort))
+        chs.stage("CallHome Collect", "FINISHED")
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
