@@ -41,13 +41,6 @@ import transaction
 from ZODB.transact import transact
 
 
-def lastDayPreviousMonth(seconds):
-    parts = list(time.localtime(seconds))
-    # use day 1 of this month
-    parts[2] = 1
-    # and go back DAY_SECONDS
-    return time.mktime(parts) - DAY_SECONDS
-
 def addMonth(secs, dayOfMonthHint=0):
     base = list(time.localtime(secs))
     # add a month
@@ -63,11 +56,6 @@ def addMonth(secs, dayOfMonthHint=0):
     month = base[1]
     if dayOfMonthHint:
         base[2] = dayOfMonthHint
-    # normalize
-    base = list(time.localtime(time.mktime(base)))
-    # if the month changed, walk back to the end of the previous month
-    if base[1] != month:
-        return lastDayPreviousMonth(time.mktime(base))
     return time.mktime(base)
 
 
