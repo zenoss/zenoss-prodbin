@@ -74,23 +74,27 @@ class CallHomeStatus(object):
             self._redis_client = None
             return
 
-    def stage(self, stage, status="RUNNING", err=""):
-        """Usage: obj.stage(Index, Status, Stage error message)
+    def init(self):
+        """Sets empty data for CallHomeStatus before run
         """
-        if stage == "INIT":
-            data = {}
-            stages = ('Request to CallHome server', 'CallHome start',
-                      'Update report', 'CallHome Collect', 'GatherProtocol')
-            for v in stages:
-                data[v] = {
-                    'description': v,
-                    'status': '2',
-                    'error': '',
-                    'stime': '-1'
-                }
-            data = pickle.dumps(data)
-            self.push_to_redis(data)
-            return
+        data = dict()
+        stages = ('Request to CallHome server', 'CallHome start',
+                  'Update report', 'CallHome Collect', 'GatherProtocol')
+        for v in stages:
+            data[v] = {
+                'description': v,
+                'status': '2',
+                'error': '',
+                'stime': '-1'
+            }
+        data = pickle.dumps(data)
+        self.push_to_redis(data)
+
+
+    def stage(self, stage, status="RUNNING", err=""):
+        """Usage: obj.stage(Stage name, Stage Status, Stage error message)
+        """
+        data = dict()
         data = pickle.loads(self.load_from_redis())
         if status == 0:
             stime = int(time.time())
