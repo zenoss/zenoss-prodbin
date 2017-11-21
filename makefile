@@ -11,7 +11,7 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # All 6.0.x releases must use 200.0.x
 SCHEMA_MAJOR ?= 200
 SCHEMA_MINOR ?= 0
-SCHEMA_REVISION ?= 1
+SCHEMA_REVISION ?= 2
 
 DIST_ROOT := dist
 
