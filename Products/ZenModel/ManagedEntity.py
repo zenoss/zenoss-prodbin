@@ -74,10 +74,10 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         self.privateattr_productionState = state
 
     def getPreMWProductionState(self):
-        return self.privateattr_preMWProductionState
+        return getattr(self, '_preMWProductionState', None)
 
     def setPreMWProductionState(self, state):
-        self.privateattr_preMWProductionState = state
+        self._preMWProductionState = state
 
     def resetProductionState(self):
         # The Device class should override this and set a default value
@@ -87,7 +87,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
             pass
 
         try:
-            del self.privateattr_preMWProductionState
+            del self._preMWProductionState
         except AttributeError:
             pass
 

@@ -217,7 +217,6 @@
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
-                maxWidth: 800,
                 cls: 'graph-panel',
                 bodyStyle: {
                     padding: "5px"
@@ -227,41 +226,7 @@
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[ZSDTR][0]
                 },
-                dockedItems: [{
-                    xtype: 'toolbar',
-                    dock: 'top',
-                    items: ['->',{
-                        text: _t('Open in New Tab'),
-                        ref: "../newtab",
-                        handler: Ext.bind(function(btn, e) {
-                                this.newTab(this);
-                        }, this)
-                    },{
-                        text: '&lt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                                this.onPanLeft(this);
-                        }, this)
-                    },{
-                        text: _t('Zoom In'),
-                        ref: '../zoomin',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, 1/this.zoom_factor);
-                        }, this)
-                    },{
-                        text: _t('Zoom Out'),
-                        ref: '../zoomout',
-                        handler: Ext.bind(function(btn, e) {
-                            this.doZoom.call(this, 0, this.zoom_factor);
-                        }, this)
-                    },{
-                        text: '&gt;',
-                        width: 40,
-                        handler: Ext.bind(function(btn, e) {
-                            this.onPanRight(this);
-                        }, this)
-                    }]
-                }]
+                dockedItems: []
             });
 
             Zenoss.EuropaGraph.superclass.constructor.call(this, config);
@@ -333,8 +298,7 @@
                 projections: this.projections,
                 printOptimized: this.printOptimized,
                 type: this.type,
-                // lose the footer and yaxis label as the image gets smaller
-                footer: (height >= 350) ? true : false,
+                footer: true,
                 yAxisLabel: this.units,
                 supressLegend: true,
                 miny: (this.miny !== -1) ? this.miny : null,
@@ -360,11 +324,11 @@
                 chart.afterRender = function(){
                     var legenddiv = chart.$div.find(".nv-legend").length;
                     // 40 will trigger resize below.
-                    var legendHeight = legenddiv ? chart.$div.find(".nv-legend")[0].getBBox().height : 0;
+                    var legendHeight = legenddiv ? Number(chart.$div.find(".nv-legend")[0].getBBox().height) : 0;
 
                     // adjust height based on graph content
-                    var footerHeight = chart.$div.find(".zenfooter").outerHeight() || 0,
-                        graphHeight = self.height,
+                    var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
+                        graphHeight = Number(self.height),
                         adjustedHeight = footerHeight + graphHeight + legendHeight;
 
                     // if tall footer is squishing the chart, recalculate panel height
@@ -426,7 +390,12 @@
                             'start': zoomStart,
                             'end': zoomEnd
                         };
-                        if (self.dockedItems.items.length) {
+
+                        compGraphPanel = self.up("componentgraphpanel");
+
+                        if (compGraphPanel) {
+                            compGraphPanel.zoomUpdate(gParams);
+                        } else if (self.dockedItems.items.length) {
                             // handle own chart changes
                             self.updateGraph(gParams);
                         } else {
@@ -1135,7 +1104,7 @@
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
             // measurement like "1h-ago"
-	    this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
+	        this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
             this.drange = rangeToMilliseconds(config.drange);
 
             // default start and end values in UTC time

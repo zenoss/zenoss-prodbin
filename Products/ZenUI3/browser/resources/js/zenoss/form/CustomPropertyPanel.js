@@ -139,7 +139,7 @@
                 disabled: true,
                 queryMode: 'local',
                 store: [],
-                allowBlank: false,
+                allowBlank: true,
                 forceSelection: true,
                 listeners: {
                     change: function(combo, value) {
@@ -291,7 +291,16 @@
                                     oldItem.setDisabled(true);
                                     oldItem.reset();
                                     layout.setActiveItem(combo.getValue());
-                                    layout.getActiveItem().setDisabled(false);
+
+                                    var newItem = layout.getActiveItem();
+                                    newItem.setDisabled(false);
+                                    if (newItem.down) {
+                                        // For selection types, this disables the submit button until the
+                                        // user selects a property.
+                                        newItem.down('[name=value]').validate();
+                                    } else {
+                                        newItem.validate();
+                                    }
                                 }
                             },
                             store: Ext.data.StoreManager.lookup("propertyTypeFields")
@@ -304,7 +313,7 @@
                             deferredRender: true,
                             defaults: {
                                 disabled: true,
-                                allowBlank: false
+                                allowBlank: true
                             },
                             items: (function() {
                                 var items = [];

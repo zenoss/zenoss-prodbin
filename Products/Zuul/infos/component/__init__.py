@@ -42,6 +42,10 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadM
         return self._object.monitored()
 
     @property
+    def productionState(self):
+        return self._object.getProductionState()
+
+    @property
     def status(self):
         statusCode = self._object.getStatus()
         # the result from convertStatus will be a status string
