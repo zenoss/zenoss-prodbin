@@ -23,10 +23,18 @@ class DeviceManagementFacade(ZuulFacade):
         """
         adds a new Maintenance Window
         """
+        newMw = None
         obj = self._getObject(params['uid'])
                         
         id = params['name'].strip()    
-        obj.manage_addMaintenanceWindow(id)         
+        obj.manage_addMaintenanceWindow(id)
+        maintenanceWindows = (IInfo(s) for s in obj.maintenanceWindows())
+        try:
+            newMw = (x for x in maintenanceWindows if x.id == id).next()
+        except StopIteration:
+            pass
+        if newMw:
+            newMw.updateWindow(params)
             
     def deleteMaintWindow(self, uid, id):
         """
