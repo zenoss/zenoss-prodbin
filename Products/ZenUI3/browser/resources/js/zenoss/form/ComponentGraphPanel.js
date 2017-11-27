@@ -453,6 +453,18 @@
 
                             // grab user-specified column count
                             var colCount = Zenoss.settings.graphColumns || 1;
+
+                            if (Zenoss.settings.graphColumns === 0) {
+                                // if setting is Auto then choose columns based on screen width
+                                // on load/reload, only center_panel is present
+                                var centerPanel = Ext.getCmp('center_panel').getEl().getWidth() - 277;
+                                // on resize, query panel directly -- sidebar may not be 277px
+                                var extra_column_threshold = 1000;
+                                var componentGraphsPnl = Ext.getCmp('device_component_graphs').getEl().getWidth();
+                                var panelWidth = componentGraphsPnl ? componentGraphsPnl : centerPanel;
+                                colCount = panelWidth > extra_column_threshold ? 2 : 1;
+                            }
+
                             // reduce column count if graphs would not fill columns
                             colCount = Math.min(graphs.length, colCount);
 
