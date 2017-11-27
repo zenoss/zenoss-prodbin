@@ -42,8 +42,8 @@ class RateCutoff(Migrate.Step):
                     for line in lines:
                         newLines.append(line)
                         if insertAfter in line:
-                            newLines.append('  ignoreRateOption: true' % indent)
-                            newLines.append('  rateOptionCutoffTs: {{(getContext . "centralquery.ratecutoff")}}' % indent)
+                            newLines.append('  ignoreRateOption: true')
+                            newLines.append('  rateOptionCutoffTs: {{(getContext . "centralquery.ratecutoff")}}')
                     configfile.content = '\n'.join(newLines)
 
         parent = ctx.getTopService()
