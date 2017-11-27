@@ -140,6 +140,16 @@ class EventClass(EventClassPropertyMixin, Organizer,
             evts.extend(subgroup.getSubEventClasses())
         return evts
 
+    def getSubEventClassesWithDisabledTransform(self):
+        """
+        Return all EventClass objects below this one which hav disabled transform.
+
+        @return: list of event classes with blocked transform
+        @rtype: list of EventClass
+        """
+        evts = [ec for ec in self.getSubEventClasses() if not ec.transformEnabled]
+        return evts
+
     security.declareProtected(ZEN_COMMON, "getOrganizerNames")
     def getOrganizerNames(self, addblank=False, checkPerm=False):
         """
