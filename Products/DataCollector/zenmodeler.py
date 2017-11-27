@@ -137,8 +137,6 @@ class ZenModeler(PBDaemon):
         else:
             self.log.debug("Run in foreground, starting immediately.")
 
-        # load performance counters
-        self.loadCounters()
 
         # ZEN-26637
         self.collectorLoopIteration = 0
@@ -827,19 +825,6 @@ class ZenModeler(PBDaemon):
     def _getCountersFile(self):
         return zenPath('var/%s_%s.pickle' % (self.name, self.options.monitor,))
 
-    def saveCounters(self):
-        atomicWrite(
-            self._getCountersFile(),
-            pickle.dumps(self.counters),
-            raiseException=False,
-        )
-
-    def loadCounters(self):
-        try:
-            self.counters = pickle.load(open(self._getCountersFile()))
-        except Exception:
-            self.counters = collections.Counter()
-
     @property
     def _devicegen_has_items(self):
         """check it self.devicegen (an iterator) is not empty and has at least
@@ -1218,7 +1203,4 @@ if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
     reactor.run = dc.reactorLoop
-    try:
-        dc.run()
-    finally:
-        dc.saveCounters()
+    dc.run()
