@@ -95,6 +95,12 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         self.assertEquals(brain.zProperties[bad_zproperty[0]], expected_value)
         self.assertEquals(brain.zProperties[good_zproperty[0]], good_zproperty[1])
 
+    def test_search_for_unindexed_field(self):
+        device = self.dmd.Devices.createOrganizer("testdevice")
+        uid = device.getPrimaryId()
+        results = self.model_catalog.search(query={'uid':uid}, fields=["unindexed_field"])
+        brain = next(results.results)
+        self.assertTrue("unindexed_field" in brain.to_dict())
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ModelCatalogTestsDrawer),))

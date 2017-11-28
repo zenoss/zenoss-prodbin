@@ -57,14 +57,15 @@ def _get_object_to_index(ob):
 def onIndexingEvent(ob, event):
     model_catalog = getUtility(IModelCatalog)
     object_to_index = _get_object_to_index(ob)
-
+        
     idxs = event.idxs
     if isinstance(idxs, basestring):
         idxs = [idxs]
 
     if idxs:
         s_idxs = set(idxs)
-        obj_indexes = set(model_catalog.get_indexes(object_to_index))
+        indexed, stored, _ = model_catalog.get_indexes(object_to_index)
+        obj_indexes = indexed.union(stored)
         # Every time we index "path" we also need to index "deviceOrganizers"
         if "path" in s_idxs and "deviceOrganizers" in obj_indexes:
            s_idxs.add("deviceOrganizers")
