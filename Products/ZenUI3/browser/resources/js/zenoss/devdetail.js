@@ -436,7 +436,7 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 
 // find out how many columns the graph panel should be based on
 // on the width of the detail panel
-var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275;
+var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 277;
 var extra_column_threshold = 1000;
 var userColumns = Zenoss.settings.graphColumns;
 
