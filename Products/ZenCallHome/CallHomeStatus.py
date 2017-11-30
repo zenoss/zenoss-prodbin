@@ -3,16 +3,21 @@ import logging
 import time
 import cPickle as pickle
 
-from Products.ZenCallHome.transport import CallHomeData
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.RedisUtils import parseRedisUrl
 
-log = logging.getLogger('zen.callhomestatus')
+log = logging.getLogger('zen.callhome')
 
 class CallHomeStatus(object):
     DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
     REDIS_RECONNECTION_INTERVAL = 3
     STATUS = {'FAILED': -1, 'RUNNING': 0, 'FINISHED': 1, 'PENDING': 2}
+    REPORT_UPDATE = 'Update report'
+    REQUEST_CALLHOME = 'Request to CallHome server'
+    START_CALLHOME = 'CallHome start'
+    UPDATE_REPORT = 'Update report'
+    COLLECT_CALLHOME = 'CallHome Collect'
+    GPROTOCOL = 'GatherProtocol'
 
     def __init__(self):
         self.redis_url = self.get_redis_url()
@@ -64,7 +69,6 @@ class CallHomeStatus(object):
         # Is redis up?
         if not self._connected_to_redis():
             return
-        data = {}
         try:
             log.debug("Success recived data from Redis")
             return self._redis_client.get('CallHomeStatus')
@@ -74,7 +78,7 @@ class CallHomeStatus(object):
             self._redis_client = None
             return
 
-    def init(self):
+    def _init(self):
         """Sets empty data for CallHomeStatus before run
         """
         data = dict()
@@ -87,6 +91,7 @@ class CallHomeStatus(object):
                 'error': '',
                 'stime': '-1'
             }
+        log.debug("Setted empty data for CallHomeStatus")
         data = pickle.dumps(data)
         self.push_to_redis(data)
 
@@ -94,6 +99,8 @@ class CallHomeStatus(object):
     def stage(self, stage, status="RUNNING", err=""):
         """Usage: obj.stage(Stage name, Stage Status, Stage error message)
         """
+        if stage == "Update report" and status == "RUNNING":
+            self._init()
         data = dict()
         data = pickle.loads(self.load_from_redis())
         if status == 0:

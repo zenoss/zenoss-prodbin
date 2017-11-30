@@ -200,7 +200,7 @@ class Main(ZenScriptBase):
             self.dmd = None
 
         chs = CallHomeStatus()
-        chs.stage("CallHome Collect")
+        chs.stage(chs.COLLECT_CALLHOME)
         chd = CallHomeData(self.dmd, self.options.master)
         data = chd.getData()
         if self.options.pretty:
@@ -212,7 +212,7 @@ class Main(ZenScriptBase):
                 sort = True
             print(json.dumps(data, indent=self.options.jsonIndent,
                              sort_keys=sort))
-        chs.stage("CallHome Collect", "FINISHED")
+        chs.stage(chs.COLLECT_CALLHOME, "FINISHED")
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""

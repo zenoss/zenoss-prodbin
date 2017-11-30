@@ -36,15 +36,15 @@ def direct_post(dmd):
 
     params = urlencode({'enc': payload})
 
-    chs.stage("Request to CallHome server")
+    chs.stage(chs.REQUEST_CALLHOME)
     try:
         httpreq = urllib2.urlopen(POST_CHECKIN_URL, params, _URL_TIMEOUT)
         returnPayload = httpreq.read()
     except Exception as e:
-        chs.stage("Request to CallHome server", "FAILED", str(e))
+        chs.stage(chs.REQUEST_CALLHOME, "FAILED", str(e))
         logger.warning('Error retrieving data from callhome server %s', e)
     else:
-        chs.stage("Request to CallHome server", "FINISHED")
+        chs.stage(chs.REQUEST_CALLHOME, "FINISHED")
         callhome.save_return_payload(returnPayload)
 
     return

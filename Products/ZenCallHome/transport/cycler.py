@@ -44,7 +44,7 @@ class CallHomeCycler(object):
 
     def run(self):
         chs = CallHomeStatus()
-        chs.stage("CallHome start")
+        chs.stage(chs.START_CALLHOME)
         try:
             now = long(time.time())
             self.dmd._p_jar.sync()
@@ -65,21 +65,21 @@ class CallHomeCycler(object):
             # Update metrics if run complete
             if self.gatherProtocol and (self.gatherProtocol.data or
                                         self.gatherProtocol.failed):
-                chs.stage("GatherProtocol")
+                chs.stage(chs.GPROTOCOL)
                 if not self.gatherProtocol.failed:
                     self.callhome.metrics = self.gatherProtocol.data
-                chs.stage("GatherProtocol", "FINISHED")
-                chs.stage("Update report", "FINISHED")
+                chs.stage(chs.GPROTOCOL, "FINISHED")
+                chs.stage(chs.REPORT_UPDATE, "FINISHED")
                 self.callhome.lastMetricsGather = now
                 self.callhome.requestMetricsGather = False
                 self.gatherProtocol = None
 
             # Callhome directly if needed
             direct_post(self.dmd)
-            chs.stage("CallHome start", "FINISHED")
+            chs.stage(chs.START_CALLHOME, "FINISHED")
             transaction.commit()
         except Exception as e:
-            chs.stage("CallHome start", "FAILED", str(e))
+            chs.stage(chs.START_CALLHOME, "FAILED", str(e))
             logger.warning("Callhome cycle failed: '%r'", e)
 
 
