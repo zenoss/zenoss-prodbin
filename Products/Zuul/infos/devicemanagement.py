@@ -7,8 +7,6 @@
 #
 ##############################################################################
 
-import time, datetime
-
 from Products.Zuul.infos import InfoBase, ProxyProperty
 
 class MaintenanceWindowInfo(InfoBase):
