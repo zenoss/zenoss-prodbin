@@ -40,26 +40,11 @@ class MaintenanceWindowInfo(InfoBase):
         return self._object.niceStartDateTime()
 
     def updateWindow(self, p):
-        startDateTime = p.get('startDateTime', None)
-        if not startDateTime:
-            startDate = p.get('startDate',
-                datetime.datetime.now().strftime('%m/%d/%Y'))
-            startHours = p.get('startHours', '00')
-            startMinutes = p.get('startMinutes', '00')
-            startSeconds = p.get('startSeconds', '00')
-            startDateTimeString = '{} {}:{}:{}'.format(
-            startDate, startHours, startMinutes, startSeconds)
-            dateTime = datetime.datetime.strptime(startDateTimeString,
-                "%m/%d/%Y %H:%M:%S")
-            startDateTime = time.mktime(dateTime.timetuple())
-        duration = int(p['durationMinutes']) or int(p['durationHours']) \
-            or int(p['durationDays'])
-        if not duration:
-            p['durationHours'] = 1
-        if p['repeat'] not in self._object.REPEAT:
-            p['repeat'] = self._object.REPEAT[0]
         self._object.manage_editMaintenanceWindow( 
-                                     startDateTime=startDateTime,
+                                     startDateTime=p.get('startDateTime', None),
+                                     startDate=p.get('startDate', None),
+                                     startHours=p.get('startHours', None),
+                                     startMinutes=p.get('startMinutes', None),
                                      durationDays=p['durationDays'],
                                      durationHours=p['durationHours'],
                                      durationMinutes=p['durationMinutes'],
@@ -90,3 +75,4 @@ class AdminRoleManagementInfo(InfoBase):
     @property
     def pager(self):
         return self._object.pager()
+
