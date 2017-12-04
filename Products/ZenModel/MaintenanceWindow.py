@@ -245,10 +245,8 @@ class MaintenanceWindow(ZenModelRM):
         if startDateTime:
             t = int(startDateTime)
         else:
-            # startHours, startMinutes come from menus.  No need to catch
-            # ValueError on the int conversion.
-            startHours = int(startHours)
-            startMinutes = int(startMinutes)
+            startHours = int(startHours) if startHours else 0
+            startMinutes = int(startMinutes) if startMinutes else 0
             self.enabled = bool(enabled)
             try:
                 month, day, year = re.split('[^ 0-9]', startDate)
