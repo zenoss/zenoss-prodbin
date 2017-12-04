@@ -17,6 +17,7 @@ A scheduled period of time during which a window is under maintenance.
 DAY_SECONDS = 24*60*60
 WEEK_SECONDS = 7*DAY_SECONDS
 
+import re
 import time
 import calendar
 import logging
@@ -198,7 +199,7 @@ class MaintenanceWindow(ZenModelRM):
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
                                      startDate='',
-                                     startHours='',
+                                     startHours='00',
                                      startMinutes='00',
                                      durationDays='0',
                                      durationHours='00',
@@ -244,10 +245,8 @@ class MaintenanceWindow(ZenModelRM):
         if startDateTime:
             t = int(startDateTime)
         else:
-            # startHours, startMinutes come from menus.  No need to catch
-            # ValueError on the int conversion.
-            startHours = int(startHours)
-            startMinutes = int(startMinutes)
+            startHours = int(startHours) if startHours else 0
+            startMinutes = int(startMinutes) if startMinutes else 0
             self.enabled = bool(enabled)
             try:
                 month, day, year = re.split('[^ 0-9]', startDate)
@@ -259,6 +258,8 @@ class MaintenanceWindow(ZenModelRM):
             if not msgs:
                 t = time.mktime((year, month, day, startHours, startMinutes,
                              0, 0, 0, -1))
+        if repeat not in self.REPEAT:
+            msgs.append('\'repeat\' has wrong value.')
         if not msgs:
             durationDays = makeInt(durationDays, 'Duration days',
                                         minv=0)
@@ -280,6 +281,8 @@ class MaintenanceWindow(ZenModelRM):
                     '\n'.join(msgs),
                     messaging.WARNING
                 )
+            else:
+                raise Exception('Window Edit Failed: ' + '\n'.join(msgs))
         else:
             self.start = t
             self.duration = duration
@@ -715,3 +718,4 @@ def createMaintenanceWindowCatalog(dmd):
     cat.addColumn('id')
     cat._catalog.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
     cat.addColumn('getPhysicalPath')
+

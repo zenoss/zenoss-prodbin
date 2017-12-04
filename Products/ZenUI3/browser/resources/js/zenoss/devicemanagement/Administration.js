@@ -129,12 +129,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
           if(newEntry){
                 Zenoss.remote.DeviceManagementRouter.addMaintWindow({params:params}, function(response){
                     if (response.success) {
-                        params.id = c.name; // since not an edit, need to manually populate the id as the hidden field will be empty
-                        Zenoss.remote.DeviceManagementRouter.editMaintWindow({params:params}, function(response){
-                            if (response.success) {
-                                grid.refresh();
-                            }
-                        });
+                        grid.refresh();
                     }
                 });
             }else{
