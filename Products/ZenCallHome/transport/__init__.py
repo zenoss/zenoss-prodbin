@@ -26,6 +26,7 @@ from Products.ZenCallHome.transport.interfaces import IReturnPayloadProcessor
 from Products.ZenUtils.Version import Version
 from Products.Zuul import getFacade
 from zenoss.protocols.services.zep import ZepConnectionError
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 __doc__ = ("Callhome mechanism. Reports anonymous statistics " +
            "back to Zenoss, Inc.")
@@ -51,6 +52,7 @@ class CallHome(object):
         except AttributeError:
             dmd.callHome = CallHomeData()
             self.callHome = dmd.callHome
+        self.chs = CallHomeStatus()
 
     def attempt(self, method):
         '''
@@ -168,6 +170,7 @@ class CallHome(object):
                     utility.process(self.dmd, data[name])
 
         self.callHome.lastSuccess = long(time.time())
+        self.chs.updateStat('lastSuccess', long(time.time()))
         return
 
 

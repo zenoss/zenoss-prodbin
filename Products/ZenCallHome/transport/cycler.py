@@ -70,6 +70,7 @@ class CallHomeCycler(object):
                     self.callhome.metrics = self.gatherProtocol.data
                 chs.stage(chs.GPROTOCOL, "FINISHED")
                 chs.stage(chs.REPORT_UPDATE, "FINISHED")
+                chs.updateStat('lastTook', int(time.time()) - chs.getStat('startedAt'))
                 self.callhome.lastMetricsGather = now
                 self.callhome.requestMetricsGather = False
                 self.gatherProtocol = None

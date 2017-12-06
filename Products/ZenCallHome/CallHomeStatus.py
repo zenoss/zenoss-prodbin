@@ -53,41 +53,68 @@ class CallHomeStatus(object):
                     log.warning("Could not connect to redis")
         return self._redis_client is not None
 
-    def push_to_redis(self, data):
+    def push_to_redis(self, data, k="CallHomeStatus"):
         # Is redis up?
         if not self._connected_to_redis():
             return
         try:
-            self._redis_client.set('CallHomeStatus', data)
+            self._redis_client.set(k, data)
             log.debug("Success pushed to Redis")
         except Exception as e:
             log.warning("Exception trying to push metric to redis: {0}".format(e))
             self._redis_client = None
             return
 
-    def load_from_redis(self):
+    def load_from_redis(self, k="CallHomeStatus"):
         # Is redis up?
         if not self._connected_to_redis():
             return
         try:
             log.debug("Success recived data from Redis")
-            return self._redis_client.get('CallHomeStatus')
+            return self._redis_client.get(k)
         except Exception as e:
             log.warning(
                 "Exception trying to recive data from redis: {0}".format(e))
             self._redis_client = None
             return
 
+    def updateStat(self, param, value):
+        data = dict()
+        data = pickle.loads(self.load_from_redis())
+        data[param] = value
+        self.push_to_redis(pickle.dumps(data))
+
+    def getStat(self, param):
+        data = dict()
+        data = pickle.loads(self.load_from_redis())
+        return data.get(param)
+
+    def getStatUI(self):
+        """Returns status informations to UI
+        """
+        l = list()
+        data = dict()
+        data = pickle.loads(self.load_from_redis())
+        l.append({'description': 'Last success', 'value': data.get('lastSuccess')})
+        l.append({'description': 'Last run was', 'value': data.get('startedAt')})
+        l.append({'description': 'Last updating took', 'value': data.get('lastTook')})
+        #for key, val in data.iteritems():
+        #    if not isinstance(val, dict):
+        #        l.append(val)
+        return l
+
     def _init(self):
         """Sets empty data for CallHomeStatus before run
         """
-        data = dict()
+        data = pickle.loads(self.load_from_redis())
+        if data == None:
+            data = dict()
         stages = ('Request to CallHome server', 'CallHome start',
                   'Update report', 'CallHome Collect', 'GatherProtocol')
         for v in stages:
             data[v] = {
                 'description': v,
-                'status': '2',
+                'status': 'PENDING',
                 'error': '',
                 'stime': '-1'
             }
@@ -95,21 +122,25 @@ class CallHomeStatus(object):
         data = pickle.dumps(data)
         self.push_to_redis(data)
 
-
     def stage(self, stage, status="RUNNING", err=""):
         """Usage: obj.stage(Stage name, Stage Status, Stage error message)
         """
         if stage == "Update report" and status == "RUNNING":
             self._init()
+            self.updateStat('startedAt', int(time.time()))
         data = dict()
         data = pickle.loads(self.load_from_redis())
-        if status == 0:
+        if stage == "Update report" and status == "FINISHED":
+            self.updateStat('lastTook', int(time.time()) - int(data[stage]['stime']))
+        #data = dict()
+        #data = pickle.loads(self.load_from_redis())
+        if status == "RUNNING":
             stime = int(time.time())
         else:
             stime = int(time.time()) - int(data[stage]['stime'])
         data[stage] = {
             'description': stage,
-            'status': self.STATUS[status],
+            'status': status,
             'error': err,
             'stime': stime
         }
@@ -123,8 +154,9 @@ class CallHomeStatus(object):
         except Exception as e:
             log.warning("Failed to load pickle loads: {0}".format(e))
         for key, val in d.iteritems():
-            if val['status'] != 1:
-                val['stime'] = -1
-            l.append(val)
+            if isinstance(val, dict):
+                if val['status'] != "FINISHED":
+                    val['stime'] = -1
+                l.append(val)
         return l
 

@@ -192,6 +192,13 @@ class CallHomeData(object):
 class Main(ZenScriptBase):
 
     def run(self):
+        if self.options.status:
+            chs = CallHomeStatus()
+            print 'Status:\t Description:\t Error:\t'
+            for i in chs.status():
+                print '{0}\t {1}\t {2}'.format(i.get('status'), i.get('description'), i.get('error'))
+            return
+
         if self.options.master:
             log.debug("Connecting...")
             self.connect()
@@ -232,6 +239,12 @@ class Main(ZenScriptBase):
                                help='indent setting for json output',
                                default=None,
                                type='int')
+        self.parser.add_option('-s', '--status',
+                               action='store_true',
+                               dest='status',
+                               help='show detail status information',
+                               default=False)
+
 
 if __name__ == '__main__':
     main = Main(connect=False)
