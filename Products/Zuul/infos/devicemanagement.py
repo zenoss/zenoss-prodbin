@@ -39,7 +39,10 @@ class MaintenanceWindowInfo(InfoBase):
 
     def updateWindow(self, p):
         self._object.manage_editMaintenanceWindow( 
-                                     startDateTime=p['startDateTime'],
+                                     startDateTime=p.get('startDateTime', None),
+                                     startDate=p.get('startDate', None),
+                                     startHours=p.get('startHours', None),
+                                     startMinutes=p.get('startMinutes', None),
                                      durationDays=p['durationDays'],
                                      durationHours=p['durationHours'],
                                      durationMinutes=p['durationMinutes'],
@@ -70,3 +73,4 @@ class AdminRoleManagementInfo(InfoBase):
     @property
     def pager(self):
         return self._object.pager()
+
