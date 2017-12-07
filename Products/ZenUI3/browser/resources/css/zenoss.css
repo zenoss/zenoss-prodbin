@@ -1735,6 +1735,7 @@ img.europaGraphGear {
     opacity:.5;
     cursor:pointer;
 }
+  /* hide gear on expanded graphs */
   .x-window-body-closable img.europaGraphGear {
     display: none;
   }
