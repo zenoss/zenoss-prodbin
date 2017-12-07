@@ -95,12 +95,16 @@ class CallHomeStatus(object):
         l = list()
         data = dict()
         data = pickle.loads(self.load_from_redis())
-        l.append({'description': 'Last success', 'value': data.get('lastSuccess')})
-        l.append({'description': 'Last run was', 'value': data.get('startedAt')})
-        l.append({'description': 'Last updating took', 'value': data.get('lastTook')})
-        #for key, val in data.iteritems():
-        #    if not isinstance(val, dict):
-        #        l.append(val)
+        l.append({'description': 'Last success', 'value': data.get('lastSuccess'), 'type': 'date'})
+        l.append({'description': 'Last run was', 'value': data.get('startedAt'), 'type': 'date'})
+        l.append({'description': 'Last updating took', 'value': data.get('lastTook'), 'type': 'duration'})
+        for key, val in data.iteritems():
+            if isinstance(val, dict):
+                if val.get('status') == "FAILED":
+                    err = "Failed: "+val.get('error')
+                else:
+                    err = "No errors"
+        l.append({'description': 'Updating result', 'value': err, 'type': 'text'})
         return l
 
     def _init(self):
