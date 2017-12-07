@@ -211,6 +211,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         device_class_1 = "device_class_1"
         device_class_2 = "device_class_2"
         device_class_3 = "device_class_3"
+        device_class_4 = "device_class_4"
 
         # create an organizer
         dc_1 = self.dmd.Devices.createOrganizer(device_class_1)
@@ -336,6 +337,32 @@ class TestModelCatalogTransactions(BaseTestCase):
         mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
         self.assertEquals( mi_results.total_count, 0 )
         self.assertIsNone(self._get_transaction_state())
+
+        # delete a doc that exists before current tx, do a search with commit dirty and abort
+        dc_4 = self.dmd.Devices.createOrganizer(device_class_4)
+        dc_4_uid = dc_4.idx_uid()
+        query = Eq(UID, dc_4_uid)
+        try:
+            self._simulate_tx_commit() # commit to get the device_class_4 doc in solr
+            # check the doc exists in solr
+            search_results = self.model_catalog.search(query=query)
+            self.assertTrue(search_results.total == 1)
+            # delete the object
+            self.dmd.Devices._delObject(device_class_4)
+            # a model catalog search with commit_dirty=True should no return the deleted doc
+            search_results = self.model_catalog.search(query=query, commit_dirty=True)
+            self.assertTrue(search_results.total == 0)
+            # however the doc is still in solr
+            mi_results = self.model_index.search(SearchParams(query))
+            self.assertTrue( mi_results.total_count == 1 )
+            # Abort tx
+            self.data_manager.abort(transaction.get())
+            # The doc should have been left intact in solr
+            search_results = self.model_catalog.search(query=query)
+            self.assertTrue(search_results.total == 1)
+        finally:
+            # clean up created docs in solr
+            self.model_index.unindex_search(SearchParams(query))  
 
     def testSearchBrain(self):
         # create an object

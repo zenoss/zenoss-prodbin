@@ -368,7 +368,7 @@ class ModelCatalogDataManager(object):
                 update.spec.set_field_value(MODEL_INDEX_UID_FIELD, temp_uid)
                 update.spec.set_field_value(TX_STATE_FIELD, tid)
                 indexed_uids.add(update.uid)
-            tweaked_updates.append(update)
+                tweaked_updates.append(update)
 
         # send and commit indexed docs to solr
         self.model_index.process_batched_updates(tweaked_updates)
