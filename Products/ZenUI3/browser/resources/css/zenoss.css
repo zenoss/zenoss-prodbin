@@ -1735,6 +1735,10 @@ img.europaGraphGear {
     opacity:.5;
     cursor:pointer;
 }
+  .x-window-body-closable img.europaGraphGear {
+    display: none;
+  }
+
 img.europaGraphGear.spinnerino {
     animation-name: spin;
     animation-duration: 1500ms;
