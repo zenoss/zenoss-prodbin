@@ -1,4 +1,4 @@
-#
+#pr test
 # Makefile for zenoss-version
 #
 .PHONY: clean-zenoss-version build-zenoss-version pkg-zenoss-version generate-zversion
