@@ -664,6 +664,8 @@ class TriggersFacade(ZuulFacade):
             if field['id'] == 'start':
                 # expect a unix timestamp
                 setattr(window, 'start', int(data['start_ts']))
+            elif field['id'] == 'duration':
+                setattr(window, 'duration', int(data['duration']))
             else:
                 setattr(window, field['id'], data.get(field['id']))
 
