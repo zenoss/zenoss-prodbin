@@ -104,17 +104,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Logarithmic Scale</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <select class="tablevalues" name="log:boolean">
-            <option tal:repeat="e python:(True,False)" tal:content="e"
-            tal:attributes="value e; selected python:e==here.log"/>
-        </select>
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/log"/>
-    </tr>
-    <tr>
         <td class="tableheader">Base 1024</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="base:boolean">
