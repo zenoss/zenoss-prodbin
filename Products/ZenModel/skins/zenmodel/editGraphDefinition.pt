@@ -1,11 +1,11 @@
 <tal:block metal:use-macro="here/page_macros/old-new">
-    
-<tal:block metal:fill-slot="head-local" 
+
+<tal:block metal:fill-slot="head-local"
             tal:condition="not: exists: here/datasources">
 
-<!-- YAHOO script lib files --> 
+<!-- YAHOO script lib files -->
 <script type="text/javascript" src="/zport/dmd/yui/yahoo/yahoo-min.js" ></script>
-<link type="text/css" rel="stylesheet" href="/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css" /> 
+<link type="text/css" rel="stylesheet" href="/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css" />
 <script type="text/javascript" src="/zport/dmd/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
 <script type="text/javascript" src="/zport/dmd/yui/animation/animation-min.js"></script>
 <script type="text/javascript" src="/zport/dmd/yui/datasource/datasource-min.js"></script>
@@ -21,24 +21,33 @@
     dpNamesDataSource.queryMatchContains = true;
     //dpNamesDataSource.animVert = false;
     //dpNamesDataSource.animHoriz = false;
-    
+
     var dpNamesAutoComp = null;
 
     function setupAutoComplete() {
         if (!dpNamesAutoComp)
-            dpNamesAutoComp = new YAHOO.widget.AutoComplete("dpNamesInput", 
+            dpNamesAutoComp = new YAHOO.widget.AutoComplete("dpNamesInput",
                                     "dpNameContainer", dpNamesDataSource);
             dpNamesAutoComp.maxResultsDisplayed = 20;
             dpNamesAutoComp.forceSelection = false;
             dpNamesAutoComp.typeAhead = false;
             dpNamesAutoComp.animVert = false;
             dpNamesAutoComp.animHoriz = false;
-    };
+    }
 
     function teardownAutoComplete() {
         if (dpNamesAutoComp)
             dpNamesAutoComp = null;
-    };
+    }
+
+    function backCompatWidthAdjust(height) {
+        // ZEN-28772 When user specifies height 100 adjust width to zero
+        // to prevent backward compatibility logic from altering height
+        if (height === "100") {
+            var widthEl = document.querySelector('input[name=width]');
+            widthEl.value = "0";
+        }
+    }
 
 </script>
 
@@ -46,19 +55,19 @@
 
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<form method=post
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" value="editGraphDefinition"/>
     <input type="hidden" name="redirect" value="true" />
 
 
-        <tal:block tal:define="message request/message | string:State at time:; 
+        <tal:block tal:define="message request/message | string:State at time:;
         tabletitle string:${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
     <tr>
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -72,18 +81,19 @@
         <td class="tableheader">Height</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="height" size="30"
+            onchange="backCompatWidthAdjust(this.value)"
             tal:attributes="value here/height" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/height"/>
     </tr>
-    <tr>
+    <tr style="display:none">
         <td class="tableheader">Width</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="width" size="30"
             tal:attributes="value here/width" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/width"/>
     </tr>
     <tr>
@@ -101,7 +111,7 @@
             tal:attributes="value e; selected python:e==here.log"/>
         </select>
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/log"/>
     </tr>
     <tr>
@@ -112,7 +122,7 @@
             tal:attributes="value e; selected python:e==here.base"/>
         </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager" 
+        <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/base"/>
     </tr>
     <tr>
@@ -121,7 +131,7 @@
         <input class="tablevalues" type="text" name="miny" size="30"
             tal:attributes="value here/miny" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/miny"/>
     </tr>
     <tr>
@@ -130,7 +140,7 @@
         <input class="tablevalues" type="text" name="maxy" size="30"
             tal:attributes="value here/maxy" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/maxy"/>
     </tr>
     <tr>
@@ -141,7 +151,7 @@
             tal:attributes="value e; selected python:e==here.hasSummary"/>
         </select>
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/hasSummary"/>
     </tr>
     <tr>
@@ -158,7 +168,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 </form>
 <br />
 
@@ -168,10 +178,10 @@
 
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-    <tal:block tal:define="tableName string:graphPointList; 
+    <tal:block tal:define="tableName string:graphPointList;
         objects here/getGraphPoints;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='sequence'); 
+                                                sortedHeader='sequence');
         tabletitle string:Graph Points;
 		menu_id string:GraphPoint_list">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
@@ -189,7 +199,7 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
+
     <tal:block metal:define-macro="graphpointsbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -203,7 +213,7 @@
     </tr>
     <tr class="tablevalues" tal:repeat="graphPoint batch">
         <td>
-            <input tal:condition="here/isManager" 
+            <input tal:condition="here/isManager"
                 type="text" name="seqmap:list" size="2"
                 tal:attributes="value graphPoint/sequence"
                 />
@@ -214,13 +224,13 @@
             <span tal:condition="not:here/isManager" />
         </td>
         <td>
-            <input tal:condition="here/isManager" 
-                type="checkbox" name="ids:list" 
+            <input tal:condition="here/isManager"
+                type="checkbox" name="ids:list"
                 tal:attributes="value graphPoint/getId"/>
             <a tal:condition="here/isManager"
-                tal:attributes="href graphPoint/getPrimaryUrlPath" 
+                tal:attributes="href graphPoint/getPrimaryUrlPath"
                 tal:content="graphPoint/getId">name</a>
-            <tal:block tal:condition="not:here/isManager" 
+            <tal:block tal:condition="not:here/isManager"
 			tal:content="graphPoint/getId"/>
         </td>
         <td tal:content="graphPoint/getType" />
@@ -233,7 +243,7 @@
         </tal:block>
         </tal:block>
         </tal:block>
-        
+
 </form>
 
 
