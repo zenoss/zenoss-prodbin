@@ -45,7 +45,7 @@
         // to prevent backward compatibility logic from altering height
         if (height === "100") {
             var widthEl = document.querySelector('input[name=width]');
-            widthEl.value = "0"
+            widthEl.value = "0";
         }
     }
 
