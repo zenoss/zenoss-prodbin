@@ -21,6 +21,7 @@ from Products.ZenCallHome.transport import CallHome
 from Products.ZenCallHome.transport.methods.directpost import direct_post
 from Products.ZenUtils.Utils import zenPath
 from Products.Zuul.utils import safe_hasattr
+from Products.ZenCallHome.CallHomeStatus import CallHomeStatus
 
 # number of seconds between metrics updates
 GATHER_METRICS_INTERVAL = 60*60*24*30
@@ -42,10 +43,11 @@ class CallHomeCycler(object):
         LoopingCall(self.run).start(300, now=False)
 
     def run(self):
+        chs = CallHomeStatus()
+        chs.stage(chs.START_CALLHOME)
         try:
             now = long(time.time())
             self.dmd._p_jar.sync()
-
             # Start metrics gather if needed
             if (
                  (
@@ -63,18 +65,23 @@ class CallHomeCycler(object):
             # Update metrics if run complete
             if self.gatherProtocol and (self.gatherProtocol.data or
                                         self.gatherProtocol.failed):
+                chs.stage(chs.GPROTOCOL)
                 if not self.gatherProtocol.failed:
                     self.callhome.metrics = self.gatherProtocol.data
+                chs.stage(chs.GPROTOCOL, "FINISHED")
+                chs.stage(chs.REPORT_UPDATE, "FINISHED")
+                chs.updateStat('lastTook', int(time.time()) - chs.getStat('startedAt'))
                 self.callhome.lastMetricsGather = now
                 self.callhome.requestMetricsGather = False
                 self.gatherProtocol = None
 
             # Callhome directly if needed
             direct_post(self.dmd)
-
+            chs.stage(chs.START_CALLHOME, "FINISHED")
             transaction.commit()
         except Exception as e:
-            logger.debug("Callhome cycle failed: '%r'", e)
+            chs.stage(chs.START_CALLHOME, "FAILED", str(e))
+            logger.warning("Callhome cycle failed: '%r'", e)
 
 
 class GatherMetricsProtocol(ProcessProtocol):
