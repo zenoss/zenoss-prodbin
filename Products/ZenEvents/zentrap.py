@@ -565,18 +565,14 @@ class TrapTask(BaseTask, CaptureReplay):
         sess.close()
 
     def _add_varbind_detail(self, result, oid, value):
-        # Check a detail for the index-stripped variable binding.
-        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
-        # Check a detail for the variable binding.
+        # Add a detail for the variable binding.
         detail_name = self.oid2name(oid, exactMatch=False, strip=False)
+        result[detail_name].append(str(value))
 
+        # Add a detail for the index-stripped variable binding.
+        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
         if detail_name_stripped != detail_name:
-            slice_point = len(detail_name_stripped) + 1
             result[detail_name_stripped].append(str(value))
-            # Extract a index number from full name
-            result[detail_name_stripped + '.ifIndex'].append(detail_name[slice_point:])
-        else:
-            result[detail_name].append(str(value))
 
     def decodeSnmpv1(self, addr, pdu):
 
