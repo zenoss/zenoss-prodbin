@@ -214,7 +214,7 @@
     <tr tal:condition="python: here.aqBaseHasAttr('legend')">
         <td class="tableheader">Legend</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="legend" size="40"
+        <input class="tablevalues" type="text" name="legend" size="60"
             tal:attributes="value here/legend" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
