@@ -15,7 +15,6 @@ import servicemigration as sm
 from servicemigration.vhost import VHost
 sm.require("1.1.9")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class AddZenossPublicEndpoint(Migrate.Step):
@@ -23,7 +22,7 @@ class AddZenossPublicEndpoint(Migrate.Step):
     Add public endpoint ("zenoss") to zproxy.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 0)
 
     def cutover(self, dmd):
         try:
