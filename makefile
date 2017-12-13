@@ -1,6 +1,6 @@
 VERSION  ?= 6.1.0
 BUILD_NUMBER ?= DEV
-BRANCH   ?= develop
+BRANCH   ?= support-6.1.x
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
