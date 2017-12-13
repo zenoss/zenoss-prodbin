@@ -11,7 +11,6 @@ import logging
 
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import Migrate
 import servicemigration as sm
 
@@ -24,7 +23,7 @@ class DeleteRateOptionsForServices(Migrate.Step):
     Remove reset values.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 0)
 
     def cutover(self, dmd):
 
