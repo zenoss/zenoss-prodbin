@@ -26,7 +26,9 @@ class DeviceManagementFacade(ZuulFacade):
         newMw = None
         obj = self._getObject(params['uid'])
                         
-        id = params['name'].strip()    
+        id = params['name'].strip()
+        if not id:
+            raise Exception('Missing Maintenance Window name.')
         obj.manage_addMaintenanceWindow(id)
         maintenanceWindows = (IInfo(s) for s in obj.maintenanceWindows())
         try:
