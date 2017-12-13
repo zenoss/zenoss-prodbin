@@ -14,7 +14,6 @@ import Migrate
 import servicemigration as sm
 sm.require("1.1.9")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class LimitRabbitMQInstances(Migrate.Step):
@@ -22,7 +21,7 @@ class LimitRabbitMQInstances(Migrate.Step):
     Limit number of RabbitMQ's instances to 1.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 0)
 
     def cutover(self, dmd):
         try:

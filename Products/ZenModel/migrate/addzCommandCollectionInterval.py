@@ -10,7 +10,6 @@
 
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 """
 Add global cycle time zProp for 'COMMAND' type datasources,
@@ -19,7 +18,7 @@ migrate existing datasources which we have in core to use it.
 
 
 class AddzCommandCollectionInterval(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 0)
 
     
     def cutover(self, dmd):
