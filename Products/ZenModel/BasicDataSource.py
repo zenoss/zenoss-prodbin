@@ -215,10 +215,10 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
                 snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity']).replace("$", "$$")
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
-            snmpCommand = SnmpCommand(snmpinfo)
-            displayCommand = snmpCommand.display.replace("\\", "").replace("$$", "$")
+            command = SnmpCommand(snmpinfo)
+            displayCommand = command.display.replace("\\", "").replace("$$", "$")
             # modify snmp command to be run with zminion
-            command = self.compile(snmpCommand, device)
+            zminionCommand = self.compile(command, device)
         else:
             errorLog(
                 'Test Failed',
