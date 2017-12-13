@@ -12,7 +12,6 @@ import time
 log = logging.getLogger("zen.migrate")
 
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import servicemigration as sm
 
 sm.require("1.1.11")
@@ -20,7 +19,7 @@ sm.require("1.1.11")
 class RateCutoff(Migrate.Step):
     """Fix the credentials for consumer and query services"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 0)
 
     def cutover(self, dmd):
         try:
