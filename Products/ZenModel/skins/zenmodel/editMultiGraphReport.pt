@@ -34,18 +34,6 @@
             tal:content="here/title"/>
     </tr>
     <tr>
-        <td class="tableheader">Number of Columns</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <select class="tablevalues" name="numColumns">
-                <option tal:repeat="a here/numColumnsOptions" tal:content="a"
-                        tal:attributes="value a;
-                        selected python:a==here.numColumns"/>
-            </select>
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/numColumns"/>
-    </tr>
-    <tr>
         <td class="tableheader">
         </td>
         <td class="tableheader" colspan="3">
