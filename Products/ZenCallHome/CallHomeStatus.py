@@ -111,7 +111,7 @@ class CallHomeStatus(object):
         """Sets empty data for CallHomeStatus before run
         """
         data = pickle.loads(self.load_from_redis())
-        if data == None:
+        if data is None:
             data = dict()
         stages = ('Request to CallHome server', 'CallHome start',
                   'Update report', 'CallHome Collect', 'GatherProtocol')
