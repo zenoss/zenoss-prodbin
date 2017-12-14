@@ -93,8 +93,11 @@ class CallHomeStatus(object):
         """Returns status informations to UI
         """
         l = list()
-        data = dict()
-        data = pickle.loads(self.load_from_redis())
+        rdata = self.load_from_redis()
+        if rdata is None:
+            data = dict()
+        else:
+            data = pickle.loads(rdata)
         l.append({'id': 'lastsuccess', 'description': 'Last success', 'value': data.get('lastSuccess'), 'type': 'date'})
         l.append({'id': 'lastrun', 'description': 'Last run was', 'value': data.get('startedAt'), 'type': 'date'})
         l.append({'id': 'lastupdtook', 'description': 'Last updating took', 'value': data.get('lastTook'), 'type': 'duration'})
@@ -111,7 +114,7 @@ class CallHomeStatus(object):
         """Sets empty data for CallHomeStatus before run
         """
         rdata = self.load_from_redis()
-        if rdata == None:
+        if rdata is None:
             data = dict()
         else:
             data = pickle.loads(rdata)
