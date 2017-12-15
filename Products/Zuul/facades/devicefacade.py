@@ -741,7 +741,10 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        rrdTemplates = object.getRRDTemplates()
+        devClassTemplates = set(object.deviceClass().getRRDTemplates())
+        devTemplates = set(object.getRRDTemplates())
+        rrdTemplates = devClassTemplates.union(devTemplates)
+        rrdTemplates = list(rrdTemplates)
 
         # used to sort the templates
         def byTitleOrId(left, right):
