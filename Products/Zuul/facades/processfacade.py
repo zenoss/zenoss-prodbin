@@ -167,12 +167,11 @@ class ProcessFacade(TreeFacade):
                 zenmodelerPath = binPath(zenmodelerName)
                 monitorId = device.perfServer().id
                 if monitorId != 'localhost':
-                    zenmodelerName = monitorId + '_' + zenmodelerName
                     zenmodelerPath = binPath(zenmodelerName)
                     if len(zenmodelerPath) == 0:
                         isPerfMonRemote = True
                 if isPerfMonRemote:
-                    cmd = "ssh %s %s %s" % (device.perfServer().hostname, zenmodelerName, ' '.join(zenmodelerOpts))
+                    cmd = 'zminion --minion-name zminion_%s run -- "%s %s"' % (device.getPerformanceServerName(), zenmodelerName, ' '.join(zenmodelerOpts))
                 else:
                     cmd = "%s %s" % (zenmodelerPath, ' '.join(zenmodelerOpts))
                 processList = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT).splitlines()
