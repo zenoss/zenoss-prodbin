@@ -91,16 +91,6 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/rpn"/>
     </tr>
-    <tr tal:condition="python: here.aqBaseHasAttr('limit')">
-        <td class="tableheader">Limit</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="limit" size="40"
-            tal:attributes="value here/limit" />
-        </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
-        tal:content="here/limit"/>
-    </tr>
-
     <tr tal:condition="python: here.aqBaseHasAttr('start')">
         <td class="tableheader">Start</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -154,15 +144,6 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/lineType"/>
     </tr>
-    <tr tal:condition="python: here.aqBaseHasAttr('lineWidth')">
-        <td class="tableheader">Line Width</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="lineWidth" size="8"
-            tal:attributes="value here/lineWidth" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/lineWidth"/>
-    </tr>
     <tr tal:condition="python: here.aqBaseHasAttr('stacked')">
         <td class="tableheader">Stacked</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -173,15 +154,6 @@
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/stacked"/>
-    </tr>
-    <tr tal:condition="python: here.aqBaseHasAttr('color')">
-        <td class="tableheader">Color (Hex value RRGGBB)</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="color" size="40"
-            tal:attributes="value here/color" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/color"/>
     </tr>
     <tr tal:condition="python: here.aqBaseHasAttr('format')">
         <td class="tableheader">Format</td>
@@ -223,7 +195,7 @@
     <tr tal:condition="python: here.aqBaseHasAttr('legend')">
         <td class="tableheader">Legend</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="legend" size="40"
+        <input class="tablevalues" type="text" name="legend" size="60"
             tal:attributes="value here/legend" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
