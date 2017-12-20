@@ -864,24 +864,25 @@
                     collapsedNodes.push(nid);
                 }
                 if (node.childNodes) {
-                    node.childNodes.forEach(child => {
+                    node.childNodes.forEach(function (child) {
                         inorder(child);
                     });
                 }
             })(root);
-            return expandedNodes
+            return expandedNodes;
         },
-        restoreTreeState(treeState) {
+        restoreTreeState: function (treeState) {
+            var me = this;
             // ex: '/Devices/.zport.dmd.Devices/.zport.dmd.Devices.AWS/.zport.dmd.Devices.AWS.EC2'
-            this.getExpansionPaths(treeState).forEach(expansionPath => {
-                this.expandNodeByPath(expansionPath);
+            me.getExpansionPaths(treeState).forEach(function (expansionPath) {
+                me.expandNodeByPath(expansionPath);
             });
         },
         getExpansionPaths: function(treeState) {
             var me = this;
             var outPaths = [];
             var prefix = '/' + treeState[0];
-            treeState.forEach(path => {
+            treeState.forEach(function (path) {
                 // devices paths start at tree level 3
                 if (me.treeLevel(path) > 3) {
                     outPaths.push(me.pathExpand(prefix, path));
@@ -907,7 +908,7 @@
         },
         isHidden: function (path, collapsed) {
             var found = false;
-            collapsed.forEach(coll => {
+            collapsed.forEach(function (coll) {
                 if (path.startsWith(coll)) {
                     found = true;
                 }
