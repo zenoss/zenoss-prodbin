@@ -706,6 +706,7 @@ Ext.define("Zenoss.SequenceStore", {
             directFn: router.getSequence,
             pageSize: 1000,
             scrollToLoadBuffer: 0,
+            buffered: false,
             root: 'data'
         });
         this.callParent(arguments);
