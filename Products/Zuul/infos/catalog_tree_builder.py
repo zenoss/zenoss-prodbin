@@ -189,7 +189,7 @@ class ModelCatalogTreeBuilder(object):
         # load the partial child counts using facets
         if search_results.facets and search_results.facets.get(self.facet_field):
             facets = search_results.facets[self.facet_field]
-            for lower_case_path, count in facets.iteritems():
+            for lower_case_path, count in facets.get_values().iteritems():
                 real_path = path_translator.get(lower_case_path)
                 if real_path:
                     self.trees[real_path].partial_leaf_count = count
