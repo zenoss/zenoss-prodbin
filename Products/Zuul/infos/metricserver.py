@@ -226,7 +226,7 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
         if self._multiContext:
             device = self._context.device().titleOrId()
             if  device not in legend:
-                legend = self.id + " " + legend
+                legend = self.id
         return legend
 
     @property
