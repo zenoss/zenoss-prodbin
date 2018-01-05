@@ -126,7 +126,7 @@ class BasePublisher(object):
 
     def _putLater(self, scheduled):
         def handleError(val):
-            log.warn("Error sending metric: %s", val)
+            log.debug("Error sending metric: %s", val)
         d = self._put(scheduled=scheduled)
         d.addErrback(handleError)
 
@@ -328,10 +328,9 @@ class HttpPostPublisher(BasePublisher):
         return finished
 
     def _response_finished(self, result):
-        # The most likely result is the HTTP response from a successful POST,
-        # which should be JSON formatted.
+        # The most likely result is the HTTP response from a successful POST.
         if isinstance(result, str):
-            log.debug("response was: %s", json.loads(result))
+            log.debug("response was: %s", result)
         # We could be called back because _publish_failed was called before us
         elif isinstance(result, int):
             log.info("queue still contains %d metrics", result)
