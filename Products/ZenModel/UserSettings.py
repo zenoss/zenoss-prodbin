@@ -33,7 +33,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils import DotNetCommunication
-from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
@@ -1150,6 +1150,29 @@ class UserSettings(ZenModelRM):
                     "Administrative roles were deleted."
                 )
             return self.callZenScreen(REQUEST)
+
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminGuids')
+    def getAllAdminGuids(self, returnChildrenForRootObj=False):
+        """
+        Return all guids user has permissions to.
+        """
+        guids = []
+        ars = self.getAllAdminRoles()
+        for ar in ars:
+            if not returnChildrenForRootObj:
+                guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
+            else:
+                if ar.managedObject().getPrimaryId() in (
+                        '/zport/dmd/Devices',
+                        '/zport/dmd/Locations',
+                        '/zport/dmd/Groups',
+                        '/zport/dmd/Systems'
+                ):
+                    guids.extend([IGlobalIdentifier(child).getGUID() for child in ar.managedObject().children()])
+                else:
+                    guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
+
+        return guids
 
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminRoles')
