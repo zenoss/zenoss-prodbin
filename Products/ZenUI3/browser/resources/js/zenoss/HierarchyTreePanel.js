@@ -153,15 +153,15 @@
                         handler: function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.getStore().load({
+                                scope: view.panel,
                                 callback: function (records, opts, success) {
                                     if (success) {
+                                        var root = this.getRootNode();
+                                        var treeState = this.getTreeState(root);
                                         var childNodes = opts.response.result[0];
-                                        // Remove old records and update root node with the fresh data
-                                        this.getRootNode().removeAll();
-                                        this.getRootNode().appendChild(childNodes);
-                                        if (this.getRootNode().childNodes.length) {
-                                            this.getRootNode().childNodes[0].expand();
-                                        }
+                                        root.removeAll();
+                                        root.appendChild(childNodes);
+                                        this.restoreTreeState(treeState);
                                     }
                                 }
                             });
