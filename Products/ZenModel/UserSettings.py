@@ -1172,7 +1172,7 @@ class UserSettings(ZenModelRM):
                 if ar.managedObject().getPrimaryId() in rootOrganizers:
                     guids.extend(IGlobalIdentifier(child).getGUID() for child in ar.managedObject().children())
                 else:
-                    guids.extend(IGlobalIdentifier(ar.managedObject()).getGUID())
+                    guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
 
         return guids
 
