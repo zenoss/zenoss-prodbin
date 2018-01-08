@@ -369,7 +369,7 @@ class ZepFacade(ZuulFacade):
         if use_permissions:
             user = getSecurityManager().getUser()
             userSettings = self._dmd.ZenUsers._getOb(user.getId())
-            hasGlobalRoles = not userSettings.hasNoGlobalRoles() 
+            hasGlobalRoles = not userSettings.hasNoGlobalRoles()
             if not hasGlobalRoles:
                 # get guids for the objects user has permission to access
                 # and add to filter

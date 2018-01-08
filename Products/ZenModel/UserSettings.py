@@ -1151,26 +1151,28 @@ class UserSettings(ZenModelRM):
                 )
             return self.callZenScreen(REQUEST)
 
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminGuids')
     def getAllAdminGuids(self, returnChildrenForRootObj=False):
         """
         Return all guids user has permissions to.
         """
         guids = []
-        ars = self.getAllAdminRoles()
-        for ar in ars:
-            if not returnChildrenForRootObj:
-                guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
-            else:
-                if ar.managedObject().getPrimaryId() in (
+        rootOrganizers = (
                         '/zport/dmd/Devices',
                         '/zport/dmd/Locations',
                         '/zport/dmd/Groups',
                         '/zport/dmd/Systems'
-                ):
-                    guids.extend([IGlobalIdentifier(child).getGUID() for child in ar.managedObject().children()])
+        )
+        ars = self.getAllAdminRoles()
+        if not returnChildrenForRootObj:
+            guids.extend(IGlobalIdentifier(ar.managedObject()).getGUID() for ar in ars)
+        else:
+            for ar in ars:
+                if ar.managedObject().getPrimaryId() in rootOrganizers:
+                    guids.extend(IGlobalIdentifier(child).getGUID() for child in ar.managedObject().children())
                 else:
-                    guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
+                    guids.extend(IGlobalIdentifier(ar.managedObject()).getGUID())
 
         return guids
 
