@@ -2076,19 +2076,19 @@ img.europaGraphGear.spinnerino {
 /* syntax highlighting classes */
 
 span.syntax-number  {
-    color: brown;
+  color: #ceb24f;
 }
 
 span.syntax-string  {
-    color: green;
+  color: #96b781;
 }
 
 span.syntax-boolean {
-    color: blue;
+  color: #9bc1ef;
 }
 
 span.syntax-text  {
-    color: white;
+  color: #9786c4;
 }
 
 .grid-action.checked.enabled {
