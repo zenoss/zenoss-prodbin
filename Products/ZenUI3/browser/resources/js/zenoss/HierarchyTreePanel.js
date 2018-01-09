@@ -153,15 +153,15 @@
                         handler: function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.getStore().load({
-                                scope: view.panel,
+                                scope: tree,
                                 callback: function (records, opts, success) {
                                     if (success) {
-                                        var root = this.getRootNode();
-                                        var treeState = this.getTreeState(root);
+                                        var root = tree.getRootNode();
+                                        var treeState = tree.getTreeState(root);
                                         var childNodes = opts.response.result[0];
                                         root.removeAll();
                                         root.appendChild(childNodes);
-                                        this.restoreTreeState(treeState);
+                                        tree.restoreTreeState(treeState);
                                     }
                                 }
                             });
@@ -526,6 +526,9 @@
                     Ext.callback(callback, scope || me, [true, current]);
                     return;
                 }
+                if (keys[index] === undefined) {
+                    return;
+                }
                 var node = current.findChild(field, keys[index]);
                 if (node) {
                     current = node;
@@ -843,7 +846,6 @@
                         var root = this.getRootNode();
                         var treeState = this.getTreeState(root);
                         var childNodes = opts.response.result[0];
-                        // Remove old records and update root node with the fresh data
                         root.removeAll();
                         root.appendChild(childNodes);
                         this.restoreTreeState(treeState);
