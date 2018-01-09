@@ -261,6 +261,9 @@
                 }, {
                     text: _t('Expand Graph'),
                     handler: Ext.bind(this.expandGraph, this)
+                }, {
+                    text: _t('Display Summary Table'),
+                    handler: Ext.bind(this.toggleFooter, this)
                 }]
             });
             item.on('click', function(event, t) {
@@ -320,24 +323,11 @@
 
             var self = this;
             var p = zenoss.visualization.chart.create(this.graphId, visconfig);
-            p.then(function(chart){
-                chart.afterRender = function(){
-                    var legenddiv = chart.$div.find(".nv-legend").length;
-                    // 40 will trigger resize below.
-                    var legendHeight = legenddiv ? Number(chart.$div.find(".nv-legend")[0].getBBox().height) : 0;
+            p.then(function(chart) {
+                chart.afterRender = function() {
+                    self.aR(chart);
+                },
 
-                    // adjust height based on graph content
-                    var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
-                        graphHeight = Number(self.height),
-                        adjustedHeight = footerHeight + graphHeight + legendHeight;
-
-                    // if tall footer is squishing the chart, recalculate panel height
-                    if(footerHeight > 150){
-                        chart.$div.height(adjustedHeight);
-                        self.setHeight(adjustedHeight + 60);
-                        chart.resize();
-                    }
-                };
                 // Here we set an onUpdate function for the chart, which takes a promise as an argument (the update
                 // ajax request) and disables the controls until the promise is either fulfilled or it fails.
                 chart.onUpdate = function(p1){
@@ -502,6 +492,39 @@
                 items: [config]
             });
             win.show();
+        },
+        aR: function(chart, isRefresh) {
+            // adjust height based on graph content
+            var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
+                graphHeight = Number(this.height),
+                adjustedHeight = graphHeight;
+
+            // if ( ! chart.config.footer) {
+            //     adjustedHeight = graphHeight - footerHeight;
+            //     chart.$div.find(".zenfooter").css("display","none");
+            // }
+
+            // prevents chart growing each time footer is toggled
+            adjustedHeight = isRefresh ? adjustedHeight - 36 : adjustedHeight;
+
+            console.log(`showFooter ${chart.config.footer} footer: ${footerHeight} adjHeight: ${adjustedHeight}`);
+            chart.$div.height(adjustedHeight);
+            this.setHeight(adjustedHeight + 36);
+
+            chart.resize();
+
+        },
+        toggleFooter: function() {
+            var c = zenoss.visualization.chart.getChart(this.graphId);
+            c.config.footer = !c.config.footer;
+            var footerHeight = Number(c.$div.find(".zenfooter").outerHeight() || 0);
+            var graphHeight = Number(this.height);
+
+            c.$div.find(".zenfooter").css("display","none");
+            var adjustedHeight = graphHeight - footerHeight - 36;
+            c.$div.height(adjustedHeight);
+            this.setHeight(adjustedHeight + 36);
+
         },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {

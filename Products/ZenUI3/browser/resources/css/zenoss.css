@@ -1774,11 +1774,12 @@ img.europaGraphGear.spinnerino {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
 .zenfooter th {
   font-weight: bold;
 }
-
+.zenfooter.z-hide {
+  display: none;
+}
 .zenfooter_data_text {
   height: 18px;
 }
