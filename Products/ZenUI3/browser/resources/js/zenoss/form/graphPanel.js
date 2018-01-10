@@ -267,7 +267,6 @@
                     handler: Ext.bind(this.toggleFooter, this)
                 }]
             });
-            this.menu
             item.on('click', function(event, t) {
                 event.preventDefault();
                 var rect = event.target.getBoundingClientRect(),
