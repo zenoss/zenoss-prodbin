@@ -249,6 +249,7 @@
             }
             var item = Ext.get(this.buttonId);
             this.menu = Ext.create('Ext.menu.Menu', {
+                baseCls: 'z-europa-menu',
                 items: [{
                     text: _t('Definition'),
                     handler: Ext.bind(this.displayDefinition, this)
@@ -262,10 +263,11 @@
                     text: _t('Expand Graph'),
                     handler: Ext.bind(this.expandGraph, this)
                 }, {
-                    text: _t('Display Summary Table'),
+                    text: _t('Toggle Footer'),
                     handler: Ext.bind(this.toggleFooter, this)
                 }]
             });
+            this.menu
             item.on('click', function(event, t) {
                 event.preventDefault();
                 var rect = event.target.getBoundingClientRect(),
@@ -325,7 +327,7 @@
             var p = zenoss.visualization.chart.create(this.graphId, visconfig);
             p.then(function(chart) {
                 chart.afterRender = function() {
-                    self.aR(chart);
+                    self.adjustHeight(chart);
                 },
 
                 // Here we set an onUpdate function for the chart, which takes a promise as an argument (the update
@@ -493,38 +495,38 @@
             });
             win.show();
         },
-        aR: function(chart, isRefresh) {
+        adjustHeight: function(chart) {
             // adjust height based on graph content
-            var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
-                graphHeight = Number(this.height),
-                adjustedHeight = graphHeight;
+            var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0);
+            var graphHeight = Number(this.height);
+            var adjustedHeight = graphHeight;
+            footerHeight = chart.config.footer ? footerHeight : 0;
 
-            // if ( ! chart.config.footer) {
-            //     adjustedHeight = graphHeight - footerHeight;
-            //     chart.$div.find(".zenfooter").css("display","none");
-            // }
-
-            // prevents chart growing each time footer is toggled
-            adjustedHeight = isRefresh ? adjustedHeight - 36 : adjustedHeight;
-
-            console.log(`showFooter ${chart.config.footer} footer: ${footerHeight} adjHeight: ${adjustedHeight}`);
             chart.$div.height(adjustedHeight);
             this.setHeight(adjustedHeight + 36);
-
             chart.resize();
-
         },
         toggleFooter: function() {
             var c = zenoss.visualization.chart.getChart(this.graphId);
-            c.config.footer = !c.config.footer;
-            var footerHeight = Number(c.$div.find(".zenfooter").outerHeight() || 0);
-            var graphHeight = Number(this.height);
+            var eurograph = c.$div.find(".zenfooter").parent();
 
-            c.$div.find(".zenfooter").css("display","none");
-            var adjustedHeight = graphHeight - footerHeight - 36;
+            // footer height: check before hiding and after reappearing
+            var footerHeightIn = Number(c.$div.find(".zenfooter").outerHeight() || 0);
+            eurograph.toggleClass("z-hidden-footer");
+            var footerHeightOut = Number(c.$div.find(".zenfooter").outerHeight() || 0);
+            var footerHeight = Math.max(footerHeightIn, footerHeightOut);
+
+            var graphHeight = Number(this.height);
+            adjustedHeight = graphHeight - 36;
+
+            c.config.footer = !c.config.footer;
+            adjustedHeight = c.config.footer ?
+                adjustedHeight += footerHeight :
+                adjustedHeight -= footerHeight;
+
             c.$div.height(adjustedHeight);
             this.setHeight(adjustedHeight + 36);
-
+            c.resize();
         },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {
@@ -642,7 +644,6 @@
                 }
             };
             zenoss.visualization.chart.update(this.graphId, changes);
-
             this.graph_params = gp;
         },
         convertStartToAbsoluteTime: function(start) {
