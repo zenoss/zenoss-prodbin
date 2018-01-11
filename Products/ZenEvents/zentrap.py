@@ -565,14 +565,13 @@ class TrapTask(BaseTask, CaptureReplay):
         sess.close()
 
     def _add_varbind_detail(self, result, oid, value):
-        # Add a detail for the variable binding.
         detail_name = self.oid2name(oid, exactMatch=False, strip=False)
         result[detail_name].append(str(value))
 
-        # Add a detail for the index-stripped variable binding.
         detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
         if detail_name_stripped != detail_name:
-            result[detail_name_stripped].append(str(value))
+            remainder = detail_name[len(detail_name_stripped)+1:]
+            result[detail_name_stripped + ".sequence"].append(remainder)
 
     def decodeSnmpv1(self, addr, pdu):
 
@@ -626,6 +625,11 @@ class TrapTask(BaseTask, CaptureReplay):
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
+            if vb_value is None:
+                log.debug(
+                    "[decodeSnmpv1] enterprise %s, varbind-oid %s, "
+                    "varbind-value %s", enterprise, vb_oid, vb_value
+                )
             self._add_varbind_detail(vb_result, vb_oid, vb_value)
 
         result.update(
@@ -643,14 +647,17 @@ class TrapTask(BaseTask, CaptureReplay):
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
+            if vb_value is None:
+                log.debug(
+                    "[decodeSnmpv2] varbind-oid %s, varbind-value %s",
+                    vb_oid, vb_value
+                )
 
             # SNMPv2-MIB/snmpTrapOID
             if vb_oid == '1.3.6.1.6.3.1.1.4.1.0':
                 result["oid"] = vb_value
                 eventType = self.oid2name(
-                    vb_value,
-                    exactMatch=False,
-                    strip=False
+                    vb_value, exactMatch=False, strip=False
                 )
             elif vb_oid.startswith('1.3.6.1.6.3.18.1.3'):
                 self.log.debug("found snmpTrapAddress OID: %s = %s",
@@ -858,7 +865,8 @@ def decode_snmp_value(value):
     Itterate over the list of decoder methods in order
     Returns the first value returned by a decoder method
     """
-
+    if value is None:
+        return value
     try:
         for decoder in _decoders:
             out = decoder(value)
