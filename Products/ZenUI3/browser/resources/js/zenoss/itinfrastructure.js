@@ -265,14 +265,6 @@ function refreshTreePanel() {
     Ext.each(Ext.ComponentQuery.query('HierarchyTreePanel'), function(tree) {
         tree.refresh();
     });
-    var selModel = getSelectionModel();
-    if (selModel.tree) {
-        var tree = Ext.getCmp(selModel.tree);
-        var selectedNode = selModel.getSelectedNode();
-        if (tree && selectedNode) {
-            tree.selectByToken(selectedNode.internalId);
-        }
-    }
 }
 
 

@@ -487,6 +487,9 @@ Ext.define('Zenoss.DeviceDetailNav', {
             target: 'detail_card_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
             hasComponents: false,
+            viewConfig: {
+                preserveScrollOnRefresh: true
+            },
             listeners:{
                 render: function() {
                     this.setContext(UID);
