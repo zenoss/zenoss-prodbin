@@ -9,5 +9,14 @@ fi
 
 echo "Found Catalog Service egg at $CATALOG_SERVICE_EGG"
 /opt/zenoss/bin/zenpack --files-only --install $CATALOG_SERVICE_EGG
-/opt/zenoss/bin/zenpack --remove ZenPacks.zenoss.CatalogService
+#show log only if something goes wrong
+tmp_output="/tmp/"`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32`
+/opt/zenoss/bin/zenpack --remove ZenPacks.zenoss.CatalogService  > $tmp_output 2>&1
+if [[ ! $? -eq 0 ]]; then
+    echo "Couldn't remove CatalogService zenpack"
+    cat $tmp_output
+    rm $tmp_output
+    exit
+fi
+rm $tmp_output
 echo "Successfully removed Catalog Service"
