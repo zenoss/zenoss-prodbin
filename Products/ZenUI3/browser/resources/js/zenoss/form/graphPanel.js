@@ -497,12 +497,12 @@
         adjustHeight: function(chart) {
             // adjust height based on graph content
             var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0);
-            var graphHeight = Number(this.height);
-            var adjustedHeight = graphHeight;
-            footerHeight = chart.config.footer ? footerHeight : 0;
+            footerHeight = Math.min(footerHeight, 150);
+            chart.$div.find(".zenfooter").height(footerHeight);
 
-            chart.$div.height(adjustedHeight);
-            this.setHeight(adjustedHeight + 36);
+            var graphHeight = Number(this.height);
+            chart.$div.height(graphHeight);
+            this.setHeight(graphHeight + 36);
             chart.resize();
         },
         toggleFooter: function() {
