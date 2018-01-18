@@ -25,6 +25,7 @@ from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 
+import jwt
 import logging
 
 log = logging.getLogger('Auth0')
@@ -64,23 +65,45 @@ class Auth0(BasePlugin):
         """
         """
         print "Auth0:authenticateCreds", credentials
-        request = self.REQUEST
-        response = request['RESPONSE']
-        pas_instance = self._getPAS()
+        # Ignore credentials that are not from our extractor
+        extractor = credentials.get('extractor')
+        if extractor != PLUGIN_ID:
+            return None
 
-        login = credentials.get('login')
-        password = credentials.get('password')
+        payload = self._decode_token(credentials['token'])
+        if not payload:
+            return None
 
-        if credentials['extractor'] == PLUGIN_ID:
-            print "    SUCCESS"
-            return (login, login)
+        if 'sub' not in payload:
+            return None
 
-        print "    FAIL"
-        return None
+        userid = payload['sub'].encode('utf8')
+
+        return (userid, userid)
+
+    def _decode_token(self, token, verify=True):
+	return self._jwt_decode(
+	    token, 'secret', verify=verify)
+
+    def _jwt_decode(self, token, secret, verify=True):
+        try:
+            return jwt.decode(
+                token, secret, verify=verify, algorithms=['HS256'])
+        except jwt.InvalidTokenError:
+            return None
 
     def extractCredentials(self, request):
-        creds = dict(login="foo", password="bar")
-        return creds 
+        creds = {}
+        auth = request._auth
+        if auth is None:
+            return None
+        if auth[:7].lower() == 'bearer ':
+            creds['token'] = auth.split()[-1]
+        else:
+            return None
+
+        return creds
+
 
     def getRootPlugin(self):
         pas = self.getPhysicalRoot().acl_users
@@ -134,7 +157,7 @@ def setup(context):
     app_acl = getToolByName(app, 'acl_users')
     zport_acl = getToolByName(zport, 'acl_users')
 
-    if hasattr(app_acl, 'auth0_plugin'):
+    if hasattr(app_acl, PLUGIN_ID):
         return
 
     context_interfaces = {app_acl:('IAuthenticationPlugin', 'IExtractionPlugin'),
