@@ -18,7 +18,7 @@ from exceptions import Exception
 from Products.CMFCore.utils import getToolByName
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from Products.PluggableAuthService.interfaces.plugins import (IAnonymousUserFactoryPlugin,
+from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                             IAuthenticationPlugin)
 
 from Products.PluggableAuthService.permissions import ManageUsers
@@ -47,7 +47,7 @@ def manage_addAuth0(context, id, title=None, REQUEST=None):
         REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
-class Auth0(Folder, BasePlugin):
+class Auth0(BasePlugin):
 
     """
     """
@@ -55,45 +55,13 @@ class Auth0(Folder, BasePlugin):
     meta_type = 'Auth0 plugin'
     security = ClassSecurityInfo()
 
-    _properties = (
-        {'id': 'title',
-         'label': 'Title',
-         'type': 'string',
-         'mode': 'w',
-         },
-        {'id': '_max_attempts',
-         'label': 'Number of Allowed Attempts',
-         'type': 'int',
-         'mode': 'w',
-         },
-        {'id': '_reset_period',
-         'label': 'Attempt Reset Period (seconds)',
-         'type': 'int',
-         'mode': 'w',
-        }
-      
-    )
-
     def __init__(self, id, title=None):
         self._id = self.id = id
         self.title = title
-        self._login_attempts = OOBTree()
-        self._max_attempts = 3
-        self._reset_period = 300 #seconds
-
-
-    def remote_ip(self):
-        ip = self.REQUEST.get('HTTP_X_FORWARDED_FOR', '')
-        if not ip:
-            ip = self.REQUEST.get('REMOTE_ADDR', '')
-        return ip
 
 
     def authenticateCredentials(self, credentials):
         """
-        It runs as a first plugin from all IAuthenticationPlugin we have installed, if 
-        account is locked raises exception to stop authentication for the rest authenticators we have. 
-        If last failed attempt 
         """
         print "Auth0:authenticateCreds", credentials
         request = self.REQUEST
@@ -103,123 +71,22 @@ class Auth0(Folder, BasePlugin):
         login = credentials.get('login')
         password = credentials.get('password')
 
-        return None
-        return (login, login)
+        if credentials['extractor'] == PLUGIN_ID:
+            print "    SUCCESS"
+            return (login, login)
 
-        if None in (login, password, pas_instance):
-            return None
-
-        is_locked, last_attempt =  self.isLocked(login)
-        if is_locked:              
-            delta = DateTime().asdatetime() - last_attempt.asdatetime()
-            if delta.seconds > self.getResetPeriod():
-                self.resetAttempts(login)
-            else:
-                remaining = self.getResetPeriod() - delta.seconds
-                msg = "Account is locked due to" \
-                       " numerous failed attempts, please contact your administrator" \
-                       " or try again in {0} seconds".format(remaining)
-
-                request.SESSION['locked_message'] = msg 
-                raise Locked
-        
-        request.set('attempted_logins', (login, password))
-
+        print "    FAIL"
         return None
 
-    
-    security.declarePrivate('createAnonymousUser')
-    def createAnonymousUser(self):
-        """ 
-         If it runs then autheticated failed, look IAnonymousUserFactoryPlugin. 
-        """
-        
-        login, password = self.REQUEST.get('attempted_logins', ('', ''))
-        #Whitelisted failed authentications for /authorization/login URL
-        #as it has public.premissions and accessible for anonymous users 
-        #see ZEN-27450
-        if login and '/authorization/login' not in self.REQUEST['PATH_INFO']:
-            self.setAttempt(login, password)
-            log.info("Failed login attempt: %s ", login)
-
+    def extractCredentials(self, request):
+        creds = dict(login="foo", password="bar")
+        return creds 
 
     def getRootPlugin(self):
         pas = self.getPhysicalRoot().acl_users
         plugins = pas.objectValues([self.meta_type])
         if plugins:
             return plugins[0]
-
-
-    security.declarePrivate('setAttempt')
-    def setAttempt(self, login, password):
-        """
-         Set counter to 1 or bump it when authentication failed, if previous failed 
-         attempt was more than reset period time instead of bumping counter reset it to 1
-        """
-
-        root = self.getRootPlugin()
-        count, last, IP, reference = root._login_attempts.get(
-            login, (0, None, '', None))
-
-        if reference and AuthEncoding.pw_validate(reference, password):
-            # don't count repeating same password
-            return
-        if last:
-            delta = DateTime().asdatetime() - last.asdatetime()
-            if delta.seconds > self.getResetPeriod():
-                # set counter to 1 instead of bumping, some sort of autoreset. 
-                count = 1
-            else:
-                count += 1
-        
-        else:
-            count += 1
-        IP = self.remote_ip()
-        log.debug("user '%s' failed to login, attempt #%i %s last: %s", login, count, IP, last)
-        last = DateTime()
-        reference = AuthEncoding.pw_encrypt(password)
-        root._login_attempts[login] = (count, last, IP, reference)
-
-
-    security.declarePrivate('getAttempts')
-    def getAttempts(self, login):
-        """
-         Get attempts for particular account.       
-        """
-        root = self.getRootPlugin()
-        count, last, IP, pw_hash = root._login_attempts.get(
-            login, (0, None, '', ''))
-        return count, last, IP
-
-
-    def getResetPeriod(self):
-         reset_period = getattr(self, '_reset_period', 300) #seconds
-         return reset_period
-
-
-    def getMaxAttempts(self):
-        attempts = getattr(self, '_max_attempts', 3)
-        return attempts
-
-
-    security.declarePrivate('isLocked')
-    def isLocked(self, login):
-        """
-         Check if particular account is locked.
-        """
-        root = self.getRootPlugin()
-        count, last, IP = root.getAttempts(login)
-        return (count >= root.getMaxAttempts(), last)
-
-
-    def resetAttempts(self, login, password=None):
-        """
-         Reset attempts for particular account
-        """
-        root = self.getRootPlugin()
-        if root._login_attempts.get(login, None):
-            del root._login_attempts[login]
-
 
     #
     #   ZMI
@@ -235,55 +102,7 @@ class Auth0(Folder, BasePlugin):
     )
 
 
-    security.declareProtected(ManageUsers, 'manage_users')
-    manage_users = PageTemplateFile(
-        'www/manageLockouts', globals(), __name__='manage_users')
-
-
-    security.declareProtected(ManageUsers, 'manage_resetUsers')
-    def manage_resetUsers(self, logins, RESPONSE=None):
-        """
-        """
-        for login in logins:
-            self.resetAttempts(login)
-        message = "User reset"
-        if RESPONSE is not None:
-            RESPONSE.redirect(
-                '%s/manage_users?manage_tabs_message=%s' % (
-                    self.absolute_url(), message)
-            )
-
-    
-    security.declareProtected(ManageUsers, 'getAttemptInfo')
-    def getAttemptInfo(self, login):
-        """
-        """
-        count, last, IP = self.getAttempts(login)
-        return {
-            'login': login,
-            'last': last,
-            'IP': IP,
-            'count': count
-        }
-
-
-    security.declareProtected(ManageUsers, 'listAttempts')
-    def listAttempts(self):
-        root = self.getRootPlugin()
-        return [self.getAttemptInfo(x) for x in root._login_attempts.keys()]
-
-
-    security.declareProtected(ManageUsers, 'resetAllAccounts')
-    def resetAllAccounts(self):
-         root = self.getRootPlugin()
-         root._login_attempts.clear()
-
-
-classImplements(Auth0,
-                IAuthenticationPlugin,
-                IAnonymousUserFactoryPlugin
-                )
-
+classImplements(Auth0, IAuthenticationPlugin, IExtractionPlugin)
 
 InitializeClass(Auth0)
 
@@ -318,8 +137,8 @@ def setup(context):
     if hasattr(app_acl, 'auth0_plugin'):
         return
 
-    context_interfaces = {app_acl:('IAuthenticationPlugin', 'IAnonymousUserFactoryPlugin'),
-                zport_acl:('IAuthenticationPlugin',)}
+    context_interfaces = {app_acl:('IAuthenticationPlugin', 'IExtractionPlugin'),
+                zport_acl:('IAuthenticationPlugin', 'IExtractionPlugin')}
 
     for context in context_interfaces:
         manage_addAuth0(context, PLUGIN_ID, PLUGIN_TITLE)
