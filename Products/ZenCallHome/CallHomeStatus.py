@@ -76,10 +76,9 @@ class CallHomeStatus(object):
             log.warning(
                 "Exception trying to recive data from redis: {0}".format(e))
             self._redis_client = None
-            return
+            return dict()
 
     def updateStat(self, param, value):
-        data = dict()
         data = pickle.loads(self.load_from_redis())
         data[param] = value
         self.push_to_redis(pickle.dumps(data))
@@ -93,11 +92,7 @@ class CallHomeStatus(object):
         """Returns status informations to UI
         """
         l = list()
-        rdata = self.load_from_redis()
-        if rdata is None:
-            data = dict()
-        else:
-            data = pickle.loads(rdata)
+        data = pickle.loads(self.load_from_redis())
         l.append({'id': 'lastsuccess', 'description': 'Last success', 'value': data.get('lastSuccess'), 'type': 'date'})
         l.append({'id': 'lastrun', 'description': 'Last run was', 'value': data.get('startedAt'), 'type': 'date'})
         l.append({'id': 'lastupdtook', 'description': 'Last updating took', 'value': data.get('lastTook'), 'type': 'duration'})
@@ -113,11 +108,7 @@ class CallHomeStatus(object):
     def _init(self):
         """Sets empty data for CallHomeStatus before run
         """
-        rdata = self.load_from_redis()
-        if rdata is None:
-            data = dict()
-        else:
-            data = pickle.loads(rdata)
+        data = pickle.loads(self.load_from_redis())
         stages = ('Request to CallHome server', 'CallHome start',
                   'Update report', 'CallHome Collect', 'GatherProtocol')
         for v in stages:
@@ -137,12 +128,9 @@ class CallHomeStatus(object):
         if stage == "Update report" and status == "RUNNING":
             self._init()
             self.updateStat('startedAt', int(time.time()))
-        data = dict()
         data = pickle.loads(self.load_from_redis())
         if stage == "Update report" and status == "FINISHED":
             self.updateStat('lastTook', int(time.time()) - int(data[stage]['stime']))
-        #data = dict()
-        #data = pickle.loads(self.load_from_redis())
         if status == "RUNNING":
             stime = int(time.time())
         else:
