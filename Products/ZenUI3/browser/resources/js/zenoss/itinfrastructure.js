@@ -1681,7 +1681,7 @@ Zenoss.Security.onPermissionsChange(function(){
     Ext.getCmp('master_panel').details.setDisabled(Zenoss.Security.doesNotHavePermission('View'));
     Ext.getCmp("context-configure-menu").setVisible(Zenoss.Security.hasPermission('Manage DMD'));
     Ext.getCmp('context-configure-menu').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
-    
+
     // The commands-menu and actions-menu are enabled/disabled based on both selection and
     // granted permissions.  When permission changes, we'll reevaluate this using the last
     // flag given.
@@ -1796,6 +1796,17 @@ Ext.getCmp('center_panel').add({
                     }
 
                 }
+            },
+            resize: function (sidebar, newWidth, newHeight, oldWidth, oldHeight) {
+                var sidebarWidth = newWidth;
+                if (oldWidth === undefined) {
+                    // page reload. restore width from state manager
+                    savedWidth = Ext.state.Manager.get('devices_sidebar_width');
+                    sidebarWidth = savedWidth === undefined ? sidebarWidth : savedWidth;
+                }
+                sidebar.splitter.setPosition(sidebarWidth + 20);
+                sidebar.setWidth(sidebarWidth);
+                Ext.state.Manager.set('devices_sidebar_width', sidebarWidth);
             }
         }
     },{
