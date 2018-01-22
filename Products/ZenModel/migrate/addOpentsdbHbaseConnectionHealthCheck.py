@@ -38,18 +38,25 @@ class AddOpentsdbHbaseConnectionHealthCheck (Migrate.Step):
             lambda sc: sc.name == 'reader' or sc.name == 'writer',
             ctx.services
         )
+        if len(tsdb_services) == 0:
+            log.info('reader & writer service not found, look for opentsdb')
+            tsdb_services = filter(
+                lambda sc: sc.name == 'opentsdb',
+                ctx.services
+            )
+
         log.info('found %s services to modify', len(tsdb_services))
         print('found %s services to modify' % len(tsdb_services))
 
         # add new health checks to the services
         for svc in tsdb_services:
             health_check = HealthCheck(
-                    name="hbase_answering",
-                    interval=10.0,
-                    timeout=0,
-                    script=("curl -A 'HMaster rest_answering healthcheck'"
-                            " -o /dev/null -f"
-                            " -s http://localhost:61000/status/cluster")
+                name="hbase_answering",
+                interval=10.0,
+                timeout=0,
+                script=("curl -A 'HMaster rest_answering healthcheck'"
+                        " -o /dev/null -f"
+                        " -s http://localhost:61000/status/cluster")
             )
 
             svc.healthChecks.append(health_check)
