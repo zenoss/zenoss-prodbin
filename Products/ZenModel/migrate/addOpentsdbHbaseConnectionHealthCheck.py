@@ -46,7 +46,6 @@ class AddOpentsdbHbaseConnectionHealthCheck (Migrate.Step):
             )
 
         log.info('found %s services to modify', len(tsdb_services))
-        print('found %s services to modify' % len(tsdb_services))
 
         # add new health checks to the services
         for svc in tsdb_services:
@@ -61,7 +60,6 @@ class AddOpentsdbHbaseConnectionHealthCheck (Migrate.Step):
 
             svc.healthChecks.append(health_check)
             log.info("added 'HBase answering' healthcheck for %s.", svc.name)
-            print("added 'HBase answering' healthcheck for %s." % svc.name)
             commit = True
 
         if commit:
