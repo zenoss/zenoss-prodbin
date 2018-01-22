@@ -636,6 +636,12 @@
                     this.setHeight((height * nodes.length) + 35);
                 }
             }, this);
+            // ZEN-29341 set default selected element to keep focus
+            // after device tree refresh
+            var selectionModel = this.treepanel.getSelectionModel();
+            if (!selectionModel.getLastSelected()) {
+                selectionModel.select(0);
+            };
             this.doLayout();
 
 
