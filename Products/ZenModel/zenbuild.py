@@ -28,6 +28,7 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.AccountLocker.AccountLocker import setup as account_locker_setup
+from Products.ZenUtils.Auth0 import setup as auth0_setup
 from Products.PluggableAuthService import plugins
 
 class zenbuild(CmdBase):
@@ -152,6 +153,7 @@ class zenbuild(CmdBase):
             # the login form to use the Zenoss login form
             Security.replaceACLWithPAS(self.app, deleteBackup=True)
             account_locker_setup(self.app)
+            auth0_setup(self.app)
 
             # Add groupManager to zport.acl
             acl = site.acl_users
