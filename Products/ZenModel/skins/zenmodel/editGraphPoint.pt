@@ -154,15 +154,6 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/lineType"/>
     </tr>
-    <tr tal:condition="python: here.aqBaseHasAttr('lineWidth')">
-        <td class="tableheader">Line Width</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="lineWidth" size="8"
-            tal:attributes="value here/lineWidth" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/lineWidth"/>
-    </tr>
     <tr tal:condition="python: here.aqBaseHasAttr('stacked')">
         <td class="tableheader">Stacked</td>
         <td class="tablevalues" tal:condition="here/isManager">
@@ -225,7 +216,7 @@
     <tr tal:condition="python: here.aqBaseHasAttr('legend')">
         <td class="tableheader">Legend</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="legend" size="40"
+        <input class="tablevalues" type="text" name="legend" size="60"
             tal:attributes="value here/legend" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
