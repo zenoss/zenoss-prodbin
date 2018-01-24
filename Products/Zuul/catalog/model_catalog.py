@@ -161,6 +161,9 @@ class ModelCatalogClient(object):
     def get_indexes(self):
         return self._data_manager.get_indexes()
 
+    def get_object_indexes(self, obj, idxs=None):
+        return self._data_manager.get_indexes(obj, idxs)
+
     def search(self, search_params, context, commit_dirty=False):
         return self._data_manager.search(search_params, context, commit_dirty)
 
@@ -337,6 +340,9 @@ class ModelCatalogDataManager(object):
 
     def get_indexes(self):
         return self.model_index.get_indexes()
+
+    def get_object_indexes(self, obj, idxs=None):
+        return self.model_index.get_indexes(obj, idxs)
 
     def _process_pending_updates(self, tx_state):
         """ index all pending updates during a mid transaction commit """
@@ -672,6 +678,10 @@ class ModelCatalog(object):
     def get_indexes(self, context):
         catalog_client = self.get_client(context)
         return catalog_client.get_indexes()
+
+    def get_object_indexes(self, obj, idxs=None):
+        catalog_client = self.get_client(obj)
+        return catalog_client.get_object_indexes(obj, idxs)
 
 
 def get_solr_config():
