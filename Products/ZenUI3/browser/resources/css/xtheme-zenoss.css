@@ -8997,10 +8997,8 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-panel-body-default {
   background: white;
-  border-color: #99bce8;
-  color: black;
-  border-width: 1px;
-  border-style: solid; }
+  border: 0 none;
+  color: black; }
 
 .x-panel-collapsed .x-window-header-default, .x-panel-collapsed .x-panel-header-default {
   border-color: #99bce8; }
@@ -10341,9 +10339,6 @@ CORE TRIGGER PAGE STUFF
 
 /* ========================== */
 .tabletitlecontainer {
-  border: 0 none !important; }
-
-.x-panel-body-default {
   border: 0 none !important; }
 
 .largetoolbar .openclose {
