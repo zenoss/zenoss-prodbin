@@ -51,7 +51,7 @@
 
         function alphcmp(obj1, obj2) {
             var text1 = getText(obj1),
-            text2 = getText(obj2);
+                text2 = getText(obj2);
 
             // sort by text
             if (text1 === text2) {
@@ -62,7 +62,7 @@
 
 
         // always show folders first
-        if (o1.get('iconCls') === 'folder' &&  o2.get('iconCls') !== 'folder'){
+        if (o1.get('iconCls') === 'folder' && o2.get('iconCls') !== 'folder') {
             return -1;
         }
         if (o2.get('iconCls') === 'folder' && o1.get('iconCls') !== 'folder') {
@@ -75,14 +75,13 @@
 
     Zenoss.sortTreeNodes = sortTreeNodes;
 
-
     /**
      * Base Tree Selection model for zenoss. Defines
      * the getSelectedNode method that existed in 3.X trees.
      **/
     Ext.define('Zenoss.TreeSelectionModel', {
-        extend:'Ext.selection.TreeModel',
-        getSelectedNode:function () {
+        extend: 'Ext.selection.TreeModel',
+        getSelectedNode: function () {
             var selections = this.getSelection();
             if (selections.length) {
                 return selections[0];
@@ -93,41 +92,41 @@
     });
 
     Ext.define('Zenoss.HierarchyTreePanelSearch', {
-        extend:'Ext.Panel',
-        alias:['widget.HierarchyTreePanelSearch'],
-        constructor:function (config) {
+        extend: 'Ext.Panel',
+        alias: ['widget.HierarchyTreePanelSearch'],
+        constructor: function (config) {
             var oldConfig = config;
             config = {
-                cls:'x-hierarchy-search-panel',
-                bodyStyle:'background-color:#d4e0ee;',
-                items:[
+                cls: 'x-hierarchy-search-panel',
+                bodyStyle: 'background-color:#d4e0ee;',
+                items: [
                     {
-                        xtype:'searchfield',
-                        id:config.id || Ext.id(),
+                        xtype: 'searchfield',
+                        id: config.id || Ext.id(),
                         height: 25,
-                        hidden:!Zenoss.settings.enableTreeFilters,
-                        cls:'x-hierarchy-search',
-                        enableKeyEvents:true,
-                        ref:'searchfield'
+                        hidden: !Zenoss.settings.enableTreeFilters,
+                        cls: 'x-hierarchy-search',
+                        enableKeyEvents: true,
+                        ref: 'searchfield'
                     },
                     {
-                        xtype:'panel',
-                        ui:'hierarchy',
-                        padding:'5px 0 0 0',
-                        items:oldConfig.items,
-                        flex:1,
-                        autoScroll:true,
-                        regSearchListeners:function (listeners) {
+                        xtype: 'panel',
+                        ui: 'hierarchy',
+                        padding: '5px 0 0 0',
+                        items: oldConfig.items,
+                        flex: 1,
+                        autoScroll: true,
+                        regSearchListeners: function (listeners) {
                             this.ownerCt.query('.searchfield')[0].on(listeners);
                         }
                     }
                 ],
-                layout:{
-                    type:'vbox',
-                    align:'stretch'
+                layout: {
+                    type: 'vbox',
+                    align: 'stretch'
                 },
                 listeners: {
-                    afterrender: function(t){
+                    afterrender: function (t) {
                         // fixes 20000px width bug on the targetEl div bug in Ext
                         t.searchfield.container.setWidth(t.ownerCt.getWidth());
                     }
@@ -147,14 +146,14 @@
         var tree = view.panel;
         if (!tree.contextMenu) {
             tree.contextMenu = new Ext.menu.Menu({
-                items:[
+                items: [
                     {
-                        ref:'refreshtree',
-                        text:_t('Refresh Tree'),
-                        handler:function (item, e) {
+                        ref: 'refreshtree',
+                        text: _t('Refresh Tree'),
+                        handler: function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.getStore().load({
-                                callback:function (records, opts, success) {
+                                callback: function (records, opts, success) {
                                     if (success) {
                                         var childNodes = opts.response.result[0];
                                         // Remove old records and update root node with the fresh data
@@ -169,17 +168,17 @@
                         }
                     },
                     {
-                        ref:'expandall',
-                        text:_t('Expand All'),
-                        handler:function (item, e) {
+                        ref: 'expandall',
+                        text: _t('Expand All'),
+                        handler: function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.expandAll();
                         }
                     },
                     {
-                        ref:'collapsall',
-                        text:_t('Collapse All'),
-                        handler:function (item, e) {
+                        ref: 'collapsall',
+                        text: _t('Collapse All'),
+                        handler: function (item, e) {
                             var tree = item.parentMenu.tree;
                             tree.collapseAll();
                             // by default we usually expand the first child
@@ -191,9 +190,9 @@
                     },
                     '-',
                     {
-                        ref:'expandnode',
-                        text:_t('Expand Node'),
-                        handler:function (item, e) {
+                        ref: 'expandnode',
+                        text: _t('Expand Node'),
+                        handler: function (item, e) {
                             var node = item.parentMenu.contextNode;
                             if (node) {
                                 node.expand(true, true);
@@ -201,9 +200,9 @@
                         }
                     },
                     {
-                        ref:'newwindow',
-                        text:_t('Open in New Window'),
-                        handler:function (item, e) {
+                        ref: 'newwindow',
+                        text: _t('Open in New Window'),
+                        handler: function (item, e) {
                             var node = item.parentMenu.contextNode,
                                 tree, path,
                                 href = window.location.protocol + '//' + window.location.host + window.location.pathname;
@@ -224,7 +223,6 @@
         c.showAt(e.getXY());
     };
 
-
     /**
      * @class Zenoss.HierarchyTreePanel
      * @extends Ext.tree.Panel
@@ -232,17 +230,17 @@
      * of various pages
      **/
     Ext.define('Zenoss.HierarchyTreePanel', {
-        extend:'Ext.tree.Panel',
-        alias:['widget.HierarchyTreePanel'],
-        constructor:function (config) {
+        extend: 'Ext.tree.Panel',
+        alias: ['widget.HierarchyTreePanel'],
+        constructor: function (config) {
             Ext.applyIf(config, {
-                enableDragDrop:true,
+                enableDragDrop: true,
                 loadMask: true
             });
             config.listeners = config.listeners || {};
             Ext.applyIf(config.listeners, {
-                itemcontextmenu:Zenoss.treeContextMenu,
-                scope:this
+                itemcontextmenu: Zenoss.treeContextMenu,
+                scope: this
             });
 
             config.viewConfig = config.viewConfig || {};
@@ -252,40 +250,40 @@
                     dd_permission = true;
                 }
                 Ext.applyIf(config.viewConfig, {
-                    loadMask:config.loadMask,
-                    plugins:{
-                        ptype:'treeviewdragdrop',
-                        enableDrag:dd_permission,
-                        enableDrop:dd_permission,
-                        ddGroup:config.ddGroup
+                    loadMask: config.loadMask,
+                    plugins: {
+                        ptype: 'treeviewdragdrop',
+                        enableDrag: dd_permission,
+                        enableDrop: dd_permission,
+                        ddGroup: config.ddGroup
                     }
                 });
             } else {
                 Ext.applyIf(config.viewConfig, {
-                    loadMask:config.loadMask
+                    loadMask: config.loadMask
                 });
             }
             Ext.applyIf(config, {
-                ui:'hierarchy',
-                frame:false,
-                useArrows:true,
-                autoScroll:true,
+                ui: 'hierarchy',
+                frame: false,
+                useArrows: true,
+                autoScroll: true,
                 manageHeight: false,
-                relationshipIdentifier:null,
-                containerScroll:true,
-                selectRootOnLoad:true,
-                rootVisible:false,
-                rootDepth:config.rootVisible ? 0 : 1,
-                allowOrganizerMove:true,
-                pathSeparator:"/",
-                nodeIdSeparator:".",
-                hideHeaders:true,
-                columns:[
+                relationshipIdentifier: null,
+                containerScroll: true,
+                selectRootOnLoad: true,
+                rootVisible: false,
+                rootDepth: config.rootVisible ? 0 : 1,
+                allowOrganizerMove: true,
+                pathSeparator: "/",
+                nodeIdSeparator: ".",
+                hideHeaders: true,
+                columns: [
                     {
-                        xtype:'treecolumn',
-                        flex:1,
-                        dataIndex:'text',
-                        renderer:function (value, l, n) {
+                        xtype: 'treecolumn',
+                        flex: 1,
+                        dataIndex: 'text',
+                        renderer: function (value, l, n) {
                             if (Ext.isString(value)) {
                                 return value;
                             }
@@ -312,14 +310,14 @@
             });
             if (config.router) {
                 Ext.applyIf(config, {
-                    addNodeFn:config.router.addNode,
-                    deleteNodeFn:config.router.deleteNode
+                    addNodeFn: config.router.addNode,
+                    deleteNodeFn: config.router.deleteNode
                 });
             }
             else {
                 Ext.applyIf(config, {
-                    addNodeFn:Ext.emptyFn,
-                    deleteNodeFn:Ext.emptyFn
+                    addNodeFn: Ext.emptyFn,
+                    deleteNodeFn: Ext.emptyFn
                 });
             }
             var root = config.root || {};
@@ -327,47 +325,47 @@
                 var modelId = Ext.String.format('Zenoss.tree.{0}Model', config.id);
 
                 Ext.define(modelId, {
-                    extend:'Ext.data.Model',
-                    treeId:config.id,
-                    idProperty:config.idProperty || 'id',
-                    getOwnerTree:function () {
+                    extend: 'Ext.data.Model',
+                    treeId: config.id,
+                    idProperty: config.idProperty || 'id',
+                    getOwnerTree: function () {
                         return Ext.getCmp(this.treeId);
                     },
                     /**
                      * Used by the tree store to determine what
                      * to send to the server
                      **/
-                    getId:function () {
+                    getId: function () {
                         return this.get("uid");
                     },
-                    proxy:{
+                    proxy: {
                         simpleSortMode: true,
-                        type:'direct',
-                        directFn:config.directFn,
-                        paramOrder:['uid']
+                        type: 'direct',
+                        directFn: config.directFn,
+                        paramOrder: ['uid']
                     },
-                    fields:Zenoss.model.BASE_TREE_FIELDS.concat(config.extraFields || [])
+                    fields: Zenoss.model.BASE_TREE_FIELDS.concat(config.extraFields || [])
                 });
                 config.store = new Ext.create('Ext.data.TreeStore', {
                     clearOnLoad: false,
-                    model:modelId,
-                    nodeParam:'uid',
-                    defaultRootId:root.uid,
+                    model: modelId,
+                    nodeParam: 'uid',
+                    defaultRootId: root.uid,
                     remoteSort: false,
                     sorters: {
                         sorterFn: config.sortFn || Zenoss.sortTreeNodes,
                         direction: 'asc'
                     },
-                    uiProviders:{
+                    uiProviders: {
                         // 'hierarchy': Zenoss.HierarchyTreeNodeUI
                     }
                 });
                 Ext.destroyMembers(config, 'directFn', 'ddGroup');
             }
             Ext.applyIf(root, {
-                id:root.id,
-                uid:root.uid,
-                text:_t(root.text || root.id)
+                id: root.id,
+                uid: root.uid,
+                text: _t(root.text || root.id)
             });
             this.root = root;
             this.stateHash = {};
@@ -378,7 +376,7 @@
 
             Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
         },
-        setNodeVisible:function (nodeId, visible) {
+        setNodeVisible: function (nodeId, visible) {
             var node = this.getStore().getNodeById(nodeId),
                 view = this.getView(),
                 el = Ext.fly(view.getNodeByRecord(node));
@@ -387,27 +385,29 @@
                 el.setVisible(visible);
             }
         },
-        getState:function () {
-            return {stateHash:this.stateHash};
+        getState: function () {
+            return { stateHash: this.stateHash };
         },
-        applyState:function (state) {
+        applyState: function (state) {
             if (state) {
                 Ext.apply(this, state);
                 this.setStateListener();
             }
         },
-        setStateListener:function () {
+        setStateListener: function () {
             this.store.on({
-                load:{ scope:this, fn:function () {
-                    for (var p in this.stateHash) {
-                        if (this.stateHash.hasOwnProperty(p)) {
-                            this.expandPath(this.stateHash[p]);
+                load: {
+                    scope: this, fn: function () {
+                        for (var p in this.stateHash) {
+                            if (this.stateHash.hasOwnProperty(p)) {
+                                this.expandPath(this.stateHash[p]);
+                            }
                         }
                     }
-                }}
+                }
             });
         },
-        initEvents:function () {
+        initEvents: function () {
             var me = this;
             Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
 
@@ -419,7 +419,7 @@
                         me.getRootNode().firstChild.expand();
                         me.getSelectionModel().select(this.getRootNode().firstChild);
                     }
-                }, this, {single:true});
+                }, this, { single: true });
             } else {
 
                 // always expand the first shown root if we can
@@ -427,15 +427,15 @@
                     if (this.getRootNode().firstChild) {
                         this.getRootNode().firstChild.expand();
                     }
-                }, this, {single:true});
+                }, this, { single: true });
             }
             this.addEvents('filter');
             this.on('itemclick', this.addHistoryToken, this);
             this.on({
-                beforeexpandnode:function (node) {
+                beforeexpandnode: function (node) {
                     this.stateHash[node.id] = node.getPath();
                 },
-                beforecollapsenode:function (node) {
+                beforecollapsenode: function (node) {
                     delete this.stateHash[node.id];
                     var tPath = node.getPath();
                     for (var t in this.stateHash) {
@@ -448,10 +448,10 @@
                 }
             });    // add some listeners for state
         },
-        addHistoryToken:function (view, node) {
+        addHistoryToken: function (view, node) {
             Ext.History.add(this.id + Ext.History.DELIMITER + node.get('id'));
         },
-        update:function (data) {
+        update: function (data) {
             function doUpdate(root, data) {
                 Ext.each(data, function (datum) {
                     var node = root.findChild('id', datum.id);
@@ -466,7 +466,7 @@
             doUpdate(this.getRootNode(), data);
 
         },
-        selectByToken:function (nodeId) {
+        selectByToken: function (nodeId) {
             nodeId = unescape(nodeId);
             var root = this.getRootNode(),
                 selNode = Ext.bind(function () {
@@ -481,12 +481,11 @@
             if (!root.isLoaded()) {
                 // Listen on expand because if we listen on the store's load expand
                 // gets double-called.
-                root.on('expand', selNode, this, {single:true});
+                root.on('expand', selNode, this, { single: true });
             } else {
                 selNode();
             }
         },
-
         /**
          * Expand the tree along the given path.
          *
@@ -501,7 +500,7 @@
          * (success, lastNode) where success is if the expand was successful and lastNode is the last node that was expanded.
          * @param {Object} [scope] The scope of the callback function
          */
-        expandNodeByPath: function(path, field, separator, callback, scope) {
+        expandNodeByPath: function (path, field, separator, callback, scope) {
             var me = this,
                 current = me.getRootNode(),
                 index = 1,
@@ -522,7 +521,7 @@
                 return;
             }
 
-            expander = function() {
+            expander = function () {
                 if (++index === keys.length) {
                     Ext.callback(callback, scope || me, [true, current]);
                     return;
@@ -535,7 +534,6 @@
             };
             current.expand(false, expander);
         },
-
         /**
          * Expand the tree to the path of a particular node, then select it.
          *
@@ -549,7 +547,7 @@
          * (bSuccess, oLastNode) where bSuccess is if the select was successful and oLastNode is the last node that was expanded.
          * @param {Object} [scope] The scope of the callback function
          */
-        selectNodeByPath: function(path, field, separator, callback, scope) {
+        selectNodeByPath: function (path, field, separator, callback, scope) {
             var me = this,
                 root,
                 keys,
@@ -563,7 +561,7 @@
             if (keys.length > 1) {
                 me.expandNodeByPath(
                     keys.join(separator), field, separator,
-                    function(success, node) {
+                    function (success, node) {
                         var lastNode = node;
                         if (success && node) {
                             node = node.findChild(field, last);
@@ -586,7 +584,6 @@
                 }
             }
         },
-
         /**
          * Given a nodeId this returns the full path to the node. By convention
          * nodeIds are the uid with a "." in place of a "/". So for example on the
@@ -595,7 +592,7 @@
          *
          * Override this method if your tree implements a custom path setup
          **/
-        getNodePathById:function (nodeId) {
+        getNodePathById: function (nodeId) {
             var depth = this.root.uid.split('/').length - this.rootDepth,
                 parts = nodeId.split(this.nodeIdSeparator),
                 path = [],
@@ -624,7 +621,7 @@
                     // foo.bar.baz.{relationshipIdentifier}.monkey =>
                     //     ["foo.bar.baz", "monkey"]
                     var idPartsWithoutRelationshipId = nodeId.split(
-                            this.nodeIdSeparator + this.relationshipIdentifier + this.nodeIdSeparator);
+                        this.nodeIdSeparator + this.relationshipIdentifier + this.nodeIdSeparator);
 
                     if (idPartsWithoutRelationshipId.length > 1) {
                         path.push(segment + this.nodeIdSeparator + idPartsWithoutRelationshipId.pop());
@@ -646,7 +643,7 @@
          * in Ext4
          *@param Ext.data.NodeInterface child
          **/
-        expandToChild:function (child) {
+        expandToChild: function (child) {
             var parentNode = child.parentNode;
 
             // go back up and expand to this point
@@ -662,16 +659,16 @@
                 parentNode = parentNode.parentNode;
             }
         },
-        createDeepLinkPath:function (node) {
+        createDeepLinkPath: function (node) {
             var path = this.id + Ext.History.DELIMITER + node.get("uid").replace(/\//g, '.');
             return path;
         },
-        afterRender:function () {
+        afterRender: function () {
             Zenoss.HierarchyTreePanel.superclass.afterRender.call(this);
             var liveSearch = Zenoss.settings.enableLiveSearch,
                 listeners = {
-                    scope:this,
-                    keypress:function (field, e) {
+                    scope: this,
+                    keypress: function (field, e) {
                         if (e.getKey() === e.ENTER) {
                             this.filterTree(field);
                         }
@@ -688,7 +685,7 @@
                 node.expandChildNodes();
             });
         },
-        expandAll:function () {
+        expandAll: function () {
             // we have a hidden pseudo-root so we need to
             // expand all from the first visible root
             if (this.getRootNode().firstChild) {
@@ -697,7 +694,7 @@
                 this.callParent(arguments);
             }
         },
-        filterTree:function (e) {
+        filterTree: function (e) {
             if (!this.onFilterTask) {
                 this.onFilterTask = new Ext.util.DelayedTask(function () {
                     this.doFilter(e);
@@ -706,7 +703,7 @@
 
             this.onFilterTask.delay(1000);
         },
-        postFilter: function(){
+        postFilter: function () {
             var rootNode = this.getRootNode(),
                 childNodes = rootNode.childNodes;
 
@@ -725,9 +722,9 @@
             // and then focus on back on the filter text
             this.up('HierarchyTreePanelSearch').down('searchfield').focus([false]);
         },
-        getFilterFn: function(text) {
-            var regex = new RegExp(Ext.String.escapeRegex(text),'i');
-            var fn = function(item){
+        getFilterFn: function (text) {
+            var regex = new RegExp(Ext.String.escapeRegex(text), 'i');
+            var fn = function (item) {
                 // text can be either an object with the property text or a string
                 var attr = item.get('text');
                 if (Ext.isObject(attr)) {
@@ -737,7 +734,7 @@
             };
             return fn;
         },
-        doFilter:function (e) {
+        doFilter: function (e) {
             var text = e.getValue(),
                 store = this.getStore();
             store.clearFilter(true);
@@ -749,12 +746,10 @@
                 }));
             }
         },
-
-        addNode:function (type, id) {
-            this.addChildNode({type:type, id:id});
+        addNode: function (type, id) {
+            this.addChildNode({ type: type, id: id });
         },
-
-        addChildNode:function (params) {
+        addChildNode: function (params) {
             var selectedNode = this.getSelectionModel().getSelectedNode();
             var parentNode;
             if (selectedNode.leaf) {
@@ -764,13 +759,12 @@
             }
             var contextUid = parentNode.data.uid;
             Ext.applyIf(params, {
-                contextUid:contextUid
+                contextUid: contextUid
             });
 
             this.addTreeNode(params);
         },
-
-        addTreeNode:function (params) {
+        addTreeNode: function (params) {
             var callback = function (provider, response) {
                 var result = response.result;
                 var me = this;
@@ -779,7 +773,7 @@
                     // TODO would be best to normalize the names of result node
                     var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
                     this.getStore().load({
-                        callback:function () {
+                        callback: function () {
                             nodeId = nodeId.replace(/\//g, '.');
                             me.selectByToken(nodeId);
                         }
@@ -794,13 +788,12 @@
 
             this.addNodeFn(params, Ext.bind(callback, this));
         },
-
-        deleteSelectedNode:function () {
+        deleteSelectedNode: function () {
             var node = this.getSelectionModel().getSelectedNode();
             var me = this;
             var parentNode = node.parentNode;
             var uid = node.get('uid');
-            var params = {uid:uid};
+            var params = { uid: uid };
 
             function callback(provider, response) {
                 // Only update the UI if the response indicates success
@@ -810,7 +803,7 @@
 
                     // Refresh the parent node's tree to remove our node.
                     me.getStore().load({
-                        callback:function () {
+                        callback: function () {
                             me.selectByToken(parentNode.get('uid'));
                             me.getRootNode().firstChild.expand();
                         }
@@ -827,8 +820,7 @@
             this.deleteNodeFn(params, callback);
             this.refresh();
         },
-
-        canMoveOrganizer:function (organizerUid, targetUid) {
+        canMoveOrganizer: function (organizerUid, targetUid) {
             var orgPieces = organizerUid.split('/'),
                 targetPieces = targetUid.split('/');
 
@@ -841,24 +833,89 @@
             // is the top level organizer (e.g. Locations, Groups)
             return orgPieces[3] === targetPieces[3];
         },
-        refresh:function (callback, scope) {
+        refresh: function (callback, scope) {
             // Disable “Loading…” mask during the request
             this.view.loadMask.disabled = true;
             this.getStore().load({
-                scope:this,
-                callback:function (records, opts, success) {
+                scope: this,
+                callback: function (records, opts, success) {
                     if (success) {
+                        var root = this.getRootNode();
+                        var treeState = this.getTreeState(root);
                         var childNodes = opts.response.result[0];
                         // Remove old records and update root node with the fresh data
-                        this.getRootNode().removeAll();
-                        this.getRootNode().appendChild(childNodes);
-                        if (this.getRootNode().childNodes.length) {
-                            this.getRootNode().childNodes[0].expand();
-                        }
+                        root.removeAll();
+                        root.appendChild(childNodes);
+                        this.restoreTreeState(treeState);
                     }
                 }
             });
+        },
+        getTreeState: function (root) {
+            var expandedNodes = [];
+            var collapsedNodes = [];
+            var me = this;
+            (function inorder(node) {
+                var nid = node.get('id');
+                var hid = me.isHidden(nid, collapsedNodes);
+                if (node.data.expanded && !hid) {
+                    expandedNodes.push(nid);
+                } else {
+                    collapsedNodes.push(nid);
+                }
+                if (node.childNodes) {
+                    node.childNodes.forEach(function (child) {
+                        inorder(child);
+                    });
+                }
+            })(root);
+            return expandedNodes;
+        },
+        restoreTreeState: function (treeState) {
+            var me = this;
+            // ex: '/Devices/.zport.dmd.Devices/.zport.dmd.Devices.AWS/.zport.dmd.Devices.AWS.EC2'
+            me.getExpansionPaths(treeState).forEach(function (expansionPath) {
+                me.expandNodeByPath(expansionPath);
+            });
+        },
+        getExpansionPaths: function(treeState) {
+            var me = this;
+            var outPaths = [];
+            var prefix = '/' + treeState[0];
+            treeState.forEach(function (path) {
+                // devices paths start at tree level 3
+                if (me.treeLevel(path) > 3) {
+                    outPaths.push(me.pathExpand(prefix, path));
+                }
+            });
+            return outPaths;
+        },
+        pathExpand: function (prefix, path) {
+            var delimeter = '.';
+            var pathDepth = this.treeLevel(path);
+            var expandedPath = prefix;
+            // begin after 3rd occurrence of '.'
+            var pos = path.split(delimeter, 3).join(delimeter).length + 1;
+            for (var i = 3; i < pathDepth; i++) {
+                var nextStop = path.indexOf(delimeter, pos);
+                pos = nextStop < 0 ? path.length : nextStop;
+                expandedPath += ('/' + path.substr(0, pos++));
+            }
+            return expandedPath;
+        },
+        treeLevel: function (path) {
+            return path.split('.').length;
+        },
+        isHidden: function (path, collapsed) {
+            var found = false;
+            collapsed.forEach(function (coll) {
+                if (path.startsWith(coll)) {
+                    found = true;
+                }
+            });
+            return found;
         }
+
     }); // HierarchyTreePanel
 
 })();
