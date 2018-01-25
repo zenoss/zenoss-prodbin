@@ -151,22 +151,15 @@ def setup(context):
 
     app = context.getPhysicalRoot()
     zport = app.zport
-    
-    app_acl = getToolByName(app, 'acl_users')
     zport_acl = getToolByName(zport, 'acl_users')
 
-    if hasattr(app_acl, PLUGIN_ID):
+    if hasattr(zport_acl, PLUGIN_ID):
         return
 
-    context_interfaces = {app_acl:('IAuthenticationPlugin', 'IExtractionPlugin'),
-                zport_acl:('IAuthenticationPlugin', 'IExtractionPlugin')}
+    manage_addAuth0(zport_acl, PLUGIN_ID, PLUGIN_TITLE)
 
-    for context in context_interfaces:
-        manage_addAuth0(context, PLUGIN_ID, PLUGIN_TITLE)
+    interfaces = ('IAuthenticationPlugin', 'IExtractionPlugin')
+    activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
-    for context, interfaces in context_interfaces.iteritems():
-        activatePluginForInterfaces(context, PLUGIN_ID, interfaces)
-
-    for context in context_interfaces:
-        movePluginToTop(context, PLUGIN_ID, 'IAuthenticationPlugin')
+    movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')
 
