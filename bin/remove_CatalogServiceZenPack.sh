@@ -12,11 +12,13 @@ echo "Found Catalog Service egg at $CATALOG_SERVICE_EGG"
 #show log only if something goes wrong
 tmp_output="/tmp/"`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32`
 /opt/zenoss/bin/zenpack --remove ZenPacks.zenoss.CatalogService  > $tmp_output 2>&1
-if [[ ! $? -eq 0 ]]; then
-    echo "Couldn't remove CatalogService zenpack"
+status=$?
+if [[ ! $status -eq 0 ]]; then
     cat $tmp_output
     rm $tmp_output
-    exit
+    echo "Couldn't remove CatalogService zenpack"
+    echo "You should remove CatalogService zenpack manually before starting the upgrade"
+    exit $status
 fi
 rm $tmp_output
 echo "Successfully removed Catalog Service"
