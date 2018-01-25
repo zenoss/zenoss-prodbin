@@ -6,22 +6,15 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-from AccessControl import AuthEncoding
-from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 
-from BTrees.OOBTree import OOBTree
-from DateTime import DateTime
 from OFS.Folder import Folder
-from exceptions import Exception
 
 from Products.CMFCore.utils import getToolByName
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                             IAuthenticationPlugin)
 
-from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 
@@ -33,9 +26,6 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-
-class Locked(Exception):
-    pass
 
 
 def manage_addAuth0(context, id, title=None, REQUEST=None):
@@ -53,7 +43,6 @@ class Auth0(BasePlugin):
     """
 
     meta_type = 'Auth0 plugin'
-    security = ClassSecurityInfo()
 
     def __init__(self, id, title=None):
         self._id = self.id = id
