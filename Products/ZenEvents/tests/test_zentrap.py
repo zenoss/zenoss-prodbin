@@ -1,3 +1,4 @@
+import base64
 import logging
 
 from struct import pack
@@ -31,6 +32,80 @@ class DecodersUnitTest(BaseTestCase):
         self.assertEqual(
             decode_snmp_value(value),
             '2017-12-20T11:50:50.800+06:05'
+        )
+
+    def test_decode_bad_timezone(self):
+        value = pack(">HBBBBBBBBB", 2017, 12, 20, 11, 50, 50, 8, 0, 0, 0)
+        dttm = decode_snmp_value(value)
+        self.assertEqual(dttm[:23], "2017-12-20T11:50:50.800")
+        self.assertRegexpMatches(
+            dttm[23:], "^[+-][01][0-9]:[0-5][0-9]$"
+        )
+
+    def test_decode_invalid_timezone(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 11, 50, 50, 8, '=', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_incomplete_datetime(self):
+        value = pack(">HBBBBBB", 2017, 12, 20, 11, 50, 50, 8)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_month_high(self):
+        value = pack(">HBBBBBBsBB", 2017, 13, 20, 11, 50, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_month_low(self):
+        value = pack(">HBBBBBBsBB", 2017, 0, 20, 11, 50, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_day_high(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 32, 11, 50, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_day_low(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 0, 11, 50, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_hour(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 24, 50, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_minute(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 11, 60, 50, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_bad_second(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 11, 50, 61, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
+        )
+
+    def test_decode_leap_second(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 11, 50, 60, 8, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), '2017-12-20T11:50:60.800+06:05'
+        )
+
+    def test_decode_bad_decisecond(self):
+        value = pack(">HBBBBBBsBB", 2017, 12, 20, 11, 50, 50, 10, '+', 6, 5)
+        self.assertEqual(
+            decode_snmp_value(value), "BASE64:" + base64.b64encode(value)
         )
 
     def test_decode_value_ipv4(self):
@@ -137,144 +212,114 @@ class TestOid2Name(BaseTestCase):
 
 class TestDecodeSnmpV1(BaseTestCase):
 
-    def makePacket(self):
+    def makeInputs(self, trapType=6, oidMap={}, variables=()):
         pckt = FakePacket()
         pckt.version = SNMPv1
         pckt.host = "localhost"
         pckt.port = 162
-        pckt.variables = ()
+        pckt.variables = variables
         pckt.community = ""
         pckt.enterprise_length = 0
 
         # extra fields for SNMPv1 packets
         pckt.agent_addr = [192, 168, 24, 4]
-        pckt.trap_type = 6
+        pckt.trap_type = trapType
         pckt.specific_type = 5
         pckt.enterprise = "1.2.3.4"
         pckt.enterprise_length = len(pckt.enterprise)
         pckt.community = "community"
-        return pckt
 
-    def test_SnmpVersion(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
-        self.assertEqual(result["snmpVersion"], "1")
+        return pckt, MockTrapTask(oidMap)
 
     def test_NoAgentAddr(self):
-        pckt = self.makePacket()
+        pckt, task = self.makeInputs()
         del pckt.agent_addr
-        task = MockTrapTask({})
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(result["device"], "localhost")
 
-    def test_HasAgentAddr(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
+    def test_FieldsNoMappingUsed(self):
+        pckt, task = self.makeInputs()
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
+
         self.assertEqual(result["device"], "192.168.24.4")
-
-    def test_SnmpV1Enterprise(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
+        self.assertEqual(result["snmpVersion"], "1")
         self.assertEqual(result["snmpV1Enterprise"], "1.2.3.4")
-
-    def test_SnmpV1GenericTrapType(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(result["snmpV1GenericTrapType"], 6)
-
-    def test_SnmpV1SpecificTrap(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(result["snmpV1SpecificTrap"], 5)
-
-    def test_EnterpriseOIDWithoutExtraZero(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-        eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "1.2.3.4.5")
         self.assertEqual(result["oid"], "1.2.3.4.5")
 
     def test_EnterpriseOIDWithExtraZero(self):
-        pckt = self.makePacket()
-        oidMap = {"1.2.3.4.0.5": "testing"}
-        task = MockTrapTask(oidMap)
+        pckt, task = self.makeInputs(oidMap={"1.2.3.4.0.5": "testing"})
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "testing")
         self.assertEqual(result["oid"], "1.2.3.4.0.5")
 
-    def test_TrapTypeDecoding(self):
-        pckt = self.makePacket()
-        task = MockTrapTask({})
-
-        pckt.trap_type = 0
+    def test_TrapType0(self):
+        pckt, task = self.makeInputs(trapType=0)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "coldStart")
         self.assertEqual(result["snmpV1GenericTrapType"], 0)
 
-        pckt.trap_type = 1
+    def test_TrapType1(self):
+        pckt, task = self.makeInputs(trapType=1)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "warmStart")
         self.assertEqual(result["snmpV1GenericTrapType"], 1)
 
-        pckt.trap_type = 2
+    def test_TrapType2(self):
+        pckt, task = self.makeInputs(trapType=2)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "snmp_linkDown")
         self.assertEqual(result["snmpV1GenericTrapType"], 2)
 
-        pckt.trap_type = 3
+    def test_TrapType3(self):
+        pckt, task = self.makeInputs(trapType=3)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "snmp_linkUp")
         self.assertEqual(result["snmpV1GenericTrapType"], 3)
 
-        pckt.trap_type = 4
+    def test_TrapType4(self):
+        pckt, task = self.makeInputs(trapType=4)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "authenticationFailure")
         self.assertEqual(result["snmpV1GenericTrapType"], 4)
 
-        pckt.trap_type = 5
+    def test_TrapType5(self):
+        pckt, task = self.makeInputs(trapType=5)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "egpNeighorLoss")
         self.assertEqual(result["snmpV1GenericTrapType"], 5)
 
-        pckt.trap_type = 6
+    def test_TrapType6(self):
+        pckt, task = self.makeInputs(trapType=6)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(eventType, "1.2.3.4.5")
         self.assertEqual(result["snmpV1GenericTrapType"], 6)
 
     def test_VarBindOneValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
+        pckt, task = self.makeInputs(variables=(
             ((1, 2, 6, 7), "foo"),
-        )
-        task = MockTrapTask({})
+        ))
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         self.assertEqual(result["1.2.6.7"], "foo")
 
     def test_VarBindMultiValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
+        pckt, task = self.makeInputs(variables=(
             ((1, 2, 6, 7), "foo"),
             ((1, 2, 6, 7), "bar"),
             ((1, 2, 6, 7), "baz"),
-        )
-        task = MockTrapTask({})
+        ))
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
         self.assertEqual(totalVarKeys, 1)
         self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
 
     def test_UnknownMultiVarBind(self):
-        pckt = self.makePacket()
-        pckt.variables = (
+        pckt, task = self.makeInputs(variables=(
             ((1, 2, 6, 0), "foo"),
             ((1, 2, 6, 1), "bar"),
-        )
-        task = MockTrapTask({})
+        ))
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
         self.assertEqual(totalVarKeys, 2)
@@ -284,12 +329,10 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["1.2.6.1"], "bar")
 
     def test_NamedVarBindOneValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 7), "foo"),
+        pckt, task = self.makeInputs(
+            variables=(((1, 2, 6, 7), "foo"),),
+            oidMap={"1.2.6.7": "testVar"}
         )
-        oidMap = {"1.2.6.7": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
@@ -297,14 +340,14 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar"], "foo")
 
     def test_NamedVarBindMultiValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 7), "baz"),
+            ),
+            oidMap={"1.2.6.7": "testVar"}
         )
-        oidMap = {"1.2.6.7": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
@@ -312,12 +355,10 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar"], "foo,bar,baz")
 
     def test_PartialNamedVarBindOneValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 7), "foo"),
+        pckt, task = self.makeInputs(
+            variables=(((1, 2, 6, 7), "foo"),),
+            oidMap={"1.2.6": "testVar"}
         )
-        oidMap = {"1.2.6": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 2)
@@ -327,14 +368,14 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "7")
 
     def test_PartialNamedVarBindMultiValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 7), "baz"),
+            ),
+            oidMap={"1.2.6": "testVar"}
         )
-        oidMap = {"1.2.6": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 2)
@@ -344,14 +385,14 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "7,7,7")
 
     def test_PartialNamedMultiVarBind(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 1), "bar"),
-            ((1, 2, 6, 2), "baz"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 0), "foo"),
+                ((1, 2, 6, 1), "bar"),
+                ((1, 2, 6, 2), "baz"),
+            ),
+            oidMap={"1.2.6": "testVar"}
         )
-        oidMap = {"1.2.6": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 4)
@@ -365,12 +406,10 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "0,1,2")
 
     def test_PartialNamedVarBindNoneValue(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 0), None),
+        pckt, task = self.makeInputs(
+            variables=(((1, 2, 6, 0), None),),
+            oidMap={"1.2.6.0": "testVar"}
         )
-        oidMap = {"1.2.6.0": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
@@ -378,14 +417,14 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar"], "None")
 
     def test_PartialNamedMultiVarBindOrder(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 3), "baz"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 0), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 3), "baz"),
+            ),
+            oidMap={"1.2.6": "testVar"}
         )
-        oidMap = {"1.2.6": "testVar"}
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 4)
@@ -399,22 +438,22 @@ class TestDecodeSnmpV1(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "0,7,3")
 
     def test_ifentry_trap(self):
-        pckt = self.makePacket()
-        pckt.variables = (
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
-            ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
+                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+            ),
+            oidMap={
+                "1.3.6.1.2.1.2.2.1.1": "ifIndex",
+                "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
+                "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
+                "1.3.6.1.2.1.2.2.1.2": "ifDescr",
+                "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
+            }
         )
-        oidMap = {
-            "1.3.6.1.2.1.2.2.1.1": "ifIndex",
-            "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
-            "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
-            "1.3.6.1.2.1.2.2.1.2": "ifDescr",
-            "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
-        }
-        task = MockTrapTask(oidMap)
         eventType, result = task.decodeSnmpv1(("localhost", 162), pckt)
 
         totalVarKeys = sum(1 for k in result if k.startswith("ifIndex"))
@@ -469,18 +508,19 @@ class TestDecodeSnmpV2(BaseTestCase):
         "1.3.6.1.6.3.1.1.5.6": "egpNeighborLoss",
     }
 
-    def makePacket(self, trapType):
+    def makePacket(self, trapOID, variables=()):
         pckt = FakePacket()
         pckt.version = SNMPv2
         pckt.host = "localhost"
         pckt.port = 162
 
-        if isinstance(trapType, (str, unicode)):
-            trapType = tuple(map(int, trapType.split('.')))
+        if isinstance(trapOID, (str, unicode)):
+            trapOID = tuple(map(int, trapOID.split('.')))
         pckt.variables = [
             ((1, 3, 6, 1, 2, 1, 1, 3, 0), 5342),
-            ((1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0), trapType)
+            ((1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0), trapOID)
         ]
+        pckt.variables.extend(variables)
         pckt.community = "public"
         pckt.enterprise_length = 0
         return pckt
@@ -490,17 +530,17 @@ class TestDecodeSnmpV2(BaseTestCase):
         oidMap.update(extraOidMap)
         return MockTrapTask(oidMap)
 
-    def test_SnmpVersion(self):
-        pckt = self.makePacket("1.2.3")
-        task = self.makeTask()
+    def makeInputs(
+            self, trapOID="1.3.6.1.6.3.1.1.5.1", variables=(), extraOidMap={}):
+        pckt = self.makePacket(trapOID=trapOID, variables=variables)
+        task = self.makeTask(extraOidMap=extraOidMap)
+        return pckt, task
+
+    def test_UnknownTrapType(self):
+        pckt, task = self.makeInputs(trapOID="1.2.3")
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertIn("snmpVersion", result)
         self.assertEqual(result["snmpVersion"], "2")
-
-    def test_UnknownTrapType(self):
-        pckt = self.makePacket("1.2.3")
-        task = self.makeTask()
-        eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertEqual(eventType, "1.2.3")
         self.assertIn("snmpVersion", result)
         self.assertIn("oid", result)
@@ -510,60 +550,59 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["device"], "localhost")
 
     def test_KnownTrapType(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.1")
-        task = self.makeTask()
+        pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.1")
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "coldStart")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.1")
 
     def test_TrapAddressOID(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.1")
-        pckt.variables.append((
-            (1, 3, 6, 1, 6, 3, 18, 1, 3), "192.168.51.100"
-        ))
-        task = self.makeTask({
-            "1.3.6.1.6.3.18.1.3": "snmpTrapAddress"
-        })
+        pckt, task = self.makeInputs(
+            trapOID="1.3.6.1.6.3.1.1.5.1",
+            variables=(
+                ((1, 3, 6, 1, 6, 3, 18, 1, 3), "192.168.51.100"),
+            ),
+            extraOidMap={
+                "1.3.6.1.6.3.18.1.3": "snmpTrapAddress"
+            }
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertIn("snmpTrapAddress", result)
         self.assertEqual(result["snmpTrapAddress"], "192.168.51.100")
         self.assertEqual(result["device"], "192.168.51.100")
 
     def test_RenamedLinkDown(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        task = self.makeTask()
+        pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.3")
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "snmp_linkDown")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.3")
 
     def test_RenamedLinkUp(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.4")
-        task = self.makeTask()
+        pckt, task = self.makeInputs(trapOID="1.3.6.1.6.3.1.1.5.4")
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertIn("oid", result)
         self.assertEqual(eventType, "snmp_linkUp")
         self.assertEqual(result["oid"], "1.3.6.1.6.3.1.1.5.4")
 
     def test_VarBindMultiValue(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
-        ))
-        task = self.makeTask()
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 7), "baz"),
+            )
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         self.assertEqual(result["1.2.6.7"], "foo,bar,baz")
 
     def test_UnknownMultiVarBind(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.1")
-        pckt.variables.extend((
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 1), "bar"),
-        ))
-        task = self.makeTask()
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 0), "foo"),
+                ((1, 2, 6, 1), "bar"),
+            )
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("1.2.6"))
         self.assertEqual(totalVarKeys, 2)
@@ -573,11 +612,12 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["1.2.6.1"], "bar")
 
     def test_NamedVarBindOneValue(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.append(
-            ((1, 2, 6, 7), "foo"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+            ),
+            extraOidMap={"1.2.6.7": "testVar"}
         )
-        task = self.makeTask({"1.2.6.7": "testVar"})
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
@@ -585,13 +625,14 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar"], "foo")
 
     def test_NamedVarBindMultiValue(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
-        ))
-        task = MockTrapTask({"1.2.6.7": "testVar"})
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 7), "baz"),
+            ),
+            extraOidMap={"1.2.6.7": "testVar"}
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 1)
@@ -599,11 +640,12 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar"], "foo,bar,baz")
 
     def test_PartialNamedVarBindOneValue(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.append(
-            ((1, 2, 6, 7), "foo"),
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+            ),
+            extraOidMap={"1.2.6": "testVar"}
         )
-        task = MockTrapTask({"1.2.6": "testVar"})
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 2)
@@ -613,13 +655,14 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "7")
 
     def test_PartialNamedVarBindMultiValue(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 2, 6, 7), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 7), "baz"),
-        ))
-        task = MockTrapTask({"1.2.6": "testVar"})
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 7), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 7), "baz"),
+            ),
+            extraOidMap={"1.2.6": "testVar"}
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 2)
@@ -629,13 +672,14 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "7,7,7")
 
     def test_PartialNamedMultiVarBind(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 1), "bar"),
-            ((1, 2, 6, 2), "baz"),
-        ))
-        task = MockTrapTask({"1.2.6": "testVar"})
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 0), "foo"),
+                ((1, 2, 6, 1), "bar"),
+                ((1, 2, 6, 2), "baz"),
+            ),
+            extraOidMap={"1.2.6": "testVar"}
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 4)
@@ -661,13 +705,14 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar"], "None")
 
     def test_PartialNamedMultiVarBindOrder(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 2, 6, 0), "foo"),
-            ((1, 2, 6, 7), "bar"),
-            ((1, 2, 6, 3), "baz"),
-        ))
-        task = MockTrapTask({"1.2.6": "testVar"})
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 2, 6, 0), "foo"),
+                ((1, 2, 6, 7), "bar"),
+                ((1, 2, 6, 3), "baz"),
+            ),
+            extraOidMap={"1.2.6": "testVar"}
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
         totalVarKeys = sum(1 for k in result if k.startswith("testVar"))
         self.assertEqual(totalVarKeys, 4)
@@ -681,22 +726,22 @@ class TestDecodeSnmpV2(BaseTestCase):
         self.assertEqual(result["testVar.sequence"], "0,7,3")
 
     def test_ifentry_trap(self):
-        pckt = self.makePacket("1.3.6.1.6.3.1.1.5.3")
-        pckt.variables.extend((
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
-            ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
-            ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
-        ))
-        oidMap = {
-            "1.3.6.1.2.1.2.2.1.1": "ifIndex",
-            "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
-            "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
-            "1.3.6.1.2.1.2.2.1.2": "ifDescr",
-            "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
-        }
-        task = MockTrapTask(oidMap)
+        pckt, task = self.makeInputs(
+            variables=(
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 1, 143), 143),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 7, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 8, 143), 2),
+                ((1, 3, 6, 1, 2, 1, 2, 2, 1, 2, 143), "F23"),
+                ((1, 3, 6, 1, 2, 1, 31, 1, 1, 1, 18, 143), ""),
+            ),
+            extraOidMap={
+                "1.3.6.1.2.1.2.2.1.1": "ifIndex",
+                "1.3.6.1.2.1.2.2.1.7": "ifAdminStatus",
+                "1.3.6.1.2.1.2.2.1.8": "ifOperStatus",
+                "1.3.6.1.2.1.2.2.1.2": "ifDescr",
+                "1.3.6.1.2.1.31.1.1.1.18": "ifAlias",
+            }
+        )
         eventType, result = task.decodeSnmpv2(("localhost", 162), pckt)
 
         totalVarKeys = sum(1 for k in result if k.startswith("ifIndex"))
