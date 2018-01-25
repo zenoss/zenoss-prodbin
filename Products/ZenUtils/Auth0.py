@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2017, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -40,7 +40,6 @@ class Locked(Exception):
 
 def manage_addAuth0(context, id, title=None, REQUEST=None):
 
-    print "Manage_addAuth0", id
     obj = Auth0(id, title)
     context._setObject(obj.getId(), obj)
 
@@ -64,7 +63,6 @@ class Auth0(BasePlugin):
     def authenticateCredentials(self, credentials):
         """
         """
-        print "Auth0:authenticateCreds", credentials
         # Ignore credentials that are not from our extractor
         extractor = credentials.get('extractor')
         if extractor != PLUGIN_ID:
