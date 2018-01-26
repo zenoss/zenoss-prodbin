@@ -21,7 +21,7 @@ if [[ ! $status -eq 0 ]]; then
     echo "To remove the CatalogService ZenPack:"
     echo -e "1. Ensure the following services are running:\n\t * Zenoss.resmgr/Infrastructure/mariadb-model\n\t * Zenoss.resmgr/Infrastructure/mariadb-events\n\t * Zenoss.resmgr/Infrastructure/RabbitMQ\n\t * Zenoss.resmgr/Zenoss/Events/zeneventserver\n\t * Zenoss.resmgr/Infrastructure/redis\n\t * Zenoss.resmgr/Infrastructure/memcached"
     echo -e "2. Ensure the following service has stopped:\n\t *Zenoss.resmgr/Infrastructure/zencatalogservice"
-    echo -e "3. Log onto the host the Control Center master and run the following command:\n\t serviced service run zope zenpack-manager uninstall ZenPacks.zenoss.CatalogService"
+    echo -e "3. Log onto the host of the Control Center master and run the following command:\n\t serviced service run zope zenpack-manager uninstall ZenPacks.zenoss.CatalogService"
     exit $status
 fi
 rm $tmp_output
