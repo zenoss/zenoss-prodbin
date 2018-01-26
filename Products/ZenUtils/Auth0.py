@@ -19,6 +19,8 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 
+import json
+import urllib
 import jwt
 import logging
 
@@ -38,7 +40,8 @@ def getJWKS(jwks_url):
         #   with a kid other than what's in our cached jwks
         resp = urllib.urlopen(jwks_url)
         return json.load(resp)
-    except:
+    except Exception as e:
+        print e
         # we probably want to handle an error here somehow
         return None
 
@@ -117,7 +120,10 @@ class Auth0(BasePlugin):
         if 'sub' not in payload:
             return None
 
-        userid = payload['sub'].encode('utf8')
+        # Auth0 "sub" format is: connection|user
+        userid = payload['sub'].encode('utf8').split('|')[-1]
+
+        print "Auth0: authenticateCredentials userid:", userid
 
         return (userid, userid)
 
