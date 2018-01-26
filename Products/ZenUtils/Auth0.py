@@ -13,7 +13,8 @@ from OFS.Folder import Folder
 from Products.CMFCore.utils import getToolByName
 
 from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
-                                                            IAuthenticationPlugin)
+                                                            IAuthenticationPlugin,
+                                                            IChallengePlugin)
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
@@ -27,6 +28,26 @@ TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 
+AUTH0_CLIENT_ID = 'cTxVLXKTNloQv1GN9CSRAds5C4PpTkac'
+AUTH0_ISSUER = 'https://zenoss-dev.auth0.com/'
+AUTH0_JWKS_LOCATION = 'https://zenoss-dev.auth0.com/.well-known/jwks.json'
+
+def getJWKS(jwks_url):
+    try:
+        # we should cache this and use the cached one until a token comes in
+        #   with a kid other than what's in our cached jwks
+        resp = urllib.urlopen(jwks_url)
+        return json.load(resp)
+    except:
+        # we probably want to handle an error here somehow
+        return None
+
+def publicKeysFromJWKS(jwks):
+    public_keys = {}
+    for key in jwks['keys']:
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
+        public_keys[key['kid']] = public_key
+    return public_keys
 
 def manage_addAuth0(context, id, title=None, REQUEST=None):
 
@@ -48,6 +69,24 @@ class Auth0(BasePlugin):
         self._id = self.id = id
         self.title = title
 
+    def extractCredentials(self, request):
+        def getTokenFromHeader():
+            auth = request._auth
+            if auth is None or len(auth) < 9 or auth[:7].lower() != 'bearer ':
+                return None
+            return auth.split()[-1]
+
+        def getTokenFromQuery():
+            for arg in request.QUERY_STRING.split('&'):
+                parts = arg.split('=')
+                if len(parts) == 2 and parts[0] == 'idToken':
+                    return parts[1]
+            return None
+
+        auth = getTokenFromHeader() or getTokenFromQuery()
+        if auth is None:
+            return {}
+        return {'token': auth}
 
     def authenticateCredentials(self, credentials):
         """
@@ -57,7 +96,21 @@ class Auth0(BasePlugin):
         if extractor != PLUGIN_ID:
             return None
 
-        payload = self._decode_token(credentials['token'])
+        # get the key id from the jwt header
+        kid = jwt.get_unverified_header(credentials['token'])['kid']
+
+        # get the public keys from the jwks
+        jwks = getJWKS(AUTH0_JWKS_LOCATION)
+        keys = publicKeysFromJWKS(jwks)
+
+        # if the kid from the jwt isn't in our keys, bail
+        key = keys.get(kid)
+        if key == None:
+            return None
+
+        payload = jwt.decode(credentials['token'], key, verify=True,
+                             algorithms=['RS256'], audience=AUTH0_CLIENT_ID,
+                             issuer=AUTH0_ISSUER)
         if not payload:
             return None
 
@@ -68,31 +121,26 @@ class Auth0(BasePlugin):
 
         return (userid, userid)
 
-    def _decode_token(self, token, verify=True):
-	return self._jwt_decode(
-	    token, 'secret', verify=verify)
-
-    def _jwt_decode(self, token, secret, verify=True):
+    def challenge(self, request, response):
+        """Redirect to Auth0
+        """
         try:
-            return jwt.decode(
-                token, secret, verify=verify, algorithms=['HS256'])
-        except jwt.InvalidTokenError:
-            return None
+            req = self.REQUEST
+            resp = req['RESPONSE']
 
-    def extractCredentials(self, request):
-        creds = {}
-        auth = request._auth
-        if auth is None:
-            return None
-        if auth[:7].lower() == 'bearer ':
-            creds['token'] = auth.split()[-1]
-        else:
-            return None
-
-        return creds
-
+            resp.redirect("https://zenoss-dev.auth0.com/authorize?"+
+                          "response_type=token id_token&"+
+                          "client_id=%s&" % AUTH0_CLIENT_ID +
+                          "connection=example&"+
+                          "nonce=abcd1234&"+
+                          "redirect_uri=https://zenoss5.zenoss-1423-ld/zport/callback",
+                          lock=1)
+            return True
+        except:
+            return False
 
     def getRootPlugin(self):
+        # do we need this?
         pas = self.getPhysicalRoot().acl_users
         plugins = pas.objectValues([self.meta_type])
         if plugins:
@@ -112,7 +160,7 @@ class Auth0(BasePlugin):
     )
 
 
-classImplements(Auth0, IAuthenticationPlugin, IExtractionPlugin)
+classImplements(Auth0, IAuthenticationPlugin, IExtractionPlugin, IChallengePlugin)
 
 InitializeClass(Auth0)
 
@@ -147,8 +195,8 @@ def setup(context):
 
     manage_addAuth0(zport_acl, PLUGIN_ID, PLUGIN_TITLE)
 
-    interfaces = ('IAuthenticationPlugin', 'IExtractionPlugin')
+    interfaces = ('IAuthenticationPlugin', 'IExtractionPlugin', 'IChallengePlugin')
     activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
     movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')
-
+    movePluginToTop(zport_acl, PLUGIN_ID, 'IChallengePlugin')
