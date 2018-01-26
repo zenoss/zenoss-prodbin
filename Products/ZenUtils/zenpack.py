@@ -445,7 +445,7 @@ class ZenPackCmd(ZenScriptBase):
         # Respect the source of the pack
         zpsToSort = {}
 
-        pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
+        pattern = '(ZenPacks\.(?:[a-zA-Z]+\.?){2,})'
         for zpId,zpDetails in zpsToRestore.items():
             if zpDetails[2] == ZPSource.disk:
                 zp = get_distribution(zpId)
