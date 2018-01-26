@@ -18,7 +18,10 @@ if [[ ! $status -eq 0 ]]; then
     rm $tmp_output
     echo "Couldn't remove CatalogService zenpack"
     echo "You should remove CatalogService zenpack manually before starting the upgrade"
+    echo "Make sure you have Zenoss.resmgr/Infrastructure/mariadb-model, Zenoss.resmgr/Infrastructure/mariadb-events, Zenoss.resmgr/Infrastructure/RabbitMQ, Zenoss.resmgr/Zenoss/Events/zeneventserver, Zenoss.resmgr/Infrastructure/redis, Zenoss.resmgr/Infrastructure/memcached services running and Zenoss.resmgr/Infrastructure/zencatalogservice stoped, and then from your master host run command:"
+    echo "serviced service run zope zenpack-manager uninstall ZenPacks.zenoss.CatalogService"
     exit $status
 fi
 rm $tmp_output
 echo "Successfully removed Catalog Service"
+
