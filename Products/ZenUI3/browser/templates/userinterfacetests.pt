@@ -40,16 +40,16 @@
       <tal:block tal:content="structure provider:jssnippets"/>
 
 
-      <link rel="shortcut icon" type="image/png" href="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine_favicon.png">
-        <link rel="stylesheet" href="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.css">
+      <link rel="shortcut icon" type="image/png" href="++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine_favicon.png">
+        <link rel="stylesheet" href="++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.css">
 
-          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.js"></script>
-          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine-html.js"></script>
-          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/boot.js"></script>
+          <script src="++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.js"></script>
+          <script src="++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine-html.js"></script>
+          <script src="++resource++zenui/js/jasmine/lib/jasmine-2.3.4/boot.js"></script>
 
           <!-- include source files here... -->
-          <script src="/++resource++zenui/js/jasmine/src/Player.js"></script>
-          <script src="/++resource++zenui/js/jasmine/src/Song.js"></script>
+          <script src="++resource++zenui/js/jasmine/src/Player.js"></script>
+          <script src="++resource++zenui/js/jasmine/src/Song.js"></script>
           <tal:block tal:repeat="testFile view/getTestFiles">
               <script tal:attributes="src testFile"></script>
           </tal:block>

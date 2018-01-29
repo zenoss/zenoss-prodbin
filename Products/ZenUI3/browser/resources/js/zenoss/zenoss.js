@@ -25,7 +25,7 @@ if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("M
 /**
  * Global Ext settings.
  */
-Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
+Ext.BLANK_IMAGE_URL = '++resource++zenui/img/s.gif';
 
 /**
  * Enable this setting to log the stack trace of all direct requests to the browser console

@@ -53,7 +53,7 @@ Ext.define("Zenoss.form.IDField", {
             return this.reportResponse(response.responseText);
         }
         this.vtransaction = Ext.Ajax.request({
-            url: context + '/checkValidId?id='+value,
+            url: '/cse' + context + '/checkValidId?id='+value,
             method: 'GET',
             success: callback,
 

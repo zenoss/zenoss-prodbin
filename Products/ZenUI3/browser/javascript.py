@@ -69,8 +69,8 @@ def getPathModifiedTime(path):
         if os.path.exists(fullPath):
             return os.path.getmtime(fullPath)
 
-SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
-LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
+SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="/cse%s"></script>\n'
+LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="/cse%s"></link>\n'
 
 
 def absolutifyPath(path):

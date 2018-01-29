@@ -68,6 +68,8 @@ class ZenModelBase(object):
             return self
         else:
             newpath = INewPath(self)
+            if newpath and newpath.startswith('/zport/'):
+                newpath = "/cse%s" % newpath
             self.REQUEST.response.redirect(newpath)
 
     index_html = None  # This special value informs ZPublisher to use __call__

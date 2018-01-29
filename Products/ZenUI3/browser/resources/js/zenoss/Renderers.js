@@ -287,6 +287,9 @@ Ext.apply(Zenoss.render, {
                 return renderer(uid, name);
             }
         }
+	alert:(url)
+	url = url.replace("zport", "cse/zport")
+	alert:(url)
         if (url && name) {
             return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
         }

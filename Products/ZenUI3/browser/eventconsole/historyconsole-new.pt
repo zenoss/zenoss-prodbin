@@ -16,7 +16,7 @@
         Zenoss.env.EVENTSGRID_STATEID = 'histconsole';
     });
 "></script>
-<script src="/++resource++zenui/js/zenoss/EvHistory.js">
+<script src="++resource++zenui/js/zenoss/EvHistory.js">
 </script>
 
 </tal:block>

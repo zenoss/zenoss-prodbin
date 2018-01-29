@@ -5,4 +5,4 @@ with URLs starting with:
 
 For example:
 
-    <img src="/++resource++pagehelp/myimage.png"/>
+    <img src="++resource++pagehelp/myimage.png"/>

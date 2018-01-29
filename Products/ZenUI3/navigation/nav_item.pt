@@ -1,7 +1,7 @@
 <li i18n:domain="zenoss" tal:attributes="class string:nav-item-${view/css}">
 <div class="sd-left">
     <div class="sd-right">
-        <a tal:attributes="href view/url;target view/target;id view/elementid"
+        <a tal:attributes="href view/url2;target view/target;id view/elementid"
            tal:content="view/title"
            i18n:translate="">Menu item</a>
    </div>

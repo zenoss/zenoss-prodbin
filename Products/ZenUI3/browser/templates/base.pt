@@ -27,12 +27,12 @@
 
 <tal:block metal:fill-slot="head-local">
 <link rel="stylesheet" type="text/css"
-    href="/++resource++extjs/resources/css/ext-all.css" />
+    href="++resource++extjs/resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css"
-    href="/++resource++zenui/css/xtheme-zenoss.css" />
+    href="++resource++zenui/css/xtheme-zenoss.css" />
 <link rel="stylesheet" type="text/css"
-    href="/++resource++zenui/css/zenoss.css" />
-<script type="text/javascript" src="/++resource++extjs/adapters/ext/ext-base.js">
+    href="++resource++zenui/css/zenoss.css" />
+<script type="text/javascript" src="++resource++extjs/adapters/ext/ext-base.js">
 </script>
 <script>
 /*
@@ -50,8 +50,8 @@
     }
 })();
 </script>
-<script type="text/javascript" src="/++resource++extjs/ext-all.js"></script>
-<script type="text/javascript" src="/++resource++zenui/js/zenoss.js"></script>
+<script type="text/javascript" src="++resource++extjs/ext-all.js"></script>
+<script type="text/javascript" src="++resource++zenui/js/zenoss.js"></script>
 <script type="text/javascript" src="zenoss-all.js"></script>
 <style>#contentPane{padding:0}</style>
 </tal:block>

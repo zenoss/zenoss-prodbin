@@ -632,7 +632,7 @@ th.tableheader {
     margin: 0px;
     padding: 0 0 0 3px;
     line-height: 19px;
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png);
+    background-image: url(++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png);
 }
 
 a.tableheaderselected,
@@ -1588,7 +1588,7 @@ table.innerzentable {
     height: 21px;
     border: medium none;
     background: transparent
-                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
+                url(++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
                 no-repeat;
 }
 

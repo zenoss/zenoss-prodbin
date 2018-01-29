@@ -630,9 +630,9 @@ Ext.onReady(function(){
                         renderer: function(value){
                             var cls = (Ext.isIE) ? 'ie_xforms_grid': 'xforms_grid';
                             if(value){
-                                return '<span class="'+cls+'"><img src="/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png" />&nbsp;</span>';
+                                return '<span class="'+cls+'"><img src="++resource++zenui/img/xtheme-zenoss/icon/is-transform.png" />&nbsp;</span>';
                             }
-                            return '<span class="'+cls+'"><img src="/++resource++zenui/img/xtheme-zenoss/icon/no-transform.png" />&nbsp;</span>';
+                            return '<span class="'+cls+'"><img src="++resource++zenui/img/xtheme-zenoss/icon/no-transform.png" />&nbsp;</span>';
                         },
                         filter:false
                     },{

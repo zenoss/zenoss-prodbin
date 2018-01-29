@@ -29,6 +29,10 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
     subviews = ()
 
     @property
+    def url2(self):
+        return "/cse%s" % self.url
+
+    @property
     def title(self):
         return self.__name__
         

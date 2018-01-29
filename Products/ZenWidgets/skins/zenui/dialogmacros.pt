@@ -6,7 +6,7 @@
         This is a dialog box.
 	</tal:block>
 </div>
-<img id="dialog_close" src="/++resource++zenui/img/xtheme-zenoss/window/close-button.png" 
+<img id="dialog_close" src="++resource++zenui/img/xtheme-zenoss/window/close-button.png" 
      class="dialog_close"/>
 </div>
 <script>

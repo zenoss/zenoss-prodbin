@@ -69,7 +69,7 @@
         }
     </script>
 
-    <script type="text/javascript" src="/++resource++zenui/js/swfobject/2.2/swfobject.js"></script>
+    <script type="text/javascript" src="++resource++zenui/js/swfobject/2.2/swfobject.js"></script>
     <style type="text/css">
       #center { height: 100%; overflow: hidden;}
       #zennetmap {

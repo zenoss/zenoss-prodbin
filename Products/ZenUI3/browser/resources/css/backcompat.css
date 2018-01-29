@@ -138,7 +138,7 @@
 }
 
 .z-bc-z-menu {
-  background: #f0f0f0 url("/++resource++zenui/img/xtheme-zenoss/menu/menu.gif") repeat-y scroll 0 0;
+  background: #f0f0f0 url("++resource++zenui/img/xtheme-zenoss/menu/menu.gif") repeat-y scroll 0 0;
 }
 
 
@@ -167,7 +167,7 @@
 }
 
 .z-bc-z-menu ul li a:hover {
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/menu/item-over.gif) repeat-x left bottom;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/menu/item-over.gif) repeat-x left bottom;
   border-color: #c2cbd2;
 }
 
@@ -390,7 +390,7 @@ div.zenportlet div.portlet-body {
 div.tinylink-container {
   height: 20px;
   line-height: 20px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png) repeat-x;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png) repeat-x;
 }
 
 

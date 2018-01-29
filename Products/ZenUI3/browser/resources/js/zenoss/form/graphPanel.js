@@ -195,7 +195,7 @@
                                          '     <div class="graph_title">{graphTitle}' +
                                          '        <div class="graph_description">{description}</div>'+
                                          '     </div> ' +
-                                         '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
+                                         '    <img id="{buttonId}" class="europaGraphGear" src="++resource++zenui/img/gear.png"  />' +
                                          '</div>'),
         constructor: function(config) {
             var padding = "padding:5px 5px 5px 0px;";

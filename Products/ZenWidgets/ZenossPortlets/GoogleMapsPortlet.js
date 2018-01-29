@@ -8,7 +8,7 @@ GoogleMapsDatasource.prototype = {
     },
     get: function(callback) {
         this.callback = callback;
-        var url = '/zport/dmd' + escape(this.baseLoc) +
+        var url = '/cse/zport/dmd' + escape(this.baseLoc) +
                   '/simpleLocationGeoMap?polling='+this.polling;
         html = '<iframe src="' + url + '" ' +
                'style="border:medium none;margin:-2px 0px;padding:0px;'+

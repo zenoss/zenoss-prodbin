@@ -28,7 +28,7 @@
         Zenoss.env.PARENT_CONTEXT = '${context/getPrimaryId}';
     });
 "></script>
-<script src="/++resource++zenui/js/zenoss/EvHistory.js">
+<script src="++resource++zenui/js/zenoss/EvHistory.js">
 </script>
 <script>
 Ext.onReady(function(){

@@ -53,7 +53,7 @@
 
     Ext.application({
         name: 'Zenoss.quickstart.Wizard',
-        appFolder: "/++resource++zenui/js/zenoss/quickstart",
+        appFolder: "++resource++zenui/js/zenoss/quickstart",
         controllers: Zenoss.quickstart.Wizard.controllers,
         currentStep: 0,
         launch: function() {

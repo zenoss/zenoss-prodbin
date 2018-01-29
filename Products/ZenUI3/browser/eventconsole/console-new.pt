@@ -21,7 +21,7 @@
 "></script>
 
 
-<script src="/++resource++zenui/js/zenoss/EvConsole.js">
+<script src="++resource++zenui/js/zenoss/EvConsole.js">
 </script>
 <script>
 

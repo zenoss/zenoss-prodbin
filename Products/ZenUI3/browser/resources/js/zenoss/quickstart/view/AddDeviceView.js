@@ -151,7 +151,7 @@
                         }
                     },
                     text: _t('Remove'),
-                    icon: "/++resource++extjs/examples/restful/images/delete.png",
+                    icon: "++resource++extjs/examples/restful/images/delete.png",
                     altText: _t('Remove')
 
                 },{

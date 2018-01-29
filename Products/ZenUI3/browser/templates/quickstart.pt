@@ -9,16 +9,16 @@
             Install Wizard
         </title>
         <link rel="shortcut icon"
-              href="/zport/dmd/favicon.ico"
+              href="/cse/zport/dmd/favicon.ico"
               type="image/x-icon"/>
         <link rel="stylesheet" type="text/css"
             href="++resource++extjs/resources/css/ext-all.css"/>
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />
+            href="++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenoss.css" />
+            href="++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/quickstart.css"/>
+            href="++resource++zenui/css/quickstart.css"/>
         <style tal:condition="python:here.dmd.getProductName()!='core'">
             html {background-color:#eae9dc}
         </style>
@@ -40,7 +40,7 @@
             </div>
         </div>
         <form id="loginform" method="POST"
-              action="/zport/acl_users/cookieAuthHelper/login">
+              action="/cse/zport/acl_users/cookieAuthHelper/login">
           <input type="hidden" name="came_from" id="came_from"
                  tal:attributes="value here/absolute_url_path"/>
           <input id="login_username" type="hidden" name="__ac_name" />

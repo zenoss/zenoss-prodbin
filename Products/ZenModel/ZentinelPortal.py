@@ -176,7 +176,7 @@ class ZentinelPortal(PortalObjectBase):
 
     def getVersionedResourcePath(self, path):
         from Products.ZenUI3.browser.javascript import absolutifyPath
-        return absolutifyPath(path)
+        return "/cse%s" % absolutifyPath(path)
 
     def getLoginButton(self):
         return """<input id="loginButton" type="submit" name="submitbutton"

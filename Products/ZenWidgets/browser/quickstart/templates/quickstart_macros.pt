@@ -11,16 +11,16 @@
             </tal:block>
         </title>
         <link rel="shortcut icon"
-              href="/zport/dmd/favicon.ico"
+              href="/cse/zport/dmd/favicon.ico"
               type="image/x-icon"/>
         <link rel="stylesheet" type="text/css"
             href="++resource++extjs/resources/css/ext-all.css"/>
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />
+            href="++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenoss.css" />
+            href="++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/zport/quickstart.css"/>
+            href="/cse/zport/quickstart.css"/>
         <style tal:condition="python:here.dmd.getProductName()!='core'">
             html {background-color:#eae9dc}
         </style>
@@ -627,7 +627,7 @@ Ext.onReady(function() {
                         Ext.getCmp('manualdiscoverform').getForm().submit({
                             url: 'manual_add',
                             success: function(form, action) {
-                                window.location = '/zport/dmd/qs-step2';
+                                window.location = '/cse/zport/dmd/qs-step2';
                             }
                         });
                     }
@@ -645,7 +645,7 @@ Ext.onReady(function() {
                         Ext.getCmp('autodiscoverform').getForm().submit({
                             url: 'auto_add',
                             success: function(form, action) {
-                                window.location = '/zport/dmd/qs-step2';
+                                window.location = '/cse/zport/dmd/qs-step2';
                             }
                         });
                     }

@@ -4,10 +4,10 @@
 <head>
 <link rel="stylesheet" type="text/css"
       tal:omit-tag="python:request.has_key('no_streaming')"
-      href="/++resource++zenui/css/streaming.css" />
+      href="++resource++zenui/css/streaming.css" />
 <link rel="stylesheet" type="text/css"
       tal:omit-tag="python:not request.has_key('no_streaming')"
-      href="/++resource++zenui/css/not_streaming.css" />
+      href="++resource++zenui/css/not_streaming.css" />
 <!--[if IE]>
 <style>
 html, body{

@@ -117,7 +117,7 @@
                           style="foreground-color: #FFF; background-color: #F00"/>
                 <span tal:condition='not:here/versionBehind' 
                       tal:content="here/dmd/availableVersion"/>
-                <a href="/++resource++zenossLicenses" target="_blank">(View Licenses)</a>
+                <a href="++resource++zenossLicenses" target="_blank">(View Licenses)</a>
            </td>
         </tr>
         <tr class="even">

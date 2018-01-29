@@ -33,7 +33,7 @@
                 text: _t('LDAP Setup'),
                 hidden: !Zenoss.env.hasLDAP,
                 handler: function(){
-                    window.location = "/zport/dmd/manageLDAPConfig?wizard=True";
+                    window.location = "/cse/zport/dmd/manageLDAPConfig?wizard=True";
                 }
             },{
                 xtype: 'panel',
@@ -44,7 +44,7 @@
                 id: 'finish-button',
                 text: _t('Finish or Skip to Dashboard'),
                 handler: function() {
-                    window.location = "/zport/dmd/Dashboard";
+                    window.location = "/cse/zport/dmd/Dashboard";
                 }
             }]
         });

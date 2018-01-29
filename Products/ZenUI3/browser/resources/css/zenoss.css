@@ -23,7 +23,7 @@ a:link, a:visited {
   color: #7199c6;
   text-decoration: none;
   padding-right: 15px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/resource-link.png) right 1px no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/resource-link.png) right 1px no-repeat;
 }
 
 
@@ -65,7 +65,7 @@ a:link, a:visited {
   height: 54px;
   color: black;
   font-size: 15px;
-  background: bottom #bdbdbd url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+  background: bottom #bdbdbd url(++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
   border-top: 3px solid #BBBBBB;
   border-bottom: 1px solid #949494;
 }
@@ -85,13 +85,13 @@ a:link, a:visited {
 .inspector .inspector-header .header-icon {
   height: 50px;
   width: 43px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) no-repeat;
 }
 
 .inspector .inspector-header .header-title {
   height: 50px;
   padding-left: 30px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) left center no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) left center no-repeat;
 }
 
 .inspector .inspector-header .header-title .name {
@@ -194,7 +194,7 @@ a:link, a:visited {
   margin-right: 2px;
   margin-left: -3px;
   border:0 !important;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) center center no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) center center no-repeat;
 }
 
 
@@ -203,7 +203,7 @@ a:link, a:visited {
   line-height: 50px;
   font-size: 15px;
   font-family: helvetica,sans-serif;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
 }
 
 .evdetail_hd td {
@@ -217,12 +217,12 @@ a:link, a:visited {
   height: 50px;
   cursor: hand;
   cursor: pointer;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/popout.png) center center no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/popout.png) center center no-repeat;
 }
 
 
 .evdetail_close .x-panel-body {
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png) center center no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png) center center no-repeat;
   height: 50px;
   width: 25px;
   cursor: hand;
@@ -310,7 +310,7 @@ a.eventrainbow {
 
 
 .eventrainbow .severity-icon-small {
-  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png) !important;
+  background-image: url(++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png) !important;
 }
 
 
@@ -348,7 +348,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 .tree-severity-icon-small-critical, .tree-severity-icon-small-error, .tree-severity-icon-small-warning, .tree-severity-icon-small-info, .tree-severity-icon-small-debug, .tree-severity-icon-small-clear, .tree-template-icon-component, .tree-template-icon-bound, .tree-template-icon-bound-span, .tree-template-icon-component-span {
   width: 16px !important;
   height: 14px!important;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
   margin: 0 auto;
 }
 
@@ -431,7 +431,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
   height: 14px;
   background: transparent url() no-repeat;
   margin: 0 auto;
-  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/acknowledge-small.png);
+  background-image: url(++resource++zenui/img/xtheme-zenoss/icon/acknowledge-small.png);
 }
 
 
@@ -440,7 +440,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
   height: 14px;
   background: transparent url() no-repeat;
   margin: 0 auto;
-  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/suppress-small.png);
+  background-image: url(++resource++zenui/img/xtheme-zenoss/icon/suppress-small.png);
 }
 
 
@@ -451,7 +451,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
   height: 14px;
   background: transparent url() no-repeat;
   margin: 0 auto;
-  background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/close-small.png);
+  background-image: url(++resource++zenui/img/xtheme-zenoss/icon/close-small.png);
 }
 
 
@@ -554,7 +554,7 @@ div.dialog-link a {
 .searchfield-ml, .searchfield-mr, .searchfield-mc, .searchfield-black-ml, .searchfield-black-mr, .searchfield-black-mc {
   height: 21px;
   border: medium none;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png) no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png) no-repeat;
 }
 
 
@@ -889,7 +889,7 @@ table.eventrainbow td.clear {
 #help-icon-container a {
   height: 14px;
   width: 14px;
-  background: transparent url(/++resource++zenui/img/help-icon.png) center center no-repeat;
+  background: transparent url(++resource++zenui/img/help-icon.png) center center no-repeat;
   margin-right: 14px;
   padding-top: 2px;
 }
@@ -1040,7 +1040,7 @@ table.search-result {
 
 
 span.status-up-large, span.status-up, span.status-down-large, span.status-down {
-  background: transparent url(/++resource++zenui/img/up-down-sprite.png) 0 0 no-repeat;
+  background: transparent url(++resource++zenui/img/up-down-sprite.png) 0 0 no-repeat;
 }
 
 span.status-up, span.status-down {
@@ -1262,7 +1262,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 #user-link-container {
   margin-left: 10px;
   padding-left: 10px;
-  background: transparent url(/zport/dmd/img/usericon.png) left center no-repeat;
+  background: transparent url(/cse/zport/dmd/img/usericon.png) left center no-repeat;
   font-family: helvetica,arial,sans-serif;
   font-size: 8pt;
   font-weight: normal;
@@ -1315,12 +1315,12 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 
 
 .x-tree-node img.folder, .x-tree-node-collapsed img.folder {
-  background: url("/++resource++extjs/resources/images/default/tree/folder.gif");
+  background: url("++resource++extjs/resources/images/default/tree/folder.gif");
 }
 
 
 .x-tree-node-expanded img.folder {
-  background: url("/++resource++extjs/resources/images/default/tree/folder-open.gif");
+  background: url("++resource++extjs/resources/images/default/tree/folder-open.gif");
 }
 
 
@@ -1347,7 +1347,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
   height: 50px;
   margin: 0 8px;
   width: 35px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
 }
 
 .severity-icon.critical {
@@ -1377,7 +1377,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 .severity-icon-small.critical, .severity-icon-small.error, .severity-icon-small.warning, .severity-icon-small.info, .severity-icon-small.debug, .severity-icon-small.clear {
   width: 16px;
   height: 14px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
   margin: 0 auto;
 }
 
@@ -1411,7 +1411,7 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
   height: 50px;
   margin: 0 8px;
   width: 35px;
-  background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
+  background: transparent url(++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 100px 100px no-repeat;
 }
 #evdetail_hd .severity-icon .x-panel-body{
     background: none !important; /* an IE fix for a blocking bar across the top of the icon */
@@ -2043,10 +2043,10 @@ img.europaGraphGear.spinnerino {
     background-position:-2px -2px;
 }
 .hastransform{
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png);
+    background-image: url(++resource++zenui/img/xtheme-zenoss/icon/is-transform.png);
 }
 .sanstransform{
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/no-transform.png);
+    background-image: url(++resource++zenui/img/xtheme-zenoss/icon/no-transform.png);
 }
 .edited_feedback .x-panel-header-text{
     color: yellow !important;
@@ -2064,7 +2064,7 @@ img.europaGraphGear.spinnerino {
     top: -1px !important;
 }
 .tree-nav{
-    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/resource-link.png);
+    background-image: url(++resource++zenui/img/xtheme-zenoss/icon/resource-link.png);
     background-repeat: no-repeat;
 }
 #manufacturer_info{
@@ -2099,28 +2099,28 @@ span.syntax-text  {
 }
 
 .grid-action.checked.enabled {
-  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/checked.gif");
+  background-image: url("++resource++zenui/img/xtheme-zenoss/menu/checked.gif");
   height: 16px;
   margin: 0 0 4px;
   width: 16px;
 }
 
 .grid-action.unchecked.enabled {
-  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/unchecked.gif");
+  background-image: url("++resource++zenui/img/xtheme-zenoss/menu/unchecked.gif");
   height: 16px;
   margin: 0 0 4px;
   width: 16px;
 }
 
 .grid-action.checked.disabled {
-  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/checked-disabled.gif");
+  background-image: url("++resource++zenui/img/xtheme-zenoss/menu/checked-disabled.gif");
   height: 16px;
   margin: 0 0 4px;
   width: 16px;
 }
 
 .grid-action.unchecked.disabled {
-  background-image: url("/++resource++zenui/img/xtheme-zenoss/menu/unchecked-disabled.gif");
+  background-image: url("++resource++zenui/img/xtheme-zenoss/menu/unchecked-disabled.gif");
   height: 16px;
   margin: 0 0 4px;
   width: 16px;

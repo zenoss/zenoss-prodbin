@@ -151,7 +151,7 @@
                 }],
                 renderer: function(value, meta, record) {
                     if (record.isDaemon()) {
-                        return '<img class="x-action-col-icon x-action-col-0 restarticon" src="/++resource++zenui/img/ext4/icon/circle_arrows_still.png" alt="">';
+                        return '<img class="x-action-col-icon x-action-col-0 restarticon" src="++resource++zenui/img/ext4/icon/circle_arrows_still.png" alt="">';
                     }
                     return "";
                 },

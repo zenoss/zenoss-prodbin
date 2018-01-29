@@ -9,8 +9,8 @@
 ##############################################################################
 -->
 <html>
-<link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-<link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+<link rel="icon" href="/cse/zport/dmd/favicon.ico" type="image/x-icon"/>
+<link rel="shortcut icon" href="/cse/zport/dmd/favicon.ico" type="image/x-icon"/>
 <link rel="stylesheet" type="text/css"
       tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
       />

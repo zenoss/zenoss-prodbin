@@ -6,11 +6,11 @@
         <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
         <link rel="stylesheet" type="text/css"
-            href="/++resource++extjs/resources/css/ext-all.css" />
+            href="++resource++extjs/resources/css/ext-all.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenoss.css" />
+            href="++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenui3.css" />
+            href="++resource++zenui/css/zenui3.css" />
         <tal:block tal:content="structure view/headExtra"/>
         <style>
             #center {

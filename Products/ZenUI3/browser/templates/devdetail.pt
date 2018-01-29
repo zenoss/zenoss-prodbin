@@ -18,6 +18,7 @@
 <tal:block metal:fill-slot="script_layout">
 <script tal:content='string:
     Zenoss.env.device_uid = decodeURIComponent("${context/absolute_url_path}");
+    Zenoss.env.device_uid = Zenoss.env.device_uid.replace("/cse","");
 '></script>
 
 <style>

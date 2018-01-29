@@ -21,29 +21,30 @@
         </title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-        <link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-        <link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="icon" href="/cse/zport/dmd/favicon.ico" type="image/x-icon"/>
+        <link rel="shortcut icon" href="/cse/zport/dmd/favicon.ico" type="image/x-icon"/>
 
         <!-- Static stylesheets -->
-        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/xtheme-zenoss.css" />
-        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
-        <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
-        <link rel="stylesheet" type="text/css" href="/++resource++extjs/examples/ux/css/CheckHeader.css" />
-        <link rel="stylesheet" type="text/css" href="/++resource++zenui/js/codemirror/codemirror.css" />
+        <link rel="stylesheet" type="text/css" href="++resource++zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css" href="++resource++zenui/css/zenui3.css" />
+        <link rel="stylesheet" type="text/css" href="++resource++extjs/examples/ux/css/CheckHeader.css" />
+        <link rel="stylesheet" type="text/css" href="++resource++zenui/js/codemirror/codemirror.css" />
 
         <!-- Dynamic stylesheets -->
         <tal:block tal:content="structure provider:all-css"/>
 
         <!-- Static javascript -->
-        <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
-        <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
+        <script src="++resource++zenui/js/codemirror/codemirror.js"></script>
+        <script src="++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
 
         <!-- Dynamic javascript -->
-        <script tal:define="container context/getPrimaryParent" tal:content="string:
-            Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
-        " tal:on-error="string:"></script>
+        <script tal:define="container context/getPrimaryParent" tal:content='string:
+            Zenoss.env.PARENT_CONTEXT = "${container/absolute_url_path}";
+	    Zenoss.env.PARENT_CONTEXT = Zenoss.env.PARENT_CONTEXT.replace("/cse","");
+        ' tal:on-error="string:"></script>
         <tal:block tal:content="structure provider:jssnippets"/>
 
         <tal:block tal:content="structure provider:head-extra"/>
@@ -68,7 +69,7 @@
                                     </a>
                                 </div>
                                 <div id="sign-out-link">
-                                    <a href="/zport/dmd/logoutUser">sign out</a>
+                                    <a href="/cse/zport/dmd/logoutUser">sign out</a>
                                 </div>
                                 <div>
                                     <div id="help-icon-container">
@@ -98,7 +99,7 @@
         </div>
 
 <tal:block metal:define-slot="script_beforeLayout"/>
-<form id="exportform" method="post" action="/zport/dmd/Events/export">
+<form id="exportform" method="post" action="/cse/zport/dmd/Events/export">
     <input type="hidden" id="export_body" name="body"/>
 </form>
 <script type="text/javascript">

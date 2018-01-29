@@ -201,7 +201,7 @@ def login(self):
         came_from = urlparse.urlunsplit(parts)
     else:
         submittedQs = 'submitted=%s' % submitted
-        came_from = '/zport/dmd?%s' % submittedQs
+        came_from = '/cse/zport/dmd?%s' % submittedQs
 
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (

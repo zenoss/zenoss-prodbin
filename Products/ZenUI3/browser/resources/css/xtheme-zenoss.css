@@ -7688,7 +7688,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   margin: 0 !important; }
 
 .tree-severity-icon-small-clear {
-  background-image: url("/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png") !important;
+  background-image: url("++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png") !important;
   width: 16px !important; }
 
 .x-tree-panel .rootNode {
@@ -7937,7 +7937,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-btn-default-toolbar-small span.x-btn-icon {
   background: transparent none top center no-repeat;
-  background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
 .x-btn-default-toolbar-small span.x-btn-icon.circle_arrows_still {
   background: transparent none top center no-repeat;
   background-image: url("../img/ext4/icon/circle_arrows_still.png"); }
@@ -8132,25 +8132,25 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-nlg .x-btn-default-toolbar-small, .x-nlg .x-btn-default-toolbar-small-disabled, .x-nlg .x-btn-default-toolbar-small-over {
   background-repeat: repeat-x;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-bg.png") ; }
 .x-nlg .x-btn-default-toolbar-small-menu-active, .x-nlg .x-btn-default-toolbar-small-pressed {
   background-repeat: repeat-x;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-bg.png") ; }
 
 .x-nbr .x-btn-default-toolbar-small .x-frame-tl, .x-nbr .x-btn-default-toolbar-small .x-frame-bl, .x-nbr .x-btn-default-toolbar-small .x-frame-tr, .x-nbr .x-btn-default-toolbar-small .x-frame-br, .x-nbr .x-btn-default-toolbar-small .x-frame-tc, .x-nbr .x-btn-default-toolbar-small .x-frame-bc, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-tl, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-bl, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-tr, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-br, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-tc, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-bc, .x-nbr .x-btn-default-toolbar-small-over .x-frame-tl, .x-nbr .x-btn-default-toolbar-small-over .x-frame-bl, .x-nbr .x-btn-default-toolbar-small-over .x-frame-tr, .x-nbr .x-btn-default-toolbar-small-over .x-frame-br, .x-nbr .x-btn-default-toolbar-small-over .x-frame-tc, .x-nbr .x-btn-default-toolbar-small-over .x-frame-bc {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-corners.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-corners.png") ; }
 .x-nbr .x-btn-default-toolbar-small .x-frame-ml, .x-nbr .x-btn-default-toolbar-small .x-frame-mr, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-ml, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-mr, .x-nbr .x-btn-default-toolbar-small-over .x-frame-ml, .x-nbr .x-btn-default-toolbar-small-over .x-frame-mr {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-sides.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-sides.png") ; }
 .x-nbr .x-btn-default-toolbar-small .x-frame-mc, .x-nbr .x-btn-default-toolbar-small-disabled .x-frame-mc, .x-nbr .x-btn-default-toolbar-small-over .x-frame-mc {
   background-color: #dfdfdf;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-over-bg.png") ; }
 .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-tl, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-bl, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-tr, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-br, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-tc, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-bc, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-tl, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-bl, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-tr, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-br, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-tc, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-bc {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-corners.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-corners.png") ; }
 .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-ml, .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-mr, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-ml, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-mr {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-sides.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-sides.png") ; }
 .x-nbr .x-btn-default-toolbar-small-menu-active .x-frame-mc, .x-nbr .x-btn-default-toolbar-small-pressed .x-frame-mc {
   background-color: #dfdfdf;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-toolbar-small-pressed-bg.png") ; }
 
 .x-btn-dialog-dark-small {
   border-color: null; }
@@ -8340,7 +8340,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   padding: 3px !important;
   background-repeat: repeat-x;
   background-position: 0 -51px !important;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
 .x-nlg .x-btn-dialog-dark-small .x-btn-dialog-dark-small-tc, .x-nlg .x-btn-dialog-dark-small .x-btn-dialog-dark-small-bc {
   height: 1px !important;
   line-height: 1px !important;
@@ -8348,11 +8348,11 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-nlg .x-btn-dialog-dark-small-disabled .x-btn-center, .x-nlg .x-btn-dialog-dark-small-over .x-btn-center {
   background-repeat: repeat-x;
   background-position: 0 -126px !important;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
 .x-nlg .x-btn-dialog-dark-small-menu-active .x-btn-center, .x-nlg .x-btn-dialog-dark-small-pressed .x-btn-center {
   background-repeat: repeat-x;
   background-position: 0 -203px !important;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-sprite.png") ; }
 
 .x-nbr .x-btn-dialog-dark-small .x-frame-tl, .x-nbr .x-btn-dialog-dark-small .x-frame-tr, .x-nbr .x-btn-dialog-dark-small .x-frame-bl, .x-nbr .x-btn-dialog-dark-small .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small .x-frame-mr, .x-nbr .x-btn-dialog-dark-small .x-frame-mc, .x-nbr .x-btn-dialog-dark-small .x-frame-bc, .x-nbr .x-btn-dialog-dark-small .x-frame-tc, .x-nbr .x-btn-dialog-dark-small-over .x-frame-tl, .x-nbr .x-btn-dialog-dark-small-over .x-frame-tr, .x-nbr .x-btn-dialog-dark-small-over .x-frame-bl, .x-nbr .x-btn-dialog-dark-small-over .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small-over .x-frame-mr, .x-nbr .x-btn-dialog-dark-small-over .x-frame-mc, .x-nbr .x-btn-dialog-dark-small-over .x-frame-bc, .x-nbr .x-btn-dialog-dark-small-over .x-frame-tc, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-tl, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-tr, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-bl, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-mr, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-mc, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-bc, .x-nbr .x-btn-dialog-dark-small-focus .x-frame-tc, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-tl, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-tr, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-bl, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-mr, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-mc, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-bc, .x-nbr .x-btn-dialog-dark-small-menu-active .x-frame-tc, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-tl, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-tr, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-bl, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-mr, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-mc, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-bc, .x-nbr .x-btn-dialog-dark-small-pressed .x-frame-tc, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-tl, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-tr, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-bl, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-br .x-frame-ml, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-mr, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-mc, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-bc, .x-nbr .x-btn-dialog-dark-small-disabled .x-frame-tc {
   padding: 0px !important; }
@@ -8591,7 +8591,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-btn-default-small span.x-btn-icon {
   background: transparent none top center no-repeat;
-  background-image: url("/++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/icon/icon-sprite.png") ; }
 .x-btn-default-small span.x-btn-icon.add {
   background-position: 0 1px; }
 .x-btn-default-small span.x-btn-icon.delete {
@@ -8780,28 +8780,28 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 .x-nlg .x-btn-default-small, .x-nlg .x-btn-default-small-disabled, .x-nlg .x-btn-default-small-over {
   background-repeat: repeat-x;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
 .x-nlg .x-btn-default-small-menu-active, .x-nlg .x-btn-default-small-pressed {
   background-repeat: repeat-x;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
 
 .x-nbr .x-btn-default-small .x-frame-tl, .x-nbr .x-btn-default-small .x-frame-bl, .x-nbr .x-btn-default-small .x-frame-tr, .x-nbr .x-btn-default-small .x-frame-br, .x-nbr .x-btn-default-small .x-frame-tc, .x-nbr .x-btn-default-small .x-frame-bc, .x-nbr .x-btn-default-small-disabled .x-frame-tl, .x-nbr .x-btn-default-small-disabled .x-frame-bl, .x-nbr .x-btn-default-small-disabled .x-frame-tr, .x-nbr .x-btn-default-small-disabled .x-frame-br, .x-nbr .x-btn-default-small-disabled .x-frame-tc, .x-nbr .x-btn-default-small-disabled .x-frame-bc, .x-nbr .x-btn-default-small-over .x-frame-tl, .x-nbr .x-btn-default-small-over .x-frame-bl, .x-nbr .x-btn-default-small-over .x-frame-tr, .x-nbr .x-btn-default-small-over .x-frame-br, .x-nbr .x-btn-default-small-over .x-frame-tc, .x-nbr .x-btn-default-small-over .x-frame-bc {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-corners.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-over-corners.png") ; }
 .x-nbr .x-btn-default-small .x-frame-ml, .x-nbr .x-btn-default-small .x-frame-mr, .x-nbr .x-btn-default-small-disabled .x-frame-ml, .x-nbr .x-btn-default-small-disabled .x-frame-mr, .x-nbr .x-btn-default-small-over .x-frame-ml, .x-nbr .x-btn-default-small-over .x-frame-mr {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-sides.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-over-sides.png") ; }
 .x-nbr .x-btn-default-small .x-frame-mc, .x-nbr .x-btn-default-small-disabled .x-frame-mc, .x-nbr .x-btn-default-small-over .x-frame-mc {
   background-color: #dfdfdf;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-over-bg.png") ; }
 .x-nbr .x-btn-default-small-menu-active .x-frame-tl, .x-nbr .x-btn-default-small-menu-active .x-frame-bl, .x-nbr .x-btn-default-small-menu-active .x-frame-tr, .x-nbr .x-btn-default-small-menu-active .x-frame-br, .x-nbr .x-btn-default-small-menu-active .x-frame-tc, .x-nbr .x-btn-default-small-menu-active .x-frame-bc, .x-nbr .x-btn-default-small-pressed .x-frame-tl, .x-nbr .x-btn-default-small-pressed .x-frame-bl, .x-nbr .x-btn-default-small-pressed .x-frame-tr, .x-nbr .x-btn-default-small-pressed .x-frame-br, .x-nbr .x-btn-default-small-pressed .x-frame-tc, .x-nbr .x-btn-default-small-pressed .x-frame-bc {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-corners.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-pressed-corners.png") ; }
 .x-nbr .x-btn-default-small-menu-active .x-frame-ml, .x-nbr .x-btn-default-small-menu-active .x-frame-mr, .x-nbr .x-btn-default-small-pressed .x-frame-ml, .x-nbr .x-btn-default-small-pressed .x-frame-mr {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-sides.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-pressed-sides.png") ; }
 .x-nbr .x-btn-default-small-menu-active .x-frame-mc, .x-nbr .x-btn-default-small-pressed .x-frame-mc {
   background-color: #dfdfdf;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
+  background-image: url("++resource++zenui/img/ext4/btn/btn-default-small-pressed-bg.png") ; }
 
 .x-btn-arrowslide-toolbar-small {
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
+  background-image: url("++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
   overflow: visible;
   position: relative;
   background-repeat: no-repeat; }
@@ -8813,7 +8813,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   top: 0;
   height: 24px;
   width: 40px;
-  background-image: url("/++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
+  background-image: url("++resource++zenui/img/ext4/btn/btn-arrowslide.png") ;
   background-repeat: no-repeat; }
 .x-btn-arrowslide-toolbar-small.toleft {
   background-position: right 0;
@@ -8851,17 +8851,17 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   background-image: url() !important;
   background-position: 0 0; }
 .x-form-itemselector-btn .x-form-itemselector-top {
-  background-image: url("/++resource++zenui/img/ext4/icon/top2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/top2.gif") !important; }
 .x-form-itemselector-btn .x-form-itemselector-up {
-  background-image: url("/++resource++zenui/img/ext4/icon/up2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/up2.gif") !important; }
 .x-form-itemselector-btn .x-form-itemselector-add {
-  background-image: url("/++resource++zenui/img/ext4/icon/right2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/right2.gif") !important; }
 .x-form-itemselector-btn .x-form-itemselector-remove {
-  background-image: url("/++resource++zenui/img/ext4/icon/left2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/left2.gif") !important; }
 .x-form-itemselector-btn .x-form-itemselector-down {
-  background-image: url("/++resource++zenui/img/ext4/icon/down2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/down2.gif") !important; }
 .x-form-itemselector-btn .x-form-itemselector-bottom {
-  background-image: url("/++resource++zenui/img/ext4/icon/bottom2.gif") !important; }
+  background-image: url("++resource++zenui/img/ext4/icon/bottom2.gif") !important; }
 .x-form-itemselector-btn .x-frame-ml, .x-form-itemselector-btn .x-frame-mc, .x-form-itemselector-btn .x-frame-mr, .x-form-itemselector-btn .x-frame-bl, .x-form-itemselector-btn .x-frame-bc, .x-form-itemselector-btn .x-frame-br, .x-form-itemselector-btn .x-frame-tl, .x-form-itemselector-btn .x-frame-tc, .x-form-itemselector-btn .x-frame-tr {
   background-image: none !important; }
 
@@ -8881,7 +8881,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   background-repeat: repeat-x; }
 
 .x-nlg .x-toolbar-default {
-  background-image: url("/++resource++zenui/img/ext4/toolbar/toolbar-default-bg.png") !important; }
+  background-image: url("++resource++zenui/img/ext4/toolbar/toolbar-default-bg.png") !important; }
 
 .x-toolbar-large {
   border-color: #d9d9d9;
@@ -8899,7 +8899,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   background-repeat: repeat-x; }
 
 .x-nlg .x-toolbar-large {
-  background-image: url("/++resource++zenui/img/ext4/toolbar/toolbar-large-bg.png") !important; }
+  background-image: url("++resource++zenui/img/ext4/toolbar/toolbar-large-bg.png") !important; }
 
 .x-toolbar td, .x-toolbar span, .x-toolbar input, .x-toolbar div, .x-toolbar select, .x-toolbar label {
   font-size: 11px; }
@@ -9658,7 +9658,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-window-header .x-box-item {
   top: 1px !important; }
 .x-window-header .x-tool-close {
-  background-image: url("/++resource++zenui/img/ext4/window/close-button.png") ; }
+  background-image: url("++resource++zenui/img/ext4/window/close-button.png") ; }
 .x-window-header .x-tool-over .x-tool-close {
   background-position: 0 0; }
 
@@ -9712,16 +9712,16 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 .x-nbr .x-window-default-ml {
   padding-bottom: 20px !important; }
 .x-nbr .x-window-default-bc, .x-nbr .x-window-default-tc {
-  background-image: url("/++resource++zenui/img/ext4/window/bg.png") ;
+  background-image: url("++resource++zenui/img/ext4/window/bg.png") ;
   background-position: 0 0;
   background-repeat: repeat;
   margin: 0 8px 0 8px; }
 .x-nbr .x-window-header-default-tl, .x-nbr .x-window-header-default-tr, .x-nbr .x-window-default-bl, .x-nbr .x-window-default-br {
   padding: 0 !important;
-  background-image: url("/++resource++zenui/img/ext4/window/window-default-corners.png") ;
+  background-image: url("++resource++zenui/img/ext4/window/window-default-corners.png") ;
   overflow: hidden; }
 .x-nbr .x-window-default-ml {
-  background-image: url("/++resource++zenui/img/ext4/window/bg.png") ;
+  background-image: url("++resource++zenui/img/ext4/window/bg.png") ;
   background-position: 0 0;
   background-repeat: repeat; }
 .x-nbr .x-window-default-mc, .x-nbr .x-window-header-default-top-ml, .x-nbr .x-window-header-default-top-mr, .x-nbr .x-window-default-mr {
@@ -9861,7 +9861,7 @@ CORE TRIGGER PAGE STUFF
 .x-tip {
   background-color: #f8e585 !important; }
 .x-tip .x-tool-close, .x-tip .x-tool-over {
-  background-image: url("/++resource++zenui/img/ext4/qtip/close.png") ; }
+  background-image: url("++resource++zenui/img/ext4/qtip/close.png") ; }
 .x-tip .x-tool {
   left: 380px !important; }
 
@@ -9876,7 +9876,7 @@ CORE TRIGGER PAGE STUFF
 .x-nbr .x-tip-mc {
   background-color: #F8E585; }
 .x-nbr .x-tip-tl, .x-nbr .x-tip-tr, .x-nbr .x-tip-tc, .x-nbr .x-tip-ml, .x-nbr .x-tip-mr, .x-nbr .x-tip-bl, .x-nbr .x-tip-br, .x-nbr .x-tip-bc {
-  background-image: url("/++resource++zenui/img/ext4/qtip/tip-sprite.png") ; }
+  background-image: url("++resource++zenui/img/ext4/qtip/tip-sprite.png") ; }
 .x-nbr .x-tip-tl {
   background-position: 0 0 !important; }
 .x-nbr .x-tip-tr {
@@ -10029,7 +10029,7 @@ CORE TRIGGER PAGE STUFF
 
 .x-menu-item-active {
   cursor: pointer;
-  background-image: url("/++resource++zenui/img/ext4/menu/item-over.gif") ;
+  background-image: url("++resource++zenui/img/ext4/menu/item-over.gif") ;
   overflow: visible; }
 .x-menu-item-active .x-menu-item-link {
   margin: 1px;
@@ -10077,7 +10077,7 @@ CORE TRIGGER PAGE STUFF
 .x-flare .x-tool-close {
   width: 30px;
   height: 30px;
-  background-image: url("/++resource++zenui/img/ext4/flare/flare-sprite.png") ;
+  background-image: url("++resource++zenui/img/ext4/flare/flare-sprite.png") ;
   background-position: 0 -60px;
   background-repeat: no-repeat;
   position: relative;

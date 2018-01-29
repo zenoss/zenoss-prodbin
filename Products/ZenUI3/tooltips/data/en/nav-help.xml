@@ -17,7 +17,7 @@ Go here to:
 <p><strong>Portlets</strong><br />
 The main content of a Dashboard comprises <em>portlets</em>, which provide information about the system and your infrastructure.</p>
 
-<p>To add a portlet to the current Dashboard, click<img src="/++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>and select<strong style="padding-left:4px">Add Portlet</strong>.</p>
+<p>To add a portlet to the current Dashboard, click<img src="++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>and select<strong style="padding-left:4px">Add Portlet</strong>.</p>
 
 <p>The buttons in each portlet's top right corner let you:
 <ul>
@@ -35,7 +35,7 @@ The main content of a Dashboard comprises <em>portlets</em>, which provide infor
 <p><strong>Dashboards</strong><br />
 To switch between Dashboards, select one from the<strong style="padding-left:4px; padding-right:4px">Dashboards</strong>pull-down menu.</p>
 
-<p>To edit the current Dashboard, click<img src="/++resource++pagehelp/Config.png" style="padding-left:4px"/>. The settings allow you to:
+<p>To edit the current Dashboard, click<img src="++resource++pagehelp/Config.png" style="padding-left:4px"/>. The settings allow you to:
 <ul>
   <li>Control who is allowed to view this Dashboard.</li>
   <li>Set the number of columns the Dashboard uses.</li>
@@ -43,7 +43,7 @@ To switch between Dashboards, select one from the<strong style="padding-left:4px
 </ul>
 </p>
 
-<p>To add another Dashboard, click<img src="/++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>and select<strong style="padding-left:4px">New Dashboard</strong>. To delete the current Dashboard, click<img src="/++resource++pagehelp/Delete.png" style="padding-left:4px"/>.</p>
+<p>To add another Dashboard, click<img src="++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>and select<strong style="padding-left:4px">New Dashboard</strong>. To delete the current Dashboard, click<img src="++resource++pagehelp/Delete.png" style="padding-left:4px"/>.</p>
 
 </pagehelp>
 <!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -->
@@ -77,7 +77,7 @@ After making an event selection, you can:
 
 <p>You also can add an event from the event console.</p>
 
-<p><img src="/++resource++pagehelp/Event_Console_Buttons.png"/></p>
+<p><img src="++resource++pagehelp/Event_Console_Buttons.png"/></p>
 
 <p><strong>Exporting Event Data</strong><br />
 You can export data from the event console to a comma-separated<tt> (.csv) </tt>or XML file. To do this, select<strong style="padding-left:4px; padding-right:4px">Export > CSV</strong>or<strong style="padding-left:4px">Export > XML</strong>. By default, the exported file is named <tt> events.</tt><em>Extension</em>.</p>
@@ -102,7 +102,7 @@ You can export data from the event console to a comma-separated<tt> (.csv) </tt>
 <p><strong>Devices</strong><br />
 The Devices page is divided into two main areas. The<em style="padding-left:4px; padding-right:4px">device list</em>shows individual devices and their status. The<em style="padding-left:4px; padding-right:4px">tree view</em>(in the left panel) lets you access devices by organizer (class, group, system, or location).</p>
 
-<p>Add devices from<img src="/++resource++pagehelp/Add_Device_Button.png" style="padding-left:4px; padding-right:4px"/>(Add Devices). From here, you can:
+<p>Add devices from<img src="++resource++pagehelp/Add_Device_Button.png" style="padding-left:4px; padding-right:4px"/>(Add Devices). From here, you can:
 
 <ul>
  <li>Add a single device</li>
@@ -119,7 +119,7 @@ The Devices page is divided into two main areas. The<em style="padding-left:4px;
 
 <p>To view details for a single device, click the device name in the list to display its overview page, and then make a selection from the left panel.</p>
 
-<p>The<img src="/++resource++pagehelp/Action_Menu.png" style="padding-left:4px; padding-right:4px"/>(Action menu) is located at the bottom left of the page. Options available here vary depending on your selection. Some of the tasks you can initiate here include:
+<p>The<img src="++resource++pagehelp/Action_Menu.png" style="padding-left:4px; padding-right:4px"/>(Action menu) is located at the bottom left of the page. Options available here vary depending on your selection. Some of the tasks you can initiate here include:
 
 <ul>
  <li>Bind templates</li>
@@ -138,16 +138,16 @@ The Devices page is divided into two main areas. The<em style="padding-left:4px;
 <p>The Reports list appears in the tree view. Expand a list item to see available reports in that category.</p>
 
 <p><strong>Organizing Reports</strong><br />
-You can organize reports and report organizers by dragging and dropping them in the tree view. To create a report organizer, select Add Report Organizer from<img src="/++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>(Add Menu).</p>
+You can organize reports and report organizers by dragging and dropping them in the tree view. To create a report organizer, select Add Report Organizer from<img src="++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>(Add Menu).</p>
 
 <p><strong>Adding, Editing, and Deleting Reports</strong><br />
-New Custom Device, Graph, and Multi-Graph reports can be created by clicking<img src="/++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>(Add Menu) and selecting "Add Custom Device Report...", "Add Graph Report...", or "Add Multi-Graph Report," respectively.</p>
+New Custom Device, Graph, and Multi-Graph reports can be created by clicking<img src="++resource++pagehelp/Add_Menu.png" style="padding-left:4px; padding-right:4px"/>(Add Menu) and selecting "Add Custom Device Report...", "Add Graph Report...", or "Add Multi-Graph Report," respectively.</p>
 
-<p>A report can be deleted by selecting it in the tree, and clicking<img src="/++resource++pagehelp/Delete.png" style="padding-left:4px; padding-right:4px"/>(Delete Button).</p>
+<p>A report can be deleted by selecting it in the tree, and clicking<img src="++resource++pagehelp/Delete.png" style="padding-left:4px; padding-right:4px"/>(Delete Button).</p>
 
-<p>A report can be edited by selecting it in the tree, and clicking<img src="/++resource++pagehelp/EditReport.png" style="padding-left:4px; padding-right:4px"/>(Edit Button).</p>
+<p>A report can be edited by selecting it in the tree, and clicking<img src="++resource++pagehelp/EditReport.png" style="padding-left:4px; padding-right:4px"/>(Edit Button).</p>
 
-<p>A report organizer can be added to a zenpack by selecting it in the tree and clicking<img src="/++resource++pagehelp/Add.png" style="padding-left:4px; padding-right:4px"/>(Add to Zenpack).</p>
+<p>A report organizer can be added to a zenpack by selecting it in the tree and clicking<img src="++resource++pagehelp/Add.png" style="padding-left:4px; padding-right:4px"/>(Add to Zenpack).</p>
 
 <p><strong>Exporting Reports</strong><br />
 You can export data from any report as a comma-separated value<tt style="padding-left:4px; padding-right:4px">(.csv)</tt>file. Click<strong style="padding-left:4px; padding-right:4px">Export All</strong>(located at the bottom of a report).</p>

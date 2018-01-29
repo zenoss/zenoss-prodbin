@@ -1,11 +1,11 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css"
-            href="/++resource++extjs/resources/css/ext-all.css" />
+            href="++resource++extjs/resources/css/ext-all.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />
+            href="++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zenoss.css" />
+            href="++resource++zenui/css/zenoss.css" />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>

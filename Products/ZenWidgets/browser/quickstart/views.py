@@ -242,7 +242,7 @@ class DeviceAddView(BrowserView):
                 )
 
         audit('UI.Device.Autodiscovery', networks=','.join(nets), ipRanges=','.join(ranges))
-        response.redirect('/zport/dmd')
+        response.redirect('cse/zport/dmd')
         return response
 
 
@@ -298,5 +298,5 @@ class DeviceAddView(BrowserView):
                 cgi.escape(', '.join(filter(None, devnames)))
             )
         )
-        response.redirect('/zport/dmd')
+        response.redirect('cse//zport/dmd')
         return response

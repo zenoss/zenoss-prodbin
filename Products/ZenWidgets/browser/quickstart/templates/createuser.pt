@@ -16,7 +16,7 @@ same form you'll find on the main login page, only we set the value
 of the fields via javascript once we get notification of successful
 user creation from the server.                                  -->
 <form id="loginform" method="POST"
-    action="/zport/acl_users/cookieAuthHelper/login">
+    action="/cse/zport/acl_users/cookieAuthHelper/login">
     <input type="hidden" name="came_from" id="came_from"
     tal:attributes="value here/absolute_url_path"/>
     <input id="login_username" type="hidden" name="__ac_name" />

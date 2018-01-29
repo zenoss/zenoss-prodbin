@@ -57,20 +57,20 @@
                         items: [{
                             xtype: 'wizardstep',
                             stepNumber: 1,
-                            iconPath: '/++resource++zenui/img/users.png',
+                            iconPath: '++resource++zenui/img/users.png',
                             stepTitle: _t('Setup Users'),
                             stepDescription: _t('Set the admin password and create your user account.')
                         },{
                             xtype: 'wizardstep',
                             stepNumber: 2,
-                            iconPath: '/++resource++zenui/img/networks.png',
+                            iconPath: '++resource++zenui/img/networks.png',
                             stepTitle: _t('Network Discovery'),
                             stepDescription: _t('Discover devices to monitor.')
                         },{
                             xtype: 'wizardstep',
                             stepNumber: 3,
                             style: { margin: "0 0 20px 0" },
-                            iconPath: '/++resource++zenui/img/monitoring.png',
+                            iconPath: '++resource++zenui/img/monitoring.png',
                             stepTitle: _t('Add Infrastructure'),
                             stepDescription: _t('Manually add the devices in your infrastructure.')
                         }]
