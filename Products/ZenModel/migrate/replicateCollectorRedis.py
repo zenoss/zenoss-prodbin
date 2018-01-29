@@ -37,10 +37,13 @@ class ReplicateCollectorRedis(Migrate.Step):
             and not svc.name == 'zminion'])
 
         collectorRedises = [svc for svc in svcs if svc.name == 'collectorredis']
+        ignoreDaemonList = ['RabbitMQ-Ceilometer',]
 
         changed = False
 
         for daemon in daemons:
+            if daemon.name in ignoreDaemonList:
+                continue
             try:
                 collectorRedisEndpoint = ([
                     endpoint for endpoint in daemon.endpoints
