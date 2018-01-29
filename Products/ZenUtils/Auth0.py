@@ -52,6 +52,14 @@ def publicKeysFromJWKS(jwks):
         public_keys[key['kid']] = public_key
     return public_keys
 
+def getQueryArgs(request):
+    query_args = {}
+    for arg in request.QUERY_STRING.split('&'):
+        parts = arg.split('=')
+        if len(parts) == 2:
+            query_args[parts[0]] = parts[1]
+    return query_args
+
 def manage_addAuth0(context, id, title=None, REQUEST=None):
 
     obj = Auth0(id, title)
@@ -67,6 +75,7 @@ class Auth0(BasePlugin):
     """
 
     meta_type = 'Auth0 plugin'
+    cache = {}
 
     def __init__(self, id, title=None):
         self._id = self.id = id
@@ -79,14 +88,7 @@ class Auth0(BasePlugin):
                 return None
             return auth.split()[-1]
 
-        def getTokenFromQuery():
-            for arg in request.QUERY_STRING.split('&'):
-                parts = arg.split('=')
-                if len(parts) == 2 and parts[0] == 'idToken':
-                    return parts[1]
-            return None
-
-        auth = getTokenFromHeader() or getTokenFromQuery()
+        auth = request.get('__macaroon') or getTokenFromHeader() or getQueryArgs(request).get('idToken', None)
         if auth is None:
             return {}
         return {'token': auth}
@@ -103,12 +105,15 @@ class Auth0(BasePlugin):
         kid = jwt.get_unverified_header(credentials['token'])['kid']
 
         # get the public keys from the jwks
-        jwks = getJWKS(AUTH0_JWKS_LOCATION)
-        keys = publicKeysFromJWKS(jwks)
+        keys = self.cache.get('keys', None)
+        if keys is None:
+            jwks = getJWKS(AUTH0_JWKS_LOCATION)
+            keys = publicKeysFromJWKS(jwks)
+            self.cache['keys'] = keys
 
         # if the kid from the jwt isn't in our keys, bail
-        key = keys.get(kid)
-        if key == None:
+        key = keys.get(kid, None)
+        if key is None:
             return None
 
         payload = jwt.decode(credentials['token'], key, verify=True,
@@ -124,7 +129,6 @@ class Auth0(BasePlugin):
         userid = payload['sub'].encode('utf8').split('|')[-1]
 
         print "Auth0: authenticateCredentials userid:", userid
-
         return (userid, userid)
 
     def challenge(self, request, response):

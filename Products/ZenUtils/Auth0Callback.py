@@ -7,7 +7,8 @@
 #
 ##############################################################################
 from Products.Five.browser import BrowserView
-from .Auth0 import AUTH0_CLIENT_ID
+from .Auth0 import AUTH0_CLIENT_ID, getQueryArgs
+import httplib
 
 class Auth0Callback(BrowserView):
     """
@@ -24,6 +25,19 @@ class Auth0Callback(BrowserView):
     - Read in Domain and Client ID from config
     """
     def __call__(self):
+        # req = self.request
+        # resp = req['RESPONSE']
+        # code = getQueryArgs(req).get('code', '')
+        #
+        # data = "{\"grant_type\":\"authorization_code\",\"client_id\": \"cTxVLXKTNloQv1GN9CSRAds5C4PpTkac\",\"client_secret\": \"eh2qKYqug176yr44l647ugkkyzonfWfXGSjMn2h4kP8_EbNv6L1xvMDFUUNTd_ql\",\"code\": \"%s\",\"redirect_uri\": \"https://zenoss5.zenoss-1423-ld/zport/callback\"}" % code
+        # headers = {"content-type": "application/json"}
+        # conn = httplib.HTTPSConnection("zenoss-dev.auth0.com")
+        # conn.request('POST', '/oauth/token', data, headers)
+        # response = conn.getresponse()
+        # data = response.read()
+        # print "AUTH0 CALLBACK DATA:\n%s" % data
+        # return data
+
         return """<!DOCTYPE html>
 <html>
   <head>
@@ -39,8 +53,8 @@ class Auth0Callback(BrowserView):
         }).parseHash({nonce: "abcd1234"}, function (err, authResult)  {
             console.log("AUTH RESULT", authResult);
             if (authResult && authResult.accessToken && authResult.idToken) {
-                console.log(authResult.idToken);
-                window.location ="https://zenoss5.zenoss-1423-ld/zport/dmd?idToken="+authResult.idToken;
+                console.log(authResult);
+                window.location ="https://zenoss5.zenoss-1423-ld/zport/Auth0Login?idToken="+authResult.idToken;
             } else if(err){
                 console.error(err);
             } else {
@@ -54,3 +68,18 @@ class Auth0Callback(BrowserView):
   </body>
 </html>
 """ % ("zenoss-dev.auth0.com", AUTH0_CLIENT_ID)
+
+class Auth0Login(BrowserView):
+    """
+    """
+    cookieName = '__macaroon'
+    def __call__(self):
+        query_args = getQueryArgs(self.request)
+        token = query_args.get('idToken', None)
+        came_from = query_args.get('came_from', '')
+        if token is None:
+            self.request.response.setStatus(401)
+            self.request.response.write( "Missing Id Token")
+
+        self.request.response.setCookie(self.cookieName, token)
+        return self.request.response.redirect(came_from or 'https://zenoss5.zenoss-1423-ld/zport/dmd')

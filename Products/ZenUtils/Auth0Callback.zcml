@@ -10,4 +10,11 @@
     permission="zope2.Public"
     />
 
+<browser:page
+    name="Auth0Login"
+    for="*"
+    class=".Auth0Callback.Auth0Login"
+    permission="zope2.Public"
+    />
+
 </configure>
