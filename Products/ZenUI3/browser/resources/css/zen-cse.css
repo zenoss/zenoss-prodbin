@@ -1,0 +1,1284 @@
+/* color palette
+
+light blue #b6cbe4
+dark blue links #8cacd4
+bright blue #89c5fa
+
+light text: #fafafa
+dark text: #333
+
+filter & button backgrounds #f4f4f4
+
+*/
+
+
+html.z-cse {
+    background-color: #fafafa;
+    background-image: linear-gradient(120deg, #ccc 0%,#fafafa 100%);
+}
+html.z-cse.z-cse-dark {
+    background-color: #4b4b4c;
+    background-image: linear-gradient(155deg, #444 0%,#222 100%);
+}
+
+
+/*
+    ================
+    TRANSPARENCY
+    ================
+*/
+
+/* zenoss.css */
+.z-cse #controls_panel ~ p.message,
+.z-cse .search-result,
+.z-cse .z-cse .x-grid-filter,
+.z-cse .x-grid-filter .x-panel-body,
+.z-cse .x-grid-filter td,
+.z-cse .filterbox-left,
+.z-cse .filterbox-right,
+.z-cse .filterbox-middle,
+.z-cse div.zentable-body,
+.z-cse .odd,
+.z-cse .odd a.tablevalues,
+.z-cse .odd td.tablevalues,
+.z-cse table.innerzentable .odd td.tablevalues,
+.z-cse .tableheader,
+.z-cse .tablevalues,
+.z-cse .z-bc div.tabletitlecontainer,
+.z-cse table.innerzentable,
+.z-cse th.tableheaderselected,
+.z-cse th.tableheader,
+.z-cse div.tabletitle-left,
+.z-cse div.tabletitle-right,
+.z-cse #breadCrumbPane,
+.z-cse .evdetail-sep
+{ background-image: none; background-color: transparent; }
+.z-cse .user-prefs-cell,
+.z-cse .user-prefs-cell div:first-child,
+.z-cse #job_detail_panel-body,
+.z-cse #resetPasswordForm div:first-child,
+.z-cse #master_panel .x-toolbar-default,
+.z-cse #device_overview-body .device-overview-form,
+.z-cse .device-overview-form-wrapper
+{ background-image: none !important; background-color: transparent !important; }
+
+
+/* zenui3.css */
+.z-cse #footer,
+.z-cse #primarynav li.nav-item-active .sd-left,
+.z-cse #primarynav li.nav-item-active .sd-right,
+.z-cse #secondarynav li.nav-item-active .sd-left,
+.z-cse #secondarynav li.nav-item-active .sd-right
+{ background-image: none; background-color: transparent; }
+.z-cse #primarynav li.nav-item-active a,
+.z-cse #secondarynav li.nav-item-active a
+{ background-image: none; background-color: transparent; }
+
+.z-cse .x-panel-dd-spacer  /* dashboard portlet drop target */
+{ background-image: none !important; background-color: rgba(255,255,255,0.4) !important; }
+
+/* CodeMirror.css */
+.z-cse .CodeMirror-gutters,
+.z-cse .CodeMirror
+{ background-image: none; background-color: transparent; }
+.z-cse #configs-body > .x-panel
+{ background-image: none !important; background-color: transparent !important; }
+
+/* xtheme-zenoss.css */
+.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
+.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
+.z-cse.x-menu-item-separator,
+.z-cse .x-btn-default-small .x-btn-inner,
+.z-cse #newTabsPane ul li a:hover ,
+.z-cse #templateTree .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
+.z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
+.z-cse .x-grid-group-hd .x-grid-cell-inner,
+.z-cse .x-boundlist,
+.z-cse .x-form-item-label,
+.z-cse .x-border-layout-ct,
+.z-cse #newTabsPane ul li.selected a,
+.z-cse .x-panel-header-default-framed-top,
+.z-cse #evdetail_bd-body #log-container,
+.z-cse .x-panel-default-framed,
+.z-cse .x-panel-body-default-framed,
+.z-cse #processForm .x-toolbar-footer,
+.z-cse #serviceForm .x-toolbar-footer,
+.z-cse .x-btn-arrowslide-toolbar-small .x-btn-icon,
+.z-cse .x-panel-header-default,
+.z-cse .x-grid-row .x-grid-cell,
+.z-cse .x-grid .x-grid-header-ct,
+.z-cse #dataSourceTreeGrid .x-grid-header-ct,
+.z-cse .x-toolbar-default,
+.z-cse .x-panel-body-default,
+.z-cse .x-toolbar-large,
+.z-cse body
+{ background-image: none; background-color: transparent; }
+.z-cse #trigger-master_panel,
+.z-cse #trigger-master_panel-body,
+.z-cse .x-grid .x-grid-row-selected .x-grid-cell,
+.z-cse .x-grid .x-grid-row-selected .x-grid-rowwrap-div,
+.z-cse #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell,
+.z-cse #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div,
+.z-cse #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner,
+.z-cse #deviceDetailNav .x-grid-row-focused .x-grid-cell-inner,
+.z-cse #masterDetailNav .x-grid-row-selected .x-grid-cell-inner,
+.z-cse #masterDetailNav .x-grid-row-focused .x-grid-cell-inner,
+.z-cse #master_panel .x-panel-body,
+.z-cse .commonlivegridinfopanel,
+.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-cell,
+.z-cse #master_panel .x-panel-body-hierarchy,
+.z-cse #master_panel #templateTree
+{ background-image: none !important; background-color: transparent !important; }
+
+    /* grids may have image backgrounds but set color to transparent */
+    .z-cse .x-grid-row-selected .x-grid-cell-inner,
+    .z-cse .x-grid-row-selected span,
+    .z-cse .x-grid-row-focused .x-grid-cell-inner,
+    .z-cse .x-grid-row-focused span
+    { background-color: transparent !important; }
+    .z-cse .x-grid-row .x-grid-cell-inner span.status-icon-small-cleared {
+        background-color: rgba(255,255,255,0.15) !important;
+        border-radius: 14px;
+        width: 14px;
+    }
+
+/* backcompat.css */
+.z-cse .z-bc .zentable-modified .tabletitle-center,
+.z-cse .z-bc .zenportlet .tabletitle-center,
+.z-cse .z-bc .z-bc-content-pane,
+.z-cse .z-bc #contentPaneContainer,
+.z-cse .z-bc #newTabsPane,
+.z-cse .z-bc .z-bc-tab-pane
+{ background-image: none; background-color: transparent; }
+
+/* enterprise.css */
+.z-cse #header .bg .bg-tile,
+.z-cse #header .bg .bg-leftcap
+{ background-image: none; background-color: transparent; }
+
+/* dependencyview.css */
+.z-cse .dependencyGraphPanel>.x-panel-body
+{ background-image: none; background-color: transparent; }
+
+/* network_map.css */
+.z-cse #controls_panel
+{ background-image: none; background-color: rgba(255,255,255,0.4); border: 0; }
+
+/* rm status pipeline */
+.z-cse .pipeline
+{ background-color: transparent; }
+.z-cse .rmmstatus .arrow-group .arrow {
+    transform: scale(0.5,0.55);
+}
+
+
+/*
+================
+BYE BYE BORDERS
+================
+*/
+
+.z-cse input[type="button"],
+.z-cse input[type="submit"],
+.z-cse input[type="reset"],
+.z-cse input[type="file"]::-webkit-file-upload-button,
+.z-cse button,
+.z-cse .nvtooltip,
+.z-cse .x-monthpicker-item a,
+.z-cse .x-monthpicker-item a.x-monthpicker-selected,
+.z-cse .search-result th,
+.z-cse .x-menu-item-active .x-menu-item-link,
+.z-cse .device-overview-form-wrapper,
+.z-cse .x-grid-group-hd .x-grid-cell-inner,
+.z-cse .x-boundlist-item,
+.z-cse div.zentable-body,
+.z-cse .z-bc .zentable-modified .tabletitle-center,
+.z-cse .z-bc .zenportlet .tabletitle-center,
+.z-cse .tablevalues,
+.z-cse .x-panel-default-framed,
+.z-cse #breadCrumbPane,
+.z-cse table.innerzentable td.tablevalues,
+.z-cse .x-toolbar-default,
+.z-cse .x-grid-with-row-lines .x-grid-cell,
+.z-cse .x-panel .x-grid-body,
+.z-cse .x-grid-row-selected .x-grid-cell,
+.z-cse .x-grid-row-selected .x-grid-rowwrap-div
+{ border: 0; border-radius: 0; }
+.z-cse .x-boundlist,
+.z-cse .largetoolbar.devdetailbar,
+.z-cse #processForm .x-docked-bottom,
+.z-cse #serviceForm .x-docked-bottom,
+.z-cse .x-panel .x-panel-header-default-framed-top,
+.z-cse #dataSourceTreeGrid .x-grid-row .x-grid-cell,
+.z-cse #thresholdGrid .x-grid-row .x-grid-cell,
+.z-cse #graphGrid .x-grid-row .x-grid-cell,
+.z-cse .password-split,
+.z-cse .user-prefs-cell,
+.z-cse .user-prefs-cell div,
+.z-cse .commonlivegridinfopanel
+{ border: 0 !important; border-radius: 0; }
+
+/* search fields & filters */
+
+    /* clean out cruft */
+    .z-cse .x-grid-filter,
+    .z-cse .x-form-text,
+    .z-cse textarea.x-form-field,
+    .z-cse .searchfield-black-mc .x-form-text,
+    .z-cse .searchfield-black-ml,
+    .z-cse .searchfield-black-mc,
+    .z-cse .searchfield-black-mr,
+    .z-cse .searchfield-mc .x-form-text,
+    .z-cse .searchfield-ml,
+    .z-cse .searchfield-mc,
+    .z-cse .searchfield-mr
+    { background-image: none; background-color: transparent; border: 0; }
+
+    /*
+    ================
+    INPUT FIELDS AND FILTERS
+    ================
+    */
+
+    /* buttons inputs and text areas ==theme-based=== */
+    .z-cse textarea.x-form-field,
+    .z-cse .x-btn-arrowslide-toolbar-small,
+    .z-cse select,
+    .z-cse .tablevalues.select,
+    .z-cse .x-btn-default-small,
+    .z-cse .x-btn-default-small-disabled,
+    .z-cse .x-btn-default-toolbar-small,
+    .z-cse .x-btn-default-toolbar-small-disabled,
+    .z-cse input[type="password"],
+    .z-cse input[type="submit"],
+    .z-cse input[type="reset"],
+    /* .z-cse button, */
+    .z-cse table.x-form-item input[type=text],
+    .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
+    .z-cse #center_panel-body .x-toolbar-docked-top input[type=text],
+    .z-cse #ldapConfigDropDown input[type=text],
+    .z-cse #edit_panel-body input[type=text],
+    .z-cse #edit_panel-body input[type=password],
+    .z-cse input.tablevalues,
+    .z-cse #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse #man_center_panel > .x-toolbar .x-form-item,
+    .z-cse #app-portal > .x-toolbar .x-form-item-body,
+    .z-cse #propList input[type=text],
+    .z-cse #network_map_form-body input[type=text],
+    .z-cse #network_map_form-body textarea,
+    .z-cse #serviceForm-body input[type=text],
+    .z-cse #serviceForm-body textarea,
+    .z-cse #processForm-body input[type=text],
+    .z-cse #processForm-body textarea,
+    .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
+    .z-cse #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
+    { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    /* no backgrounds on checkboxes */
+    .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
+    { background-color: transparent; }
+
+    /* masthead */
+    .z-cse #header {
+        background-color: #444;
+        padding: 2px 0 14px;
+    }
+    /* filter backgrounds */
+    .z-cse .x-boundlist-floating .x-boundlist-list-ct
+    { background-image: none; background-color: #eee; }
+    /* main search result list hover */
+    .z-cse .x-boundlist-item-over
+    { background-image: none; background-color:  #b6cbe4; }
+
+    /* filter coloring */
+    .z-cse #contentPaneContainer .filterbox,
+    .z-cse #component_searchfield-inputEl
+    /* .z-cse .x-grid-filter .x-form-field, */
+    { background-image: none; background-color: #c1c1c1; border: 0; }
+
+    /* main search sprite background */
+    .z-cse #searchbox-container .x-form-trigger
+    { background-color: rgba(255,255,255,0.4); }
+
+
+    /* grid highlighting */
+    .z-cse .x-grid-row-over,
+    .z-cse #trigger-master_panel .x-grid-row-over,
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over,
+    .z-cse #templateTree .x-grid-row-over
+    { background-image: none; background-color: #b6cbe4 !important; }
+    .z-cse .x-grid-row-selected,
+    .z-cse .x-grid-row-focused
+    { background-image: none; background-color: #8cacd4 !important; }
+    .z-cse .x-grid-row-over .x-grid-cell-inner a
+    { color: #fafafa; }
+
+    /* zebra striping */
+
+
+    /* zebra striping */
+    .z-cse #contentPaneContainer table tr.even,
+    .z-cse tr.x-grid-row-alt {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+    .z-cse .x-grid-with-row-lines .x-grid-cell-inner {
+        line-height: 20px;
+        padding: 2px 6px;
+    }
+
+    /* tips */
+    .z-cse .x-tip
+    { border: 0; border-radius: 0; }
+
+    /* flares to bottom of screen */
+    .z-cse .x-flare
+    { background-color: #cdf856; border: 0; bottom: 30px !important; top: auto !important; }
+    .z-cse .x-flare .x-flare-message {
+        margin-top: 2px;
+    }
+    .z-cse .x-flare .x-flare-icon {
+        margin-top: 8px;
+    }
+    .z-cse .x-flare-header .x-tool {
+        top: 11px !important;
+    }
+
+    .z-cse div.europagraph {
+        background-image: none;
+        box-shadow: none;
+        border: 1px solid rgba(0,0,0,0.15);
+        background-color: #f4f4f4;
+    }
+
+    /* dropdown icons */
+    .z-cse .x-form-trigger
+    {
+        background-color: #777;
+        border: 0;
+    }
+        .z-cse .x-form-trigger-over,
+        .z-cse .x-form-trigger:hover
+        {
+            background-color: #7a7a7a;
+        }
+        .z-cse .x-form-arrow-trigger,
+        .z-cse .x-form-date-trigger {
+            background-image: url('../img/xtheme-zenoss/form/trigger.gif');
+            background-position: -102px 0 !important;
+        }
+
+
+    /*
+    ================
+    FLAT
+    ================
+    */
+
+    /* table headers == theme-sensitive == */
+    .z-cse .x-grid .x-column-header,
+    .z-cse #dataSourceTreeGrid .x-column-header,
+    .z-cse #LoadedZenPacks th,
+    .z-cse #Users th,
+    .z-cse #Groups th,
+    .z-cse #DefineCommands th,
+    .z-cse .x-panel .x-panel-header-default-framed-top,
+    .z-cse #jobs .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #backcompat-layout-panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #device_grid .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #master_panel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #detailCardPanel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #class_center_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #notifications_panel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #NetworkDetailCardPanel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
+    { background-image: none; background-color: #ccc; border: 0; border-radius: 0; }
+
+    /* event rainbow */
+    .z-cse .largetoolbar table.eventrainbow
+    { border: 0; }
+
+    /* lose the shadows */
+    .z-cse .x-window-closable,
+    .z-cse .x-window-default
+    .z-cse div.europagraph,
+    .z-cse .x-docked-top,
+    .z-cse .x-panel-header-default
+    { border-radius: 0; box-shadow: none; }
+
+    /* really, really lose the shadows */
+    .z-cse .x-css-shadow
+    { box-shadow: none !important; }
+
+    /* tabs */
+    .z-cse .x-tab-bar-body,
+    .z-cse .x-tab-bar,
+    .z-cse .x-tab-bar-strip-default,
+    .z-cse .x-tab-bar-strip-default-plain,
+    .z-cse .x-tab-default-top
+    { background-color: transparent; background-image: none; border: 0 !important; box-shadow: none; }
+    .z-cse .x-tab
+    { background-color: #f4f4f4; background-image: none; border: 0; border-radius: 0; }
+    .z-cse .x-tab-top-active .x-tab-inner
+    { color: #fafafa; }
+
+    /* extra classes added to prevent dark theme override */
+    .z-cse .x-btn.x-btn-default-small-over.over,
+    .z-cse .x-btn.x-btn-default-toolbar-small-over.over
+    { background-color: #b6cbe4; }
+        .z-cse .x-btn-default-small-over span,
+        .z-cse .x-btn-default-toolbar-small-over span
+        { color: #fafafa; }
+        .z-cse .x-btn-default-small-over button,
+        .z-cse .x-btn-default-toolbar-small-over button
+        { background-color: transparent; }
+
+
+    /* popup dialog buttons */
+    .z-cse .x-btn-dialog-dark-small
+    {  background-image: none; background-color: #b2afaf; border: 0; border-radius: 3px; }
+        .z-cse .x-btn.x-btn-dialog-dark-small-over.over
+        { background-color: #b6cbe4; }
+        .z-cse .x-btn-dialog-dark-small span
+        { color: #4b4b4c; text-transform: capitalize; }
+        .z-cse .x-btn.x-btn-dialog-dark-small-over.over span
+        { color: #fafafa; }
+
+
+    /* button separators */
+    .z-cse .x-toolbar .x-toolbar-separator-horizontal
+    { opacity: 0; }
+
+    /* context menus */
+    .z-cse .x-menu-body
+    { background-color: #eee !important; }
+    .z-cse .x-menu-item-link
+    { background-color: transparent; background-image: none; border: 0; border-radius: 0; }
+    .z-cse .x-menu-item-active
+    { background-color: #b6cbe4; background-image: none; border: 0; border-radius: 0; }
+        .z-cse .x-menu-item-active a
+        { color: #eee; }
+    /* context menu separator */
+    .z-cse .x-menu-icon-separator
+    { opacity: 0; }
+    /* refresh every header */
+    .z-cse .refreshevery {
+        background-color: #ccc;
+    }
+    .z-cse .refreshevery a .x-menu-item-text {
+        top: -3px;
+        color: #fafafa !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+    }
+
+    /* infrastructure | network map */
+    .z-cse #network_map_form {
+        background-color: #ccc;
+    }
+
+    /* infrastructure | devices | dependency view */
+    .z-cse .x-grid-group-hd {
+        background-color: #ccc;
+    }
+
+    /*
+    ================
+    FONTS
+    ================
+    */
+
+    /* lose the shadows */
+    .z-cse .x-grid .x-column-header,
+    .z-cse #dataSourceTreeGrid .x-column-header
+    { text-shadow: none; }
+
+    /* no bold for now */
+    .z-cse #device_modeler_plugins label,
+    .z-cse .transform-headers,
+    .z-cse .x-grid .unacknowledged div,
+    .z-cse #dataSourceTreeGrid .unacknowledged div,
+    .z-cse #modeler_plugins label.x-component,
+    .z-cse #job_detail_panel-body a,
+    .z-cse .x-window-header-text-default,
+    .z-cse .devdetailbar .devdetail-devname,
+    .z-cse .x-panel-header-text-default-framed,
+    .z-cse h2,
+    .z-cse .evdetail_props td.dt,
+    .z-cse #manufacturer_info,
+    .z-cse .consolebar .x-toolbar-text,
+    .z-cse .refreshevery,
+    .z-cse .search-result th,
+    .z-cse .x-fieldset-header,
+    .z-cse .x-tab button,
+    .z-cse div.tabletitle-center,
+    .z-cse .tabletitletext,
+    .z-cse .livegridinfopanel,
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header .x-form-display-field,
+    .z-cse .subselect-head .x-toolbar-text,
+    .z-cse .x-btn-arrowslide-toolbar-small span,
+    .z-cse .x-tree-panel .rootNode,
+    .z-cse .x-tree-panel .subNode,
+    .z-cse #events_grid .x-grid-row .x-grid-cell-inner,
+    .z-cse .x-btn-default-small .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse #primarynav li.nav-item-active a,
+    .z-cse #secondarynav li.nav-item-active a,
+    .z-cse .x-grid-group-title,
+    .z-cse .x-btn-default-small .x-btn-inner
+    .z-cse #events_grid .x-grid-row .x-grid-cell-inner
+    { font-weight: 400 !important; }
+
+    /* set master font family */
+    .z-cse .search-result,
+    .z-cse .z-bc .zentable-modified .tabletitle-center,
+    .z-cse .tableheader,
+    .z-cse .tabletitletext,
+    .z-cse table.innerzentable td.tablevalues,
+    .z-cse #newTabsPane ul li a,
+    .z-cse .x-panel-header-text-default-framed,
+    .z-cse .detail-form-panel .x-form-field,
+    .z-cse .detail-form-panel .display-field,
+    .z-cse .detail-form-panel .x-form-cb-label,
+    .z-cse .detail-form-panel .x-form-item-label,
+    .z-cse .detail-form-panel .x-fieldset-header-text,
+    .z-cse .node text,
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-grid-empty,
+    .z-cse .x-grid-group-title,
+    .z-cse .nvtooltip,
+    .z-cse .zenfooter_data_number,
+    .z-cse .x-window-header-text-default,
+    .z-cse .x-btn-default-small .x-btn-inner,
+    .z-cse .x-form-item,
+    .z-cse .x-form-field,
+    .z-cse .x-form-display-field,
+    .z-cse .x-grid-row .x-grid-cell,
+    .z-cse .x-grid .x-column-header,
+    .z-cse #dataSourceTreeGrid .x-column-header,
+    .z-cse .x-toolbar .x-toolbar-text,
+    .z-cse #page-help,
+    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-body,
+    .z-cse .zenui3,
+    .z-cse a,
+    .z-cse #primarynav li a,
+    .z-cse #secondarynav li a,
+    .z-cse input,
+    .z-cse textarea,
+    .z-cse select,
+    .z-cse button
+    { font-family: "DejaVu Sans", Purisa; }
+    .z-cse .x-btn-dialog-dark-small span
+    { font-family: "DejaVu Sans", Purisa !important; }
+
+    /* MONOSPACE AREAS */
+    .z-cse #contentPaneContainer table td textarea,
+    .z-cse #contentPaneContainer table td input[type=text],
+    .z-cse #contentPaneContainer table td input[type=password],
+    .z-cse .eventrainbow td,
+    .z-cse .x-flare .x-flare-message,
+    .z-cse .subselect-head .x-toolbar-text,
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse #processForm-body input[type=text],
+    .z-cse #processForm-body textarea,
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header .x-form-display-field,
+    .z-cse .search-result .excerpt,
+    .z-cse #manufacturer_info
+    { font-family: Consolas, monospace; }
+    .z-cse #job_detail_panel-body pre {
+        font-family: Consolas, monospace !important;
+    }
+
+
+    /* underlines on hyperlinks */
+    .z-cse a.z-entity {
+        text-decoration: none !important;
+    }
+
+    .z-cse .search-result .excerpt {
+        font-size: 12px;
+        color: #999;
+    }
+        .z-cse .search-result .excerpt > span {
+            font-size: inherit !important;
+        }
+        .z-cse .search-result .x-combo-list-item th {
+            font-size: 14px;
+            line-height: 22px;
+            color: #999;
+        }
+
+    /* job log */
+    .z-cse #job_detail_panel-body pre {
+        line-height: 16px !important;
+    }
+        .z-cse #job_detail_panel-body a {
+            text-decoration: none;
+        }
+
+    /* device class header */
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header .x-form-display-field
+    { font-size: 14px; line-height: 20px; margin-top: 8px; text-indent: 8px; }
+    .z-cse #device_grid table.eventrainbow {
+        margin-top: 11px;
+    }
+
+    /* events | event classes */
+    .z-cse #class_center_panel .largetoolbar {
+        height: 45px !important;
+        padding-top: 4px;
+    }
+    .z-cse #nav_combo .x-form-arrow-trigger {
+        height: 23px;
+    }
+    .z-cse #class_center_panel #mapping_toolbar {
+        height: 30px;
+        margin-bottom: 8px;
+        padding-top: 0;
+        top: 2px !important;
+    }
+
+    /* events | triggers */
+    .z-cse #triggers_grid_panel > .x-toolbar-docked-top,
+    .z-cse #notifications_panel .x-toolbar-docked-top {
+        padding: 4px 0 6px 6px;
+    }
+
+    /* manufacturer names and links */
+    .z-cse #manufacturer_info
+    {
+        padding-top: 0;
+    }
+        .z-cse #manufacturer_info a
+        {
+            font-size: 12px;
+        }
+
+    /* infrastructure | networks */
+    .z-cse #NetworkDetailCardPanel .largetoolbar {
+        padding: 12px 7px 35px 7px;
+    }
+        .z-cse #NetworkDetailCardPanel .x-grid-with-row-lines {
+            margin-top: 15px;
+        }
+        .z-cse #NetworkDetailCardPanel .x-btn {
+            top: 0 !important;
+            margin-left: 6px;
+        }
+        .z-cse #NetworkDetailCardPanel .x-form-arrow-trigger {
+            height: 23px;
+        }
+        .z-cse #config_property_panel .x-toolbar-docked-top {
+            height: 34px;
+            padding-left: 6px;
+        }
+            .z-cse #config_property_panel .x-grid-header-ct {
+                top: 34px !important;
+            }
+
+    /*
+    ================
+    FONT COLOR
+    ================
+    */
+
+    /* light theme text */
+    .z-cse .storages .stacked-footer strong,
+    .z-cse .rmmstatus .node-stats-group .rate,
+    .z-cse .rmmstatus .pipe .pipe-title,
+    .z-cse .transform-headers,
+    .z-cse .x-grid-empty,
+    .z-cse #controls_panel ~ p.message,
+    .z-cse .x-form-field,
+    .z-cse .x-grid-row .x-grid-cell,
+    .z-cse .graph_title,
+    .z-cse #newTabsPane ul li.selected a,
+    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
+    .z-cse .x-panel-body-default,
+    .z-cse .x-grid .x-column-header-text,
+    .z-cse .detail-form-panel .x-form-display-field,
+    .z-cse .detail-form-panel .display-field,
+    .z-cse .tablevalues,
+    .z-cse .tableheader,
+    .z-cse .tabletitletext,
+    .z-cse #newTabsPane ul li a,
+    .z-cse #manufacturer_info,
+    .z-cse .x-panel-body-default-framed,
+    .z-cse .detail-form-panel .x-form-field,
+    .z-cse .detail-form-panel .display-field,
+    .z-cse .detail-form-panel .x-form-cb-label,
+    .z-cse .detail-form-panel .x-form-item-label,
+    .z-cse .detail-form-panel .x-fieldset-header-text,
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header .x-form-display-field,
+    .z-cse #deviceDetailNav .x-grid-cell-inner,
+    .z-cse #masterDetailNav .x-grid-cell-inner,
+    .z-cse .x-body,
+    .z-cse .x-form-display-field,
+    .z-cse .x-tree-panel .rootNode,
+    .z-cse .x-toolbar .x-toolbar-text,
+    .z-cse .x-panel-body-default
+    { color: #4b4b4c }
+    .z-cse #device_modeler_plugins label,
+    .z-cse #modeler_plugins label.x-component,
+    .z-cse #modeler_plugins .x-form-item-label-top,
+    .z-cse a.tableheaderselected,
+    .z-cse a.tableheader,
+    .z-cse .x-btn-default-small-disabled .x-btn-inner,
+    .z-cse .livegridinfopanel
+    { color: #4b4b4c !important; }
+
+    /* dark text not applicable to light-dark-theming */
+    .z-cse .x-boundlist-item-over,
+    .z-cse .x-form-item-label,
+    .z-cse .x-flare .x-flare-message,
+    .z-cse .x-grid-row-over .x-grid-cell-inner,
+    .z-cse .x-btn-arrowslide-toolbar-small span,
+    .z-cse button,
+    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-btn-default-small-disabled .x-btn-inner,
+    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
+    .z-cse .x-boundlist-floating .x-boundlist-item,
+    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse .x-tree-panel .x-grid-row-over  span,
+    .z-cse .x-menu-item-text
+    { color: #4b4b4c; }
+    .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse #newTabsPane ul li a:hover,
+    .z-cse .x-grid-row-selected .x-grid-cell-inner,
+    .z-cse .x-grid-row-selected span,
+    .z-cse .x-grid-row-focused .x-grid-cell-inner,
+    .z-cse .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner,
+    .z-cse .x-grid-row-selected.x-grid-row-over span,
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
+    { color: #4b4b4c !important; }
+    .z-cse .x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span
+    { color: #4b4b4c !important; }
+
+    /* light text not applicable to dark-theming */
+
+    /* context menus */
+    .z-cse .x-boundlist-floating,
+    .z-cse .x-boundlist-floating .x-boundlist-list-ct,
+    .z-cse .x-menu-body
+    { background-color: #f4f4f4 !important; }
+        .z-cse .x-menu-body .x-menu-item-text,
+        .z-cse .x-boundlist-item,
+        .z-cse .x-window-body-closable label.x-form-item-label,
+        .z-cse .x-window-body-closable label
+        { color: #4b4b4c !important; }
+
+    /* light-theme text links */
+    .z-cse .devdetail-devclass a.z-entity,
+    .z-cse a:link,
+    .z-cse a:visited,
+    .z-cse .x-menu a:link,
+    .z-cse .x-menu a:visited,
+    .z-cse .x-menu a:hover
+    { color: #8cacd4; }
+
+        /* diabled text */
+        .z-cse span.status-unknown,
+        .z-cse span.status-unknown-large,
+        .z-cse .x-btn-default-toolbar-small-disabled .x-btn-inner
+        { color: #aaa !important; }
+
+        /* finished jobs grid hover text */
+        .z-cse #jobs-grid-finished-body .x-grid-row-over a {
+            color: #fafafa;
+        }
+
+    .z-cse #header-extra div a:link,
+    .z-cse #header-extra div a:visited,
+    .z-cse #primarynav li a,
+    .z-cse #primarynav li.nav-item-inactive a,
+    .z-cse #secondarynav li a,
+    .z-cse #secondarynav li.nav-item-inactive a,
+    .z-cse #secondarynav li.nav-item-active a,
+    .z-cse #page-help
+    { color: #aaa; }
+
+    .z-cse #header-extra div a:hover,
+    .z-cse #header-extra div a:hover,
+    .z-cse #primarynav li a:hover,
+    .z-cse #primarynav li.nav-item-inactive a:hover,
+    .z-cse #secondarynav li a:hover,
+    .z-cse #secondarynav li.nav-item-inactive a:hover,
+    .z-cse #secondarynav li.nav-item-active a:hover,
+    .z-cse #page-help:hover
+    { color: #b6cbe4; text-decoration: none; }
+
+    .z-cse .x-btn-arrowslide-toolbar-small:hover
+    { background-color: #b6cbe4 !important; }
+
+
+    .z-cse #primarynav li.nav-item-active a,
+    .z-cse #secondarynav li.nav-item-active a
+    { color: #ec5600 }
+
+
+    .z-cse .x-tip {
+        background-color: #555 !important;
+    }
+    .z-cse .x-tip .x-tip-header-text,
+    .z-cse .x-tip-header,
+    .z-cse .x-tip-body,
+    .z-cse .x-form-invalid-tip-body {
+        color: #fafafa;
+    }
+
+
+    /*
+    ================
+    STRUCTURAL CHANGES
+    ================
+    */
+
+    .z-cse #header {
+        height: auto !important;
+    }
+
+    .z-cse #primarynav {
+        height: 30px;
+        line-height: 30px;
+        margin-top: 8px;
+    }
+        .z-cse #primarynav ul {
+            float: left;
+            margin-left: 9px;
+        }
+        .z-cse #primarynav .sd-left,
+        .z-cse #primarynav .sd-right {
+            padding: 0;
+        }
+        .z-cse #primarynav li a,
+        .z-cse #primarynav li.nav-item-active a {
+            font-size: 16px;;
+            padding: 0 10px;
+            margin: 0;
+        }
+
+    .z-cse #secondarynav {
+        height: 20px;
+        line-height: 20px;
+        margin-top: 0;
+        padding:0;
+    }
+        .z-cse #secondarynav ul {
+            float: left;
+            margin-left: 4px;
+        }
+        .z-cse #secondarynav .sd-left,
+        .z-cse #secondarynav .sd-right {
+            padding: 0;
+        }
+        .z-cse #secondarynav li a,
+        .z-cse #secondarynav li.nav-item-active a {
+            font-size: 12px;;
+            padding: 0 10px;
+            margin: 0;
+        }
+
+    .z-cse #header-extra {
+        right: 15px;
+        top: 4px;
+    }
+
+        .z-cse #searchbox-container {
+            padding-top: 7px;
+        }
+
+        .z-cse #searchbox-container .searchfield-black .x-form-field {
+            font-size: 12px;
+            text-indent: 3px;
+        }
+        .z-cse #user-link-container {
+            font-size: 12px;
+            padding-top: 2px;
+            text-transform: uppercase;
+        }
+        /* move help icon */
+        .z-cse #help-icon-container {
+            margin-left: -26px;
+            margin-top: 31px;
+        }
+
+        .z-cse #page-help {
+            font-size: 12px;
+            right: 67px;
+        }
+
+        .z-cse #sign-out-link {
+            font-size: 12px;
+            padding-top: 2px;
+        }
+
+
+    /* dashboard */
+    .z-cse #center_panel .x-portlet > .x-panel-header {
+        background-color: #777;
+    }
+
+    /* main panel */
+    .z-cse #center_panel .x-panel-header-docked-top,
+    .z-cse #center_panel .largetoolbar {
+        background-color: #ddd;
+    }
+
+    .z-cse .largetoolbar {
+        padding: 0 20px 0 7px;
+    }
+        .z-cse .largetoolbar .eventrainbow td {
+            padding: 0 4px 0 22px;
+        }
+
+    .z-cse .x-grid-table tr:even {
+        background-color: deeppink;
+    }
+
+    .z-cse .x-grid-filter.x-btn button {
+        height: 18px;
+        top: 1px !important;
+    }
+        .z-cse .x-grid-filter.x-btn button span:first-child {
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+    /* infrastructure | processes */
+    .z-cse #processForm fieldset,
+    .z-cse #processForm fieldset legend {
+        padding-left: 0 !important;
+    }
+
+    /* events | classes | dropdown */
+    .z-cse #overriddengrid_id .x-toolbar-docked-top,
+    .z-cse #configpanel_id .x-toolbar-docked-top {
+        padding: 10px;
+    }
+
+    /* events | classes | transforms */
+    .z-cse .transform-headers {
+        display: block;
+    }
+
+    /* infrastructure | network map */
+    #network_map_form button,
+    #network_map_form .x-btn-noicon {
+        width: 60px !important;
+    }
+        #network_map_form button span {
+            width: 50px !important;
+        }
+
+    /* advanced | settings */
+    .z-cse #contentPaneContainer table td {
+        height: 30px;
+    }
+        .z-cse #contentPaneContainer table td textarea,
+        .z-cse #contentPaneContainer table td input[type=text],
+        .z-cse #contentPaneContainer table td input[type=password] {
+            padding: 4px;
+            line-height: 20px;
+        }
+
+    .z-cse #contentPaneContainer .x-form-arrow-trigger {
+        margin-top: 4px;
+    }
+
+    /* date picker */
+    .z-cse table.x-datepicker-inner a:hover,
+    .z-cse table.x-datepicker-inner .x-datepicker-disabled a:hover
+    { background-image: none; background-color: transparent; border: 0; }
+    .z-cse .x-datepicker,
+    .z-cse .x-monthpicker
+    { background-image: none; background-color: #eee; border: 0; }
+    .z-cse table.x-datepicker-inner td
+    { border-color: #eee; }
+    .z-cse .x-datepicker-header,
+    .z-cse table.x-datepicker-inner th,
+    .z-cse .x-datepicker-footer,
+    .z-cse .x-monthpicker-buttons
+    { background-image: none; background-color: #ccc; border: 0; }
+    .z-cse .x-monthpicker-item a
+    { color: #555; }
+    .z-cse .x-datepicker-today,
+    .z-cse .x-monthpicker-item a.x-monthpicker-selected {
+        background-color: #b6cbe4;
+    }
+        .z-cse table.x-datepicker-inner .x-datepicker-today a {
+            background-image: none;
+            background-color: transparent;
+            border: 0;
+            color: #fafafa;
+        }
+    .z-cse .x-datepicker-active:hover,
+    .z-cse .x-monthpicker-item a:hover {
+        background-color: #ddd;
+    }
+
+    .z-cse .x-panel-hierarchy .x-grid-body {
+        padding-top: 0;
+        padding-bottom: 6px;
+    }
+        /* device filter */
+        .z-cse #master_panel .x-hierarchy-search {
+            height: 23px !important;
+            left: 10px !important;
+            margin-top: 1px !important;
+            top: 10px !important;
+        }
+        .z-cse #master_panel .x-hierarchy-search input[type=text] {
+            height: 23px !important;
+            width: calc(100% - 20px) !important;
+        }
+        .z-cse #master_panel table.x-hierarchy-search ~ .x-panel-hierarchy {
+            padding-top: 15px !important;
+        }
+
+        .z-cse .x-btn-arrowslide-toolbar-small {
+            border-radius: 3px;
+            margin-left: 10px !important;
+            top: 13px !important;
+        }
+            .z-cse .x-btn-arrowslide-toolbar-small button {
+                border-radius: 4px;
+                height: 20px !important;
+            }
+            .z-cse .x-btn-arrowslide-toolbar-small .x-btn-inner {
+                line-height: 20px !important;
+                padding: 0 6px;
+                text-transform: capitalize;
+                top: unset;
+            }
+            .z-cse .x-btn-arrowslide-toolbar-small .x-btn-icon {
+                display: none;
+            }
+
+            /* details panel */
+            .z-cse .x-btn-arrowslide-toolbar-small.toleft {
+                margin-left: -5px !important;
+            }
+
+        .z-cse .subselect-head .x-toolbar-text {
+            font-size: 14px;
+            left: 15px !important;
+            top: 14px !important;
+        }
+        .z-cse #masterDetailNav > .x-tree-arrows {
+            margin-top: 30px;
+        }
+        .z-cse #masterDetailNav #detail_nav {
+            height: 185px !important;
+            margin-top: 44px;
+        }
+
+
+
+/* debug -- remove this later */
+.x-mask, .x-mask-msg { display: none !important;}
+
+
+
+/*
+        =====================================================================================
+        DARK THEME
+        =====================================================================================
+*/
+
+
+    /* main panel */
+    .z-cse.z-cse-dark #center_panel .x-panel-header-docked-top,
+    .z-cse.z-cse-dark #center_panel .largetoolbar {
+        background-color: #555;
+    }
+
+    /* buttons inputs and text areas */
+    .z-cse.z-cse-dark textarea.x-form-field,
+    .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-small,
+    .z-cse.z-cse-dark select,
+    .z-cse.z-cse-dark .tablevalues.select,
+    .z-cse.z-cse-dark .x-btn-default-small,
+    .z-cse.z-cse-dark .x-btn-default-small-disabled,
+    .z-cse.z-cse-dark .x-btn-default-toolbar-small,
+    .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled,
+    .z-cse.z-cse-dark input[type="password"],
+    .z-cse.z-cse-dark input[type="submit"],
+    .z-cse.z-cse-dark input[type="reset"],
+    .z-cse.z-cse-dark table.x-form-item input[type=text],
+    .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
+    .z-cse.z-cse-dark #center_panel-body .x-toolbar-docked-top input[type=text],
+    .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
+    .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
+    .z-cse.z-cse-dark #network_map_form-body input[type=text],
+    .z-cse.z-cse-dark #network_map_form-body textarea,
+    .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
+    .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
+    { background-color: #b2afaf; }
+
+    /* darker background for user input */
+    .z-cse.z-cse-dark #edit_panel-body input[type=text],
+    .z-cse.z-cse-dark #edit_panel-body input[type=password],
+    .z-cse.z-cse-dark #propList input[type=text],
+    .z-cse.z-cse-dark input.tablevalues,
+    .z-cse.z-cse-dark #serviceForm-body input[type=text],
+    .z-cse.z-cse-dark #serviceForm-body textarea,
+    .z-cse.z-cse-dark #processForm-body input[type=text],
+    .z-cse.z-cse-dark #processForm-body textarea
+    { background-color: #505050; }
+
+    .z-cse.z-cse-dark .x-grid .x-column-header,
+    .z-cse.z-cse-dark #dataSourceTreeGrid .x-column-header,
+    .z-cse.z-cse-dark #LoadedZenPacks th,
+    .z-cse.z-cse-dark #Users th,
+    .z-cse.z-cse-dark #Groups th,
+    .z-cse.z-cse-dark #DefineCommands th,
+    .z-cse.z-cse-dark .x-panel .x-panel-header-default-framed-top,
+    .z-cse.z-cse-dark #jobs .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #backcompat-layout-panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #device_grid .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #master_panel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #detailCardPanel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #class_center_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #notifications_panel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #NetworkDetailCardPanel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
+    { background-color: #808080; }
+
+    /* hover background */
+    .z-cse.z-cse-dark #newTabsPane ul li a:hover {
+        background-color: #eee !important;
+    }
+
+    /* diabled text */
+    .z-cse.z-cse-dark span.status-unknown,
+    .z-cse.z-cse-dark span.status-unknown-large,
+    .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled .x-btn-inner
+    { color: #eee !important; }
+
+    /* dark theme text */
+    .z-cse.z-cse-dark .storages .stacked-footer strong,
+    .z-cse.z-cse-dark .rmmstatus .node-stats-group .rate,
+    .z-cse.z-cse-dark .rmmstatus .pipe .pipe-title,
+    .z-cse.z-cse-dark .transform-headers,
+    .z-cse.z-cse-dark .x-grid-empty,
+    .z-cse.z-cse-dark #controls_panel ~ p.message,
+    .z-cse.z-cse-dark .x-grid-row .x-grid-cell,
+    .z-cse.z-cse-dark .graph_title,
+    .z-cse.z-cse-dark #newTabsPane ul li.selected a,
+    .z-cse.z-cse-dark .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
+    .z-cse.z-cse-dark .x-panel-body-default,
+    .z-cse.z-cse-dark .x-grid .x-column-header-text,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-display-field,
+    .z-cse.z-cse-dark .detail-form-panel .display-field,
+    .z-cse.z-cse-dark .tablevalues,
+    .z-cse.z-cse-dark .tableheader,
+    .z-cse.z-cse-dark .tabletitletext,
+    .z-cse.z-cse-dark #newTabsPane ul li a,
+    .z-cse.z-cse-dark #manufacturer_info,
+    .z-cse.z-cse-dark .x-panel-body-default-framed,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-cb-label,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-item-label,
+    .z-cse.z-cse-dark .detail-form-panel .x-fieldset-header-text,
+    .z-cse.z-cse-dark .x-panel-header-text-default,
+    .z-cse.z-cse-dark .x-panel-header .x-form-display-field,
+    .z-cse.z-cse-dark #deviceDetailNav .x-grid-cell-inner,
+    .z-cse.z-cse-dark #masterDetailNav .x-grid-cell-inner,
+    .z-cse.z-cse-dark .x-body,
+    .z-cse.z-cse-dark .x-form-display-field,
+    .z-cse.z-cse-dark .x-tree-panel .rootNode,
+    .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
+    .z-cse.z-cse-dark .x-panel-body-default
+    { color: #ccc }
+    .z-cse.z-cse-dark #device_modeler_plugins label,
+    .z-cse.z-cse-dark .x-form-item-label,
+    .z-cse.z-cse-dark #modeler_plugins label.x-component,
+    .z-cse.z-cse-dark #modeler_plugins .x-form-item-label-top,
+    .z-cse.z-cse-dark a.tableheaderselected,
+    .z-cse.z-cse-dark a.tableheader,
+    .z-cse.z-cse-dark .livegridinfopanel
+    { color: #ccc !important; }
+
+    /* brighter text for input fields */
+    .z-cse.z-cse-dark .x-form-field,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-field,
+    .z-cse.z-cse-dark .detail-form-panel .display-field
+    { color: #eee }
+
+
+    /* tooltips */
+    .z-cse.z-cse-dark .x-tip {
+        background-color: #eee !important;
+    }
+    .z-cse.z-cse-dark .x-tip .x-tip-header-text,
+    .z-cse.z-cse-dark .x-tip-header,
+    .z-cse.z-cse-dark .x-tip-body,
+    .z-cse.z-cse-dark .x-form-invalid-tip-body {
+        color: #555;
+    }
+
+    /* jobs poup overrides */
+    .z-cse.z-cse-dark #more-jobs-link-body,
+    .z-cse.z-cse-dark #jobs-grid-finished {
+        background-color: #555;
+    }
+
+    /* zebra striping */
+    .z-cse.z-cse-dark #contentPaneContainer table tr.even,
+    .z-cse.z-cse-dark tr.x-grid-row-alt {
+        background-color: rgba(255,255,255,0.05);
+    }
+
+    /* dark charts */
+    .z-cse.z-cse-dark div.europagraph {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+    /* modeler plugins */
+    .z-cse.z-cse-dark #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist  {
+        background-color: rgba(255,255,255,0.15);
+    }
+
+    /* events | triggers */
+    .z-cse.z-cse-dark .transform-headers,
+    .z-cse.z-cse-dark #classesgrid_id > .x-toolbar-docked-top,
+    .z-cse #config_property_panel .x-toolbar-docked-top,
+    .z-cse.z-cse-dark #overriddengrid_id .x-toolbar-docked-top,
+    .z-cse.z-cse-dark #configpanel_id .x-toolbar-docked-top,
+    .z-cse.z-cse-dark #triggers_grid_panel > .x-toolbar-docked-top,
+    .z-cse.z-cse-dark #notifications_panel .x-toolbar-docked-top {
+        background-color: #555;
+    }
+
+    /* infrastructure | network map */
+    .z-cse.z-cse-dark #network_map_form {
+        background-color: #777;
+    }
+
+    /* infrastructure | manufacturers */
+    .z-cse.z-cse-dark #man_center_panel-body .x-toolbar-docked-top {
+        background-color: #555;
+    }
+
+    /* rm status pipeline */
+    .z-cse.z-cse-dark .rmmstatus .arrow-group .arrow {
+        stroke: #333;
+    }
+
+    /* advanced | cc | config files */
+    .z-cse.z-cse-dark .CodeMirror-lines {
+        background-color: #aaa;
+    }
