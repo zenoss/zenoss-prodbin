@@ -33,6 +33,7 @@ PLUGIN_TITLE = 'Provide auth via Auth0 service'
 AUTH0_CLIENT_ID = 'cTxVLXKTNloQv1GN9CSRAds5C4PpTkac'
 AUTH0_ISSUER = 'https://zenoss-dev.auth0.com/'
 AUTH0_JWKS_LOCATION = 'https://zenoss-dev.auth0.com/.well-known/jwks.json'
+AUTH0_VERSION=1
 
 def getJWKS(jwks_url):
     try:
@@ -60,14 +61,12 @@ def getQueryArgs(request):
             query_args[parts[0]] = parts[1]
     return query_args
 
-def manage_addAuth0(context, id, title=None, REQUEST=None):
-
+def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
     context._setObject(obj.getId(), obj)
 
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
-
+def manage_delAuth0(context, id):
+    context._delObject(id)
 
 class Auth0(BasePlugin):
 
@@ -80,6 +79,7 @@ class Auth0(BasePlugin):
     def __init__(self, id, title=None):
         self._id = self.id = id
         self.title = title
+        self.version = AUTH0_VERSION
 
     def extractCredentials(self, request):
         def getTokenFromHeader():
@@ -200,8 +200,16 @@ def setup(context):
     zport = app.zport
     zport_acl = getToolByName(zport, 'acl_users')
 
-    if hasattr(zport_acl, PLUGIN_ID):
-        return
+    # Check for existing Auth0 plugin
+    existing_auth0 = getattr(zport_acl, PLUGIN_ID, None)
+    if existing_auth0:
+        version = getattr(existing_auth0, 'version', 0)
+        if version == AUTH0_VERSION:
+            # Existing plugin version matches; abort
+            return
+        # Delete existing plugin
+        manage_delAuth0(zport_acl, PLUGIN_ID)
+
 
     manage_addAuth0(zport_acl, PLUGIN_ID, PLUGIN_TITLE)
 
