@@ -13,11 +13,11 @@ filter & button backgrounds #f4f4f4
 */
 
 
-html.z-cse {
+.z-cse {
     background-color: #fafafa;
     background-image: linear-gradient(120deg, #ccc 0%,#fafafa 100%);
 }
-html.z-cse.z-cse-dark {
+.z-cse.z-cse-dark {
     background-color: #4b4b4c;
     background-image: linear-gradient(155deg, #444 0%,#222 100%);
 }
@@ -30,6 +30,7 @@ html.z-cse.z-cse-dark {
 */
 
 /* zenoss.css */
+.z-cse .x-portlet .x-panel-body,
 .z-cse #blackTabs #xform_mapping_panel,
 .z-cse .x-window-body-closable .CodeMirror,
 .z-cse #controls_panel ~ p.message,
@@ -89,6 +90,7 @@ html.z-cse.z-cse-dark {
 { background-image: none !important; background-color: transparent !important; }
 
 /* xtheme-zenoss.css */
+.z-cse .white-background-panel .x-window-body .x-panel-body,
 .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
 .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
 .z-cse.x-menu-item-separator,
@@ -174,7 +176,6 @@ html.z-cse.z-cse-dark {
 .z-cse .rmmstatus .arrow-group .arrow {
     transform: scale(0.5,0.55);
 }
-
 
 /*
 ================
@@ -287,12 +288,6 @@ BYE BYE BORDERS
         background-color: #444;
         padding: 2px 0 14px;
     }
-    /* filter backgrounds */
-    .z-cse .x-boundlist-floating .x-boundlist-list-ct
-    { background-image: none; background-color: #eee; }
-    /* main search result list hover */
-    .z-cse .x-boundlist-item-over
-    { background-image: none; background-color:  #b6cbe4; }
 
     /* filter coloring */
     .z-cse #contentPaneContainer .filterbox,
@@ -305,26 +300,28 @@ BYE BYE BORDERS
     { background-color: rgba(255,255,255,0.4); }
 
 
-    /* grid highlighting */
-    .z-cse .x-grid-row-over,
-    .z-cse #trigger-master_panel .x-grid-row-over,
-    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over,
-    .z-cse #templateTree .x-grid-row-over
-    { background-image: none; background-color: #b6cbe4 !important; }
-    .z-cse .x-grid-row-selected,
-    .z-cse .x-grid-row-focused
-    { background-image: none; background-color: #8cacd4 !important; }
-    .z-cse .x-grid-row-over .x-grid-cell-inner a
-    { color: #fafafa; }
-
-    /* zebra striping */
-
-
     /* zebra striping */
     .z-cse #contentPaneContainer table tr.even,
     .z-cse tr.x-grid-row-alt {
         background-color: rgba(255,255,255,0.15);
     }
+
+    /* grid highlighting */
+    .z-cse .x-boundlist-item-over,
+    .z-cse .x-grid-row-over,
+    .z-cse #trigger-master_panel .x-grid-row-over,
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over,
+    .z-cse #templateTree .x-grid-row-over
+    { background-image: none; background-color: #d2e0f1 !important;}
+    .z-cse .x-grid-row-selected,
+    .z-cse .x-grid-row-focused
+    { background-image: none; background-color: #8cacd4 !important; }
+    /* .z-cse .x-grid-row-over .x-grid-cell-inner a
+    { color: #fafafa; } */
+
+    /* filter backgrounds */
+    .z-cse .x-boundlist-floating .x-boundlist-list-ct
+    { background-image: none; background-color: #eee; }
 
     .z-cse .x-grid-with-row-lines .x-grid-cell-inner {
         line-height: 20px;
@@ -694,6 +691,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse .zenfooter_threshold,
     .z-cse .storages .stacked-footer strong,
     .z-cse .rmmstatus .node-stats-group .rate,
     .z-cse .rmmstatus .pipe .pipe-title,
@@ -740,6 +738,7 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse .zenfooter_value_row:hover td,
     .z-cse #events_griddocked-filter .x-form-item input[type=text],
     .z-cse #device_griddocked-filter .x-form-item input[type=text],
     .z-cse #blackTabs .x-tab button,
@@ -792,7 +791,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:link,
     .z-cse .x-menu a:visited,
     .z-cse .x-menu a:hover
-    { color: #8cacd4; }
+    { color: #8cacd4; color: #70a6ec; color: #89c5fa; }
 
         /* diabled text */
         .z-cse span.status-unknown,
@@ -1198,6 +1197,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark .zenfooter_threshold,
     .z-cse.z-cse-dark .storages .stacked-footer strong,
     .z-cse.z-cse-dark .rmmstatus .node-stats-group .rate,
     .z-cse.z-cse-dark .rmmstatus .pipe .pipe-title,
@@ -1274,11 +1274,21 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark div.europagraph {
         background-color: rgba(255,255,255,0.15);
     }
-
-    /* modeler plugins */
-    .z-cse.z-cse-dark #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist  {
+    /* infrastrucure | devices | < device > | modeler plugins multiselect */
+    .z-cse.z-cse-dark #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
+    .z-cse.z-cse-dark #modeler_plugins table.x-form-fieldcontainer .x-boundlist {
         background-color: rgba(255,255,255,0.15);
     }
+    .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item,
+    .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item {
+            color: #fafafa !important;
+            padding: 4px;
+        }
+        .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item-over,
+        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item-over {
+            color: #4b4b4c !important;
+        }
+
 
     /* events | triggers */
     .z-cse.z-cse-dark .transform-headers,
@@ -1325,4 +1335,10 @@ BYE BYE BORDERS
         color: #eee !important;
     }
 
+    /* portal.css */
+    .z-cse.z-cse-dark .x-window-body-closable .x-portlet.x-panel-closable
+    { background-color: #444; }
 
+    .z-cse.z-cse-dark #app-portal-body div[id^=multigraphreportportlet-].x-panel-body-closable,
+    .z-cse.z-cse-dark #app-portal-body div[id^=openeventsportlet-].x-panel-body-closable
+    { background-color: #777; }
