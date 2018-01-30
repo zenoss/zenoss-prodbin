@@ -5,7 +5,8 @@ dark blue links #8cacd4
 bright blue #89c5fa
 
 light text: #fafafa
-dark text: #333
+dark text: #4b4b4c
+zenoss orange: #ec5600
 
 filter & button backgrounds #f4f4f4
 
@@ -29,6 +30,8 @@ html.z-cse.z-cse-dark {
 */
 
 /* zenoss.css */
+.z-cse #blackTabs #xform_mapping_panel,
+.z-cse .x-window-body-closable .CodeMirror,
 .z-cse #controls_panel ~ p.message,
 .z-cse .search-result,
 .z-cse .z-cse .x-grid-filter,
@@ -53,6 +56,7 @@ html.z-cse.z-cse-dark {
 .z-cse #breadCrumbPane,
 .z-cse .evdetail-sep
 { background-image: none; background-color: transparent; }
+.z-cse .x-window-body-closable .x-resizable-pinned,
 .z-cse .user-prefs-cell,
 .z-cse .user-prefs-cell div:first-child,
 .z-cse #job_detail_panel-body,
@@ -178,6 +182,7 @@ BYE BYE BORDERS
 ================
 */
 
+.z-cse #blackTabs #xform_mapping_panel,
 .z-cse input[type="button"],
 .z-cse input[type="submit"],
 .z-cse input[type="reset"],
@@ -252,10 +257,9 @@ BYE BYE BORDERS
     .z-cse input[type="password"],
     .z-cse input[type="submit"],
     .z-cse input[type="reset"],
-    /* .z-cse button, */
     .z-cse table.x-form-item input[type=text],
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
-    .z-cse #center_panel-body .x-toolbar-docked-top input[type=text],
+    /* .z-cse #center_panel-body .x-toolbar-docked-top input[type=text], */
     .z-cse #ldapConfigDropDown input[type=text],
     .z-cse #edit_panel-body input[type=text],
     .z-cse #edit_panel-body input[type=password],
@@ -495,6 +499,7 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse table b,
     .z-cse #device_modeler_plugins label,
     .z-cse .transform-headers,
     .z-cse .x-grid .unacknowledged div,
@@ -687,6 +692,7 @@ BYE BYE BORDERS
     ================
     */
 
+
     /* light theme text */
     .z-cse .storages .stacked-footer strong,
     .z-cse .rmmstatus .node-stats-group .rate,
@@ -734,6 +740,9 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse #events_griddocked-filter .x-form-item input[type=text],
+    .z-cse #device_griddocked-filter .x-form-item input[type=text],
+    .z-cse #blackTabs .x-tab button,
     .z-cse .x-boundlist-item-over,
     .z-cse .x-form-item-label,
     .z-cse .x-flare .x-flare-message,
@@ -773,9 +782,7 @@ BYE BYE BORDERS
     .z-cse .x-menu-body
     { background-color: #f4f4f4 !important; }
         .z-cse .x-menu-body .x-menu-item-text,
-        .z-cse .x-boundlist-item,
-        .z-cse .x-window-body-closable label.x-form-item-label,
-        .z-cse .x-window-body-closable label
+        .z-cse .x-boundlist-item
         { color: #4b4b4c !important; }
 
     /* light-theme text links */
@@ -798,6 +805,10 @@ BYE BYE BORDERS
             color: #fafafa;
         }
 
+    /* modals */
+    .z-cse .x-window-body-closable .x-panel-header-text-default,
+    .z-cse .x-window-body-closable label.x-form-item-label,
+    .z-cse .x-window-body-closable label,
     .z-cse #header-extra div a:link,
     .z-cse #header-extra div a:visited,
     .z-cse #primarynav li a,
@@ -824,7 +835,7 @@ BYE BYE BORDERS
 
     .z-cse #primarynav li.nav-item-active a,
     .z-cse #secondarynav li.nav-item-active a
-    { color: #ec5600 }
+    { color: #89c5fa; }
 
 
     .z-cse .x-tip {
@@ -996,6 +1007,16 @@ BYE BYE BORDERS
         margin-top: 4px;
     }
 
+    /* events | classes | < class > */
+    .z-cse #blackTabs .x-tab {
+        background-color: #aaa;
+        border: 0;
+        height: auto !important;
+        top: 0 !important;
+        padding: 4px;
+    }
+
+
     /* date picker */
     .z-cse table.x-datepicker-inner a:hover,
     .z-cse table.x-datepicker-inner .x-datepicker-disabled a:hover
@@ -1117,10 +1138,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark input[type="reset"],
     .z-cse.z-cse-dark table.x-form-item input[type=text],
     .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
-    .z-cse.z-cse-dark #center_panel-body .x-toolbar-docked-top input[type=text],
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
     .z-cse.z-cse-dark #network_map_form-body input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
@@ -1129,6 +1148,9 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
+    .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=text],
     .z-cse.z-cse-dark #edit_panel-body input[type=text],
     .z-cse.z-cse-dark #edit_panel-body input[type=password],
     .z-cse.z-cse-dark #propList input[type=text],
@@ -1138,6 +1160,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #processForm-body input[type=text],
     .z-cse.z-cse-dark #processForm-body textarea
     { background-color: #505050; }
+
+    /* extra help for events | event classes dropdown */
+    .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell input[type=text]
+    {
+        background-color: transparent;
+    }
 
     .z-cse.z-cse-dark .x-grid .x-column-header,
     .z-cse.z-cse-dark #dataSourceTreeGrid .x-column-header,
@@ -1282,3 +1310,19 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .CodeMirror-lines {
         background-color: #aaa;
     }
+    /* advanced | jobs */
+    /* events | classes */
+    .z-cse.z-cse-dark .x-window-body-closable .CodeMirror-lines,
+    .z-cse.z-cse-dark .CodeMirror-line {
+        background-color: transparent;
+    }
+
+    /* events | classes | < class modal > | configuration properties modal */
+    .z-cse.z-cse-dark .x-window-body-closable #blackTabs .x-panel-default {
+        background-color: transparent !important;
+    }
+    .z-cse.z-cse-dark .x-window-body-closable #blackTabs .x-grid-cell-inner {
+        color: #eee !important;
+    }
+
+
