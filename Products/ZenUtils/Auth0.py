@@ -18,6 +18,7 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 import json
 import urllib
@@ -30,9 +31,36 @@ TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 
-AUTH0_CLIENT_ID = 'cTxVLXKTNloQv1GN9CSRAds5C4PpTkac'
-AUTH0_ISSUER = 'https://zenoss-dev.auth0.com/'
-AUTH0_JWKS_LOCATION = 'https://zenoss-dev.auth0.com/.well-known/jwks.json'
+AUTH0_CONFIG = {}
+CSE_CONFIG = {}
+
+def getAuth0Conf():
+    if not (AUTH0_CONFIG.get('clientid') and AUTH0_CONFIG.get('tenant') and AUTH0_CONFIG.get('connection')):
+        config = getGlobalConfiguration()
+        AUTH0_CONFIG['clientid'] = config.get('auth0-clientid', 'cTxVLXKTNloQv1GN9CSRAds5C4PpTkac')
+        AUTH0_CONFIG['tenant'] = config.get('auth0-tenant', 'https://zenoss-dev.auth0.com/')
+        AUTH0_CONFIG['connection'] = config.get('auth0-connection', 'acme')
+    return AUTH0_CONFIG
+
+def getCSEConf():
+    if not (CSE_CONFIG.get('vhost') and CSE_CONFIG.get('virtualroot') and CSE_CONFIG.get('zing-host')):
+        config = getGlobalConfiguration()
+        CSE_CONFIG['vhost'] = config.get('cse-vhost')
+        CSE_CONFIG['virtualroot'] = config.get('cse-virtualroot')
+        CSE_CONFIG['zing-host'] = config.get('cse-zing-host')
+    return CSE_CONFIG
+
+def getZenossURI(request):
+    # if we aren't running as a cse, get uri from request
+    cse_conf = getCSEConf()
+    zenoss_uri = "https://"
+    if cse_conf['vhost'] and cse_conf['zing-host'] and cse_conf['virtualroot']:
+        zenoss_uri += cse_conf['vhost'] + '.' + cse_conf['zing-host'] + '/' + cse_conf['virtualroot']
+    else:
+        # HTTP_X_FORWARDED_HOST should handle vhost
+        zenoss_uri += request.environ.get("HTTP_X_FORWARDED_HOST") or \
+                      request.environ.get("HTTP_HOST")
+    return zenoss_uri
 
 def getJWKS(jwks_url):
     try:
@@ -101,13 +129,15 @@ class Auth0(BasePlugin):
         if extractor != PLUGIN_ID:
             return None
 
+        conf = getAuth0Conf()
+
         # get the key id from the jwt header
         kid = jwt.get_unverified_header(credentials['token'])['kid']
 
         # get the public keys from the jwks
         keys = self.cache.get('keys', None)
         if keys is None:
-            jwks = getJWKS(AUTH0_JWKS_LOCATION)
+            jwks = getJWKS(conf['tenant'] + '.well-known/jwks.json')
             keys = publicKeysFromJWKS(jwks)
             self.cache['keys'] = keys
 
@@ -117,8 +147,8 @@ class Auth0(BasePlugin):
             return None
 
         payload = jwt.decode(credentials['token'], key, verify=True,
-                             algorithms=['RS256'], audience=AUTH0_CLIENT_ID,
-                             issuer=AUTH0_ISSUER)
+                             algorithms=['RS256'], audience=conf['clientid'],
+                             issuer=conf['tenant'])
         if not payload:
             return None
 
@@ -134,19 +164,19 @@ class Auth0(BasePlugin):
     def challenge(self, request, response):
         """Redirect to Auth0
         """
+        conf = getAuth0Conf()
+        zenoss_uri = getZenossURI(request)
         try:
-            req = self.REQUEST
-            resp = req['RESPONSE']
-
-            resp.redirect("https://zenoss-dev.auth0.com/authorize?"+
-                          "response_type=token id_token&"+
-                          "client_id=%s&" % AUTH0_CLIENT_ID +
-                          "connection=example&"+
-                          "nonce=abcd1234&"+
-                          "redirect_uri=https://zenoss5.zenoss-1423-ld/zport/callback",
-                          lock=1)
+            request['RESPONSE'].redirect("%sauthorize?" % conf['tenant']+
+                                         "response_type=token id_token&"+
+                                         "client_id=%s&" % conf['clientid'] +
+                                         "connection=%s&" % conf['connection']+
+                                         "nonce=abcd1234&"+
+                                         "redirect_uri=%s/zport/callback" % zenoss_uri,
+                                         lock=1)
             return True
-        except:
+        except Exception as e:
+            print "EXCEPTION:", e
             return False
 
     def getRootPlugin(self):

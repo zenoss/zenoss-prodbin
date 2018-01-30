@@ -7,7 +7,7 @@
 #
 ##############################################################################
 from Products.Five.browser import BrowserView
-from .Auth0 import AUTH0_CLIENT_ID, getQueryArgs
+from .Auth0 import getAuth0Conf, getZenossURI, getQueryArgs
 import httplib
 
 class Auth0Callback(BrowserView):
@@ -37,6 +37,7 @@ class Auth0Callback(BrowserView):
         # data = response.read()
         # print "AUTH0 CALLBACK DATA:\n%s" % data
         # return data
+        conf = getAuth0Conf()
 
         return """<!DOCTYPE html>
 <html>
@@ -54,7 +55,7 @@ class Auth0Callback(BrowserView):
             console.log("AUTH RESULT", authResult);
             if (authResult && authResult.accessToken && authResult.idToken) {
                 console.log(authResult);
-                window.location ="https://zenoss5.zenoss-1423-ld/zport/Auth0Login?idToken="+authResult.idToken;
+                window.location ="%s/zport/Auth0Login?idToken="+authResult.idToken;
             } else if(err){
                 console.error(err);
             } else {
@@ -67,7 +68,7 @@ class Auth0Callback(BrowserView):
   </script>
   </body>
 </html>
-""" % ("zenoss-dev.auth0.com", AUTH0_CLIENT_ID)
+""" % (conf['tenant'].replace('https://', '').replace('/', ''), conf['clientid'], getZenossURI(self.request))
 
 class Auth0Login(BrowserView):
     """
@@ -82,4 +83,4 @@ class Auth0Login(BrowserView):
             self.request.response.write( "Missing Id Token")
 
         self.request.response.setCookie(self.cookieName, token)
-        return self.request.response.redirect(came_from or 'https://zenoss5.zenoss-1423-ld/zport/dmd')
+        return self.request.response.redirect(came_from or getZenossURI(self.request) + '/zport/dmd')
