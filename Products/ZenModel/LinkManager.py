@@ -99,7 +99,6 @@ class Layer3Link(object):
         brains = self.abrains + self.bbrains
 
         # lookup all device uuids, make sure at least one exists
-        deviceIds = 
         devUuids = [self.idmgr.findDeviceUuid(a.deviceId.split("/")[-1], None) for a in brains if a.deviceId]
         validDevUuids = filter(None, devUuids)
         if not validDevUuids:
