@@ -275,3 +275,11 @@ def pausedAndOptimizedIndexing(index_handler=None, unindex_handler=None):
         with teed(unindex_handler, index_buffer):
             yield
 
+# This code ensures that any logged in user has the ZenManager role.
+#   This is a short term hack for the demo in 2/2018.
+#   Long term these roles should come in with the Auth0 token.
+def ensureZenManager(event):
+    user = event.principal
+    if not user.has_role('ZenManager'):
+        roleManager= user.dmd.acl_users.roleManager
+        roleManager.assignRoleToPrincipal('ZenManager', user.id)

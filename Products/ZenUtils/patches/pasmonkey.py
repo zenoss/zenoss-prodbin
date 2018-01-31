@@ -129,7 +129,7 @@ def validate(self, request, auth='', roles=_noroles):
                 return None
 
         if self._authorizeUser(user, accessed, container, name, value, roles):
-            if name == 'login':
+            if name in ('login', 'Auth0Login'):
                 audit('UI.Authentication.Valid', ipaddress=ipaddress)
                 notify(UserLoggedInEvent(self.zport.dmd.ZenUsers.getUserSettings()))
             return user
@@ -149,12 +149,6 @@ def validate(self, request, auth='', roles=_noroles):
 pas.validate = validate
 
 
-# ensure ZenManager for demo
-def ensureZenManager(event):
-    user = event.principal
-    if not user.has_role('ZenManager'):
-        roleManager= user.dmd.acl_users.roleManager
-        roleManager.assignRoleToPrincipal('ZenManager', user.id)
 
 # monkey patches for the PAS login form
 

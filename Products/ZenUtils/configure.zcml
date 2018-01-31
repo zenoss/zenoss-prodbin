@@ -50,10 +50,12 @@
             />
 
 
-    <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
+		<!-- This code ensures that any logged in user has the ZenManager role. -->
+		<!--   This is a short term hack for the demo in 2/2018. -->
+		<!--   Long term these roles should come in with the Auth0 token. -->
     <subscriber
-            for=".events.UserLoggedInEvent"
-            handler=".patches.pasmonkey.ensureZenManager"
+            for="Products.PluggableAuthService.interfaces.events.IUserLoggedInEvent"
+            handler=".events.ensureZenManager"
             />
 
     <subscriber
