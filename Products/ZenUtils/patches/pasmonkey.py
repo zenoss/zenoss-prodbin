@@ -163,6 +163,17 @@ def manage_afterAdd(self, item, container):
 
 CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
+
+_orig_getLoginURL = CookieAuthHelper.CookieAuthHelper.getLoginURL
+def getLoginURL(self):
+    """ Where to send people for logging in """
+    url = _orig_getLoginURL(self)
+    if url:
+        url = url.replace('/zport/acl_users', '/cse/zport/acl_users')
+    return url
+CookieAuthHelper.CookieAuthHelper.getLoginURL = getLoginURL
+
+
 def login(self):
     """
     Set a cookie and redirect to the url that we tried to
@@ -203,7 +214,7 @@ def login(self):
         came_from = urlparse.urlunsplit(parts)
     else:
         submittedQs = 'submitted=%s' % submitted
-        came_from = '/zport/dmd?%s' % submittedQs
+        came_from = '/cse/zport/dmd?%s' % submittedQs
 
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (

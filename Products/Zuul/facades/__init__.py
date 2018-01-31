@@ -77,6 +77,8 @@ class ZuulFacade(object):
             return get_dmd()
 
     def _getObject(self, uid):
+        if uid.startswith("/cse/"):
+            uid = uid[4:]
         try:
             obj = self._dmd.unrestrictedTraverse(str(uid))
         except Exception, e:
