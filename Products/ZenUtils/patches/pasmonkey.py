@@ -148,6 +148,14 @@ def validate(self, request, auth='', roles=_noroles):
 
 pas.validate = validate
 
+
+# ensure ZenManager for demo
+def ensureZenManager(event):
+    user = event.principal
+    if not user.has_role('ZenManager'):
+        roleManager= user.dmd.acl_users.roleManager
+        roleManager.assignRoleToPrincipal('ZenManager', user.id)
+
 # monkey patches for the PAS login form
 
 def manage_afterAdd(self, item, container):

@@ -52,6 +52,11 @@
 
     <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
     <subscriber
+            for=".events.UserLoggedInEvent"
+            handler=".patches.pasmonkey.ensureZenManager"
+            />
+
+    <subscriber
             for="zope.processlifetime.IDatabaseOpenedWithRoot"
             handler=".events.notifyZopeApplicationOpenedSubscribers"
             />
