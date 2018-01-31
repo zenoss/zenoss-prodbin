@@ -33,6 +33,7 @@ PLUGIN_TITLE = 'Provide auth via Auth0 service'
 
 AUTH0_CONFIG = {}
 CSE_CONFIG = {}
+PLUGIN_VERSION=1
 
 def getAuth0Conf():
     if not (AUTH0_CONFIG.get('clientid') and AUTH0_CONFIG.get('tenant') and AUTH0_CONFIG.get('connection')):
@@ -106,7 +107,7 @@ class Auth0(BasePlugin):
     def __init__(self, id, title=None):
         self._id = self.id = id
         self.title = title
-        self.version = AUTH0_VERSION
+        self.version = PLUGIN_VERSION
 
     def extractCredentials(self, request):
         def getTokenFromHeader():
@@ -233,7 +234,7 @@ def setup(context):
     existing_auth0 = getattr(zport_acl, PLUGIN_ID, None)
     if existing_auth0:
         version = getattr(existing_auth0, 'version', 0)
-        if version == AUTH0_VERSION:
+        if version == PLUGIN_VERSION:
             # Existing plugin version matches; abort
             return
         # Delete existing plugin
