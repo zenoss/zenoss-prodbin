@@ -203,6 +203,7 @@ BYE BYE BORDERS
 ================
 */
 
+.z-cse table.x-datepicker-inner .x-datepicker-selected a,
 .z-cse #blackTabs #xform_mapping_panel,
 .z-cse input[type="button"],
 .z-cse input[type="submit"],
@@ -319,7 +320,7 @@ BYE BYE BORDERS
     .z-cse #searchbox-container .x-form-trigger
     { background-color: rgba(255,255,255,0.4); }
 
-    /* zebra striping */
+    /* zebra striping light */
     .z-cse #contentPaneContainer table tr.even,
     .z-cse tr.x-grid-row-alt {
         background-color: rgba(255,255,255,0.15);
@@ -395,6 +396,54 @@ BYE BYE BORDERS
             background-image: url('../img/xtheme-zenoss/form/trigger.gif');
             background-position: -102px 0 !important;
         }
+
+    /* event details */
+    .z-cse #evdetail_bd {
+        background-color: #ddd;
+    }
+        .z-cse #evdetail_bd .proptable tr.even {
+            background-color: rgba(255,255,255,0.15);
+        }
+        .z-cse #evdetail-log-header h2,
+        .z-cse #evdetail_bd .show_details > div > a {
+            font-family: RobotoCondensed;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+        .z-cse #evdetail_bd .proptable td {
+                padding: 5px;
+            }
+        .z-cse #evdetail_bd #detail-logform-message {
+            margin: 0 0 6px 0 !important;
+        }
+        .z-cse #evdetail_bd #evdetail-log-header {
+            height: 30px !important;
+            padding-bottom: 0;
+            padding-top: 0;
+        }
+        .z-cse #evdetail_bd #evdetail-log-header-body hr {
+            display: none;
+        }
+        .z-cse #evdetail_bd #evdetail-log-header-body h2 {
+            margin-top: 6px;
+            text-indent: 3px;
+        }
+        .z-cse #evdetail_bd #log-container .x-btn-inner {
+            padding-right: 6px;
+        }
+
+        .z-cse #detail_card_panel label {
+            color: #999 !important;
+            font-family: RobotoCondensed;
+            text-transform: uppercase;
+        }
+
+
+    /* infrastrucure | devices | < device > | modeler plugins multiselect */
+    .z-cse #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
+    .z-cse #modeler_plugins table.x-form-fieldcontainer .x-boundlist {
+        background-color: rgba(255,255,255,0.4);
+    }
 
 
     /*
@@ -523,6 +572,8 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse #evdetail_log-body .time,
+    .z-cse td.proptable_key,
     .z-cse table b,
     .z-cse #device_modeler_plugins label,
     .z-cse .transform-headers,
@@ -608,6 +659,7 @@ BYE BYE BORDERS
 
 
     /* MONOSPACE AREAS */
+    .z-cse #evdetail_log-body,
     .z-cse #contentPaneContainer table td textarea,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #contentPaneContainer table td input[type=password],
@@ -720,6 +772,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse .x-grid-group-title,
     .z-cse .zenfooter_threshold,
     .z-cse .storages .stacked-footer strong,
     .z-cse .rmmstatus .node-stats-group .rate,
@@ -1048,8 +1101,12 @@ BYE BYE BORDERS
         padding: 4px;
     }
 
-
-    /* date picker */
+    .z-cse .x-datepicker .x-datepicker-inner a.x-datepicker-date {
+        color: #ccc;
+    }
+    .z-cse .x-datepicker .x-datepicker-active a.x-datepicker-date {
+        color: #3b88cb;
+    }
     .z-cse table.x-datepicker-inner a:hover,
     .z-cse table.x-datepicker-inner .x-datepicker-disabled a:hover
     { background-image: none; background-color: transparent; border: 0; }
@@ -1069,7 +1126,7 @@ BYE BYE BORDERS
     .z-cse .x-monthpicker-item a.x-monthpicker-selected {
         background-color: #b6cbe4;
     }
-        .z-cse table.x-datepicker-inner .x-datepicker-today a {
+        .z-cse .x-datepicker table.x-datepicker-inner .x-datepicker-today a.x-datepicker-date {
             background-image: none;
             background-color: transparent;
             border: 0;
@@ -1227,6 +1284,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark .x-grid-group-title,
     .z-cse.z-cse-dark .zenfooter_threshold,
     .z-cse.z-cse-dark .storages .stacked-footer strong,
     .z-cse.z-cse-dark .rmmstatus .node-stats-group .rate,
@@ -1306,7 +1364,7 @@ BYE BYE BORDERS
         background-color: #555;
     }
 
-    /* zebra striping */
+    /* zebra striping dark */
     .z-cse.z-cse-dark #contentPaneContainer table tr.even,
     .z-cse.z-cse-dark tr.x-grid-row-alt {
         background-color: rgba(255,255,255,0.05);
@@ -1331,7 +1389,7 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item,
     .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item {
-            color: #fafafa !important;
+            /* color: #fafafa !important; */
             padding: 4px;
         }
         .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item-over,
@@ -1360,6 +1418,11 @@ BYE BYE BORDERS
         background-color: #555;
     }
 
+    /* infrastructure | devices | dependency view */
+    .z-cse.z-cse-dark .x-grid-group-hd {
+        background-color: #808080;
+    }
+
     /* rm status pipeline */
     .z-cse.z-cse-dark .rmmstatus .arrow-group .arrow {
         stroke: #333;
@@ -1384,7 +1447,20 @@ BYE BYE BORDERS
         color: #eee !important;
     }
 
-    /* portal.css */
+    /* dashboard */
+    .z-cse.z-cse-dark .x-portlet.x-closable {
+        background-color: #777 !important;
+    }
     .z-cse.z-cse-dark .x-window-body-closable .x-portlet.x-panel-closable
     { background-color: #444; }
+    .z-cse .x-portlet div.europagraph {
+        background-color: transparent;
+        border: 0;
+    }
+
+    /* event details */
+    .z-cse.z-cse-dark #evdetail_bd {
+        background-color: #333;
+    }
+
 
