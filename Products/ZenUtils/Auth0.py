@@ -175,7 +175,7 @@ class Auth0(BasePlugin):
         state = base64.urlsafe_b64encode(json.dumps(state_obj))#.replace("=", '')
         nonce = "abcd1234"
         # set expiration on our cookies, since they will otherwise expire with the session
-        expiration_time = datetime.utcnow() + timedelta(weeks=1)
+        expiration_time = datetime.utcnow() + timedelta(minutes=5)
         expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
         response.setCookie('__auth_nonce', nonce, expires=expiration, path="/")
         response.setCookie('__auth_state', state, expires=expiration, path="/")

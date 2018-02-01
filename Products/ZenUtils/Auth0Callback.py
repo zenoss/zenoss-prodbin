@@ -18,15 +18,9 @@ class Auth0Callback(BrowserView):
 
     The token is in the window.location.hash and the browser only seems to make
     it visible to us when the redirected response is resolved.
-
-    TODO:
-    - Find out how we can get the user back to the page they originally tried
-      to hit, currently just using https://zenoss5.zenoss-1423-ld/zport/dmd,
-      but may be able to pass that through with "state" arg to Auth0
-    - Share nonce between Auth0 PAS plugin and here
-    - Read in Domain and Client ID from config
     """
     def __call__(self):
+        # TODO: figure out if it's better to use the Auth0 code flow
         # req = self.request
         # resp = req['RESPONSE']
         # code = getQueryArgs(req).get('code', '')
@@ -76,7 +70,6 @@ class Auth0Callback(BrowserView):
   </body>
 </html>
 """ % (domain, conf['clientid'], nonce, state, getZenossURI(self.request), came_from)
-
 
 class Auth0Login(BrowserView):
     """
