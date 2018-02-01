@@ -109,7 +109,7 @@ class CallHomeStatus(object):
 
     def _pickleLoadRedis(self):
         data = self.load_from_redis()
-        if self.load_from_redis() is None or self._redis_client is None:
+        if data is None or self._redis_client is None:
             data = dict()
         return data
 
