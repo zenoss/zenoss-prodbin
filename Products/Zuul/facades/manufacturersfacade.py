@@ -73,6 +73,8 @@ class ManufacturersFacade(TreeFacade):
         prodName = params['oldname']
         prod = manufacturer.products._getOb(prodName, None)
         if prod:
+            instances = [i.device() for i in prod.instances()]
+            oldUid = prod.idx_uid()
             isOS = False
             if (params['type'] == "Operating System"):
                 isOS = True
@@ -83,10 +85,12 @@ class ManufacturersFacade(TreeFacade):
             prod.partNumber  = params['partno']
             prod.description = params['description']
             prod.isOS        = isOS
-            prod.name = params['prodname']
             prod.rename(params['prodname'])
             prod.index_object()
-
+            if oldUid != prod.idx_uid():
+                # change product_class for every instance
+                for device in instances:
+                    device.hw.setProductClass(prod)
 
     def removeProducts(self, products):
         """
@@ -96,6 +100,10 @@ class ManufacturersFacade(TreeFacade):
         """
         for entry in products:
             manufacturer = self._getObject(entry['context'])
+            prod = manufacturer.products._getOb(entry['id'])
+            instances = [i.device() for i in prod.instances()]
+            for device in instances:
+                device.hw.setProductClass(productClass=None)
             manufacturer.products._delObject(entry['id'])
 
     def getProductsByManufacturer(self, uid, params={}):
@@ -223,9 +231,16 @@ class ManufacturersFacade(TreeFacade):
         if isinstance(ids, basestring): ids = (ids,)
         for id in ids:
             obj = origin.products._getOb(id)
+            oldUid = obj.idx_uid()
+            instances = [i.device() for i in obj.instances()]
             obj._operation = 1
             origin.products._delObject(id)
             target.products._setObject(id, obj)
+            obj = target.products._getOb(id)
+            if oldUid != obj.idx_uid():
+                # change product_class for every instance
+                for device in instances:
+                    device.hw.setProductClass(obj)
 
     def returnTree(self, id):
         """
