@@ -62,19 +62,20 @@ def onIndexingEvent(ob, event):
     if isinstance(idxs, basestring):
         idxs = [idxs]
 
-    if idxs:
-        s_idxs = set(idxs)
-        indexed, stored, _ = model_catalog.get_indexes(object_to_index)
-        obj_indexes = indexed.union(stored)
-        # Every time we index "path" we also need to index "deviceOrganizers"
-        if "path" in s_idxs and "deviceOrganizers" in obj_indexes:
-           s_idxs.add("deviceOrganizers")
-           idxs = s_idxs
-        # check idxs are valid indexes
-        bad_idxs = s_idxs - obj_indexes
-        if bad_idxs:
-            raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
     if object_to_index:
+        if idxs:
+            s_idxs = set(idxs)
+            indexed, stored, _ = model_catalog.get_indexes(object_to_index)
+            obj_indexes = indexed.union(stored)
+            # Every time we index "path" we also need to index "deviceOrganizers"
+            if "path" in s_idxs and "deviceOrganizers" in obj_indexes:
+               s_idxs.add("deviceOrganizers")
+               idxs = s_idxs
+            # check idxs are valid indexes
+            bad_idxs = s_idxs - obj_indexes
+            if bad_idxs:
+                raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
+
         model_catalog.catalog_object(object_to_index, idxs)
         if IAfterIndexingEventSubscriber.providedBy(object_to_index):
             object_to_index.after_indexing_event(event)
