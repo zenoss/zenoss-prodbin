@@ -1,12 +1,14 @@
-import redis
+import cPickle as pickle
 import logging
 import time
-import cPickle as pickle
+
+import redis
 
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.RedisUtils import parseRedisUrl
 
 log = logging.getLogger('zen.callhome')
+
 
 class CallHomeStatus(object):
     DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
@@ -79,42 +81,42 @@ class CallHomeStatus(object):
             return
 
     def updateStat(self, param, value):
-        data = dict()
-        data = pickle.loads(self.load_from_redis())
+        data = self._pickleLoadRedis()
         data[param] = value
         self.push_to_redis(pickle.dumps(data))
 
     def getStat(self, param):
-        data = dict()
-        data = pickle.loads(self.load_from_redis())
+        data = self._pickleLoadRedis()
         return data.get(param)
 
     def getStatUI(self):
         """Returns status informations to UI
         """
         l = list()
-        data = dict()
-        data = pickle.loads(self.load_from_redis())
+        data = self._pickleLoadRedis()
         l.append({'id': 'lastsuccess', 'description': 'Last success', 'value': data.get('lastSuccess'), 'type': 'date'})
         l.append({'id': 'lastrun', 'description': 'Last run was', 'value': data.get('startedAt'), 'type': 'date'})
-        l.append({'id': 'lastupdtook', 'description': 'Last updating took', 'value': data.get('lastTook'), 'type': 'duration'})
+        l.append({'id': 'lastupdtook', 'description': 'Last updating took', 'value': data.get('lastTook'),
+                  'type': 'duration'})
         for key, val in data.iteritems():
             if isinstance(val, dict):
                 if val.get('status') == "FAILED":
-                    err = "Failed: "+val.get('error')
+                    err = "Failed: " + val.get('error')
                 else:
                     err = "No errors"
         l.append({'id': 'updresult', 'description': 'Updating result', 'value': err, 'type': 'text'})
         return l
 
+    def _pickleLoadRedis(self):
+        data = self.load_from_redis()
+        if self.load_from_redis() is None or self._redis_client is None:
+            data = dict()
+        return data
+
     def _init(self):
         """Sets empty data for CallHomeStatus before run
         """
-        rdata = self.load_from_redis()
-        if rdata == None:
-            data = dict()
-        else:
-            data = pickle.loads(rdata)
+        data = self._pickleLoadRedis()
         stages = ('Request to CallHome server', 'CallHome start',
                   'Update report', 'CallHome Collect', 'GatherProtocol')
         for v in stages:
@@ -134,12 +136,9 @@ class CallHomeStatus(object):
         if stage == "Update report" and status == "RUNNING":
             self._init()
             self.updateStat('startedAt', int(time.time()))
-        data = dict()
-        data = pickle.loads(self.load_from_redis())
+        data = self._pickleLoadRedis()
         if stage == "Update report" and status == "FINISHED":
             self.updateStat('lastTook', int(time.time()) - int(data[stage]['stime']))
-        #data = dict()
-        #data = pickle.loads(self.load_from_redis())
         if status == "RUNNING":
             stime = int(time.time())
         else:
@@ -156,7 +155,7 @@ class CallHomeStatus(object):
         l = list()
         d = dict()
         try:
-            d = pickle.loads(self.load_from_redis())
+            d = self._pickleLoadRedis()
         except Exception as e:
             log.warning("Failed to load pickle loads: {0}".format(e))
         for key, val in d.iteritems():
@@ -165,4 +164,3 @@ class CallHomeStatus(object):
                     val['stime'] = -1
                 l.append(val)
         return l
-
