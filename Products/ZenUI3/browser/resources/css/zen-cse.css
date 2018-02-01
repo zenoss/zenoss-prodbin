@@ -71,6 +71,7 @@ filter & button backgrounds #f4f4f4
 .z-cse #breadCrumbPane,
 .z-cse .evdetail-sep
 { background-image: none; background-color: transparent; }
+.z-cse div[id^=HierarchyTreePanelSearch],
 .z-cse .x-window-body-closable .x-resizable-pinned,
 .z-cse .user-prefs-cell,
 .z-cse .user-prefs-cell div:first-child,
@@ -104,6 +105,7 @@ filter & button backgrounds #f4f4f4
 { background-image: none !important; background-color: transparent !important; }
 
 /* xtheme-zenoss.css */
+.z-cse .x-panel-body-hierarchy,
 .z-cse .white-background-panel .x-window-body .x-panel-body,
 .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
 .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
@@ -575,6 +577,7 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span,
     .z-cse .dependencyGraphPanel h3,
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse #evdetail_log-body .time,
@@ -683,6 +686,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse #searchInput-inputEl,
     .z-cse .devdetailbar a.z-entity,
     .z-cse #evdetail_log-body,
     .z-cse #contentPaneContainer table td textarea,
@@ -802,6 +806,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse #manage-search-link,
     .z-cse .x-grid-group-title,
     .z-cse .zenfooter_threshold,
     .z-cse .storages .stacked-footer strong,
@@ -1046,6 +1051,55 @@ BYE BYE BORDERS
             padding-top: 2px;
         }
 
+    /* search results */
+    .z-cse #manage-search-link {
+        display: block;
+        padding: 10px;
+    }
+    .z-cse > .x-boundlist > div .search-result:first-child th {
+        display:none;
+    }
+        .z-cse > .x-boundlist > div .search-result:first-child td {
+            padding: 10px;
+        }
+        .z-cse > .x-boundlist {
+            min-height: 40px;
+            border: 0;
+        }
+        .z-cse > .x-boundlist > .x-boundlist-list-ct {
+            line-height: 40px;
+            min-height: 40px;
+            text-indent: 20px;
+        }
+
+    .z-cse #tbResultText {
+        left: 136px !important;
+        font-family: Roboto;
+        text-transform: none;
+        top: 15px !important;
+    }
+    .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span {
+        margin-left: 6px;
+    }
+    .z-cse #searchInput-inputEl {
+        height: 23px !important;
+        margin: 0 0 0 10px !important;
+        top: 0 !important;
+        width: calc(100% - 20px) !important;
+    }
+
+    .z-cse > .x-boundlist > .x-boundlist-list-ct > .search-result {
+        line-height: 20px;
+        min-height: 0;
+        text-indent: 4px;
+    }
+
+    /* user input dropdowns - overrides search results above */
+    .z-cse > .x-boundlist > .x-boundlist-list-ct ul {
+        line-height: 20px;
+        min-height: 0;
+        text-indent: 4px;
+    }
 
     /* dashboard */
     .z-cse #center_panel .x-portlet > .x-panel-header {
@@ -1269,6 +1323,7 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark #searchInput-inputEl,
     .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
     .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=text],
@@ -1319,6 +1374,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark #manage-search-link,
     .z-cse.z-cse-dark .x-grid-group-title,
     .z-cse.z-cse-dark .zenfooter_threshold,
     .z-cse.z-cse-dark .storages .stacked-footer strong,
@@ -1394,6 +1450,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-tip-header-text
     { background-color: rgba(0,0,0,0.1); }
 
+    /* search results overrides */
+    .z-cse.z-cse-dark #manage-search-link,
+    .z-cse.z-cse-dark > .x-boundlist > div .search-result {
+        background-color: #555;
+    }
+
     /* jobs poup overrides */
     .z-cse.z-cse-dark #more-jobs-link-body,
     .z-cse.z-cse-dark #jobs-grid-finished {
@@ -1440,7 +1502,7 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item,
     .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item {
-            /* color: #fafafa !important; */
+            color: #eee !important;
             padding: 4px;
         }
         .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item-over,
