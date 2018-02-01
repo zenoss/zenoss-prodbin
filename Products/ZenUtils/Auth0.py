@@ -172,14 +172,13 @@ class Auth0(BasePlugin):
                 "came_from": request.ACTUAL_URL
             }
         # strip the '=' padding because js doesn't need it
-        state = base64.b64encode(json.dumps(state_obj)).replace("=", '')
+        state = base64.urlsafe_b64encode(json.dumps(state_obj))#.replace("=", '')
         nonce = "abcd1234"
         # set expiration on our cookies, since they will otherwise expire with the session
         expiration_time = datetime.utcnow() + timedelta(weeks=1)
         expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
-        response.setCookie('__auth_nonce', nonce, expires=expiration)
-        response.setCookie('__auth_state', state, expires=expiration)
-        print "ENCODED STATE:", state
+        response.setCookie('__auth_nonce', nonce, expires=expiration, path="/")
+        response.setCookie('__auth_state', state, expires=expiration, path="/")
         try:
             request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
                                          "response_type=token id_token&" +
