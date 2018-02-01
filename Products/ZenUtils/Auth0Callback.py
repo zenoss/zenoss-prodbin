@@ -9,6 +9,8 @@
 from Products.Five.browser import BrowserView
 from .Auth0 import getAuth0Conf, getZenossURI, getQueryArgs
 import httplib
+import base64
+import json
 
 class Auth0Callback(BrowserView):
     """
@@ -38,7 +40,17 @@ class Auth0Callback(BrowserView):
         # print "AUTH0 CALLBACK DATA:\n%s" % data
         # return data
         conf = getAuth0Conf()
-
+        # sanitize tenant to get auth0 domain
+        domain = conf['tenant'].replace('https://', '').replace('/', '')
+        # nonce = self.request.get('__auth_nonce')
+        # state = self.request.get('__auth_state')
+        # if not nonce:
+        #     print "WE HAVE NO COOKIE"
+        # else:
+        #     print "NONCE:", nonce
+        #     print "STATE:", state
+        # state_obj = base64.b64decode(state)
+        # came_from = json.loads(state_obj).get('came_from')
         return """<!DOCTYPE html>
 <html>
   <head>
@@ -48,14 +60,24 @@ class Auth0Callback(BrowserView):
   <body>
   <script src="https://cdn.auth0.com/js/auth0/8.12.1/auth0.min.js"></script>
   <script>
+    var cookies = document.cookie.split(";");
+    var cookieMap = {};
+    cookies.forEach(function(cookie) {
+        parts = cookie.split("=");
+        cookieMap[parts[0]] = parts[1];
+    });
+    var nonce = cookieMap.auth_nonce;
+    var state = cookieMap.auth_state;
+    console.log(cookieMap);
+    var came_from = JSON.parse(atob(state)).came_from;
     new auth0.WebAuth({
             domain: "%s",
             clientID: "%s"
-        }).parseHash({nonce: "abcd1234"}, function (err, authResult)  {
+        }).parseHash({nonce: nonce, state: state}, function (err, authResult)  {
             console.log("AUTH RESULT", authResult);
             if (authResult && authResult.accessToken && authResult.idToken) {
                 console.log(authResult);
-                window.location ="%s/zport/Auth0Login?idToken="+authResult.idToken;
+                window.location ="%s/zport/Auth0Login?idToken="+authResult.idToken+"&came_from="+came_from;
             } else if(err){
                 console.error(err);
             } else {
@@ -68,7 +90,8 @@ class Auth0Callback(BrowserView):
   </script>
   </body>
 </html>
-""" % (conf['tenant'].replace('https://', '').replace('/', ''), conf['clientid'], getZenossURI(self.request))
+""" % (domain, conf['clientid'], getZenossURI(self.request))
+
 
 class Auth0Login(BrowserView):
     """

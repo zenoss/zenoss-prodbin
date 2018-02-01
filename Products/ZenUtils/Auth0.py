@@ -20,10 +20,12 @@ from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
+import base64
 import json
 import urllib
 import jwt
 import logging
+from datetime import datetime, timedelta
 
 log = logging.getLogger('Auth0')
 
@@ -166,12 +168,25 @@ class Auth0(BasePlugin):
         """
         conf = getAuth0Conf()
         zenoss_uri = getZenossURI(request)
+        state_obj = {
+                "came_from": request.ACTUAL_URL
+            }
+        # strip the '=' padding because js doesn't need it
+        state = base64.b64encode(json.dumps(state_obj)).replace("=", '')
+        nonce = "abcd1234"
+        # set expiration on our cookies, since they will otherwise expire with the session
+        expiration_time = datetime.utcnow() + timedelta(weeks=1)
+        expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
+        response.setCookie('__auth_nonce', nonce, expires=expiration)
+        response.setCookie('__auth_state', state, expires=expiration)
+        print "ENCODED STATE:", state
         try:
-            request['RESPONSE'].redirect("%sauthorize?" % conf['tenant']+
-                                         "response_type=token id_token&"+
+            request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
+                                         "response_type=token id_token&" +
                                          "client_id=%s&" % conf['clientid'] +
-                                         "connection=%s&" % conf['connection']+
-                                         "nonce=abcd1234&"+
+                                         "connection=%s&" % conf['connection'] +
+                                         "nonce=%s&" % nonce +
+                                         "state=%s&" % state +
                                          "redirect_uri=%s/zport/callback" % zenoss_uri,
                                          lock=1)
             return True
