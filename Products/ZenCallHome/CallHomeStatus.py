@@ -107,11 +107,9 @@ class CallHomeStatus(object):
         l.append({'id': 'updresult', 'description': 'Updating result', 'value': err, 'type': 'text'})
         return l
 
-    def _pickleLoadRedis(self):
+    def _pickleLoadFromRedis(self):
         data = self.load_from_redis()
-        if data is None or self._redis_client is None:
-            data = dict()
-        return data
+        return pickle.loads(data) if data is not None else dict()
 
     def _init(self):
         """Sets empty data for CallHomeStatus before run
