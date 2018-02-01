@@ -72,7 +72,6 @@ def getJWKS(jwks_url):
         resp = urllib.urlopen(jwks_url)
         return json.load(resp)
     except Exception as e:
-        print e
         # we probably want to handle an error here somehow
         return None
 
@@ -160,7 +159,6 @@ class Auth0(BasePlugin):
         # Auth0 "sub" format is: connection|user
         userid = payload['sub'].encode('utf8').split('|')[-1]
 
-        print "Auth0: authenticateCredentials userid:", userid
         return (userid, userid)
 
     def challenge(self, request, response):
@@ -177,8 +175,8 @@ class Auth0(BasePlugin):
         # set expiration on our cookies, since they will otherwise expire with the session
         expiration_time = datetime.utcnow() + timedelta(minutes=5)
         expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
-        response.setCookie('__auth_nonce', nonce, expires=expiration, path="/")
-        response.setCookie('__auth_state', state, expires=expiration, path="/")
+        response.setCookie('__auth_nonce', nonce, expires=expiration, path="/", secure=True, http_only=True)
+        response.setCookie('__auth_state', state, expires=expiration, path="/", secure=True, http_only=True)
         try:
             request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
                                          "response_type=token id_token&" +
@@ -190,7 +188,6 @@ class Auth0(BasePlugin):
                                          lock=1)
             return True
         except Exception as e:
-            print "EXCEPTION:", e
             return False
 
     def getRootPlugin(self):

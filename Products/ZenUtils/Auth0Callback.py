@@ -83,5 +83,5 @@ class Auth0Login(BrowserView):
             self.request.response.setStatus(401)
             self.request.response.write( "Missing Id Token")
 
-        self.request.response.setCookie(self.cookieName, token)
+        self.request.response.setCookie(self.cookieName, token, secure=True, http_only=True)
         return self.request.response.redirect(came_from or getZenossURI(self.request) + '/zport/dmd')
