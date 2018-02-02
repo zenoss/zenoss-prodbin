@@ -28,7 +28,7 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.AccountLocker.AccountLocker import setup as account_locker_setup
-from Products.ZenUtils.Auth0 import setup as auth0_setup
+from Products.ZenUtils.Auth0.Auth0 import setup as auth0_setup
 from Products.PluggableAuthService import plugins
 
 class zenbuild(CmdBase):

@@ -5,7 +5,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta"
     >
-    <include file="Auth0Callback.zcml"/>
+    <include file="Auth0/configure.zcml"/>
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
     <include package=".controlplane"/>
