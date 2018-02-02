@@ -135,6 +135,7 @@ filter & button backgrounds #f4f4f4
 .z-cse .x-toolbar-large,
 .z-cse body
 { background-image: none; background-color: transparent; }
+.z-cse div[id^=pasteventschart] > .x-fit-item,
 .z-cse #trigger-master_panel,
 .z-cse #trigger-master_panel-body,
 .z-cse .x-grid .x-grid-row-selected .x-grid-cell,
@@ -342,12 +343,15 @@ BYE BYE BORDERS
         padding: 2px 6px;
     }
 
-    /* tips */
+    /* tips light */
     .z-cse #page-level-help-tip
     { padding-left: 10px; }
 
         .z-cse .x-tip
-        { border: 0; border-radius: 0; line-height: 20px;}
+        {
+            background-color: #555 !important;
+            border: 0; border-radius: 0; line-height: 20px;
+        }
         .z-cse .x-tip-body
         { font-size: 12px; }
         .z-cse .x-tip-header-text
@@ -355,6 +359,21 @@ BYE BYE BORDERS
         .z-cse .x-tip-header-text,
         .z-cse .x-top-body p > strong
         { font-size: 15px; }
+        .z-cse .x-tip .x-tip-header-text-container
+        { padding: 0; }
+        .z-cse span.x-tip-header-text
+        { background-color: transparent; font-size: 11px; }
+        .z-cse .x-tip-header-horizontal {
+            min-height: 20px;
+            padding: 0;
+        }
+
+        .z-cse .x-tip .x-tip-header-text,
+        .z-cse .x-tip-header,
+        .z-cse .x-tip-body,
+        .z-cse .x-form-invalid-tip-body
+        { color: #fafafa; }
+
 
     /* flares to bottom of screen */
     .z-cse .x-flare
@@ -578,6 +597,7 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse .x-tip-header-text,
     .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
     .z-cse #breadCrumbPane a,
     .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span,
@@ -693,6 +713,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse .x-tip-header-text,
     .z-cse #searchInput-inputEl,
     .z-cse .devdetailbar a.z-entity,
     .z-cse #evdetail_log-body,
@@ -813,6 +834,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse .storages .name,
     .z-cse #manage-search-link,
     .z-cse .x-grid-group-title,
     .z-cse .zenfooter_threshold,
@@ -966,16 +988,6 @@ BYE BYE BORDERS
     { color: #89c5fa; }
 
 
-    .z-cse .x-tip {
-        background-color: #555 !important;
-    }
-    .z-cse .x-tip .x-tip-header-text,
-    .z-cse .x-tip-header,
-    .z-cse .x-tip-body,
-    .z-cse .x-form-invalid-tip-body {
-        color: #fafafa;
-    }
-
     /* light graphs */
     .z-cse .europagraph g.tick line {
     stroke: rgba(0,0,0,0.1);
@@ -983,6 +995,42 @@ BYE BYE BORDERS
     .z-cse .europagraph g.tick.zero line,
     .z-cse .europagraph path.domain {
         stroke: rgba(0,0,0,0.3);
+    }
+
+    /* open events - past events portlets */
+    .z-cse div[id|=pasteventschart] text,
+    .z-cse div[id|=openeventsportlet] text {
+        font-family: Roboto !important;
+        font-size: 12px !important;
+        fill: #4b4b4c;
+    }
+
+    .z-cse  div[id|=pasteventschart] path[stroke-width|="1"],
+    .z-cse div[id|=openeventsportlet] path {
+        stroke: #aaa;
+    }
+
+    .z-cse div[id|=pasteventschart] text[x="0"],
+    .z-cse div[id|=openeventsportlet] text[x="0"] {
+        text-transform: uppercase;
+        font-weight: 400 !important;
+    }
+
+    .z-cse div[id|=openeventsportlet] rect {
+        stroke: #b6cbe4;
+        stroke-width: 1px;
+    }
+    .z-cse div[id|=pasteventschart] path[stroke="#bbb"] {
+        fill: rgba(0,0,0,0.1);
+        stroke-width: 0;
+    }
+    .z-cse div[id|=pasteventschart] rect[stroke="#000"] {
+        stroke-width: 0;
+        fill: transparent;
+    }
+
+    .z-cse div[id|=pasteventschart] rect[zIndex="501"] {
+        fill: transparent;
     }
 
     /*
@@ -1120,21 +1168,6 @@ BYE BYE BORDERS
         text-indent: 4px;
     }
 
-    /* dashboard */
-    .z-cse #center_panel .x-portlet > .x-panel-header {
-        background-color: #777;
-    }
-    .z-cse #center_panel .x-toolbar label {
-        padding-left: 7px;
-    }
-    .z-cse .x-portlet div.europagraph {
-        background-color: transparent;
-        border: 0;
-    }
-    .z-cse .x-portlet.x-panel-default-framed {
-        background-color: #fff !important;
-    }
-
     /* main panel */
     .z-cse #center_panel .x-panel-header-docked-top,
     .z-cse #center_panel .largetoolbar {
@@ -1157,6 +1190,21 @@ BYE BYE BORDERS
             margin-bottom: 4px;
         }
 
+    /* dashboard */
+    .z-cse #center_panel .x-portlet > .x-panel-header {
+        background-color: #777;
+    }
+    .z-cse #center_panel .x-toolbar label {
+        padding-left: 7px;
+    }
+    .z-cse .x-portlet div.europagraph {
+        background-color: transparent;
+        border: 0;
+    }
+    .z-cse .x-portlet.x-panel-default-framed {
+        background-color: #fff !important;
+    }
+
     /* infrastructure | processes */
     .z-cse #processForm fieldset,
     .z-cse #processForm fieldset legend {
@@ -1167,6 +1215,14 @@ BYE BYE BORDERS
             text-transform: none;
         }
 
+    /* infrastructure | network map */
+    #network_map_form button,
+    #network_map_form .x-btn-noicon {
+        width: 60px !important;
+    }
+        #network_map_form button span {
+            width: 50px !important;
+        }
 
     /* events | classes | dropdown */
     .z-cse #overriddengrid_id .x-toolbar-docked-top,
@@ -1178,15 +1234,6 @@ BYE BYE BORDERS
     .z-cse .transform-headers {
         display: block;
     }
-
-    /* infrastructure | network map */
-    #network_map_form button,
-    #network_map_form .x-btn-noicon {
-        width: 60px !important;
-    }
-        #network_map_form button span {
-            width: 50px !important;
-        }
 
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
@@ -1398,6 +1445,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark .storages .name,
     .z-cse.z-cse-dark #manage-search-link,
     .z-cse.z-cse-dark .x-grid-group-title,
     .z-cse.z-cse-dark .zenfooter_threshold,
@@ -1463,8 +1511,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .detail-form-panel .display-field
     { color: #eee }
 
-
-    /* tooltips */
+    /* tips dark */
     .z-cse.z-cse-dark .x-tip {
         background-color: #eee !important;
     }
@@ -1473,6 +1520,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-tip-body,
     .z-cse.z-cse-dark .x-form-invalid-tip-body {
         color: #555;
+        background-color: transparent;
     }
     .z-cse.z-cse-dark .x-tip-header-text
     { background-color: rgba(0,0,0,0.1); }
@@ -1592,9 +1640,14 @@ BYE BYE BORDERS
         color: #eee !important;
     }
 
+    /* event details */
+    .z-cse.z-cse-dark #evdetail_bd {
+        background-color: #333;
+    }
+
     /* dashboard */
     .z-cse.z-cse-dark .x-portlet.x-panel-default-framed  {
-        background-color: #777 !important;
+        background-color: #444 !important;
     }
     .z-cse.z-cse-dark .x-window-body-closable .x-portlet.x-panel-closable
     { background-color: #444; }
@@ -1610,8 +1663,14 @@ BYE BYE BORDERS
         text-transform: uppercase;
     }
 
-    /* event details */
-    .z-cse.z-cse-dark #evdetail_bd {
-        background-color: #333;
+    /* open events & past events portlets */
+    .z-cse.z-cse-dark div[id|=pasteventschart] text,
+    .z-cse.z-cse-dark div[id^=openeventsportlet] text {
+        fill: #ccc;
     }
+
+    .z-cse.z-cse-dark div[id^=openeventsportlet] path {
+        stroke: rgba(255,255,255,0.15);
+    }
+
 
