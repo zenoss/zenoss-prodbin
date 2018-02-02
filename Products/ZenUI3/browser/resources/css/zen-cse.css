@@ -449,6 +449,7 @@ BYE BYE BORDERS
     */
 
     /* table headers == theme-sensitive == */
+    .z-cse #AdministeredObjects th,
     .z-cse .x-grid .x-column-header,
     .z-cse #dataSourceTreeGrid .x-column-header,
     .z-cse #LoadedZenPacks th,
@@ -577,6 +578,8 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
+    .z-cse #breadCrumbPane a,
     .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span,
     .z-cse .dependencyGraphPanel h3,
     .z-cse .x-toolbar .x-toolbar-text,
@@ -620,6 +623,10 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse .europagraph .graph_title,
+    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
+    .z-cse .europagraph .zenchart .nv-axis text,
+    .z-cse #breadCrumbPane a,
     .z-cse .zenfooter_data_text,
     .z-cse .zenui3,
     .z-cse .search-result,
@@ -845,6 +852,8 @@ BYE BYE BORDERS
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse .x-panel-body-default
     { color: #4b4b4c }
+    .z-cse .user-prefs-cell div:first-child div,
+    .z-cse #resetPasswordForm div:first-child,
     .z-cse .dependencyGraphPanel h3,
     .z-cse #device_modeler_plugins label,
     .z-cse #modeler_plugins label.x-component,
@@ -892,6 +901,7 @@ BYE BYE BORDERS
     { color: #fafafa !important; }
 
     /* light-theme text links */
+    .z-cse #breadCrumbPane a,
     .z-cse .devdetail-devclass a.z-entity,
     .z-cse a:link,
     .z-cse a:visited,
@@ -921,6 +931,7 @@ BYE BYE BORDERS
         .z-cse #jobs-grid-finished-body .x-grid-row-over a {
             color: #fafafa;
         }
+
 
     /* modals */
     .z-cse .x-window-body-closable .x-panel-header-text-default,
@@ -965,6 +976,14 @@ BYE BYE BORDERS
         color: #fafafa;
     }
 
+    /* light graphs */
+    .z-cse .europagraph g.tick line {
+    stroke: rgba(0,0,0,0.1);
+    }
+    .z-cse .europagraph g.tick.zero line,
+    .z-cse .europagraph path.domain {
+        stroke: rgba(0,0,0,0.3);
+    }
 
     /*
     ================
@@ -1108,7 +1127,10 @@ BYE BYE BORDERS
     .z-cse #center_panel .x-toolbar label {
         padding-left: 7px;
     }
-
+    .z-cse .x-portlet div.europagraph {
+        background-color: transparent;
+        border: 0;
+    }
     .z-cse .x-portlet.x-panel-default-framed {
         background-color: #fff !important;
     }
@@ -1343,6 +1365,8 @@ BYE BYE BORDERS
         background-color: transparent;
     }
 
+    /* table headers theme sensitive */
+    .z-cse.z-cse-dark #AdministeredObjects th,
     .z-cse.z-cse-dark .x-grid .x-column-header,
     .z-cse.z-cse-dark #dataSourceTreeGrid .x-column-header,
     .z-cse.z-cse-dark #LoadedZenPacks th,
@@ -1410,6 +1434,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
     .z-cse.z-cse-dark .x-panel-body-default
     { color: #ccc }
+    .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
+    .z-cse.z-cse-dark #resetPasswordForm div:first-child,
     .z-cse.z-cse-dark .dependencyGraphPanel h3,
     .z-cse.z-cse-dark #device_modeler_plugins label,
     .z-cse.z-cse-dark .x-form-item-label,
@@ -1421,6 +1447,7 @@ BYE BYE BORDERS
     { color: #ccc !important; }
 
     /* dark-theme text links */
+    .z-cse.z-cse-dark #breadCrumbPane a,
     .z-cse.z-cse-dark .devdetail-devclass a.z-entity,
     .z-cse.z-cse-dark a:link,
     .z-cse.z-cse-dark a:visited,
@@ -1541,6 +1568,11 @@ BYE BYE BORDERS
         stroke: #333;
     }
 
+    /* advanced | settings */
+    .z-cse.z-cse-dark #contentPaneContainer table td strong {
+        color: #ff3b3b;
+    }
+
     /* advanced | cc | config files */
     .z-cse.z-cse-dark .CodeMirror-lines {
         background-color: #aaa;
@@ -1566,14 +1598,20 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark .x-window-body-closable .x-portlet.x-panel-closable
     { background-color: #444; }
-    .z-cse .x-portlet div.europagraph {
-        background-color: transparent;
-        border: 0;
+
+    /* dark graphs */
+    .z-cse.z-cse-dark .europagraph g.tick line,
+    .z-cse.z-cse-dark .europagraph g.tick.zero line,
+    .z-cse.z-cse-dark .europagraph path.domain {
+        stroke: rgba(255,255,255,0.15);
+    }
+    .z-cse.z-cse-dark .europagraph text {
+        fill: rgba(255,255,255,0.4);
+        text-transform: uppercase;
     }
 
     /* event details */
     .z-cse.z-cse-dark #evdetail_bd {
         background-color: #333;
     }
-
 
