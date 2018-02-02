@@ -40,9 +40,9 @@ PLUGIN_VERSION=1
 def getAuth0Conf():
     if not (AUTH0_CONFIG.get('clientid') and AUTH0_CONFIG.get('tenant') and AUTH0_CONFIG.get('connection')):
         config = getGlobalConfiguration()
-        AUTH0_CONFIG['clientid'] = config.get('auth0-clientid', 'cTxVLXKTNloQv1GN9CSRAds5C4PpTkac')
-        AUTH0_CONFIG['tenant'] = config.get('auth0-tenant', 'https://zenoss-dev.auth0.com/')
-        AUTH0_CONFIG['connection'] = config.get('auth0-connection', 'acme')
+        AUTH0_CONFIG['clientid'] = config.get('auth0-clientid')
+        AUTH0_CONFIG['tenant'] = config.get('auth0-tenant')
+        AUTH0_CONFIG['connection'] = config.get('auth0-connection')
     return AUTH0_CONFIG
 
 def getCSEConf():
@@ -165,6 +165,8 @@ class Auth0(BasePlugin):
         """Redirect to Auth0
         """
         conf = getAuth0Conf()
+        if not (conf['tenant'] and conf['clientid'] and conf['connection']):
+            return False
         zenoss_uri = getZenossURI(request)
         state_obj = {
                 "came_from": request.ACTUAL_URL
