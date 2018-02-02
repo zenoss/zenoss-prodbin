@@ -558,7 +558,8 @@ class ZenPackCmd(ZenScriptBase):
 
     def _findEggs(self, zenpackID, zenpackVersion):
         # if the version has a dash, replace with an underscore
-        zenpackVersion = zenpackVersion.replace("-", "_", 1)
+        # and format it
+        zenpackVersion = parse_version(zenpackVersion.replace("-", "_", 1))
         eggs = []
         for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
             for f in os.listdir(dirpath):
@@ -574,6 +575,8 @@ class ZenPackCmd(ZenScriptBase):
                 # NOTE: also has groupings for 'pyver' and 'plat' if needed for
                 # later.
                 name, version = match.group('name', 'ver')
+                # formatting version to a standart
+                version = parse_version(version)
                 if name == zenpackID and (not zenpackVersion or version == zenpackVersion):
                     eggs.append(os.path.join(dirpath, f))
             # no point in checking the other dirpaths if an egg has been found
