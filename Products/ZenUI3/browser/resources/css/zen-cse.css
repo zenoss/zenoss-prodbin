@@ -467,6 +467,22 @@ BYE BYE BORDERS
             text-transform: uppercase;
         }
 
+    .z-cse #events_column_config_dialog-targetEl .x-panel center b {
+        font-family: RobotoCondensed;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    .z-cse #events_column_config_dialog-targetEl .x-boundlist-list-ct {
+        background: rgba(255,255,255,0.05);
+    }
+    .z-cse #events_column_config_dialog-targetEl .x-boundlist-item {
+        color: #eee !important;
+        padding: 4px 8px;
+    }
+        .z-cse #events_column_config_dialog-targetEl .x-boundlist-item-over,
+        .z-cse #events_column_config_dialog-targetEl .x-boundlist-selected {
+                color: #4b4b4c !important;
+        }
 
     /* infrastrucure | devices | < device > | modeler plugins multiselect */
     .z-cse #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
@@ -481,12 +497,16 @@ BYE BYE BORDERS
         text-transform: uppercase;
     }
     .z-cse #bindTemplatesDialog-body .x-boundlist-list-ct {
-        background: #ccc;
+        background: rgba(255,255,255,0.05) !important;
     }
     .z-cse #bindTemplatesDialog-body .x-boundlist-item {
-        color: #4b4b4c !important;
+        color: #eee !important;
         padding: 4px 8px;
     }
+        .z-cse #bindTemplatesDialog-body .x-boundlist-item-over,
+        .z-cse #bindTemplatesDialog-body .x-boundlist-selected {
+                color: #4b4b4c !important;
+        }
 
     /*
     ================
@@ -639,6 +659,7 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse #events_column_config_dialog-targetEl .x-panel center b,
     .z-cse .x-tip-header-text,
     .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
     .z-cse #breadCrumbPane a,
@@ -685,6 +706,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse #fexample-inputEl,
     .z-cse .x-form-invalid-tip li,
     .z-cse .europagraph .graph_title,
     .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
@@ -756,6 +778,8 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse #comments-textarea-inputEl,
+    .z-cse #fexample-inputEl,
     .z-cse .x-boundlist-floating .x-boundlist-item,
     .z-cse .detail-form-panel .x-form-field,
     .z-cse input[type=text],
@@ -966,6 +990,9 @@ BYE BYE BORDERS
     .z-cse .x-grid-row-selected .x-grid-cell-inner,
     .z-cse .x-grid-row-focused .x-grid-cell-inner
     { color: #fafafa; }
+    .z-cse .x-window .x-field-label-cell label
+    { color: deeppink !important; }
+    .z-cse #fexample-inputEl,
     .z-cse .x-window .x-grid-table .x-grid-cell-inner
     { color: #fafafa !important; }
     .z-cse .x-window .x-grid-table .x-grid-row-over
@@ -1300,13 +1327,21 @@ BYE BYE BORDERS
         }
 
     /* infrastructure | network map */
-    #network_map_form button,
-    #network_map_form .x-btn-noicon {
+    .z-cse #network_map_form button,
+    .z-cse #network_map_form .x-btn-noicon {
         width: 60px !important;
     }
-        #network_map_form button span {
+        .z-cse #network_map_form button span {
             width: 50px !important;
         }
+        .z-cse #center_panel #layers_group {
+            background-color: #ddd;
+            margin-bottom: 10px;
+        }
+        .z-cse #center_panel #layers_group_header {
+        background-color: #808080;
+        }
+
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
         height: 30px;
@@ -1731,6 +1766,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #network_map_form {
         background-color: #777;
     }
+    .z-cse.z-cse-dark #center_panel #layers_group {
+        background-color: #555;
+    }
+
 
     /* infrastructure | manufacturers */
     .z-cse.z-cse-dark #man_center_panel-body .x-toolbar-docked-top {
