@@ -36,6 +36,7 @@ PLUGIN_VERSION=1
 
 _AUTH0_CONFIG = {
         'clientid': None,
+        'client-secret': None,
         'tenant': None,
         'connection': None
     }
@@ -162,11 +163,12 @@ class Auth0(BasePlugin):
                            path="/", secure=True, http_only=True)
 
         request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
-                                     "response_type=token id_token&" +
+                                     "response_type=code&" +
                                      "client_id=%s&" % conf['clientid'] +
                                      "connection=%s&" % conf['connection'] +
                                      "nonce=%s&" % nonce +
                                      "state=%s&" % state +
+                                     "scope=openid offline_access&" +
                                      "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri,
                                      lock=1)
         return True

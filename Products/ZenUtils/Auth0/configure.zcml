@@ -11,11 +11,4 @@
     permission="zope2.Public"
     />
 
-<browser:page
-    name="Auth0Login"
-    for="*"
-    class="Products.ZenUtils.Auth0.Auth0Callback.Auth0Login"
-    permission="zope2.Public"
-    />
-
 </configure>
