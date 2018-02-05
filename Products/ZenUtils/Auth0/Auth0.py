@@ -21,9 +21,10 @@ from Products.ZenUtils.Utils import getQueryArgsFromRequest
 
 import base64
 import json
-import urllib
 import jwt
 import logging
+import os
+import urllib
 from datetime import datetime, timedelta
 
 log = logging.getLogger('Auth0')
@@ -145,7 +146,7 @@ class Auth0(BasePlugin):
             return False
 
         zenoss_uri = getZenossURI(request)
-        nonce = "abcd1234"
+        nonce = base64.urlsafe_b64encode(os.urandom(32))
         # pass state to auth0 so we can redirect user to where they wanted to go
         state_obj = {
             "came_from": request.ACTUAL_URL
