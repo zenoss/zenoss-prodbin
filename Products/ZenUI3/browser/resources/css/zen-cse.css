@@ -1,7 +1,9 @@
 /* color palette
 
-light blue #b6cbe4
 dark blue selected row #8cacd4
+light blue row hover #d2e0f1
+light blue button hover #b6cbe4
+
 bright blue links #89c5fa
 
 light text: #fafafa
@@ -44,6 +46,7 @@ filter & button backgrounds #f4f4f4
 */
 
 /* zenoss.css */
+.z-cse #contentPaneContainer .filterbox,
 .z-cse .x-portlet .x-panel-body,
 .z-cse #blackTabs #xform_mapping_panel,
 .z-cse .x-window-body-closable .CodeMirror,
@@ -105,6 +108,9 @@ filter & button backgrounds #f4f4f4
 { background-image: none !important; background-color: transparent !important; }
 
 /* xtheme-zenoss.css */
+.z-cse #templateTree .x-grid-row-over .x-grid-cell,
+.z-cse #templateTree .x-grid-row-over .x-grid-cell-inner,
+.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner,
 .z-cse .x-panel-body-hierarchy,
 .z-cse .white-background-panel .x-window-body .x-panel-body,
 .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
@@ -200,6 +206,8 @@ BYE BYE BORDERS
 ================
 */
 
+.z-cse #contentPaneContainer input.tableheader,
+.z-cse .z-bc div.tabletitlecontainer,
 .z-cse table.x-datepicker-inner .x-datepicker-selected a,
 .z-cse #blackTabs #xform_mapping_panel,
 .z-cse input[type="button"],
@@ -264,7 +272,8 @@ BYE BYE BORDERS
     ================
     */
 
-    /* buttons inputs and text areas ==theme-based=== */
+    .z-cse #contentPaneContainer table td input[name=batchSize],
+    .z-cse #contentPaneContainer table td input[name=batchSize]:hover,
     .z-cse textarea.x-form-field,
     .z-cse .x-btn-arrowslide-toolbar-small,
     .z-cse select,
@@ -308,7 +317,6 @@ BYE BYE BORDERS
     }
 
     /* filter coloring */
-    .z-cse #contentPaneContainer .filterbox,
     .z-cse #component_searchfield-inputEl
     /* .z-cse .x-grid-filter .x-form-field, */
     { background-image: none; background-color: #c1c1c1; border: 0; }
@@ -324,17 +332,22 @@ BYE BYE BORDERS
     }
 
     /* grid highlighting */
+    .z-cse .xboundlist-selected,
+    .z-cse #newTabsPane ul li.selected,
+    .z-cse .x-grid-row-selected,
+    .z-cse .x-grid-row-focused
+    { background-image: none; background-color: #8cacd4 !important; }
+
+    .z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
+    .z-cse #newTabsPane ul li:hover,
     .z-cse .x-boundlist-item-over,
     .z-cse .x-grid-row-over,
     .z-cse #trigger-master_panel .x-grid-row-over,
     .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over,
     .z-cse #templateTree .x-grid-row-over
     { background-image: none; background-color: #d2e0f1 !important;}
-    .z-cse .x-grid-row-selected,
-    .z-cse .x-grid-row-focused
-    { background-image: none; background-color: #8cacd4 !important; }
 
-    /* filter backgrounds */
+    /* drop-down backgrounds */
     .z-cse .x-boundlist-floating .x-boundlist-list-ct
     { background-image: none; background-color: #eee; }
 
@@ -487,6 +500,15 @@ BYE BYE BORDERS
     .z-cse #NetworkDetailCardPanel .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
     { background-image: none; background-color: #ccc; border: 0; border-radius: 0; }
+
+    /* filters light theme */
+    .z-cse #component_searchfield-inputEl,
+    .z-cse #navGrid-filter-name-inputEl,
+    .z-cse #master_panel .x-hierarchy-search input[type=text],
+    .z-cse #productsgrid_id-filter-prod_id-inputEl,
+    .z-cse .tabletitle #filter,
+    .z-cse table.x-form-item.x-grid-filter input[type=text]
+    { background-color: #f4f4f4 }
 
     /* event rainbow */
     .z-cse .largetoolbar table.eventrainbow
@@ -713,6 +735,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse input[type=text],
     .z-cse .x-tip-header-text,
     .z-cse #searchInput-inputEl,
     .z-cse .devdetailbar a.z-entity,
@@ -847,7 +870,6 @@ BYE BYE BORDERS
     .z-cse .x-form-field,
     .z-cse .x-grid-row .x-grid-cell,
     .z-cse .graph_title,
-    .z-cse #newTabsPane ul li.selected a,
     .z-cse .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
     .z-cse .x-panel-body-default,
     .z-cse .x-grid .x-column-header-text,
@@ -874,6 +896,7 @@ BYE BYE BORDERS
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse .x-panel-body-default
     { color: #4b4b4c }
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .user-prefs-cell div:first-child div,
     .z-cse #resetPasswordForm div:first-child,
     .z-cse .dependencyGraphPanel h3,
@@ -887,6 +910,10 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse #CheckForUpdates ~ tbody input[type=submit],
+    .z-cse #contentPaneContainer input.tableheader,
+    .z-cse #newTabsPane ul li a:hover,
+    .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
     .z-cse .zenfooter_value_row:hover td,
     .z-cse #events_griddocked-filter .x-form-item input[type=text],
     .z-cse #device_griddocked-filter .x-form-item input[type=text],
@@ -906,12 +933,10 @@ BYE BYE BORDERS
     .z-cse .x-tree-panel .x-grid-row-over  span,
     .z-cse .x-menu-item-text
     { color: #4b4b4c; }
-    .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span
     { color: #4b4b4c !important; }
 
-    .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
-    .z-cse #newTabsPane ul li a:hover,
+    .z-cse #newTabsPane ul li.selected a,
     .z-cse .x-grid-row-selected .x-grid-cell-inner,
     /* .z-cse .x-grid-row-selected span, */
     .z-cse .x-grid-row-focused .x-grid-cell-inner
@@ -1205,6 +1230,31 @@ BYE BYE BORDERS
         background-color: #fff !important;
     }
 
+
+    /* events | classes | dropdown */
+    .z-cse #overriddengrid_id .x-toolbar-docked-top,
+    .z-cse #configpanel_id .x-toolbar-docked-top {
+        padding: 10px;
+    }
+
+    /* events | classes | transforms */
+    .z-cse .transform-headers {
+        display: block;
+    }
+
+    /* events | classes tree disappearing icon bug */
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .sanstransform {
+        background-image: url('++resource++zenui/img/xtheme-zenoss/icon/no-transform.png') !important;
+        display: inline-block;
+        margin: -2px 2px 0 -2px;
+    }
+
+    /* infrastructure | device | details | modeler plugins */
+    .z-cse #device_modeler_plugins .x-boundlist-item,
+    .z-cse #modeler_plugins .x-boundlist-item {
+        padding: 4px;
+    }
+
     /* infrastructure | processes */
     .z-cse #processForm fieldset,
     .z-cse #processForm fieldset legend {
@@ -1223,18 +1273,6 @@ BYE BYE BORDERS
         #network_map_form button span {
             width: 50px !important;
         }
-
-    /* events | classes | dropdown */
-    .z-cse #overriddengrid_id .x-toolbar-docked-top,
-    .z-cse #configpanel_id .x-toolbar-docked-top {
-        padding: 10px;
-    }
-
-    /* events | classes | transforms */
-    .z-cse .transform-headers {
-        display: block;
-    }
-
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
         height: 30px;
@@ -1249,6 +1287,53 @@ BYE BYE BORDERS
     .z-cse #contentPaneContainer .x-form-arrow-trigger {
         margin-top: 4px;
     }
+    .z-cse #contentPaneContainer input.tableheader {
+        padding: 4px 9px;
+        border-radius: 3px;
+    }
+    .z-cse #contentPaneContainer input.tableheader:hover {
+        background-color:  #b6cbe4;
+    }
+
+    /* advanced | commands */
+    .z-cse #DefineCommands .navcontrol {
+        width: 40px;
+        padding: 4px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+        .z-cse #DefineCommands .navcontrol:hover {
+            background-color: #d2e0f1;
+        }
+    .z-cse #DefineCommands .navcontrol[name=showAll] {
+        width: 80px;
+    }
+    .z-cse .filterbox-left,
+    .z-cse .filterbox-middle {
+        padding: 0;
+    }
+    .z-cse .tabletitle #filter {
+        line-height: normal;
+        text-indent: 4px;
+    }
+    .z-cse #contentPaneContainer .tabletitlecontainer {
+        height: auto;
+        padding-bottom: 6px;
+    }
+    .z-cse #contentPaneContainer input[name=batchSize] {
+        border-radius: 0;
+        margin: 0 6px;
+        padding: 2px 4px;
+    }
+
+    /* advanced | settings | versions */
+    .z-cse #CheckForUpdates ~ tbody input[type=submit] {
+        border-radius: 3px;
+        padding: 6px 12px;
+    }
+        .z-cse #CheckForUpdates ~ tbody input[type=submit]:hover {
+            background-color:  #b6cbe4;
+        }
 
     /* events | classes | < class > */
     .z-cse #blackTabs .x-tab {
@@ -1257,6 +1342,17 @@ BYE BYE BORDERS
         height: auto !important;
         top: 0 !important;
         padding: 4px;
+    }
+
+    /* events | triggers */
+    .z-cse #trigger-master_panel .x-grid-cell-inner {
+        padding: 3px 0;
+    }
+
+    /* advanced sidebar */
+    .z-cse #newTabsPane li a {
+        padding: 4px;
+        text-indent: 4px;
     }
 
     .z-cse .x-datepicker .x-datepicker-inner a.x-datepicker-date {
@@ -1292,7 +1388,7 @@ BYE BYE BORDERS
         }
     .z-cse .x-datepicker-active:hover,
     .z-cse .x-monthpicker-item a:hover {
-        background-color: #ddd;
+        background-color: #d2e0f1;
     }
 
     .z-cse .x-panel-hierarchy .x-grid-body {
@@ -1369,7 +1465,6 @@ BYE BYE BORDERS
     }
 
     /* buttons inputs and text areas */
-    .z-cse.z-cse-dark textarea.x-form-field,
     .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-small,
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark .tablevalues.select,
@@ -1380,18 +1475,20 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark input[type="password"],
     .z-cse.z-cse-dark input[type="submit"],
     .z-cse.z-cse-dark input[type="reset"],
-    .z-cse.z-cse-dark table.x-form-item input[type=text],
     .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
-    .z-cse.z-cse-dark #network_map_form-body input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark #network_map_form-body input[type=text],
+    .z-cse.z-cse-dark #navGrid-filter-name-inputRow input[type=text],
+    .z-cse.z-cse-dark textarea.x-form-field,
+    .z-cse.z-cse-dark table.x-form-item input[type=text],
     .z-cse.z-cse-dark #searchInput-inputEl,
     .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
     .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
@@ -1411,6 +1508,16 @@ BYE BYE BORDERS
     {
         background-color: transparent;
     }
+
+    /* filters dark theme */
+    .z-cse.z-cse-dark #component_searchfield-inputEl,
+    .z-cse.z-cse-dark #navGrid-filter-name-inputEl,
+    .z-cse.z-cse-dark #master_panel .x-hierarchy-search input[type=text],
+    .z-cse.z-cse-dark #productsgrid_id-filter-prod_id-inputEl,
+    .z-cse.z-cse-dark .tabletitle #filter,
+    .z-cse.z-cse-dark table.x-form-item.x-grid-filter input[type=text]
+    { background-color: #b2afaf }
+
 
     /* table headers theme sensitive */
     .z-cse.z-cse-dark #AdministeredObjects th,
@@ -1433,12 +1540,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
     { background-color: #808080; }
 
-    /* hover background */
-    .z-cse.z-cse-dark #newTabsPane ul li a:hover {
-        background-color: #eee !important;
-    }
-
-    /* diabled text */
+    /* disabled text */
     .z-cse.z-cse-dark span.status-unknown,
     .z-cse.z-cse-dark span.status-unknown-large,
     .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled .x-btn-inner
@@ -1482,6 +1584,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
     .z-cse.z-cse-dark .x-panel-body-default
     { color: #ccc }
+    .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
     .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
     .z-cse.z-cse-dark #resetPasswordForm div:first-child,
     .z-cse.z-cse-dark .dependencyGraphPanel h3,
@@ -1544,7 +1647,6 @@ BYE BYE BORDERS
     }
 
     /* grid highlighting */
-    .z-cse.z-cse-dark .x-boundlist-item-over,
     .z-cse.z-cse-dark .x-grid-row-over,
     .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over,
@@ -1559,12 +1661,6 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
     { color: #fafafa !important }
 
-    /* event tree disappearing icon */
-    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .sanstransform {
-        background-image: url('++resource++zenui/img/xtheme-zenoss/icon/no-transform.png') !important;
-        display: inline-block;
-        margin: -2px 2px 0 -2px;
-    }
 
     /* dark charts */
     .z-cse.z-cse-dark div.europagraph {
@@ -1578,11 +1674,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item,
     .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item {
             color: #eee !important;
-            padding: 4px;
         }
         .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item-over,
-        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item-over {
-            color: #4b4b4c !important;
+        .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-selected,
+        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item-over,
+        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-selected {
+                color: #4b4b4c !important;
         }
 
     /* events | triggers */
