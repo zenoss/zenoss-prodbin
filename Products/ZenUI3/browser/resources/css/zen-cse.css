@@ -141,6 +141,7 @@ filter & button backgrounds #f4f4f4
 .z-cse .x-toolbar-large,
 .z-cse body
 { background-image: none; background-color: transparent; }
+.z-cse .x-window div[id|=configpropertypanel],
 .z-cse div[id^=pasteventschart] > .x-fit-item,
 .z-cse #trigger-master_panel,
 .z-cse #trigger-master_panel-body,
@@ -473,6 +474,19 @@ BYE BYE BORDERS
         background-color: rgba(255,255,255,0.4);
     }
 
+    /* infrastructure | devices | < gear > | bind templates */
+    .z-cse #bindTemplatesDialog-body > .x-panel {
+        font-family: RobotoCondensed;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    .z-cse #bindTemplatesDialog-body .x-boundlist-list-ct {
+        background: #ccc;
+    }
+    .z-cse #bindTemplatesDialog-body .x-boundlist-item {
+        color: #4b4b4c !important;
+        padding: 4px 8px;
+    }
 
     /*
     ================
@@ -606,6 +620,12 @@ BYE BYE BORDERS
         padding-left: 10px;
     }
 
+    /* infrastructure | events | classes | edit event class modal */
+    .z-cse .x-window-body-closable .x-resizable-pinned {
+        background-color: #333 !important;
+    }
+
+
 
     /*
     ================
@@ -665,6 +685,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse .x-form-invalid-tip li,
     .z-cse .europagraph .graph_title,
     .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
     .z-cse .europagraph .zenchart .nv-axis text,
@@ -735,6 +756,8 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse .x-boundlist-floating .x-boundlist-item,
+    .z-cse .detail-form-panel .x-form-field,
     .z-cse input[type=text],
     .z-cse .x-tip-header-text,
     .z-cse #searchInput-inputEl,
@@ -910,6 +933,7 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse .x-form-invalid-tip li,
     .z-cse #CheckForUpdates ~ tbody input[type=submit],
     .z-cse #contentPaneContainer input.tableheader,
     .z-cse #newTabsPane ul li a:hover,
@@ -936,16 +960,16 @@ BYE BYE BORDERS
     .z-cse .x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span
     { color: #4b4b4c !important; }
 
+    /* light text not applicable to light-dark theming */
+    .z-cse .x-window .x-panel-body,
     .z-cse #newTabsPane ul li.selected a,
     .z-cse .x-grid-row-selected .x-grid-cell-inner,
-    /* .z-cse .x-grid-row-selected span, */
     .z-cse .x-grid-row-focused .x-grid-cell-inner
-    /* .z-cse .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner,
-    .z-cse .x-grid-row-selected.x-grid-row-over span,
-    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
-    .z-cse #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
-    .z-cse #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner */
+    { color: #fafafa; }
+    .z-cse .x-window .x-grid-table .x-grid-cell-inner
     { color: #fafafa !important; }
+    .z-cse .x-window .x-grid-table .x-grid-row-over
+    { background-color: #4b6f9b !important; }
 
     /* light-theme text links */
     .z-cse #breadCrumbPane a,
@@ -1215,6 +1239,12 @@ BYE BYE BORDERS
             margin-bottom: 4px;
         }
 
+    .x-form-invalid-tip {
+        border-radius: 0;
+        border:0;
+        background-color: #eee;
+    }
+
     /* dashboard */
     .z-cse #center_panel .x-portlet > .x-panel-header {
         background-color: #777;
@@ -1230,6 +1260,10 @@ BYE BYE BORDERS
         background-color: #fff !important;
     }
 
+    .z-cse #nav_combo-inputEl {
+        font-size: 12px;
+        text-indent: 3px;
+    }
 
     /* events | classes | dropdown */
     .z-cse #overriddengrid_id .x-toolbar-docked-top,
