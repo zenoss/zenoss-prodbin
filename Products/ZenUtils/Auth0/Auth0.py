@@ -42,12 +42,13 @@ _AUTH0_CONFIG = {
 def getAuth0Conf():
     """Return a dictionary containing Auth0 configuration or None
     """
-    if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG):
+    global _AUTH0_CONFIG
+    if _AUTH0_CONFIG is not None and not all(_AUTH0_CONFIG.values()):
         d = {}
         config = getGlobalConfiguration()
-        for k, v in _AUTH0_CONFIG:
+        for k in _AUTH0_CONFIG:
             d[k] = config.get('auth0-' + k)
-        _AUTH0_CONFIG = d if all(d) else None
+        _AUTH0_CONFIG = d if all(d.values()) else None
     return _AUTH0_CONFIG
 
 def manage_addAuth0(context, id, title=None):
@@ -71,13 +72,13 @@ class Auth0(BasePlugin):
     cookie_name = '__macaroon'
     nonce_cookie = '__auth_nonce'
     state_cookie = '__auth_state'
+    cache = {}
 
     def __init__(self, id, title=None):
         self._id = self.id = id
         self.title = title
         self.version = PLUGIN_VERSION
         # TODO: use memcache
-        self.cache = {}
 
     def extractCredentials(self, request):
         """extractCredentials satisfies the PluggableAuthService

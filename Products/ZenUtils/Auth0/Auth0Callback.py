@@ -8,7 +8,7 @@
 ##############################################################################
 
 from Products.Five.browser import BrowserView
-from Products.ZenUtils.Auth0.Auth0 import Auth0, getAuth0Conf
+from Products.ZenUtils.Auth0 import Auth0, getAuth0Conf
 from Products.ZenUtils.CSEUtils import getZenossURI
 from Products.ZenUtils.Utils import getQueryArgsFromRequest
 

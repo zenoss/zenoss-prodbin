@@ -6,3 +6,5 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+from Auth0 import *
+from Auth0Callback import *

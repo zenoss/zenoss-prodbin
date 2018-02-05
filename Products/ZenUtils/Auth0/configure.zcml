@@ -7,14 +7,14 @@
 <browser:page
     name="Auth0Callback"
     for="*"
-    class=".Auth0Callback.Auth0Callback"
+    class="Products.ZenUtils.Auth0.Auth0Callback.Auth0Callback"
     permission="zope2.Public"
     />
 
 <browser:page
     name="Auth0Login"
     for="*"
-    class=".Auth0Callback.Auth0Login"
+    class="Products.ZenUtils.Auth0.Auth0Callback.Auth0Login"
     permission="zope2.Public"
     />
 
