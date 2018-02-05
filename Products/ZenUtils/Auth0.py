@@ -22,9 +22,10 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 import base64
 import json
-import urllib
 import jwt
 import logging
+import os
+import urllib
 from datetime import datetime, timedelta
 
 log = logging.getLogger('Auth0')
@@ -173,7 +174,7 @@ class Auth0(BasePlugin):
             }
         # strip the '=' padding because js doesn't need it
         state = base64.urlsafe_b64encode(json.dumps(state_obj))#.replace("=", '')
-        nonce = "abcd1234"
+        nonce = base64.urlsafe_b64encode(os.urandom(32))
         # set expiration on our cookies, since they will otherwise expire with the session
         expiration_time = datetime.utcnow() + timedelta(minutes=5)
         expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
