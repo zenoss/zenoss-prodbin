@@ -142,7 +142,7 @@ class Auth0(BasePlugin):
             IChallengePlugin interface.
         """
         conf = getAuth0Conf()
-        if not conf or not all(conf):
+        if not conf or not all(conf.values()):
             return False
 
         zenoss_uri = getZenossURI(request)
