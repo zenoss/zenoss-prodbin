@@ -37,6 +37,7 @@ PLUGIN_TITLE = 'Provide auth via Auth0 service'
 AUTH0_CONFIG = {}
 CSE_CONFIG = {}
 PLUGIN_VERSION=1
+COOKIE_NAME='__macaroon'
 
 def getAuth0Conf():
     if not (AUTH0_CONFIG.get('clientid') and AUTH0_CONFIG.get('tenant') and AUTH0_CONFIG.get('connection')):
@@ -118,7 +119,7 @@ class Auth0(BasePlugin):
                 return None
             return auth.split()[-1]
 
-        auth = request.get('__macaroon') or getTokenFromHeader() or getQueryArgs(request).get('idToken', None)
+        auth = request.get(COOKIE_NAME) or getTokenFromHeader() or getQueryArgs(request).get('idToken', None)
         if auth is None:
             return {}
         return {'token': auth}

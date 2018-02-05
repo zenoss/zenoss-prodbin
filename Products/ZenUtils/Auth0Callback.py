@@ -7,7 +7,7 @@
 #
 ##############################################################################
 from Products.Five.browser import BrowserView
-from .Auth0 import getAuth0Conf, getZenossURI, getQueryArgs
+from .Auth0 import getAuth0Conf, getZenossURI, getQueryArgs, COOKIE_NAME
 import httplib
 import base64
 import json
@@ -74,7 +74,6 @@ class Auth0Callback(BrowserView):
 class Auth0Login(BrowserView):
     """
     """
-    cookieName = '__macaroon'
     def __call__(self):
         query_args = getQueryArgs(self.request)
         token = query_args.get('idToken', None)
@@ -83,5 +82,5 @@ class Auth0Login(BrowserView):
             self.request.response.setStatus(401)
             self.request.response.write( "Missing Id Token")
 
-        self.request.response.setCookie(self.cookieName, token, secure=True, http_only=True)
+        self.request.response.setCookie(COOKIE_NAME, token, secure=True, http_only=True)
         return self.request.response.redirect(came_from or getZenossURI(self.request) + '/zport/dmd')
