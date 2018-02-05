@@ -6,8 +6,12 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
+
 from Products.Five.browser import BrowserView
-from .Auth0 import getAuth0Conf, getZenossURI, getQueryArgs, COOKIE_NAME
+from Products.ZenUtils.Auth0 import Auth0, getAuth0Conf
+from Products.ZenUtils.CSEUtils import getZenossURI
+from Products.ZenUtils.Utils import getQueryArgsFromRequest
+
 import httplib
 import base64
 import json
@@ -33,13 +37,20 @@ class Auth0Callback(BrowserView):
         # data = response.read()
         # print "AUTH0 CALLBACK DATA:\n%s" % data
         # return data
+
+        zenoss_uri = getZenossURI(self.request)
+        # if there is no Auth0 config, not sure how we got here, but redirect
+        #  to dmd page... I guess
         conf = getAuth0Conf()
+        if not conf:
+            return self.request.response.redirect(zenoss_uri + '/zport/dmd')
+
         # sanitize tenant to get auth0 domain
         domain = conf['tenant'].replace('https://', '').replace('/', '')
-        nonce = self.request.get('__auth_nonce')
-        state = self.request.get('__auth_state')
+        nonce = self.request.get(Auth0.nonce_cookie)
+        state = self.request.get(Auth0.state_cookie)
         state_obj = base64.urlsafe_b64decode(state)
-        came_from = json.loads(state_obj).get('came_from')
+        came_from = json.loads(state_obj).get('came_from') or zenoss_uri + '/zport/dmd'
         return """<!DOCTYPE html>
 <html>
   <head>
@@ -69,18 +80,19 @@ class Auth0Callback(BrowserView):
   </script>
   </body>
 </html>
-""" % (domain, conf['clientid'], nonce, state, getZenossURI(self.request), came_from)
+""" % (domain, conf['clientid'], nonce, state, zenoss_uri, came_from)
 
 class Auth0Login(BrowserView):
     """
     """
     def __call__(self):
-        query_args = getQueryArgs(self.request)
-        token = query_args.get('idToken', None)
-        came_from = query_args.get('came_from', '')
-        if token is None:
+        query_args = getQueryArgsFromRequest(self.request)
+        token = query_args.get('idToken')
+        came_from = query_args.get('came_from')
+        if not token:
             self.request.response.setStatus(401)
-            self.request.response.write( "Missing Id Token")
+            self.request.response.write("Missing Id Token")
+            return self.request.response
 
-        self.request.response.setCookie(COOKIE_NAME, token, secure=True, http_only=True)
+        self.request.response.setCookie(Auth0.cookie_name, token, secure=True, http_only=True)
         return self.request.response.redirect(came_from or getZenossURI(self.request) + '/zport/dmd')
