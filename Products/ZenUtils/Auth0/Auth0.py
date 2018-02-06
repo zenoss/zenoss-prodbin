@@ -20,6 +20,7 @@ from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginTo
 from Products.ZenUtils.Utils import getQueryArgsFromRequest
 
 import base64
+import httplib
 import json
 import jwt
 import logging
@@ -69,7 +70,7 @@ class Auth0(BasePlugin):
 
     meta_type = 'Auth0 plugin'
     session_idtoken_name = 'auth0-id-token'
-    # TODO: use memcache
+    session_refresh_key = 'auth0-refresh-token'
     cache = {}
 
     def __init__(self, id, title=None):
@@ -97,24 +98,54 @@ class Auth0(BasePlugin):
         if not conf:
             return None
 
-        token = request.SESSION.get(Auth0.session_idtoken_name, None)
-        if not token:
+        id_token = request.SESSION.get(Auth0.session_idtoken_name)
+        if not id_token:
             return {}
 
         # get the key id from the jwt header
-        key_id = jwt.get_unverified_header(token)['kid']
+        key_id = jwt.get_unverified_header(id_token)['kid']
         key = Auth0._getKey(key_id, conf)
         if not key:
             return {}
 
         try:
-            payload = jwt.decode(token, key, verify=True,
+            payload = jwt.decode(id_token, key, verify=True,
                                  algorithms=['RS256'],
                                  audience=conf['clientid'],
                                  issuer=conf['tenant'])
         except jwt.ExpiredSignatureError:
-            # Token is present but expired.
-            return {} #TODO refresh token
+            # Token is present but expired, get a new one with refresh token
+            refresh_token = request.SESSION.get(Auth0.session_refresh_key)
+            if not refresh_token:
+                return {}
+
+            data = {
+                "grant_type": "refresh_token",
+                "client_id": conf['clientid'],
+                "client_secret": conf['client-secret'],
+                "refresh_token": refresh_token
+            }
+
+            conn = httplib.HTTPSConnection(conf['tenant'].replace('https://', ''))
+            headers = {"content-type": "application/json"}
+            try:
+                conn.request('POST', '/oauth/token', json.dumps(data), headers)
+                resp_string = conn.getresponse().read()
+            except:
+                # can we handle this better?
+                return {}
+
+            resp_data = json.loads(resp_string)
+            id_token = resp_data.get('id_token')
+
+            payload = jwt.decode(id_token, key, verify=True,
+                                 algorithms=['RS256'],
+                                 audience=conf['clientid'],
+                                 issuer=conf['tenant'])
+            request.SESSION[Auth0.session_idtoken_name] = id_token
+        except:
+            # Signature is invalid or some internal problem with jwt.decode
+            return {}
 
         if not payload or 'sub' not in payload:
             return {}

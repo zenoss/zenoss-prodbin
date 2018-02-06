@@ -53,16 +53,12 @@ class Auth0Callback(BrowserView):
             # can we handle this better?
             return self.request.response.redirect(zenoss_uri + '/zport/dmd')
 
-        # all the stuff we should get back
-        # TODO: do something with these
         resp_data = json.loads(resp_string)
-        access_token = resp_data.get('access_token')
         refresh_token = resp_data.get('refresh_token')
         id_token = resp_data.get('id_token')
-        expires_in = resp_data.get('expires_in')
-        token_type = resp_data.get('token_type')
 
         self.request.SESSION[Auth0.session_idtoken_name] = id_token
+        self.request.SESSION[Auth0.session_refresh_key] = refresh_token
 
         came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
         return self.request.response.redirect(came_from)
