@@ -69,13 +69,23 @@ class Auth0(BasePlugin):
 
     meta_type = 'Auth0 plugin'
     session_idtoken_name = 'auth0-id-token'
+    # TODO: use memcache
     cache = {}
 
     def __init__(self, id, title=None):
         self._id = self.id = id
         self.title = title
         self.version = PLUGIN_VERSION
-        # TODO: use memcache
+
+    @staticmethod
+    def _getKey(key_id, conf):
+        # Look up a key in the cached list of keys.
+        # If we have never looked up a given key, refresh the cache.
+        if 'keys' not in Auth0.cache or key_id not in Auth0.cache['keys']:
+            jwks = getJWKS(conf['tenant'] + '.well-known/jwks.json')
+            Auth0.cache['keys'] = publicKeysFromJWKS(jwks)
+        return Auth0.cache['keys'].setdefault(key_id, None)
+
 
     def extractCredentials(self, request):
         """extractCredentials satisfies the PluggableAuthService
@@ -83,8 +93,39 @@ class Auth0(BasePlugin):
         A successful extraction will return a dict with the 'token' field
             containing a jwt.
         """
-        auth = request.SESSION.get(Auth0.session_idtoken_name, '')
-        return {'token': auth} if auth else {}
+        conf = getAuth0Conf()
+        if not conf:
+            return None
+
+        token = request.SESSION.get(Auth0.session_idtoken_name, None)
+        if not token:
+            return {}
+
+        # get the key id from the jwt header
+        key_id = jwt.get_unverified_header(token)['kid']
+        key = Auth0._getKey(key_id, conf)
+        if not key:
+            return {}
+
+        try:
+            payload = jwt.decode(token, key, verify=True,
+                                 algorithms=['RS256'],
+                                 audience=conf['clientid'],
+                                 issuer=conf['tenant'])
+        except jwt.ExpiredSignatureError:
+            # Token is present but expired.
+            return {} #TODO refresh token
+
+        if not payload or 'sub' not in payload:
+            return {}
+
+        # Auth0 "sub" format is: connection|user or method|connection|user
+        userid = payload['sub'].encode('utf8').split('|')[-1]
+        if not userid:
+            return {}
+
+        return {'auth0_userid': userid}
+
 
     def authenticateCredentials(self, credentials):
         """authenticateCredentials satisfies the PluggableAuthService
@@ -93,47 +134,13 @@ class Auth0(BasePlugin):
         """
         # Ignore credentials that are not from our extractor
         if credentials.get('extractor') != PLUGIN_ID or \
-           'token' not in credentials:
+           'auth0_userid' not in credentials:
             return None
 
-        conf = getAuth0Conf()
-        if not conf:
+        userid = credentials.get('auth0_userid')
+        if not userid:
             return None
 
-        token = credentials['token']
-
-
-        # get the key id from the jwt header
-        kid = jwt.get_unverified_header(token)['kid']
-
-        # get the public keys from the jwks
-        keys = self.cache.get('keys')
-        # if we don't have the keys in cache or
-        #  if the kid from the jwt isn't in our keys, update cache
-        if not keys or kid not in keys:
-            jwks = getJWKS(conf['tenant'] + '.well-known/jwks.json')
-            keys = publicKeysFromJWKS(jwks)
-            self.cache['keys'] = keys
-
-        # if we still don't have that kid, it's not a token we can use
-        key = keys.get(kid)
-        if not key:
-            return None
-
-        try:
-            payload = jwt.decode(token, key, verify=True,
-                                 algorithms=['RS256'], audience=conf['clientid'],
-                                 issuer=conf['tenant'])
-        except jwt.ExpiredSignatureError:
-            # Token is present but expired.  Do nothing; eventually challenge
-            # will be issued and auth0 will silently refresh the token.
-            return None
-
-        if not payload or 'sub' not in payload:
-            return None
-
-        # Auth0 "sub" format is: connection|user or method|connection|user
-        userid = payload['sub'].encode('utf8').split('|')[-1]
         return (userid, userid)
 
     def challenge(self, request, response):
