@@ -23,8 +23,6 @@ import base64
 import json
 import jwt
 import logging
-import os
-from datetime import datetime, timedelta
 
 log = logging.getLogger('Auth0')
 
@@ -71,8 +69,6 @@ class Auth0(BasePlugin):
 
     meta_type = 'Auth0 plugin'
     cookie_name = '__macaroon'
-    nonce_cookie = '__auth_nonce'
-    state_cookie = '__auth_state'
     cache = {}
 
     def __init__(self, id, title=None):
@@ -152,26 +148,16 @@ class Auth0(BasePlugin):
             return False
 
         zenoss_uri = getZenossURI(request)
-        nonce = base64.urlsafe_b64encode(os.urandom(32))
         # pass state to auth0 so we can redirect user to where they wanted to go
         state_obj = {
             "came_from": request.ACTUAL_URL
         }
         state = base64.urlsafe_b64encode(json.dumps(state_obj))
-        # set expiration on cookies, otherwise they will expire with the session
-        # user has 30 minutes to authenticate with Auth0
-        expiration_time = datetime.utcnow() + timedelta(minutes=30)
-        expiration = expiration_time.strftime("%a, %d %b %Y %X %Z")
-        response.setCookie(self.nonce_cookie, nonce, expires=expiration,
-                           path="/", secure=True, http_only=True)
-        response.setCookie(self.state_cookie, state, expires=expiration,
-                           path="/", secure=True, http_only=True)
 
         request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
                                      "response_type=code&" +
                                      "client_id=%s&" % conf['clientid'] +
                                      "connection=%s&" % conf['connection'] +
-                                     "nonce=%s&" % nonce +
                                      "state=%s&" % state +
                                      "scope=openid offline_access&" +
                                      "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri,

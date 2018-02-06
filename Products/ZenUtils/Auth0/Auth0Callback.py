@@ -12,9 +12,10 @@ from Products.ZenUtils.Auth0 import Auth0, getAuth0Conf
 from Products.ZenUtils.CSEUtils import getZenossURI
 from Products.ZenUtils.Utils import getQueryArgsFromRequest
 
-import httplib
 import base64
+import httplib
 import json
+import urllib
 
 class Auth0Callback(BrowserView):
     """
@@ -26,8 +27,6 @@ class Auth0Callback(BrowserView):
         if not conf:
             return self.request.response.redirect(zenoss_uri + '/zport/dmd')
 
-        # TODO: Do we need to verify state query arg against state from cookie?
-        #       Nonce seems to show up later in the id token, is it necessary?
         args = getQueryArgsFromRequest(self.request)
         state_arg = args.get('state')
         code = args.get('code')
@@ -63,10 +62,7 @@ class Auth0Callback(BrowserView):
         expires_in = resp_data.get('expires_in')
         token_type = resp_data.get('token_type')
 
-        state = self.request.get(Auth0.state_cookie)
-
-        state_obj = base64.urlsafe_b64decode(state)
-        came_from = json.loads(state_obj).get('came_from') or zenoss_uri + '/zport/dmd'
+        came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
 
         self.request.response.setCookie(Auth0.cookie_name, id_token, secure=True, http_only=True)
         return self.request.response.redirect(came_from)
