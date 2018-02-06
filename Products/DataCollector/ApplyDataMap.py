@@ -10,8 +10,13 @@
 
 import sys
 from collections import defaultdict
+import urlparse
+
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
+
+import requests
+session = requests.Session()
 
 import transaction
 
@@ -23,9 +28,11 @@ from metrology.registry import registry
 
 from Products.ZenUtils.MetricReporter import QueueGauge
 from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
+from Products.DataCollector.zing import serialize_datamap
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -35,6 +42,7 @@ from zExceptions import NotFound
 zenmarker = "__ZENMARKER__"
 
 CLASSIFIER_CLASS = '/Classifier'
+ZING_CONNECTOR_URL = getGlobalConfiguration().get("zing_connector_url")
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
@@ -54,6 +62,22 @@ def isSameData(x, y):
 
     return x == y
 
+def handle_datamap(device, datamap, context):
+    """
+    Forward a serialized datamap to zing-connector, after it's successfully been dealt with by _applyDataMap
+    """
+
+    # Convert the datamap into its serialized form
+    try:
+        log.info("Processing a datamap")
+        serialized = serialize_datamap(device, datamap_context)
+
+        if ZING_CONNECTOR_URL != "":
+            zing_connector_path = urlparse.urljoin(ZING_CONNECTOR_URL, "/api/model/ingest")
+            session.put(zing_connector_path, data=serialized)
+    except Exception:
+        log.exception("Unable to process datamap")
+
 
 class ApplyDataMap(object):
 
@@ -67,6 +91,7 @@ class ApplyDataMap(object):
         if metricName not in {x[0] for x in registry}:
             registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
         self._urGauge = registry.get(metricName)
+        self.context = {}
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -215,6 +240,10 @@ class ApplyDataMap(object):
             device.getId(),
             self.num_obj_changed,
             logname)
+
+        if getattr(device.dmd, "modelIngestEnabled", True):
+            handle_datamap(device, datamap, self.context)
+        self.context = {}
 
         return changed
 
@@ -409,6 +438,9 @@ class ApplyDataMap(object):
         else:
             obj._p_deactivate()
         self.num_obj_changed += 1 if changed else 0
+
+        self.context[objmap] = obj
+
         return changed
 
 
