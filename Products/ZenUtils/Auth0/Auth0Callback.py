@@ -62,7 +62,7 @@ class Auth0Callback(BrowserView):
         expires_in = resp_data.get('expires_in')
         token_type = resp_data.get('token_type')
 
-        came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
+        self.request.SESSION[Auth0.session_idtoken_name] = id_token
 
-        self.request.response.setCookie(Auth0.cookie_name, id_token, secure=True, http_only=True)
+        came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
         return self.request.response.redirect(came_from)

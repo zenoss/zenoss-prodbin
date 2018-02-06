@@ -68,7 +68,7 @@ class Auth0(BasePlugin):
     """
 
     meta_type = 'Auth0 plugin'
-    cookie_name = '__macaroon'
+    session_idtoken_name = 'auth0-id-token'
     cache = {}
 
     def __init__(self, id, title=None):
@@ -83,10 +83,7 @@ class Auth0(BasePlugin):
         A successful extraction will return a dict with the 'token' field
             containing a jwt.
         """
-        auth = request.get(self.cookie_name) or getBearerToken(request)
-        if not auth:
-            query_args = getQueryArgsFromRequest(request)
-            auth = query_args.get('idToken') or query_args.get('accessToken')
+        auth = request.SESSION.get(Auth0.session_idtoken_name, '')
         return {'token': auth} if auth else {}
 
     def authenticateCredentials(self, credentials):
