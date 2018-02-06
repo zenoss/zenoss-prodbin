@@ -461,12 +461,6 @@ BYE BYE BORDERS
             padding-right: 6px;
         }
 
-        .z-cse #detail_card_panel label {
-            color: #999 !important;
-            font-family: RobotoCondensed;
-            text-transform: uppercase;
-        }
-
     .z-cse #events_column_config_dialog-targetEl .x-panel center b {
         font-family: RobotoCondensed;
         font-size: 12px;
@@ -491,18 +485,24 @@ BYE BYE BORDERS
     }
 
     /* infrastructure | devices | < gear > | bind templates */
+
+    .z-cse div[id|=bindtemplatesdialog] > .x-panel,
     .z-cse #bindTemplatesDialog-body > .x-panel {
         font-family: RobotoCondensed;
         font-size: 12px;
         text-transform: uppercase;
     }
+    .z-cse div[id|=bindtemplatesdialog] .x-boundlist-list-ct,
     .z-cse #bindTemplatesDialog-body .x-boundlist-list-ct {
         background: rgba(255,255,255,0.05) !important;
     }
+    .z-cse div[id|=bindtemplatesdialog] .x-boundlist-item,
     .z-cse #bindTemplatesDialog-body .x-boundlist-item {
         color: #eee !important;
         padding: 4px 8px;
     }
+        .z-cse div[id|=bindtemplatesdialog] .x-boundlist-item-over,
+        .z-cse div[id|=bindtemplatesdialog] .x-boundlist-selected,
         .z-cse #bindTemplatesDialog-body .x-boundlist-item-over,
         .z-cse #bindTemplatesDialog-body .x-boundlist-selected {
                 color: #4b4b4c !important;
@@ -763,6 +763,7 @@ BYE BYE BORDERS
 
 
     /* SUBHEADINGS AND TOOLBAR TEXT */
+    .z-cse #detail_card_panel label,
     .z-cse #detail_panel label,
     .z-cse .subselect-head .x-toolbar-text,
     .z-cse .graphpanel .x-toolbar-text,
@@ -777,7 +778,15 @@ BYE BYE BORDERS
         text-transform: uppercase;
     }
 
+    .z-cse #device_overview-body label {
+        color: #999 !important;
+    }
+
+
     /* MONOSPACE AREAS */
+    .z-cse #device_overview-body .x-form-display-field,
+    .z-cse #network_map-body text,
+    .z-cse #commandsDialog-body textarea,
     .z-cse #comments-textarea-inputEl,
     .z-cse #fexample-inputEl,
     .z-cse .x-boundlist-floating .x-boundlist-item,
@@ -803,6 +812,8 @@ BYE BYE BORDERS
     { font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace; }
     .z-cse #job_detail_panel-body pre
     {font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace !important; }
+
+
 
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
@@ -956,6 +967,11 @@ BYE BYE BORDERS
     .z-cse .livegridinfopanel
     { color: #4b4b4c !important; }
 
+    /* light theme chart text */
+    .z-cse #network_map-body text
+    { fill: #4b4b4c; }
+
+
     /* dark text not applicable to light-dark-theming */
     .z-cse .x-form-invalid-tip li,
     .z-cse #CheckForUpdates ~ tbody input[type=submit],
@@ -985,13 +1001,14 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* light text not applicable to light-dark theming */
+    .z-cse .x-window .x-form-display-field,
     .z-cse .x-window .x-panel-body,
     .z-cse #newTabsPane ul li.selected a,
     .z-cse .x-grid-row-selected .x-grid-cell-inner,
     .z-cse .x-grid-row-focused .x-grid-cell-inner
     { color: #fafafa; }
     .z-cse .x-window .x-field-label-cell label
-    { color: deeppink !important; }
+    { color: #fafafa !important; }
     .z-cse #fexample-inputEl,
     .z-cse .x-window .x-grid-table .x-grid-cell-inner
     { color: #fafafa !important; }
@@ -1071,6 +1088,9 @@ BYE BYE BORDERS
     .z-cse .europagraph g.tick.zero line,
     .z-cse .europagraph path.domain {
         stroke: rgba(0,0,0,0.3);
+    }
+    .z-cse .europagraph text {
+        text-transform: uppercase;
     }
 
     /* open events - past events portlets */
@@ -1310,11 +1330,20 @@ BYE BYE BORDERS
         margin: -2px 2px 0 -2px;
     }
 
-    /* infrastructure | device | details | modeler plugins */
+    /* infrastructure | devices | details | modeler plugins */
     .z-cse #device_modeler_plugins .x-boundlist-item,
     .z-cse #modeler_plugins .x-boundlist-item {
         padding: 4px;
     }
+
+    /* infrastructure | devices | network map */
+    .z-cse #controls_panel button {
+        border-radius: 3px;
+        padding: 4px 8px;
+    }
+        .z-cse #controls_panel button:hover {
+            background-color: #b6cbe4;
+        }
 
     /* infrastructure | processes */
     .z-cse #processForm fieldset,
@@ -1403,6 +1432,12 @@ BYE BYE BORDERS
         .z-cse #CheckForUpdates ~ tbody input[type=submit]:hover {
             background-color:  #b6cbe4;
         }
+
+    /* advanced | settings | events */
+    .z-cse #clearHeartbeat .x-btn-inner {
+        line-height: 14px;
+        padding: 2px 20px;
+    }
 
     /* events | classes | < class > */
     .z-cse #blackTabs .x-tab {
@@ -1666,6 +1701,11 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .livegridinfopanel
     { color: #ccc !important; }
 
+    /* dark theme chart text */
+    .z-cse.z-cse-dark #network_map-body text
+    { fill: #ccc; }
+
+
     /* dark-theme text links */
     .z-cse.z-cse-dark #breadCrumbPane a,
     .z-cse.z-cse-dark .devdetail-devclass a.z-entity,
@@ -1830,7 +1870,6 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark .europagraph text {
         fill: rgba(255,255,255,0.4);
-        text-transform: uppercase;
     }
 
     /* open events & past events portlets */
