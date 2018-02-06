@@ -24,7 +24,6 @@ import json
 import jwt
 import logging
 import os
-import urllib
 from datetime import datetime, timedelta
 
 log = logging.getLogger('Auth0')
@@ -110,6 +109,7 @@ class Auth0(BasePlugin):
 
         token = credentials['token']
 
+
         # get the key id from the jwt header
         kid = jwt.get_unverified_header(token)['kid']
 
@@ -127,10 +127,15 @@ class Auth0(BasePlugin):
         if not key:
             return None
 
-        # TODO: handle expired token
-        payload = jwt.decode(token, key, verify=True,
-                             algorithms=['RS256'], audience=conf['clientid'],
-                             issuer=conf['tenant'])
+        try:
+            payload = jwt.decode(token, key, verify=True,
+                                 algorithms=['RS256'], audience=conf['clientid'],
+                                 issuer=conf['tenant'])
+        except jwt.ExpiredSignatureError:
+            # Token is present but expired.  Do nothing; eventually challenge
+            # will be issued and auth0 will silently refresh the token.
+            return None
+
         if not payload or 'sub' not in payload:
             return None
 
