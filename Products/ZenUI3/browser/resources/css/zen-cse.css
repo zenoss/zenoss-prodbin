@@ -1528,7 +1528,7 @@ BYE BYE BORDERS
     .z-cse .x-datepicker-footer,
     .z-cse .x-monthpicker-buttons
     { background-image: none; background-color: #ccc; border: 0; }
-    .z-cse .x-monthpicker-item a
+    .z-cse .x-datepicker .x-monthpicker .x-monthpicker-item a
     { color: #555; }
     .z-cse .x-datepicker-today,
     .z-cse .x-monthpicker-item a.x-monthpicker-selected {
