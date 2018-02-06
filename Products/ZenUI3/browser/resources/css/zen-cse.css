@@ -38,7 +38,6 @@ filter & button backgrounds #f4f4f4
     background-image: linear-gradient(155deg, #444 0%,#222 100%);
 }
 
-
 /*
     ================
     TRANSPARENCY
@@ -207,6 +206,8 @@ BYE BYE BORDERS
 ================
 */
 
+.z-cse #contentPaneContainer table td input[type=text],
+.z-cse #contentPaneContainer .innerzentable th,
 .z-cse #contentPaneContainer input.tableheader,
 .z-cse .z-bc div.tabletitlecontainer,
 .z-cse table.x-datepicker-inner .x-datepicker-selected a,
@@ -272,7 +273,12 @@ BYE BYE BORDERS
     INPUT FIELDS AND FILTERS
     ================
     */
-
+    .z-cse #contentPaneContainer textarea.tablevalues,
+    .z-cse #contentPaneContainer select,
+    .z-cse #addToCollectionBtn,
+    .z-cse #filterButton,
+    .z-cse #addToCollectionForm select,
+    .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
     .z-cse #contentPaneContainer table td input[name=batchSize]:hover,
     .z-cse textarea.x-form-field,
@@ -644,8 +650,19 @@ BYE BYE BORDERS
     .z-cse .x-window-body-closable .x-resizable-pinned {
         background-color: #333 !important;
     }
+    .z-cse #device_overview-body label {
+        color: #999 !important;
+    }
 
-
+    /* reports | edit report */
+    .z-cse #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
+    .z-cse #contentPaneContainer > div th.tabletitle
+    { background-color: #aaa; }
+    .z-cse #contentPaneContainer .innerzentable th
+    { background-color: #ccc; }
+    .z-cse #contentPaneContainer select {
+        font-size: 12px;
+    }
 
     /*
     ================
@@ -706,6 +723,10 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
+    .z-cse .tablevalues,
+    .z-cse #detail_panel fieldset label,
+    .z-cse .x-tree-panel .rootNode,
     .z-cse #fexample-inputEl,
     .z-cse .x-form-invalid-tip li,
     .z-cse .europagraph .graph_title,
@@ -734,7 +755,6 @@ BYE BYE BORDERS
     .z-cse .x-window-header-text-default,
     .z-cse .x-btn-default-small .x-btn-inner,
     .z-cse .x-form-item,
-    .z-cse .x-form-field,
     .z-cse .x-form-display-field,
     .z-cse .x-grid-row .x-grid-cell,
     .z-cse .x-grid .x-column-header,
@@ -750,12 +770,12 @@ BYE BYE BORDERS
     .z-cse textarea,
     .z-cse select,
     .z-cse button
-    { font-family: "Roboto", "DejaVu Sans", sans-serif, Purisa; }
+    { font-family: "Roboto", "DejaVu Sans", sans-serif }
     .z-cse .livegridinfopanel,
     .z-cse .x-btn-dialog-dark-small span
-    { font-family: "Roboto", "DejaVu Sans", Purisa !important; }
+    { font-family: "Roboto", "DejaVu Sans", sans-serif !important; }
     .z-cse #primarynav li a
-    { font-family: "RobotoCondensed", sans-serif }
+    { font-family: "RobotoCondensed", "Roboto", "DejaVu Sans", sans-serif }
 
     /* section headers */
     .z-cse .x-panel-header-text-default
@@ -778,12 +798,16 @@ BYE BYE BORDERS
         text-transform: uppercase;
     }
 
-    .z-cse #device_overview-body label {
-        color: #999 !important;
-    }
-
-
     /* MONOSPACE AREAS */
+    .z-cse #CheckForUpdates ~ tbody .tablevalues,
+    .z-cse #Uptimes ~ tbody .tablevalues,
+    .z-cse #SoftwareComponentVersions ~ tbody .tablevalues,
+    .z-cse pre,
+    .z-cse #addToCollectionForm input[type=text],
+    .z-cse #addToCollectionForm select,
+    .z-cse #addToCollectionForm textarea,
+    .z-cse .x-form-field,
+    .z-cse #modeler-plugin-path-inputEl,
     .z-cse #device_overview-body .x-form-display-field,
     .z-cse #network_map-body text,
     .z-cse #commandsDialog-body textarea,
@@ -796,6 +820,9 @@ BYE BYE BORDERS
     .z-cse #searchInput-inputEl,
     .z-cse .devdetailbar a.z-entity,
     .z-cse #evdetail_log-body,
+    .z-cse #contentPaneContainer table td select,
+    .z-cse #contentPaneContainer table td select option,
+    .z-cse #contentPaneContainer table td input[type=number],
     .z-cse #contentPaneContainer table td textarea,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #contentPaneContainer table td input[type=password],
@@ -812,8 +839,6 @@ BYE BYE BORDERS
     { font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace; }
     .z-cse #job_detail_panel-body pre
     {font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace !important; }
-
-
 
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
@@ -885,6 +910,11 @@ BYE BYE BORDERS
             text-transform: none;
         }
 
+    /* infrastructure | < device > */
+    .z-cse #detail_card_panel .x-toolbar-text.lastupdated {
+        text-transform: none;
+    }
+
     /* infrastructure | networks */
     .z-cse #NetworkDetailCardPanel .largetoolbar {
         padding: 12px 7px 35px 7px;
@@ -915,6 +945,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse #contentPaneContainer table td input[type=text],
     .z-cse .storages .name,
     .z-cse #manage-search-link,
     .z-cse .x-grid-group-title,
@@ -1127,6 +1158,11 @@ BYE BYE BORDERS
 
     .z-cse div[id|=pasteventschart] rect[zIndex="501"] {
         fill: transparent;
+    }
+
+    /* infrastructure | < device > */
+    .z-cse .devdetailbar .devdetailitem div.devdetail-labelitem {
+        color: #999;
     }
 
     /*
@@ -1351,7 +1387,6 @@ BYE BYE BORDERS
         padding-left: 0 !important;
     }
         .z-cse #detail_panel fieldset label {
-            font-family: Roboto;
             text-transform: none;
         }
 
@@ -1371,12 +1406,27 @@ BYE BYE BORDERS
         background-color: #808080;
         }
 
+    /* reports | edit collection */
+    .z-cse #addToCollectionForm select,
+    .z-cse #addToCollectionForm select option {
+        font-size: 12px;
+        padding: 4px;
+    }
+
+    .z-cse #RRDGraphCommands pre {
+        font-size: 12px;
+        line-height: 20px;
+    }
+
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
-        height: 30px;
+        height: 20px;
     }
+        .z-cse #contentPaneContainer select,
+        .z-cse #contentPaneContainer select option,
         .z-cse #contentPaneContainer table td textarea,
         .z-cse #contentPaneContainer table td input[type=text],
+        .z-cse #contentPaneContainer table td input[type=number],
         .z-cse #contentPaneContainer table td input[type=password] {
             padding: 4px;
             line-height: 20px;
@@ -1551,10 +1601,6 @@ BYE BYE BORDERS
             margin-top: 44px;
         }
 
-/* debug -- remove this later */
-/* .x-mask, .x-mask-msg { display: none !important;} */
-
-
 /*
         =====================================================================================
         DARK THEME
@@ -1569,6 +1615,9 @@ BYE BYE BORDERS
     }
 
     /* buttons inputs and text areas */
+    .z-cse.z-cse-dark #addToCollectionBtn,
+    .z-cse.z-cse-dark #filterButton,
+    .z-cse.z-cse-dark #addToCollectionForm select,
     .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-small,
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark .tablevalues.select,
@@ -1589,6 +1638,9 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark #contentPaneContainer textarea.tablevalues,
+    .z-cse.z-cse-dark #contentPaneContainer select,
+    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark #network_map_form-body input[type=text],
     .z-cse.z-cse-dark #navGrid-filter-name-inputRow input[type=text],
     .z-cse.z-cse-dark textarea.x-form-field,
@@ -1651,6 +1703,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark .storages .name,
     .z-cse.z-cse-dark #manage-search-link,
     .z-cse.z-cse-dark .x-grid-group-title,
@@ -1820,6 +1873,15 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-grid-group-hd {
         background-color: #808080;
     }
+
+    /* reports | major section */
+    .z-cse.z-cse-dark #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
+    .z-cse.z-cse-dark #contentPaneContainer > div th.tabletitle
+    { background-color: #555; }
+    /* reports | table headers */
+    .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
+    { background-color: #808080; }
+
 
     /* rm status pipeline */
     .z-cse.z-cse-dark .rmmstatus .arrow-group .arrow {
