@@ -56,9 +56,11 @@ def getAuth0Conf():
 def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
     context._setObject(obj.getId(), obj)
+    log.info('Added Auth0 PAS Plugin')
 
 def manage_delAuth0(context, id):
     context._delObject(id)
+    log.info('Deleted Auth0 PAS Plugin')
 
 
 class SessionInfo(object):
@@ -107,6 +109,7 @@ class Auth0(BasePlugin):
         key = Auth0._getKey(key_id, conf)
         if not key:
             session.pop(Auth0.session_key, None)
+            log.warn('Invalid jwt kid (key id) - not setting session info')
             return None
 
         payload = jwt.decode(id_token, key, verify=True,
@@ -127,6 +130,7 @@ class Auth0(BasePlugin):
         """
         refresh_token = session.get(Auth0.session_key, SessionInfo()).refreshToken
         if not refresh_token:
+            log.warn('No refresh token - not getting new id token')
             return None
 
         data = {
@@ -143,11 +147,12 @@ class Auth0(BasePlugin):
             conn.request('POST', '/oauth/token', json.dumps(data), headers)
             resp_string = conn.getresponse().read()
         except Exception as a:
-            # can we handle this better?
+            log.error('Unable to obtain new token from Auth0: %s', a)
             return None
 
         resp_data = json.loads(resp_string)
         id_token = resp_data.get('id_token')
+        log.debug('Token refreshed')
 
         return Auth0.storeIdToken(id_token, session, conf)
 
@@ -168,6 +173,7 @@ class Auth0(BasePlugin):
                               'client_id=%s&' % conf['clientid'] +
                               'returnTo=%s/zport/dmd' % getZenossURI(request),
                               lock=True)
+            log.info('Redirecting user to Auth0 logout')
 
 
     def extractCredentials(self, request):
@@ -178,16 +184,20 @@ class Auth0(BasePlugin):
         """
         conf = getAuth0Conf()
         if not conf:
+            log.debug('Incomplete Auth0 config in GlobalConfig - not using Auth0 login')
             return {}
 
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
+            log.debug('No Auth0 session - not directing to Auth0 login')
             return {}
 
         if time.time() > sessionInfo.expiration:
+            log.debug('Token expired - attempting to refresh')
             sessionInfo = Auth0._refreshToken(request.SESSION, conf)
 
         if not sessionInfo.userid:
+            log.debug('No Auth0 session - not directing to Auth0 login')
             return {}
 
         return {'auth0_userid': sessionInfo.userid}
@@ -204,6 +214,7 @@ class Auth0(BasePlugin):
 
         userid = credentials.get('auth0_userid')
         if not userid:
+            log.debug('No userid in credentials')
             return None
 
         return (userid, userid)
@@ -215,6 +226,7 @@ class Auth0(BasePlugin):
         """
         conf = getAuth0Conf()
         if not conf or not all(conf.values()):
+            log.debug('Incomplete Auth0 config in GlobalConfig - not directing to Auth0 login')
             return False
 
         zenoss_uri = getZenossURI(request)

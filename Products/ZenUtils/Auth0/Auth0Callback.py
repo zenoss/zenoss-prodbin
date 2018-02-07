@@ -15,7 +15,10 @@ from Products.ZenUtils.Utils import getQueryArgsFromRequest
 import base64
 import httplib
 import json
+import logging
 import urllib
+
+log = logging.getLogger('Auth0')
 
 class Auth0Callback(BrowserView):
     """
@@ -25,6 +28,7 @@ class Auth0Callback(BrowserView):
         conf = getAuth0Conf()
         zenoss_uri = getZenossURI(self.request)
         if not conf:
+            log.warn('No Auth0 config in GlobalConfig - not saving id token')
             return self.request.response.redirect(zenoss_uri + '/zport/dmd')
 
         args = getQueryArgsFromRequest(self.request)
@@ -49,8 +53,8 @@ class Auth0Callback(BrowserView):
         try:
             conn.request('POST', '/oauth/token', json.dumps(data), headers)
             resp_string = conn.getresponse().read()
-        except:
-            # can we handle this better?
+        except Exception as a:
+            log.error('Unable to obtain token from Auth0: %s', a)
             return self.request.response.redirect(zenoss_uri + '/zport/dmd')
 
         resp_data = json.loads(resp_string)
