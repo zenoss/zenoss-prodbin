@@ -491,7 +491,6 @@ BYE BYE BORDERS
     }
 
     /* infrastructure | devices | < gear > | bind templates */
-
     .z-cse div[id|=bindtemplatesdialog] > .x-panel,
     .z-cse #bindTemplatesDialog-body > .x-panel {
         font-family: RobotoCondensed;
@@ -513,6 +512,11 @@ BYE BYE BORDERS
         .z-cse #bindTemplatesDialog-body .x-boundlist-selected {
                 color: #4b4b4c !important;
         }
+
+    /* infrastructure | < device > | Monitoring Templates | Edit Threshold */
+    .z-cse #thresholdItemSelector .x-form-fieldcontainer {
+        background-color: #eee;
+    }
 
     /*
     ================
@@ -655,9 +659,10 @@ BYE BYE BORDERS
     }
 
     /* reports | edit report */
-    .z-cse #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
+    /* .z-cse #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
     .z-cse #contentPaneContainer > div th.tabletitle
     { background-color: #aaa; }
+    */
     .z-cse #contentPaneContainer .innerzentable th
     { background-color: #ccc; }
     .z-cse #contentPaneContainer select {
@@ -799,6 +804,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse #thresholdItemSelector .x-form-fieldcontainer,
     .z-cse #CheckForUpdates ~ tbody .tablevalues,
     .z-cse #Uptimes ~ tbody .tablevalues,
     .z-cse #SoftwareComponentVersions ~ tbody .tablevalues,
@@ -985,6 +991,7 @@ BYE BYE BORDERS
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse .x-panel-body-default
     { color: #4b4b4c }
+    .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
     .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .user-prefs-cell div:first-child div,
     .z-cse #resetPasswordForm div:first-child,
@@ -1638,6 +1645,7 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer,
     .z-cse.z-cse-dark #contentPaneContainer textarea.tablevalues,
     .z-cse.z-cse-dark #contentPaneContainer select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
@@ -1741,6 +1749,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
     .z-cse.z-cse-dark .x-panel-body-default
     { color: #ccc }
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
     .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
     .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
     .z-cse.z-cse-dark #resetPasswordForm div:first-child,
@@ -1809,6 +1818,7 @@ BYE BYE BORDERS
     }
 
     /* grid highlighting */
+    .z-cse.z-cse-dark #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
     .z-cse.z-cse-dark .x-grid-row-over,
     .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over,
@@ -1828,6 +1838,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark div.europagraph {
         background-color: rgba(255,255,255,0.15);
     }
+        .z-cse.z-cse-dark .x-portlet div.europagraph {
+            background-color: transparent;
+        }
+
     /* infrastrucure | devices | < device > | modeler plugins multiselect */
     .z-cse.z-cse-dark #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
     .z-cse.z-cse-dark #modeler_plugins table.x-form-fieldcontainer .x-boundlist {
@@ -1874,10 +1888,15 @@ BYE BYE BORDERS
         background-color: #808080;
     }
 
-    /* reports | major section */
-    .z-cse.z-cse-dark #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
-    .z-cse.z-cse-dark #contentPaneContainer > div th.tabletitle
-    { background-color: #555; }
+    /* infrastructure | < device > | Monitoring Templates | Edit Threshold */
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item-over {
+        background-color: #4b6f9b !important;
+    }
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-selected {
+        background-color: #8cacd4;
+        color: #fafafa !important;
+    }
+
     /* reports | table headers */
     .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
     { background-color: #808080; }
