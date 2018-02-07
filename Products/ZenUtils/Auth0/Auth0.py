@@ -9,8 +9,9 @@
 from AccessControl.class_init import InitializeClass
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
-                                                            IAuthenticationPlugin,
-                                                            IChallengePlugin)
+                                                              IAuthenticationPlugin,
+                                                              IChallengePlugin,
+                                                              ICredentialsResetPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS, getBearerToken
@@ -70,6 +71,7 @@ class Auth0(BasePlugin):
         IExtractionPlugin
         IAuthenticationPlugin
         IChallengePlugin
+        ICredentialsResetPlugin
 
     It aims to provide authentication via Auth0, and supports reading tokens
         from a cookie, the Authorization header, or query args
@@ -88,13 +90,12 @@ class Auth0(BasePlugin):
     @staticmethod
     def _getKey(key_id, conf):
         """ Look up a key in the cached list of keys.
-            If we have never looked up a given key, refresh the cache. 
+            If we have never looked up a given key, refresh the cache.
          """
         if 'keys' not in Auth0.cache or key_id not in Auth0.cache['keys']:
             jwks = getJWKS(conf['tenant'] + '.well-known/jwks.json')
             Auth0.cache['keys'] = publicKeysFromJWKS(jwks)
         return Auth0.cache['keys'].setdefault(key_id, None)
-
 
     @staticmethod
     def storeIdToken(id_token, session, conf):
@@ -116,7 +117,7 @@ class Auth0(BasePlugin):
         sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
         sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
         sessionInfo.expiration = payload['exp']
-        return sessionInfo 
+        return sessionInfo
 
 
     @staticmethod
@@ -151,6 +152,24 @@ class Auth0(BasePlugin):
         return Auth0.storeIdToken(id_token, session, conf)
 
 
+    def resetCredentials(self, request, response):
+        """resetCredentials satisfies the PluggableAuthService
+            ICredentialsResetPlugin interface.
+        The Auth0 session variables are cleared and the user is redirected to
+            the Auth0 logout in order to end their Auth0 SSO session.
+        NOTE:
+        Logging out of the UI calls Products/ZenModel/skins/zenmodel/logoutUser.py
+            which calls resetCredentials, this bypasses the PAS logout.
+        """
+        del request.SESSION[Auth0.session_key]
+        conf = getAuth0Conf()
+        if conf:
+            response.redirect('%sv2/logout?' % conf['tenant'] +
+                              'client_id=%s&' % conf['clientid'] +
+                              'returnTo=%s/zport/dmd' % getZenossURI(request),
+                              lock=True)
+
+
     def extractCredentials(self, request):
         """extractCredentials satisfies the PluggableAuthService
             IExtractionPlugin interface.
@@ -160,7 +179,7 @@ class Auth0(BasePlugin):
         conf = getAuth0Conf()
         if not conf:
             return {}
-        
+
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             return {}
@@ -216,7 +235,11 @@ class Auth0(BasePlugin):
         return True
 
 
-classImplements(Auth0, IAuthenticationPlugin, IExtractionPlugin, IChallengePlugin)
+classImplements(Auth0,
+                IAuthenticationPlugin,
+                IExtractionPlugin,
+                IChallengePlugin,
+                ICredentialsResetPlugin)
 
 InitializeClass(Auth0)
 
@@ -237,7 +260,10 @@ def setup(context):
 
     manage_addAuth0(zport_acl, PLUGIN_ID, PLUGIN_TITLE)
 
-    interfaces = ('IAuthenticationPlugin', 'IExtractionPlugin', 'IChallengePlugin')
+    interfaces = ('IAuthenticationPlugin',
+                  'IExtractionPlugin',
+                  'IChallengePlugin',
+                  'ICredentialsResetPlugin')
     activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
     movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')
