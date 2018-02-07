@@ -152,8 +152,8 @@ class zenbuild(CmdBase):
             # Convert the acl_users folder at the root to a PAS folder and update
             # the login form to use the Zenoss login form
             Security.replaceACLWithPAS(self.app, deleteBackup=True)
-            account_locker_setup(self.app)
             auth0_setup(self.app)
+            account_locker_setup(self.app)
 
             # Add groupManager to zport.acl
             acl = site.acl_users
