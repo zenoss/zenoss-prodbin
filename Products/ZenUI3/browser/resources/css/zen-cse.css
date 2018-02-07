@@ -374,6 +374,8 @@ BYE BYE BORDERS
         }
         .z-cse .x-tip-body
         { font-size: 12px; }
+            .z-cse .x-tip-body a
+            { margin: 0 6px; }
         .z-cse .x-tip-header-text
         { padding: 4px 6px; background-color: rgba(255,255,255,0.4); }
         .z-cse .x-tip-header-text,
@@ -1647,6 +1649,7 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark .x-form-trigger-input-cell,
     .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer,
     .z-cse.z-cse-dark #contentPaneContainer textarea.tablevalues,
     .z-cse.z-cse-dark #contentPaneContainer select,
