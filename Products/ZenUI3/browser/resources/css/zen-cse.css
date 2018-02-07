@@ -728,6 +728,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse #device_overview-body #ssh-link-inputEl a,
     .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
     .z-cse .tablevalues,
     .z-cse #detail_panel fieldset label,
@@ -804,6 +805,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse #device_overview-body .x-form-display-field > a,
     .z-cse #thresholdItemSelector .x-form-fieldcontainer,
     .z-cse #CheckForUpdates ~ tbody .tablevalues,
     .z-cse #Uptimes ~ tbody .tablevalues,
