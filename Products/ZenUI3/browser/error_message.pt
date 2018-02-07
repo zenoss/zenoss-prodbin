@@ -29,6 +29,10 @@
                 font-size: 140%;
                 margin: 5px auto;
                 }
+            .z-cse {
+                display: flex;
+                flex-direction: column;
+            }
             .z-cse #header {
                 background: transparent none !important;
             }
