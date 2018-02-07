@@ -57,8 +57,8 @@ class Auth0Callback(BrowserView):
         refresh_token = resp_data.get('refresh_token')
         id_token = resp_data.get('id_token')
 
-        self.request.SESSION[Auth0.session_idtoken_name] = id_token
-        self.request.SESSION[Auth0.session_refresh_key] = refresh_token
+        sessionInfo = Auth0.storeIdToken(id_token, self.request.SESSION, conf)
+        sessionInfo.refreshToken = refresh_token
 
         came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
         return self.request.response.redirect(came_from)

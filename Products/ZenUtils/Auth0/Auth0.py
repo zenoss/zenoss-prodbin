@@ -24,6 +24,7 @@ import httplib
 import json
 import jwt
 import logging
+import time
 
 log = logging.getLogger('Auth0')
 
@@ -58,6 +59,12 @@ def manage_addAuth0(context, id, title=None):
 def manage_delAuth0(context, id):
     context._delObject(id)
 
+
+class SessionInfo(object):
+    def __init__(self):
+        for i in ['userid', 'expiration', 'refreshToken']:
+            setattr(self, i, '')
+
 class Auth0(BasePlugin):
     """Auth0 is a PluggableAuthService MultiPlugin which satisfies interfaces:
         IExtractionPlugin
@@ -69,8 +76,7 @@ class Auth0(BasePlugin):
     """
 
     meta_type = 'Auth0 plugin'
-    session_idtoken_name = 'auth0-id-token'
-    session_refresh_key = 'auth0-refresh-token'
+    session_key = 'auth0'
     cache = {}
 
     def __init__(self, id, title=None):
@@ -78,84 +84,94 @@ class Auth0(BasePlugin):
         self.title = title
         self.version = PLUGIN_VERSION
 
+
     @staticmethod
     def _getKey(key_id, conf):
-        # Look up a key in the cached list of keys.
-        # If we have never looked up a given key, refresh the cache.
+        """ Look up a key in the cached list of keys.
+            If we have never looked up a given key, refresh the cache. 
+         """
         if 'keys' not in Auth0.cache or key_id not in Auth0.cache['keys']:
             jwks = getJWKS(conf['tenant'] + '.well-known/jwks.json')
             Auth0.cache['keys'] = publicKeysFromJWKS(jwks)
         return Auth0.cache['keys'].setdefault(key_id, None)
 
 
-    def extractCredentials(self, request):
-        """extractCredentials satisfies the PluggableAuthService
-            IExtractionPlugin interface.
-        A successful extraction will return a dict with the 'token' field
-            containing a jwt.
+    @staticmethod
+    def storeIdToken(id_token, session, conf):
+        """ Save the important parts of the token in session storage.
+            Returns the corresponding SessionInfo object.
         """
-        conf = getAuth0Conf()
-        if not conf:
-            return None
-
-        id_token = request.SESSION.get(Auth0.session_idtoken_name)
-        if not id_token:
-            return {}
-
         # get the key id from the jwt header
         key_id = jwt.get_unverified_header(id_token)['kid']
         key = Auth0._getKey(key_id, conf)
         if not key:
-            return {}
+            session.pop(Auth0.session_key, None)
+            return None
 
+        payload = jwt.decode(id_token, key, verify=True,
+                             algorithms=['RS256'],
+                             audience=conf['clientid'],
+                             issuer=conf['tenant'])
+
+        sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
+        sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
+        sessionInfo.expiration = payload['exp']
+        return sessionInfo 
+
+
+    @staticmethod
+    def _refreshToken(session, conf):
+        """ Refresh an expired token
+            Returns the SessionInfo object from the new token
+        """
+        refresh_token = session.get(Auth0.session_key, SessionInfo()).refreshToken
+        if not refresh_token:
+            return None
+
+        data = {
+            "grant_type": "refresh_token",
+            "client_id": conf['clientid'],
+            "client_secret": conf['client-secret'],
+            "refresh_token": refresh_token
+        }
+
+        domain = conf['tenant'].replace('https://', '').replace('/', '')
+        conn = httplib.HTTPSConnection(domain)
+        headers = {"content-type": "application/json"}
         try:
-            payload = jwt.decode(id_token, key, verify=True,
-                                 algorithms=['RS256'],
-                                 audience=conf['clientid'],
-                                 issuer=conf['tenant'])
-        except jwt.ExpiredSignatureError:
-            # Token is present but expired, get a new one with refresh token
-            refresh_token = request.SESSION.get(Auth0.session_refresh_key)
-            if not refresh_token:
-                return {}
+            conn.request('POST', '/oauth/token', json.dumps(data), headers)
+            resp_string = conn.getresponse().read()
+        except Exception as a:
+            # can we handle this better?
+            return None
 
-            data = {
-                "grant_type": "refresh_token",
-                "client_id": conf['clientid'],
-                "client_secret": conf['client-secret'],
-                "refresh_token": refresh_token
-            }
+        resp_data = json.loads(resp_string)
+        id_token = resp_data.get('id_token')
 
-            conn = httplib.HTTPSConnection(conf['tenant'].replace('https://', ''))
-            headers = {"content-type": "application/json"}
-            try:
-                conn.request('POST', '/oauth/token', json.dumps(data), headers)
-                resp_string = conn.getresponse().read()
-            except:
-                # can we handle this better?
-                return {}
+        return Auth0.storeIdToken(id_token, session, conf)
 
-            resp_data = json.loads(resp_string)
-            id_token = resp_data.get('id_token')
 
-            payload = jwt.decode(id_token, key, verify=True,
-                                 algorithms=['RS256'],
-                                 audience=conf['clientid'],
-                                 issuer=conf['tenant'])
-            request.SESSION[Auth0.session_idtoken_name] = id_token
-        except:
-            # Signature is invalid or some internal problem with jwt.decode
+    def extractCredentials(self, request):
+        """extractCredentials satisfies the PluggableAuthService
+            IExtractionPlugin interface.
+        A successful extraction will return a dict with the 'auth0_userid' field
+            containing the userid.
+        """
+        conf = getAuth0Conf()
+        if not conf:
+            return {}
+        
+        sessionInfo = request.SESSION.get(Auth0.session_key)
+        if not sessionInfo:
             return {}
 
-        if not payload or 'sub' not in payload:
+        if time.time() > sessionInfo.expiration:
+            sessionInfo = Auth0._refreshToken(request.SESSION, conf)
+
+        if not sessionInfo.userid:
             return {}
 
-        # Auth0 "sub" format is: connection|user or method|connection|user
-        userid = payload['sub'].encode('utf8').split('|')[-1]
-        if not userid:
-            return {}
-
-        return {'auth0_userid': userid}
+        return {'auth0_userid': sessionInfo.userid}
 
 
     def authenticateCredentials(self, credentials):
@@ -164,8 +180,7 @@ class Auth0(BasePlugin):
         A successful authentication will return (userid, userid).
         """
         # Ignore credentials that are not from our extractor
-        if credentials.get('extractor') != PLUGIN_ID or \
-           'auth0_userid' not in credentials:
+        if credentials.get('extractor') != PLUGIN_ID:
             return None
 
         userid = credentials.get('auth0_userid')
@@ -173,6 +188,7 @@ class Auth0(BasePlugin):
             return None
 
         return (userid, userid)
+
 
     def challenge(self, request, response):
         """challenge satisfies the PluggableAuthService
