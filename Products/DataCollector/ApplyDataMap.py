@@ -15,9 +15,6 @@ import urlparse
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
-import requests
-session = requests.Session()
-
 import transaction
 
 from ZODB.transact import transact
@@ -72,11 +69,14 @@ def handle_datamap(device, datamap, context):
         log.warn("zing-connector not configured, datamap not forwarded")
         return
 
+    import requests
+    session = requests.Session()
+
     # Convert the datamap into its serialized form
     try:
         log.info("Processing a datamap")
         serialized = serialize_datamap(device, datamap, context)
-        if serialized != "":
+        if serialized != "" and serialized is not None:
             zing_connector_path = urlparse.urljoin(ZING_CONNECTOR_URL, "/api/model/ingest")
             resp = session.put(zing_connector_path, data=serialized)
             if resp.status_code != 200:
@@ -140,7 +140,6 @@ class ApplyDataMap(object):
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
 
-
     def setDeviceClass(self, device, deviceClass=None):
         """
         If a device class has been passed and the current class is not /Classifier
@@ -157,10 +156,14 @@ class ApplyDataMap(object):
         probably set commit to False and handle your own transactions.
 
         """
-        if commit:
-            return transact(self._applyDataMapImpl)(device, datamap)
-        else:
-            return self._applyDataMapImpl(device, datamap)
+        try:
+            if commit:
+                return transact(self._applyDataMapImpl)(device, datamap)
+            else:
+                return self._applyDataMapImpl(device, datamap)
+        finally:
+            handle_datamap(device, datamap, self.context)
+            self.context = {}
 
     def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
@@ -246,9 +249,6 @@ class ApplyDataMap(object):
             device.getId(),
             self.num_obj_changed,
             logname)
-
-        handle_datamap(device, datamap, self.context)
-        self.context = {}
 
         return changed
 
