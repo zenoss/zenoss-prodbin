@@ -32,7 +32,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
-from Products.DataCollector.zing import serialize_datamap
+from Products.DataCollector.zing.fact import serialize_datamap
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -42,7 +42,7 @@ from zExceptions import NotFound
 zenmarker = "__ZENMARKER__"
 
 CLASSIFIER_CLASS = '/Classifier'
-ZING_CONNECTOR_URL = getGlobalConfiguration().get("zing_connector_url")
+ZING_CONNECTOR_URL = getGlobalConfiguration().get("zing-connector-url")
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
@@ -64,17 +64,23 @@ def isSameData(x, y):
 
 def handle_datamap(device, datamap, context):
     """
-    Forward a serialized datamap to zing-connector, after it's successfully been dealt with by _applyDataMap
+    Forward a serialized datamap to zing-connector, after it's successfully been 
+    dealt with by _applyDataMap
     """
+
+    if ZING_CONNECTOR_URL == "":
+        log.warn("zing-connector not configured, datamap not forwarded")
+        return
 
     # Convert the datamap into its serialized form
     try:
         log.info("Processing a datamap")
-        serialized = serialize_datamap(device, datamap_context)
-
-        if ZING_CONNECTOR_URL != "":
+        serialized = serialize_datamap(device, datamap, context)
+        if serialized != "":
             zing_connector_path = urlparse.urljoin(ZING_CONNECTOR_URL, "/api/model/ingest")
-            session.put(zing_connector_path, data=serialized)
+            resp = session.put(zing_connector_path, data=serialized)
+            if resp.status_code != 200:
+                log.warn("zing-connector returned an unexpected response core ({}) for datamap {}".format(resp.status_code, serialized))
     except Exception:
         log.exception("Unable to process datamap")
 
@@ -241,8 +247,7 @@ class ApplyDataMap(object):
             self.num_obj_changed,
             logname)
 
-        if getattr(device.dmd, "modelIngestEnabled", True):
-            handle_datamap(device, datamap, self.context)
+        handle_datamap(device, datamap, self.context)
         self.context = {}
 
         return changed
@@ -439,6 +444,8 @@ class ApplyDataMap(object):
             obj._p_deactivate()
         self.num_obj_changed += 1 if changed else 0
 
+        # Store the object with the objmap as the key, so when we serialize
+        # objmap, we can look up the associated UUID and other information.
         self.context[objmap] = obj
 
         return changed

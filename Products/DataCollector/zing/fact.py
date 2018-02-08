@@ -3,9 +3,10 @@ from json import JSONEncoder
 from Products.DataCollector.plugins.DataMaps import RelationshipMap
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.DataCollector.plugins.DataMaps import MultiArgs
-from Products.ZenModel.Device import Device
 
 from .shortid import shortid
+
+import time
 
 
 class Fact(object):
@@ -46,12 +47,22 @@ class Fact(object):
 
 class _FactEncoder(JSONEncoder):
 
+    def _tweak_data(self, data_in):
+        data_out = {}
+        for k, v in data_in.iteritems():
+            if isinstance(v, list) or isinstance(v, tuple):
+                data_out[k] = v
+            else:
+                data_out[k] = [v]
+        return data_out
+
     def default(self, o):
         if isinstance(o, Fact):
             return {
                 "id": o.id,
-                "data": o.data,
+                "data": self._tweak_data(o.data),
                 "metadata": o.metadata,
+                "timestamp": int(time.time())
             }
         if isinstance(o, MultiArgs):
             return o.args
@@ -70,8 +81,9 @@ def serialize_datamap(device, dm, context):
             facts.append(Fact.from_object_map(om, device, dm.relname, context=context))
     elif isinstance(dm, ObjectMap):
         facts.append(Fact.from_object_map(dm, context=context))
-    return FactEncoder.encode(facts)
-
+    if facts:
+        encoded = FactEncoder.encode({"models": facts})
+        return encoded
 
 def apply_extra_fields(obj, fact):
     """
@@ -80,6 +92,8 @@ def apply_extra_fields(obj, fact):
     event subscriber framework to be maintainable, so this will only work so
     long as the number of fields is pretty small.
     """
+    from Products.ZenModel.Device import Device
+
     fact.metadata["uuid"] = obj.getUUID()
     fact.metadata["meta_type"] = obj.meta_type
 
