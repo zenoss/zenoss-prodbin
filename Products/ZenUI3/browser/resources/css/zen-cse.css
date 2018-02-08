@@ -1,7 +1,9 @@
 /* color palette
 
-dark blue selected row #8cacd4
-light blue row hover #d2e0f1
+      blue row selected #8cacd4
+light blue row hover    #d2e0f1
+ dark blue row hover    #4b6f9b
+
 light blue button hover #b6cbe4
 
 bright blue links #89c5fa
@@ -205,7 +207,8 @@ filter & button backgrounds #f4f4f4
 BYE BYE BORDERS
 ================
 */
-
+.z-cse #deviceLiveSearch input,
+.z-cse #dialog_buttons input,
 .z-cse #contentPaneContainer table td input[type=text],
 .z-cse #contentPaneContainer .innerzentable th,
 .z-cse #contentPaneContainer input.tableheader,
@@ -273,6 +276,7 @@ BYE BYE BORDERS
     INPUT FIELDS AND FILTERS
     ================
     */
+    .z-cse .user-prefs-cell .tableheader,
     .z-cse #contentPaneContainer textarea.tablevalues,
     .z-cse #contentPaneContainer select,
     .z-cse #addToCollectionBtn,
@@ -547,7 +551,7 @@ BYE BYE BORDERS
     .z-cse #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
     { background-image: none; background-color: #ccc; border: 0; border-radius: 0; }
 
-    /* filters light theme */
+    /* filters light */
     .z-cse #component_searchfield-inputEl,
     .z-cse #navGrid-filter-name-inputEl,
     .z-cse #master_panel .x-hierarchy-search input[type=text],
@@ -730,6 +734,8 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse .dbox_mc,
+    .z-cse table.innerzentable,
     .z-cse #device_overview-body #ssh-link-inputEl a,
     .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
     .z-cse .tablevalues,
@@ -807,6 +813,9 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse #deviceLiveSearch .autocompleter-container ul,
+    .z-cse #deviceLiveSearch input,
+    .z-cse .dialog_container select,
     .z-cse #device_overview-body .x-form-display-field > a,
     .z-cse #thresholdItemSelector .x-form-fieldcontainer,
     .z-cse #CheckForUpdates ~ tbody .tablevalues,
@@ -955,6 +964,7 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse select,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse .storages .name,
     .z-cse #manage-search-link,
@@ -995,6 +1005,7 @@ BYE BYE BORDERS
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse .x-panel-body-default
     { color: #4b4b4c }
+    .z-cse #newTabsPane ul li a:hover,
     .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
     .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .user-prefs-cell div:first-child div,
@@ -1015,6 +1026,10 @@ BYE BYE BORDERS
 
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse #dialog_content select,
+    .z-cse .dialog_container select,
+    .z-cse #dialog_buttons input,
+    .z-cse .innerzentable .user-prefs-cell .tableheader,
     .z-cse .x-form-invalid-tip li,
     .z-cse #CheckForUpdates ~ tbody input[type=submit],
     .z-cse #contentPaneContainer input.tableheader,
@@ -1612,6 +1627,38 @@ BYE BYE BORDERS
             margin-top: 44px;
         }
 
+        /* admin page */
+        .z-cse .user-prefs-cell .tableheader {
+            cursor: pointer;
+        }
+
+        .z-cse #user_settings_reset_prefs_submit {
+            border-radius: 3px;
+        }
+            .z-cse #user_settings_reset_prefs_submit:hover {
+                background-color: #b6cbe4;
+            }
+
+        .z-cse #dialog_buttons input {
+            font-size: 12px;
+            background-color: #ccc;
+            border-radius: 3px;
+            padding: 4px 12px;
+            margin-right: 10px;
+        }
+        .z-cse #dialog_buttons input:hover {
+            background-color: #b6cbe4;
+        }
+
+    /* admin pages */
+    .z-cse #dialog_content select {
+        background-color: #fafafa;
+    }
+    .z-cse #deviceLiveSearch input {
+        padding: 4px;
+    }
+
+
 /*
         =====================================================================================
         DARK THEME
@@ -1716,6 +1763,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark .storages .name,
     .z-cse.z-cse-dark #manage-search-link,
@@ -1823,6 +1871,7 @@ BYE BYE BORDERS
     }
 
     /* grid highlighting */
+    .z-cse.z-cse-dark #newTabsPane ul li:hover,
     .z-cse.z-cse-dark #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
     .z-cse.z-cse-dark .x-grid-row-over,
     .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over,
@@ -1968,4 +2017,7 @@ BYE BYE BORDERS
         stroke: rgba(255,255,255,0.15);
     }
 
+    /* admin */
+    .z-cse.z-cse-dark #newTabsPane ul li a:hover
+    { color: #eee !important; }
 
