@@ -69,7 +69,7 @@ class ApplyDataMap(object):
         if metricName not in {x[0] for x in registry}:
             registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
         self._urGauge = registry.get(metricName)
-        self.context = {}
+        self.context = []
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -133,7 +133,7 @@ class ApplyDataMap(object):
         else:
             result = self._applyDataMapImpl(device, datamap)
         datamap_handler.send_datamap(device, datamap, self.context)
-        self.context = {}
+        self.context = []
         return result
 
     def _applyDataMapImpl(self, device, datamap):
@@ -417,7 +417,7 @@ class ApplyDataMap(object):
 
         # Store the object with the objmap as the key, so when we serialize
         # objmap, we can look up the associated UUID and other information.
-        self.context[objmap] = obj
+        self.context.append((objmap,obj))
 
         return changed
 

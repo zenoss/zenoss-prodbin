@@ -30,10 +30,12 @@ class Fact(object):
             f.metadata["relationship"] = relationship
 
         # Hack in whatever extra stuff we need.
-        obj = (context or {}).get(om)
-        if obj is not None:
+        try:
+            obj = (v for (k, v) in context if k == om).next()
+        except StopIteration:
+            pass
+        else:
             apply_extra_fields(obj, f)
-
         return f
 
     def __init__(self):
