@@ -80,7 +80,7 @@ def handle_datamap(device, datamap, context):
             zing_connector_path = urlparse.urljoin(ZING_CONNECTOR_URL, "/api/model/ingest")
             resp = session.put(zing_connector_path, data=serialized)
             if resp.status_code != 200:
-                log.warn("zing-connector returned an unexpected response core ({}) for datamap {}".format(resp.status_code, serialized))
+                log.warn("zing-connector returned an unexpected response code ({}) for datamap {}".format(resp.status_code, serialized))
     except Exception:
         log.exception("Unable to process datamap")
 
