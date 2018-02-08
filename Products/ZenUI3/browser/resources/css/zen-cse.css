@@ -195,12 +195,6 @@ filter & button backgrounds #f4f4f4
 .z-cse #controls_panel
 { background-image: none; background-color: rgba(255,255,255,0.4); border: 0; }
 
-/* rm status pipeline */
-.z-cse .pipeline
-{ background-color: transparent; }
-.z-cse .rmmstatus .arrow-group .arrow {
-    transform: scale(0.5,0.55);
-}
 
 /*
 ================
@@ -664,11 +658,6 @@ BYE BYE BORDERS
         color: #999 !important;
     }
 
-    /* reports | edit report */
-    /* .z-cse #contentPaneContainer form[name=graphPointList] .tabletitlecontainer,
-    .z-cse #contentPaneContainer > div th.tabletitle
-    { background-color: #aaa; }
-    */
     .z-cse #contentPaneContainer .innerzentable th
     { background-color: #ccc; }
     .z-cse #contentPaneContainer select {
@@ -966,13 +955,9 @@ BYE BYE BORDERS
     /* light theme text */
     .z-cse select,
     .z-cse #contentPaneContainer table td input[type=text],
-    .z-cse .storages .name,
     .z-cse #manage-search-link,
     .z-cse .x-grid-group-title,
     .z-cse .zenfooter_threshold,
-    .z-cse .storages .stacked-footer strong,
-    .z-cse .rmmstatus .node-stats-group .rate,
-    .z-cse .rmmstatus .pipe .pipe-title,
     .z-cse .transform-headers,
     .z-cse .x-grid-empty,
     .z-cse #controls_panel ~ p.message,
@@ -1765,13 +1750,9 @@ BYE BYE BORDERS
     /* dark theme text */
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
-    .z-cse.z-cse-dark .storages .name,
     .z-cse.z-cse-dark #manage-search-link,
     .z-cse.z-cse-dark .x-grid-group-title,
     .z-cse.z-cse-dark .zenfooter_threshold,
-    .z-cse.z-cse-dark .storages .stacked-footer strong,
-    .z-cse.z-cse-dark .rmmstatus .node-stats-group .rate,
-    .z-cse.z-cse-dark .rmmstatus .pipe .pipe-title,
     .z-cse.z-cse-dark .transform-headers,
     .z-cse.z-cse-dark .x-grid-empty,
     .z-cse.z-cse-dark #controls_panel ~ p.message,
@@ -1955,11 +1936,6 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
     { background-color: #808080; }
 
-
-    /* rm status pipeline */
-    .z-cse.z-cse-dark .rmmstatus .arrow-group .arrow {
-        stroke: #333;
-    }
 
     /* advanced | settings */
     .z-cse.z-cse-dark #contentPaneContainer table td strong {
