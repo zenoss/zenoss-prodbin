@@ -10,7 +10,6 @@
 
 import sys
 from collections import defaultdict
-import urlparse
 
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
@@ -25,11 +24,10 @@ from metrology.registry import registry
 
 from Products.ZenUtils.MetricReporter import QueueGauge
 from Products.ZenUtils.Utils import importClass
-from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
-from Products.DataCollector.zing.fact import serialize_datamap
+from Products.DataCollector.zing.DatamapHandler import DatamapHandler
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -39,10 +37,10 @@ from zExceptions import NotFound
 zenmarker = "__ZENMARKER__"
 
 CLASSIFIER_CLASS = '/Classifier'
-ZING_CONNECTOR_URL = getGlobalConfiguration().get("zing-connector-url")
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
+datamap_handler = DatamapHandler()
 
 def isSameData(x, y):
     """
@@ -58,32 +56,6 @@ def isSameData(x, y):
             return sorted(x) == sorted(y)
 
     return x == y
-
-def handle_datamap(device, datamap, context):
-    """
-    Forward a serialized datamap to zing-connector, after it's successfully been 
-    dealt with by _applyDataMap
-    """
-
-    if ZING_CONNECTOR_URL == "":
-        log.warn("zing-connector not configured, datamap not forwarded")
-        return
-
-    import requests
-    session = requests.Session()
-
-    # Convert the datamap into its serialized form
-    try:
-        log.info("Processing a datamap")
-        serialized = serialize_datamap(device, datamap, context)
-        if serialized != "" and serialized is not None:
-            zing_connector_path = urlparse.urljoin(ZING_CONNECTOR_URL, "/api/model/ingest")
-            resp = session.put(zing_connector_path, data=serialized)
-            if resp.status_code != 200:
-                log.warn("zing-connector returned an unexpected response code ({}) for datamap {}".format(resp.status_code, serialized))
-    except Exception:
-        log.exception("Unable to process datamap")
-
 
 class ApplyDataMap(object):
 
@@ -156,14 +128,13 @@ class ApplyDataMap(object):
         probably set commit to False and handle your own transactions.
 
         """
-        try:
-            if commit:
-                return transact(self._applyDataMapImpl)(device, datamap)
-            else:
-                return self._applyDataMapImpl(device, datamap)
-        finally:
-            handle_datamap(device, datamap, self.context)
-            self.context = {}
+        if commit:
+            result = transact(self._applyDataMapImpl)(device, datamap)
+        else:
+            result = self._applyDataMapImpl(device, datamap)
+        datamap_handler.send_datamap(device, datamap, self.context)
+        self.context = {}
+        return result
 
     def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
