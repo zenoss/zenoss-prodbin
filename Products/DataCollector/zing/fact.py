@@ -51,7 +51,7 @@ class _FactEncoder(JSONEncoder):
         data_out = {}
         for k, v in data_in.iteritems():
             if isinstance(v, list) or isinstance(v, tuple):
-                data_out[k] = v
+                data_out[k] = sorted(v)
             else:
                 data_out[k] = [v]
         return data_out
