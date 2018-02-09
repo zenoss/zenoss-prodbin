@@ -54,7 +54,7 @@
 
     </head>
 
-    <body class="z-cse">
+    <body tal:attributes="class here/dmd/userUITheme" >
         <div id="header">
             <div class="bg">
                 <div class="bg-leftcap">
