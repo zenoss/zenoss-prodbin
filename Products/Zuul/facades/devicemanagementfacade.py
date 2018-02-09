@@ -8,6 +8,7 @@
 ##############################################################################
 
 import logging
+import re
 log = logging.getLogger('zen.DeviceManagementFacade')
 
 from zope.interface import implements
@@ -25,10 +26,14 @@ class DeviceManagementFacade(ZuulFacade):
         """
         newMw = None
         obj = self._getObject(params['uid'])
-                        
+
         id = params['name'].strip()
         if not id:
             raise Exception('Missing Maintenance Window name.')
+        if re.compile(r'[^a-zA-Z0-9-_,.$\(\) ]').findall(id):
+            raise Exception('`name` contains bad characters. '
+                'Use only a-z, A-Z, 0-9, (, ), $, _, dash, dot '
+                'and whitespace.')
         obj.manage_addMaintenanceWindow(id)
         maintenanceWindows = (IInfo(s) for s in obj.maintenanceWindows())
         try:
