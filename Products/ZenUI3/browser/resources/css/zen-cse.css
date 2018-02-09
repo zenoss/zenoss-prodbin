@@ -1,20 +1,22 @@
-/* color palette
 
-      blue row selected #8cacd4
-light blue row hover    #d2e0f1
- dark blue row hover    #4b6f9b
+/*
+Roboto and RobotoCondensed Fonts:
 
-light blue button hover #b6cbe4
+Copyright 2018 Christian Robertson
 
-bright blue links #89c5fa
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-light text: #fafafa
-dark text: #4b4b4c
-zenoss orange: #ec5600
+    http://www.apache.org/licenses/LICENSE-2.0
 
-filter & button backgrounds #f4f4f4
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
+
 
 @font-face {
     font-family: RobotoCondensed;
@@ -39,6 +41,26 @@ filter & button backgrounds #f4f4f4
     background-color: #4b4b4c;
     background-image: linear-gradient(155deg, #444 0%,#222 100%);
 }
+
+
+/* color palette
+
+      blue row selected #8cacd4
+light blue row hover    #d2e0f1
+ dark blue row hover    #4b6f9b
+
+light blue button hover #b6cbe4
+
+bright blue links #89c5fa
+
+light text: #fafafa
+dark text: #4b4b4c
+zenoss orange: #ec5600
+
+filter & button backgrounds #f4f4f4
+darker input fields: #505050
+
+*/
 
 /*
     ================
