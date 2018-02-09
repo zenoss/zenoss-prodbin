@@ -27,7 +27,7 @@ from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
-from Products.DataCollector.zing.DatamapHandler import DatamapHandler
+from Products.DataCollector.zing.DatamapHandler import ZingDatamapHandler
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -40,7 +40,7 @@ CLASSIFIER_CLASS = '/Classifier'
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
-datamap_handler = DatamapHandler()
+zing_datamap_handler = ZingDatamapHandler()
 
 def isSameData(x, y):
     """
@@ -69,7 +69,6 @@ class ApplyDataMap(object):
         if metricName not in {x[0] for x in registry}:
             registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
         self._urGauge = registry.get(metricName)
-        self.context = []
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -128,12 +127,11 @@ class ApplyDataMap(object):
         probably set commit to False and handle your own transactions.
 
         """
+        zing_datamap_handler.add_datamap(device, datamap)
         if commit:
             result = transact(self._applyDataMapImpl)(device, datamap)
         else:
             result = self._applyDataMapImpl(device, datamap)
-        datamap_handler.send_datamap(device, datamap, self.context)
-        self.context = []
         return result
 
     def _applyDataMapImpl(self, device, datamap):
@@ -417,7 +415,7 @@ class ApplyDataMap(object):
 
         # Store the object with the objmap as the key, so when we serialize
         # objmap, we can look up the associated UUID and other information.
-        self.context.append((objmap,obj))
+        zing_datamap_handler.add_context(objmap, obj)
 
         return changed
 

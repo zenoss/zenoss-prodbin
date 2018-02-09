@@ -8,7 +8,6 @@ from .shortid import shortid
 
 import time
 
-
 class Fact(object):
 
     @staticmethod
@@ -30,12 +29,10 @@ class Fact(object):
             f.metadata["relationship"] = relationship
 
         # Hack in whatever extra stuff we need.
-        try:
-            obj = (v for (k, v) in context if k == om).next()
-        except StopIteration:
-            pass
-        else:
+        obj = (context or {}).get(om)
+        if obj is not None:
             apply_extra_fields(obj, f)
+
         return f
 
     def __init__(self):
@@ -52,8 +49,10 @@ class _FactEncoder(JSONEncoder):
     def _tweak_data(self, data_in):
         data_out = {}
         for k, v in data_in.iteritems():
-            if isinstance(v, list) or isinstance(v, tuple):
+            if isinstance(v, list) or isinstance(v, tuple) or isinstance(v, set):
                 data_out[k] = sorted(v)
+            elif isinstance(v, MultiArgs):
+                data_out[k] = sorted(v.args)
             else:
                 data_out[k] = [v]
         return data_out
