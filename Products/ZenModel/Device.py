@@ -262,6 +262,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand',
             'commandable')),
+        ("ipaddress", ToOne(ToOne, "Products.ZenModel.IpAddress", "devices")),
         # unused:
         ('monitors', ToMany(ToMany, 'Products.ZenModel.StatusMonitorConf',
             'devices')),
@@ -935,9 +936,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return ip
 
     def _isDuplicateIp(self, ip):
-        dev = self.getDmdRoot("Devices").findDeviceByIdOrIp(ip)
-        if dev and self.id != dev.id:
-            return True
+        ipMatch = self.getNetworkRoot().findIp(ip)
+        if ipMatch:
+            dev = ipMatch.device()
+            if dev and self.id != dev.id:
+                return True
         return False
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')
@@ -988,6 +991,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 notify(IndexingEvent(self, ('decimal_ipAddress', 'text_ipAddress'), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
+                ipobj = self.getNetworkRoot().createIp(ip)
+                self.ipaddress.addRelation(ipobj)
+                notify(IndexingEvent(ipobj))
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)
 

@@ -66,6 +66,7 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
     _relations = ManagedEntity._relations + (
         ("network", ToOne(ToManyCont,"Products.ZenModel.IpNetwork","ipaddresses")),
         ("interface", ToOne(ToMany,"Products.ZenModel.IpInterface","ipaddresses")),
+        ("devices", ToOne(ToOne,"Products.ZenModel.Device","ipaddress")),
         ("clientroutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","nexthop")),
         )
 
@@ -229,6 +230,8 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         """
         iface = self.interface()
         if iface: return iface.device()
+        device = self.devices()
+        if device: return device
         return None
 
     def index_object(self, idxs=None):
