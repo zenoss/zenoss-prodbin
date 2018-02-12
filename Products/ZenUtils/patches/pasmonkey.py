@@ -31,6 +31,7 @@ from Acquisition import aq_base
 from AccessControl import AuthEncoding
 from AccessControl.SpecialUsers import emergency_user
 from AccessControl import ClassSecurityInfo
+from zope.component import getUtility
 from zope.event import notify
 from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
@@ -44,6 +45,7 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 from Products.PluggableAuthService.plugins import SessionAuthHelper
 
@@ -214,7 +216,8 @@ def login(self):
         came_from = urlparse.urlunsplit(parts)
     else:
         submittedQs = 'submitted=%s' % submitted
-        came_from = '/cse/zport/dmd?%s' % submittedQs
+        raw_path = '/zport/dmd?%s' % submittedQs
+        came_from = getUtility(IVirtualRoot).ensure_virtual_root(raw_path)
 
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (

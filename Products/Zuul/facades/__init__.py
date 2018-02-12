@@ -23,6 +23,7 @@ import logging
 import re
 from itertools import imap, islice
 from Acquisition import aq_parent
+from zope.component import getUtility
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
@@ -30,6 +31,7 @@ from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In, MatchGlob
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, IOrganizerInfo
@@ -77,8 +79,7 @@ class ZuulFacade(object):
             return get_dmd()
 
     def _getObject(self, uid):
-        if uid.startswith("/cse/"):
-            uid = uid[4:]
+        uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
         try:
             obj = self._dmd.unrestrictedTraverse(str(uid))
         except Exception, e:
