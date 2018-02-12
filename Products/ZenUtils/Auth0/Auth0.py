@@ -11,7 +11,8 @@ from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IAuthenticationPlugin,
                                                               IChallengePlugin,
-                                                              ICredentialsResetPlugin)
+                                                              ICredentialsResetPlugin,
+                                                              IRolesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS, getBearerToken
@@ -32,7 +33,7 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION=1
+PLUGIN_VERSION=2
 
 _AUTH0_CONFIG = {
         'clientid': None,
@@ -246,12 +247,20 @@ class Auth0(BasePlugin):
                                      lock=1)
         return True
 
+    def getRolesForPrincipal(self, principal, request=None):
+        """ Implements PluggableAuthService IRolesPlugin interface.
+            principal -> ( role_1, ... role_N )
+            o Return a sequence of role names which the principal has.
+            o May assign roles based on values in the REQUEST object, if present.
+        """
+        return ("ZenManager",)
 
 classImplements(Auth0,
                 IAuthenticationPlugin,
                 IExtractionPlugin,
                 IChallengePlugin,
-                ICredentialsResetPlugin)
+                ICredentialsResetPlugin,
+                IRolesPlugin)
 
 InitializeClass(Auth0)
 
@@ -275,7 +284,8 @@ def setup(context):
     interfaces = ('IAuthenticationPlugin',
                   'IExtractionPlugin',
                   'IChallengePlugin',
-                  'ICredentialsResetPlugin')
+                  'ICredentialsResetPlugin',
+                  'IRolesPlugin')
     activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
     movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')
