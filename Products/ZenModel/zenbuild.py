@@ -28,6 +28,7 @@ from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.AccountLocker.AccountLocker import setup as account_locker_setup
+from Products.ZenUtils.Auth0.Auth0 import setup as auth0_setup
 from Products.PluggableAuthService import plugins
 
 class zenbuild(CmdBase):
@@ -151,6 +152,7 @@ class zenbuild(CmdBase):
             # Convert the acl_users folder at the root to a PAS folder and update
             # the login form to use the Zenoss login form
             Security.replaceACLWithPAS(self.app, deleteBackup=True)
+            auth0_setup(self.app)
             account_locker_setup(self.app)
 
             # Add groupManager to zport.acl
