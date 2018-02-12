@@ -49,9 +49,12 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
 
+        <link tal:condition="python:True" rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
+
     </head>
 
-    <body>
+    <body tal:attributes="class here/dmd/userUITheme" >
         <div id="header">
             <div class="bg">
                 <div class="bg-leftcap">
@@ -173,6 +176,10 @@ var viewport = new Ext.Viewport({
 });
 
 });
+
+
+
+
 </script>
 
 <tal:block metal:define-slot="script_layout">
@@ -183,6 +190,7 @@ Ext.onReady(function(){
     Ext.getCmp('center_panel').add(
         new Zenoss.PlaceholderPanel({text: 'center_panel'})
     );
+
 });
 </script>
 </tal:block>
@@ -206,6 +214,7 @@ Ext.History.init(function(mgr){
     Ext.History.selectByToken(mgr.getToken());
 });
 </script>
+
 </body>
 </html>
 </metal:block>

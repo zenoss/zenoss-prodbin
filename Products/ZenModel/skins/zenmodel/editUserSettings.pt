@@ -73,7 +73,7 @@
     <!-- BEGIN TABLE CONTENTS -->
 
     <tr>
-        <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+        <td class="user-prefs-cell" style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
             <form id="resetPasswordForm" method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
                 <div style="background:#ddd;width:374px;height:40px;">
                     <div style="float:left;width:226px;height:40px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
@@ -99,14 +99,14 @@
     </tr>
 
     <tr tal:condition="here/isLoggedInUser">
-        <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+        <td class="tableheader user-prefs-cell" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
             <div style="font-size:14px;">
                 USER PREFERENCES
             </div>
         </td>
     </tr>
     <tr tal:condition="here/isLoggedInUser">
-        <td style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
+        <td class="user-prefs-cell" style="padding:8px 0 8px 8px;border-bottom:solid 1px #ccc;" colspan="4">
             <div style="background:#ddd;width:374px;height:50px;">
                 <div style="float:left;width:226px;height:50px;font-size:11px;line-height:12px;color:#555;padding:2px 0 0 4px;">
                     Reset all preferences such as grid columns and filters to their default values.
@@ -127,7 +127,7 @@
         <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
 
         <tr>
-          <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+          <td class="tableheader  user-prefs-cell" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
             <div style="font-size:14px;">
                 USER SETTINGS
             </div>
@@ -280,9 +280,9 @@
         </tr>
 
         <tr>
-            <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader">
+            <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader password-split">
             </td>
-            <td style="height:1px;border-bottom:dashed 1px #ccc;" colspan=3>
+            <td style="height:1px;border-bottom:dashed 1px #ccc;" class=" password-split" colspan="3">
             </td>
         </tr>
 
