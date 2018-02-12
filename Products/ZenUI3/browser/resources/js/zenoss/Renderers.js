@@ -287,6 +287,9 @@ Ext.apply(Zenoss.render, {
                 return renderer(uid, name);
             }
         }
+        if (!url.startswith(Zenoss.env.CSE_VIRTUAL_ROOT)) {
+            url = Zenoss.env.CSE_VIRTUAL_ROOT + url.replace(/^\/+/g, '');
+        }
         if (url && name) {
             return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
         }
