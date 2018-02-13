@@ -1571,19 +1571,17 @@ class DeviceRouter(TreeRouter):
         # safe prior to the uniqueness check.
         safeDeviceName = organizer.prepId(deviceName)
 
-        deviceByIp = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
-        deviceByName = facade.getDeviceByName(safeDeviceName)
-        if deviceByIp and organizer.getZ('zUsesManageIp', True) \
-                or deviceByName and deviceClass == deviceByName.getDeviceClassName():
-            if isinstance(deviceByName, Device) and deviceByName.getDeviceClassName() == deviceClass:
-                primaryId = deviceByName.getPrimaryId()
-            elif isinstance(deviceByIp, Device) and deviceByIp.getDeviceClassName() == deviceClass:
-                primaryId = deviceByIp.getPrimaryId()
-            else:
-                return DirectResponse.fail(msg="Failed to get PrimaryId for device %s" % (deviceName))
-
-            return DirectResponse.fail(deviceUid=primaryId,
-                                       msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId))
+        foundDevice = None
+        if organizer.getZ('zUsesManageIp', False):
+            foundDevice = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
+        if not foundDevice:
+            foundDevice = facade.getDeviceByName(safeDeviceName)
+        if foundDevice and foundDevice.getDeviceClassName() == deviceClass:
+            primaryId = foundDevice.getPrimaryId()
+            return DirectResponse.fail(
+                deviceUid=primaryId,
+                msg="Device %s already exists. <a href'%s'>Go to the device</a>" % (deviceName, primaryId)
+            )
 
         if isinstance(systemPaths, basestring):
             systemPaths = [systemPaths]
