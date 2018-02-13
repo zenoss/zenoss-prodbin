@@ -95,7 +95,7 @@ def apply_extra_fields(obj, fact):
     """
     from Products.ZenModel.Device import Device
 
-    fact.metadata["uuid"] = obj.getUUID()
+    fact.metadata["contextUUID"] = obj.getUUID()
     fact.metadata["meta_type"] = obj.meta_type
 
     # titleOrId
