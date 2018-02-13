@@ -1575,9 +1575,13 @@ class DeviceRouter(TreeRouter):
         deviceByName = facade.getDeviceByName(safeDeviceName)
         if deviceByIp and organizer.getZ('zUsesManageIp', True) \
                 or deviceByName and deviceClass == deviceByName.getDeviceClassName():
-            primaryId = deviceByName.getPrimaryId() if isinstance(deviceByName, Device) \
-                                                       and deviceByName.getDeviceClassName() == deviceClass else isinstance(
-                deviceByIp, Device) and deviceByIp.getPrimaryId()
+            if isinstance(deviceByName, Device) and deviceByName.getDeviceClassName() == deviceClass:
+                primaryId = deviceByName.getPrimaryId()
+            elif isinstance(deviceByIp, Device) and deviceByIp.getDeviceClassName() == deviceClass:
+                primaryId = deviceByIp.getPrimaryId()
+            else:
+                return DirectResponse.fail(msg="Failed to get PrimaryId for device %s" % (deviceName))
+
             return DirectResponse.fail(deviceUid=primaryId,
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId))
 
