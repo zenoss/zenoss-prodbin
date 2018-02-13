@@ -32,6 +32,7 @@ log = logging.getLogger('AccountLocker')
 TOOL = 'AccountLocker'
 PLUGIN_ID = 'account_locker_plugin'
 PLUGIN_TITLE = 'Lock an account after numerous failed login attempts'
+PLUGIN_VERSION=1
 
 class Locked(Exception):
     pass
@@ -51,6 +52,8 @@ def manage_addAccountLocker(context, id, title=None, REQUEST=None):
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
+def manage_delAccountLocker(context, id):
+    context._delObject(id)
 
 class AccountLocker(Folder, BasePlugin):
 
@@ -85,6 +88,7 @@ class AccountLocker(Folder, BasePlugin):
         self._login_attempts = OOBTree()
         self._max_attempts = 3
         self._reset_period = 300 #seconds
+        self.version = PLUGIN_VERSION
 
 
     def remote_ip(self):
@@ -315,19 +319,20 @@ def setup(context):
     
     app_acl = getToolByName(app, 'acl_users')
     zport_acl = getToolByName(zport, 'acl_users')
-
-    if hasattr(app_acl, 'account_locker_plugin'):
-        return
-
     context_interfaces = {app_acl:('IAuthenticationPlugin', 'IAnonymousUserFactoryPlugin'),
                 zport_acl:('IAuthenticationPlugin',)}
 
-    for context in context_interfaces:
-        manage_addAccountLocker(context, PLUGIN_ID, PLUGIN_TITLE)
-
     for context, interfaces in context_interfaces.iteritems():
+        # Check for existing plugin
+        existing_plugin = getattr(context, PLUGIN_ID, None)
+        if existing_plugin:
+            version = getattr(existing_plugin, 'version', 0)
+            if version == PLUGIN_VERSION:
+                # Existing plugin version matches; abort
+                break
+            # Delete existing plugin
+            manage_delAccountLocker(context, PLUGIN_ID)
+
+        manage_addAccountLocker(context, PLUGIN_ID, PLUGIN_TITLE)
         activatePluginForInterfaces(context, PLUGIN_ID, interfaces)
-
-    for context in context_interfaces:
         movePluginToTop(context, PLUGIN_ID, 'IAuthenticationPlugin')
-

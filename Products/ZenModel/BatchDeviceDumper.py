@@ -379,7 +379,7 @@ class BatchDeviceDumper(ZCmdBase):
     def makeRegexMatcher(self):
         if self.options.regex:
             regex = re.compile(self.options.regex)
-            return lambda dev: dev is not None and regex.match(dev.id)
+            return lambda dev: dev is not None and regex.match(dev.getPrimaryId())
 
     def chooseDevice(self, root, matcher=None):
         for dev in root.devices():

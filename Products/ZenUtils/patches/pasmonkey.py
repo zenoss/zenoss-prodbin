@@ -129,7 +129,7 @@ def validate(self, request, auth='', roles=_noroles):
                 return None
 
         if self._authorizeUser(user, accessed, container, name, value, roles):
-            if name == 'login':
+            if name in ('login'):
                 audit('UI.Authentication.Valid', ipaddress=ipaddress)
                 notify(UserLoggedInEvent(self.zport.dmd.ZenUsers.getUserSettings()))
             return user
@@ -147,6 +147,8 @@ def validate(self, request, auth='', roles=_noroles):
     return None
 
 pas.validate = validate
+
+
 
 # monkey patches for the PAS login form
 
