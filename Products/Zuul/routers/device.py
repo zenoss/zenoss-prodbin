@@ -1576,7 +1576,8 @@ class DeviceRouter(TreeRouter):
         if deviceByIp and organizer.getZ('zUsesManageIp', True) \
                 or deviceByName and deviceClass == deviceByName.getDeviceClassName():
             primaryId = deviceByName.getPrimaryId() if isinstance(deviceByName, Device) \
-                    and deviceByName.getDeviceClassName() == deviceClass else deviceByIp.getPrimaryId()
+                                                       and deviceByName.getDeviceClassName() == deviceClass else isinstance(
+                deviceByIp, Device) and deviceByIp.getPrimaryId()
             return DirectResponse.fail(deviceUid=primaryId,
                                        msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId))
 
