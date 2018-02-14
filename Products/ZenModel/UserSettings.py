@@ -246,6 +246,13 @@ class UserSettingsManager(ZenModelRM):
         if uf: return uf.getPrimaryUrlPath()
         return ""
 
+    def getUserTheme(self):
+        ut = self.getUserSettings().userTheme
+        if ut: return ut
+        return "z-cse"
+
+    def getAllThemes(self):
+        return [{'name':'Light', 'class':'z-cse'},{'name':'Dark', 'class':'z-cse z-cse-dark'}]
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     @validate_csrf_token
@@ -600,6 +607,7 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
+    userTheme = "z-cse"
     defaultAdminRole = "ZenUser"
     oncallStart = 0
     oncallEnd = 0
@@ -618,6 +626,7 @@ class UserSettings(ZenModelRM):
         {'id':'pager', 'type':'string', 'mode':'w'},
         {'id':'defaultPageSize', 'type':'int', 'mode':'w'},
         {'id':'defaultEventPageSize', 'type':'int', 'mode':'w'},
+        {'id':'userTheme', 'type':'string', 'mode':'w'},
         {'id':'defaultAdminRole', 'type':'string', 'mode':'w'},
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
@@ -914,7 +923,7 @@ class UserSettings(ZenModelRM):
             kw = REQUEST.form
         if outOfTurnUpdate:
             settings = {}
-            for key in ['defaultPageSize', 'email']:
+            for key in ['defaultPageSize', 'email', 'userTheme']:
                 setting = kw.get(key)
                 if setting:
                     settings[key] = setting
