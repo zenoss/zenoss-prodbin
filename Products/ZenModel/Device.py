@@ -262,7 +262,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand',
             'commandable')),
-        ("ipaddress", ToOne(ToOne, "Products.ZenModel.IpAddress", "devices")),
+        ("ipaddress", ToOne(ToOne, "Products.ZenModel.IpAddress", "manageDevice")),
         # unused:
         ('monitors', ToMany(ToMany, 'Products.ZenModel.StatusMonitorConf',
             'devices')),
@@ -938,7 +938,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def _isDuplicateIp(self, ip):
         ipMatch = self.getNetworkRoot().findIp(ip)
         if ipMatch:
-            dev = ipMatch.device()
+            dev = ipMatch.manageDevice()
             if dev and self.id != dev.id:
                 return True
         return False
@@ -1855,6 +1855,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
         self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
         self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(self.getId())
+        ip = self.ipaddress()
+        if ip : ip.getPrimaryParent().removeRelation(ip)
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':

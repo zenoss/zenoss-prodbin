@@ -251,6 +251,8 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         super(IpInterface, self).manage_deleteComponent(REQUEST)
         for ip in ips:
             self.dmd.getDmdRoot("ZenLinkManager").remove_device_network_from_cache(device.getId(), ip.network().getPrimaryUrlPath())
+            if ip.device(): continue
+            ip.getPrimaryParent().removeRelation(ip)
         if device:
             notify(IndexingEvent(device, idxs=["path"])) # We need to delete the iface path from the device
 
