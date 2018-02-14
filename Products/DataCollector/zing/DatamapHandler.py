@@ -90,9 +90,8 @@ class ZingDatamapHandler(object):
         try:
             log.info("Sending {} datamaps to zing-connector.".format(len(zing_state.datamaps)))
             for device, datamap in zing_state.datamaps:
-                context = zing_state.contexts.get(datamap)
                 # TODO should we batch them instead of sending them one by one?
-                self._send_datamap(device, datamap, context)
+                self._send_datamap(device, datamap, zing_state.contexts)
         except Exception as ex:
             log.warn("Exception sending datamaps to zing-connector. {}".format(ex))
 
