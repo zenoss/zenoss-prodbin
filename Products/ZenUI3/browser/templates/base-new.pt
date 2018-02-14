@@ -11,7 +11,7 @@
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
     <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -54,7 +54,7 @@
 
     </head>
 
-    <body tal:attributes="class here/dmd/userUITheme" >
+    <body>
         <div id="header">
             <div class="bg">
                 <div class="bg-leftcap">
