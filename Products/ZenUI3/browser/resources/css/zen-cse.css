@@ -1773,6 +1773,7 @@ BYE BYE BORDERS
     }
 
     /* filters dark theme */
+    .z-cse.z-cse-dark .x-grid-filter .x-form-arrow-trigger,
     .z-cse.z-cse-dark .x-form-date-trigger,
     .z-cse.z-cse-dark #component_searchfield-inputEl,
     .z-cse.z-cse-dark #navGrid-filter-name-inputEl,
