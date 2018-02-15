@@ -956,6 +956,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         message = ''
         ip = ip.replace(' ', '')
         origip = ip
+        oldManageIp = self.ipaddress()
         ip = self._sanitizeIPaddress(ip)
 
         if not ip: # What if they put in a DNS name?
@@ -994,6 +995,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 ipobj = self.getNetworkRoot().createIp(ip)
                 self.ipaddress.addRelation(ipobj)
                 notify(IndexingEvent(ipobj))
+                if not oldManageIp.device():
+                     oldManageIp.getPrimaryParent().removeRelation(oldManageIp)
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)
 
