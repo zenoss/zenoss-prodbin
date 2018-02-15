@@ -843,6 +843,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse .x-boundlist-item,
     .z-cse #deviceLiveSearch .autocompleter-container ul,
     .z-cse #deviceLiveSearch input,
     .z-cse .dialog_container select,
