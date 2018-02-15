@@ -48,7 +48,7 @@
                 margin-bottom: 1em;
                 }
             .z-cse #request_box strong {
-                color: #aaa;
+                color: #cdf856;
                 font-size: 14px;
                 line-height: 20px;
                 font-family: monospace;
