@@ -1033,7 +1033,6 @@ BYE BYE BORDERS
     { color: #4b4b4c }
     .z-cse #newTabsPane ul li a:hover,
     .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
-    .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .user-prefs-cell div:first-child div,
     .z-cse #resetPasswordForm div:first-child,
     .z-cse .dependencyGraphPanel h3,
@@ -1084,6 +1083,7 @@ BYE BYE BORDERS
     { color: #4b4b4c !important; }
 
     /* light text not applicable to light-dark theming */
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
     .z-cse .x-window .x-form-display-field,
     .z-cse .x-window .x-panel-body,
     .z-cse #newTabsPane ul li.selected a,
@@ -1108,7 +1108,10 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover
     { color: #3b88cb; text-decoration: none; }
 
-    /* light text not applicable to dark-theming */
+    /* masthead search */
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse #searchbox-container .x-form-arrow-trigger
+    { background-color: #505050;}
 
     /* context menus */
     .z-cse .x-boundlist-floating,
@@ -1307,19 +1310,19 @@ BYE BYE BORDERS
         display: block;
         padding: 10px;
     }
-    .z-cse > .x-boundlist > div .search-result:first-child th {
+    .z-cse > body > .x-boundlist > div > .search-result:first-child th {
         display:none;
     }
-        .z-cse > .x-boundlist > div .search-result:first-child td {
-            padding: 10px;
+        .z-cse > body > .x-boundlist > div > .search-result:first-child td {
+            padding: 4px;
         }
-        .z-cse > .x-boundlist {
-            min-height: 40px;
+        .z-cse > body > .x-boundlist {
+            min-height: 20px;
             border: 0;
         }
-        .z-cse > .x-boundlist > .x-boundlist-list-ct {
-            line-height: 40px;
-            min-height: 40px;
+        .z-cse > body > .x-boundlist > .x-boundlist-list-ct {
+            line-height: 20px;
+            min-height: 20px;
             text-indent: 20px;
         }
 
