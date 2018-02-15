@@ -992,10 +992,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 notify(IndexingEvent(self, ('decimal_ipAddress', 'text_ipAddress'), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
+                #Create a new IpAddress object from manageIp under the Network
                 ipobj = self.getNetworkRoot().createIp(ip)
                 self.ipaddress.addRelation(ipobj)
                 notify(IndexingEvent(ipobj))
-                if not oldManageIp.device():
+                #remove anused manageIp from Network
+                if oldManageIp and not oldManageIp.device():
                      oldManageIp.getPrimaryParent().removeRelation(oldManageIp)
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)

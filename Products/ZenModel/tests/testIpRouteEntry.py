@@ -51,11 +51,11 @@ class TestIpRouteEntry(ZenModelBaseTest):
 
 
     def testSetManageIp(self):
-        self.rEntry.setManageIp('1.2.3.4/24')
-        self.assert_(self.rEntry.getManageIp() == '1.2.3.4/24')
-        self.assert_(self.iface0.getManageIp() == '1.2.3.4/24')
-        self.assert_(self.iface1.getManageIp() == '1.2.3.4/24')
-        self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        self.rEntry.setManageIp('1.2.3.4')
+        self.assert_(self.rEntry.getManageIp() == '1.2.3.4')
+        self.assert_(self.iface0.getManageIp() == '1.2.3.4')
+        self.assert_(self.iface1.getManageIp() == '1.2.3.4')
+        self.assert_(self.dev.getManageIp() == '1.2.3.4')
 
 
     def testSetNextHopIp(self):
