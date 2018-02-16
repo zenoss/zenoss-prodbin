@@ -70,6 +70,10 @@ darker input fields: #505050
 */
 
 /* zenoss.css */
+.z-cse .yui-skin-sam tr.yui-dt-odd,
+.z-cse .yui-skin-sam tr.yui-dt-even,
+.z-cse .yui-skin-sam .yui-dt-message,
+.z-cse div.zenportlet div.portlet-body,
 .z-cse div.tinylink-container,
 .z-cse div.zenportlet div.tabletitle-left,
 .z-cse div.zenportlet div.tabletitle-right,
@@ -228,6 +232,8 @@ darker input fields: #505050
 BYE BYE BORDERS
 ================
 */
+.z-cse div.zenportlet input,
+.z-cse div.zenportlet div.portlet-body,
 .z-cse div.zenportlet div.portlet-header,
 .z-cse #deviceLiveSearch input,
 .z-cse #dialog_buttons input,
@@ -363,6 +369,7 @@ BYE BYE BORDERS
     }
 
     /* zebra striping light */
+    .z-cse .yui-skin-sam tr.yui-dt-odd,
     .z-cse #contentPaneContainer table tr.even,
     .z-cse tr.x-grid-row-alt {
         background-color: rgba(155, 155, 155, 0.1);
@@ -571,6 +578,8 @@ BYE BYE BORDERS
     */
 
     /* table headers == theme-sensitive == */
+    .z-cse div.portlet-settings,
+    .z-cse div.zenportlet div.portlet-header,
     .z-cse #AdministeredObjects th,
     .z-cse .x-grid .x-column-header,
     .z-cse #dataSourceTreeGrid .x-column-header,
@@ -769,6 +778,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse div.control-label,
     .z-cse .dbox_mc,
     .z-cse table.innerzentable,
     .z-cse #device_overview-body #ssh-link-inputEl a,
@@ -848,6 +858,7 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse div.zenportlet input,
     .z-cse #contentPaneContainer table td input[name=geomapapikey],
     .z-cse .x-boundlist-item,
     .z-cse #deviceLiveSearch .autocompleter-container ul,
@@ -1001,6 +1012,9 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse .portlet-body thead a,
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse div.control-label,
     .z-cse select,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #manage-search-link,
@@ -1194,6 +1208,10 @@ BYE BYE BORDERS
         font-family: Roboto !important;
         font-size: 12px !important;
         fill: #4b4b4c;
+    }
+
+    .z-cse div.zenportlet div.portlet-body {
+        width: 100%;
     }
 
     .z-cse  div[id|=pasteventschart] path[stroke-width|="1"],
@@ -1411,6 +1429,33 @@ BYE BYE BORDERS
         font-size: 12px;
         text-indent: 3px;
     }
+
+    .z-cse div.zenportlet div.portlet-body-outer {
+        background-color: #ddd;
+    }
+    .z-cse div.zenportlet input {
+        padding: 4px 8px;
+    }
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse div.zenportlet button {
+        background-color: #f4f4f4;
+        font-size: 11px;
+        width: 90px;
+        padding: 4px 6px;
+        text-decoration: none;
+        height: auto;
+        line-height: 17px;
+        border-radius: 3px;
+        margin-bottom: 18px;
+    }
+
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control {
+        margin-top: 20px;
+    }
+    .z-cse .portlet-body thead {
+        background-color: #ccc;
+    }
+
 
     /* events | classes | dropdown */
     .z-cse #overriddengrid_id .x-toolbar-docked-top,
@@ -1832,6 +1877,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark #manage-search-link,
@@ -2053,6 +2099,7 @@ BYE BYE BORDERS
     }
 
     /* dashboard */
+    .z-cse.z-cse-dark div.zenportlet div.portlet-body-outer,
     .z-cse.z-cse-dark .x-portlet.x-panel-default-framed  {
         background-color: #444 !important;
     }
