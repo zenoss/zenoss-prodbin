@@ -33,7 +33,7 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION=2
+PLUGIN_VERSION=3
 
 _AUTH0_CONFIG = {
         'clientid': None,
@@ -66,7 +66,7 @@ def manage_delAuth0(context, id):
 
 class SessionInfo(object):
     def __init__(self):
-        for i in ['userid', 'expiration', 'refreshToken']:
+        for i in ['userid', 'expiration', 'refreshToken', 'roles']:
             setattr(self, i, '')
 
 class Auth0(BasePlugin):
@@ -121,6 +121,7 @@ class Auth0(BasePlugin):
         sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
         sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
         sessionInfo.expiration = payload['exp']
+        sessionInfo.roles = payload['https://zenoss.com/roles']
         return sessionInfo
 
 
@@ -254,7 +255,16 @@ class Auth0(BasePlugin):
             o Return a sequence of role names which the principal has.
             o May assign roles based on values in the REQUEST object, if present.
         """
-        return ("ZenManager",)
+        if not request:
+            return ()
+        sessionInfo = request.SESSION.get(Auth0.session_key)
+        if not sessionInfo:
+            log.debug('No Auth0 session - not getting roles for user')
+            return ()
+        if not sessionInfo.roles:
+            log.debug('No roles in Auth0 session - not returning roles')
+            return ()
+        return set(sessionInfo.roles)
 
 classImplements(Auth0,
                 IAuthenticationPlugin,
