@@ -167,7 +167,8 @@ class Auth0(BasePlugin):
         Logging out of the UI calls Products/ZenModel/skins/zenmodel/logoutUser.py
             which calls resetCredentials, this bypasses the PAS logout.
         """
-        del request.SESSION[Auth0.session_key]
+        if Auth0.session_key in request.SESSION:
+            del request.SESSION[Auth0.session_key]
         conf = getAuth0Conf()
         if conf:
             response.redirect('%sv2/logout?' % conf['tenant'] +
