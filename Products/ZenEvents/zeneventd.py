@@ -145,20 +145,15 @@ class EventPipelineProcessor(object):
                     # extract event from message body
                     zepevent = ZepRawEvent()
                     zepevent.event.CopyFrom(message)
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.debug("Received event: %s",
-                                  to_dict(zepevent.event))
+                    log.debug("Received event: %s", to_dict(zepevent.event))
 
                     eventContext = EventContext(log, zepevent)
 
                     for pipe in self._pipes:
                         with self._pipe_timers[pipe.name]:
                             eventContext = pipe(eventContext)
-                        if log.isEnabledFor(logging.DEBUG):
-                            log.debug(
-                                'After pipe %s, event context is %s',
-                                pipe.name, to_dict(eventContext.zepRawEvent)
-                            )
+                        log.debug('After pipe %s, event context is %s',
+                                  pipe.name, to_dict(eventContext.zepRawEvent))
                         if eventContext.event.status == STATUS_DROPPED:
                             raise DropEvent(
                                 'Dropped by %s' % pipe,
@@ -213,9 +208,7 @@ class EventPipelineProcessor(object):
             eventContext.eventProxy.device = 'zeneventd'
             eventContext.eventProxy.component = 'processMessage'
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("Publishing event: %s",
-                      to_dict(eventContext.zepRawEvent))
+        log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
 
         return eventContext.zepRawEvent
 
@@ -253,8 +246,7 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
         else:
             try:
                 zepRawEvent = self.processor.processMessage(hydrated)
-                if log.isEnabledFor(logging.DEBUG):
-                    log.debug("Publishing event: %s", to_dict(zepRawEvent))
+                log.debug("Publishing event: %s", to_dict(zepRawEvent))
                 yield self.queueConsumer.publishMessage(
                     EXCHANGE_ZEP_ZEN_EVENTS,
                     self._routing_key(zepRawEvent),
@@ -263,8 +255,7 @@ class TwistedQueueConsumerTask(BaseQueueConsumerTask):
                 )
                 yield self.queueConsumer.acknowledge(message)
             except DropEvent as e:
-                if log.isEnabledFor(logging.DEBUG):
-                    log.debug('%s - %s' % (e.message, to_dict(e.event)))
+                log.debug('%s - %s' % (e.message, to_dict(e.event)))
                 yield self.queueConsumer.acknowledge(message)
             except ProcessingException as e:
                 log.error('%s - %s' % (e.message, to_dict(e.event)))
