@@ -70,6 +70,15 @@ darker input fields: #505050
 */
 
 /* zenoss.css */
+.z-cse .yui-skin-sam th.yui-dt-asc,
+.z-cse .yui-skin-sam th.yui-dt-desc,
+.z-cse .yui-skin-sam tr.yui-dt-odd,
+.z-cse .yui-skin-sam tr.yui-dt-even,
+.z-cse .yui-skin-sam .yui-dt-message,
+.z-cse div.zenportlet div.portlet-body,
+.z-cse div.tinylink-container,
+.z-cse div.zenportlet div.tabletitle-left,
+.z-cse div.zenportlet div.tabletitle-right,
 .z-cse #contentPaneContainer .filterbox,
 .z-cse .x-portlet .x-panel-body,
 .z-cse #blackTabs #xform_mapping_panel,
@@ -98,6 +107,7 @@ darker input fields: #505050
 .z-cse #breadCrumbPane,
 .z-cse .evdetail-sep
 { background-image: none; background-color: transparent; }
+.z-cse #portletContainer,
 .z-cse div[id^=HierarchyTreePanelSearch],
 .z-cse .x-window-body-closable .x-resizable-pinned,
 .z-cse .user-prefs-cell,
@@ -224,6 +234,9 @@ darker input fields: #505050
 BYE BYE BORDERS
 ================
 */
+.z-cse div.zenportlet input,
+.z-cse div.zenportlet div.portlet-body,
+.z-cse div.zenportlet div.portlet-header,
 .z-cse #deviceLiveSearch input,
 .z-cse #dialog_buttons input,
 .z-cse #contentPaneContainer table td input[type=text],
@@ -358,6 +371,7 @@ BYE BYE BORDERS
     }
 
     /* zebra striping light */
+    .z-cse .yui-skin-sam tr.yui-dt-odd,
     .z-cse #contentPaneContainer table tr.even,
     .z-cse tr.x-grid-row-alt {
         background-color: rgba(155, 155, 155, 0.1);
@@ -566,6 +580,8 @@ BYE BYE BORDERS
     */
 
     /* table headers == theme-sensitive == */
+    .z-cse div.portlet-settings,
+    .z-cse div.zenportlet div.portlet-header,
     .z-cse #AdministeredObjects th,
     .z-cse .x-grid .x-column-header,
     .z-cse #dataSourceTreeGrid .x-column-header,
@@ -764,6 +780,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse div.control-label,
     .z-cse .dbox_mc,
     .z-cse table.innerzentable,
     .z-cse #device_overview-body #ssh-link-inputEl a,
@@ -843,6 +860,8 @@ BYE BYE BORDERS
     }
 
     /* MONOSPACE AREAS */
+    .z-cse div.zenportlet input,
+    .z-cse #contentPaneContainer table td input[name=geomapapikey],
     .z-cse .x-boundlist-item,
     .z-cse #deviceLiveSearch .autocompleter-container ul,
     .z-cse #deviceLiveSearch input,
@@ -995,6 +1014,8 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse div.control-label,
     .z-cse select,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #manage-search-link,
@@ -1032,6 +1053,7 @@ BYE BYE BORDERS
     .z-cse .x-toolbar .x-toolbar-text,
     .z-cse .x-panel-body-default
     { color: #4b4b4c }
+    .z-cse #connectionmessage,
     .z-cse #newTabsPane ul li a:hover,
     .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
     .z-cse .user-prefs-cell div:first-child div,
@@ -1052,6 +1074,7 @@ BYE BYE BORDERS
 
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse .portlet-body thead .yui-dt-label a,
     .z-cse #dialog_content select,
     .z-cse .dialog_container select,
     .z-cse #dialog_buttons input,
@@ -1100,6 +1123,7 @@ BYE BYE BORDERS
     { background-color: #4b6f9b !important; }
 
     /* light-theme text links */
+    .z-cse a.tinylink,
     .z-cse #breadCrumbPane a,
     .z-cse .devdetail-devclass a.z-entity,
     .z-cse a:link,
@@ -1186,6 +1210,10 @@ BYE BYE BORDERS
         font-family: Roboto !important;
         font-size: 12px !important;
         fill: #4b4b4c;
+    }
+
+    .z-cse div.zenportlet div.portlet-body {
+        width: 100%;
     }
 
     .z-cse  div[id|=pasteventschart] path[stroke-width|="1"],
@@ -1404,6 +1432,33 @@ BYE BYE BORDERS
         text-indent: 3px;
     }
 
+    .z-cse div.zenportlet div.portlet-body-outer {
+        background-color: #ddd;
+    }
+    .z-cse div.zenportlet input {
+        padding: 4px 8px;
+    }
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse div.zenportlet button {
+        background-color: #f4f4f4;
+        font-size: 11px;
+        width: 90px;
+        padding: 4px 6px;
+        text-decoration: none;
+        height: auto;
+        line-height: 17px;
+        border-radius: 3px;
+        margin-bottom: 18px;
+    }
+
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control {
+        margin-top: 20px;
+    }
+    .z-cse .portlet-body thead {
+        background-color: #ccc;
+    }
+
+
     /* events | classes | dropdown */
     .z-cse #overriddengrid_id .x-toolbar-docked-top,
     .z-cse #configpanel_id .x-toolbar-docked-top {
@@ -1474,6 +1529,13 @@ BYE BYE BORDERS
         line-height: 20px;
     }
 
+    .z-cse .dbox_bl,
+    .z-cse .dbox_bc,
+    .z-cse .dbox_br {
+        min-height: 30px;
+    }
+
+
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
         height: 20px;
@@ -1483,7 +1545,8 @@ BYE BYE BORDERS
         .z-cse #contentPaneContainer table td textarea,
         .z-cse #contentPaneContainer table td input[type=text],
         .z-cse #contentPaneContainer table td input[type=number],
-        .z-cse #contentPaneContainer table td input[type=password] {
+        .z-cse #contentPaneContainer table td input[type=password],
+        .z-cse #contentPaneContainer table td input[name=geomapapikey] {
             padding: 4px;
             line-height: 20px;
         }
@@ -1496,6 +1559,7 @@ BYE BYE BORDERS
             height: 28px;
             min-width: 160px;
         }
+        .z-cse #contentPaneContainer select.wide-select,
         .z-cse #contentPaneContainer #user_roles_combo,
         .z-cse #contentPaneContainer #user_groups_combo {
             height: 96px;
@@ -1815,6 +1879,7 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark #manage-search-link,
@@ -1850,6 +1915,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
     .z-cse.z-cse-dark .x-panel-body-default
     { color: #ccc }
+    .z-cse.z-cse-dark #connectionmessage,
     .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
     .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
     .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
@@ -1870,6 +1936,7 @@ BYE BYE BORDERS
 
 
     /* dark-theme text links */
+    .z-cse.z-cse-dark a.tinylink,
     .z-cse.z-cse-dark #breadCrumbPane a,
     .z-cse.z-cse-dark .devdetail-devclass a.z-entity,
     .z-cse.z-cse-dark a:link,
@@ -2034,6 +2101,7 @@ BYE BYE BORDERS
     }
 
     /* dashboard */
+    .z-cse.z-cse-dark div.zenportlet div.portlet-body-outer,
     .z-cse.z-cse-dark .x-portlet.x-panel-default-framed  {
         background-color: #444 !important;
     }
