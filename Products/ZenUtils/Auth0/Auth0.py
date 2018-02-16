@@ -255,6 +255,8 @@ class Auth0(BasePlugin):
             o Return a sequence of role names which the principal has.
             o May assign roles based on values in the REQUEST object, if present.
         """
+        if not request:
+            return ()
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             log.debug('No Auth0 session - not getting roles for user')
