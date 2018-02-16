@@ -150,8 +150,12 @@ class EventPipelineProcessor(object):
                     eventContext = EventContext(log, zepevent)
 
                     for pipe in self._pipes:
-                        with self._pipe_timers[pipe.name]:
+                        if log.isEnabledFor(logging.DEBUG):
+                            with self._pipe_timers[pipe.name]:
+                                eventContext = pipe(eventContext)
+                        else:
                             eventContext = pipe(eventContext)
+
                         log.debug('After pipe %s, event context is %s',
                                   pipe.name, to_dict(eventContext.zepRawEvent))
                         if eventContext.event.status == STATUS_DROPPED:
