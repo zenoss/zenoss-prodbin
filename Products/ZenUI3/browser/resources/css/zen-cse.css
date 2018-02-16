@@ -70,6 +70,8 @@ darker input fields: #505050
 */
 
 /* zenoss.css */
+.z-cse .yui-skin-sam th.yui-dt-asc,
+.z-cse .yui-skin-sam th.yui-dt-desc,
 .z-cse .yui-skin-sam tr.yui-dt-odd,
 .z-cse .yui-skin-sam tr.yui-dt-even,
 .z-cse .yui-skin-sam .yui-dt-message,
@@ -1012,7 +1014,6 @@ BYE BYE BORDERS
 
 
     /* light theme text */
-    .z-cse .portlet-body thead a,
     .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse div.control-label,
     .z-cse select,
@@ -1073,6 +1074,7 @@ BYE BYE BORDERS
 
 
     /* dark text not applicable to light-dark-theming */
+    .z-cse .portlet-body thead .yui-dt-label a,
     .z-cse #dialog_content select,
     .z-cse .dialog_container select,
     .z-cse #dialog_buttons input,
