@@ -1,4 +1,4 @@
-VERSION  ?= 6.2.0
+VERSION  ?= 7.0.0
 BUILD_NUMBER ?= DEV
 BRANCH   ?= develop
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
@@ -8,8 +8,8 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
 # for more information about setting these values.
 # See zenoss-version.mk for more information about make targets that use these values.
-SCHEMA_MAJOR ?= 200
-SCHEMA_MINOR ?= 2 
+SCHEMA_MAJOR ?= 300
+SCHEMA_MINOR ?= 0 
 SCHEMA_REVISION ?= 0
 
 DIST_ROOT := dist

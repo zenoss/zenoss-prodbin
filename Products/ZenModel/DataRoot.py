@@ -100,6 +100,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
+    userTheme = "z-cse"
     pauseHubNotifications = False
     zendmdStartupCommands = []
     pauseADMStart = datetime.min
@@ -129,6 +130,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
+        {'id':'userTheme', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
         {'id':'pauseADMStart', 'type': 'datetime', 'mode':'w'},

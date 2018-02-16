@@ -10,6 +10,7 @@
 
 import sys
 from collections import defaultdict
+
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
@@ -26,6 +27,7 @@ from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
+from Products.DataCollector.zing.DatamapHandler import ZingDatamapHandler
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
@@ -38,6 +40,7 @@ CLASSIFIER_CLASS = '/Classifier'
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
+zing_datamap_handler = ZingDatamapHandler()
 
 def isSameData(x, y):
     """
@@ -53,7 +56,6 @@ def isSameData(x, y):
             return sorted(x) == sorted(y)
 
     return x == y
-
 
 class ApplyDataMap(object):
 
@@ -109,7 +111,6 @@ class ApplyDataMap(object):
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
 
-
     def setDeviceClass(self, device, deviceClass=None):
         """
         If a device class has been passed and the current class is not /Classifier
@@ -126,10 +127,12 @@ class ApplyDataMap(object):
         probably set commit to False and handle your own transactions.
 
         """
+        zing_datamap_handler.add_datamap(device, datamap)
         if commit:
-            return transact(self._applyDataMapImpl)(device, datamap)
+            result = transact(self._applyDataMapImpl)(device, datamap)
         else:
-            return self._applyDataMapImpl(device, datamap)
+            result = self._applyDataMapImpl(device, datamap)
+        return result
 
     def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
@@ -409,6 +412,11 @@ class ApplyDataMap(object):
         else:
             obj._p_deactivate()
         self.num_obj_changed += 1 if changed else 0
+
+        # Store the object with the objmap as the key, so when we serialize
+        # objmap, we can look up the associated UUID and other information.
+        zing_datamap_handler.add_context(objmap, obj)
+
         return changed
 
 
