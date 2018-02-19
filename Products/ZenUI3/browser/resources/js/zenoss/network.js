@@ -262,28 +262,28 @@ var ipAddressColumnConfig = [{
             name;
     }
 }, {
-    id: 'device',
-    dataIndex: 'device',
-    header: _t('Device'),
+    id: 'mangeDevice',
+    dataIndex: 'manageDevice',
+    header: _t('Manage Device'),
     sortable: true,
     width: 200,
-    renderer: function(device) {
-        if (!device) {
+    renderer: function(manageDevice) {
+        if (!manageDevice) {
             return _t('No Device');
         }
-        return Zenoss.render.link(device.uid, null, device.name);
+        return Zenoss.render.link(manageDevice.uid, null, manageDevice.name);
     }
 }, {
     id: 'interface',
     dataIndex: 'interface',
-    header: _t('Interface'),
+    header: _t('Interface / Device'),
     sortable: true,
     width: 200,
     renderer: function(iface){
         if (!iface) {
             return _t('No Interface');
         }
-        return Zenoss.render.link(iface.uid, null, iface.name);
+        return Zenoss.render.link(iface.uid, null, iface.name) + " / " + Zenoss.render.link(iface.device.uid, null, iface.device.name);
     }
 },{
     id: 'macAddress',
@@ -336,6 +336,7 @@ Ext.define('Zenoss.network.IpAddressModel',  {
         {name: 'interfaceDescription'},
         {name: 'device'},
         {name: 'interface'},
+        {name: 'manageDevice'},
         {name: 'pingstatus'},
         {name: 'snmpstatus'},
         {name: 'uid'}

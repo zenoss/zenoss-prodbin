@@ -129,7 +129,6 @@ class NetworkFacade(TreeFacade):
         brains = cat.search("Products.ZenModel.IpAddress.IpAddress",
                             start=start, limit=limit,
                             orderby=sort, reverse=reverse)
-
         for brain in brains:
             infos.append(IInfo(unbrain(brain)))
 

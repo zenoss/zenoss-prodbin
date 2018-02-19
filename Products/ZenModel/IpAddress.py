@@ -230,8 +230,6 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
         """
         iface = self.interface()
         if iface: return iface.device()
-        device = self.manageDevice()
-        if device: return device
         return None
 
     def index_object(self, idxs=None):
