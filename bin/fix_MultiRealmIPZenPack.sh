@@ -11,7 +11,6 @@
 ZP_NAME=MultiRealmIP
 FIXED_VERSION=2.2.4
 EGG=`find /opt/zenoss/ZenPacks/ -name ZenPacks.zenoss.${ZP_NAME}* | head -n 1`
-
 function version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
 if [[ -z "$EGG" ]]; then
