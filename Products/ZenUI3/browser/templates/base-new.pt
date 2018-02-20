@@ -11,7 +11,7 @@
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
     <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -48,6 +48,9 @@
 
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
+
+        <link tal:condition="python:True" rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
 
     </head>
 
@@ -173,6 +176,10 @@ var viewport = new Ext.Viewport({
 });
 
 });
+
+
+
+
 </script>
 
 <tal:block metal:define-slot="script_layout">
@@ -183,6 +190,7 @@ Ext.onReady(function(){
     Ext.getCmp('center_panel').add(
         new Zenoss.PlaceholderPanel({text: 'center_panel'})
     );
+
 });
 </script>
 </tal:block>
@@ -206,6 +214,7 @@ Ext.History.init(function(mgr){
     Ext.History.selectByToken(mgr.getToken());
 });
 </script>
+
 </body>
 </html>
 </metal:block>

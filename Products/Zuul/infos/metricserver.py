@@ -327,7 +327,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
             # the "s" means scale it to the appropiate units. This maybe something
             # we need to replicate later
             # also sometimes we had a %% which means to display a literal percent.
-            return fmt.replace("l", "").replace("%s", "").rstrip("%")
+            return fmt.replace("l", "").replace("%s", "")
 
     @property
     def emit(self):
