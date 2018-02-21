@@ -684,15 +684,17 @@ class ModelCatalog(object):
         return catalog_client.get_object_indexes(obj, idxs)
 
 
-def get_solr_config():
+def get_solr_config(test=False):
+    config = getGlobalConfiguration()
+    if test:
+        return config.get('solr-test-server', 'localhost:8993')
     if not SOLR_CONFIG:
-        config = getGlobalConfiguration()
         SOLR_CONFIG.append(config.get('solr-servers', 'localhost:8983'))
         log.info("Loaded Solr config from global.conf. Solr Servers: {}".format(SOLR_CONFIG))
     return SOLR_CONFIG[0]
 
 
-def register_model_catalog():
+def register_model_catalog(test=False):
     """
     Register the model catalog as an utility
     To get the utility we will use this code:
@@ -700,7 +702,7 @@ def register_model_catalog():
         >>> from zope.component import getUtility
         >>> getUtility(IModelCatalog)
     """
-    model_catalog = ModelCatalog(get_solr_config())
+    model_catalog = ModelCatalog(get_solr_config(test))
     getGlobalSiteManager().registerUtility(model_catalog, IModelCatalog)
 
 
