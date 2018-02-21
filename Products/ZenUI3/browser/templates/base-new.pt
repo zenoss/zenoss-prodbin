@@ -41,6 +41,9 @@
         <tal:block tal:content="structure provider:all-js"/>
 
         <!-- Dynamic javascript -->
+        <script tal:content="string:
+            Zenoss.env.CSE_VIRTUAL_ROOT = '${context/zport/virtualRoot}/';
+        " tal:on-error="string:console.error('Unable to load virtual root config')"></script>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>

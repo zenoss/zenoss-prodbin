@@ -20,6 +20,7 @@ import textwrap
 
 import Globals
 from AccessControl import getSecurityManager, ClassSecurityInfo
+from zope.component import getUtility
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
 from Products.BeakerSessionDataManager.sessiondata import (
@@ -31,6 +32,7 @@ from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security, Time
 from Products.ZenUtils.deprecated import deprecated
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 from ZenossSecurity import *
 
@@ -214,6 +216,13 @@ class ZentinelPortal(PortalObjectBase):
         real zport would know, but an imposter wouldn't know
         """
         return "imok"
+
+    def virtualRoot(self):
+        """
+        Return the configured virtual root.
+        """
+        vr = getUtility(IVirtualRoot)
+        return vr.get_prefix()
 
 
 Globals.InitializeClass(ZentinelPortal)
