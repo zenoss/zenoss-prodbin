@@ -30,11 +30,11 @@ class CSEVirtualRoot(object):
     implements(IVirtualRoot)
 
     def __init__(self, prefix):
-        if prefix:
+        if not prefix:
+            prefix = ""
+        else:
             # Sanitize slashes
             prefix = '/%s' % prefix.strip('/')
-        else:
-            prefix = ""
         self._prefix = prefix
 
     def get_prefix(self):
@@ -53,7 +53,7 @@ class CSEVirtualRoot(object):
 
 def register_cse_virtual_root():
     config = getGlobalConfiguration()
-    prefix = config.get('virtual-root', '')
+    prefix = config.get('cse-virtualroot', '')
     gsm = getGlobalSiteManager()
     gsm.registerUtility(CSEVirtualRoot(prefix), IVirtualRoot)
 
