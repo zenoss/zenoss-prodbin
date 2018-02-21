@@ -10,11 +10,10 @@
 import Migrate
 from Products.ZenEvents.EventClass import manage_addEventClass
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class AddLagAndZEPEventClasses(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 1)
 
     def cutover(self, dmd):
         if 'Lag' not in [i.id for i in dmd.Events.Status.Ping.getSubEventClasses()]:

@@ -13,7 +13,6 @@ import logging
 import os
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import Migrate
 import servicemigration as sm
 from servicemigration.endpoint import Endpoint
@@ -52,7 +51,7 @@ class AddMemcachedForSessions(Migrate.Step):
     Update memcache healthcheck, and add the service to Core
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 1, 1)
     changed = False
 
     def cutover(self, dmd):
