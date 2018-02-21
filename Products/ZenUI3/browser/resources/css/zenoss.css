@@ -1730,11 +1730,25 @@ div.europagraph {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-img.europaGraphGear {
-    float:right;
-    opacity:.5;
-    cursor:pointer;
-}
+  div.europagraph.z-hidden-footer .zenfooter {
+    display: none !important;
+  }
+
+  img.europaGraphGear {
+      float:right;
+      opacity:.5;
+      cursor:pointer;
+  }
+
+  .z-europa-menu-body .x-menu-item-link {
+    padding-left: 33px;
+  }
+
+  /* hide gear on expanded graphs */
+  .x-window-body-closable img.europaGraphGear {
+    display: none;
+  }
+
 img.europaGraphGear.spinnerino {
     animation-name: spin;
     animation-duration: 1500ms;
@@ -1769,11 +1783,9 @@ img.europaGraphGear.spinnerino {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
 .zenfooter th {
   font-weight: bold;
 }
-
 .zenfooter_data_text {
   height: 18px;
 }

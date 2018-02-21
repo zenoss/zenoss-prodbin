@@ -249,6 +249,7 @@
             }
             var item = Ext.get(this.buttonId);
             this.menu = Ext.create('Ext.menu.Menu', {
+                baseCls: 'z-europa-menu',
                 items: [{
                     text: _t('Definition'),
                     handler: Ext.bind(this.displayDefinition, this)
@@ -261,6 +262,9 @@
                 }, {
                     text: _t('Expand Graph'),
                     handler: Ext.bind(this.expandGraph, this)
+                }, {
+                    text: _t('Toggle Footer'),
+                    handler: Ext.bind(this.toggleFooter, this)
                 }]
             });
             item.on('click', function(event, t) {
@@ -320,24 +324,11 @@
 
             var self = this;
             var p = zenoss.visualization.chart.create(this.graphId, visconfig);
-            p.then(function(chart){
-                chart.afterRender = function(){
-                    var legenddiv = chart.$div.find(".nv-legend").length;
-                    // 40 will trigger resize below.
-                    var legendHeight = legenddiv ? Number(chart.$div.find(".nv-legend")[0].getBBox().height) : 0;
+            p.then(function(chart) {
+                chart.afterRender = function() {
+                    self.adjustHeight(chart);
+                },
 
-                    // adjust height based on graph content
-                    var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0),
-                        graphHeight = Number(self.height),
-                        adjustedHeight = footerHeight + graphHeight + legendHeight;
-
-                    // if tall footer is squishing the chart, recalculate panel height
-                    if(footerHeight > 150){
-                        chart.$div.height(adjustedHeight);
-                        self.setHeight(adjustedHeight + 60);
-                        chart.resize();
-                    }
-                };
                 // Here we set an onUpdate function for the chart, which takes a promise as an argument (the update
                 // ajax request) and disables the controls until the promise is either fulfilled or it fails.
                 chart.onUpdate = function(p1){
@@ -503,6 +494,39 @@
             });
             win.show();
         },
+        adjustHeight: function(chart) {
+            // adjust height based on graph content
+            var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0);
+            footerHeight = Math.min(footerHeight, 150);
+            chart.$div.find(".zenfooter").height(footerHeight);
+
+            var graphHeight = Number(this.height);
+            chart.$div.height(graphHeight);
+            this.setHeight(graphHeight + 36);
+            chart.resize();
+        },
+        toggleFooter: function() {
+            var c = zenoss.visualization.chart.getChart(this.graphId);
+            var eurograph = c.$div.find(".zenfooter").parent();
+
+            // footer height: check before hiding and after reappearing
+            var footerHeightIn = Number(c.$div.find(".zenfooter").outerHeight() || 0);
+            eurograph.toggleClass("z-hidden-footer");
+            var footerHeightOut = Number(c.$div.find(".zenfooter").outerHeight() || 0);
+            var footerHeight = Math.max(footerHeightIn, footerHeightOut);
+
+            var graphHeight = Number(this.height);
+            adjustedHeight = graphHeight - 36;
+
+            c.config.footer = !c.config.footer;
+            adjustedHeight = c.config.footer ?
+                adjustedHeight += footerHeight :
+                adjustedHeight -= footerHeight;
+
+            c.$div.height(adjustedHeight);
+            this.setHeight(adjustedHeight + 36);
+            c.resize();
+        },
         displayDefinition: function(){
             Ext.create('Zenoss.dialog.BaseWindow', {
                 closeAction: 'destroy',
@@ -619,7 +643,6 @@
                 }
             };
             zenoss.visualization.chart.update(this.graphId, changes);
-
             this.graph_params = gp;
         },
         convertStartToAbsoluteTime: function(start) {

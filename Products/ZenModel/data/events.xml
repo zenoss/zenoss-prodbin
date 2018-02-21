@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-11-28 15:06:32.926371
+    Zenoss RelationshipManager export completed on 2018-02-21 22:05:07.948806
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 6.1.0]" export_date="2017-11-28 15:06:32.926371" zenoss_server="6c706a81446a" >
+<objects version="[Zenoss, version 6.1.1]" export_date="2018-02-21 22:05:07.948806" zenoss_server="fc1aa2a91c08" >
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="bool" id="transformEnabled" mode="w" >
 True
@@ -45,6 +45,11 @@ True
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/Status/Wmi/Conn']
 </property>
+<object id='Lag' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
+</object>
 </object>
 <object id='Snmp' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="bool" id="transformEnabled" mode="w" >
@@ -172,6 +177,11 @@ True
 </property>
 </object>
 <object id='Flapping' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="bool" id="transformEnabled" mode="w" >
+True
+</property>
+</object>
+<object id='ZEP' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="bool" id="transformEnabled" mode="w" >
 True
 </property>
