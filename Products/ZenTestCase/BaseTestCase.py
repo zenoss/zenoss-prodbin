@@ -33,6 +33,7 @@ from Products.ZenUtils.Utils import unused, load_config_override
 from zope.testing.cleanup import cleanUp
 
 from Products.Zuul.catalog.model_catalog import get_solr_config
+from Products.ZenUtils.virtual_root import register_cse_virtual_root
 from zenoss.modelindex.model_index import SearchParams
 
 log.warn = lambda *args, **kwds: None
@@ -167,6 +168,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         user = self.app.zport.acl_users.getUserById('tester')
         from AccessControl.SecurityManagement import newSecurityManager
         newSecurityManager(None, user)
+
+        register_cse_virtual_root()
 
         # Let's hide transaction.commit() so that tests don't fubar
         # each other
