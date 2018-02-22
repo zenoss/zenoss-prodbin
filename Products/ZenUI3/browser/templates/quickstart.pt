@@ -1,7 +1,7 @@
 <tal:block>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
 "http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
         <title>
@@ -29,9 +29,11 @@
 
         <tal:block tal:content="structure provider:jssnippets"/>
 
+        <link tal:condition="python:True" rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
 
     </head>
-    <body><div class="yui-skin-sam">
+    <body><div class="yui-skin-sam q-start">
 
         <div id="header">
             <div class="logo"></div>
