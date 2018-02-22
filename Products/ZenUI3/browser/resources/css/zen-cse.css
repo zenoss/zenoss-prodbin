@@ -70,6 +70,7 @@ darker input fields: #505050
 */
 
 /* zenoss.css */
+.z-cse .q-start #center_panel,
 .z-cse .yui-skin-sam th.yui-dt-asc,
 .z-cse .yui-skin-sam th.yui-dt-desc,
 .z-cse .yui-skin-sam tr.yui-dt-odd,
@@ -234,6 +235,8 @@ darker input fields: #505050
 BYE BYE BORDERS
 ================
 */
+.z-cse .q-start #header,
+.z-cse .q-start #center_panel,
 .z-cse div.zenportlet input,
 .z-cse div.zenportlet div.portlet-body,
 .z-cse div.zenportlet div.portlet-header,
@@ -271,6 +274,7 @@ BYE BYE BORDERS
 .z-cse .x-grid-row-selected .x-grid-cell,
 .z-cse .x-grid-row-selected .x-grid-rowwrap-div
 { border: 0; border-radius: 0; }
+.z-cse .quickstart .btn.minor,
 .z-cse .x-boundlist,
 .z-cse .largetoolbar.devdetailbar,
 .z-cse #processForm .x-docked-bottom,
@@ -494,6 +498,8 @@ BYE BYE BORDERS
         .z-cse #evdetail_bd .proptable tr.even {
             background-color: rgba(255,255,255,0.15);
         }
+        .z-cse .q-start h1,
+        .z-cse .q-start .wizardStepNumber,
         .z-cse #evdetail-log-header h2,
         .z-cse #evdetail_bd .show_details > div > a {
             font-family: RobotoCondensed;
@@ -733,6 +739,9 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
+    .z-cse .q-start .wizardStep,
+    .z-cse .q-start h1,
+    .z-cse .q-start .wizardStepNumber,
     .z-cse #events_column_config_dialog-targetEl .x-panel center b,
     .z-cse .x-tip-header-text,
     .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
@@ -780,6 +789,7 @@ BYE BYE BORDERS
     { font-weight: 400 !important; }
 
     /* set master font family */
+    .z-cse .q-start .wizardStep,
     .z-cse div.control-label,
     .z-cse .dbox_mc,
     .z-cse table.innerzentable,
@@ -862,7 +872,7 @@ BYE BYE BORDERS
     /* MONOSPACE AREAS */
     .z-cse div.zenportlet input,
     .z-cse #contentPaneContainer table td input[name=geomapapikey],
-    .z-cse .x-boundlist-item,
+    /* .z-cse .x-boundlist-item, */
     .z-cse #deviceLiveSearch .autocompleter-container ul,
     .z-cse #deviceLiveSearch input,
     .z-cse .dialog_container select,
@@ -875,16 +885,18 @@ BYE BYE BORDERS
     .z-cse #addToCollectionForm input[type=text],
     .z-cse #addToCollectionForm select,
     .z-cse #addToCollectionForm textarea,
-    .z-cse .x-form-field,
+    /* .z-cse .x-form-field, */
+    .z-cse .x-grid-filter input[type=text],
+    .z-cse .x-hierarchy-search input[type=text],
     .z-cse #modeler-plugin-path-inputEl,
     .z-cse #device_overview-body .x-form-display-field,
     .z-cse #network_map-body text,
     .z-cse #commandsDialog-body textarea,
     .z-cse #comments-textarea-inputEl,
     .z-cse #fexample-inputEl,
-    .z-cse .x-boundlist-floating .x-boundlist-item,
+    /* .z-cse .x-boundlist-floating .x-boundlist-item, */
     .z-cse .detail-form-panel .x-form-field,
-    .z-cse input[type=text],
+    /* .z-cse input[type=text], */
     .z-cse .x-tip-header-text,
     .z-cse #searchInput-inputEl,
     .z-cse .devdetailbar a.z-entity,
@@ -1014,6 +1026,12 @@ BYE BYE BORDERS
 
 
     /* light theme text */
+    .z-cse .x-fieldset-header,
+    .z-cse .q-start h1,
+    .z-cse .q-start h2,
+    .z-cse .q-start .wizardStepNumber,
+    .z-cse .q-start .wizardStepTitle,
+    .z-cse .q-start .wizardStepDescription,
     .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse div.control-label,
     .z-cse select,
@@ -1259,6 +1277,42 @@ BYE BYE BORDERS
         height: auto !important;
     }
 
+    .z-cse .q-start {
+        min-height: 100vh;
+    }
+
+    .z-cse .q-start #header {
+        background-image: none;
+        display: flex;
+    }
+        .z-cse .q-start .logo {
+            background-position: 15px 15px;
+            height: 52px;
+        }
+
+        .z-cse .quickstart .btn.minor,
+        .z-cse .q-start .wizardStep {
+            background-color: #f4f4f4;
+        }
+        .z-cse .q-start #center_panel .x-btn-inner {
+            font-size: 14px;
+        }
+        .z-cse .quickstart .btn,
+        .z-cse .quickstart .btn.minor,
+        .z-cse .quickstart .btn.big {
+            background-color: #ccc;
+            border-radius: 3px;
+        }
+            .z-cse .quickstart .x-btn-over.btn,
+            .z-cse .quickstart .x-btn-over.btn.minor,
+            .z-cse .quickstart .x-btn-over.btn.big {
+                background-color: #b6cbe4;
+            }
+
+        .z-cse .q-start #center_panel hr {
+            display: none;
+        }
+
     .z-cse #primarynav {
         height: 30px;
         line-height: 30px;
@@ -1456,6 +1510,12 @@ BYE BYE BORDERS
     }
     .z-cse .portlet-body thead {
         background-color: #ccc;
+    }
+
+    /* infrastructure | ip services | display dropdown */
+    .z-cse .x-boundlist-floating .x-boundlist-item {
+        font-size: 11px;
+        text-indent: 4px;
     }
 
 
@@ -1808,6 +1868,7 @@ BYE BYE BORDERS
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark .q-start input[type=password],
     .z-cse.z-cse-dark .x-form-arrow-trigger,
     .z-cse.z-cse-dark #nav_combo-inputCell .x-form-arrow-trigger,
     .z-cse.z-cse-dark #searchbox-container .x-form-trigger,
@@ -1879,6 +1940,12 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
+    .z-cse.z-cse-dark .x-fieldset-header,
+    .z-cse.z-cse-dark .q-start h1,
+    .z-cse.z-cse-dark .q-start h2,
+    .z-cse.z-cse-dark .q-start .wizardStepNumber,
+    .z-cse.z-cse-dark .q-start .wizardStepTitle,
+    .z-cse.z-cse-dark .q-start .wizardStepDescription,
     .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
@@ -2132,3 +2199,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #newTabsPane ul li a:hover
     { color: #eee !important; }
 
+    /* quickstart */
+    .z-cse.z-cse-dark .q-start .wizardStep {
+        background-color: #555;
+    }
