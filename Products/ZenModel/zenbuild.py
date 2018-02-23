@@ -134,7 +134,7 @@ class zenbuild(CmdBase):
             from Products.PythonScripts.PythonScript import manage_addPythonScript
             manage_addPythonScript(self.app, 'index_html')
             newIndexHtml = self.app._getOb('index_html')
-            text = 'container.REQUEST.RESPONSE.redirect("/zport/dmd/")\n'
+            text = 'container.REQUEST.RESPONSE.redirect(container.zport.virtualRoot() + "/zport/dmd/")\n'
             newIndexHtml.ZPythonScript_edit('', text)
 
             # build standard_error_message
