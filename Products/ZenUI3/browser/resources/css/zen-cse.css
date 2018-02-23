@@ -235,6 +235,8 @@ darker input fields: #505050
 BYE BYE BORDERS
 ================
 */
+.z-cse .dialog input,
+.z-cse .dialog select,
 .z-cse .q-start #header,
 .z-cse .q-start #center_panel,
 .z-cse div.zenportlet input,
@@ -560,7 +562,7 @@ BYE BYE BORDERS
     }
     .z-cse div[id|=bindtemplatesdialog] .x-boundlist-list-ct,
     .z-cse #bindTemplatesDialog-body .x-boundlist-list-ct {
-        background: rgba(255,255,255,0.05) !important;
+        background-color: rgba(255,255,255,0.05) !important;
     }
     .z-cse div[id|=bindtemplatesdialog] .x-boundlist-item,
     .z-cse #bindTemplatesDialog-body .x-boundlist-item {
@@ -578,6 +580,22 @@ BYE BYE BORDERS
     .z-cse #thresholdItemSelector .x-form-fieldcontainer {
         background-color: #eee;
     }
+
+    .z-cse .white-background-panel .x-tab {
+        background-color: #333 !important;
+    }
+        .z-cse .white-background-panel .x-tab-inner {
+            color: #999;
+        }
+
+    .z-cse .white-background-panel .x-tab-active {
+        background-color: #555 !important;
+        color: #fafafa;
+    }
+    .z-cse .white-background-panel .x-tab-bar-body .x-box-inner {
+        border-color: #555;
+    }
+
 
     /*
     ================
@@ -739,184 +757,174 @@ BYE BYE BORDERS
     { text-shadow: none; }
 
     /* no bold for now */
-    .z-cse .q-start .wizardStep,
-    .z-cse .q-start h1,
-    .z-cse .q-start .wizardStepNumber,
-    .z-cse #events_column_config_dialog-targetEl .x-panel center b,
-    .z-cse .x-tip-header-text,
-    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
-    .z-cse #breadCrumbPane a,
-    .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span,
-    .z-cse .dependencyGraphPanel h3,
-    .z-cse .x-toolbar .x-toolbar-text,
-    .z-cse #evdetail_log-body .time,
-    .z-cse td.proptable_key,
-    .z-cse table b,
-    .z-cse #device_modeler_plugins label,
-    .z-cse .transform-headers,
-    .z-cse .x-grid .unacknowledged div,
-    .z-cse #dataSourceTreeGrid .unacknowledged div,
-    .z-cse #modeler_plugins label.x-component,
-    .z-cse #job_detail_panel-body a,
-    .z-cse .x-window-header-text-default,
-    .z-cse .devdetailbar .devdetail-devname,
-    .z-cse .x-panel-header-text-default-framed,
+    .z-cse div.tabletitle-center,
     .z-cse h2,
-    .z-cse .evdetail_props td.dt,
-    .z-cse #manufacturer_info,
+    .z-cse table b,
+    .z-cse td.proptable_key,
     .z-cse .consolebar .x-toolbar-text,
+    .z-cse .dependencyGraphPanel h3,
+    .z-cse .devdetailbar .devdetail-devname,
+    .z-cse .evdetail_props td.dt,
+    .z-cse .livegridinfopanel,
+    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
+    .z-cse .q-start h1,
+    .z-cse .q-start .wizardStep,
+    .z-cse .q-start .wizardStepNumber,
     .z-cse .refreshevery,
     .z-cse .search-result th,
-    .z-cse .x-fieldset-header,
-    .z-cse .x-tab button,
-    .z-cse div.tabletitle-center,
-    .z-cse .tabletitletext,
-    .z-cse .livegridinfopanel,
-    .z-cse .x-panel-header-text-default,
-    .z-cse .x-panel-header .x-form-display-field,
     .z-cse .subselect-head .x-toolbar-text,
+    .z-cse .tabletitletext,
+    .z-cse .transform-headers,
     .z-cse .x-btn-arrowslide-toolbar-small span,
-    .z-cse .x-tree-panel .rootNode,
-    .z-cse .x-tree-panel .subNode,
-    .z-cse #events_grid .x-grid-row .x-grid-cell-inner,
     .z-cse .x-btn-default-small .x-btn-inner,
     .z-cse .x-btn-default-toolbar-small .x-btn-inner,
-    .z-cse #primarynav li.nav-item-active a,
-    .z-cse #secondarynav li.nav-item-active a,
+    .z-cse .x-fieldset-header,
+    .z-cse .x-grid .unacknowledged div,
     .z-cse .x-grid-group-title,
-    .z-cse .x-btn-default-small .x-btn-inner
-    .z-cse #events_grid .x-grid-row .x-grid-cell-inner
+    .z-cse .x-hierarchy-search-panel #category_tree-body .x-grid-cell-inner span,
+    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header-text-default-framed,
+    .z-cse .x-panel-header .x-form-display-field,
+    .z-cse .x-tab button,
+    .z-cse .x-tip-header-text,
+    .z-cse .x-toolbar .x-toolbar-text,
+    .z-cse .x-tree-panel .rootNode,
+    .z-cse .x-tree-panel .subNode,
+    .z-cse .x-window-header-text-default,
+    .z-cse #breadCrumbPane a,
+    .z-cse #dataSourceTreeGrid .unacknowledged div,
+    .z-cse #device_modeler_plugins label,
+    .z-cse #evdetail_log-body .time,
+    .z-cse #events_column_config_dialog-targetEl .x-panel center b,
+    .z-cse #events_grid .x-grid-row .x-grid-cell-inner,
+    .z-cse #job_detail_panel-body a,
+    .z-cse #manufacturer_info,
+    .z-cse #modeler_plugins label.x-component,
+    .z-cse #primarynav li.nav-item-active a,
+    .z-cse #secondarynav li.nav-item-active a
     { font-weight: 400 !important; }
 
     /* set master font family */
-    .z-cse .q-start .wizardStep,
+    .z-cse a,
+    .z-cse button,
     .z-cse div.control-label,
-    .z-cse .dbox_mc,
+    .z-cse input,
+    .z-cse select,
     .z-cse table.innerzentable,
-    .z-cse #device_overview-body #ssh-link-inputEl a,
-    .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
-    .z-cse .tablevalues,
-    .z-cse #detail_panel fieldset label,
-    .z-cse .x-tree-panel .rootNode,
-    .z-cse #fexample-inputEl,
-    .z-cse .x-form-invalid-tip li,
+    .z-cse table.innerzentable td.tablevalues,
+    .z-cse textarea,
+    .z-cse .dbox_mc,
+    .z-cse .detail-form-panel .display-field,
+    .z-cse .detail-form-panel .x-fieldset-header-text,
+    .z-cse .detail-form-panel .x-form-cb-label,
+    .z-cse .detail-form-panel .x-form-field,
+    .z-cse .detail-form-panel .x-form-item-label,
     .z-cse .europagraph .graph_title,
-    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
     .z-cse .europagraph .zenchart .nv-axis text,
-    .z-cse #breadCrumbPane a,
-    .z-cse .zenfooter_data_text,
-    .z-cse .zenui3,
+    .z-cse .node text,
+    .z-cse .nvd3 .nv-axis .nv-axisMaxMin text,
+    .z-cse .nvtooltip,
     .z-cse .search-result,
-    .z-cse .z-bc .zentable-modified .tabletitle-center,
     .z-cse .tableheader,
     .z-cse .tabletitletext,
-    .z-cse table.innerzentable td.tablevalues,
-    .z-cse #newTabsPane ul li a,
-    .z-cse .x-panel-header-text-default-framed,
-    .z-cse .detail-form-panel .x-form-field,
-    .z-cse .detail-form-panel .display-field,
-    .z-cse .detail-form-panel .x-form-cb-label,
-    .z-cse .detail-form-panel .x-form-item-label,
-    .z-cse .detail-form-panel .x-fieldset-header-text,
-    .z-cse .node text,
+    .z-cse .tablevalues,
+    .z-cse .q-start .wizardStep,
+    .z-cse .x-body,
+    .z-cse .x-btn-default-small .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-form-display-field,
+    .z-cse .x-form-invalid-tip li,
+    .z-cse .x-form-item,
+    .z-cse .x-grid .x-column-header,
     .z-cse .x-grid-empty,
     .z-cse .x-grid-group-title,
-    .z-cse .nvtooltip,
-    .z-cse .zenfooter_data_number,
-    .z-cse .x-window-header-text-default,
-    .z-cse .x-btn-default-small .x-btn-inner,
-    .z-cse .x-form-item,
-    .z-cse .x-form-display-field,
     .z-cse .x-grid-row .x-grid-cell,
-    .z-cse .x-grid .x-column-header,
-    .z-cse #dataSourceTreeGrid .x-column-header,
+    .z-cse .x-panel-header-text-default-framed,
     .z-cse .x-toolbar .x-toolbar-text,
-    .z-cse #page-help,
-    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
-    .z-cse .x-body,
+    .z-cse .x-tree-panel .rootNode,
+    .z-cse .x-window-header-text-default,
+    .z-cse .z-bc .zentable-modified .tabletitle-center,
+    .z-cse .zenfooter_data_number,
+    .z-cse .zenfooter_data_text,
     .z-cse .zenui3,
-    .z-cse a,
-    .z-cse #secondarynav li a,
-    .z-cse input,
-    .z-cse textarea,
-    .z-cse select,
-    .z-cse button
+    .z-cse #breadCrumbPane a,
+    .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
+    .z-cse #detail_panel fieldset label,
+    .z-cse #device_overview-body #ssh-link-inputEl a,
+    .z-cse #fexample-inputEl,
+    .z-cse #dataSourceTreeGrid .x-column-header,
+    .z-cse #newTabsPane ul li a,
+    .z-cse #page-help,
+    .z-cse #secondarynav li a
     { font-family: "Roboto", "DejaVu Sans", sans-serif }
     .z-cse .livegridinfopanel,
     .z-cse .x-btn-dialog-dark-small span
     { font-family: "Roboto", "DejaVu Sans", sans-serif !important; }
-    .z-cse #primarynav li a
-    { font-family: "RobotoCondensed", "Roboto", "DejaVu Sans", sans-serif }
-
-    /* section headers */
-    .z-cse .x-panel-header-text-default
-    { font-family: RobotoCondensed; text-transform: uppercase; }
-
 
     /* SUBHEADINGS AND TOOLBAR TEXT */
-    .z-cse #detail_card_panel label,
-    .z-cse #detail_panel label,
-    .z-cse .subselect-head .x-toolbar-text,
     .z-cse .graphpanel .x-toolbar-text,
-    .z-cse #modeler_plugins label,
-    .z-cse #contentPaneContainer .tabletitletext,
-    .z-cse #contentPaneContainer .tabletitle-center,
+    .z-cse .subselect-head .x-toolbar-text,
+    .z-cse .x-panel-header-text-default,
+    .z-cse #add_azuresubscription-subscription_id ~ .x-form-fieldcontainer .x-form-item-label-top,
     .z-cse #center_panel .x-toolbar label,
+    .z-cse #contentPaneContainer .tabletitle-center,
+    .z-cse #contentPaneContainer .tabletitletext,
     .z-cse #detailCardPanel .x-toolbar-text,
+    .z-cse #detail_card_panel label,
+    .z-cse #detail_card_panel .x-toolbar-text,
+    .z-cse #detail_panel label,
+    .z-cse #modeler_plugins label,
     .z-cse #NetworkDetailCardPanel .x-toolbar-text,
-    .z-cse #detail_card_panel .x-toolbar-text {
-        font-family: RobotoCondensed;
+    .z-cse #primarynav li a
+    {   font-family: "RobotoCondensed", "Roboto", "DejaVu Sans", sans-serif;
         text-transform: uppercase;
     }
 
     /* MONOSPACE AREAS */
     .z-cse div.zenportlet input,
-    .z-cse #contentPaneContainer table td input[name=geomapapikey],
-    /* .z-cse .x-boundlist-item, */
-    .z-cse #deviceLiveSearch .autocompleter-container ul,
-    .z-cse #deviceLiveSearch input,
-    .z-cse .dialog_container select,
-    .z-cse #device_overview-body .x-form-display-field > a,
-    .z-cse #thresholdItemSelector .x-form-fieldcontainer,
-    .z-cse #CheckForUpdates ~ tbody .tablevalues,
-    .z-cse #Uptimes ~ tbody .tablevalues,
-    .z-cse #SoftwareComponentVersions ~ tbody .tablevalues,
+    .z-cse table[id^=add_vsphere] input[type=text],
+    .z-cse table[id^=add_azure] input[type=text],
     .z-cse pre,
+    .z-cse .detail-form-panel .x-form-field,
+    .z-cse .devdetailbar a.z-entity,
+    .z-cse .dialog input[type=text],
+    .z-cse .dialog_container select,
+    .z-cse .eventrainbow td,
+    .z-cse .search-result .excerpt,
+    .z-cse .x-flare .x-flare-message,
+    .z-cse .x-grid-filter input[type=text],
+    .z-cse .x-hierarchy-search input[type=text],
+    .z-cse .x-panel-header .x-form-display-field,
+    .z-cse .x-tip-header-text,
     .z-cse #addToCollectionForm input[type=text],
     .z-cse #addToCollectionForm select,
     .z-cse #addToCollectionForm textarea,
-    /* .z-cse .x-form-field, */
-    .z-cse .x-grid-filter input[type=text],
-    .z-cse .x-hierarchy-search input[type=text],
-    .z-cse #modeler-plugin-path-inputEl,
-    .z-cse #device_overview-body .x-form-display-field,
-    .z-cse #network_map-body text,
+    .z-cse #CheckForUpdates ~ tbody .tablevalues,
     .z-cse #commandsDialog-body textarea,
     .z-cse #comments-textarea-inputEl,
-    .z-cse #fexample-inputEl,
-    /* .z-cse .x-boundlist-floating .x-boundlist-item, */
-    .z-cse .detail-form-panel .x-form-field,
-    /* .z-cse input[type=text], */
-    .z-cse .x-tip-header-text,
-    .z-cse #searchInput-inputEl,
-    .z-cse .devdetailbar a.z-entity,
-    .z-cse #evdetail_log-body,
+    .z-cse #contentPaneContainer table td input[name=geomapapikey],
+    .z-cse #contentPaneContainer table td input[type=number],
+    .z-cse #contentPaneContainer table td input[type=password],
+    .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #contentPaneContainer table td select,
     .z-cse #contentPaneContainer table td select option,
-    .z-cse #contentPaneContainer table td input[type=number],
     .z-cse #contentPaneContainer table td textarea,
-    .z-cse #contentPaneContainer table td input[type=text],
-    .z-cse #contentPaneContainer table td input[type=password],
-    .z-cse .eventrainbow td,
-    .z-cse .x-flare .x-flare-message,
-    /* .z-cse .subselect-head .x-toolbar-text, */
-    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse #deviceLiveSearch .autocompleter-container ul,
+    .z-cse #deviceLiveSearch input,
+    .z-cse #device_overview-body .x-form-display-field > a,
+    .z-cse #device_overview-body .x-form-display-field,
+    .z-cse #evdetail_log-body,
+    .z-cse #fexample-inputEl,
+    .z-cse #manufacturer_info,
+    .z-cse #modeler-plugin-path-inputEl,
+    .z-cse #network_map-body text,
     .z-cse #processForm-body input[type=text],
     .z-cse #processForm-body textarea,
-    /* .z-cse .x-panel-header-text-default, */
-    .z-cse .x-panel-header .x-form-display-field,
-    .z-cse .search-result .excerpt,
-    .z-cse #manufacturer_info
+    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse #searchInput-inputEl,
+    .z-cse #SoftwareComponentVersions ~ tbody .tablevalues,
+    .z-cse #thresholdItemSelector .x-form-fieldcontainer,
+    .z-cse #Uptimes ~ tbody .tablevalues
     { font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace; }
     .z-cse #job_detail_panel-body pre
     {font-family: Consolas, "Andale Mono", "Lucida Console", "DejaVu Sans Mono", monospace !important; }
@@ -1204,11 +1212,9 @@ BYE BYE BORDERS
     .z-cse .x-btn-arrowslide-toolbar-small:hover
     { background-color: #b6cbe4 !important; }
 
-
     .z-cse #primarynav li.nav-item-active a,
     .z-cse #secondarynav li.nav-item-active a
     { color: #89c5fa; }
-
 
     /* light graphs */
     .z-cse .europagraph g.tick line {
@@ -1518,7 +1524,6 @@ BYE BYE BORDERS
         text-indent: 4px;
     }
 
-
     /* events | classes | dropdown */
     .z-cse #overriddengrid_id .x-toolbar-docked-top,
     .z-cse #configpanel_id .x-toolbar-docked-top {
@@ -1595,6 +1600,22 @@ BYE BYE BORDERS
         min-height: 30px;
     }
 
+    .z-cse #dialog_innercontent input {
+        padding: 4px;
+    }
+
+    .z-cse #dialog_innercontent input[type=submit],
+    .z-cse #dialog_innercontent input[type=button] {
+        background-color: #b2afaf;
+        border-radius: 3px;
+        font-size: 11px;
+        margin: 8px 6px;
+        padding: 6px 14px;
+    }
+        .z-cse #dialog_innercontent input[type=submit]:hover,
+        .z-cse #dialog_innercontent input[type=button]:hover {
+            background-color: #b6cbe4;
+        }
 
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
@@ -1885,6 +1906,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
     .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=text],
+    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=password],
     .z-cse.z-cse-dark #edit_panel-body input[type=text],
     .z-cse.z-cse-dark #edit_panel-body input[type=password],
     .z-cse.z-cse-dark #propList input[type=text],
