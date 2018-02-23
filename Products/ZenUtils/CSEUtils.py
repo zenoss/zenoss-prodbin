@@ -32,7 +32,7 @@ def getZenossURI(request):
     cse_conf = getCSEConf()
     zenoss_uri = "https://"
     if cse_conf and all(cse_conf.values()):
-        zenoss_uri += cse_conf['vhost'] + '.' + cse_conf['zing-host'] + '/' + cse_conf['virtualroot']
+        zenoss_uri += cse_conf['vhost'] + '.' + cse_conf['zing-host'] + cse_conf.get('virtualroot', '/')
     else:
         # HTTP_X_FORWARDED_HOST should handle vhost
         zenoss_uri += request.environ.get("HTTP_X_FORWARDED_HOST") or \
