@@ -43,23 +43,25 @@ limitations under the License.
 }
 
 
-/* color palette
+/*          palette
 
-      blue row selected #8cacd4
-light blue row hover    #d2e0f1
- dark blue row hover    #4b6f9b
+      blue row selected     #8cacd4
+light blue row hover        #d2e0f1
+ dark blue row hover        #4b6f9b
 
-light blue button hover #b6cbe4
+gray button background      #b2afaf
+light blue button hover     #b6cbe4
 
-bright blue links #89c5fa
+blue links light            #3b88cb
+blue links dark             #89c5fa
 
-light text: #fafafa
-dark text: #4b4b4c
-zenoss orange: #ec5600
+light text:                 #fafafa
+dark text:                  #4b4b4c
+zenoss orange:              #ec5600
 
 filter & button backgrounds #f4f4f4
-table headings background: #ccc
-darker input fields: #505050
+table headings background:  #ccc
+darker input fields:        #505050
 
 */
 
@@ -70,129 +72,126 @@ darker input fields: #505050
 */
 
 /* zenoss.css */
-.z-cse .q-start #center_panel,
-.z-cse .yui-skin-sam th.yui-dt-asc,
-.z-cse .yui-skin-sam th.yui-dt-desc,
-.z-cse .yui-skin-sam tr.yui-dt-odd,
-.z-cse .yui-skin-sam tr.yui-dt-even,
-.z-cse .yui-skin-sam .yui-dt-message,
-.z-cse div.zenportlet div.portlet-body,
 .z-cse div.tinylink-container,
+.z-cse div.tabletitle-left,
+.z-cse div.tabletitle-right,
+.z-cse div.zenportlet div.portlet-body,
 .z-cse div.zenportlet div.tabletitle-left,
 .z-cse div.zenportlet div.tabletitle-right,
-.z-cse #contentPaneContainer .filterbox,
-.z-cse .x-portlet .x-panel-body,
-.z-cse #blackTabs #xform_mapping_panel,
-.z-cse .x-window-body-closable .CodeMirror,
-.z-cse #controls_panel ~ p.message,
-.z-cse .search-result,
-.z-cse .z-cse .x-grid-filter,
-.z-cse .x-grid-filter .x-panel-body,
-.z-cse .x-grid-filter td,
+.z-cse div.zentable-body,
+.z-cse table.innerzentable,
+.z-cse table.innerzentable .odd td.tablevalues,
+.z-cse th.tableheaderselected,
+.z-cse th.tableheader,
+.z-cse .evdetail-sep,
 .z-cse .filterbox-left,
 .z-cse .filterbox-right,
 .z-cse .filterbox-middle,
-.z-cse div.zentable-body,
 .z-cse .odd,
 .z-cse .odd a.tablevalues,
 .z-cse .odd td.tablevalues,
-.z-cse table.innerzentable .odd td.tablevalues,
+.z-cse .q-start #center_panel,
+.z-cse .search-result,
 .z-cse .tableheader,
 .z-cse .tablevalues,
+.z-cse .x-grid-filter .x-panel-body,
+.z-cse .x-grid-filter td,
+.z-cse .x-portlet .x-panel-body,
+.z-cse .x-window-body-closable .CodeMirror,
+.z-cse .yui-skin-sam .yui-dt-message,
+.z-cse .yui-skin-sam th.yui-dt-asc,
+.z-cse .yui-skin-sam th.yui-dt-desc,
+.z-cse .yui-skin-sam tr.yui-dt-even,
+.z-cse .yui-skin-sam tr.yui-dt-odd,
 .z-cse .z-bc div.tabletitlecontainer,
-.z-cse table.innerzentable,
-.z-cse th.tableheaderselected,
-.z-cse th.tableheader,
-.z-cse div.tabletitle-left,
-.z-cse div.tabletitle-right,
+.z-cse #blackTabs #xform_mapping_panel,
 .z-cse #breadCrumbPane,
-.z-cse .evdetail-sep
+.z-cse #contentPaneContainer .filterbox,
+.z-cse #controls_panel ~ p.message
 { background-image: none; background-color: transparent; }
-.z-cse #portletContainer,
 .z-cse div[id^=HierarchyTreePanelSearch],
-.z-cse .x-window-body-closable .x-resizable-pinned,
+.z-cse .device-overview-form-wrapper,
 .z-cse .user-prefs-cell,
 .z-cse .user-prefs-cell div:first-child,
-.z-cse #job_detail_panel-body,
-.z-cse #resetPasswordForm div:first-child,
-.z-cse #master_panel .x-toolbar-default,
+.z-cse .x-window-body-closable .x-resizable-pinned,
 .z-cse #device_overview-body .device-overview-form,
-.z-cse .device-overview-form-wrapper
+.z-cse #job_detail_panel-body,
+.z-cse #master_panel .x-toolbar-default,
+.z-cse #portletContainer,
+.z-cse #resetPasswordForm div:first-child
 { background-image: none !important; background-color: transparent !important; }
-
 
 /* zenui3.css */
 .z-cse #footer,
+.z-cse #primarynav li.nav-item-active a,
 .z-cse #primarynav li.nav-item-active .sd-left,
 .z-cse #primarynav li.nav-item-active .sd-right,
+.z-cse #secondarynav li.nav-item-active a,
 .z-cse #secondarynav li.nav-item-active .sd-left,
 .z-cse #secondarynav li.nav-item-active .sd-right
-{ background-image: none; background-color: transparent; }
-.z-cse #primarynav li.nav-item-active a,
-.z-cse #secondarynav li.nav-item-active a
 { background-image: none; background-color: transparent; }
 
 .z-cse .x-panel-dd-spacer  /* dashboard portlet drop target */
 { background-image: none !important; background-color: rgba(255,255,255,0.4) !important; }
 
 /* CodeMirror.css */
-.z-cse .CodeMirror-gutters,
-.z-cse .CodeMirror
+.z-cse .CodeMirror,
+.z-cse .CodeMirror-gutters
 { background-image: none; background-color: transparent; }
 .z-cse #configs-body > .x-panel
 { background-image: none !important; background-color: transparent !important; }
 
 /* xtheme-zenoss.css */
-.z-cse #templateTree .x-grid-row-over .x-grid-cell,
-.z-cse #templateTree .x-grid-row-over .x-grid-cell-inner,
-.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner,
-.z-cse .x-panel-body-hierarchy,
+.z-cse body,
 .z-cse .white-background-panel .x-window-body .x-panel-body,
-.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
-.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
-.z-cse.x-menu-item-separator,
-.z-cse .x-btn-default-small .x-btn-inner,
-.z-cse #newTabsPane ul li a:hover ,
-.z-cse #templateTree .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
-.z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
-.z-cse .x-grid-group-hd .x-grid-cell-inner,
-.z-cse .x-boundlist,
-.z-cse .x-form-item-label,
 .z-cse .x-border-layout-ct,
-.z-cse #newTabsPane ul li.selected a,
-.z-cse .x-panel-header-default-framed-top,
-.z-cse #evdetail_bd-body #log-container,
-.z-cse .x-panel-default-framed,
-.z-cse .x-panel-body-default-framed,
-.z-cse #processForm .x-toolbar-footer,
-.z-cse #serviceForm .x-toolbar-footer,
+.z-cse .x-boundlist,
 .z-cse .x-btn-arrowslide-toolbar-small .x-btn-icon,
-.z-cse .x-panel-header-default,
+.z-cse .x-btn-default-small .x-btn-inner,
+.z-cse .x-form-item-label,
+.z-cse .x-grid-group-hd .x-grid-cell-inner,
 .z-cse .x-grid-row .x-grid-cell,
 .z-cse .x-grid .x-grid-header-ct,
-.z-cse #dataSourceTreeGrid .x-grid-header-ct,
-.z-cse .x-toolbar-default,
+.z-cse .x-menu-item-separator,
 .z-cse .x-panel-body-default,
+.z-cse .x-panel-body-default-framed,
+.z-cse .x-panel-default-framed,
+.z-cse .x-panel-header-default,
+.z-cse .x-panel-header-default-framed-top,
+.z-cse .x-panel-body-hierarchy,
+.z-cse .x-toolbar-default,
 .z-cse .x-toolbar-large,
-.z-cse body
+.z-cse #evdetail_bd-body #log-container,
+.z-cse #dataSourceTreeGrid .x-grid-header-ct,
+.z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
+.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-row-over .x-grid-cell-inner,
+.z-cse #newTabsPane ul li a:hover ,
+.z-cse #newTabsPane ul li.selected a,
+.z-cse #processForm .x-toolbar-footer,
+.z-cse #serviceForm .x-toolbar-footer,
+.z-cse #templateTree .x-grid-row-over .x-grid-cell,
+.z-cse #templateTree .x-grid-row-over .x-grid-cell-inner,
+.z-cse #templateTree .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
+.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell,
+.z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
 { background-image: none; background-color: transparent; }
-.z-cse .x-window div[id|=configpropertypanel],
 .z-cse div[id^=pasteventschart] > .x-fit-item,
-.z-cse #trigger-master_panel,
-.z-cse #trigger-master_panel-body,
+.z-cse .commonlivegridinfopanel,
 .z-cse .x-grid .x-grid-row-selected .x-grid-cell,
 .z-cse .x-grid .x-grid-row-selected .x-grid-rowwrap-div,
+.z-cse .x-window div[id|=configpropertypanel],
 .z-cse #dataSourceTreeGrid .x-grid-row-selected .x-grid-cell,
 .z-cse #dataSourceTreeGrid .x-grid-row-selected .x-grid-rowwrap-div,
-.z-cse #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner,
 .z-cse #deviceDetailNav .x-grid-row-focused .x-grid-cell-inner,
+.z-cse #deviceDetailNav .x-grid-row-selected .x-grid-cell-inner,
 .z-cse #masterDetailNav .x-grid-row-selected .x-grid-cell-inner,
 .z-cse #masterDetailNav .x-grid-row-focused .x-grid-cell-inner,
 .z-cse #master_panel .x-panel-body,
-.z-cse .commonlivegridinfopanel,
-.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-cell,
 .z-cse #master_panel .x-panel-body-hierarchy,
-.z-cse #master_panel #templateTree
+.z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-cell,
+.z-cse #master_panel #templateTree,
+.z-cse #trigger-master_panel,
+.z-cse #trigger-master_panel-body
 { background-image: none !important; background-color: transparent !important; }
 
     /* grids may have image backgrounds but set color to transparent */
@@ -235,75 +234,75 @@ darker input fields: #505050
 BYE BYE BORDERS
 ================
 */
-.z-cse .dialog input,
-.z-cse .dialog select,
-.z-cse .q-start #header,
-.z-cse .q-start #center_panel,
+.z-cse button,
 .z-cse div.zenportlet input,
 .z-cse div.zenportlet div.portlet-body,
 .z-cse div.zenportlet div.portlet-header,
-.z-cse #deviceLiveSearch input,
-.z-cse #dialog_buttons input,
-.z-cse #contentPaneContainer table td input[type=text],
-.z-cse #contentPaneContainer .innerzentable th,
-.z-cse #contentPaneContainer input.tableheader,
-.z-cse .z-bc div.tabletitlecontainer,
-.z-cse table.x-datepicker-inner .x-datepicker-selected a,
-.z-cse #blackTabs #xform_mapping_panel,
+.z-cse div.zentable-body,
 .z-cse input[type="button"],
 .z-cse input[type="submit"],
 .z-cse input[type="reset"],
 .z-cse input[type="file"]::-webkit-file-upload-button,
-.z-cse button,
+.z-cse table.innerzentable td.tablevalues,
+.z-cse table.x-datepicker-inner .x-datepicker-selected a,
+.z-cse .dialog input,
+.z-cse .dialog select,
+.z-cse .device-overview-form-wrapper,
 .z-cse .nvtooltip,
+.z-cse .q-start #header,
+.z-cse .q-start #center_panel,
+.z-cse .search-result th,
+.z-cse .tablevalues,
+.z-cse .x-boundlist-item,
+.z-cse .x-grid-group-hd .x-grid-cell-inner,
+.z-cse .x-grid-with-row-lines .x-grid-cell,
+.z-cse .x-grid-row-selected .x-grid-cell,
+.z-cse .x-grid-row-selected .x-grid-rowwrap-div,
+.z-cse .x-menu-item-active .x-menu-item-link,
 .z-cse .x-monthpicker-item a,
 .z-cse .x-monthpicker-item a.x-monthpicker-selected,
-.z-cse .search-result th,
-.z-cse .x-menu-item-active .x-menu-item-link,
-.z-cse .device-overview-form-wrapper,
-.z-cse .x-grid-group-hd .x-grid-cell-inner,
-.z-cse .x-boundlist-item,
-.z-cse div.zentable-body,
-.z-cse .z-bc .zentable-modified .tabletitle-center,
-.z-cse .z-bc .zenportlet .tabletitle-center,
-.z-cse .tablevalues,
-.z-cse .x-panel-default-framed,
-.z-cse #breadCrumbPane,
-.z-cse table.innerzentable td.tablevalues,
-.z-cse .x-toolbar-default,
-.z-cse .x-grid-with-row-lines .x-grid-cell,
 .z-cse .x-panel .x-grid-body,
-.z-cse .x-grid-row-selected .x-grid-cell,
-.z-cse .x-grid-row-selected .x-grid-rowwrap-div
+.z-cse .x-panel-default-framed,
+.z-cse .x-toolbar-default,
+.z-cse .z-bc div.tabletitlecontainer,
+.z-cse .z-bc .zenportlet .tabletitle-center,
+.z-cse .z-bc .zentable-modified .tabletitle-center,
+.z-cse #blackTabs #xform_mapping_panel,
+.z-cse #breadCrumbPane,
+.z-cse #contentPaneContainer table td input[type=text],
+.z-cse #contentPaneContainer .innerzentable th,
+.z-cse #contentPaneContainer input.tableheader,
+.z-cse #deviceLiveSearch input,
+.z-cse #dialog_buttons input
 { border: 0; border-radius: 0; }
-.z-cse .quickstart .btn.minor,
-.z-cse .x-boundlist,
+.z-cse .commonlivegridinfopanel,
 .z-cse .largetoolbar.devdetailbar,
-.z-cse #processForm .x-docked-bottom,
-.z-cse #serviceForm .x-docked-bottom,
-.z-cse .x-panel .x-panel-header-default-framed-top,
-.z-cse #dataSourceTreeGrid .x-grid-row .x-grid-cell,
-.z-cse #thresholdGrid .x-grid-row .x-grid-cell,
-.z-cse #graphGrid .x-grid-row .x-grid-cell,
+.z-cse .quickstart .btn.minor,
 .z-cse .password-split,
 .z-cse .user-prefs-cell,
 .z-cse .user-prefs-cell div,
-.z-cse .commonlivegridinfopanel
+.z-cse .x-boundlist,
+.z-cse .x-panel .x-panel-header-default-framed-top,
+.z-cse #dataSourceTreeGrid .x-grid-row .x-grid-cell,
+.z-cse #graphGrid .x-grid-row .x-grid-cell,
+.z-cse #processForm .x-docked-bottom,
+.z-cse #serviceForm .x-docked-bottom,
+.z-cse #thresholdGrid .x-grid-row .x-grid-cell
 { border: 0 !important; border-radius: 0; }
 
 /* search fields & filters */
 
     /* clean out cruft */
+    .z-cse textarea.x-form-field,
     .z-cse .x-grid-filter,
     .z-cse .x-form-text,
-    .z-cse textarea.x-form-field,
+    .z-cse .searchfield-black-mc,
     .z-cse .searchfield-black-mc .x-form-text,
     .z-cse .searchfield-black-ml,
-    .z-cse .searchfield-black-mc,
     .z-cse .searchfield-black-mr,
+    .z-cse .searchfield-mc,
     .z-cse .searchfield-mc .x-form-text,
     .z-cse .searchfield-ml,
-    .z-cse .searchfield-mc,
     .z-cse .searchfield-mr
     { background-image: none; background-color: transparent; border: 0; }
 
@@ -312,44 +311,44 @@ BYE BYE BORDERS
     INPUT FIELDS AND FILTERS
     ================
     */
-    .z-cse .user-prefs-cell .tableheader,
-    .z-cse #contentPaneContainer textarea.tablevalues,
-    .z-cse #contentPaneContainer select,
-    .z-cse #addToCollectionBtn,
-    .z-cse #filterButton,
-    .z-cse #addToCollectionForm select,
-    .z-cse #contentPaneContainer select[name=numColumns],
-    .z-cse #contentPaneContainer table td input[name=batchSize],
-    .z-cse #contentPaneContainer table td input[name=batchSize]:hover,
-    .z-cse textarea.x-form-field,
-    .z-cse .x-btn-arrowslide-toolbar-small,
+    .z-cse input[type="password"],
+    .z-cse input[type="submit"],
+    .z-cse input[type="reset"],
+    .z-cse input.tablevalues,
     .z-cse select,
+    .z-cse table.x-form-item input[type=text],
+    .z-cse textarea.x-form-field,
     .z-cse .tablevalues.select,
+    .z-cse .user-prefs-cell .tableheader,
+    .z-cse .x-btn-arrowslide-toolbar-small,
     .z-cse .x-btn-default-small,
     .z-cse .x-btn-default-small-disabled,
     .z-cse .x-btn-default-toolbar-small,
     .z-cse .x-btn-default-toolbar-small-disabled,
-    .z-cse input[type="password"],
-    .z-cse input[type="submit"],
-    .z-cse input[type="reset"],
-    .z-cse table.x-form-item input[type=text],
-    .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
-    .z-cse #ldapConfigDropDown input[type=text],
-    .z-cse #edit_panel-body input[type=text],
-    .z-cse #edit_panel-body input[type=password],
-    .z-cse input.tablevalues,
-    .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #man_center_panel > .x-toolbar .x-form-item,
+    .z-cse #addToCollectionBtn,
+    .z-cse #addToCollectionForm select,
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
+    .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
+    .z-cse #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse #contentPaneContainer select,
+    .z-cse #contentPaneContainer select[name=numColumns],
+    .z-cse #contentPaneContainer table td input[name=batchSize],
+    .z-cse #contentPaneContainer table td input[name=batchSize]:hover,
+    .z-cse #contentPaneContainer textarea.tablevalues,
+    .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
+    .z-cse #edit_panel-body input[type=password],
+    .z-cse #edit_panel-body input[type=text],
+    .z-cse #filterButton,
+    .z-cse #ldapConfigDropDown input[type=text],
+    .z-cse #man_center_panel > .x-toolbar .x-form-item,
     .z-cse #propList input[type=text],
+    .z-cse #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse #network_map_form-body input[type=text],
     .z-cse #network_map_form-body textarea,
-    .z-cse #serviceForm-body input[type=text],
-    .z-cse #serviceForm-body textarea,
     .z-cse #processForm-body input[type=text],
     .z-cse #processForm-body textarea,
-    .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
-    .z-cse #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
+    .z-cse #serviceForm-body input[type=text],
+    .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
 
     /* no backgrounds on checkboxes */
@@ -606,24 +605,24 @@ BYE BYE BORDERS
     /* table headers == theme-sensitive == */
     .z-cse div.portlet-settings,
     .z-cse div.zenportlet div.portlet-header,
-    .z-cse #AdministeredObjects th,
     .z-cse .x-grid .x-column-header,
-    .z-cse #dataSourceTreeGrid .x-column-header,
-    .z-cse #LoadedZenPacks th,
-    .z-cse #Users th,
-    .z-cse #Groups th,
-    .z-cse #DefineCommands th,
     .z-cse .x-panel .x-panel-header-default-framed-top,
-    .z-cse #jobs .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #AdministeredObjects th,
     .z-cse #backcompat-layout-panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #dataSourceTreeGrid .x-column-header,
+    .z-cse #DefineCommands th,
     .z-cse #device_grid .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #LoadedZenPacks th,
+    .z-cse #Groups th,
+    .z-cse #jobs .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #master_panel-body .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #detailCardPanel-body .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #class_center_panel .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #notifications_panel-body .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header,
     .z-cse #NetworkDetailCardPanel .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
+    .z-cse #productsgrid_id .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse #Users th
     { background-image: none; background-color: #ccc; border: 0; border-radius: 0; }
 
     /* filters light */
@@ -1034,129 +1033,127 @@ BYE BYE BORDERS
 
 
     /* light theme text */
-    .z-cse .x-fieldset-header,
+    .z-cse div.control-label,
+    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse select,
+    .z-cse .detail-form-panel .display-field,
+    .z-cse .detail-form-panel .x-fieldset-header-text,
+    .z-cse .detail-form-panel .x-form-cb-label,
+    .z-cse .detail-form-panel .x-form-display-field,
+    .z-cse .detail-form-panel .x-form-field,
+    .z-cse .detail-form-panel .x-form-item-label,
+    .z-cse .graph_title,
     .z-cse .q-start h1,
     .z-cse .q-start h2,
+    .z-cse .q-start .wizardStepDescription,
     .z-cse .q-start .wizardStepNumber,
     .z-cse .q-start .wizardStepTitle,
-    .z-cse .q-start .wizardStepDescription,
-    .z-cse div.zenportlet div.portlet-settings a.portlet-settings-control,
-    .z-cse div.control-label,
-    .z-cse select,
-    .z-cse #contentPaneContainer table td input[type=text],
-    .z-cse #manage-search-link,
-    .z-cse .x-grid-group-title,
-    .z-cse .zenfooter_threshold,
-    .z-cse .transform-headers,
-    .z-cse .x-grid-empty,
-    .z-cse #controls_panel ~ p.message,
-    .z-cse .x-form-field,
-    .z-cse .x-grid-row .x-grid-cell,
-    .z-cse .graph_title,
-    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
-    .z-cse .x-panel-body-default,
-    .z-cse .x-grid .x-column-header-text,
-    .z-cse .detail-form-panel .x-form-display-field,
-    .z-cse .detail-form-panel .display-field,
-    .z-cse .tablevalues,
     .z-cse .tableheader,
+    .z-cse .tablevalues,
     .z-cse .tabletitletext,
-    .z-cse #newTabsPane ul li a,
-    .z-cse #manufacturer_info,
+    .z-cse .transform-headers,
+    .z-cse .x-body,
+    .z-cse .x-fieldset-header,
+    .z-cse .x-form-display-field,
+    .z-cse .x-form-field,
+    .z-cse .x-panel-body-default,
     .z-cse .x-panel-body-default-framed,
-    .z-cse .detail-form-panel .x-form-field,
-    .z-cse .detail-form-panel .display-field,
-    .z-cse .detail-form-panel .x-form-cb-label,
-    .z-cse .detail-form-panel .x-form-item-label,
-    .z-cse .detail-form-panel .x-fieldset-header-text,
+    .z-cse .x-grid .x-column-header-text,
+    .z-cse .x-grid-empty,
+    .z-cse .x-grid-group-title,
+    .z-cse .x-grid-row .x-grid-cell,
+    .z-cse .x-panel-body-default,
     .z-cse .x-panel-header-text-default,
     .z-cse .x-panel-header .x-form-display-field,
-    .z-cse #deviceDetailNav .x-grid-cell-inner,
-    .z-cse #masterDetailNav .x-grid-cell-inner,
-    .z-cse .x-body,
-    .z-cse .x-form-display-field,
+    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
     .z-cse .x-tree-panel .rootNode,
     .z-cse .x-toolbar .x-toolbar-text,
-    .z-cse .x-panel-body-default
+    .z-cse .zenfooter_threshold,
+    .z-cse #contentPaneContainer table td input[type=text],
+    .z-cse #controls_panel ~ p.message,
+    .z-cse #deviceDetailNav .x-grid-cell-inner,
+    .z-cse #manage-search-link,
+    .z-cse #manufacturer_info,
+    .z-cse #masterDetailNav .x-grid-cell-inner,
+    .z-cse #newTabsPane ul li a
     { color: #4b4b4c }
-    .z-cse #connectionmessage,
-    .z-cse #newTabsPane ul li a:hover,
-    .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
-    .z-cse .user-prefs-cell div:first-child div,
-    .z-cse #resetPasswordForm div:first-child,
+    .z-cse a.tableheader,
+    .z-cse a.tableheaderselected,
     .z-cse .dependencyGraphPanel h3,
+    .z-cse .livegridinfopanel,
+    .z-cse .user-prefs-cell div:first-child div,
+    .z-cse .x-btn-default-small-disabled .x-btn-inner,
+    .z-cse #connectionmessage,
     .z-cse #device_modeler_plugins label,
+    .z-cse #newTabsPane ul li a:hover,
     .z-cse #modeler_plugins label.x-component,
     .z-cse #modeler_plugins .x-form-item-label-top,
-    .z-cse a.tableheaderselected,
-    .z-cse a.tableheader,
-    .z-cse .x-btn-default-small-disabled .x-btn-inner,
-    .z-cse .livegridinfopanel
+    .z-cse #resetPasswordForm div:first-child,
+    .z-cse #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item
     { color: #4b4b4c !important; }
 
     /* light theme chart text */
     .z-cse #network_map-body text
     { fill: #4b4b4c; }
 
-
     /* dark text not applicable to light-dark-theming */
-    .z-cse .portlet-body thead .yui-dt-label a,
-    .z-cse #dialog_content select,
+    .z-cse button,
     .z-cse .dialog_container select,
-    .z-cse #dialog_buttons input,
     .z-cse .innerzentable .user-prefs-cell .tableheader,
+    .z-cse .portlet-body thead .yui-dt-label a,
+    .z-cse .x-boundlist-floating .x-boundlist-item,
+    .z-cse .x-boundlist-item-over,
+    .z-cse .x-btn-arrowslide-toolbar-small span,
+    .z-cse .x-btn-default-small-disabled .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-flare .x-flare-message,
     .z-cse .x-form-invalid-tip li,
+    .z-cse .x-form-item-label,
+    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-row-over .x-grid-cell-inner,
+    .z-cse .x-menu-item-text,
+    .z-cse .x-tree-panel .x-grid-row-over  span,
+    .z-cse .zenfooter_value_row:hover td,
+    .z-cse #blackTabs .x-tab button,
     .z-cse #CheckForUpdates ~ tbody input[type=submit],
     .z-cse #contentPaneContainer input.tableheader,
-    .z-cse #newTabsPane ul li a:hover,
-    .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner,
-    .z-cse .zenfooter_value_row:hover td,
-    .z-cse #events_griddocked-filter .x-form-item input[type=text],
     .z-cse #device_griddocked-filter .x-form-item input[type=text],
-    .z-cse #blackTabs .x-tab button,
-    .z-cse .x-boundlist-item-over,
-    .z-cse .x-form-item-label,
-    .z-cse .x-flare .x-flare-message,
-    .z-cse .x-btn-arrowslide-toolbar-small span,
-    .z-cse button,
-    .z-cse .x-btn-default-toolbar-small .x-btn-inner,
-    .z-cse .x-btn-default-small-disabled .x-btn-inner,
-    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
-    .z-cse .x-boundlist-floating .x-boundlist-item,
-    .z-cse .x-panel-hierarchy .x-grid-row .x-grid-row-over .x-grid-cell-inner,
     .z-cse #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #dialog_buttons input,
+    .z-cse #dialog_content select,
+    .z-cse #events_griddocked-filter .x-form-item input[type=text],
     .z-cse #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
-    .z-cse .x-tree-panel .x-grid-row-over  span,
-    .z-cse .x-menu-item-text
+    .z-cse #newTabsPane ul li a:hover,
+    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
+    .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #4b4b4c; }
     .z-cse .x-btn-arrowslide-toolbar-small.x-btn-arrowslide-toolbar-small-over span
     { color: #4b4b4c !important; }
 
     /* light text not applicable to light-dark theming */
-    .z-cse #searchbox-container .searchfield-black .x-form-field,
+    .z-cse .x-grid-row-focused .x-grid-cell-inner,
+    .z-cse .x-grid-row-selected .x-grid-cell-inner,
     .z-cse .x-window .x-form-display-field,
     .z-cse .x-window .x-panel-body,
     .z-cse #newTabsPane ul li.selected a,
-    .z-cse .x-grid-row-selected .x-grid-cell-inner,
-    .z-cse .x-grid-row-focused .x-grid-cell-inner
+    .z-cse #searchbox-container .searchfield-black .x-form-field
     { color: #fafafa; }
     .z-cse .x-window .x-field-label-cell label
     { color: #fafafa !important; }
-    .z-cse #fexample-inputEl,
-    .z-cse .x-window .x-grid-table .x-grid-cell-inner
+    .z-cse .x-window .x-grid-table .x-grid-cell-inner,
+    .z-cse #fexample-inputEl
     { color: #fafafa !important; }
     .z-cse .x-window .x-grid-table .x-grid-row-over
     { background-color: #4b6f9b !important; }
 
     /* light-theme text links */
-    .z-cse a.tinylink,
-    .z-cse #breadCrumbPane a,
-    .z-cse .devdetail-devclass a.z-entity,
     .z-cse a:link,
     .z-cse a:visited,
+    .z-cse a.tinylink,
+    .z-cse .devdetail-devclass a.z-entity,
     .z-cse .x-menu a:link,
+    .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
-    .z-cse .x-menu a:hover
+    .z-cse #breadCrumbPane a
     { color: #3b88cb; text-decoration: none; }
 
     /* masthead search */
@@ -1183,7 +1180,6 @@ BYE BYE BORDERS
         .z-cse #jobs-grid-finished-body .x-grid-row-over a {
             color: #fafafa;
         }
-
 
     /* modals */
     .z-cse .x-window-body-closable .x-panel-header-text-default,
@@ -1866,55 +1862,55 @@ BYE BYE BORDERS
     }
 
     /* buttons inputs and text areas */
-    .z-cse.z-cse-dark #addToCollectionBtn,
-    .z-cse.z-cse-dark #filterButton,
-    .z-cse.z-cse-dark #addToCollectionForm select,
-    .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-small,
+    .z-cse.z-cse-dark input[type="password"],
+    .z-cse.z-cse-dark input[type="submit"],
+    .z-cse.z-cse-dark input[type="reset"],
     .z-cse.z-cse-dark select,
     .z-cse.z-cse-dark .tablevalues.select,
+    .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-small,
     .z-cse.z-cse-dark .x-btn-default-small,
     .z-cse.z-cse-dark .x-btn-default-small-disabled,
     .z-cse.z-cse-dark .x-btn-default-toolbar-small,
     .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled,
-    .z-cse.z-cse-dark input[type="password"],
-    .z-cse.z-cse-dark input[type="submit"],
-    .z-cse.z-cse-dark input[type="reset"],
-    .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
-    .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
-    .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark #addToCollectionBtn,
+    .z-cse.z-cse-dark #addToCollectionForm select,
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
-    .z-cse.z-cse-dark #network_map_form-body textarea,
+    .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
+    .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
+    .z-cse.z-cse-dark #filterButton,
+    .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
+    .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
     { background-color: #b2afaf; }
 
     /* darker background for user input */
+    .z-cse.z-cse-dark input.tablevalues,
+    .z-cse.z-cse-dark table.x-form-item input[type=text],
+    .z-cse.z-cse-dark textarea.x-form-field,
     .z-cse.z-cse-dark .q-start input[type=password],
     .z-cse.z-cse-dark .x-form-arrow-trigger,
-    .z-cse.z-cse-dark #nav_combo-inputCell .x-form-arrow-trigger,
-    .z-cse.z-cse-dark #searchbox-container .x-form-trigger,
     .z-cse.z-cse-dark .x-form-trigger-input-cell,
-    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer,
+    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=password],
+    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=text],
+    .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
+    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark #contentPaneContainer textarea.tablevalues,
     .z-cse.z-cse-dark #contentPaneContainer select,
-    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
-    .z-cse.z-cse-dark #network_map_form-body input[type=text],
-    .z-cse.z-cse-dark #navGrid-filter-name-inputRow input[type=text],
-    .z-cse.z-cse-dark textarea.x-form-field,
-    .z-cse.z-cse-dark table.x-form-item input[type=text],
-    .z-cse.z-cse-dark #searchInput-inputEl,
-    .z-cse.z-cse-dark #center_panel_container #nav_combo-inputCell,
-    .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
-    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=text],
-    .z-cse.z-cse-dark .x-window-body-closable table.x-form-item input[type=password],
     .z-cse.z-cse-dark #edit_panel-body input[type=text],
     .z-cse.z-cse-dark #edit_panel-body input[type=password],
+    .z-cse.z-cse-dark #man_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark #navGrid-filter-name-inputRow input[type=text],
+    .z-cse.z-cse-dark #nav_combo-inputCell .x-form-arrow-trigger,
+    .z-cse.z-cse-dark #network_map_form-body input[type=text],
     .z-cse.z-cse-dark #propList input[type=text],
-    .z-cse.z-cse-dark input.tablevalues,
+    .z-cse.z-cse-dark #processForm-body input[type=text],
+    .z-cse.z-cse-dark #processForm-body textarea,
+    .z-cse.z-cse-dark #searchbox-container .x-form-trigger,
+    .z-cse.z-cse-dark #searchInput-inputEl,
     .z-cse.z-cse-dark #serviceForm-body input[type=text],
     .z-cse.z-cse-dark #serviceForm-body textarea,
-    .z-cse.z-cse-dark #processForm-body input[type=text],
-    .z-cse.z-cse-dark #processForm-body textarea
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer
     { background-color: #505050; }
 
     /* extra help for events | event classes dropdown */
@@ -1924,35 +1920,35 @@ BYE BYE BORDERS
     }
 
     /* filters dark theme */
-    .z-cse.z-cse-dark .x-grid-filter .x-form-arrow-trigger,
-    .z-cse.z-cse-dark .x-form-date-trigger,
-    .z-cse.z-cse-dark #component_searchfield-inputEl,
-    .z-cse.z-cse-dark #navGrid-filter-name-inputEl,
-    .z-cse.z-cse-dark #master_panel .x-hierarchy-search input[type=text],
-    .z-cse.z-cse-dark #productsgrid_id-filter-prod_id-inputEl,
+    .z-cse.z-cse-dark table.x-form-item.x-grid-filter input[type=text],
     .z-cse.z-cse-dark .tabletitle #filter,
-    .z-cse.z-cse-dark table.x-form-item.x-grid-filter input[type=text]
+    .z-cse.z-cse-dark .x-form-date-trigger,
+    .z-cse.z-cse-dark .x-grid-filter .x-form-arrow-trigger,
+    .z-cse.z-cse-dark #component_searchfield-inputEl,
+    .z-cse.z-cse-dark #master_panel .x-hierarchy-search input[type=text],
+    .z-cse.z-cse-dark #navGrid-filter-name-inputEl,
+    .z-cse.z-cse-dark #productsgrid_id-filter-prod_id-inputEl
     { background-color: #b2afaf }
 
     /* table headers theme sensitive */
-    .z-cse.z-cse-dark #AdministeredObjects th,
     .z-cse.z-cse-dark .x-grid .x-column-header,
-    .z-cse.z-cse-dark #dataSourceTreeGrid .x-column-header,
-    .z-cse.z-cse-dark #LoadedZenPacks th,
-    .z-cse.z-cse-dark #Users th,
-    .z-cse.z-cse-dark #Groups th,
-    .z-cse.z-cse-dark #DefineCommands th,
     .z-cse.z-cse-dark .x-panel .x-panel-header-default-framed-top,
-    .z-cse.z-cse-dark #jobs .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #AdministeredObjects th,
     .z-cse.z-cse-dark #backcompat-layout-panel .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #device_grid .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #master_panel-body .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #detailCardPanel-body .x-grid-header-ct-docked-top .x-column-header,
     .z-cse.z-cse-dark #class_center_panel .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #notifications_panel-body .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #dataSourceTreeGrid .x-column-header,
+    .z-cse.z-cse-dark #DefineCommands th,
+    .z-cse.z-cse-dark #device_grid .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #detailCardPanel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #Groups th,
+    .z-cse.z-cse-dark #jobs .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #LoadedZenPacks th,
+    .z-cse.z-cse-dark #master_panel-body .x-grid-header-ct-docked-top .x-column-header,
     .z-cse.z-cse-dark #NetworkDetailCardPanel .x-grid-header-ct-docked-top .x-column-header,
-    .z-cse.z-cse-dark #productsgrid_id .x-grid-header-ct-docked-top .x-column-header
+    .z-cse.z-cse-dark #notifications_panel-body .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #productsgrid_id .x-grid-header-ct-docked-top .x-column-header,
+    .z-cse.z-cse-dark #Users th,
+    .z-cse.z-cse-dark #triggers_grid_panel .x-grid-header-ct-docked-top .x-column-header
     { background-color: #808080; }
 
     /* disabled text */
@@ -1962,79 +1958,76 @@ BYE BYE BORDERS
     { color: #eee !important; }
 
     /* dark theme text */
-    .z-cse.z-cse-dark .x-fieldset-header,
+    .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
+    .z-cse.z-cse-dark select,
+    .z-cse.z-cse-dark .detail-form-panel .display-field,
+    .z-cse.z-cse-dark .detail-form-panel .x-fieldset-header-text,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-cb-label,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-display-field,
+    .z-cse.z-cse-dark .detail-form-panel .x-form-item-label,
+    .z-cse.z-cse-dark .graph_title,
     .z-cse.z-cse-dark .q-start h1,
     .z-cse.z-cse-dark .q-start h2,
     .z-cse.z-cse-dark .q-start .wizardStepNumber,
     .z-cse.z-cse-dark .q-start .wizardStepTitle,
     .z-cse.z-cse-dark .q-start .wizardStepDescription,
-    .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
-    .z-cse.z-cse-dark select,
-    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
-    .z-cse.z-cse-dark #manage-search-link,
-    .z-cse.z-cse-dark .x-grid-group-title,
-    .z-cse.z-cse-dark .zenfooter_threshold,
-    .z-cse.z-cse-dark .transform-headers,
-    .z-cse.z-cse-dark .x-grid-empty,
-    .z-cse.z-cse-dark #controls_panel ~ p.message,
-    .z-cse.z-cse-dark .x-grid-row .x-grid-cell,
-    .z-cse.z-cse-dark .graph_title,
-    .z-cse.z-cse-dark #newTabsPane ul li.selected a,
-    .z-cse.z-cse-dark .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
-    .z-cse.z-cse-dark .x-panel-body-default,
-    .z-cse.z-cse-dark .x-grid .x-column-header-text,
-    .z-cse.z-cse-dark .detail-form-panel .x-form-display-field,
-    .z-cse.z-cse-dark .detail-form-panel .display-field,
     .z-cse.z-cse-dark .tablevalues,
     .z-cse.z-cse-dark .tableheader,
     .z-cse.z-cse-dark .tabletitletext,
-    .z-cse.z-cse-dark #newTabsPane ul li a,
-    .z-cse.z-cse-dark #manufacturer_info,
-    .z-cse.z-cse-dark .x-panel-body-default-framed,
-    .z-cse.z-cse-dark .detail-form-panel .x-form-cb-label,
-    .z-cse.z-cse-dark .detail-form-panel .x-form-item-label,
-    .z-cse.z-cse-dark .detail-form-panel .x-fieldset-header-text,
-    .z-cse.z-cse-dark .x-panel-header-text-default,
-    .z-cse.z-cse-dark .x-panel-header .x-form-display-field,
-    .z-cse.z-cse-dark #deviceDetailNav .x-grid-cell-inner,
-    .z-cse.z-cse-dark #masterDetailNav .x-grid-cell-inner,
+    .z-cse.z-cse-dark .transform-headers,
     .z-cse.z-cse-dark .x-body,
+    .z-cse.z-cse-dark .x-fieldset-header,
     .z-cse.z-cse-dark .x-form-display-field,
-    .z-cse.z-cse-dark .x-tree-panel .rootNode,
+    .z-cse.z-cse-dark .x-grid .x-column-header-text,
+    .z-cse.z-cse-dark .x-grid-empty,
+    .z-cse.z-cse-dark .x-grid-group-title,
+    .z-cse.z-cse-dark .x-grid-row .x-grid-cell,
+    .z-cse.z-cse-dark .x-panel-body-default,
+    .z-cse.z-cse-dark .x-panel-body-default-framed,
+    .z-cse.z-cse-dark .x-panel-header .x-form-display-field,
+    .z-cse.z-cse-dark .x-panel-header-text-default,
+    .z-cse.z-cse-dark .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
-    .z-cse.z-cse-dark .x-panel-body-default
+    .z-cse.z-cse-dark .x-tree-panel .rootNode,
+    .z-cse.z-cse-dark .zenfooter_threshold,
+    .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
+    .z-cse.z-cse-dark #controls_panel ~ p.message,
+    .z-cse.z-cse-dark #deviceDetailNav .x-grid-cell-inner,
+    .z-cse.z-cse-dark #manage-search-link,
+    .z-cse.z-cse-dark #manufacturer_info,
+    .z-cse.z-cse-dark #masterDetailNav .x-grid-cell-inner,
+    .z-cse.z-cse-dark #newTabsPane ul li a,
+    .z-cse.z-cse-dark #newTabsPane ul li.selected a
     { color: #ccc }
-    .z-cse.z-cse-dark #connectionmessage,
-    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item,
-    .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
-    .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
-    .z-cse.z-cse-dark #resetPasswordForm div:first-child,
+    .z-cse.z-cse-dark a.tableheader,
+    .z-cse.z-cse-dark a.tableheaderselected,
     .z-cse.z-cse-dark .dependencyGraphPanel h3,
-    .z-cse.z-cse-dark #device_modeler_plugins label,
+    .z-cse.z-cse-dark .livegridinfopanel,
+    .z-cse.z-cse-dark .user-prefs-cell div:first-child div,
     .z-cse.z-cse-dark .x-form-item-label,
+    .z-cse.z-cse-dark #connectionmessage,
+    .z-cse.z-cse-dark #device_modeler_plugins label,
     .z-cse.z-cse-dark #modeler_plugins label.x-component,
     .z-cse.z-cse-dark #modeler_plugins .x-form-item-label-top,
-    .z-cse.z-cse-dark a.tableheaderselected,
-    .z-cse.z-cse-dark a.tableheader,
-    .z-cse.z-cse-dark .livegridinfopanel
+    .z-cse.z-cse-dark #resetPasswordForm div:first-child,
+    .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
+    .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item
     { color: #ccc !important; }
 
     /* dark theme chart text */
     .z-cse.z-cse-dark #network_map-body text
     { fill: #ccc; }
 
-
     /* dark-theme text links */
-    .z-cse.z-cse-dark a.tinylink,
-    .z-cse.z-cse-dark #breadCrumbPane a,
-    .z-cse.z-cse-dark .devdetail-devclass a.z-entity,
     .z-cse.z-cse-dark a:link,
     .z-cse.z-cse-dark a:visited,
+    .z-cse.z-cse-dark a.tinylink,
+    .z-cse.z-cse-dark .devdetail-devclass a.z-entity,
     .z-cse.z-cse-dark .x-menu a:link,
+    .z-cse.z-cse-dark .x-menu a:hover,
     .z-cse.z-cse-dark .x-menu a:visited,
-    .z-cse.z-cse-dark .x-menu a:hover
+    .z-cse.z-cse-dark #breadCrumbPane a
     { color: #89c5fa; text-decoration: none; }
-
 
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
@@ -2075,17 +2068,17 @@ BYE BYE BORDERS
     }
 
     /* grid highlighting */
-    .z-cse.z-cse-dark #newTabsPane ul li:hover,
-    .z-cse.z-cse-dark #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
     .z-cse.z-cse-dark .x-grid-row-over,
-    .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over,
-    .z-cse.z-cse-dark #templateTree .x-grid-row-over
+    .z-cse.z-cse-dark #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
+    .z-cse.z-cse-dark #newTabsPane ul li:hover,
+    .z-cse.z-cse-dark #templateTree .x-grid-row-over,
+    .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over
     { background-image: none; background-color: #4b6f9b !important;}
 
-    .z-cse.z-cse-dark .x-tree-panel .x-grid-row-over  span,
     .z-cse.z-cse-dark .x-grid-row-selected.x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark .x-grid-row-selected.x-grid-row-over span,
+    .z-cse.z-cse-dark .x-tree-panel .x-grid-row-over  span,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
