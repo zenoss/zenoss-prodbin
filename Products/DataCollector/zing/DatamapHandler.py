@@ -15,6 +15,7 @@ import transaction
 from Products.DataCollector.zing.fact import serialize_datamap
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
+
 GLOBAL_ZING_CONNECTOR_URL = "zing-connector-url"
 ZING_CONNECTOR_DATAMAP_ENDPOINT = "/api/model/ingest"
 
@@ -34,6 +35,47 @@ class ZingTxState(object):
     def __init__(self):
         self.datamaps = []
         self.contexts = {}
+
+
+class ObjectMapContext(object):
+
+    def __init__(self, obj):
+        self.uuid = None
+        self.meta_type = None
+        self.name = None
+        self.mem_capacity = None
+        self.location = None
+        self.is_device = False
+        self._extract_relevant_fields_from_object(obj)
+
+    def _extract_relevant_fields_from_object(self, obj):
+        try:
+            self.uuid = obj.getUUID()
+        except:
+            pass
+        try:
+            self.meta_type = obj.meta_type
+        except:
+            pass
+        try:
+            self.name = obj.titleOrId()
+        except Exception:
+            pass
+
+        from Products.ZenModel.Device import Device
+        if isinstance(obj, Device):
+            self.is_device = True
+            try:
+                self.mem_capacity = obj.hw.totalMemory
+            except Exception:
+                pass
+            try:
+                loc = obj.location()
+            except Exception:
+                pass
+            else:
+                if loc is not None:
+                    self.location = loc.titleOrId()
 
 
 class ZingDatamapHandler(object):
@@ -78,7 +120,7 @@ class ZingDatamapHandler(object):
         """ adds the context to the ZingTxState in the current tx """
         if self.zing_connector_url: # dont bother to store if the url no set
             zing_state = self._get_zing_tx_state()
-            zing_state.contexts[objmap] = ctx
+            zing_state.contexts[objmap] = ObjectMapContext(ctx)
 
     def process_datamaps(self, tx_success, zing_state):
         """
