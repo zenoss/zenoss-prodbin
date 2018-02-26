@@ -35,7 +35,7 @@ class ZingTxState(object):
     def __init__(self):
         self.datamaps = []
         self.contexts = {}
-        self.devices_fact = {} # dummy fact per process device
+        self.devices_fact = {} # dummy fact per processed device
 
 
 class ZingDatamapHandler(object):
@@ -75,7 +75,7 @@ class ZingDatamapHandler(object):
         if self.zing_connector_url: # dont bother to store maps if the url no set
             zing_state = self._get_zing_tx_state()
             zing_state.datamaps.append( (device, datamap) )
-            # Create a dummy fact for the device to make sure we send a fact for the device
+            # Create a dummy fact for the device to make sure Zing has one for each device
             device_uid = device.getPrimaryId()
             if device_uid not in zing_state.devices_fact:
                 zing_state.devices_fact[device_uid] = Fact.from_object(device)
@@ -122,8 +122,8 @@ class ZingDatamapHandler(object):
                 return
             resp = self.session.put(self.zing_connector_url, data=serialized)
             if resp.status_code != 200:
-                log.error("zing-connector returned an unexpected response " +
-                          "code ({}) for datamap {}".format(resp.status_code, serialized))
+                log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp.status_code))
+                log.debug("Datamaps for which zing-connector returned unexpected response: {}".format(serialized))
         except Exception:
             log.exception("Unable to process datamap. zing-connector URL: {}".format(self.zing_connector_url))
 
