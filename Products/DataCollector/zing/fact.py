@@ -8,6 +8,15 @@ from .shortid import shortid
 
 import time
 
+
+class FactKeys(object):
+    CONTEXT_UUID_KEY = "contextUUID"
+    META_TYPE_KEY = "meta_type"
+    NAME_KEY = "name"
+    MEM_CAPACITY_KEY = "mem_capacity"
+    LOCATION_KEY = "location"
+
+
 class Fact(object):
 
     @staticmethod
@@ -29,9 +38,9 @@ class Fact(object):
             f.metadata["relationship"] = relationship
 
         # Hack in whatever extra stuff we need.
-        obj = (context or {}).get(om)
-        if obj is not None:
-            apply_extra_fields(obj, f)
+        om_context = (context or {}).get(om)
+        if om_context is not None:
+            apply_extra_fields(om_context, f)
 
         return f
 
@@ -42,6 +51,9 @@ class Fact(object):
 
     def update(self, other):
         self.data.update(other)
+
+    def is_valid(self):
+        return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
 
 
 class _FactEncoder(JSONEncoder):
@@ -69,6 +81,7 @@ class _FactEncoder(JSONEncoder):
             return o.args
         return JSONEncoder.default(self, o)
 
+
 FactEncoder = _FactEncoder()
 
 
@@ -79,45 +92,33 @@ def serialize_datamap(device, dm, context):
     facts = []
     if isinstance(dm, RelationshipMap):
         for om in dm.maps:
-            facts.append(Fact.from_object_map(om, device, dm.relname, context=context))
+            f = Fact.from_object_map(om, device, dm.relname, context=context)
+            if f.is_valid():
+                facts.append(f)
     elif isinstance(dm, ObjectMap):
-        facts.append(Fact.from_object_map(dm, context=context))
+        f = Fact.from_object_map(dm, context=context)
+        if f.is_valid():
+            facts.append(f)
     if facts:
         encoded = FactEncoder.encode({"models": facts})
         return encoded
 
-def apply_extra_fields(obj, fact):
+
+def apply_extra_fields(om_context, fact):
     """
     A simple (temporary) hook to add extra information to a fact that isn't
     found in the datamap that triggered this serialization. This needs a proper
     event subscriber framework to be maintainable, so this will only work so
     long as the number of fields is pretty small.
     """
-    from Products.ZenModel.Device import Device
+    fact.metadata[FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
+    fact.metadata[FactKeys.META_TYPE_KEY] = om_context.meta_type
+    fact.data[FactKeys.NAME_KEY] = om_context.name
 
-    fact.metadata["contextUUID"] = obj.getUUID()
-    fact.metadata["meta_type"] = obj.meta_type
+    if om_context.is_device:
+        if om_context.mem_capacity is not None:
+            fact.data[FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
+        if FactKeys.LOCATION_KEY not in fact.data and om_context.location is not None:
+            fact.data[FactKeys.LOCATION_KEY] = om_context.location
 
-    # titleOrId
-    try:
-        fact.data["name"] = obj.titleOrId()
-    except Exception:
-        pass
-
-    if isinstance(obj, Device):
-        # mem_capacity on devices
-        try:
-            fact.data["mem_capacity"] = obj.hw.totalMemory
-        except Exception:
-            pass
-
-        # location on devices
-        if "location" not in fact.data:
-            try:
-                loc = obj.location()
-            except Exception:
-                pass
-            else:
-                if loc is not None:
-                    fact.data["location"] = loc.titleOrId()
 
