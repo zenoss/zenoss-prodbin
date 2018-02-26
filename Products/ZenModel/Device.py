@@ -25,6 +25,7 @@ from urllib import quote as urlquote
 from ipaddr import IPAddress
 from Acquisition import aq_base
 from zope.event import notify
+from ZODB.transact import transact
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
@@ -333,6 +334,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Return the name of this device.  Default is titleOrId.
         """
         return self.titleOrId()
+
+    @transact
+    def clearUnusedIp(self):
+        ip = self.ipaddress()
+        if ip and not ip.device():
+            ip.getPrimaryParent()._delObject(ip.id)
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'changeDeviceClass')
@@ -1861,8 +1868,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
         self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(self.getId())
         #remove unused ip from network
-        ip = self.ipaddress()
-        if ip : ip.getPrimaryParent().removeRelation(ip)
+        self.clearUnusedIp()
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':

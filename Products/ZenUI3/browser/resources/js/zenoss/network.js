@@ -278,7 +278,7 @@ var ipAddressColumnConfig = [{
     dataIndex: 'interface',
     header: _t('Interface / Device'),
     sortable: true,
-    width: 200,
+    width: 300,
     renderer: function(iface){
         if (!iface) {
             return _t('No Interface');

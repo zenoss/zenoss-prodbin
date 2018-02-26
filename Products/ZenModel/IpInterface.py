@@ -207,6 +207,12 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
                 notify(IndexingEvent(device, idxs=('macAddresses',), update_metadata=False))
             except KeyError:
                 pass
+        ips = self.ipaddresses()
+        for ip in ips:
+            if device:
+                self.dmd.getDmdRoot("ZenLinkManager").remove_device_network_from_cache(device.getId(), ip.network().getPrimaryUrlPath())
+            if ip.manageDevice(): continue
+            ip.getPrimaryParent().removeRelation(ip)
 
     def object_added_handler(self):
         self._update_device_macs(self.device(), self.macaddress)
@@ -247,12 +253,7 @@ class IpInterface(OSComponent, IpInterfaceIndexable):
         after it has been deleted
         """
         device = self.device()
-        ips = self.ipaddresses()
         super(IpInterface, self).manage_deleteComponent(REQUEST)
-        for ip in ips:
-            self.dmd.getDmdRoot("ZenLinkManager").remove_device_network_from_cache(device.getId(), ip.network().getPrimaryUrlPath())
-            if ip.device(): continue
-            ip.getPrimaryParent().removeRelation(ip)
         if device:
             notify(IndexingEvent(device, idxs=["path"])) # We need to delete the iface path from the device
 
