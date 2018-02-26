@@ -44,6 +44,13 @@ class Fact(object):
 
         return f
 
+    @staticmethod
+    def from_object(obj):
+        f = Fact()
+        fact_context = FactContext(obj)
+        apply_extra_fields(fact_context, f)
+        return f
+
     def __init__(self):
         self.id = shortid()
         self.metadata = {}
@@ -85,10 +92,48 @@ class _FactEncoder(JSONEncoder):
 FactEncoder = _FactEncoder()
 
 
-def serialize_datamap(device, dm, context):
-    """
-    Converts a datamap to a JSON-encoded list of facts.
-    """
+class FactContext(object):
+
+    def __init__(self, obj):
+        self.uuid = None
+        self.meta_type = None
+        self.name = None
+        self.mem_capacity = None
+        self.location = None
+        self.is_device = False
+        self._extract_relevant_fields_from_object(obj)
+
+    def _extract_relevant_fields_from_object(self, obj):
+        try:
+            self.uuid = obj.getUUID()
+        except:
+            pass
+        try:
+            self.meta_type = obj.meta_type
+        except:
+            pass
+        try:
+            self.name = obj.titleOrId()
+        except Exception:
+            pass
+
+        from Products.ZenModel.Device import Device
+        if isinstance(obj, Device):
+            self.is_device = True
+            try:
+                self.mem_capacity = obj.hw.totalMemory
+            except Exception:
+                pass
+            try:
+                loc = obj.location()
+            except Exception:
+                pass
+            else:
+                if loc is not None:
+                    self.location = loc.titleOrId()
+
+
+def facts_from_datamap(device, dm, context):
     facts = []
     if isinstance(dm, RelationshipMap):
         for om in dm.maps:
@@ -99,6 +144,10 @@ def serialize_datamap(device, dm, context):
         f = Fact.from_object_map(dm, context=context)
         if f.is_valid():
             facts.append(f)
+    return facts
+
+
+def serialize_facts(facts):
     if facts:
         encoded = FactEncoder.encode({"models": facts})
         return encoded
