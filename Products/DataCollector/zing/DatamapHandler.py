@@ -12,7 +12,7 @@ import requests
 import urlparse
 import transaction
 
-from Products.DataCollector.zing.fact import FactContext, Fact, facts_from_datamap, serialize_facts
+from Products.DataCollector.zing.fact import FactContext, Fact, facts_from_datamap, serialize_facts, FactKeys
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 
@@ -70,6 +70,18 @@ class ZingDatamapHandler(object):
             log.info("Zing AfterCommitHook added. Zing state added to current transaction.")
         return zing_tx_state
 
+    def _build_fact_for_device(self, device):
+        device_fact = Fact.from_object(device)
+        allowed_data_keys = { FactKeys.NAME_KEY }
+        allowed_metadata_keys = { FactKeys.CONTEXT_UUID_KEY, FactKeys.META_TYPE_KEY }
+        for k in device_fact.data.iterkeys():
+            if k not in allowed_data_keys:
+                del device_fact.data[k]
+        for k in device_fact.metadata.iterkeys():
+            if k not in allowed_metadata_keys:
+                del device_fact.metadata[k]
+        return device_fact
+
     def add_datamap(self, device, datamap):
         """ adds the datamap to the ZingTxState in the current tx"""
         if self.zing_connector_url: # dont bother to store maps if the url no set
@@ -78,7 +90,7 @@ class ZingDatamapHandler(object):
             # Create a dummy fact for the device to make sure Zing has one for each device
             device_uid = device.getPrimaryId()
             if device_uid not in zing_state.devices_fact:
-                zing_state.devices_fact[device_uid] = Fact.from_object(device)
+                zing_state.devices_fact[device_uid] = self._build_fact_for_device(device)
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingTxState in the current tx """
@@ -117,9 +129,9 @@ class ZingDatamapHandler(object):
 
     def _send_facts(self, facts):
         try:
-            serialized = serialize_facts(facts)
-            if not serialized: # nothing to send
+            if not facts: # nothing to send
                 return
+            serialized = serialize_facts(facts)
             resp = self.session.put(self.zing_connector_url, data=serialized)
             if resp.status_code != 200:
                 log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp.status_code))
