@@ -12,7 +12,7 @@ import requests
 import urlparse
 import transaction
 
-from Products.DataCollector.zing.fact import serialize_datamap
+from Products.DataCollector.zing.fact import FactContext, Fact, facts_from_datamap, serialize_facts
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 
@@ -35,47 +35,7 @@ class ZingTxState(object):
     def __init__(self):
         self.datamaps = []
         self.contexts = {}
-
-
-class ObjectMapContext(object):
-
-    def __init__(self, obj):
-        self.uuid = None
-        self.meta_type = None
-        self.name = None
-        self.mem_capacity = None
-        self.location = None
-        self.is_device = False
-        self._extract_relevant_fields_from_object(obj)
-
-    def _extract_relevant_fields_from_object(self, obj):
-        try:
-            self.uuid = obj.getUUID()
-        except:
-            pass
-        try:
-            self.meta_type = obj.meta_type
-        except:
-            pass
-        try:
-            self.name = obj.titleOrId()
-        except Exception:
-            pass
-
-        from Products.ZenModel.Device import Device
-        if isinstance(obj, Device):
-            self.is_device = True
-            try:
-                self.mem_capacity = obj.hw.totalMemory
-            except Exception:
-                pass
-            try:
-                loc = obj.location()
-            except Exception:
-                pass
-            else:
-                if loc is not None:
-                    self.location = loc.titleOrId()
+        self.devices_fact = {} # dummy fact per process device
 
 
 class ZingDatamapHandler(object):
@@ -115,12 +75,16 @@ class ZingDatamapHandler(object):
         if self.zing_connector_url: # dont bother to store maps if the url no set
             zing_state = self._get_zing_tx_state()
             zing_state.datamaps.append( (device, datamap) )
+            # Create a dummy fact for the device to make sure we send a fact for the device
+            device_uid = device.getPrimaryId()
+            if device_uid not in zing_state.devices_fact:
+                zing_state.devices_fact[device_uid] = Fact.from_object(device)
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingTxState in the current tx """
         if self.zing_connector_url: # dont bother to store if the url no set
             zing_state = self._get_zing_tx_state()
-            zing_state.contexts[objmap] = ObjectMapContext(ctx)
+            zing_state.contexts[objmap] = FactContext(ctx)
 
     def process_datamaps(self, tx_success, zing_state):
         """
@@ -130,21 +94,36 @@ class ZingDatamapHandler(object):
         if not tx_success or not self.zing_connector_url:
             return
         try:
-            log.info("Sending {} datamaps to zing-connector.".format(len(zing_state.datamaps)))
+            log.debug("Sending {} datamaps to zing-connector.".format(len(zing_state.datamaps)))
+            facts = []
             for device, datamap in zing_state.datamaps:
-                # TODO should we batch them instead of sending them one by one?
-                self._send_datamap(device, datamap, zing_state.contexts)
+                dm_facts = facts_from_datamap(device, datamap, zing_state.contexts)
+                if dm_facts:
+                    facts.extend(dm_facts)
+            # add dummy facts for the processed devices
+            device_facts = zing_state.devices_fact.values()
+            if device_facts:
+                facts.extend(device_facts)
+            self._send_facts_in_batches(facts)
         except Exception as ex:
             log.warn("Exception sending datamaps to zing-connector. {}".format(ex))
 
-    def _send_datamap(self, device, datamap, context):
+    def _send_facts_in_batches(self, facts, batch_size=500):
+        log.info("Sending {} facts to zing-connector.".format(len(facts)))
+        while facts:
+            batch = facts[:batch_size]
+            del facts[:batch_size]
+            self._send_facts(batch)
+
+    def _send_facts(self, facts):
         try:
-            dm = serialize_datamap(device, datamap, context)
-            if not dm: # nothing to send
+            serialized = serialize_facts(facts)
+            if not serialized: # nothing to send
                 return
-            resp = self.session.put(self.zing_connector_url, data=dm)
+            resp = self.session.put(self.zing_connector_url, data=serialized)
             if resp.status_code != 200:
                 log.error("zing-connector returned an unexpected response " +
-                          "code ({}) for datamap {}".format(resp.status_code, dm))
+                          "code ({}) for datamap {}".format(resp.status_code, serialized))
         except Exception:
             log.exception("Unable to process datamap. zing-connector URL: {}".format(self.zing_connector_url))
+
