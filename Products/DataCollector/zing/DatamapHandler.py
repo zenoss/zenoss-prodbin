@@ -17,7 +17,9 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 
 GLOBAL_ZING_CONNECTOR_URL = "zing-connector-url"
+GLOBAL_ZING_CONNECTOR_TIMEOUT = "zing-connector-timeout"
 ZING_CONNECTOR_DATAMAP_ENDPOINT = "/api/model/ingest"
+DEFAULT_TIMEOUT = 2
 
 logging.basicConfig()
 log = logging.getLogger("zen.DatamapHandler")
@@ -43,6 +45,7 @@ class ZingDatamapHandler(object):
     def __init__(self):
         self.session = requests.Session()
         self.zing_connector_url = self.get_zing_connector_url()
+        self.zing_connector_timeout = self.get_zing_connector_timeout()
         msg = "Zenhub{}configured to send datamps to zing-connector. {}"
         if not self.zing_connector_url:
             log.warn(msg.format(" NOT ", ""))
@@ -54,6 +57,12 @@ class ZingDatamapHandler(object):
         zing_connector_host = getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_URL)
         if zing_connector_host:
             return urlparse.urljoin(zing_connector_host, ZING_CONNECTOR_DATAMAP_ENDPOINT)
+
+    def get_zing_connector_timeout(self):
+        timeout = getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_TIMEOUT)
+        if not timeout:
+            timeout = DEFAULT_TIMEOUT
+        return timeout
 
     def _get_zing_tx_state(self):
         """
@@ -113,17 +122,40 @@ class ZingDatamapHandler(object):
         while facts:
             batch = facts[:batch_size]
             del facts[:batch_size]
-            self._send_facts(batch)
+            self.send_facts(batch)
 
-    def _send_facts(self, facts):
+    def _send_facts(self, facts, already_serialized=False):
+        resp_code = -1
         try:
             if not facts: # nothing to send
-                return
-            serialized = serialize_facts(facts)
-            resp = self.session.put(self.zing_connector_url, data=serialized)
-            if resp.status_code != 200:
-                log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp.status_code))
-                log.debug("Datamaps for which zing-connector returned unexpected response: {}".format(serialized))
-        except Exception:
-            log.exception("Unable to process datamap. zing-connector URL: {}".format(self.zing_connector_url))
+                return 200
+            if already_serialized:
+                serialized = facts
+            else:
+                serialized = serialize_facts(facts)
+            resp = self.session.put(self.zing_connector_url, data=serialized, timeout=self.zing_connector_timeout)
+            resp_code = resp.status_code
+        except Exception as e:
+            log.exception("Unable to send facts. zing-connector URL: {}. Exception {}".format(self.zing_connector_url, e))
+        return resp_code
+
+    def send_facts(self, facts):
+        resp_code = self._send_facts(facts)
+        if resp_code != 200:
+            log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp_code))
+            if resp_code == 500:
+                log.info("Sending facts one by one to minimize data loss")
+                self.send_one_by_one(facts)
+        return resp_code == 200
+
+    def send_one_by_one(self, facts):
+        failed = 0
+        for fact in facts:
+            serialized = serialize_facts( [fact] )
+            resp_code = self._send_facts(serialized, already_serialized=True)
+            if resp_code != 200:
+                failed += 1
+                log.warn("Error sending fact: {}".format(serialized))
+        log.warn("{} out of {} facts were not processed.".format(failed, len(facts)))
+
 
