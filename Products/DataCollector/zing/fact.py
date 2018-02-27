@@ -51,6 +51,15 @@ class Fact(object):
         apply_extra_fields(fact_context, f)
         return f
 
+    @staticmethod
+    def from_device(device):
+        f = Fact()
+        ctx = FactContext(device)
+        f.metadata[FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
+        f.metadata[FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.data[FactKeys.NAME_KEY] = ctx.name
+        return f
+
     def __init__(self):
         self.id = shortid()
         self.metadata = {}
