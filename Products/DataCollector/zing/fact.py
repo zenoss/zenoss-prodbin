@@ -78,7 +78,14 @@ class _FactEncoder(JSONEncoder):
         data_out = {}
         for k, v in data_in.iteritems():
             if isinstance(v, list) or isinstance(v, tuple) or isinstance(v, set):
-                data_out[k] = sorted(v)
+                # whatever comes in the list, tuple etc, needs to be scalar
+                # if not, cast it to string
+                values = []
+                for x in v:
+                    if not isinstance(x, (str, int, float, bool)):
+                        x = str(x)
+                    values.append(x)
+                data_out[k] = sorted(values)
             elif isinstance(v, MultiArgs):
                 data_out[k] = sorted(v.args)
             else:
