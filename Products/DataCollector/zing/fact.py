@@ -29,7 +29,7 @@ class Fact(object):
             del d["classname"]
         for k, v  in d.items():
             # These types are currently all that the model ingest service can handle.
-            if not isinstance(v, (str, int, float, bool, list, tuple, MultiArgs, set)):
+            if not isinstance(v, (str, int, long, float, bool, list, tuple, MultiArgs, set)):
                 del d[k]
         f.update(d)
         if parent_device is not None:
@@ -82,7 +82,7 @@ class _FactEncoder(JSONEncoder):
                 # if not, cast it to string
                 values = []
                 for x in v:
-                    if not isinstance(x, (str, int, float, bool)):
+                    if not isinstance(x, (str, int, long, float, bool)):
                         x = str(x)
                     values.append(x)
                 data_out[k] = sorted(values)
