@@ -7,7 +7,10 @@ from Products.DataCollector.plugins.DataMaps import MultiArgs
 from .shortid import shortid
 
 import time
+import logging
 
+logging.basicConfig()
+log = logging.getLogger("zen.Fact")
 
 class FactKeys(object):
     CONTEXT_UUID_KEY = "contextUUID"
@@ -78,11 +81,13 @@ class _FactEncoder(JSONEncoder):
         data_out = {}
         for k, v in data_in.iteritems():
             if isinstance(v, list) or isinstance(v, tuple) or isinstance(v, set):
-                # whatever comes in the list, tuple etc, needs to be scalar
-                # if not, cast it to string
+                # whatever comes in the list, set etc. needs to be scalar, if it isnt
+                # cast it to string for now.
+                # TODO: Review if we need to support more complex types (list of lists, etc)
                 values = []
                 for x in v:
                     if not isinstance(x, (str, int, long, float, bool)):
+                        log.debug("Found non scalar type in list ({}). Casting it to str".format(x.__class__))
                         x = str(x)
                     values.append(x)
                 data_out[k] = sorted(values)
