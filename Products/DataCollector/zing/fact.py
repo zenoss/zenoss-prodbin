@@ -8,6 +8,15 @@ from .shortid import shortid
 
 import time
 
+
+class FactKeys(object):
+    CONTEXT_UUID_KEY = "contextUUID"
+    META_TYPE_KEY = "meta_type"
+    NAME_KEY = "name"
+    MEM_CAPACITY_KEY = "mem_capacity"
+    LOCATION_KEY = "location"
+
+
 class Fact(object):
 
     @staticmethod
@@ -29,10 +38,26 @@ class Fact(object):
             f.metadata["relationship"] = relationship
 
         # Hack in whatever extra stuff we need.
-        obj = (context or {}).get(om)
-        if obj is not None:
-            apply_extra_fields(obj, f)
+        om_context = (context or {}).get(om)
+        if om_context is not None:
+            apply_extra_fields(om_context, f)
 
+        return f
+
+    @staticmethod
+    def from_object(obj):
+        f = Fact()
+        fact_context = FactContext(obj)
+        apply_extra_fields(fact_context, f)
+        return f
+
+    @staticmethod
+    def from_device(device):
+        f = Fact()
+        ctx = FactContext(device)
+        f.metadata[FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
+        f.metadata[FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.data[FactKeys.NAME_KEY] = ctx.name
         return f
 
     def __init__(self):
@@ -42,6 +67,9 @@ class Fact(object):
 
     def update(self, other):
         self.data.update(other)
+
+    def is_valid(self):
+        return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
 
 
 class _FactEncoder(JSONEncoder):
@@ -69,55 +97,86 @@ class _FactEncoder(JSONEncoder):
             return o.args
         return JSONEncoder.default(self, o)
 
+
 FactEncoder = _FactEncoder()
 
 
-def serialize_datamap(device, dm, context):
-    """
-    Converts a datamap to a JSON-encoded list of facts.
-    """
-    facts = []
-    if isinstance(dm, RelationshipMap):
-        for om in dm.maps:
-            facts.append(Fact.from_object_map(om, device, dm.relname, context=context))
-    elif isinstance(dm, ObjectMap):
-        facts.append(Fact.from_object_map(dm, context=context))
-    if facts:
-        encoded = FactEncoder.encode({"models": facts})
-        return encoded
+class FactContext(object):
 
-def apply_extra_fields(obj, fact):
-    """
-    A simple (temporary) hook to add extra information to a fact that isn't
-    found in the datamap that triggered this serialization. This needs a proper
-    event subscriber framework to be maintainable, so this will only work so
-    long as the number of fields is pretty small.
-    """
-    from Products.ZenModel.Device import Device
+    def __init__(self, obj):
+        self.uuid = None
+        self.meta_type = None
+        self.name = None
+        self.mem_capacity = None
+        self.location = None
+        self.is_device = False
+        self._extract_relevant_fields_from_object(obj)
 
-    fact.metadata["contextUUID"] = obj.getUUID()
-    fact.metadata["meta_type"] = obj.meta_type
-
-    # titleOrId
-    try:
-        fact.data["name"] = obj.titleOrId()
-    except Exception:
-        pass
-
-    if isinstance(obj, Device):
-        # mem_capacity on devices
+    def _extract_relevant_fields_from_object(self, obj):
         try:
-            fact.data["mem_capacity"] = obj.hw.totalMemory
+            self.uuid = obj.getUUID()
+        except:
+            pass
+        try:
+            self.meta_type = obj.meta_type
+        except:
+            pass
+        try:
+            self.name = obj.titleOrId()
         except Exception:
             pass
 
-        # location on devices
-        if "location" not in fact.data:
+        from Products.ZenModel.Device import Device
+        if isinstance(obj, Device):
+            self.is_device = True
+            try:
+                self.mem_capacity = obj.hw.totalMemory
+            except Exception:
+                pass
             try:
                 loc = obj.location()
             except Exception:
                 pass
             else:
                 if loc is not None:
-                    fact.data["location"] = loc.titleOrId()
+                    self.location = loc.titleOrId()
+
+
+def facts_from_datamap(device, dm, context):
+    facts = []
+    if isinstance(dm, RelationshipMap):
+        for om in dm.maps:
+            f = Fact.from_object_map(om, device, dm.relname, context=context)
+            if f.is_valid():
+                facts.append(f)
+    elif isinstance(dm, ObjectMap):
+        f = Fact.from_object_map(dm, context=context)
+        if f.is_valid():
+            facts.append(f)
+    return facts
+
+
+def serialize_facts(facts):
+    if facts:
+        encoded = FactEncoder.encode({"models": facts})
+        return encoded
+
+
+def apply_extra_fields(om_context, fact):
+    """
+    A simple (temporary) hook to add extra information to a fact that isn't
+    found in the datamap that triggered this serialization. This needs a proper
+    event subscriber framework to be maintainable, so this will only work so
+    long as the number of fields is pretty small.
+    """
+    fact.metadata[FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
+    fact.metadata[FactKeys.META_TYPE_KEY] = om_context.meta_type
+    fact.data[FactKeys.NAME_KEY] = om_context.name
+
+    if om_context.is_device:
+        if om_context.mem_capacity is not None:
+            fact.data[FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
+        if FactKeys.LOCATION_KEY not in fact.data and om_context.location is not None:
+            fact.data[FactKeys.LOCATION_KEY] = om_context.location
+
 
