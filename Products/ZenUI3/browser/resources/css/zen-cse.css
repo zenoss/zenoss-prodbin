@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 @font-face {
     font-family: RobotoCondensed;
     font-style: normal;
@@ -42,8 +41,7 @@ limitations under the License.
     background-image: linear-gradient(155deg, #444 0%,#222 100%);
 }
 
-
-/*          palette
+/*         palette
 
       blue row selected     #8cacd4
 light blue row hover        #d2e0f1
@@ -228,7 +226,6 @@ darker input fields:        #505050
 .z-cse #controls_panel
 { background-image: none; background-color: rgba(255,255,255,0.4); border: 0; }
 
-
 /*
 ================
 BYE BYE BORDERS
@@ -368,7 +365,7 @@ BYE BYE BORDERS
 
     /* main search sprite background */
     .z-cse #searchbox-container .x-form-trigger {
-        background-image: url('++resource++zenui/img/v.svg');
+        background-image: url('++resource++zenui/img/cse-v.svg');
         background-size: 12px;
         background-repeat: no-repeat;
         background-position: 2px 6px !important;
@@ -409,7 +406,7 @@ BYE BYE BORDERS
 
     /* help */
     .z-cse #help-icon-container a {
-        background: url('++resource++zenui/img/help-icon.svg');
+        background: url('++resource++zenui/img/cse-help-icon.svg');
         background-size: contain;
         background-color: #9aa3ad;
         border-radius: 10px;
@@ -477,7 +474,7 @@ BYE BYE BORDERS
     .z-cse span.status-up,
     .z-cse span.status-down-large,
     .z-cse span.status-down {
-        background-image: url(++resource++zenui/img/cse-up-down.svg);
+        background-image: url('++resource++zenui/img/cse-up-down.svg');
     }
 
     .z-cse span.status-up-large {
@@ -552,7 +549,7 @@ BYE BYE BORDERS
         }
         .z-cse .x-form-arrow-trigger,
         .z-cse .x-form-date-trigger {
-            background-image: url('++resource++zenui/img/v.svg');
+            background-image: url('++resource++zenui/img/cse-v.svg');
             background-size: 12px;
             background-repeat: no-repeat;
             background-position: 3px 6px !important;
@@ -1082,34 +1079,17 @@ BYE BYE BORDERS
         text-transform: none;
     }
 
-    /* infrastructure | networks */
-    .z-cse #NetworkDetailCardPanel .largetoolbar {
-        padding: 12px 7px 35px 7px;
+    /* advanced | settings | commands */
+    .z-cse #contentPaneContainer #DefineCommands td {
+        font-size: 12px;
+        min-width: 120px;
     }
-        .z-cse #NetworkDetailCardPanel .x-grid-with-row-lines {
-            margin-top: 15px;
-        }
-        .z-cse #NetworkDetailCardPanel .x-btn {
-            top: 0 !important;
-            margin-left: 6px;
-        }
-        .z-cse #NetworkDetailCardPanel .x-form-arrow-trigger {
-            height: 23px;
-        }
-        .z-cse #config_property_panel .x-toolbar-docked-top {
-            height: 34px;
-            padding-left: 6px;
-        }
-            .z-cse #config_property_panel .x-grid-header-ct {
-                top: 34px !important;
-            }
 
     /*
     ================
     FONT COLOR
     ================
     */
-
 
     /* light theme text */
     .z-cse div.control-label,
@@ -1148,6 +1128,7 @@ BYE BYE BORDERS
     .z-cse .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
     .z-cse .x-tree-panel .rootNode,
     .z-cse .x-toolbar .x-toolbar-text,
+    .z-cse .z-bc .zentable-modified .tabletitle-center,
     .z-cse .zenfooter_threshold,
     .z-cse #contentPaneContainer table td input[type=text],
     .z-cse #controls_panel ~ p.message,
@@ -1599,6 +1580,11 @@ BYE BYE BORDERS
     .z-cse #masterDetailNav #deviceDetailNav-body
     { padding-top: 0; }
 
+    .z-cse .x-tree-panel .rootNode,
+    .z-cse .x-tree-panel .subNode {
+        padding-left: 6px;
+    }
+
     /* infrastructure | ip services | display dropdown */
     .z-cse .x-boundlist-floating .x-boundlist-item {
         font-size: 11px;
@@ -1637,6 +1623,28 @@ BYE BYE BORDERS
         .z-cse #controls_panel button:hover {
             background-color: #b6cbe4;
         }
+
+    /* infrastructure | networks */
+    .z-cse #NetworkDetailCardPanel .largetoolbar {
+        padding: 12px 7px 35px 7px;
+    }
+        .z-cse #NetworkDetailCardPanel .x-grid-with-row-lines {
+            margin-top: 15px;
+        }
+        .z-cse #NetworkDetailCardPanel .x-btn {
+            top: 0 !important;
+            margin-left: 6px;
+        }
+        .z-cse #NetworkDetailCardPanel .x-form-arrow-trigger {
+            height: 23px;
+        }
+        .z-cse #config_property_panel .x-toolbar-docked-top {
+            height: 34px;
+            padding-left: 6px;
+        }
+            .z-cse #config_property_panel .x-grid-header-ct {
+                top: 34px !important;
+            }
 
     /* infrastructure | processes */
     .z-cse #processForm fieldset,
@@ -1727,9 +1735,6 @@ BYE BYE BORDERS
             height: 96px;
         }
 
-    .z-cse #contentPaneContainer .x-form-arrow-trigger {
-        margin-top: 4px;
-    }
     .z-cse #contentPaneContainer input.tableheader {
         padding: 4px 9px;
         border-radius: 3px;
@@ -1939,7 +1944,6 @@ BYE BYE BORDERS
         =====================================================================================
 */
 
-
     /* main panel */
     .z-cse.z-cse-dark #center_panel .x-panel-header-docked-top,
     .z-cse.z-cse-dark #center_panel .largetoolbar {
@@ -2045,7 +2049,6 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled .x-btn-inner
     { color: #eee !important; }
 
-
     /* dark theme text */
     .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse.z-cse-dark select,
@@ -2079,6 +2082,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-panel-hierarchy .x-grid-row .x-grid-cell-inner,
     .z-cse.z-cse-dark .x-toolbar .x-toolbar-text,
     .z-cse.z-cse-dark .x-tree-panel .rootNode,
+    .z-cse.z-cse-dark .z-bc .zentable-modified .tabletitle-center,
     .z-cse.z-cse-dark .zenfooter_threshold,
     .z-cse.z-cse-dark #contentPaneContainer table td input[type=text],
     .z-cse.z-cse-dark #controls_panel ~ p.message,
@@ -2174,7 +2178,6 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
     { color: #fafafa !important }
 
-
     /* dark charts */
     .z-cse.z-cse-dark div.europagraph {
         background-color: rgba(255,255,255,0.15);
@@ -2217,7 +2220,6 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #center_panel #layers_group {
         background-color: #555;
     }
-
 
     /* infrastructure | manufacturers */
     .z-cse.z-cse-dark #man_center_panel-body .x-toolbar-docked-top {
