@@ -53,17 +53,17 @@ class TestIpService(ZenModelBaseTest):
         self.iface.addIpAddress('1.2.3.4')
 
         # Explicitly set the manageIp at the device level
-        self.dev.setManageIp('1.2.3.4')
-        self.assertEquals(self.dev.getManageIp(), '1.2.3.4')
+        self.dev.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.dev.getManageIp(), '1.2.3.4/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
-        self.dev.setManageIp('2.3.4.5')
+        self.dev.setManageIp('2.3.4.5/24')
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
         # Explicitly set the manageIp at the service level
         self.ipsvc.ipaddresses = [ '0.0.0.0' ]
-        self.ipsvc.setManageIp('1.2.3.4')
-        self.assertEquals(self.dev.getManageIp(), '2.3.4.5')
+        self.ipsvc.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.dev.getManageIp(), '2.3.4.5/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
         # Unset the manageIp
@@ -84,7 +84,7 @@ class TestIpService(ZenModelBaseTest):
         self.dev.os.interfaces._setObject('test',tmpo)
         self.iface = self.dev.getDeviceComponents()[1]
         self.iface.addIpAddress('1.2.3.4')
-        self.dev.setManageIp('1.2.3.4')
+        self.dev.setManageIp('1.2.3.4/24')
 
         self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(), ['1.2.3.4'])
 
@@ -112,10 +112,10 @@ class TestIpService(ZenModelBaseTest):
         self.dev.os.interfaces._setObject('test',tmpo)
         self.iface = self.dev.getDeviceComponents()[1]
         self.iface.addIpAddress('1.2.3.4')
-        self.dev.setManageIp('1.2.3.4')
+        self.dev.setManageIp('1.2.3.4/24')
         self.ipsvc.ipaddresses = [ '0.0.0.0' ]
 
-        self.assertEquals(self.dev.getManageIp(), '1.2.3.4')
+        self.assertEquals(self.dev.getManageIp(), '1.2.3.4/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
         # Have two IP addresses
@@ -123,12 +123,12 @@ class TestIpService(ZenModelBaseTest):
         self.dev.os.interfaces._setObject('test1',tmpo)
         self.iface1 = self.dev.getDeviceComponents()[2]
         self.iface1.addIpAddress('2.3.4.5')
-        self.dev.setManageIp('2.3.4.5')
+        self.dev.setManageIp('2.3.4.5/24')
 
-        self.assertEquals(self.dev.getManageIp(), '2.3.4.5')
+        self.assertEquals(self.dev.getManageIp(), '2.3.4.5/24')
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
-        self.ipsvc.setManageIp('1.2.3.4')
+        self.ipsvc.setManageIp('1.2.3.4/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
         self.ipsvc.unsetManageIp()
@@ -136,7 +136,7 @@ class TestIpService(ZenModelBaseTest):
 
         # When a service restarts with new configuration
         # it will still use custom manageIp (ZEN-21533)
-        self.ipsvc.setManageIp('2.3.4.5')
+        self.ipsvc.setManageIp('2.3.4.5/24')
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
         self.ipsvc.ipaddresses = [ '1.2.3.4' ]
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
@@ -144,7 +144,7 @@ class TestIpService(ZenModelBaseTest):
 
         # Remove an IP address from an interface
         self.ipsvc.ipaddresses = [ '0.0.0.0' ]
-        self.ipsvc.setManageIp('1.2.3.4')
+        self.ipsvc.setManageIp('1.2.3.4/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
         self.iface.setIpAddresses(['10.20.30.40/8'])
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')

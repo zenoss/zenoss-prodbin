@@ -39,11 +39,11 @@ class TestWinService(ZenModelBaseTest):
     
     
     def testSetManageIp(self):
-        self.wsvc.setManageIp('1.2.3.4')
-        self.assert_(self.wsvc.getManageIp() == '1.2.3.4')
-        self.assert_(self.dev.getManageIp() == '1.2.3.4')
-        self.dev.setManageIp('2.3.4.5')
-        self.assert_(self.wsvc.getManageIp() == '2.3.4.5')
+        self.wsvc.setManageIp('1.2.3.4/24')
+        self.assert_(self.wsvc.getManageIp() == '1.2.3.4/24')
+        self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        self.dev.setManageIp('2.3.4.5/24')
+        self.assert_(self.wsvc.getManageIp() == '2.3.4.5/24')
 
 
     def testGets(self):

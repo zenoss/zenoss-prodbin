@@ -25,13 +25,12 @@ from urllib import quote as urlquote
 from ipaddr import IPAddress
 from Acquisition import aq_base
 from zope.event import notify
-from ZODB.transact import transact
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
-                                     ipunwrap, getHostByName
+                                     ipunwrap, getHostByName, ipAndMaskFromIpMask
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 # base classes for device
@@ -334,12 +333,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Return the name of this device.  Default is titleOrId.
         """
         return self.titleOrId()
-
-    @transact
-    def clearUnusedIp(self):
-        ip = self.ipaddress()
-        if ip and not ip.device():
-            ip.getPrimaryParent()._delObject(ip.id)
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'changeDeviceClass')
@@ -963,7 +956,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         message = ''
         ip = ip.replace(' ', '')
         origip = ip
-        oldManageIp = self.ipaddress()
         ip = self._sanitizeIPaddress(ip)
 
         if not ip: # What if they put in a DNS name?
@@ -1000,12 +992,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
                 #Create a new IpAddress object from manageIp under the Network
-                ipobj = self.getNetworkRoot().createIp(ip)
+                ipWithoutNetmask, netmask = ipAndMaskFromIpMask(ip)
+                ipobj = self.getNetworkRoot().createIp(ipWithoutNetmask, netmask)
                 self.ipaddress.addRelation(ipobj)
                 notify(IndexingEvent(ipobj))
-                #remove anused manageIp from Network
-                if oldManageIp and not oldManageIp.device():
-                     oldManageIp.getPrimaryParent().removeRelation(oldManageIp)
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)
 
@@ -1867,8 +1857,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
         self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
         self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(self.getId())
-        #remove unused ip from network
-        self.clearUnusedIp()
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':

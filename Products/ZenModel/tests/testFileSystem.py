@@ -29,11 +29,11 @@ class TestFileSystem(ZenModelBaseTest):
 
 
     def testSetManageIp(self):
-        self.fs.setManageIp('1.2.3.4')
-        self.assert_(self.fs.getManageIp() == '1.2.3.4')
-        self.assert_(self.dev.getManageIp() == '1.2.3.4')
-        self.dev.setManageIp('2.3.4.5')
-        self.assert_(self.fs.getManageIp() == '2.3.4.5')
+        self.fs.setManageIp('1.2.3.4/24')
+        self.assert_(self.fs.getManageIp() == '1.2.3.4/24')
+        self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        self.dev.setManageIp('2.3.4.5/24')
+        self.assert_(self.fs.getManageIp() == '2.3.4.5/24')
 
 
     def testGets(self):
