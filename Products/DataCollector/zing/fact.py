@@ -7,7 +7,10 @@ from Products.DataCollector.plugins.DataMaps import MultiArgs
 from .shortid import shortid
 
 import time
+import logging
 
+logging.basicConfig()
+log = logging.getLogger("zen.Fact")
 
 class FactKeys(object):
     CONTEXT_UUID_KEY = "contextUUID"
@@ -29,7 +32,7 @@ class Fact(object):
             del d["classname"]
         for k, v  in d.items():
             # These types are currently all that the model ingest service can handle.
-            if not isinstance(v, (str, int, float, bool, list, tuple, MultiArgs, set)):
+            if not isinstance(v, (str, int, long, float, bool, list, tuple, MultiArgs, set)):
                 del d[k]
         f.update(d)
         if parent_device is not None:
@@ -78,7 +81,16 @@ class _FactEncoder(JSONEncoder):
         data_out = {}
         for k, v in data_in.iteritems():
             if isinstance(v, list) or isinstance(v, tuple) or isinstance(v, set):
-                data_out[k] = sorted(v)
+                # whatever comes in the list, set etc. needs to be scalar, if it isnt
+                # cast it to string for now.
+                # TODO: Review if we need to support more complex types (list of lists, etc)
+                values = []
+                for x in v:
+                    if not isinstance(x, (str, int, long, float, bool)):
+                        log.debug("Found non scalar type in list ({}). Casting it to str".format(x.__class__))
+                        x = str(x)
+                    values.append(x)
+                data_out[k] = sorted(values)
             elif isinstance(v, MultiArgs):
                 data_out[k] = sorted(v.args)
             else:
