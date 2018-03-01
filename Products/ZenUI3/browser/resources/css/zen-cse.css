@@ -717,9 +717,7 @@ BYE BYE BORDERS
     .z-cse #component_searchfield-inputEl,
     .z-cse #navGrid-filter-name-inputEl,
     .z-cse #master_panel .x-hierarchy-search input[type=text],
-    .z-cse #productsgrid_id-filter-prod_id-inputEl,
-    .z-cse .tabletitle #filter,
-    .z-cse table.x-form-item.x-grid-filter input[type=text]
+    .z-cse .tabletitle #filter
     {
         background-color: #f4f4f4;
         background-image: url(++resource++zenui/img/ext4/icon/filter.png);
@@ -728,7 +726,12 @@ BYE BYE BORDERS
         background-size: 13px;
         padding-left: 18px;
     }
-
+    /* no background image on grid filters -- too cluttered */
+    .z-cse #productsgrid_id-filter-prod_id-inputEl,
+    .z-cse table.x-form-item.x-grid-filter input[type=text]
+    {
+        background-color: #f4f4f4;
+    }
     /* event rainbow */
     .z-cse .largetoolbar table.eventrainbow
     { border: 0; }
