@@ -63,7 +63,7 @@ class IManufacturersFacade(IFacade):
         delete selected entry
         """
         
-    def returnTree(id):
+    def returnManufacturerList(id):
         """
         return tree with custom formatted data
         """
