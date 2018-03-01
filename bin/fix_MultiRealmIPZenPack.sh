@@ -24,7 +24,9 @@ else
 --- __init__.py
 +++ __init__.py
 @@ -47,8 +47,6 @@ Important Methods that are changed are:
+
  """
+
 -__import__('pkg_resources').declare_namespace(__name__)
 -
  import Globals
