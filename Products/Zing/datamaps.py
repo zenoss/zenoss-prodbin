@@ -121,6 +121,9 @@ class ZingDatamapHandler(object):
             return
         try:
             log.debug("Sending {} datamaps to zing-connector.".format(len(zing_state.datamaps)))
+            if not self.zing_connector.ping():
+                log.error("Datamaps not forwarded to Zing: zing-connector cant be reached")
+                return
             facts = []
             for device, datamap in zing_state.datamaps:
                 dm_facts = self.facts_from_datamap(device, datamap, zing_state.contexts)

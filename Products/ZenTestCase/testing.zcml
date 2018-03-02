@@ -21,6 +21,7 @@
   <include package="Products.ZenMessaging.queuemessaging"/>
   <include package="Products.ZenHub"/>
   <include package="Products.ZenUtils"/>
+  <include package="Products.Zing"/>
 
 
 </configure>
