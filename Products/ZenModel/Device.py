@@ -119,6 +119,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName, performanceMonitor, manageIp)
+    device.setPerformanceMonitor(performanceMonitor)
     device.setManageIp(manageIp)
     device.manage_editDevice(
                 tag, serialNumber,
