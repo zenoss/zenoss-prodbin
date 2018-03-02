@@ -9,7 +9,7 @@
 
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.Auth0 import Auth0, getAuth0Conf
-from Products.ZenUtils.CSEUtils import getZenossURI
+from Products.ZenUtils.CSEUtils import getZenossURI, getCSEConf
 from Products.ZenUtils.Utils import getQueryArgsFromRequest
 
 import base64
@@ -20,16 +20,18 @@ import urllib
 
 log = logging.getLogger('Auth0')
 
+
 class Auth0Callback(BrowserView):
     """
     Auth0 redirects to this callback after a login attempt.
     """
     def __call__(self):
+        zport_dmd = '/zport/dmd'
         conf = getAuth0Conf()
         zenoss_uri = getZenossURI(self.request)
         if not conf:
             log.warn('No Auth0 config in GlobalConfig - not saving id token')
-            return self.request.response.redirect(zenoss_uri + '/zport/dmd')
+            return self.request.response.redirect(zenoss_uri + zport_dmd)
 
         args = getQueryArgsFromRequest(self.request)
         state_arg = args.get('state')
@@ -55,7 +57,7 @@ class Auth0Callback(BrowserView):
             resp_string = conn.getresponse().read()
         except Exception as a:
             log.error('Unable to obtain token from Auth0: %s', a)
-            return self.request.response.redirect(zenoss_uri + '/zport/dmd')
+            return self.request.response.redirect(zenoss_uri + zport_dmd)
 
         resp_data = json.loads(resp_string)
         refresh_token = resp_data.get('refresh_token')
@@ -65,4 +67,9 @@ class Auth0Callback(BrowserView):
         sessionInfo.refreshToken = refresh_token
 
         came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
+        virtual_root = getCSEConf().get('virtualroot', '')
+        if virtual_root and \
+            virtual_root not in came_from \
+            and zport_dmd in came_from:
+            came_from = came_from.replace(zport_dmd, virtual_root + zport_dmd)
         return self.request.response.redirect(came_from)
