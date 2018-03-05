@@ -63,9 +63,9 @@ class IManufacturersFacade(IFacade):
         delete selected entry
         """
         
-    def returnManufacturerList(id):
+    def getManufacturerList(self):
         """
-        return tree with custom formatted data
+        return menu list with custom formatted data
         """
 
 class IManufacturersInfo(IInfo):

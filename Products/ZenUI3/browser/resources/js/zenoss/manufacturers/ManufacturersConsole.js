@@ -252,7 +252,7 @@ Ext.onReady(function () {
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.manufactures.StoreModel',
-                directFn: REMOTE.returnManufacturerList,
+                directFn: REMOTE.getManufacturerList,
                 initialSortColumn: 'text',
                 initialSortDirection: 'ASC',
                 root: 'data',

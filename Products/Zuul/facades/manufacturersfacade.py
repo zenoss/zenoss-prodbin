@@ -296,7 +296,7 @@ class ManufacturersFacade(TreeFacade):
             )
         )
 
-    def returnManufacturerList(self):
+    def getManufacturerList(self):
         """
         build a custom tree that works for the left panel
         """

@@ -154,10 +154,10 @@ class ManufacturersRouter(TreeRouter):
             "Scheduled job to move %d product(s)." % len(ids)
         )
         
-    def returnManufacturerList(self):
+    def getManufacturerList(self):
         """
         return a usable tree
         """
         facade = self._getFacade()
-        data = facade.returnManufacturerList()
+        data = facade.getManufacturerList()
         return DirectResponse(data=Zuul.marshal(data))
