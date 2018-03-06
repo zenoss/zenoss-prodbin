@@ -14,8 +14,8 @@ Create relations between device and Ip Address under Network
 import Migrate
 import logging
 log = logging.getLogger("zen.migrate")
-from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenModel.IpAddress import IpAddress
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
@@ -32,7 +32,7 @@ class addDeviceIpAddrRelation(Migrate.Step):
                 continue
 
         log.info("Updating relationships on Ip Addresses")
-        catalog = ICatalogTool(dmd.Networks)
+        catalog = IModelCatalogTool(dmd.Networks)
         for ip in catalog.search(IpAddress):
             try:
                 ip.getObject().buildRelations()
