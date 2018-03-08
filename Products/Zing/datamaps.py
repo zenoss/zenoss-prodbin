@@ -95,7 +95,7 @@ class ZingDatamapHandler(object):
             zing_tx_state = ZingDatamapsTxState()
             setattr(current_tx, TX_DATA_FIELD_NAME, zing_tx_state)
             current_tx.addAfterCommitHook(self.process_datamaps, args=(zing_tx_state,))
-            log.info("ZingDatamapHandler AfterCommitHook added. State added to current transaction.")
+            log.debug("ZingDatamapHandler AfterCommitHook added. State added to current transaction.")
         return zing_tx_state
 
     def add_datamap(self, device, datamap):
@@ -178,6 +178,12 @@ class ZingDatamapHandler(object):
         om_context = (context or {}).get(om)
         if om_context is not None:
             self.apply_extra_fields(om_context, f)
+
+        # FIXME temp solution until we are sure all zenpacks send the plugin
+        if not f.metadata.get(FactKeys.PLUGIN_KEY):
+            log.warn("Found fact without plugin information: {}".format(f.metadata))
+            if f.metadata.get(FactKeys.META_TYPE_KEY):
+                f.metadata[FactKeys.PLUGIN_KEY] = f.metadata[FactKeys.META_TYPE_KEY]
         return f
 
     def facts_from_datamap(self, device, dm, context):
@@ -185,9 +191,6 @@ class ZingDatamapHandler(object):
         if isinstance(dm, RelationshipMap):
             for om in dm.maps:
                 f = self.fact_from_object_map(om, device, dm.relname, context=context)
-                if not getattr(om, PLUGIN_NAME_ATTR, None) and \
-                    getattr(dm, PLUGIN_NAME_ATTR, None):
-                    f.metadata[FactKeys.PLUGIN_KEY] = getattr(dm, PLUGIN_NAME_ATTR)
                 if f.is_valid():
                     facts.append(f)
         elif isinstance(dm, ObjectMap):
