@@ -152,7 +152,7 @@ class ZingDatamapHandler(object):
         f.data[FactKeys.NAME_KEY] = ctx.name
         return f
 
-    def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None):
+    def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
         f = Fact()
         d = om.__dict__.copy()
         if "_attrs" in d:
@@ -170,7 +170,7 @@ class ZingDatamapHandler(object):
             f.metadata["parent"] = parent_device.getUUID()
         if relationship is not None:
             f.metadata["relationship"] = relationship
-        plugin_name = getattr(om, PLUGIN_NAME_ATTR, None)
+        plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
         if plugin_name:
             f.metadata[FactKeys.PLUGIN_KEY] = plugin_name
 
@@ -188,13 +188,14 @@ class ZingDatamapHandler(object):
 
     def facts_from_datamap(self, device, dm, context):
         facts = []
+        dm_plugin = getattr(dm, PLUGIN_NAME_ATTR, None)
         if isinstance(dm, RelationshipMap):
             for om in dm.maps:
-                f = self.fact_from_object_map(om, device, dm.relname, context=context)
+                f = self.fact_from_object_map(om, device, dm.relname, context=context, dm_plugin=dm_plugin)
                 if f.is_valid():
                     facts.append(f)
         elif isinstance(dm, ObjectMap):
-            f = self.fact_from_object_map(dm, context=context)
+            f = self.fact_from_object_map(dm, context=context, dm_plugin=dm_plugin)
             if f.is_valid():
                 facts.append(f)
         return facts

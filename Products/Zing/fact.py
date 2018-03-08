@@ -19,7 +19,7 @@ log = logging.getLogger("zen.zing")
 class FactKeys(object):
     CONTEXT_UUID_KEY = "contextUUID"
     META_TYPE_KEY = "meta_type"
-    PLUGIN_KEY = "modeler_plugin"
+    PLUGIN_KEY = "plugin"
     NAME_KEY = "name"
     MEM_CAPACITY_KEY = "mem_capacity"
     LOCATION_KEY = "location"
