@@ -16,7 +16,7 @@ from .fact import Fact, FactKeys
 from zope.interface import implements
 from zope.component.factory import Factory
 
-from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs
+from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing")
@@ -170,6 +170,9 @@ class ZingDatamapHandler(object):
             f.metadata["parent"] = parent_device.getUUID()
         if relationship is not None:
             f.metadata["relationship"] = relationship
+        plugin_name = getattr(om, PLUGIN_NAME_ATTR, None)
+        if plugin_name:
+            f.metadata[FactKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
         om_context = (context or {}).get(om)
@@ -182,6 +185,9 @@ class ZingDatamapHandler(object):
         if isinstance(dm, RelationshipMap):
             for om in dm.maps:
                 f = self.fact_from_object_map(om, device, dm.relname, context=context)
+                if not getattr(om, PLUGIN_NAME_ATTR, None) and \
+                    getattr(dm, PLUGIN_NAME_ATTR, None):
+                    f.metadata[FactKeys.PLUGIN_KEY] = getattr(dm, PLUGIN_NAME_ATTR)
                 if f.is_valid():
                     facts.append(f)
         elif isinstance(dm, ObjectMap):
