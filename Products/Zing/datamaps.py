@@ -148,7 +148,8 @@ class ZingDatamapHandler(object):
         f = Fact()
         ctx = ObjectMapContext(device)
         f.metadata[FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
-        f.metadata[FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.data[FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.metadata[FactKeys.PLUGIN_KEY] = ctx.meta_type
         f.data[FactKeys.NAME_KEY] = ctx.name
         return f
 
@@ -182,8 +183,8 @@ class ZingDatamapHandler(object):
         # FIXME temp solution until we are sure all zenpacks send the plugin
         if not f.metadata.get(FactKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: {}".format(f.metadata))
-            if f.metadata.get(FactKeys.META_TYPE_KEY):
-                f.metadata[FactKeys.PLUGIN_KEY] = f.metadata[FactKeys.META_TYPE_KEY]
+            if f.data.get(FactKeys.META_TYPE_KEY):
+                f.metadata[FactKeys.PLUGIN_KEY] = f.data[FactKeys.META_TYPE_KEY]
         return f
 
     def facts_from_datamap(self, device, dm, context):
@@ -208,7 +209,7 @@ class ZingDatamapHandler(object):
         long as the number of fields is pretty small.
         """
         fact.metadata[FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
-        fact.metadata[FactKeys.META_TYPE_KEY] = om_context.meta_type
+        fact.data[FactKeys.META_TYPE_KEY] = om_context.meta_type
         fact.data[FactKeys.NAME_KEY] = om_context.name
 
         if om_context.is_device:
