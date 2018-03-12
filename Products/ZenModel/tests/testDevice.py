@@ -70,19 +70,21 @@ class TestDevice(ZenModelBaseTest):
     def testManage_createDeviceWithIpFromInterface(self):
         # create device with ip that is on Interface of another device
         testIp = '1.2.3.4'
+        dev1 = manage_createDevice(self.dmd, 'myfirstdevice', '/', manageIp='1.2.3.5')
 
         # Need a network interface on that device
         from Products.ZenModel.IpInterface import IpInterface
         tmpIface = IpInterface('testNIC')
-        self.dev.os.interfaces._setObject('testNIC', tmpIface)
-        self.iface1 = self.dev.getDeviceComponents()[0]
-        self.iface1.addIpAddress(testIp)
+        dev1.os.interfaces._setObject('testNIC', tmpIface)
+        iface = dev1.getDeviceComponents()[0]
+        iface.addIpAddress(testIp)
 
-        ip = self.dev.getNetworkRoot().findIp(testIp)
+        ip = dev1.getNetworkRoot().findIp(testIp)
         self.assert_(ip is not None)
 
-        dev = manage_createDevice(self.dmd, 'mydevice', '/', manageIp=testIp)
-        self.assert_(dev is not None)
+        dev2 = manage_createDevice(self.dmd, 'myseconddevice', '/', manageIp=testIp)
+        self.assertNotEqual(dev1.manageIp, dev2.manageIp)
+        self.assert_(dev2 is not None)
 
     def testIpAddrCreation(self):
         manageIp = '1.2.3.4'
