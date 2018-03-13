@@ -174,7 +174,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
-        mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
@@ -186,6 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                             deviceName, dev)
                 
         if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)

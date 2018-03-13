@@ -263,6 +263,13 @@ class TestDevice(ZenModelBaseTest):
 
         self.dev.setManageIp(testIp)
 
+        # Need a network interface to register an IP in catalog
+        from Products.ZenModel.IpInterface import IpInterface
+        tmpIface = IpInterface('testNIC')
+        self.dev.os.interfaces._setObject('testNIC', tmpIface)
+        self.iface1 = self.dev.getDeviceComponents()[0]
+        self.iface1.addIpAddress('1.2.3.4')
+
         # What about duplicates?
         d = self.dmd.Devices.createInstance('localhost')
         d.setManageIp()
