@@ -46,6 +46,7 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
 from Products.ZenUtils.virtual_root import IVirtualRoot
+from Products.ZenUtils.CSEUtils import getCSEConf
 
 from Products.PluggableAuthService.plugins import SessionAuthHelper
 
@@ -171,7 +172,7 @@ def getLoginURL(self):
     """ Where to send people for logging in """
     url = _orig_getLoginURL(self)
     if url:
-        url = url.replace('/zport/acl_users', '/cse/zport/acl_users')
+        url = url.replace('/zport/acl_users', getCSEConf().get('virtualroot', '') + '/zport/acl_users')
     return url
 CookieAuthHelper.CookieAuthHelper.getLoginURL = getLoginURL
 
