@@ -296,21 +296,19 @@ class ManufacturersFacade(TreeFacade):
             )
         )
 
-    def returnTree(self, id):
+    def getManufacturerList(self):
         """
         build a custom tree that works for the left panel
         """
+        id = "zport/dmd/Manufacturers"
         obj = self._getObject(id)
         data = []
         for sub in obj.getChildNodes():
             if (sub.id != "productSearch"):
                 data.append({
-                    'hidden':False,
-                    'iconCls':"tree-nav",
                     'id':".zport.dmd.Manufacturers."+sub.id,
-                    'leaf':True,
                     'path':"Manufacturers/"+sub.id,
-                    'text':{'count':0,'text':sub.id,'description':sub.supportNumber, 'url': sub.url},
+                    'text':{'text':sub.id,'description':sub.supportNumber, 'url': sub.url},
                     'uid':"/zport/dmd/Manufacturers/"+sub.id
                 })
         return data
