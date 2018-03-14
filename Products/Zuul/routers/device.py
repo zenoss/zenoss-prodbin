@@ -392,13 +392,12 @@ class DeviceRouter(TreeRouter):
         audit('UI.Device.Edit', uid, data_=data)
         return DirectResponse()
 
-    def getDeviceUuidsByName(self, query="", start=0, limit=25, page=1, uuid=None):
+    def getDeviceUuidsByName(self, query="*", start=0, limit=25, page=1, uuid=None):
         """
         Retrieves a list of device uuids. For use in combos.
         If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
-        query = "*" if not query else query
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = [{'name':escape(dev.name),
                    'uuid':IGlobalIdentifier(dev._object).getGUID()}
