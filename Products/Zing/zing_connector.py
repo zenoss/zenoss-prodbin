@@ -25,20 +25,22 @@ log = logging.getLogger("zen.zing")
 
 GLOBAL_ZING_CONNECTOR_URL = "zing-connector-url"
 GLOBAL_ZING_CONNECTOR_ENDPOINT = "zing-connector-endpoint"
+GLOBAL_ZING_CONNECTOR_PING_ENDPOINT = "zing-connector-ping-endpoint"
 GLOBAL_ZING_CONNECTOR_TIMEOUT = "zing-connector-timeout"
 DEFAULT_HOST = "http://localhost:9237"
 DEFAULT_ENDPOINT = "/api/model/ingest"
-PING_ENDPOINT = "/_admin/ping"
+DEFAULT_PING_ENDPOINT = "/_admin/ping"
 DEFAULT_TIMEOUT = 5
 
 
 class ZingConnectorConfig(object):
-    def __init__(self, host=None, endpoint=None, timeout=None):
+    def __init__(self, host=None, endpoint=None, timeout=None, ping_endpoint=None):
         host = host or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_URL) or DEFAULT_HOST
         endpoint = endpoint or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_ENDPOINT) or DEFAULT_ENDPOINT
         timeout = timeout or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_TIMEOUT) or DEFAULT_TIMEOUT
+        ping = ping_endpoint or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_PING_ENDPOINT) or DEFAULT_PING_ENDPOINT
         self.facts_url = urlparse.urljoin(host, endpoint)
-        self.ping_url = urlparse.urljoin(host, PING_ENDPOINT)
+        self.ping_url = urlparse.urljoin(host, ping)
         self.timeout = timeout
 
 
