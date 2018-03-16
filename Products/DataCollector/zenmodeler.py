@@ -37,6 +37,7 @@ from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 from Products.Zuul.utils import safe_hasattr as hasattr
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.DataCollector import Classifier
+from Products.DataCollector.plugins.DataMaps import PLUGIN_NAME_ATTR
 from Products.ZenCollector.interfaces import IEventService
 from Products.ZenCollector.daemon import parseWorkerOptions, addWorkerOptions
 
@@ -702,6 +703,8 @@ class ZenModeler(PBDaemon):
                         datamaps = [datamaps,]
                     if datamaps:
                         newmaps = [m for m in datamaps if m]
+                        for m in newmaps:
+                            setattr(m, PLUGIN_NAME_ATTR, plugin.name())
                         if self.options.save_processed_results:
                             self.savePluginData(device.id, plugin.name(), 'processed', newmaps)
                         maps += newmaps

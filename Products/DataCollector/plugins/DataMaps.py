@@ -14,22 +14,25 @@ from pprint import pformat
 from pprint import pprint
 from twisted.spread import pb
 
+PLUGIN_NAME_ATTR = "plugin_name"
+
 class PBSafe(pb.Copyable, pb.RemoteCopy): pass
 
 class RelationshipMap(PBSafe):
     parentId = ""
     relname = ""
     compname = ""
+    plugin_name = ""
 
-    def __init__(self, relname="", compname="", modname="", objmaps=[],
-            parentId=""):
+    def __init__(self, relname="", compname="", modname="", objmaps=[], parentId="", plugin_name=""):
         self.parentId = parentId
         self.relname = relname
         self.compname = compname
         if modname:
-            self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
+            self.maps = [ObjectMap(dm, modname=modname, plugin_name=plugin_name) for dm in objmaps ]
         else:
-            self.maps = [ObjectMap(dm) for dm in objmaps ]
+            self.maps = [ObjectMap(dm, plugin_name=plugin_name) for dm in objmaps ]
+        self.plugin_name = plugin_name
 
     def __repr__(self):
         display = self.__dict__.copy()
@@ -66,15 +69,17 @@ class ObjectMap(PBSafe):
     compname = ""
     modname = ""
     classname = ""
-    _blockattrs = ('compname', 'modname', 'classname')
+    plugin_name = ""
+    _blockattrs = ('compname', 'modname', 'classname', PLUGIN_NAME_ATTR)
     _attrs = []
 
-    def __init__(self, data={}, compname="", modname="", classname=""):
+    def __init__(self, data={}, compname="", modname="", classname="", plugin_name=""):
         self._attrs = []
         self.updateFromDict(data)
         if compname: self.compname = compname
         if modname: self.modname = modname
         if classname: self.classname = classname
+        if plugin_name: self.plugin_name = plugin_name
 
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
