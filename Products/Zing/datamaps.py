@@ -16,7 +16,7 @@ from .fact import Fact, FactKeys
 from zope.interface import implements
 from zope.component.factory import Factory
 
-from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs
+from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing")
@@ -95,7 +95,7 @@ class ZingDatamapHandler(object):
             zing_tx_state = ZingDatamapsTxState()
             setattr(current_tx, TX_DATA_FIELD_NAME, zing_tx_state)
             current_tx.addAfterCommitHook(self.process_datamaps, args=(zing_tx_state,))
-            log.info("ZingDatamapHandler AfterCommitHook added. State added to current transaction.")
+            log.debug("ZingDatamapHandler AfterCommitHook added. State added to current transaction.")
         return zing_tx_state
 
     def add_datamap(self, device, datamap):
@@ -149,10 +149,11 @@ class ZingDatamapHandler(object):
         ctx = ObjectMapContext(device)
         f.metadata[FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
         f.metadata[FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.metadata[FactKeys.PLUGIN_KEY] = ctx.meta_type
         f.data[FactKeys.NAME_KEY] = ctx.name
         return f
 
-    def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None):
+    def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
         f = Fact()
         d = om.__dict__.copy()
         if "_attrs" in d:
@@ -170,22 +171,32 @@ class ZingDatamapHandler(object):
             f.metadata["parent"] = parent_device.getUUID()
         if relationship is not None:
             f.metadata["relationship"] = relationship
+        plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
+        if plugin_name:
+            f.metadata[FactKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
         om_context = (context or {}).get(om)
         if om_context is not None:
             self.apply_extra_fields(om_context, f)
+
+        # FIXME temp solution until we are sure all zenpacks send the plugin
+        if not f.metadata.get(FactKeys.PLUGIN_KEY):
+            log.warn("Found fact without plugin information: {}".format(f.metadata))
+            if f.metadata.get(FactKeys.META_TYPE_KEY):
+                f.metadata[FactKeys.PLUGIN_KEY] = f.metadata[FactKeys.META_TYPE_KEY]
         return f
 
     def facts_from_datamap(self, device, dm, context):
         facts = []
+        dm_plugin = getattr(dm, PLUGIN_NAME_ATTR, None)
         if isinstance(dm, RelationshipMap):
             for om in dm.maps:
-                f = self.fact_from_object_map(om, device, dm.relname, context=context)
+                f = self.fact_from_object_map(om, device, dm.relname, context=context, dm_plugin=dm_plugin)
                 if f.is_valid():
                     facts.append(f)
         elif isinstance(dm, ObjectMap):
-            f = self.fact_from_object_map(dm, context=context)
+            f = self.fact_from_object_map(dm, context=context, dm_plugin=dm_plugin)
             if f.is_valid():
                 facts.append(f)
         return facts
