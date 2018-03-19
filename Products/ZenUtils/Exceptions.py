@@ -1,48 +1,85 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-import sys
 from exceptions import ImportError, Exception
 from zope.dottedname.resolve import resolve
 
 
-class ZentinelException(Exception): 
+from twisted.python.failure import Failure
+import logging
+log = logging.getLogger("zen.Exceptions")
+
+
+class ZentinelException(Exception):
     """Root of all Zentinel Exceptions"""
     pass
 
 
-class ZenPathError(ZentinelException): 
+class ZenPathError(ZentinelException):
     """When walking a path something along the way wasn't found."""
     pass
 
 
+class ZenResolveExceptionError(ZentinelException):
+    '''failed to resolve exception from twisted.python.failure.Failure
+    '''
+    pass
+
+
 def resolveException(failure):
-    """
-    Resolves a twisted.python.failure into the remote exception type that was
-    initially raised.
-    """
+    '''given a twisted.python.failure
+    return the exception that was initially raised.
+    '''
 
-    #raise the original exception
-    excvalue = failure.value
-    if isinstance(excvalue, Exception):
-        return excvalue
+    # return the original exception
+    if isinstance(failure.value, Exception):
+        return failure.value
 
-    #if the original exception is a string, assume it defines a python exception
-    exctype = failure.type
-    if isinstance(exctype, basestring):
-        try:
-            exctype = resolve(failure.type)
-        except ImportError:
-            exctype = Exception
-        return exctype(excvalue, failure.tb)
+    # try to rebuild the exception from its type string
+    if isinstance(failure.type, str):
+        return _resolve_exception_string(failure)
 
-    #raise the original exception and return its value
+    # last ditch attempt: raise the original exception and return its value
     try:
         failure.raiseException()
-    except:
-        return sys.exc_info()[1]
+    except Exception as e:
+        return e
+
+
+def _resolve_exception_string(failure):
+    if failure.type in special_resolvers:
+        return special_resolvers[failure.type](failure)
+
+    try:
+        exctype = resolve(failure.type)
+        return exctype(failure.value, failure.tb)
+    except ImportError:
+        return ZenResolveExceptionError(
+            failure.value,
+            failure.tb,
+            failure.__dict__
+        )
+
+
+# special resolvers for Exceptions that require additional args
+
+
+def _resolve_twisted_spread_pb_RemoteError(failure):
+    '''special resolution steps for twisted RemoteErrors
+    '''
+    err_type = resolve(failure.type)
+    return err_type(
+        remoteType=failure.remoteType(),
+        value=failure.getErrorMessage(),
+        remoteTraceback=failure.getTracebackObject()
+    )
+
+
+special_resolvers = {
+    'twisted.spread.pb.RemoteError': _resolve_twisted_spread_pb_RemoteError,
+}
