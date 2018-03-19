@@ -274,4 +274,3 @@ def pausedAndOptimizedIndexing(index_handler=None, unindex_handler=None):
     with paused(index_handler, index_buffer):
         with teed(unindex_handler, index_buffer):
             yield
-

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+<browser:page
+    name="Auth0Callback"
+    for="*"
+    class="Products.ZenUtils.Auth0.Auth0Callback.Auth0Callback"
+    permission="zope2.Public"
+    />
+
+</configure>

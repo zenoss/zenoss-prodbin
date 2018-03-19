@@ -36,6 +36,13 @@ class ZenUIResourcesShortcut(BrowserView):
         return self.context.unrestrictedTraverse('++resource++zenui')[name]
 
 
+class CSEShortcut(BrowserView):
+    def __getitem__(self, name):
+        if not name:
+            return self.context.dmd
+        return self.context[name]
+
+
 def get_js_file_list(pkg='Zenoss Application'):
     """
     Parse the JSBuilder2 config file to get a list of file names in the same

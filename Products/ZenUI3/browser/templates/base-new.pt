@@ -11,7 +11,7 @@
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
     <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -41,13 +41,30 @@
         <tal:block tal:content="structure provider:all-js"/>
 
         <!-- Dynamic javascript -->
+        <script tal:content="string:
+            Zenoss.env.CSE_VIRTUAL_ROOT = '${context/zport/virtualRoot}/';
+        " tal:on-error="string:console.error('Unable to load virtual root config')"></script>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
+        <!-- Google Analytics -->
+        <script type="text/javascript">
+            window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+            ga('create', 'UA-112990255-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        <script async src='https://www.google-analytics.com/analytics.js'></script>
+        <!-- End Google Analytics -->
+        <!-- Generic analytics wrapper -->
+        <script src="/++resource++zenui/js/zenoss/Tracker.js"></script>
+        <!-- End generic analytics wrapper -->
         <tal:block tal:content="structure provider:jssnippets"/>
 
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
+
+        <link tal:condition="python:True" rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
 
     </head>
 
@@ -174,7 +191,6 @@ var viewport = new Ext.Viewport({
 
 });
 </script>
-
 <tal:block metal:define-slot="script_layout">
 <!-- Use this slot to add elements to the basic layout. -->
 <script type="text/javascript">
@@ -183,6 +199,7 @@ Ext.onReady(function(){
     Ext.getCmp('center_panel').add(
         new Zenoss.PlaceholderPanel({text: 'center_panel'})
     );
+
 });
 </script>
 </tal:block>
@@ -206,6 +223,7 @@ Ext.History.init(function(mgr){
     Ext.History.selectByToken(mgr.getToken());
 });
 </script>
+
 </body>
 </html>
 </metal:block>

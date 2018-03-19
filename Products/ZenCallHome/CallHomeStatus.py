@@ -104,10 +104,12 @@ class CallHomeStatus(object):
                     err = "Failed: " + val.get('error')
                 else:
                     err = "No errors"
+            else:
+                err = "No errors"
         l.append({'id': 'updresult', 'description': 'Updating result', 'value': err, 'type': 'text'})
         return l
 
-    def _pickleLoadFromRedis(self):
+    def _pickleLoadRedis(self):
         data = self.load_from_redis()
         return pickle.loads(data) if data is not None else dict()
 

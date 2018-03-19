@@ -42,8 +42,10 @@ class ManufacturersRouter(TreeRouter):
         """
         facade = self._getFacade()
         facade.removeProducts(products)
-        audit('UI.Manufacturers.RemoveProducts', products=products)        
-        return DirectResponse.succeed()
+        audit('UI.Manufacturers.RemoveProducts', products=products)
+        return DirectResponse.succeed(
+            "Scheduled job to remove %d product(s)." % len(products)
+        )
 
     @serviceConnectionError        
     @require('Manage DMD')    
@@ -53,11 +55,13 @@ class ManufacturersRouter(TreeRouter):
         """
         facade = self._getFacade()
         oldData = facade.getProductData(params['uid'], params['oldname'])[0]
-        facade.editProduct(params)
-
+        scheduled = facade.editProduct(params)
         audit('UI.Manufacturers.editProduct', params['uid'],
               data_=params, oldData_=oldData)
-
+        if scheduled:
+            return DirectResponse.succeed(
+                "Scheduled job to update product %s." %  params['oldname']
+            )
         return DirectResponse.succeed()
 
     @serviceConnectionError
@@ -142,15 +146,18 @@ class ManufacturersRouter(TreeRouter):
         move products to a different organizer
         """
         facade = self._getFacade()
+        if isinstance(ids, basestring):
+            ids = (ids,)
         facade.moveProduct(moveFrom, moveTarget, ids)
-        audit('UI.Manufacturers.MoveProduct', movedProducts=ids, target=moveTarget)            
-        return DirectResponse.succeed()
+        audit('UI.Manufacturers.MoveProduct', movedProducts=ids, target=moveTarget)
+        return DirectResponse.succeed(
+            "Scheduled job to move %d product(s)." % len(ids)
+        )
         
-    def returnTree(self, id):
+    def getManufacturerList(self):
         """
         return a usable tree
         """
         facade = self._getFacade()
-        data = facade.returnTree(id)                      
-        return data
-      
+        data = facade.getManufacturerList()
+        return DirectResponse(data=Zuul.marshal(data))

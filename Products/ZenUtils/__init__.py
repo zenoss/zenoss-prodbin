@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2007, 2018, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from Products.CMFCore.DirectoryView import registerDirectory
@@ -32,6 +32,9 @@ from AccountLocker.AccountLocker import AccountLocker
 from AccountLocker.AccountLocker import manage_addAccountLocker
 from AccountLocker.AccountLocker import manage_addAccountLockerForm
 
+from Auth0.Auth0 import Auth0
+from Auth0.Auth0 import manage_addAuth0
+
 def initialize(context):
     context.registerClass(
         MultiPathIndex,
@@ -46,6 +49,13 @@ def initialize(context):
     context.registerClass(AccountLocker,
                         permission=add_user_folders,
                         constructors=(manage_addAccountLockerForm, manage_addAccountLocker),
+                        visibility=None,
+                        )
+
+    registerMultiPlugin(Auth0.meta_type)
+    context.registerClass(Auth0,
+                        permission=add_user_folders,
+                        constructors=(manage_addAuth0, ),
                         visibility=None,
                         )
 

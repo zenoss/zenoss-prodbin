@@ -21,6 +21,7 @@ class UserInfo(InfoBase):
     pager = ProxyProperty('pager')
     dashboardState = ProxyProperty('dashboardState')
     defaultPageSize = ProxyProperty('defaultPageSize')
+    userTheme = ProxyProperty('userTheme')
     netMapStartObject = ProxyProperty('netMapStartObject')
 
     # TODO: implement editing passwords and roles

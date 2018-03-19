@@ -100,6 +100,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
+    userTheme = "z-cse"
     pauseHubNotifications = False
     zendmdStartupCommands = []
     pauseADMStart = datetime.min
@@ -129,6 +130,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
+        {'id':'userTheme', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
         {'id':'pauseADMStart', 'type': 'datetime', 'mode':'w'},
@@ -771,14 +773,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return getattr(self, 'productName', 'core')
 
-
     def getProductHelpLink(self):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "/zport/dmd/localDocumentation"
-        # return "http://www.zenoss.com/resources/documentation"
-
+        # will need to change to non-atlassian link before 1st CSE release
+        return "https://zenoss.atlassian.net/wiki/spaces/CSE1/pages/547684357/CSE+Docs+landing+page"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')

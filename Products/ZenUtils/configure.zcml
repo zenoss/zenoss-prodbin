@@ -5,7 +5,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta"
     >
-
+    <include file="Auth0/configure.zcml"/>
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
     <include package=".controlplane"/>
@@ -50,7 +50,6 @@
             />
 
 
-    <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
     <subscriber
             for="zope.processlifetime.IDatabaseOpenedWithRoot"
             handler=".events.notifyZopeApplicationOpenedSubscribers"
@@ -67,6 +66,6 @@
             />
 
     <!-- advertize that Zenoss provides pre/post backup events -->
-    <meta:provides feature="PrePostBackupEvents" /> 
+    <meta:provides feature="PrePostBackupEvents" />
 
 </configure>

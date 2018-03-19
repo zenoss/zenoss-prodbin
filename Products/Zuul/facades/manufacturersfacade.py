@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2013, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2013 - 2018, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -18,6 +18,7 @@ from Products.Zuul.interfaces import IManufacturersFacade, IManufacturersInfo, I
 from Products.ZenEvents import EventClass
 from Acquisition import aq_parent
 from Products.ZenModel.Manufacturer import manage_addManufacturer
+from Products.Jobber.facade import FacadeMethodJob
 
 class ManufacturersFacade(TreeFacade):
     implements(IManufacturersFacade)
@@ -51,7 +52,6 @@ class ManufacturersFacade(TreeFacade):
                 prod.productKeys = [ l.strip() for l in (params['prodkeys']).split('\n') ]
                 prod.description = params['description']
 
-
     def _processProduct(self, manufacturer, prodName, factory, **kwargs):
         """
         process the adding of a product
@@ -65,6 +65,31 @@ class ManufacturersFacade(TreeFacade):
         prod = manufacturer.products._getOb(prodid)
         return prod
 
+    def _editProduct(self, params, instances_uids=None):
+        manufacturer = self._getObject(params['uid'])
+        prodName = params['oldname']
+        prod = manufacturer.products._getOb(prodName, None)
+        isOS = True if params['type'] == "Operating System" else False
+        productKeys = [l.strip() for l in (params['prodkeys']).split('\n')]
+        if productKeys != prod.productKeys:
+            prod.unindex_object()
+            prod.productKeys = productKeys
+        prod.partNumber = params['partno']
+        prod.description = params['description']
+        prod.isOS = isOS
+        prod.name = params['prodname']
+        prod.rename(params['prodname'])
+        prod.index_object()
+        if instances_uids:
+            # change product_class for every instance
+            for uid in instances_uids:
+                obj = self._dmd.Devices.getObjByPath(uid)
+                obj.setProductClass(prod)
+            log.debug(
+                "Updated %d instances for %s product class.",
+                len(instances_uids), params['prodname']
+            )
+
     def editProduct(self, params=None):
         """
         edit a product
@@ -72,21 +97,36 @@ class ManufacturersFacade(TreeFacade):
         manufacturer = self._getObject(params['uid'])
         prodName = params['oldname']
         prod = manufacturer.products._getOb(prodName, None)
+        scheduled = False
         if prod:
-            isOS = False
-            if (params['type'] == "Operating System"):
-                isOS = True
-            productKeys = [ l.strip() for l in (params['prodkeys']).split('\n') ]
-            if productKeys != prod.productKeys:
-                prod.unindex_object()
-                prod.productKeys = productKeys
-            prod.partNumber  = params['partno']
-            prod.description = params['description']
-            prod.isOS        = isOS
-            prod.name = params['prodname']
-            prod.rename(params['prodname'])
-            prod.index_object()
+            result = prod._find_instances_in_catalog()
+            if params['oldname'] != params['prodname'] and result.total > 0:
+                instances_uids = [i.uid for i in result.results]
+                self._dmd.JobManager.addJob(
+                    FacadeMethodJob,
+                    description="Updating product class for %s instances" % params['prodname'],
+                    kwargs=dict(
+                        facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
+                        method="_editProduct",
+                        params=params,
+                        instances_uids=instances_uids
+                    )
+                )
+                scheduled = True
+            else:
+                self._editProduct(params)
+        return scheduled
 
+    def _removeProducts(self, products):
+        for entry in products:
+            manufacturer = self._getObject(entry['context'])
+            prod = manufacturer.products._getOb(entry['id'])
+            result = prod._find_instances_in_catalog()
+            instances_uids = [i.uid for i in result.results]
+            manufacturer.products._delObject(entry['id'])
+            for uid in instances_uids:
+                obj = self._dmd.Devices.getObjByPath(uid)
+                obj.setProductClass(productClass=None)
 
     def removeProducts(self, products):
         """
@@ -94,9 +134,16 @@ class ManufacturersFacade(TreeFacade):
         @products['context']
         @products['id']
         """
-        for entry in products:
-            manufacturer = self._getObject(entry['context'])
-            manufacturer.products._delObject(entry['id'])
+        self._dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description="Removing %d products and clearing product class for their instances"
+                        % len(products),
+            kwargs=dict(
+                facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
+                method="_removeProducts",
+                products=products
+            )
+        )
 
     def getProductsByManufacturer(self, uid, params={}):
         """
@@ -214,34 +261,54 @@ class ManufacturersFacade(TreeFacade):
         if (manufacturer.id != params['name']):
             manufacturer.rename(params['name'])
 
+    def _moveProduct(self, moveFrom, moveTarget, ids):
+        target = self._getObject(moveTarget)
+        origin = self._getObject(moveFrom)
+        for id in ids:
+            prod = origin.products._getOb(id)
+            result = prod._find_instances_in_catalog()
+            prod._operation = 1
+            instances_uids = [i.uid for i in result.results]
+            origin.products._delObject(id)
+            target.products._setObject(id, prod)
+            prod = target.products._getOb(id)
+            for uid in instances_uids:
+                obj = self._dmd.Devices.getObjByPath(uid)
+                obj.setProductClass(prod)
+                log.debug(
+                    "Updated %d instances for %s product class.", len(instances_uids), moveTarget
+                )
+
     def moveProduct(self, moveFrom, moveTarget, ids):
         """
         move a product to a different organizer
         """
-        target = self._getObject(moveTarget)
-        origin = self._getObject(moveFrom)
-        if isinstance(ids, basestring): ids = (ids,)
-        for id in ids:
-            obj = origin.products._getOb(id)
-            obj._operation = 1
-            origin.products._delObject(id)
-            target.products._setObject(id, obj)
+        self._dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description="Moving %d products and updating product class for their instances"
+                        % len(ids),
+            kwargs=dict(
+                facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
+                method="_moveProduct",
+                moveFrom=moveFrom,
+                moveTarget=moveTarget,
+                ids=ids
+            )
+        )
 
-    def returnTree(self, id):
+    def getManufacturerList(self):
         """
         build a custom tree that works for the left panel
         """
+        id = "zport/dmd/Manufacturers"
         obj = self._getObject(id)
         data = []
         for sub in obj.getChildNodes():
             if (sub.id != "productSearch"):
                 data.append({
-                    'hidden':False,
-                    'iconCls':"tree-nav",
                     'id':".zport.dmd.Manufacturers."+sub.id,
-                    'leaf':True,
                     'path':"Manufacturers/"+sub.id,
-                    'text':{'count':0,'text':sub.id,'description':sub.supportNumber, 'url': sub.url},
+                    'text':{'text':sub.id,'description':sub.supportNumber, 'url': sub.url},
                     'uid':"/zport/dmd/Manufacturers/"+sub.id
                 })
         return data

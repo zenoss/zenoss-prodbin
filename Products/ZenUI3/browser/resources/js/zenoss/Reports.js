@@ -119,7 +119,8 @@ Ext.define('Zenoss.ReportTreePanel', {
         var selNode = this.getSelectionModel().getSelectedNode(),
             tree = this,
             newNode;
-        if(!selNode.data.uid){
+        // we should also check is something is selected;
+        if(!selNode || !selNode.data.uid){
             this.getSelectionModel().selectByPosition({row: 0});
             selNode = this.getSelectionModel().getSelectedNode();
         }

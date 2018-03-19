@@ -1,4 +1,4 @@
-<html metal:define-macro="base-new">
+<html metal:define-macro="base-new" class="z-cse z-cse-dark">
     <head>
         <title>
             <tal:block tal:content="view/instanceIdentifier"/>: Error
@@ -11,20 +11,105 @@
             href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zenui3.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
+
         <tal:block tal:content="structure view/headExtra"/>
         <style>
-            #center {
-                font-family: helvetica,tahoma,arial,sans-serif;
-                padding: 1em;
-                border: 1px solid #ABC;
-                margin: 1em;
-                background-color: #D4E0EE;
+            .bg {
+                height: 80px;
             }
+            #center {
+                color: #eee;
+                font-size: 13px;
+                line-height: 20px;
+                margin: 0 10em;
+                }
             #center h2 {
                 font-size: 140%;
                 margin: 5px auto;
+                }
+            .z-cse {
+                display: flex;
+                flex-direction: column;
             }
-            body {
+            .z-cse #header {
+                background: transparent none !important;
+            }
+
+
+            #center #header {
+                height: 80px !important;
+                }
+            .z-cse #request_toggle {
+                color: #89c5fa;
+                }
+            .z-cse #more_info {
+                margin-bottom: 1em;
+                }
+            .z-cse #request_box strong {
+                color: #cdf856;
+                font-size: 14px;
+                line-height: 20px;
+                font-family: monospace;
+                font-weight: 400;
+            }
+            #frame form {
+                color: #aaa;
+                font-size: 14px;
+                font-family: RobotoCondensed;
+                margin-bottom: 1em;
+                text-transform: uppercase;
+                }
+            #frame p {
+                color: #eee;
+                margin-bottom: 1em;
+                font-family: Roboto;
+                font-size: 12px;
+                text-transform: none;
+            }
+            .z-cse #frame input {
+                border: none;
+                background-color: #555;
+                color: #eee;
+                height: 24px;
+                padding: 4px;
+                font-family: monospace;
+                margin-bottom: 1em;
+                text-indent: 10px;
+                }
+            .z-cse #frame input[type=submit] {
+                cursor: pointer;
+                border: none;
+                background-color: #555;
+                border-radius: 3px;
+                color: #eee;
+                height: auto;
+                padding: 8px 20px;
+                font-family: Roboto;
+                margin-bottom: 1em;
+                text-indent: 0;
+                }
+                .z-cse #frame input[type=submit]:hover {
+                    background-color: #89c5fa;
+                }
+            .z-cse #frame #request_box,
+            .z-cse #frame textarea {
+                background-color: #555;
+                border: 0;
+                }
+            .z-cse #frame #request_box pre {
+                color: #eee;
+                font-size: 12px;
+                line-height: 20px;
+                margin: 2em 0 0;
+                }
+            .z-cse #frame textarea {
+                color: #eee;
+                font-size: 14px;
+                font-family: monospace;
+                padding: 14px;
+
             }
         </style>
     </head>
@@ -59,7 +144,7 @@
                 </div>
             </div>
         </div>
-        <div id="center"> 
+        <div id="center">
 
 <tal:block tal:condition="view/isNotFound">
 <h2>Site error</h2>
@@ -68,7 +153,7 @@ resource does not exist.</p>
 <a href="/zport/dmd/">Please click here to return to the Zenoss dashboard</a>
 </tal:block>
 
-<tal:block tal:condition="not:view/isNotFound" 
+<tal:block tal:condition="not:view/isNotFound"
            tal:content="structure view/error_message"/>
 </div>
 
