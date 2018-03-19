@@ -53,7 +53,6 @@ def manage_addDataPointAlias(context, id, formula=None):
     """
     Add a datapoint alias to the datapoint given
     """
-    id = _validateAliasID(id)
     alias = RRDDataPointAlias(id)
     alias.formula = formula
     context.aliases._setObject(id, alias)
