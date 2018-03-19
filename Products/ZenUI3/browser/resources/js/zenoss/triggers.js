@@ -996,22 +996,19 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(sm) {
-                            var rows = sm.getSelection(),
-                                row,
+                        selectionchange: function(t, selection) {
+                            var sel = selection[0],
+                                delState = state = !sel,
                                 panel = Ext.getCmp(schedulesPanelConfig.id);
-                            if (!rows.length) {
-                                return;
+
+                            if (sel) {
+                                panel.setContext(sel.data.uid, sel.data);
+                                delState = !sel.data.userWrite;
                             }
-                            row = rows[0];
-                            panel.setContext(row.data.uid, row.data);
-                            me.deleteButton.setDisabled(!row.data.userWrite);
-                            me.customizeButton.setDisabled(false);
-                        },
-                        deselect: function() {
-                            Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
-                            me.deleteButton.setDisabled(true);
-                            me.customizeButton.setDisabled(true);
+
+                            me.deleteButton.setDisabled(state);
+                            me.customizeButton.setDisabled(state);
+                            panel.disableButtons(state);
                         }
                     },
                     scope: this
@@ -1192,14 +1189,12 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 store: Ext.create('Zenoss.triggers.TriggersStore', {}),
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(record) {
+                        selectionchange: function(t, selection) {
+                            var sel = selection[0],
+                                state = !sel;
                             // enable/disabled the edit button
-                            me.deleteButton.setDisabled(!record.lastSelected.data.userWrite);
-                            me.customizeButton.setDisabled(false);
-                        },
-                        deselect: function() {
-                            me.deleteButton.setDisabled(true);
-                            me.customizeButton.setDisabled(true);
+                            me.deleteButton.setDisabled(state || !sel.data.userWrite);
+                            me.customizeButton.setDisabled(state);
                         }
                     }
                 }),
@@ -1237,10 +1232,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         ref: '../deleteButton',
                         handler: function() {
                             var rows = me.getSelectionModel().getSelection(),
-                                row,
+                                row = rows && rows[0],
                                 uuid, params, callback;
-                            if (rows){
-                                row = rows[0];
+                            if (row){
                                 uuid = row.data.uuid;
                                 // show a confirmation
                                  new Zenoss.dialog.SimpleMessageDialog({
