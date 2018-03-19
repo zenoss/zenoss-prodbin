@@ -773,14 +773,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return getattr(self, 'productName', 'core')
 
-
     def getProductHelpLink(self):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "/zport/dmd/localDocumentation"
-        # return "http://www.zenoss.com/resources/documentation"
-
+        # will need to change to non-atlassian link before 1st CSE release
+        return "https://zenoss.atlassian.net/wiki/spaces/CSE1/pages/547684357/CSE+Docs+landing+page"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
