@@ -25,7 +25,7 @@ class RemoveCatalogServiceBrokenRelation(Migrate.Step):
                     try:
                         nodes.pack().packables.removeRelation()
                     except Exception as ex:
-                        log.info("Cant remove relation for CatalogService, %s", ex)
+                        log.info("Can't remove relation for CatalogService, %s", ex)
 
 
 RemoveCatalogServiceBrokenRelation()
