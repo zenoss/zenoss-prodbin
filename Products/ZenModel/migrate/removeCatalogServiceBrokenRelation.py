@@ -10,7 +10,6 @@
 import logging
 
 import Migrate
-from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 
 log = logging.getLogger('zen.migrate')
 
@@ -19,13 +18,13 @@ class RemoveCatalogServiceBrokenRelation(Migrate.Step):
     version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
-        for nodes in dmd.Processes.Zenoss.getChildNodes():
-            if isinstance(nodes, ToOneRelationship):
-                if nodes.pack.obj.id == "ZenPacks.zenoss.CatalogService":
-                    try:
-                        nodes.pack().packables.removeRelation()
-                    except Exception as ex:
-                        log.info("Can't remove relation for CatalogService, %s", ex)
+        pack = getattr(dmd.Processes.Zenoss, "pack", None)
+        if pack is not None and pack.obj is not None:
+            if pack.obj.id == "ZenPacks.zenoss.CatalogService":
+                try:
+                    pack.pack().packables.removeRelation()
+                except Exception as ex:
+                    log.info("Can't remove relation for CatalogService, %s", ex)
 
 
 RemoveCatalogServiceBrokenRelation()
