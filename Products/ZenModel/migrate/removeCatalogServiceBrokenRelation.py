@@ -22,7 +22,7 @@ class RemoveCatalogServiceBrokenRelation(Migrate.Step):
         if pack is not None and pack.obj is not None:
             if pack.obj.id == "ZenPacks.zenoss.CatalogService":
                 try:
-                    pack.pack().packables.removeRelation()
+                    pack().packables.removeRelation()
                 except Exception as ex:
                     log.info("Can't remove relation for CatalogService, %s", ex)
 
