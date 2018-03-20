@@ -10,11 +10,6 @@ from exceptions import ImportError, Exception
 from zope.dottedname.resolve import resolve
 
 
-from twisted.python.failure import Failure
-import logging
-log = logging.getLogger("zen.Exceptions")
-
-
 class ZentinelException(Exception):
     """Root of all Zentinel Exceptions"""
     pass
@@ -32,9 +27,10 @@ class ZenResolveExceptionError(ZentinelException):
 
 
 def resolveException(failure):
-    '''given a twisted.python.failure
-    return the exception that was initially raised.
-    '''
+    """
+    Resolves a twisted.python.failure into the remote exception type that was
+    initially raised.
+    """
 
     # return the original exception
     if isinstance(failure.value, Exception):
@@ -42,16 +38,16 @@ def resolveException(failure):
 
     # try to rebuild the exception from its type string
     if isinstance(failure.type, str):
-        return _resolve_exception_string(failure)
+        return _resolve_exception_by_type(failure)
 
     # last ditch attempt: raise the original exception and return its value
     try:
         failure.raiseException()
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 
-def _resolve_exception_string(failure):
+def _resolve_exception_by_type(failure):
     if failure.type in special_resolvers:
         return special_resolvers[failure.type](failure)
 
@@ -67,8 +63,6 @@ def _resolve_exception_string(failure):
 
 
 # special resolvers for Exceptions that require additional args
-
-
 def _resolve_twisted_spread_pb_RemoteError(failure):
     '''special resolution steps for twisted RemoteErrors
     '''
