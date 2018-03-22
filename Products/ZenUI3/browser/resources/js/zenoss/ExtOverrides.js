@@ -1061,8 +1061,6 @@ Ext.override(Ext.util.Sorter, {
 
         // build right relations between pages;
         rebuildMapRelations: function() {
-            // console.log('rebuildMapRelations');
-
             var prev;
             Ext.Object.each(this.map, function(key, item) {
                 item.prev = prev;
