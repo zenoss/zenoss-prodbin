@@ -30,7 +30,7 @@ from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
-                                     ipunwrap, getHostByName
+                                     ipunwrap, getHostByName, ipAndMaskFromIpMask
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 # base classes for device
@@ -119,6 +119,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName, performanceMonitor, manageIp)
+    device.setPerformanceMonitor(performanceMonitor)
     device.setManageIp(manageIp)
     device.manage_editDevice(
                 tag, serialNumber,
@@ -262,6 +263,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand',
             'commandable')),
+        ("ipaddress", ToOne(ToOne, "Products.ZenModel.IpAddress", "manageDevice")),
         # unused:
         ('monitors', ToMany(ToMany, 'Products.ZenModel.StatusMonitorConf',
             'devices')),
@@ -935,9 +937,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return ip
 
     def _isDuplicateIp(self, ip):
-        dev = self.getDmdRoot("Devices").findDeviceByIdOrIp(ip)
-        if dev and self.id != dev.id:
-            return True
+        ipMatch = self.getNetworkRoot().findIp(ip)
+        if ipMatch:
+            dev = ipMatch.manageDevice()
+            if dev and self.id != dev.id:
+                return True
         return False
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')
@@ -988,6 +992,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 notify(IndexingEvent(self, ('decimal_ipAddress', 'text_ipAddress'), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
+                #Create a new IpAddress object from manageIp under the Network
+                ipWithoutNetmask, netmask = ipAndMaskFromIpMask(ip)
+                ipobj = self.getNetworkRoot().createIp(ipWithoutNetmask, netmask)
+                self.ipaddress.addRelation(ipobj)
+                notify(IndexingEvent(ipobj))
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)
 
