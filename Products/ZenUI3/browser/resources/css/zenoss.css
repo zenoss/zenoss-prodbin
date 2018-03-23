@@ -2140,3 +2140,7 @@ span.syntax-text  {
   float:left;
   text-align:right;
 }
+#NetworkDetailCardPanel a.z-entity{
+  padding-right: 0px;
+  padding-left: 0px;
+}

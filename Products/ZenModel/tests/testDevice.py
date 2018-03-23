@@ -67,6 +67,34 @@ class TestDevice(ZenModelBaseTest):
         self.assertRaises(DeviceExistsError,
           manage_createDevice, self.dmd, 'mydevice2', '/', manageIp='1.1.1.1')
 
+    def testManage_createDeviceWithIpFromInterface(self):
+        # create device with ip that is on Interface of another device
+        testIp = '1.2.3.4'
+        dev1 = manage_createDevice(self.dmd, 'myfirstdevice', '/', manageIp='1.2.3.5')
+
+        # Need a network interface on that device
+        from Products.ZenModel.IpInterface import IpInterface
+        tmpIface = IpInterface('testNIC')
+        dev1.os.interfaces._setObject('testNIC', tmpIface)
+        iface = dev1.getDeviceComponents()[0]
+        iface.addIpAddress(testIp)
+
+        ip = dev1.getNetworkRoot().findIp(testIp)
+        self.assert_(ip is not None)
+
+        dev2 = manage_createDevice(self.dmd, 'myseconddevice', '/', manageIp=testIp)
+        self.assertNotEqual(dev1.manageIp, dev2.manageIp)
+        self.assert_(dev2 is not None)
+
+    def testIpAddrCreation(self):
+        manageIp = '1.2.3.4'
+        dev = manage_createDevice(self.dmd, 'mydevice', '/', manageIp=manageIp)
+
+        ip = self.dev.getNetworkRoot().findIp(manageIp)
+        self.assert_(ip is not None)
+        #check relation Ip -> device
+        self.assertEqual(dev, ip.manageDevice())
+
     def testIpRouteCreation(self):
         ipr = IpRouteEntry("1.2.3.4_24")
         self.dev.os.routes._setObject(ipr.id, ipr)
@@ -85,7 +113,6 @@ class TestDevice(ZenModelBaseTest):
     def testAddLocation(self):
         self.dev.addLocation('/Test/Loc')
         self.assert_('/Test/Loc' in self.dmd.Locations.getOrganizerNames())
-
 
     def testSetHWTag(self):
         self.dev.setHWTag('my test asset tag')
@@ -231,17 +258,17 @@ class TestDevice(ZenModelBaseTest):
         self.dev.setManageIp(testIp)
         self.assertEqual(self.dev.getManageIp(), testIp)
 
+        ip = self.dev.getNetworkRoot().findIp(testIp)
+        self.assert_(ip is not None)
+
+        self.dev.setManageIp(testIp)
+
         # Need a network interface to register an IP in catalog
         from Products.ZenModel.IpInterface import IpInterface
         tmpIface = IpInterface('testNIC')
         self.dev.os.interfaces._setObject('testNIC', tmpIface)
         self.iface1 = self.dev.getDeviceComponents()[0]
         self.iface1.addIpAddress('1.2.3.4')
-
-        ip = self.dev.getNetworkRoot().findIp(testIp)
-        self.assert_(ip is not None)
-
-        self.dev.setManageIp(testIp)
 
         # What about duplicates?
         d = self.dmd.Devices.createInstance('localhost')
