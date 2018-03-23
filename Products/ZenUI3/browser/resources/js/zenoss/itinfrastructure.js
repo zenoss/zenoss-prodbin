@@ -97,6 +97,7 @@ Ext.onReady(function () {
         valueField: 'name',
         displayField: 'name',
         allowBlank: false,
+        queryMode: 'local',
         listConfig: {
             resizable: true,
             minWidth: 250
@@ -106,7 +107,10 @@ Ext.onReady(function () {
             root: 'deviceClasses',
             totalProperty: 'totalCount',
             model: 'Zenoss.model.Name',
-            directFn: REMOTE.getDeviceClassesToAdd
+            directFn: REMOTE.getDeviceClassesToAdd,
+            filters: function(rec) {
+                return !!rec.get('name') && rec.get('name') != "/";
+            }
         }),
         listeners: {
             'afterrender': function (component) {
@@ -118,7 +122,7 @@ Ext.onReady(function () {
 
                         if (selnode.data.uid === "/zport/dmd/Devices" || !isclass) {
                             //root node doesn't have a path attr
-                            this.setValue('/');
+                            this.setValue(this.store.first());
                         }
                         else if (isclass) {
                             var path = selnode.data.path;
@@ -132,9 +136,15 @@ Ext.onReady(function () {
             },
             'change': function () {
                 this.toggleAdditionalFields();
+            },
+            focus: function(combo) {
+                combo.expand();
             }
         },
         toggleAdditionalFields: function () {
+            if (!this.getValue()) {
+                return;
+            }
             REMOTE.getCredentialsProps({ deviceClass: this.getValue() }, function (data) {
                 var credsProps = data['data'],
                     unusedCreds = Zenoss.env.allCredentialsProps.filter(function (prop) {
