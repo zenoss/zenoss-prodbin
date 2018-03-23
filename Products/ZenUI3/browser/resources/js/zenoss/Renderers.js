@@ -301,7 +301,7 @@ Ext.apply(Zenoss.render, {
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
         var parts;
-        if (!uid) {
+        if (!uid || Ext.form.VTypes.ipaddress(uid) || Ext.form.VTypes.ipaddresswithnetmask(uid)) {
             return uid;
         }
         if (Ext.isObject(uid)) {
