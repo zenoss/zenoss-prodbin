@@ -631,7 +631,8 @@ class DeviceFacade(TreeFacade):
 
         # find a device with the same ip on the same collector
         cat = IModelCatalogTool(self.context.Devices)
-        query = Eq('text_ipAddress', ipAddress)
+        query = And(Eq('text_ipAddress', ipAddress),
+                    Eq('objectImplements', 'Products.ZenModel.Device.Device'))
         search_results = cat.search(query=query)
 
         for brain in search_results.results:
