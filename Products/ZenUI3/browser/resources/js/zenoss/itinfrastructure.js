@@ -109,7 +109,7 @@ Ext.onReady(function () {
             model: 'Zenoss.model.Name',
             directFn: REMOTE.getDeviceClassesToAdd,
             filters: function(rec) {
-                return rec.get('name') != "/" && !!rec.get('name');
+                return !!rec.get('name') && rec.get('name') != "/";
             }
         }),
         listeners: {
