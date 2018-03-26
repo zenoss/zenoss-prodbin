@@ -7,7 +7,9 @@
               href="/zport/dmd/favicon.ico"/>
         <title>Login</title>
         <style>
-            * { zoom: 1; }
+            * {
+                zoom: 1; /* IE7 compatibility */
+            }
             html, body {
                 height: 100%;
             }
@@ -57,14 +59,14 @@
                 cursor: hand; cursor: pointer;
             }
             .middlebar {
-                text-align:center;
+                text-align: center;
                 border-width: 2px 0;
                 border-style: solid;
                 border-color: #444;
                 background-color:#f4f4f4;
             }
             .container {
-                width:671px;
+                width: 671px;
                 min-height: 360px;
                 margin-right: auto;
                 margin-left: auto;
