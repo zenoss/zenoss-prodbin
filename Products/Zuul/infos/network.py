@@ -160,6 +160,11 @@ class IpAddressInfo(InfoBase, BulkLoadMixin):
 
     @property
     @info
+    def manageDevice(self):
+        return self._object.manageDevice()
+
+    @property
+    @info
     def device(self):
         return self._object.device()
 
