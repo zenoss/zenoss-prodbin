@@ -7,9 +7,6 @@
               href="/zport/dmd/favicon.ico"/>
         <title>Login</title>
         <style>
-            * {
-                zoom: 1; /* IE7 compatibility */
-            }
             html, body {
                 height: 100%;
             }
@@ -56,7 +53,7 @@
                 width: 90px;
                 height: 32px;
                 border: 0;
-                cursor: hand; cursor: pointer;
+                cursor: pointer;
             }
             .middlebar {
                 text-align: center;
@@ -108,25 +105,9 @@
                 margin-top: 14px;
             }
         </style>
-
-        <script>
-            function onload() {
-                if (window.location !== window.top.location) {
-                    window.top.location.href = window.location.href;
-                }
-
-                if (window.location.hash) {
-                    var fragment = document.getElementById('fragment');
-                    var hash = encodeURIComponent(window.location.hash);
-                    fragment.value = hash;
-                }
-
-                document.getElementById('username').focus();
-            }
-        </script>
     </head>
 
-    <body onload="onload()">
+    <body>
         <form class="loginform"
               name="loginform"
               method="POST"
@@ -171,5 +152,21 @@
             </div>
         </form>
         <tal:block tal:content="structure here/getExtraLoginFormContents"/>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
+                if (window.location !== window.top.location) {
+                    window.top.location.href = window.location.href;
+                }
+
+                if (window.location.hash) {
+                    var fragment = document.getElementById('fragment');
+                    var hash = encodeURIComponent(window.location.hash);
+                    fragment.value = hash;
+                }
+
+                document.getElementById('username').focus();
+            });
+        </script>
     </body>
 </html>
