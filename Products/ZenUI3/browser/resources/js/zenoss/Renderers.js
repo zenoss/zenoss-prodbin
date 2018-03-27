@@ -300,8 +300,12 @@ Ext.apply(Zenoss.render, {
 
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
-        var parts;
-        if (!uid || Ext.form.VTypes.ipaddress(uid) || Ext.form.VTypes.ipaddresswithnetmask(uid)) {
+        var parts,
+            vTypes = Ext.form.VTypes;
+        // ZEN-29776: do not render ipaddress as link
+        // since there is no such object in the system and
+        // "192.168.1.1/24" is not an zope uid format.
+        if (!uid || vTypes.ipaddress(uid) || vTypes.ipaddresswithnetmask(uid)) {
             return uid;
         }
         if (Ext.isObject(uid)) {
