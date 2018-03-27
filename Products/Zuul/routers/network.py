@@ -192,7 +192,7 @@ class NetworkRouter(TreeRouter):
 
         keys = ['name', 'netmask', 'pingstatus', 'snmpstatus', 'uid',
                 'device', 'interface', 'macAddress',
-                'interfaceDescription']
+                'interfaceDescription', 'manageDevice']
         data = Zuul.marshal(instances.results, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)

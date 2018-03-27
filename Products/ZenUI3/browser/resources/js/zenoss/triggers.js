@@ -2009,6 +2009,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype:'form',
                         ref: 'wrapping_form',
                         buttonAlign: 'left',
+                        layout: 'fit',
                         listeners: {
                             validitychange: function(form, isValid) {
                                 this.query('DialogButton')[0].setDisabled(!isValid);
