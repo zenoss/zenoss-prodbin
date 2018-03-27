@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <link rel="shortcut icon"
               type="image/x-icon"
               href="/zport/dmd/favicon.ico"/>
@@ -17,25 +18,21 @@
                 background-color: #888;
                 font-family: sans-serif;
             }
-            .clearfix:before,
-            .clearfix:after {
-                content: "";
-                display: table;
-            }
-            .clearfix:after {
-                clear: both;
-            }
             .form-group {
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-pack: justify;
+                -ms-flex-pack: justify;
+                justify-content: space-between;
                 margin-bottom: 10px;
             }
             .form-label {
-                float: left;
                 margin-left: 28px;
                 padding-top: 7px;
                 font-size: 14px;
             }
             .inputbox {
-                float: right;
                 width: 180px;
                 height: 27px;
                 padding-right: 4px;
@@ -48,7 +45,9 @@
                 text-align: center;
             }
             .submitbutton {
-                float: right;
+                -ms-flex-negative: 0;
+                flex-shrink: 0;
+                margin-left: auto;
                 background-image: url('zenoss-login-button.png');
                 width: 90px;
                 height: 32px;
@@ -60,13 +59,14 @@
                 border-width: 2px 0;
                 border-style: solid;
                 border-color: #444;
-                background-color:#f4f4f4;
+                background-color: #f4f4f4;
             }
             .container {
                 width: 671px;
                 min-height: 360px;
                 margin-right: auto;
                 margin-left: auto;
+                overflow: hidden;
                 background-color: #f6f6f6;
                 background-image: url('zenoss-login-background.png');
                 background-repeat: no-repeat;
@@ -85,12 +85,15 @@
                 width: 100%;
             }
             .errorbox {
-                float: left;
+                margin-right: 16px;
                 width: 190px;
                 color: #8B0000;
                 font-size: 14px;
             }
             .submit-row {
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
                 min-height: 50px;
             }
             .right-column {
@@ -117,22 +120,22 @@
             <input type="hidden" name="submitted" value="true"/>
             <input id="fragment" type="hidden" name="fragment" value=""/>
             <div class="middlebar">
-                <div class="container clearfix">
+                <div class="container">
                     <div class="right-column">
                         <div class="right-column-inputs">
-                            <div class="form-group clearfix">
+                            <div class="form-group">
                                 <label class="form-label" for="username">Username</label>
                                 <input id="username" type="text" name="__ac_name"
                                        class="inputbox"/>
                             </div>
-                            <div class="form-group clearfix">
+                            <div class="form-group">
                                 <label class="form-label" for="passwrd">Password</label>
                                 <input id="passwrd" type="password" name="__ac_password"
                                        class="inputbox"/>
                             </div>
                         </div>
                         <div class="right-column-bottom">
-                            <div class="submit-row clearfix">
+                            <div class="submit-row">
                                 <div class="errorbox">
                                     <tal:block define="msg here/zport/getLoginMessage"
                                              tal:omit-tag=""
