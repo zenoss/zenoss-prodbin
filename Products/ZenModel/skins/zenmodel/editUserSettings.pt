@@ -95,9 +95,6 @@
         </td>
     </tr>
 
-    <tr>
-    </tr>
-
     <tr tal:condition="here/isLoggedInUser">
         <td class="tableheader user-prefs-cell" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
             <div style="font-size:14px;">
@@ -122,239 +119,254 @@
         </td>
     </tr>
 
-    <form method=post tal:attributes="action string:${here/absolute_url_path}" name="editUserForm"  id="editUserForm" autocomplete="off">
+    <tr>
+        <td colspan="4">
+            <form method=post tal:attributes="action string:${here/absolute_url_path}" name="editUserForm"
+                  id="editUserForm" autocomplete="off">
+                <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
+                <table class="innerzentable">
+                    <tr>
+                        <td class="tableheader  user-prefs-cell"
+                            style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
+                            <div style="font-size:14px;">
+                                USER SETTINGS
+                            </div>
+                        </td>
+                    </tr>
 
-        <input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
+                    <tr>
+                        <td class="tablevalues" hidden="true">
+                            <input class="tablevalues" type="text" title="Hidden field for preventing username autofill"
+                                   hidden="true"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tablevalues" hidden="true">
+                            <input class="tablevalues" type="password"
+                                   title="Hidden field for preventing password autofill" autocomplete="off"
+                                   hidden="true"/>
+                        </td>
+                    </tr>
 
-        <tr>
-          <td class="tableheader  user-prefs-cell" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
-            <div style="font-size:14px;">
-                USER SETTINGS
-            </div>
-          </td>
-        </tr>
+                    <tr tal:condition="here/isManager">
+                        <td class="tableheader" align="left">Roles</td>
+                        <td class="tablevalues">
+                            <select id="user_roles_combo" class="tablevalues" name="roles:list" multiple
+                                     tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
+                                <option tal:repeat="r allroles" tal:content="r"
+                                         tal:attributes="value r; selected python:r in curroles"/>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr tal:condition="here/isManager">
+                        <td class="tableheader" align="left">Groups</td>
+                        <td class="tablevalues">
+                            <select id="user_groups_combo" class="tablevalues" name="groups:list" multiple
+                                     tal:define="allgroups here/getAllGroupSettingsNames;
+                                            currgroups here/getUserGroupSettingsNames">
+                                <option tal:repeat="r allgroups" tal:content="r"
+                                         tal:attributes="value r; selected python:r in currgroups"/>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Email</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_email_input" class="tablevalues" type="text" name="email" size="40"
+                                     tal:attributes="value here/email" />
+                            <tal:block tal:condition="here/email">
+                                &nbsp;&nbsp;
+                                <a class="tablevalues" onclick="return ConfirmEmailTest()"
+                                         tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}&redirect=True">test</a>
+                            </tal:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Pager</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_pager_input" class="tablevalues" type="text" name="pager" size="40"
+                                     tal:attributes="value here/pager" />
+                            <tal:block tal:condition="here/pager">
+                                &nbsp;&nbsp;
+                                <a class="tablevalues" onclick="return ConfirmPagerTest()"
+                                         tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}&redirect=True">test</a>
+                            </tal:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Theme</td>
+                        <td class="tablevalues">
+                            <select id="user_settings_user_ui_theme"
+                                    class="tablevalues"
+                                    name="userTheme"
+                                     tal:define="themes here/getAllThemes" >
+                                <option tal:repeat="theme themes" tal:content="theme/name"
+                                         tal:attributes="selected python:here.userTheme==theme['class']; value python:theme['class']" />
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Default Page Size</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_pagesize_input" class="tablevalues" type="text"
+                                   name="defaultPageSize"
+                                     tal:attributes="value here/defaultPageSize" />
+                        </td>
+                    </tr>
+                    <tr tal:condition="here/isManager">
+                        <td class="tableheader" align="left">Default Admin Role</td>
+                        <td class="tablevalues">
+                            <select id="user_settings_admin_role_combo" class="tablevalues" name="defaultAdminRole"
+                                     tal:define="roles here/getAllRoles">
+                                <option tal:repeat="role roles" tal:content="role"
+                                         tal:attributes="selected python:here.defaultAdminRole==role"/>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Network Map Start Object</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_networkmap_input" class="tablevalues" type="text"
+                                   name="netMapStartObject"
+                                     tal:attributes="value here/netMapStartObject" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Time Zone</td>
+                        <td class="tablevalues">
+                            <select id="user_settings_timezone" name="timezone"></select>
+                            <script tal:content='string:
+                                    Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
+                                    '></script>
+                            <script>
+                                // build a select list with the current timezone selected.
+                                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                                // Zenoss.USER_TIMEZONE comes from the server
+                                Ext.onReady(function () {
+                                    add_select_options(
+                                            'user_settings_timezone',
+                                            Zenoss.date.timeZones.zones,
+                                            Zenoss.env.CURRENT_USER_TIMEZONE
+                                    );
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Date format</td>
+                        <td class="tablevalues">
+                            <select id="user_settings_dateformat" name="dateFormat"></select>
+                            <script tal:content='string:
+                                    Zenoss.env.CURRENT_USER_DATE_FORMAT = "${context/dateFormat}" || Zenoss.USER_DATE_FORMAT;
+                                    '></script>
+                            <script>
+                                // build a select list with the current date format selected.
+                                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                                // Zenoss.env.CURRENT_USER_DATE_FORMAT comes from the server
+                                Ext.onReady(function () {
+                                    add_select_options(
+                                            'user_settings_dateformat',
+                                            Zenoss.date.dateFormats,
+                                            Zenoss.env.CURRENT_USER_DATE_FORMAT
+                                    );
+                                });
 
-        <tr>
-          <td class="tablevalues" hidden="true">
-            <input class="tablevalues" type="text" title="Hidden field for preventing username autofill" hidden="true" />
-          </td>
-        </tr>
-        <tr>
-          <td class="tablevalues" hidden="true">
-            <input class="tablevalues" type="password" title="Hidden field for preventing password autofill" autocomplete="off" hidden="true"/>
-           </td>
-        </tr>
+                            </script>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Time format</td>
+                        <td class="tablevalues">
+                            <select id="user_settings_timeformat" name="timeFormat"></select>
+                            <script tal:content='string:
+                                    Zenoss.env.CURRENT_USER_TIME_FORMAT = "${context/timeFormat}" || Zenoss.USER_TIME_FORMAT;
+                                    '></script>
+                            <script>
+                                // build a select list with the current time format selected.
+                                // Zenoss.data.timeZones comes from moment-timezone-data.js and
+                                // Zenoss.env.CURRENT_USER_TIME_FORMAT comes from the server
+                                Ext.onReady(function () {
+                                    add_select_options(
+                                            'user_settings_timeformat',
+                                            Zenoss.date.timeFormats,
+                                            Zenoss.env.CURRENT_USER_TIME_FORMAT
+                                    );
+                                });
+                            </script>
+                        </td>
+                    </tr>
 
-        <tr tal:condition="here/isManager">
-          <td class="tableheader" align="left">Roles</td>
-          <td class="tablevalues">
-            <select id="user_roles_combo" class="tablevalues" name="roles:list" multiple
-                tal:define="allroles here/getAllRoles;curroles here/getUserRoles">
-                <option tal:repeat="r allroles" tal:content="r"
-                        tal:attributes="value r; selected python:r in curroles"/>
-            </select>
-          </td>
-        </tr>
-        <tr tal:condition="here/isManager">
-          <td class="tableheader" align="left">Groups</td>
-          <td class="tablevalues">
-            <select id="user_groups_combo" class="tablevalues" name="groups:list" multiple
-                tal:define="allgroups here/getAllGroupSettingsNames;
-                    currgroups here/getUserGroupSettingsNames">
-                <option tal:repeat="r allgroups" tal:content="r"
-                        tal:attributes="value r; selected python:r in currgroups"/>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Email</td>
-          <td class="tablevalues">
-            <input id="user_settings_email_input" class="tablevalues" type="text" name="email" size="40"
-                tal:attributes="value here/email" />
-            <tal:block tal:condition="here/email">
-            &nbsp;&nbsp;
-            <a class="tablevalues" onclick="return ConfirmEmailTest()"
-            tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_emailTest:method=1&userid=${here/getId}&redirect=True">test</a>
-            </tal:block>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Pager</td>
-          <td class="tablevalues">
-            <input id="user_settings_pager_input" class="tablevalues" type="text" name="pager" size="40"
-                tal:attributes="value here/pager" />
-            <tal:block tal:condition="here/pager">
-            &nbsp;&nbsp;
-            <a class="tablevalues" onclick="return ConfirmPagerTest()"
-            tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}&redirect=True">test</a>
-            </tal:block>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Theme</td>
-          <td class="tablevalues">
-            <select id="user_settings_user_ui_theme"
-                class="tablevalues"
-                name="userTheme"
-                tal:define="themes here/getAllThemes" >
-                <option tal:repeat="theme themes" tal:content="theme/name"
-                    tal:attributes="selected python:here.userTheme==theme['class']; value python:theme['class']" />
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Default Page Size</td>
-          <td class="tablevalues">
-            <input id="user_settings_pagesize_input" class="tablevalues" type="text" name="defaultPageSize"
-                tal:attributes="value here/defaultPageSize" />
-          </td>
-        </tr>
-        <tr tal:condition="here/isManager">
-          <td class="tableheader" align="left">Default Admin Role</td>
-          <td class="tablevalues">
-            <select id="user_settings_admin_role_combo" class="tablevalues" name="defaultAdminRole"
-                tal:define="roles here/getAllRoles">
-                <option tal:repeat="role roles" tal:content="role"
-                    tal:attributes="selected python:here.defaultAdminRole==role"/>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Network Map Start Object</td>
-          <td class="tablevalues">
-            <input id="user_settings_networkmap_input" class="tablevalues" type="text" name="netMapStartObject"
-                tal:attributes="value here/netMapStartObject" />
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Time Zone</td>
-          <td class="tablevalues">
-            <select id="user_settings_timezone" name="timezone"></select>
-            <script tal:content='string:
-                 Zenoss.env.CURRENT_USER_TIMEZONE = "${context/timezone}" || Zenoss.USER_TIMEZONE;
-             '></script>
-            <script>
-                // build a select list with the current timezone selected.
-                // Zenoss.data.timeZones comes from moment-timezone-data.js and
-                // Zenoss.USER_TIMEZONE comes from the server
-                Ext.onReady(function() {
-                    add_select_options(
-                        'user_settings_timezone',
-                        Zenoss.date.timeZones.zones,
-                        Zenoss.env.CURRENT_USER_TIMEZONE
-                    );
-                });
-            </script>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Date format</td>
-          <td class="tablevalues">
-            <select id="user_settings_dateformat" name="dateFormat"></select>
-            <script tal:content='string:
-                 Zenoss.env.CURRENT_USER_DATE_FORMAT = "${context/dateFormat}" || Zenoss.USER_DATE_FORMAT;
-             '></script>
-            <script>
-                // build a select list with the current date format selected.
-                // Zenoss.data.timeZones comes from moment-timezone-data.js and
-                // Zenoss.env.CURRENT_USER_DATE_FORMAT comes from the server
-                Ext.onReady(function() {
-                    add_select_options(
-                        'user_settings_dateformat',
-                        Zenoss.date.dateFormats,
-                        Zenoss.env.CURRENT_USER_DATE_FORMAT
-                    );
-                });
+                    <tr>
+                        <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader password-split">
+                        </td>
+                        <td style="height:1px;border-bottom:dashed 1px #ccc;" class=" password-split" colspan="3">
+                        </td>
+                    </tr>
 
-            </script>
-          </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Time format</td>
-          <td class="tablevalues">
-            <select id="user_settings_timeformat" name="timeFormat"></select>
-            <script tal:content='string:
-                 Zenoss.env.CURRENT_USER_TIME_FORMAT = "${context/timeFormat}" || Zenoss.USER_TIME_FORMAT;
-             '></script>
-            <script>
-                // build a select list with the current time format selected.
-                // Zenoss.data.timeZones comes from moment-timezone-data.js and
-                // Zenoss.env.CURRENT_USER_TIME_FORMAT comes from the server
-                Ext.onReady(function() {
-                    add_select_options(
-                        'user_settings_timeformat',
-                        Zenoss.date.timeFormats,
-                        Zenoss.env.CURRENT_USER_TIME_FORMAT
-                    );
-                });
-            </script>
-          </td>
-        </tr>
-
-        <tr>
-            <td style="height:1px;border-bottom:dashed 1px #bbb;" class="tableheader password-split">
-            </td>
-            <td style="height:1px;border-bottom:dashed 1px #ccc;" class=" password-split" colspan="3">
-            </td>
-        </tr>
-
-        <tr>
-          <td class="tableheader" align="left">Set New Password</td>
-          <td class="tablevalues">
-            <input id="user_settings_new_password_input" class="tablevalues" type="password" name="password"
-                title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
-                autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
-           </td>
-        </tr>
-        <tr>
-          <td class="tableheader" align="left">Confirm New Password</td>
-          <td class="tablevalues">
-            <input id="user_settings_confirmpassword_input" class="tablevalues" type="password" name="sndpassword"
-                title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
-                autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
-           </td>
-        </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Set New Password</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_new_password_input" class="tablevalues" type="password"
+                                   name="password"
+                                   title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
+                                   autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableheader" align="left">Confirm New Password</td>
+                        <td class="tablevalues">
+                            <input id="user_settings_confirmpassword_input" class="tablevalues" type="password"
+                                   name="sndpassword"
+                                   title="That must contain 8 or more characters that are of at least one number, and one uppercase and lowercase letter."
+                                   autocomplete="off" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/>
+                        </td>
+                    </tr>
 
 
-        <tr>
-            <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
-                <strong>Current Password for  <tal:block tal:content="request/AUTHENTICATED_USER"/></strong>
-            </td>
-            <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
-                <div style="float:left;">
-                <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
-                    autocomplete="off"/>
-                </div>
-                    <div style="padding:0 0 0 8px;float:left;">
-                    <input class="tableheader" type="submit" value=" Save Settings "
-                        disabled=true
-                        id="formsave"
-                        style="height:30px;width:144px;text-align:center;color:#888"
-                        name="manage_editUserSettings:method" />
-                    </div>
-            </td>
-        </tr>
+                    <tr>
+                        <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
+                            <strong>Current Password for
+                                <tal:block tal:content="request/AUTHENTICATED_USER"/>
+                            </strong>
+                        </td>
+                        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan=3>
+                            <div style="float:left;">
+                                <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password"
+                                       name="oldpassword"
+                                       autocomplete="off"/>
+                            </div>
+                            <div style="padding:0 0 0 8px;float:left;">
+                                <input class="tableheader" type="submit" value=" Save Settings "
+                                       disabled=true
+                                       id="formsave"
+                                       style="height:30px;width:144px;text-align:center;color:#888"
+                                       name="manage_editUserSettings:method"/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <!-- END TABLE CONTENTS -->
 
-        <!-- END TABLE CONTENTS -->
+                <script>
 
-        <script>
+                    var saveInputs = ['pwconfirm', 'user_settings_email_input', 'user_settings_pagesize_input'];
+                    Ext.each(saveInputs, function (input) {
+                        connect(input, 'onkeyup', function () {
+                            if ($(input).value) {
+                                $('formsave').disabled = false;
+                                setStyle('formsave', {'color': '#000'});
+                            } else {
+                                $('formsave').disabled = true;
+                                setStyle('formsave', {'color': '#888'});
+                            }
+                        });
+                    });
 
-            var saveInputs = ['pwconfirm', 'user_settings_email_input', 'user_settings_pagesize_input'];
-            Ext.each(saveInputs, function(input) {
-                connect(input, 'onkeyup', function() {
-                    if($(input).value) {
-                        $('formsave').disabled = false;
-                        setStyle('formsave', {'color':'#000'});
-                    } else {
-                        $('formsave').disabled = true;
-                        setStyle('formsave', {'color':'#888'});
-                    }
-                });
-            });
+                </script>
 
-        </script>
-
-    </form>
+            </form>
+        </td>
+    </tr>
 
 </tal:block>
 </tal:block>
