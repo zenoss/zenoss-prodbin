@@ -28,7 +28,7 @@ from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
 
 from .resources import COMPILED_JS_EXISTS
-
+import time
 
 dummyRequest = TestRequest()
 
@@ -253,6 +253,7 @@ class ZenossData(JavaScriptSnippet):
         timezone = user.timezone
         date_fmt = user.dateFormat
         time_fmt = user.timeFormat
+        cctz = time.strftime('%Z') # Container TimeZone
         snippet = """
           (function(){
             Ext.namespace('Zenoss.env');
@@ -263,8 +264,9 @@ class ZenossData(JavaScriptSnippet):
             Zenoss.USER_TIMEZONE = "%s" || jstz.determine().name();
             Zenoss.USER_DATE_FORMAT = "%s" || "YYYY/MM/DD";
             Zenoss.USER_TIME_FORMAT = "%s" || "HH:mm:ss";
+            Zenoss.CC_TIMEZONE = "%s";
           })();
-        """ % ( collectors, priorities, productionStates, timezone, date_fmt, time_fmt )
+        """ % ( collectors, priorities, productionStates, timezone, date_fmt, time_fmt, cctz )
         return SCRIPT_TAG_TEMPLATE % snippet
 
 class BrowserState(JavaScriptSnippet):
