@@ -14,7 +14,6 @@ class CallHomeStatus(object):
     DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
     REDIS_RECONNECTION_INTERVAL = 3
     STATUS = {'FAILED': -1, 'RUNNING': 0, 'FINISHED': 1, 'PENDING': 2}
-    REPORT_UPDATE = 'Update report'
     REQUEST_CALLHOME = 'Request to CallHome server'
     START_CALLHOME = 'CallHome start'
     UPDATE_REPORT = 'Update report'
@@ -98,14 +97,11 @@ class CallHomeStatus(object):
         l.append({'id': 'lastrun', 'description': 'Last run was', 'value': data.get('startedAt'), 'type': 'date'})
         l.append({'id': 'lastupdtook', 'description': 'Last updating took', 'value': data.get('lastTook'),
                   'type': 'duration'})
+        err = "No errors"
         for key, val in data.iteritems():
             if isinstance(val, dict):
                 if val.get('status') == "FAILED":
                     err = "Failed: " + val.get('error')
-                else:
-                    err = "No errors"
-            else:
-                err = "No errors"
         l.append({'id': 'updresult', 'description': 'Updating result', 'value': err, 'type': 'text'})
         return l
 
@@ -133,23 +129,28 @@ class CallHomeStatus(object):
     def stage(self, stage, status="RUNNING", err=""):
         """Usage: obj.stage(Stage name, Stage Status, Stage error message)
         """
-        if stage == "Update report" and status == "RUNNING":
-            self._init()
-            self.updateStat('startedAt', int(time.time()))
-        data = self._pickleLoadRedis()
-        if stage == "Update report" and status == "FINISHED":
-            self.updateStat('lastTook', int(time.time()) - int(data[stage]['stime']))
-        if status == "RUNNING":
-            stime = int(time.time())
-        else:
-            stime = int(time.time()) - int(data[stage]['stime'])
-        data[stage] = {
-            'description': stage,
-            'status': status,
-            'error': err,
-            'stime': stime
-        }
-        self.push_to_redis(pickle.dumps(data))
+        try:
+            if stage == "Update report" and status == "RUNNING":
+                self._init()
+                self.updateStat('startedAt', int(time.time()))
+            data = self._pickleLoadRedis()
+            if not data:
+                self._init()
+            if stage == "Update report" and status == "FINISHED":
+                self.updateStat('lastTook', int(time.time()) - int(data[stage]['stime']))
+            if status == "RUNNING":
+                stime = int(time.time())
+            else:
+                stime = int(time.time()) - int(data[stage]['stime'])
+            data[stage] = {
+                'description': stage,
+                'status': status,
+                'error': err,
+                'stime': stime
+            }
+            self.push_to_redis(pickle.dumps(data))
+        except Exception as e:
+            log.warning("Failed to update stage in the report: {0}".format(e))
 
     def status(self):
         l = list()
