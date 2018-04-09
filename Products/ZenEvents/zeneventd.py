@@ -8,9 +8,8 @@
 ##############################################################################
 
 import logging
-import time
 import signal
-from datetime import datetime, timedelta
+from time import time
 
 from twisted.internet import defer, reactor
 from zope.component import getUtility, provideUtility
@@ -114,65 +113,49 @@ class EventPipelineProcessor(object):
         if not self.SYNC_EVERY_EVENT:
             # don't call sync() more often than 1 every 0.5 sec
             # helps throughput when receiving events in bursts
-            self.nextSync = datetime.now()
-            self.syncInterval = timedelta(0, 0, 500000)
+            self.nextSync = time()
+            self.syncInterval = 0.5
 
-    def processMessage(self, message):
+    def processMessage(self, message, retry=True):
         """
         Handles a queue message, can call "acknowledge" on the Queue Consumer
         class when it is done with the message
         """
-
-        if self.SYNC_EVERY_EVENT:
-            doSync = True
-        else:
-            # sync() db if it has been longer than self.syncInterval
-            # since the last time
-            currentTime = datetime.now()
-            doSync = currentTime > self.nextSync
-            self.nextSync = currentTime + self.syncInterval
-
-        if doSync:
-            self.dmd._p_jar.sync()
+        self._synchronize_with_database()
 
         try:
-            retry = True
-            processed = False
-            while not processed:
-                try:
-                    # extract event from message body
-                    zepevent = ZepRawEvent()
-                    zepevent.event.CopyFrom(message)
-                    log.debug("Received event: %s", to_dict(zepevent.event))
+            # extract event from message body
+            zepevent = ZepRawEvent()
+            zepevent.event.CopyFrom(message)
+            log.debug("Received event: %s", to_dict(zepevent.event))
+            eventContext = EventContext(log, zepevent)
 
-                    eventContext = EventContext(log, zepevent)
-                    for pipe in self._pipes:
-                        with self._pipe_timers[pipe.name]:
-                            eventContext = pipe(eventContext)
-                        log.debug(
-                            'After pipe %s, event context is %s',
-                            pipe.name, to_dict(eventContext.zepRawEvent)
-                        )
-                        if eventContext.event.status == STATUS_DROPPED:
-                            raise DropEvent(
-                                'Dropped by %s' % pipe, eventContext.event
-                            )
+            for pipe in self._pipes:
+                with self._pipe_timers[pipe.name]:
+                    eventContext = pipe(eventContext)
+                log.debug(
+                    'After pipe %s, event context is %s',
+                    pipe.name, to_dict(eventContext.zepRawEvent)
+                )
+                if eventContext.event.status == STATUS_DROPPED:
+                    raise DropEvent(
+                        'Dropped by %s' % pipe, eventContext.event
+                    )
 
-                    processed = True
-
-                except AttributeError:
-                    # _manager throws Attribute errors
-                    # if connection to zope is lost - reset and retry ONE time
-                    if retry:
-                        retry = False
-                        log.debug("Resetting connection to catalogs")
-                        self._manager.reset()
-                    else:
-                        raise
+        except AttributeError:
+            # _manager throws Attribute errors
+            # if connection to zope is lost - reset and retry ONE time
+            if retry:
+                log.debug("Resetting connection to catalogs")
+                self._manager.reset()
+                self.processMessage(message, retry=False)
+            else:
+                raise
 
         except DropEvent:
             # we want these to propagate out
             raise
+
         except Exception as error:
             log.info(
                 "Failed to process event, forward original raw event: %s",
@@ -189,6 +172,21 @@ class EventPipelineProcessor(object):
         log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
         return eventContext.zepRawEvent
 
+    def _synchronize_with_database(self):
+        '''sync() db if it has been longer than
+        self.syncInterval seconds since the last time,
+        and no _synchronize has not been called for self.syncInterval seconds
+        '''
+        if self.SYNC_EVERY_EVENT:
+            doSync = True
+        else:
+            current_time = time()
+            doSync = current_time > self.nextSync
+            self.nextSync = current_time + self.syncInterval
+
+        if doSync:
+            self.dmd._p_jar.sync()
+
     def create_exception_event(self, message, exception):
         # construct wrapper event to report this event processing failure
         # including content of the original event
@@ -196,7 +194,7 @@ class EventPipelineProcessor(object):
         orig_zep_event.event.CopyFrom(message)
         failure_event = {
             'uuid': guid.generate(),
-            'created_time': int(time.time() * 1000),
+            'created_time': int(time() * 1000),
             'fingerprint':
                 '|'.join(['zeneventd', 'processMessage', repr(exception)]),
             # Don't send the *same* event class or we loop endlessly

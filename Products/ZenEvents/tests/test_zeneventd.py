@@ -9,6 +9,7 @@ from Products.ZenEvents.zeneventd import (
     ZepRawEvent,
     CheckInputPipe,
     EventContext,
+    time
 )
 from Products.ZenEvents.events2.processing import EventProcessorPipe
 from zenoss.protocols.protobufs.zep_pb2 import EventActor
@@ -89,6 +90,32 @@ class EventPipelineProcessorTest(TestCase):
             zep_raw_event.event.message,
             exception_event.event.message
         )
+
+    def test_synchronize_with_database(self):
+        '''if self.SYNC_EVERY_EVENT:
+            doSync = True
+        else:
+            # sync() db if it has been longer than self.syncInterval
+            # since the last time
+            currentTime = datetime.now()
+            doSync = currentTime > self.nextSync
+            self.nextSync = currentTime + self.syncInterval
+
+        if doSync:
+            self.dmd._p_jar.sync()
+        '''
+        self.epp._synchronize_with_database()
+        self.dmd._p_jar.sync.assert_called_once_with()
+
+    def test_synchronize_with_database_delay(self):
+        self.epp.nextSync = time() + 0.5
+        self.epp._synchronize_with_database()
+        self.dmd._p_jar.sync.assert_not_called()
+
+    def test_synchronize_with_database_every_event(self):
+        self.epp.SYNC_EVERY_EVENT = True
+        self.epp._synchronize_with_database()
+        self.dmd._p_jar.sync.assert_called_once_with()
 
     class ErrorPipe(EventProcessorPipe):
         ERR = Exception('pipeline failure')
