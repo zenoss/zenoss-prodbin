@@ -9,6 +9,7 @@
 
 import logging
 import time
+import signal
 from datetime import datetime, timedelta
 
 from twisted.internet import defer, reactor
@@ -80,21 +81,27 @@ class EventPipelineProcessor(object):
         self._pipes = (
             EventPluginPipe(
                 self._manager, IPreEventPlugin, 'PreEventPluginPipe'
-            ), CheckInputPipe(self._manager), IdentifierPipe(self._manager),
+            ),
+            CheckInputPipe(self._manager),
+            IdentifierPipe(self._manager),
             AddDeviceContextAndTagsPipe(self._manager),
             TransformAndReidentPipe(
-                self._manager, TransformPipe(self._manager), [
+                self._manager,
+                TransformPipe(self._manager),
+                [
                     UpdateDeviceContextAndTagsPipe(self._manager),
                     IdentifierPipe(self._manager),
                     AddDeviceContextAndTagsPipe(self._manager),
                 ]
-            ), AssignDefaultEventClassAndTagPipe(self._manager),
+            ),
+            AssignDefaultEventClassAndTagPipe(self._manager),
             FingerprintPipe(self._manager),
             SerializeContextPipe(self._manager),
             EventPluginPipe(
                 self._manager, IPostEventPlugin, 'PostEventPluginPipe'
-            ), ClearClassRefreshPipe(self._manager),
-            CheckHeartBeatPipe(self._manager)
+            ),
+            ClearClassRefreshPipe(self._manager),
+            CheckHeartBeatPipe(self._manager),
         )
         self._pipe_timers = {}
         for pipe in self._pipes:
@@ -136,21 +143,16 @@ class EventPipelineProcessor(object):
                     # extract event from message body
                     zepevent = ZepRawEvent()
                     zepevent.event.CopyFrom(message)
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.debug(
-                            "Received event: %s", to_dict(zepevent.event)
-                        )
+                    log.debug("Received event: %s", to_dict(zepevent.event))
 
                     eventContext = EventContext(log, zepevent)
-
                     for pipe in self._pipes:
                         with self._pipe_timers[pipe.name]:
                             eventContext = pipe(eventContext)
-                        if log.isEnabledFor(logging.DEBUG):
-                            log.debug(
-                                'After pipe %s, event context is %s',
-                                pipe.name, to_dict(eventContext.zepRawEvent)
-                            )
+                        log.debug(
+                            'After pipe %s, event context is %s',
+                            pipe.name, to_dict(eventContext.zepRawEvent)
+                        )
                         if eventContext.event.status == STATUS_DROPPED:
                             raise DropEvent(
                                 'Dropped by %s', pipe, eventContext.event
@@ -171,7 +173,7 @@ class EventPipelineProcessor(object):
         except DropEvent:
             # we want these to propagate out
             raise
-        except Exception as e:
+        except Exception as error:
             log.info(
                 "Failed to process event, forward original raw event: %s",
                 to_dict(zepevent.event)
@@ -179,38 +181,38 @@ class EventPipelineProcessor(object):
             # Pipes and plugins may raise ProcessingException's for their own
             # reasons. only log unexpected exceptions of other type
             # will insert stack trace in log
-            if not isinstance(e, ProcessingException):
-                log.exception(e)
+            if not isinstance(error, ProcessingException):
+                log.exception(error)
 
-            # construct wrapper event to report this event processing failure
-            # including content of the original event
-            origzepevent = ZepRawEvent()
-            origzepevent.event.CopyFrom(message)
-            failReportEvent = {
-                'uuid': guid.generate(),
-                'created_time': int(time.time() * 1000),
-                'fingerprint':
-                    '|'.join(['zeneventd', 'processMessage', repr(e)]),
-                # Don't send the *same* event class or we loop endlessly
-                'eventClass': '/',
-                'summary': 'Internal exception processing event: %r' % e,
-                'message':
-                    'Internal exception processing event: %r/%s' %
-                    (e, to_dict(origzepevent.event)),
-                'severity': 4,
-            }
-            zepevent = ZepRawEvent()
-            zepevent.event.CopyFrom(from_dict(Event, failReportEvent))
-            eventContext = EventContext(log, zepevent)
-            eventContext.eventProxy.device = 'zeneventd'
-            eventContext.eventProxy.component = 'processMessage'
+            eventContext = self.create_exception_event(message, error)
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(
-                "Publishing event: %s", to_dict(eventContext.zepRawEvent)
-            )
-
+        log.debug("Publishing event: %s", to_dict(eventContext.zepRawEvent))
         return eventContext.zepRawEvent
+
+    def create_exception_event(self, message, exception):
+        # construct wrapper event to report this event processing failure
+        # including content of the original event
+        orig_zep_event = ZepRawEvent()
+        orig_zep_event.event.CopyFrom(message)
+        failure_event = {
+            'uuid': guid.generate(),
+            'created_time': int(time.time() * 1000),
+            'fingerprint':
+                '|'.join(['zeneventd', 'processMessage', repr(exception)]),
+            # Don't send the *same* event class or we loop endlessly
+            'eventClass': '/',
+            'summary': 'Internal exception processing event: %r' % exception,
+            'message':
+                'Internal exception processing event: %r/%s' %
+                (exception, to_dict(orig_zep_event.event)),
+            'severity': 4,
+        }
+        zep_raw_event = ZepRawEvent()
+        zep_raw_event.event.CopyFrom(from_dict(Event, failure_event))
+        event_context = EventContext(log, zep_raw_event)
+        event_context.eventProxy.device = 'zeneventd'
+        event_context.eventProxy.component = 'processMessage'
+        return event_context
 
 
 class BaseQueueConsumerTask(object):
@@ -374,6 +376,38 @@ class ZenEventD(ZCmdBase):
             help='Sets the path to save pickle files.'
         )
         objectEventNotify(BuildOptionsEvent(self))
+
+
+class Timeout:
+
+    def __init__(
+        self,
+        event,
+        seconds=1,
+        error_message='Timeout',
+        thingamajigger='whatamacalit'
+    ):
+        self.seconds = seconds
+        self.error_message = error_message
+        self.event = event
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message, self.event)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
+class TimeoutError(Exception):
+
+    def __init__(self, message, event=None):
+        super(TimeoutError, self).__init__(message)
+        self.event = event
 
 
 if __name__ == '__main__':
