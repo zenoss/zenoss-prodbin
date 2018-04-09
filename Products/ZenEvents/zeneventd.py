@@ -155,7 +155,7 @@ class EventPipelineProcessor(object):
                         )
                         if eventContext.event.status == STATUS_DROPPED:
                             raise DropEvent(
-                                'Dropped by %s', pipe, eventContext.event
+                                'Dropped by %s' % pipe, eventContext.event
                             )
 
                     processed = True

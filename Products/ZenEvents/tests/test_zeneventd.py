@@ -90,9 +90,6 @@ class EventPipelineProcessorTest(TestCase):
             exception_event.event.message
         )
 
-    def test_validate_tests_are_run_by_ci(self):
-        self.assertTrue(False)
-
     class ErrorPipe(EventProcessorPipe):
         ERR = Exception('pipeline failure')
 
