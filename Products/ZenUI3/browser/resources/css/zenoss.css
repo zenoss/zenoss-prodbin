@@ -94,7 +94,7 @@ a:link, a:visited {
 .inspector .inspector-header .header-icon-wrapper {
   position: absolute;
   top: 50% !important;
-  left: 0 !important;;
+  left: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
