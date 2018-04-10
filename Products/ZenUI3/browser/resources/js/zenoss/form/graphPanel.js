@@ -279,7 +279,7 @@
         initChart: function() {
             var cname = isSingleComponentChart(this.datapoints);
             // returns repeated legend name if all legends share same component
-            if(cname.length > 0) {
+            if(cname) {
                 [this.datapoints, this.thresholds].forEach(function (datapts) {
                     if (datapts) {
                         removeRepeatedComponent(datapts, cname);
