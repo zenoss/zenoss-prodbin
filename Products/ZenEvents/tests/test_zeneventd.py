@@ -18,12 +18,6 @@ from zenoss.protocols.protobufs.zep_pb2 import EventActor
 PATH = {'zeneventd': 'Products.ZenEvents.zeneventd'}
 
 
-class DummyPipe(EventProcessorPipe):
-
-    def __call__(self, eventContext):
-        return eventContext
-
-
 class EventPipelineProcessorTest(TestCase):
 
     def setUp(self):
@@ -91,19 +85,13 @@ class EventPipelineProcessorTest(TestCase):
             exception_event.event.message
         )
 
-    def test_synchronize_with_database(self):
-        '''if self.SYNC_EVERY_EVENT:
-            doSync = True
-        else:
-            # sync() db if it has been longer than self.syncInterval
-            # since the last time
-            currentTime = datetime.now()
-            doSync = currentTime > self.nextSync
-            self.nextSync = currentTime + self.syncInterval
+    class ErrorPipe(EventProcessorPipe):
+        ERR = Exception('pipeline failure')
 
-        if doSync:
-            self.dmd._p_jar.sync()
-        '''
+        def __call__(self, eventContext):
+            raise self.ERR
+
+    def test_synchronize_with_database(self):
         self.epp._synchronize_with_database()
         self.dmd._p_jar.sync.assert_called_once_with()
 
@@ -114,14 +102,9 @@ class EventPipelineProcessorTest(TestCase):
 
     def test_synchronize_with_database_every_event(self):
         self.epp.SYNC_EVERY_EVENT = True
+        self.epp.nextSync = time() + 0.5
         self.epp._synchronize_with_database()
         self.dmd._p_jar.sync.assert_called_once_with()
-
-    class ErrorPipe(EventProcessorPipe):
-        ERR = Exception('pipeline failure')
-
-        def __call__(self, eventContext):
-            raise self.ERR
 
     def test_create_exception_event(self):
         error = Exception('test exception')
@@ -168,12 +151,6 @@ class TimeoutTest(TestCase):
         with self.assertRaises(TimeoutError):
             with Timeout(1) as ctx:
                 ctx.handle_timeout(1, 'frame')
-
-    def test_slow_transform(self):
-        pass #self.assertTrue(False)
-
-    def test_slow_pipeline_component(self):
-        pass #self.assertTrue(False)
 
 
 class BaseQueueConsumerTaskTest(TestCase):

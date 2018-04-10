@@ -130,17 +130,18 @@ class EventPipelineProcessor(object):
             log.debug("Received event: %s", to_dict(zepevent.event))
             eventContext = EventContext(log, zepevent)
 
-            for pipe in self._pipes:
-                with self._pipe_timers[pipe.name]:
-                    eventContext = pipe(eventContext)
-                log.debug(
-                    'After pipe %s, event context is %s',
-                    pipe.name, to_dict(eventContext.zepRawEvent)
-                )
-                if eventContext.event.status == STATUS_DROPPED:
-                    raise DropEvent(
-                        'Dropped by %s' % pipe, eventContext.event
+            with Timeout(zepevent, 10, error_message='while processing event'):
+                for pipe in self._pipes:
+                    with self._pipe_timers[pipe.name]:
+                        eventContext = pipe(eventContext)
+                    log.debug(
+                        'After pipe %s, event context is %s',
+                        pipe.name, to_dict(eventContext.zepRawEvent)
                     )
+                    if eventContext.event.status == STATUS_DROPPED:
+                        raise DropEvent(
+                            'Dropped by %s' % pipe, eventContext.event
+                        )
 
         except AttributeError:
             # _manager throws Attribute errors
@@ -176,6 +177,7 @@ class EventPipelineProcessor(object):
         '''sync() db if it has been longer than
         self.syncInterval seconds since the last time,
         and no _synchronize has not been called for self.syncInterval seconds
+        KNOWN ISSUE: ZEN-29884
         '''
         if self.SYNC_EVERY_EVENT:
             doSync = True
@@ -378,13 +380,7 @@ class ZenEventD(ZCmdBase):
 
 class Timeout:
 
-    def __init__(
-        self,
-        event,
-        seconds=1,
-        error_message='Timeout',
-        thingamajigger='whatamacalit'
-    ):
+    def __init__(self, event, seconds=1, error_message='Timeout'):
         self.seconds = seconds
         self.error_message = error_message
         self.event = event
