@@ -62,12 +62,21 @@ a:link, a:visited {
 }
 
 .inspector .inspector-header {
-  height: 54px;
   color: black;
   font-size: 15px;
-  background: bottom #bdbdbd url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+  background: top #959595 url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
   border-top: 3px solid #BBBBBB;
   border-bottom: 1px solid #949494;
+}
+
+.inspector .inspector-header > .x-box-inner {
+  height: auto !important;
+}
+
+.inspector .inspector-header .x-box-inner > div {
+  position: relative !important;
+  width: inherit !important;
+  height: auto !important;
 }
 
 .inspector .inspector-header a {
@@ -82,20 +91,30 @@ a:link, a:visited {
   text-decoration: underline;
 }
 
-.inspector .inspector-header .header-icon {
-  height: 50px;
-  width: 43px;
+.inspector .inspector-header .header-icon-wrapper {
+  position: absolute;
+  top: 50% !important;
+  left: 0 !important;;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  width: 48px;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) no-repeat;
+  transform: translateY(-50%);
 }
 
 .inspector .inspector-header .header-title {
-  height: 50px;
+  position: static !important;
+  min-height: 45px;
+  margin-left: 45px !important;
+  padding-right: 10px;
   padding-left: 30px;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) left center no-repeat;
 }
 
 .inspector .inspector-header .header-title .name {
-  font-size: 13pt;
+  font-size: 14px;
   font-weight: bold;
 }
 
@@ -119,6 +138,11 @@ a:link, a:visited {
 
 .inspector .inspector-header .header-title .info a:hover, .inspector .inspector-header .header-title .info a:visited, .inspector .inspector-header .header-title .info a:link {
   color: #383838;
+}
+
+.inspector .header-icon {
+  max-width: 43px;
+  max-height: 38px;
 }
 
 .inspector .inspector-body {
