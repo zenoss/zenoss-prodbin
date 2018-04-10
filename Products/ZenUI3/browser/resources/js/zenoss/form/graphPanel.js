@@ -281,7 +281,9 @@
             // returns repeated legend name if all legends share same component
             if(cname.length > 0) {
                 [this.datapoints, this.thresholds].forEach(function (datapts) {
-                    removeRepeatedComponent(datapts, cname);
+                    if (datapts) {
+                        removeRepeatedComponent(datapts, cname);
+                    }
                 }, this);
             }
 
