@@ -72,7 +72,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
     extend: 'Ext.Panel',
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
-            defaultType: 'devdetailitem',
+            defaultType: 'container',
             layout: 'anchor',
             bodyBorder: false,
             items: [],
@@ -86,15 +86,17 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 ref: 'headerItem',
                 items: [
                     {
-                        cls: 'header-icon',
+                        cls: 'header-icon-wrapper',
                         ref: 'iconItem',
-                        xtype: 'panel'
+                        xtype: 'container',
+                        layout: 'fit'
                     },
                     {
                         cls: 'header-title',
                         ref: 'titleItem',
-                        xtype: 'label',
-                        tpl: config.titleTpl
+                        xtype: 'container',
+                        tpl: config.titleTpl,
+                        layout: 'fit'
                     }
                 ]
             },
@@ -117,7 +119,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 'background-image', 'url(' + url + ')'
             );
         } else {
-            this.headerItem.iconItem.update(Ext.String.format('<img height="43px" src="{0}" />', url));
+            this.headerItem.iconItem.update(Ext.String.format('<img class="header-icon" src="{0}" alt="" />', url));
         }
     },
     /**
