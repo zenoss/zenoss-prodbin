@@ -16,7 +16,7 @@ _CSE_CONFIG = {
     }
 
 def getCSEConf():
-    """Return a dictionary containing CSE configuration or None
+    """Return a dictionary containing CSE configuration 
     """
     global _CSE_CONFIG
     if _CSE_CONFIG is not None and not all(_CSE_CONFIG.values()):
@@ -24,7 +24,7 @@ def getCSEConf():
         config = getGlobalConfiguration()
         for k in _CSE_CONFIG:
             d[k] = config.get('cse-' + k)
-        _CSE_CONFIG = d if all(d.values()) else None
+        _CSE_CONFIG = d if all(d.values()) else {}
     return _CSE_CONFIG
 
 def getZenossURI(request):

@@ -18,8 +18,10 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
-from Products.ZenMessaging.ChangeEvents.events import MessagePrePublishingEvent
-from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
+from Products.ZenMessaging.ChangeEvents.events import (MessagePrePublishingEvent,
+        MessagePostPublishingEvent)
+from Products.ZenMessaging.queuemessaging.interfaces import (
+        IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher)
 from contextlib import closing
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.protobufs import modelevents_pb2
@@ -219,6 +221,7 @@ def _getPrepublishingTimer():
 
 class PublishSynchronizer(object):
     _queuePublisher = None
+    _postPublishingEventArgs = ()
 
     def findNonImpactingEvents(self, events):
         """
@@ -274,6 +277,7 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
+                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges)
                 with _getPrepublishingTimer():
                     notify(MessagePrePublishingEvent(msgs, maintWindowChanges=publisher._maintWindowChanges))
                 if msgs:
@@ -296,8 +300,11 @@ class PublishSynchronizer(object):
                     self._queuePublisher.close()
                 except Exception:
                     log.exception("Error closing queue publisher")
+            if self._postPublishingEventArgs:
+                notify(MessagePostPublishingEvent(*self._postPublishingEventArgs))
         finally:
             self._queuePublisher=None
+            self._postPublishingEventArgs=()
 
 
 class EventPublisherBase(object):
