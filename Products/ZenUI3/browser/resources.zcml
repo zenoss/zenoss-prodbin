@@ -18,13 +18,6 @@
     />
 
 <browser:page
-    name="cse"
-    for="OFS.interfaces.IApplication"
-    class=".resources.CSEShortcut"
-    permission="zope2.Public"
-    />
-
-<browser:page
     name="zenoss-all.js"
     for="*"
     class=".resources.ZenossJavaScript"
