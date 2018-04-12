@@ -56,8 +56,8 @@ def manage_addDataPointAlias(context, id, formula=None):
     id = _validateAliasID(id)
     alias = RRDDataPointAlias(id)
     alias.formula = formula
-    context.aliases._setObject(id, alias)
-    return context.aliases._getOb(id)
+    context.aliases._setObject(alias.id, alias)
+    return context.aliases._getOb(alias.id)
 
 
 class RRDDataPointAlias(ZenModelRM, ZenPackable):
