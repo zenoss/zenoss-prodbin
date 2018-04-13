@@ -13,6 +13,7 @@ from servicemigration import context, service
 
 import logging
 log = logging.getLogger("zen.migrate")
+log.setLevel(logging.CRITICAL)
 
 
 def fakeContextFromFile(jsonfile):
