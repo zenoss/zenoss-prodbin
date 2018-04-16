@@ -1,56 +1,66 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-import os
 import logging
-
-def monkey_patch_rotatingfilehandler():
-  try:
-    from cloghandler import ConcurrentRotatingFileHandler
-    logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
-  except ImportError:
-    from warnings import warn
-    warn("ConcurrentLogHandler package not installed. Using RotatingFileLogHandler. While everything will still work fine, there is a potential for log files overlapping each other.")
-monkey_patch_rotatingfilehandler()
-
-from twisted.internet import reactor
-from twisted.internet import defer
-
-from metrology import Metrology
-
 import time
 from datetime import datetime, timedelta
 
-import Globals
-from zope.component import getUtility, provideUtility, adapter
-
-from zope.interface import implements, implementer
+from twisted.internet import defer, reactor
+from zope.component import getUtility, provideUtility
 from zope.component.event import objectEventNotify
+from zope.interface import implementer, implements
+from metrology import Metrology
 
-from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanceBuildOptions, QueueHeartbeatSender
-from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
-from Products.ZenUtils.MetricReporter import MetricReporter
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.guid import guid
-from Products.ZenUtils.daemonconfig import IDaemonConfig
-from Products.ZenUtils.Utils import zenPath
-from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
-from zenoss.protocols.protobufs.zep_pb2 import ZepRawEvent, Event, STATUS_DROPPED
-from zenoss.protocols.jsonformat import from_dict, to_dict
+import Globals
 from zenoss.protocols import hydrateQueueMessage
+from zenoss.protocols.interfaces import IAMQPConnectionInfo, IQueueSchema
+from zenoss.protocols.jsonformat import from_dict, to_dict
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_DROPPED, Event, ZepRawEvent
+)
+
+from Products.ZenCollector.utils.maintenance import (
+    MaintenanceCycle, QueueHeartbeatSender, maintenanceBuildOptions
+)
+from Products.ZenEvents.daemonlifecycle import (
+    BuildOptionsEvent, DaemonCreatedEvent, DaemonStartRunEvent, SigTermEvent,
+    SigUsr1Event
+)
+from Products.ZenEvents.events2.processing import (
+    AddDeviceContextAndTagsPipe, AssignDefaultEventClassAndTagPipe,
+    CheckHeartBeatPipe, CheckInputPipe, ClearClassRefreshPipe, DropEvent,
+    EventContext, EventPluginPipe, FingerprintPipe, IdentifierPipe, Manager,
+    ProcessingException, SerializeContextPipe, TransformAndReidentPipe,
+    TransformPipe, UpdateDeviceContextAndTagsPipe
+)
+from Products.ZenEvents.interfaces import IPostEventPlugin, IPreEventPlugin
+from Products.ZenMessaging.queuemessaging.interfaces import IQueueConsumerTask
 from Products.ZenMessaging.queuemessaging.QueueConsumer import QueueConsumer
-from Products.ZenEvents.events2.processing import (Manager, EventPluginPipe, CheckInputPipe, IdentifierPipe,
-    AddDeviceContextAndTagsPipe, TransformAndReidentPipe, TransformPipe, UpdateDeviceContextAndTagsPipe,
-    AssignDefaultEventClassAndTagPipe, FingerprintPipe, SerializeContextPipe, ClearClassRefreshPipe,
-    EventContext, DropEvent, ProcessingException, CheckHeartBeatPipe)
-from Products.ZenEvents.interfaces import IPreEventPlugin, IPostEventPlugin
-from Products.ZenEvents.daemonlifecycle import DaemonCreatedEvent, SigTermEvent, SigUsr1Event
-from Products.ZenEvents.daemonlifecycle import DaemonStartRunEvent, BuildOptionsEvent
+from Products.ZenUtils.daemonconfig import IDaemonConfig
+from Products.ZenUtils.guid import guid
+from Products.ZenUtils.MetricReporter import MetricReporter
+from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+
+def monkey_patch_rotatingfilehandler():
+    try:
+        from cloghandler import ConcurrentRotatingFileHandler
+        logging.handlers.RotatingFileHandler = ConcurrentRotatingFileHandler
+    except ImportError:
+        from warnings import warn
+        warn(
+            "ConcurrentLogHandler package not installed. Using"
+            " RotatingFileLogHandler. While everything will still work fine,"
+            " there is a potential for log files overlapping each other."
+        )
+
+
+monkey_patch_rotatingfilehandler()
 
 log = logging.getLogger("zen.eventd")
 
