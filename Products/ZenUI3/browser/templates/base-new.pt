@@ -76,6 +76,7 @@
                         <div class="bg-logo"></div>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
+                            <div id="nav-zc"><a href="/">Zenoss Cloud</a></div>
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
                                 <div id="saved-search-container"></div>
