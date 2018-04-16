@@ -437,6 +437,15 @@ Ext.apply(Zenoss.render, {
         return item.text;
     },
 
+    DeviceZcLink: function(uid, intro, text) {
+        var anchor = '<a href="http://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
+        var loc = window.location.host;
+        var landing = '/_lucky?q=';
+        var url = loc + landing + uid;
+        var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
+        return link
+    },
+
     EventClass: function(uid, name) {
         return Zenoss.render.default_uid_renderer(uid, name);
     },
