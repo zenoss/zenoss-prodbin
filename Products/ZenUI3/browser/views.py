@@ -20,6 +20,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from Products import Zuul
 from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenModel.DataRoot import DataRoot
 
@@ -89,7 +90,8 @@ class GotoRedirect(BrowserView):
         if not obj:
             return response.write("Could not look up guid")
 
-        path = obj.absolute_url_path()
+        raw_path = obj.absolute_url_path()
+        path = getUtility(IVirtualRoot).ensure_virtual_root(raw_path)
         return response.redirect(path + '?' + request.QUERY_STRING)
 
 class GetDaemonLogs(BrowserView):
