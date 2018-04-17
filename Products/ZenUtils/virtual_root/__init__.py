@@ -42,7 +42,9 @@ class CSEVirtualRoot(object):
 
     def ensure_virtual_root(self, url):
         if self._prefix and url.startswith('/'):
-            url = urljoin(self._prefix, url.lstrip('/'))
+            # urljoin requires leading and trailing /
+            prefix = '/%s/' % self._prefix.strip('/')
+            url = urljoin(prefix, url.lstrip('/'))
         return url
 
     def strip_virtual_root(self, url):
