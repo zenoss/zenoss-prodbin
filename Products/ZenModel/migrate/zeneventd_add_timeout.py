@@ -7,7 +7,7 @@
 #
 ##############################################################################
 __doc__ = """
-Set process_event_timeout for zeneventd
+Set process-event-timeout for zeneventd
 """
 
 import logging
@@ -21,7 +21,7 @@ sm.require("1.0.0")
 
 class ZeneventdAddTimeout(Migrate.Step):
     '''
-    add process_event_timeout to zeneventd.conf
+    add process-event-timeout to zeneventd.conf
     '''
 
     version = Migrate.Version(6, 2, 0)
@@ -31,7 +31,7 @@ class ZeneventdAddTimeout(Migrate.Step):
         '#  The timeout may be extended for a transforms using,',
         '#  signal.alarm(<timeout seconds>) in the transform.',
         '#  default: 0 (disabled)',
-        '#process_event_timeout 0',
+        '#process-event-timeout 0',
         '#',
     ]
 
@@ -47,13 +47,12 @@ class ZeneventdAddTimeout(Migrate.Step):
         log.info("Found %i services to update.", len(services))
         for service in services:
             configfiles = service.originalConfigs + service.configFiles
-            names = [conf.name for conf in configfiles]
             for config_file in filter(
                 lambda f: f.name == '/opt/zenoss/etc/zeneventd.conf',
                 configfiles
             ):
                 if self.timeout_opt[0] not in config_file.content:
-                    log.info("adding on for %s and %s", 
+                    log.info("adding on for %s and %s",
                              config_file.name, service.name)
                     config_file.content += '\n'.join(self.timeout_opt)
                     commit = True
