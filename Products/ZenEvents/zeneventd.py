@@ -347,13 +347,13 @@ class ZenEventD(ZCmdBase):
                   ' to sync() no more often than once every 1/2 second.')
         )
         self.parser.add_option(
-            '--process_event_timeout', dest='process_event_timeout',
-            type='int', default='0',
+            '--process-event-timeout', dest='process_event_timeout',
+            type='int', default=0,
             help=('Set the Timeout(in seconds) for processing each event.'
                   ' The timeout may be extended for a transforms using,'
                   'signal.alarm(<timeout seconds>) in the transform'
                   'set to 0 to disable')
-        ),
+        )
         self.parser.add_option(
             '--messagesperworker', dest='messagesPerWorker', default=1,
             type="int",
