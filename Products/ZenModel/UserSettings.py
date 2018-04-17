@@ -252,7 +252,7 @@ class UserSettingsManager(ZenModelRM):
 
     def getUserTheme(self):
         ut = self.getUserSettings().userTheme
-        return ut if ut else "z-cse"
+        return ut if ut else "z-cse z-cse-dark"
 
     def getAllThemes(self):
         return [{'name':'Light', 'class':'z-cse'},{'name':'Dark', 'class':'z-cse z-cse-dark'}]
