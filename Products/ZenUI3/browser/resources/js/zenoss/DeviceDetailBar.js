@@ -154,7 +154,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 'background-image' : 'url(' + data.icon + ')'
             });
             this.deviditem.devname.setText(Ext.htmlEncode(data.name));
-            this.zclinkitem.setText(ZR.DeviceZcLink(data.uuid, 'View in', 'Zenoss Cloud'));
+            this.zclinkitem.setText(ZR.DeviceZcLink(data.uuid, 'Open in', 'Smart View'));
             var ipAddress = data.ipAddressString;
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
