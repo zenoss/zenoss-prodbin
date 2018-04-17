@@ -13,7 +13,7 @@ from cStringIO import StringIO
 
 from zope.interface import Interface
 from zope.publisher.interfaces.browser import IDefaultBrowserLayer
-from zope.component import getGlobalSiteManager
+from zope.component import getGlobalSiteManager, getUtility
 from Products.Five.browser import BrowserView
 from Products.Five.browser.resource import DirectoryResourceFactory
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
