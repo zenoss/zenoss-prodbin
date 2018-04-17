@@ -440,8 +440,11 @@ Ext.apply(Zenoss.render, {
     DeviceZcLink: function(uid, intro, text) {
         var anchor = '<a href="http://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
         var loc = window.location.host;
+        var encodedQuery = encodeURIComponent(JSON.stringify({
+            contextUUID: uid
+        }));
         var landing = '/_lucky?q=';
-        var url = loc + landing + uid;
+        var url = loc + landing + encodedQuery;
         var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
         return link
     },
