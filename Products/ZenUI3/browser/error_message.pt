@@ -57,7 +57,7 @@
             #frame form {
                 color: #aaa;
                 font-size: 14px;
-                font-family: RobotoCondensed;
+                font-family: "Open Sans";
                 margin-bottom: 1em;
                 text-transform: uppercase;
                 }
