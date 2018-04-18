@@ -610,7 +610,7 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
-    userTheme = "z-cse"
+    userTheme = "z-cse z-cse-dark"
     defaultAdminRole = "ZenUser"
     oncallStart = 0
     oncallEnd = 0
