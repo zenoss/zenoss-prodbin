@@ -245,6 +245,7 @@ class Auth0(BasePlugin):
                                      "connection=%s&" % conf['connection'] +
                                      "state=%s&" % state +
                                      "scope=openid offline_access&" +
+                                     "prompt=consent&" +
                                      "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri,
                                      lock=1)
         return True
