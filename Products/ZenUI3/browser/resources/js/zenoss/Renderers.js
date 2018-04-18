@@ -443,7 +443,7 @@ Ext.apply(Zenoss.render, {
         var encodedQuery = encodeURIComponent(JSON.stringify({
             contextUUID: uid
         }));
-        var landing = '/_lucky?q=';
+        var landing = '/#/_lucky?q=';
         var url = loc + landing + encodedQuery;
         var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
         return link
