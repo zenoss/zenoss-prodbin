@@ -129,9 +129,11 @@
             return Ext.Array.unique(results);
         },
         getCredentials: function(uid) {
-            Zenoss.remote.DeviceRouter.getConnectionInfo({
-                uid: uid
-            }, this.addCredentials, this);
+            if (uid) {
+                Zenoss.remote.DeviceRouter.getConnectionInfo({
+                    uid: uid
+                }, this.addCredentials, this);
+            }
         },
         _getCredentialFields: function(connectionInfo){
             var hostField = {
