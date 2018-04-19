@@ -231,7 +231,6 @@ BYE BYE BORDERS
 .z-cse input[type="button"],
 .z-cse input[type="submit"],
 .z-cse input[type="reset"],
-.z-cse input[type="file"]::-webkit-file-upload-button,
 .z-cse table.innerzentable td.tablevalues,
 .z-cse table.x-datepicker-inner .x-datepicker-selected a,
 .z-cse .dialog input,
@@ -244,9 +243,11 @@ BYE BYE BORDERS
 .z-cse .tablevalues,
 .z-cse .x-boundlist-item,
 .z-cse .x-grid-group-hd .x-grid-cell-inner,
-.z-cse .x-grid-with-row-lines .x-grid-cell,
+.z-cse .x-grid-row .x-grid-cell,
+.z-cse .x-grid-row .x-grid-rowwrap-div,
 .z-cse .x-grid-row-selected .x-grid-cell,
 .z-cse .x-grid-row-selected .x-grid-rowwrap-div,
+.z-cse .x-grid-with-row-lines .x-grid-cell,
 .z-cse .x-menu-item-active .x-menu-item-link,
 .z-cse .x-monthpicker-item a,
 .z-cse .x-monthpicker-item a.x-monthpicker-selected,
@@ -264,6 +265,7 @@ BYE BYE BORDERS
 .z-cse #deviceLiveSearch input,
 .z-cse #dialog_buttons input
 { border: 0; border-radius: 0; }
+
 .z-cse .commonlivegridinfopanel,
 .z-cse .largetoolbar.devdetailbar,
 .z-cse .quickstart .btn.minor,
@@ -278,6 +280,10 @@ BYE BYE BORDERS
 .z-cse #serviceForm .x-docked-bottom,
 .z-cse #thresholdGrid .x-grid-row .x-grid-cell
 { border: 0 !important; border-radius: 0; }
+
+/* firefox does not like this rule and breaks all selectors around it */
+.z-cse input[type="file"]::-webkit-file-upload-button
+{ border: 0; border-radius: 0; }
 
 /* search fields & filters */
 
