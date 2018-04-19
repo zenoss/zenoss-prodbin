@@ -129,10 +129,6 @@
             return Ext.Array.unique(results);
         },
         getCredentials: function(uid) {
-            // make sure it is a valid full uid incase the start typing
-            if (!uid || !uid.startswith('/zport' + '/dmd')) {  // Workaround to prevent appearing of '/cse' on the line beginning
-                return;
-            }
             Zenoss.remote.DeviceRouter.getConnectionInfo({
                 uid: uid
             }, this.addCredentials, this);
