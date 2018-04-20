@@ -237,7 +237,7 @@ class ZenossResourceData(object):
                 adapter.processDevice(stats)
             found_linked = False
             for name, adapter in getAdapters((device,), IDeviceLink):
-                if adapter.linkedDevice():
+                if adapter.linkedDevice() and adapter.linkedDevice().device().getProductionState() > 0:
                     key = "%s - %s" % (LINKED_DEVICES, name)
                     if key not in stats:
                         stats[key] = 0

@@ -42,3 +42,8 @@ class IMessagePrePublishingEvent(Interface):
     """
     msgs = Attribute("list of ModelChanges")
 
+class IMessagePostPublishingEvent(Interface):
+    """
+    Fired after transaction completion.
+    """
+    msgs = Attribute("list of ModelChanges")

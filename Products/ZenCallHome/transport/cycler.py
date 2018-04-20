@@ -68,9 +68,12 @@ class CallHomeCycler(object):
                 chs.stage(chs.GPROTOCOL)
                 if not self.gatherProtocol.failed:
                     self.callhome.metrics = self.gatherProtocol.data
-                chs.stage(chs.GPROTOCOL, "FINISHED")
-                chs.stage(chs.REPORT_UPDATE, "FINISHED")
-                chs.updateStat('lastTook', int(time.time()) - chs.getStat('startedAt'))
+                try:
+                    chs.stage(chs.GPROTOCOL, "FINISHED")
+                    chs.stage(chs.UPDATE_REPORT, "FINISHED")
+                    chs.updateStat('lastTook', int(time.time()) - chs.getStat('startedAt'))
+                except Exception as e:
+                    logger.warning("Callhome cycle status update failed: '%r'", e)
                 self.callhome.lastMetricsGather = now
                 self.callhome.requestMetricsGather = False
                 self.gatherProtocol = None

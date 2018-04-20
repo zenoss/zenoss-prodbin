@@ -19,6 +19,8 @@ from Products.PluginIndexes.common import safe_callable
 from BTrees.OOBTree import OOSet
 from BTrees.IIBTree import IISet, intersection, union, multiunion
 
+from Products.ZenUtils.CSEUtils import getCSEConf
+
 def _isSequenceOfSequences(seq):
     if not seq:
         return False
@@ -65,16 +67,18 @@ class MultiPathIndex(ExtendedPathIndex):
 
         if depth > 0:
             raise ValueError, "Can't do depth searches anymore"
-
         if not comps:
             comps = ['dmd']
             startlevel = 1
-        elif comps[0] == 'zport':
-            comps = comps[1:]
-        elif comps[0] != 'dmd':
+        else:
+            if comps[0] == getCSEConf().get('virtualroot', '').replace('/', ''):
+                comps = comps[1:]
+            if comps[0] == 'zport':
+                comps = comps[1:]
+
+        if comps[0] != 'dmd':
             raise ValueError, "Depth searches must start with 'dmd'"
         startlevel = len(comps)
-        #startlevel = len(comps)-1 if len(comps) > 1 else 1
 
         if len(comps) == 0:
             if depth == -1 and not navtree:

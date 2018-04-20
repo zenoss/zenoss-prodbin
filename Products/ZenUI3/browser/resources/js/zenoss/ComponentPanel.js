@@ -564,8 +564,6 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 return;
                             }
                             this.previousRow = row;
-                            this.detailcontainer.removeAll();
-                            this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,

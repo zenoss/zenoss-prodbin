@@ -29,6 +29,7 @@ from OFS.ObjectManager import checkValidId as globalCheckValidId
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
+from zope.component import getGlobalSiteManager, getUtility
 
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin, getDisplayType
@@ -42,6 +43,7 @@ from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 _MARKER = object()
 
@@ -68,6 +70,7 @@ class ZenModelBase(object):
             return self
         else:
             newpath = INewPath(self)
+            newpath = getUtility(IVirtualRoot).ensure_virtual_root(newpath)
             self.REQUEST.response.redirect(newpath)
 
     index_html = None  # This special value informs ZPublisher to use __call__

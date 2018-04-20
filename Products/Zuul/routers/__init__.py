@@ -220,7 +220,7 @@ class TreeRouter(DirectRouter):
 
         # check to see if we are asking for the root
         primaryId = obj.getDmdRoot(obj.dmdRootName).getPrimaryId()
-        if id == primaryId:
+        if currentNode.uid == primaryId:
             root = Marshaller(currentNode).marshal(keys)
             root['children'] = children
             return [root]

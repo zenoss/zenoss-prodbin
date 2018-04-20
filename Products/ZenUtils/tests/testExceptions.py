@@ -1,45 +1,47 @@
 #!/usr/bin/env python
 
-from Products.ZenUtils.Exceptions import resolveException, ZentinelException, ZenPathError
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from unittest import TestCase
 
-class Failure(object):
-    def __init__(self):
-        self.value = None
-        self.type = None
-        self.tb = None
-        self.raise_value = None
+from twisted.spread.pb import RemoteError
+from twisted.python.failure import Failure
 
-    def raiseException(self):
-        raise self.raise_value, self.type, self.tb
+from Products.ZenUtils.Exceptions import (
+    resolveException, ZenResolveExceptionError
+)
 
-class ExceptionTestCases(BaseTestCase):
-    def test_resolveException_with_exception_value(self):
-        failure = Failure()
-        failure.value = ZentinelException()
-        self.assertIs( failure.value, resolveException( failure))
 
-    def test_resolveException_with_exception_string(self):
-        failure = Failure()
-        failure.type = "Products.ZenUtils.Exceptions.ZenPathError"
-        self.assertIsInstance( resolveException( failure), ZenPathError)
+class resolveExceptionTests(TestCase):
 
-    def test_resolveException_with_exception_string_with_import_error(self):
-        failure = Failure()
-        failure.value = "value"
-        failure.tb = "tb"
-        failure.type = "Products.ZenUtils.Exceptions.UnknownError"
-        actual = resolveException( failure)
-        self.assertIsInstance( actual, Exception)
-        self.assertEquals( ("value", "tb"), actual.args)
+    def test_resolveException(self):
+        exception = RuntimeError('genric exception')
+        failure = Failure(exception)
+        out = resolveException(failure)
+        self.assertEqual(out, exception)
 
-    def test_resolveException_with_raiseException(self):
-        failure = Failure()
-        failure.raise_value = RuntimeError()
-        self.assertIs( failure.raise_value, resolveException( failure))
+    def test_alternate_failure_constructor(self):
+        failure = Failure(exc_value="boom", exc_type=RuntimeError, exc_tb=[])
+        out = resolveException(failure)
+        expected = RuntimeError('boom')
+        self.assertIsInstance(out, RuntimeError)
+        self.assertEqual(out.args, expected.args)
+
+    def test_handles_twisted_spread_pb_RemoteError(self):
+        exception = RemoteError('remoteType', 'value', 'remoteTraceback')
+        failure = Failure(exception)
+        out = resolveException(failure)
+        self.assertIsInstance(out, RemoteError)
+        self.assertEqual(out, exception)
+
+    def test_wraps_invalid_failure_objects(self):
+        failure = {'i am': 'not a', 'valid': 'failure'}
+        out = resolveException(failure)
+        expected = ZenResolveExceptionError(failure)
+        self.assertIsInstance(out, ZenResolveExceptionError)
+        self.assertEqual(out.args, expected.args)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(ExceptionTestCases))
+    suite.addTest(makeSuite(resolveExceptionTests))
     return suite

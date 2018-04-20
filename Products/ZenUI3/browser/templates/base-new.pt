@@ -41,9 +41,23 @@
         <tal:block tal:content="structure provider:all-js"/>
 
         <!-- Dynamic javascript -->
+        <script tal:content="string:
+            Zenoss.env.CSE_VIRTUAL_ROOT = '${context/zport/virtualRoot}/';
+        " tal:on-error="string:console.error('Unable to load virtual root config')"></script>
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
+        <!-- Google Analytics -->
+        <script type="text/javascript">
+            window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+            ga('create', 'UA-112990255-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+        <script async src='https://www.google-analytics.com/analytics.js'></script>
+        <!-- End Google Analytics -->
+        <!-- Generic analytics wrapper -->
+        <script src="/++resource++zenui/js/zenoss/Tracker.js"></script>
+        <!-- End generic analytics wrapper -->
         <tal:block tal:content="structure provider:jssnippets"/>
 
         <tal:block tal:content="structure provider:head-extra"/>
@@ -62,6 +76,7 @@
                         <div class="bg-logo"></div>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
+                            <div id="nav-zc"><a href="/">Zenoss Cloud</a></div>
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
                                 <div id="saved-search-container"></div>
@@ -176,12 +191,7 @@ var viewport = new Ext.Viewport({
 });
 
 });
-
-
-
-
 </script>
-
 <tal:block metal:define-slot="script_layout">
 <!-- Use this slot to add elements to the basic layout. -->
 <script type="text/javascript">

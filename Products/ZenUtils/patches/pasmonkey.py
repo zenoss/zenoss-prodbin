@@ -31,6 +31,7 @@ from Acquisition import aq_base
 from AccessControl import AuthEncoding
 from AccessControl.SpecialUsers import emergency_user
 from AccessControl import ClassSecurityInfo
+from zope.component import getUtility
 from zope.event import notify
 from ZODB.POSException import POSKeyError
 from Products.PluggableAuthService import PluggableAuthService
@@ -44,6 +45,8 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.events import UserLoggedInEvent, UserLoggedOutEvent
 from Products.ZenUtils.Security import _createInitialUser
+from Products.ZenUtils.virtual_root import IVirtualRoot
+from Products.ZenUtils.CSEUtils import getCSEConf
 
 from Products.PluggableAuthService.plugins import SessionAuthHelper
 
@@ -163,6 +166,17 @@ def manage_afterAdd(self, item, container):
 
 CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
+
+_orig_getLoginURL = CookieAuthHelper.CookieAuthHelper.getLoginURL
+def getLoginURL(self):
+    """ Where to send people for logging in """
+    url = _orig_getLoginURL(self)
+    if url:
+        url = url.replace('/zport/acl_users', getCSEConf().get('virtualroot', '') + '/zport/acl_users')
+    return url
+CookieAuthHelper.CookieAuthHelper.getLoginURL = getLoginURL
+
+
 def login(self):
     """
     Set a cookie and redirect to the url that we tried to
@@ -203,7 +217,8 @@ def login(self):
         came_from = urlparse.urlunsplit(parts)
     else:
         submittedQs = 'submitted=%s' % submitted
-        came_from = '/zport/dmd?%s' % submittedQs
+        raw_path = '/zport/dmd?%s' % submittedQs
+        came_from = getUtility(IVirtualRoot).ensure_virtual_root(raw_path)
 
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (

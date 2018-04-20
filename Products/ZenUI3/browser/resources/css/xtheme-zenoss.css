@@ -2639,6 +2639,9 @@ table.x-datepicker-inner .x-datepicker-disabled a {
 .x-menu-date-item {
   border-color: #99BBE8; }
 
+#center_panel, #footer_panel {
+  z-index: 0; }
+
 .x-panel .x-grid-body {
   background: white;
   border-color: #99bce8;

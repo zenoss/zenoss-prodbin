@@ -12,7 +12,7 @@
 import Globals
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
-from Products.DataCollector.plugins.DataMaps import RelationshipMap
+from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class _dev(object):
@@ -34,18 +34,18 @@ class _obj(object):
     def _p_deactivate(self): pass
     _p_changed = False
 
-ascii_objmap =  { 'a': 'abcdefg', 'b': 'hijklmn', 'c': 'opqrstu' }
-utf8_objmap =   { 'a': u'\xe0'.encode('utf-8'),
+ascii_objmap =  ObjectMap({ 'a': 'abcdefg', 'b': 'hijklmn', 'c': 'opqrstu' })
+utf8_objmap =   ObjectMap({ 'a': u'\xe0'.encode('utf-8'),
                   'b': u'\xe0'.encode('utf-8'),
-                  'c': u'\xe0'.encode('utf-8') }
-latin1_objmap = { 'a': u'\xe0'.encode('latin-1'),
+                  'c': u'\xe0'.encode('utf-8') })
+latin1_objmap = ObjectMap({ 'a': u'\xe0'.encode('latin-1'),
                   'b': u'\xe0'.encode('latin-1'),
-                  'c': u'\xe0'.encode('latin-1') }
-utf16_objmap =  { 'a': u'\xff\xfeabcdef'.encode('utf-16'),
+                  'c': u'\xe0'.encode('latin-1') })
+utf16_objmap =  ObjectMap({ 'a': u'\xff\xfeabcdef'.encode('utf-16'),
                   'b': u'\xff\xfexyzwow'.encode('utf-16'),
                   # "水z𝄞" (water, z, G clef), UTF-16 encoded,
                   # little-endian with BOM
-                  'c': '\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd' }
+                  'c': '\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd' })
 
 class ApplyDataMapTest(BaseTestCase):
 
@@ -59,8 +59,8 @@ class ApplyDataMapTest(BaseTestCase):
             obj.zCollectorDecoding = enc
             objmap = eval(enc.replace('-','')+'_objmap')
             self.adm._updateObject(obj, objmap)
-            for key in objmap:
-                self.assertEqual(getattr(obj, key), objmap[key].decode(enc))
+            for key, val in objmap.items():
+                self.assertEqual(getattr(obj, key), val.decode(enc))
 
     def test_applyDataMap_relmap(self):
         dmd = self.dmd
@@ -73,6 +73,9 @@ class ApplyDataMapTest(BaseTestCase):
             def deviceClass(self):
                 return dmd.Devices
 
+            def getPrimaryId(self):
+                return "{}/{}".format(self.deviceClass().getPrimaryId(), self.getId())
+
             class dmd:
                 "Used for faking sync()"
                 class _p_jar:
@@ -82,6 +85,7 @@ class ApplyDataMapTest(BaseTestCase):
 
             def getObjByPath(self, path):
                 return reduce(getattr, path.split("/"), self)
+
             def getId(self):
                 return "testDevice"
 

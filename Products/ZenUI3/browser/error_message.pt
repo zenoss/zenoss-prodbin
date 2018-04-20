@@ -1,4 +1,4 @@
-<html metal:define-macro="base-new">
+<html metal:define-macro="base-new" class="z-cse z-cse-dark">
     <head>
         <title>
             <tal:block tal:content="view/instanceIdentifier"/>: Error
@@ -57,7 +57,7 @@
             #frame form {
                 color: #aaa;
                 font-size: 14px;
-                font-family: RobotoCondensed;
+                font-family: "Open Sans";
                 margin-bottom: 1em;
                 text-transform: uppercase;
                 }
@@ -113,7 +113,7 @@
             }
         </style>
     </head>
-    <body class="z-cse z-cse-dark">
+    <body>
         <div id="header">
             <div class="bg">
                 <div class="bg-leftcap">

@@ -173,9 +173,13 @@ class UserSettingsManager(ZenModelRM):
     def getUser(self, userid=None):
         """Return a user object.  If userid is not passed return current user.
         """
-        if userid is None:
-            user = getSecurityManager().getUser()
-        else:
+
+        user = getSecurityManager().getUser()
+        # If passed in userid matches current user return current user from
+        # security manager as it will have role set.
+        # self.acl_users.getUser doesn't really work with Auth0 since
+        # we don't call back into Auth0 to find users.
+        if userid and userid != user.getId():
             user = self.acl_users.getUser(userid)
         if user: return user.__of__(self.acl_users)
 
@@ -248,7 +252,7 @@ class UserSettingsManager(ZenModelRM):
 
     def getUserTheme(self):
         ut = self.getUserSettings().userTheme
-        return ut if ut else "z-cse"
+        return ut if ut else "z-cse z-cse-dark"
 
     def getAllThemes(self):
         return [{'name':'Light', 'class':'z-cse'},{'name':'Dark', 'class':'z-cse z-cse-dark'}]
@@ -606,7 +610,7 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
-    userTheme = "z-cse"
+    userTheme = "z-cse z-cse-dark"
     defaultAdminRole = "ZenUser"
     oncallStart = 0
     oncallEnd = 0
@@ -711,7 +715,7 @@ class UserSettings(ZenModelRM):
             return True
 
         # thisUser can be None if the plugin that created it is inactive.
-        thisUser = self.acl_users.getUser(self.id)
+        thisUser = self.getUser(self.id)
         if thisUser is None:
             return False
 

@@ -33,6 +33,7 @@ from Products.ZenUtils.Utils import unused, load_config_override
 from zope.testing.cleanup import cleanUp
 
 from Products.Zuul.catalog.model_catalog import get_solr_config
+from Products.ZenUtils.virtual_root import register_cse_virtual_root
 from zenoss.modelindex.model_index import SearchParams
 
 log.warn = lambda *args, **kwds: None
@@ -94,7 +95,7 @@ def reset_model_catalog():
     Deletes temporary documents from previous tests.
     They should be cleaned by abort() but just in case
     """
-    model_index = zope.component.createObject('ModelIndex', get_solr_config())
+    model_index = zope.component.createObject('ModelIndex', get_solr_config(test=True))
     model_index.unindex_search(SearchParams(query="NOT tx_state:0"))
 
 
@@ -102,7 +103,7 @@ def init_model_catalog_for_tests():
     from Products.Zuul.catalog.model_catalog import register_model_catalog, register_data_manager_factory
     from zenoss.modelindex.api import _register_factories, reregister_subscriptions
     _register_factories()
-    register_model_catalog()
+    register_model_catalog(test=True)
     register_data_manager_factory(test=True)
     reregister_subscriptions()
     reset_model_catalog()
@@ -167,6 +168,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         user = self.app.zport.acl_users.getUserById('tester')
         from AccessControl.SecurityManagement import newSecurityManager
         newSecurityManager(None, user)
+
+        register_cse_virtual_root()
 
         # Let's hide transaction.commit() so that tests don't fubar
         # each other

@@ -1,5 +1,4 @@
 (function(){
-
 Ext.define("Zenoss.DeviceDetailItem", {
     alias:['widget.devdetailitem'],
     extend:"Ext.Container",
@@ -111,6 +110,11 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 width:100,
                 label: _t('Monitoring'),
                 id: 'renamingitem'
+            }, {
+                ref: 'zclinkitem',
+                width:100,
+                label: null,
+                id: 'zclinkitem'
             }]
         });
         this.contextKeys = [
@@ -121,7 +125,8 @@ Ext.define("Zenoss.DeviceDetailBar", {
             'status',
             'productionState',
             'priority',
-            'renameInProgress'
+            'renameInProgress',
+            'uuid'
         ];
         Zenoss.DeviceDetailBar.superclass.constructor.call(this, config);
     },
@@ -149,6 +154,7 @@ Ext.define("Zenoss.DeviceDetailBar", {
                 'background-image' : 'url(' + data.icon + ')'
             });
             this.deviditem.devname.setText(Ext.htmlEncode(data.name));
+            this.zclinkitem.setText(ZR.DeviceZcLink(data.uuid, 'Open in', 'Smart View'));
             var ipAddress = data.ipAddressString;
             this.deviditem.ipAddress.setText(ipAddress);
             this.deviditem.devclass.setText(ZR.DeviceClass(data.deviceClass.uid));
