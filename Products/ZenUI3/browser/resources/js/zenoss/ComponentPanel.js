@@ -553,6 +553,9 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
+                    deselect: function() {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
+                    },
                     select: function(sm, row) {
                         // top grid selection change
                         if (row) {

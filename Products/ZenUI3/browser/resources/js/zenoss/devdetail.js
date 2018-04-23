@@ -323,8 +323,12 @@ var componentCard = {
     },{
             text: _t('None'),
             handler: function(){
-                var grid = Ext.getCmp('component_card').componentgrid;
+                var grid = Ext.getCmp('component_card').componentgrid,
+                svbutton = Ext.getCmp('component-smart-view-button');
                 grid.getSelectionModel().deselectAll();
+                if (svbutton !== undefined) {
+                    svbutton.selectionChange();
+                }
             }
         }]
     },{
