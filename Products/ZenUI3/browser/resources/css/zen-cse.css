@@ -424,6 +424,7 @@ BYE BYE BORDERS
         border: 2px solid #00b5c1;
         border-radius: 20px;
         height: 20px;
+        padding: 2px;
         position: absolute;
         width: 20px;
     }
@@ -691,6 +692,24 @@ BYE BYE BORDERS
             height: auto;
             line-height: 16px;
             text-shadow: 0.25px 0.25px .75px rgba(0, 0, 0, 0.3);
+        }
+
+    .z-cse #component-smart-view-button {
+        background-color: #f16223;
+        padding: 2px 10px;
+    }
+        .z-cse #component-smart-view-button .x-btn-inner {
+            color: #fff !important;
+            font-family: Exo2;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .z-cse #component-smart-view-button.unavail {
+            opacity: 0.3;
+        }
+        .z-cse #component-smart-view-button.unavail,
+        .z-cse #component-smart-view-button.unavail * {
+                cursor: default;
         }
 
     /* infrastructure | devices | < gear > | bind templates */
@@ -1004,6 +1023,7 @@ BYE BYE BORDERS
     .z-cse .zenfooter_data_text,
     .z-cse .zenui3,
     .z-cse #breadCrumbPane a,
+    .z-cse #center,
     .z-cse #detail_card_panel .x-toolbar-text.lastupdated,
     .z-cse #detail_panel fieldset label,
     .z-cse #device_overview-body #ssh-link-inputEl a,
@@ -1723,6 +1743,10 @@ BYE BYE BORDERS
     .z-cse #device_modeler_plugins .x-boundlist-item,
     .z-cse #modeler_plugins .x-boundlist-item {
         padding: 4px;
+    }
+
+    .z-cse #component_card-body .x-toolbar {
+        padding-top: 5px;
     }
 
     /* infrastructure | devices | network map */

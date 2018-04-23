@@ -72,6 +72,8 @@ Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
 function selectOnRender(n, sm) {
+    var svbutton = Ext.getCmp('component-smart-view-button');
+    svbutton.selectionChange();
     sm.select(n);
 }
 
@@ -213,18 +215,22 @@ function showMonitoringDialog() {
 }
 
 function componentGridOptions() {
-    var grid = Ext.getCmp('component_card').componentgrid,
-        sm = grid.getSelectionModel(),
+    var grid = Ext.getCmp('component_card').componentgrid;
+    if (grid !== undefined) {
+        var sm = grid.getSelectionModel(),
         rows = sm.getSelection(),
         pluck = Ext.Array.pluck,
         uids = pluck(pluck(rows, 'data'), 'uid'),
         name = Ext.getCmp('component_searchfield').getValue();
-    return {
-        uids: uids,
-        ranges: [],
-        name: name,
-        hashcheck: grid.lastHash
-    };
+
+        return {
+            uids: uids,
+            ranges: [],
+            name: name,
+            hashcheck: grid.lastHash
+        };
+    }
+    return {};
 }
 
     function showComponentLockingDialog() {
@@ -321,7 +327,33 @@ var componentCard = {
                 grid.getSelectionModel().deselectAll();
             }
         }]
-    }, '->', {
+    },{
+        id: "component-smart-view-button",
+        text: _t('Smart View'),
+        handler: function(){
+            var grid = Ext.getCmp('component_card').componentgrid,
+            sm = grid.getSelectionModel(),
+            uuid = sm.selected.items[0].data.uuid;
+            var loc = window.location.host;
+            var encodedQuery = encodeURIComponent(JSON.stringify({
+                contextUUID: uuid
+            }));
+            var landing = '/#/_lucky?q=';
+            var url = loc + landing + encodedQuery;
+            window.location = url;
+        },
+        selectionChange() {
+            var sq = componentGridOptions();
+            if (sq.uids) {
+                this.disabled = sq.uids.length !== 1;
+                if (this.disabled) {
+                    this.el.dom.classList.add("unavail");
+                } else {
+                    this.el.dom.classList.remove("unavail");
+                }
+            }
+        }
+    },'->',{
         xtype: 'panel',
         baseCls: 'no-panel-class',
         ui: 'none',
@@ -648,6 +680,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             loader = this.treepanel.getStore(),
             sm = this.treepanel.getSelectionModel(),
             sel = sm.getSelectedNode(),
+            svbutton = Ext.getCmp('component-smart-view-button'),
             findAndSelect = function() {
                 // handle component deep linking
                 if (token.split(Ext.util.History.DELIMITER).length === 2) {
@@ -674,6 +707,9 @@ Ext.define('Zenoss.DeviceDetailNav', {
             loader.on('load', findAndSelect);
         } else {
             findAndSelect();
+        }
+        if (svbutton !== undefined) {
+            svbutton.selectionChange();
         }
     },
     onSelectionChange: function(node) {
