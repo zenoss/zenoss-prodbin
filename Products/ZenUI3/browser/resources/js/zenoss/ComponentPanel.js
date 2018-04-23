@@ -557,6 +557,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         Ext.getCmp('component-smart-view-button').selectionChange();
                     },
                     select: function(sm, row) {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
                         // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired

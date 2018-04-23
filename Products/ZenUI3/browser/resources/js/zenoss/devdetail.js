@@ -72,8 +72,6 @@ Zenoss.env.initProductionStates();
 Zenoss.env.initPriorities();
 
 function selectOnRender(n, sm) {
-    var svbutton = Ext.getCmp('component-smart-view-button');
-    svbutton.selectionChange();
     sm.select(n);
 }
 
@@ -323,12 +321,8 @@ var componentCard = {
     },{
             text: _t('None'),
             handler: function(){
-                var grid = Ext.getCmp('component_card').componentgrid,
-                svbutton = Ext.getCmp('component-smart-view-button');
+                var grid = Ext.getCmp('component_card').componentgrid;
                 grid.getSelectionModel().deselectAll();
-                if (svbutton !== undefined) {
-                    svbutton.selectionChange();
-                }
             }
         }]
     },{
@@ -684,7 +678,6 @@ Ext.define('Zenoss.DeviceDetailNav', {
             loader = this.treepanel.getStore(),
             sm = this.treepanel.getSelectionModel(),
             sel = sm.getSelectedNode(),
-            svbutton = Ext.getCmp('component-smart-view-button'),
             findAndSelect = function() {
                 // handle component deep linking
                 if (token.split(Ext.util.History.DELIMITER).length === 2) {
@@ -711,9 +704,6 @@ Ext.define('Zenoss.DeviceDetailNav', {
             loader.on('load', findAndSelect);
         } else {
             findAndSelect();
-        }
-        if (svbutton !== undefined) {
-            svbutton.selectionChange();
         }
     },
     onSelectionChange: function(node) {
