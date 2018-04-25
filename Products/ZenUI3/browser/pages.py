@@ -20,6 +20,8 @@ from Products.Zuul.routers.nav import DetailNavRouter
 
 from Products.ZenUtils.controlplane.client import ControlPlaneClient
 from Products.ZenUtils.controlplane.application import getConnectionSettings
+from Products.ZenUtils.Utils import maskSecureProperties
+
 
 class DaemonsView(BrowserView):
 
@@ -121,7 +123,11 @@ class DeviceDetails(BrowserView):
                     and key not in ('links', 'uptime', 'events', 'deviceClass')
                     and not callable(getattr(info, key)))
                 ]
-        response = dict(data=Zuul.marshal(info, keys))
+
+        dev_info = Zuul.marshal(info, keys)
+        masked_info = maskSecureProperties(dev_info, ['ec2secretkey'])
+        response = dict(data=masked_info)
+
         js = """
             Zenoss.env.infoObject = %s;
         """ % (json.dumps(response))

@@ -2217,3 +2217,8 @@ def escapeSpecChars(value):
     escape_re = re.compile(r'(?<!\\)(?P<char>[$&|+\-!(){}[\]^~*?:])')
     return escape_re.sub(r'\\\g<char>', value)
 
+
+def maskSecureProperties(data, secure_properties=[]):
+    [data.update({prop: '*' * len(data[prop])}) 
+        for prop in secure_properties if data.get(prop, None)]
+    return data

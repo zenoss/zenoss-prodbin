@@ -33,6 +33,7 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils.Utils import maskSecureProperties
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
@@ -305,8 +306,9 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
+        masked_data = maskSecureProperties(data, ['ec2secretkey'])
         disabled = not Zuul.checkPermission('Manage DMD', self.context)
-        return DirectResponse(data=data, disabled=disabled)
+        return DirectResponse(data=masked_data, disabled=disabled)
 
     @serviceConnectionError
     def setInfo(self, **data):
