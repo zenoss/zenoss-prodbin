@@ -36,7 +36,7 @@ Ext.define("Zenoss.IFramePanel", {
             Zenoss.messenger.checkMessages();
             this.iframeEl.show();
         }, this);
-        // double check not always "frameload" is fired 
+        // double check not always "frameload" is fired
         this.on('load', function() {
             this.injectCss();
             this.iframeEl.show();
@@ -126,8 +126,9 @@ Ext.define("Zenoss.IFramePanel", {
     injectCss: function() {
         var iframe = this.getFrame(),
             html = document.getElementsByTagName('html')[0],
+            // zen_cse_css - name of zen-cse.css link in base-new.pt template
             css = document.querySelector('[name=zen_cse_css]'),
-            cssC,
+            cssClone,
             iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
             cseClasses = [];
 
@@ -138,11 +139,12 @@ Ext.define("Zenoss.IFramePanel", {
         });
 
         if (css && iframeHtml) {
-            cssC = css.cloneNode();
-            // add or multiple classes using ES6 spread syntax
-            iframeHtml.classList.add(...cseClasses);
-            cssC.innerHTML = css.innerHTML;
-            iframe.contentDocument.head.appendChild(cssC);
+            cssClone = css.cloneNode();
+            Ext.Array.each(cseClasses, function(item) {
+                iframeHtml.classList.add(item);
+            });
+            cssClone.innerHTML = css.innerHTML;
+            iframe.contentDocument.head.appendChild(cssClone);
         }
     }
 });
