@@ -53,10 +53,12 @@ from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
 from ZServer.HTTPServer import zhttp_channel
 from zope.i18n import translate
+from zope.interface import providedBy
+from zope.schema import getFields
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from Products.ZenUtils.jsonutils import unjson
-
+from zope.schema._field import Password
 
 DEFAULT_SOCKET_TIMEOUT = 30
 
@@ -2217,3 +2219,21 @@ def escapeSpecChars(value):
     escape_re = re.compile(r'(?<!\\)(?P<char>[$&|+\-!(){}[\]^~*?:])')
     return escape_re.sub(r'\\\g<char>', value)
 
+
+def getPasswordFields(interface):
+    passwordFields = set()
+    for iface in providedBy(interface):
+        fields = getFields(iface)
+        if not fields:
+            continue
+        for key, value in fields.iteritems():
+            if isinstance(value, Password):
+                passwordFields.add(key)
+    return passwordFields
+
+
+def maskSecureProperties(data, secure_properties=[]):
+    for prop in secure_properties:
+        if data.get(prop, None):
+            data.update({prop: '*' * len(data[prop])})
+    return data
