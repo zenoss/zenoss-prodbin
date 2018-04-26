@@ -2534,3 +2534,13 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .rule-clause-container {
         border-left-color: #505050;
     }
+
+    .z-cse .x-fieldset-header-text,
+    .z-cse label.x-component.x-component-default {
+        color: #5a5a5a;
+    }
+
+    .z-cse.z-cse-dark .x-fieldset-header-text,
+    .z-cse.z-cse-dark label.x-component.x-component-default {
+        color: #ccc;
+    }

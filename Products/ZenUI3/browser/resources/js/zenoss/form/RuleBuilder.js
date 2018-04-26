@@ -428,7 +428,7 @@
                     },{
                         xtype: 'label',
                         html: _t('of the following rules:'),
-                        style: 'margin-left: 7px; font-size: 12px; color: #444'
+                        style: 'margin-left: 7px; font-size: 12px'
                     }]
                 },{
                     ref: 'clauses',
