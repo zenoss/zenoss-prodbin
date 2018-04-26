@@ -138,6 +138,7 @@ darker input fields:        #505050
 .z-cse .x-boundlist,
 .z-cse .x-btn-arrowslide-toolbar-small .x-btn-icon,
 .z-cse .x-btn-default-small .x-btn-inner,
+.z-cse .x-btn-default-large .x-btn-inner,
 .z-cse .x-form-item-label,
 .z-cse .x-grid-group-hd .x-grid-cell-inner,
 .z-cse .x-grid-row .x-grid-cell,
@@ -320,6 +321,10 @@ BYE BYE BORDERS
     .z-cse .x-btn-default-small-disabled,
     .z-cse .x-btn-default-toolbar-small,
     .z-cse .x-btn-default-toolbar-small-disabled,
+    .z-cse .x-btn-default-large,
+    .z-cse .x-btn-default-large-disabled,
+    .z-cse .x-btn-default-toolbar-large,
+    .z-cse .x-btn-default-toolbar-large-disabled,
     .z-cse #addToCollectionBtn,
     .z-cse #addToCollectionForm select,
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
@@ -838,13 +843,19 @@ BYE BYE BORDERS
 
     /* extra classes added to prevent dark theme override */
     .z-cse .x-btn.x-btn-default-small-over.over,
-    .z-cse .x-btn.x-btn-default-toolbar-small-over.over
+    .z-cse .x-btn.x-btn-default-toolbar-small-over.over,
+    .z-cse .x-btn.x-btn-default-large-over.over,
+    .z-cse .x-btn.x-btn-default-toolbar-large-over.over
     { background-color: #b6cbe4; }
         .z-cse .x-btn-default-small-over span,
-        .z-cse .x-btn-default-toolbar-small-over span
+        .z-cse .x-btn-default-toolbar-small-over span,
+        .z-cse .x-btn-default-large-over span,
+        .z-cse .x-btn-default-toolbar-large-over span
         { color: #fafafa; }
         .z-cse .x-btn-default-small-over button,
-        .z-cse .x-btn-default-toolbar-small-over button
+        .z-cse .x-btn-default-toolbar-small-over button,
+        .z-cse .x-btn-default-large-over button,
+        .z-cse .x-btn-default-toolbar-large-over button
         { background-color: transparent; }
 
 
@@ -954,6 +965,9 @@ BYE BYE BORDERS
     .z-cse .x-btn-arrowslide-toolbar-small span,
     .z-cse .x-btn-default-small .x-btn-inner,
     .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-btn-arrowslide-toolbar-large span,
+    .z-cse .x-btn-default-large .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-large .x-btn-inner,
     .z-cse .x-fieldset-header,
     .z-cse .x-grid .unacknowledged div,
     .z-cse .x-grid-group-title,
@@ -1007,6 +1021,8 @@ BYE BYE BORDERS
     .z-cse .x-body,
     .z-cse .x-btn-default-small .x-btn-inner,
     .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-btn-default-large .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-large .x-btn-inner,
     .z-cse .x-form-display-field,
     .z-cse .x-form-invalid-tip li,
     .z-cse .x-form-item,
@@ -1247,6 +1263,7 @@ BYE BYE BORDERS
     .z-cse .livegridinfopanel,
     .z-cse .user-prefs-cell div:first-child div,
     .z-cse .x-btn-default-small-disabled .x-btn-inner,
+    .z-cse .x-btn-default-large-disabled .x-btn-inner,
     .z-cse #connectionmessage,
     .z-cse #device_modeler_plugins label,
     .z-cse #newTabsPane ul li a:hover,
@@ -1270,6 +1287,9 @@ BYE BYE BORDERS
     .z-cse .x-btn-arrowslide-toolbar-small span,
     .z-cse .x-btn-default-small-disabled .x-btn-inner,
     .z-cse .x-btn-default-toolbar-small .x-btn-inner,
+    .z-cse .x-btn-arrowslide-toolbar-large span,
+    .z-cse .x-btn-default-large-disabled .x-btn-inner,
+    .z-cse .x-btn-default-toolbar-large .x-btn-inner,
     .z-cse .x-flare .x-flare-message,
     .z-cse .x-form-invalid-tip li,
     .z-cse .x-form-item-label,
@@ -2137,6 +2157,11 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-btn-default-small-disabled,
     .z-cse.z-cse-dark .x-btn-default-toolbar-small,
     .z-cse.z-cse-dark .x-btn-default-toolbar-small-disabled,
+    .z-cse.z-cse-dark .x-btn-arrowslide-toolbar-large,
+    .z-cse.z-cse-dark .x-btn-default-large,
+    .z-cse.z-cse-dark .x-btn-default-large-disabled,
+    .z-cse.z-cse-dark .x-btn-default-toolbar-large,
+    .z-cse.z-cse-dark .x-btn-default-toolbar-large-disabled,
     .z-cse.z-cse-dark #addToCollectionBtn,
     .z-cse.z-cse-dark #addToCollectionForm select,
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
@@ -2487,4 +2512,35 @@ BYE BYE BORDERS
     /* quickstart */
     .z-cse.z-cse-dark .q-start .wizardStep {
         background-color: #555;
+    }
+
+    /* grid row */
+    .z-cse .x-grid-row-over .x-grid-rowwrap-div {
+        border-color: inherit;
+        background-color: inherit; }
+
+    .z-cse .x-grid-row-alt .x-grid-rowwrap-div {
+        background-color: inherit;
+    }
+
+    .z-cse.z-cse-dark .nested-rule {
+        background-color: #363636;
+    }
+
+    .z-cse.z-cse-dark .nested-rule {
+        border-color: #505050;
+    }
+
+    .z-cse.z-cse-dark .rule-clause-container {
+        border-left-color: #505050;
+    }
+
+    .z-cse .x-fieldset-header-text,
+    .z-cse label.x-component.x-component-default {
+        color: #5a5a5a;
+    }
+
+    .z-cse.z-cse-dark .x-fieldset-header-text,
+    .z-cse.z-cse-dark label.x-component.x-component-default {
+        color: #ccc;
     }
