@@ -2522,3 +2522,15 @@ BYE BYE BORDERS
     .z-cse .x-grid-row-alt .x-grid-rowwrap-div {
         background-color: inherit;
     }
+
+    .z-cse.z-cse-dark .nested-rule {
+        background-color: #363636;
+    }
+
+    .z-cse.z-cse-dark .nested-rule {
+        border-color: #505050;
+    }
+
+    .z-cse.z-cse-dark .rule-clause-container {
+        border-left-color: #505050;
+    }
