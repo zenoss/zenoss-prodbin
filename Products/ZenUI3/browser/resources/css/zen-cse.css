@@ -2513,3 +2513,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .q-start .wizardStep {
         background-color: #555;
     }
+
+    /* grid row */
+    .z-cse .x-grid-row-over .x-grid-rowwrap-div {
+        border-color: inherit;
+        background-color: inherit; }
+
+    .z-cse .x-grid-row-alt .x-grid-rowwrap-div {
+        background-color: inherit;
+    }
