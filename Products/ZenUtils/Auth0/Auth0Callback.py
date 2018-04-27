@@ -20,7 +20,6 @@ import urllib
 
 log = logging.getLogger('Auth0')
 
-
 class Auth0Callback(BrowserView):
     """
     Auth0 redirects to this callback after a login attempt.
@@ -36,9 +35,25 @@ class Auth0Callback(BrowserView):
         args = getQueryArgsFromRequest(self.request)
         state_arg = args.get('state')
         code = args.get('code')
+        error = args.get('error', None)
+
+        if error:
+            log.debug('Auth0 error response: {}'.format(error))
 
         domain = conf['tenant'].replace('https://', '').replace('/', '')
 
+        if error:
+            # We need to make a new request to authorize without the
+            # prompt parameter so that auth0 presents a login screen.
+            uri = "%sauthorize?" % conf['tenant'] + \
+                  "response_type=code&" + \
+                  "client_id=%s&" % conf['clientid'] + \
+                  "state=%s&" % state_arg + \
+                  "scope=openid offline_access&" + \
+                  "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri
+            return self.request.response.redirect(uri)
+
+        # If there's no error, we can query for the auth token.
         data = {
             "grant_type": "authorization_code",
             "client_id": conf['clientid'],
@@ -49,7 +64,6 @@ class Auth0Callback(BrowserView):
             "redirect_uri": "%s/zport/Auth0Callback" % zenoss_uri
         }
 
-        resp_string = ''
         conn = httplib.HTTPSConnection(domain)
         headers = {"content-type": "application/json"}
         try:
@@ -63,8 +77,7 @@ class Auth0Callback(BrowserView):
         refresh_token = resp_data.get('refresh_token')
         id_token = resp_data.get('id_token')
 
-        sessionInfo = Auth0.storeIdToken(id_token, self.request.SESSION, conf)
-        sessionInfo.refreshToken = refresh_token
+        Auth0.storeIdToken(id_token, self.request.SESSION, conf, refresh_token)
 
         came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
         virtual_root = getCSEConf().get('virtualroot', '')
