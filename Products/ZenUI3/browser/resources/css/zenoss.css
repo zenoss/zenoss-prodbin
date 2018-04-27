@@ -231,7 +231,6 @@ a:link, a:visited {
 
 
 .evdetail_props {
-  float: left;
   padding: 1em;
 }
 
@@ -1615,14 +1614,10 @@ a.z-entity:hover{
     margin-bottom:10px;
 }
 #evdetail_log-body{
-    height:170px !important;
+    max-height:170px !important;
 }
-#evdetail_services{
-    margin:10px 0 10px 25px !important;
-    height: 25px !important;
-}
-.evdetail_props {
-  float: none !important;
+#evdetail_services:empty{
+    display: none;
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
