@@ -1,4 +1,4 @@
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme">
     <head>
         <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
