@@ -196,6 +196,19 @@ darker input fields:        #505050
         width: 14px;
     }
 
+/* <ZEN-29844> floating windows light theme inheritance */
+.z-cse .x-window,
+.z-cse .x-window-header {
+    background-image: none;
+    background: #dddddd;
+    border-width: 0px;
+}
+.z-cse .x-window,
+.z-cse .x-message-box .x-window-body {
+    background-color: rgba(238, 238, 238, 0.85);
+}
+/*<ZEN-29844>*/
+
 /* backcompat.css */
 .z-cse .z-bc .zentable-modified .tabletitle-center,
 .z-cse .z-bc .zenportlet .tabletitle-center,
@@ -639,7 +652,8 @@ BYE BYE BORDERS
         background: rgba(255,255,255,0.05);
     }
     .z-cse #events_column_config_dialog-targetEl .x-boundlist-item {
-        color: #eee !important;
+        /* <ZEN-29844> dark/light theme inheritance*/
+        /*color: #eee !important;*/
         padding: 4px 8px;
     }
         .z-cse #events_column_config_dialog-targetEl .x-boundlist-item-over,
@@ -740,20 +754,22 @@ BYE BYE BORDERS
         background-color: #eee;
     }
 
+    /* <ZEN-29844> tab panel tabs light styles*/
     .z-cse .white-background-panel .x-tab {
-        background-color: #333 !important;
+        background-color: #e2e2e2 !important;
     }
         .z-cse .white-background-panel .x-tab-inner {
             color: #999;
         }
 
     .z-cse .white-background-panel .x-tab-active {
-        background-color: #555 !important;
-        color: #fafafa;
+        background-color: #d8d8d8 !important;
+        color: #4b4b4b;
     }
     .z-cse .white-background-panel .x-tab-bar-body .x-box-inner {
-        border-color: #555;
+        border-color: #d4d4d4;
     }
+    /* <ZEN-29844>*/
 
     /* infrastructure device icons */
     .z-cse #devdetailbar .devdetail-icon {
@@ -834,7 +850,7 @@ BYE BYE BORDERS
     .z-cse .x-tab
     { background-color: #f4f4f4; background-image: none; border: 0; border-radius: 0; }
     .z-cse .x-tab-top-active .x-tab-inner
-    { color: #fafafa; }
+    { color: #4b4b4b; }  /* <ZEN-29844> */
 
     /* extra classes added to prevent dark theme override */
     .z-cse .x-btn.x-btn-default-small-over.over,
@@ -906,7 +922,7 @@ BYE BYE BORDERS
 
     /* infrastructure | events | classes | edit event class modal */
     .z-cse .x-window-body-closable .x-resizable-pinned {
-        background-color: #333 !important;
+        background-color: #fafafa !important; /* <ZEN-29974> */
     }
     .z-cse #device_overview-body label {
         color: #999 !important;
@@ -1299,13 +1315,15 @@ BYE BYE BORDERS
     .z-cse .x-grid-row-selected .x-grid-cell-inner,
     .z-cse .x-window .x-form-display-field,
     .z-cse .x-window .x-panel-body,
-    .z-cse #newTabsPane ul li.selected a,
-    { color: #fafafa; }
+    .z-cse #newTabsPane ul li.selected a
+    { color: #4b4b4b; }
+    /* <ZEN-29974> dark/light theme inheritance*/
     .z-cse .x-window .x-field-label-cell label
-    { color: #fafafa !important; }
+    { color: #4b4b4c !important; }
     .z-cse .x-window .x-grid-table .x-grid-cell-inner,
+    /* <ZEN-29974> dark/light theme inheritance*/
     .z-cse #fexample-inputEl
-    { color: #fafafa !important; }
+    { color: #4b4b4c !important; }
     .z-cse .x-window .x-grid-table .x-grid-row-over
     { background-color: #4b6f9b !important; }
 
@@ -1346,10 +1364,13 @@ BYE BYE BORDERS
         }
 
     /* modals */
+    /* <ZEN-29974> dark/light theme inheritance*/
+    /* floating windows light theme inheritance */
     .z-cse .x-window-body-closable .x-panel-header-text-default,
     .z-cse .x-window-body-closable label.x-form-item-label,
-    .z-cse .x-window-body-closable label
-    { color: #fff; }
+    .z-cse .x-window-body-closable label,
+    .z-cse .x-window-header-text
+    { /*color: #fff;*/ color: #4b4b4c; }
 
     /* masthead */
     .z-cse #header-extra div a:link,
@@ -2119,6 +2140,60 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #secondarynav li.nav-item-active a {
             background-color: #333;
     }
+
+    /* <ZEN-29974> dark/light theme inheritance*/
+    /* floating windows dark theme inheritance */
+    .z-cse.z-cse-dark .x-window {
+        border-width: 1px;
+        background-color: rgba(0, 0, 0, 0.85);
+    }
+    .z-cse.z-cse-dark .x-window-header {
+        border-width: 1px 1px 0 1px;
+        background-color: rgba(0, 0, 0, 0.85);
+    }
+    .z-cse.z-cse-dark .x-window-header-text
+    { color: #d4d4d4; }
+
+    .z-cse.z-cse-dark .x-message-box .x-window-body {
+        background-color: rgba(0, 0, 0, 0.85);
+    }
+
+    .z-cse.z-cse-dark #events_column_config_dialog-targetEl .x-boundlist-item {
+        /* dark/light theme inheritance*/
+        color: #eee !important;
+        padding: 4px 8px;
+    }
+    .z-cse.z-cse-dark .x-window .x-field-label-cell label {
+        color: #ccc !important
+    }
+    .z-cse.z-cse-dark .x-window .x-grid-table .x-grid-cell-inner,
+    .z-cse.z-cse-dark #fexample-inputEl {
+        color: #fafafa !important;
+    }
+    .z-cse.z-cse-dark .x-window-body-closable .x-resizable-pinned {
+        background-color: #333 !important;
+    }
+
+    /* <ZEN-29844> tab panel tabs dark styles*/
+    .z-cse.z-cse-dark .white-background-panel .x-tab {
+        background-color: #333 !important;
+    }
+        .z-cse.z-cse-dark .white-background-panel .x-tab-inner {
+            color: #999;
+        }
+
+    .z-cse.z-cse-dark .white-background-panel .x-tab-active {
+        background-color: #555 !important;
+        color: #fafafa;
+    }
+    .z-cse.z-cse-dark .white-background-panel .x-tab-bar-body .x-box-inner {
+        border-color: #555;
+    }
+    .z-cse.z-cse-dark .x-tab-top-active .x-tab-inner {
+        color: #fafafa;
+    }
+    /* <ZEN-29844> tab panel tabs dark styles */
+
 
     /* masthead search */
     .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
