@@ -188,4 +188,44 @@
       id="zenoss.ManageTrigger"
       title="Manage Trigger"
       />
+
+  <permission
+      id="zenoss.ManageGlobalSettings"
+      title="Manage Global Settings"
+      />
+
+  <permission
+      id="zenoss.ManageGlobalCommands"
+      title="Manage Global Commands"
+      />
+
+  <permission
+      id="zenoss.ViewUsers"
+      title="View Users"
+      />
+
+  <permission
+      id="zenoss.ManageUsers"
+      title="Manage Users"
+      />
+
+  <permission
+      id="zenoss.ManageZenPacks"
+      title="Manage ZenPacks"
+      />
+
+  <permission
+      id="zenoss.ViewSoftwareVersions"
+      title="View Software Versions"
+      />
+
+  <permission
+      id="zenoss.ManageEventConfig"
+      title="Manage Event Configuration"
+      />
+
+  <permission
+      id="zenoss.ManageUISettings"
+      title="Manage UI Settings"
+      />
 </configure>
