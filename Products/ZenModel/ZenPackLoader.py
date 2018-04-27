@@ -104,7 +104,7 @@ class ZPLObject(ZenPackLoader):
                 ImportRM.endElement(self, name)
         importer = AddToPack(noopts=True, app=app)
         importer.options.noindex = True
-        importer.options.chunk_size = 500
+        importer.options.noCommit = True
         with pausedAndOptimizedIndexing():
             for f in self.objectFiles(pack):
                 log.info("Loading %s", f)
