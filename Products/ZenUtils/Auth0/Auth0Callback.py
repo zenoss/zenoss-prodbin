@@ -52,36 +52,37 @@ class Auth0Callback(BrowserView):
                   "scope=openid offline_access&" + \
                   "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri
             return self.request.response.redirect(uri)
-        else:
-            data = {
-                "grant_type": "authorization_code",
-                "client_id": conf['clientid'],
-                "client_secret": conf['client-secret'],
-                "code": code,
-                "audience": "%s/userinfo" % domain,
-                "scope": "openid profile",
-                "redirect_uri": "%s/zport/Auth0Callback" % zenoss_uri
-            }
 
-            conn = httplib.HTTPSConnection(domain)
-            headers = {"content-type": "application/json"}
-            try:
-                conn.request('POST', '/oauth/token', json.dumps(data), headers)
-                resp_string = conn.getresponse().read()
-            except Exception as a:
-                log.error('Unable to obtain token from Auth0: %s', a)
-                return self.request.response.redirect(zenoss_uri + zport_dmd)
+        # If there's no error, we can query for the auth token.
+        data = {
+            "grant_type": "authorization_code",
+            "client_id": conf['clientid'],
+            "client_secret": conf['client-secret'],
+            "code": code,
+            "audience": "%s/userinfo" % domain,
+            "scope": "openid profile",
+            "redirect_uri": "%s/zport/Auth0Callback" % zenoss_uri
+        }
 
-            resp_data = json.loads(resp_string)
-            refresh_token = resp_data.get('refresh_token')
-            id_token = resp_data.get('id_token')
+        conn = httplib.HTTPSConnection(domain)
+        headers = {"content-type": "application/json"}
+        try:
+            conn.request('POST', '/oauth/token', json.dumps(data), headers)
+            resp_string = conn.getresponse().read()
+        except Exception as a:
+            log.error('Unable to obtain token from Auth0: %s', a)
+            return self.request.response.redirect(zenoss_uri + zport_dmd)
 
-            Auth0.storeIdToken(id_token, self.request.SESSION, conf, refresh_token)
+        resp_data = json.loads(resp_string)
+        refresh_token = resp_data.get('refresh_token')
+        id_token = resp_data.get('id_token')
 
-            came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
-            virtual_root = getCSEConf().get('virtualroot', '')
-            if virtual_root and \
-                virtual_root not in came_from \
-                and zport_dmd in came_from:
-                came_from = came_from.replace(zport_dmd, virtual_root + zport_dmd)
-            return self.request.response.redirect(came_from)
+        Auth0.storeIdToken(id_token, self.request.SESSION, conf, refresh_token)
+
+        came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
+        virtual_root = getCSEConf().get('virtualroot', '')
+        if virtual_root and \
+            virtual_root not in came_from \
+            and zport_dmd in came_from:
+            came_from = came_from.replace(zport_dmd, virtual_root + zport_dmd)
+        return self.request.response.redirect(came_from)

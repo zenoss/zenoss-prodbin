@@ -32,7 +32,7 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION=3
+PLUGIN_VERSION = 3
 
 _AUTH0_CONFIG = {
         'clientid': None,
@@ -118,12 +118,11 @@ class Auth0(BasePlugin):
                              audience=conf['clientid'],
                              issuer=conf['tenant'])
 
-        sessionInfo = SessionInfo()
+        sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
         sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
         sessionInfo.expiration = payload['exp']
         sessionInfo.roles = payload['https://zenoss.com/roles']
         sessionInfo.refreshToken = refresh_token
-        session.set(Auth0.session_key, sessionInfo)
         return sessionInfo
 
 
