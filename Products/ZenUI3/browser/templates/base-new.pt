@@ -63,8 +63,9 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
 
+        <!-- add name attribute to zen-cse.css link to later get and inject this styles to iframes -->
         <link tal:condition="python:True" rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zen-cse.css" />
+            href="/++resource++zenui/css/zen-cse.css" name="zen_cse_css" />
 
     </head>
 
