@@ -2326,6 +2326,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #breadCrumbPane a
     { color: #00b5c1; text-decoration: none; }
 
+    .z-cse.z-cse-dark a.z-entity:hover {
+        color: #00e5f4 !important;
+    }
+
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
     .z-cse.z-cse-dark .detail-form-panel .x-form-field,
