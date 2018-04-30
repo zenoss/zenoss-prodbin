@@ -20,6 +20,8 @@ from Products.ZCatalog.interfaces import ICatalogBrain
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
 from OFS.PropertyManager import PropertyManager
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -39,6 +41,8 @@ def resolve_context(context, default=None, dmd=None):
         dmd = None
     if dmd:
         if isinstance(context, basestring):
+            # Strip the virtual root from the context
+            context = getUtility(IVirtualRoot).strip_virtual_root(context)
             # Should be a path to the object we want
             if context.startswith('/') and not context.startswith('/zport/dmd'):
                 context = context[1:]

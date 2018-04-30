@@ -31,8 +31,15 @@ Ext.define("Zenoss.IFramePanel", {
         this.callParent(arguments);
         this.addEvents('frameload', 'framefailed', 'isReady');
         this.on('frameload', function() {
+            this.injectCss();
             // Load any messages that may have been created by the frame
             Zenoss.messenger.checkMessages();
+            this.iframeEl.show();
+        }, this);
+        // double check not always "frameload" is fired
+        this.on('load', function() {
+            this.injectCss();
+            this.iframeEl.show();
         }, this);
     },
     onRender: function() {
@@ -107,7 +114,38 @@ Ext.define("Zenoss.IFramePanel", {
             this.load(Ext.urlAppend(url,
                     '_dc=' + new Date().getTime()));
         }
+        // hide iframe el to avoid flickering on injectCss;
+        // show it on after load;
+        this.iframeEl.hide();
         this.waitForLoad();
+    },
+    /*
+    * this fn inject zen-cse.css into iframe document to make styles same as in main page
+    * we should call it every time on after iframe load;
+    * */
+    injectCss: function() {
+        var iframe = this.getFrame(),
+            html = document.getElementsByTagName('html')[0],
+            // zen_cse_css - name of zen-cse.css link in base-new.pt template
+            css = document.querySelector('[name=zen_cse_css]'),
+            cssClone,
+            iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
+            cseClasses = [];
+
+        Ext.each(html.classList, function(key, item) {
+            if (typeof key === 'string' && key.startsWith('z-cse')) {
+                cseClasses.push(key);
+            }
+        });
+
+        if (css && iframeHtml) {
+            cssClone = css.cloneNode();
+            Ext.Array.each(cseClasses, function(item) {
+                iframeHtml.classList.add(item);
+            });
+            cssClone.innerHTML = css.innerHTML;
+            iframe.contentDocument.head.appendChild(cssClone);
+        }
     }
 });
 

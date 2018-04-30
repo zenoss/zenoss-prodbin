@@ -15,11 +15,10 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IRolesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS, getBearerToken
+from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
 from Products.ZenUtils.CSEUtils import getZenossURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
-from Products.ZenUtils.Utils import getQueryArgsFromRequest
 
 import base64
 import httplib
@@ -33,7 +32,7 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION=3
+PLUGIN_VERSION = 3
 
 _AUTH0_CONFIG = {
         'clientid': None,
@@ -41,6 +40,7 @@ _AUTH0_CONFIG = {
         'tenant': None,
         'connection': None
     }
+
 
 def getAuth0Conf():
     """Return a dictionary containing Auth0 configuration or None
@@ -101,7 +101,7 @@ class Auth0(BasePlugin):
         return Auth0.cache['keys'].setdefault(key_id, None)
 
     @staticmethod
-    def storeIdToken(id_token, session, conf):
+    def storeIdToken(id_token, session, conf, refresh_token):
         """ Save the important parts of the token in session storage.
             Returns the corresponding SessionInfo object.
         """
@@ -122,6 +122,7 @@ class Auth0(BasePlugin):
         sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
         sessionInfo.expiration = payload['exp']
         sessionInfo.roles = payload['https://zenoss.com/roles']
+        sessionInfo.refreshToken = refresh_token
         return sessionInfo
 
 
@@ -156,7 +157,7 @@ class Auth0(BasePlugin):
         id_token = resp_data.get('id_token')
         log.debug('Token refreshed')
 
-        return Auth0.storeIdToken(id_token, session, conf)
+        return Auth0.storeIdToken(id_token, session, conf, refresh_token)
 
 
     def resetCredentials(self, request, response):
@@ -199,7 +200,7 @@ class Auth0(BasePlugin):
             log.debug('Token expired - attempting to refresh')
             sessionInfo = Auth0._refreshToken(request.SESSION, conf)
 
-        if not sessionInfo.userid:
+        if not sessionInfo or not sessionInfo.userid:
             log.debug('No Auth0 session - not directing to Auth0 login')
             return {}
 
@@ -239,14 +240,15 @@ class Auth0(BasePlugin):
         }
         state = base64.urlsafe_b64encode(json.dumps(state_obj))
 
-        request['RESPONSE'].redirect("%sauthorize?" % conf['tenant'] +
-                                     "response_type=code&" +
-                                     "client_id=%s&" % conf['clientid'] +
-                                     "connection=%s&" % conf['connection'] +
-                                     "state=%s&" % state +
-                                     "scope=openid offline_access&" +
-                                     "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri,
-                                     lock=1)
+        uri = "%sauthorize?" % conf['tenant'] + \
+              "response_type=code&" + \
+              "client_id=%s&" % conf['clientid'] + \
+              "state=%s&" % state + \
+              "scope=openid offline_access&" + \
+              "prompt=none&" + \
+              "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri
+
+        request['RESPONSE'].redirect(uri, lock=1)
         return True
 
     def getRolesForPrincipal(self, principal, request=None):

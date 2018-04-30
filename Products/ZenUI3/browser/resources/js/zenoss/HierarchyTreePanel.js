@@ -336,7 +336,15 @@
                      * to send to the server
                      **/
                     getId: function () {
-                        return this.get("uid");
+                        var uid = this.get('uid');
+                        var CSEVirtualRoot = Zenoss.env.CSE_VIRTUAL_ROOT;
+
+                        // Add /cseN/ if it is absent to prevent conflicts
+                        if (CSEVirtualRoot && uid && uid.indexOf(CSEVirtualRoot) === -1) {
+                            uid = (CSEVirtualRoot + uid).replace('//', '/');
+                        }
+
+                        return uid;
                     },
                     proxy: {
                         simpleSortMode: true,
