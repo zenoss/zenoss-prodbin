@@ -282,6 +282,11 @@ class ModelCatalogTool(object):
                        fields we need to retrieve the faster the query will be
         @param facets_for_field: Field for which we want to retrieve its facets
         """
+        #ZEN-29896: Solr: zeneventd eventContext solr timeout
+        if query and getattr(query, '__dict__', None):
+            queryString = query.__dict__.get('_term', None)
+            if isinstance(queryString, str) and len(queryString) > 1024:
+                query.__dict__['_term'] = '"{}"'.format(queryString.strip('"'))
         indexed, stored, _ = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
         areBrains = orderby in indexed or orderby is None
