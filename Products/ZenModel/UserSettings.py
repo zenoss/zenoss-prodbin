@@ -720,6 +720,10 @@ class UserSettings(ZenModelRM):
         if thisUser is None:
             return False
 
+        # Users can edit themselves
+        if currentUser == thisUser:
+            return True
+
         # CZAdmins can edit any users' settings except for Managers.
         if (currentUser.has_role(CZ_ADMIN_ROLE) and not
                 thisUser.has_role(MANAGER_ROLE)):
@@ -819,24 +823,6 @@ class UserSettings(ZenModelRM):
 
         # update only email and page size if true
         outOfTurnUpdate = False
-        # Verify existing password
-        curuser = self.getUser().getId()
-        if not oldpassword or not self.ZenUsers.authenticateCredentials(curuser, oldpassword):
-            if REQUEST:
-                reqSettings = REQUEST.form
-                if str(self.defaultPageSize) == reqSettings['defaultPageSize'] and \
-                    self.email == reqSettings['email']:
-                    messaging.IMessageSender(self).sendToBrowser(
-                        'Error',
-                        'Confirmation password is empty or invalid. Please'+
-                        ' confirm your password for security reasons.',
-                        priority=messaging.WARNING
-                    )
-                    return self.callZenScreen(REQUEST)
-                else:
-                    outOfTurnUpdate = True
-            else:
-                raise ValueError("Current password is incorrect.")
 
         # update role info
         roleManager = self.acl_users.roleManager

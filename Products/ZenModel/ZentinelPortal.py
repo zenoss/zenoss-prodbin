@@ -149,6 +149,11 @@ class ZentinelPortal(PortalObjectBase):
         if user:
             return user.has_role((MANAGER_ROLE, CZ_ADMIN_ROLE), obj)
 
+    def isCustomerAdmin(self, obj=None):
+        user = self.dmd.ZenUsers.getUser()
+        if user:
+            return user.has_role((MANAGER_ROLE, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE), obj)
+
     def has_role(self, role, obj=None):
         """Check to see of a user has a role.
         """

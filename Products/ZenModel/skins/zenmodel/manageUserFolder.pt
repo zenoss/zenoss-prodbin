@@ -61,7 +61,7 @@ function ConfirmPagerTest() {
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
             <input type="checkbox" name="userids:list"
-               tal:condition="user/iseditable"
+               tal:condition="python:user.isManager() and user.iseditable()"
                tal:attributes="value user/getId" />
             <a tal:attributes="href user/getPrimaryUrlPath"
                tal:condition="user/iseditable"
