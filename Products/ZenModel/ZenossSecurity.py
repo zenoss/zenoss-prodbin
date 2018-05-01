@@ -115,3 +115,12 @@ ZEN_MANAGE_ZENPACKS='Manage ZenPacks'
 ZEN_VIEW_SOFTWARE_VERSIONS='View Software Versions'
 ZEN_MANAGE_EVENT_CONFIG='Manage Event Configuration'
 ZEN_MANAGE_UI_SETTINGS='Manage UI Settings'
+
+# LDAPAuthenticator ZenPack settings
+ZEN_MANAGE_LDAP_SETTINGS='Manage LDAP Settings'
+
+# Licensing ZenPack settings
+ZEN_VIEW_LICENSING='View Licensing'
+
+# SupportBundle ZenPack settings
+ZEN_MANAGE_SUPPORT_BUNDLES='Manage Support Bundles'
