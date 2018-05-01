@@ -252,4 +252,9 @@
       title="Manage Support Bundles"
       />
 
+  <permission
+      id="zenoss.ManageImpactSettings"
+      title="Manage Impact Settings"
+      />
+
 </configure>
