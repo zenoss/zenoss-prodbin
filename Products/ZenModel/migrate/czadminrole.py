@@ -22,6 +22,7 @@ from Products.ZenModel.ZenossSecurity import (
     OWNER_ROLE,
     ZEN_MANAGE_GLOBAL_SETTINGS,
     ZEN_MANAGE_GLOBAL_COMMANDS,
+    ZEN_MANAGE_CONTROL_CENTER,
     ZEN_EDIT_USER,
     ZEN_MANAGE_USERS,
     ZEN_VIEW_USERS,
@@ -106,6 +107,12 @@ class CZAdminRole(Migrate.Step):
         for item in dmd.zenMenus.Group_list.zenMenuItems():
             item.permissions = (ZEN_MANAGE_USERS,)
 
+        # CONTROL CENTER #
+
+        # Add "Manage Control Center" perm to CZAdmin
+        self.addPermissions(zport, ZEN_MANAGE_CONTROL_CENTER,
+                            [OWNER_ROLE, MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
+
         # ZENPACKS #
 
         # Add "Manage ZenPacks" perm to CZAdmin and ZenManager
@@ -147,11 +154,14 @@ class CZAdminRole(Migrate.Step):
         self.addPermissions(zport, ZEN_VIEW_LICENSING,
                             [OWNER_ROLE, MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
 
+        # SUPPORTBUNDLE SETTINGS #
+
         # Add "Manage Support Bundles" perm to CZAdmin and Manager
         # Note: This permission isn't used in Core, only in the
         # Licensing pack
         self.addPermissions(zport, ZEN_MANAGE_SUPPORT_BUNDLES,
                             [OWNER_ROLE, MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
+
 
 
 CZAdminRole()

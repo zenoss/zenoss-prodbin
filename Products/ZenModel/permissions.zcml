@@ -203,6 +203,11 @@
       />
 
   <permission
+      id="zenoss.ManageControlCenter"
+      title="Manage Control Center"
+      />
+
+  <permission
       id="zenoss.ViewUsers"
       title="View Users"
       />

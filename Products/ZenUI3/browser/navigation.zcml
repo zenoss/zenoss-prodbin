@@ -216,6 +216,7 @@
             permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
+
         <browser:viewlet
             name="Control Center"
             url="/zport/dmd/daemons"
@@ -223,7 +224,7 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.ManageDMD"
+            permission="zenoss.ManageControlCenter"
             layer="..navigation.interfaces.IZenossNav"
             subviews="/zport/dmd/collectorTemplate"
             />
