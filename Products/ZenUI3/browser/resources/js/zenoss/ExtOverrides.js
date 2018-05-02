@@ -93,6 +93,10 @@ Ext.override(Ext.util.Sorter, {
         border: false
     });
 
+    Ext.override(Ext.menu.Menu, {
+        border: true
+    });
+
     /**
      * Refs were removed when going from Ext3 to 4, we rely heavily on this feature and it is much more
      * concise way of accessing children so we are patching it back in.
