@@ -152,7 +152,7 @@ class ZentinelPortal(PortalObjectBase):
     def isCustomerAdmin(self, obj=None):
         user = self.dmd.ZenUsers.getUser()
         if user:
-            return user.has_role((MANAGER_ROLE, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE), obj)
+            return user.has_role((MANAGER_ROLE, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE), obj)
 
     def has_role(self, role, obj=None):
         """Check to see of a user has a role.
@@ -255,13 +255,13 @@ class PortalGenerator:
 
     def setupRoles(self, p):
         # Set up the suggested roles.
-        p.__ac_roles__ += (ZEN_USER_ROLE, ZEN_MANAGER_ROLE,)
+        p.__ac_roles__ += (ZEN_USER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE,)
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
 
-        role_owner_manager = [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE]
+        role_owner_manager = [ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, OWNER_ROLE, MANAGER_ROLE]
         mp(ZEN_CHANGE_SETTINGS,         role_owner_manager, 1)
         mp(ZEN_CHANGE_DEVICE,           role_owner_manager, 1)
         mp(ZEN_CHANGE_DEVICE_PRODSTATE, role_owner_manager, 1)
@@ -271,11 +271,11 @@ class PortalGenerator:
         mp(ZEN_ADD,                     role_owner_manager, 1)
         mp(
             ZEN_VIEW,
-            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
-             MANAGER_ROLE, OWNER_ROLE]
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE,
+             OWNER_ROLE]
         )
         mp(ZEN_COMMON,
-            ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
+            ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE,
              MANAGER_ROLE, OWNER_ROLE],
             1)
 
@@ -284,7 +284,7 @@ class PortalGenerator:
         mp(ZEN_MANAGE_EVENTS,           role_owner_manager, 1)
         mp(ZEN_SEND_EVENTS,             role_owner_manager, 1)
 
-        manager_role = [ZEN_MANAGER_ROLE, MANAGER_ROLE]
+        manager_role = [ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE]
         mp(ZEN_CHANGE_ADMIN_OBJECTS,    manager_role, 1)
         mp(ZEN_CHANGE_EVENT_VIEWS,      manager_role, 1)
         mp(ZEN_ADMIN_DEVICE,            manager_role, 1)
@@ -294,17 +294,17 @@ class PortalGenerator:
         mp(ZEN_MAINTENANCE_WINDOW_EDIT, manager_role, 1)
         mp(ZEN_ADMINISTRATORS_EDIT,     manager_role, 1)
 
-        manager_role_usr = [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE]
+        manager_role_usr = [ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE, ZEN_USER_ROLE]
         mp(ZEN_ZPROPERTIES_VIEW,        manager_role_usr, 1)
         mp(ZEN_DEFINE_COMMANDS_VIEW,    manager_role_usr, 1)
         mp(ZEN_MAINTENANCE_WINDOW_VIEW, manager_role_usr, 1)
         mp(ZEN_ADMINISTRATORS_VIEW,     manager_role_usr, 1)
 
         mp(ZEN_CHANGE_ALERTING_RULES,
-            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+            [ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
 
         mp(ZEN_RUN_COMMANDS,
-            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE], 1)
 
         mp(ZEN_DEFINE_COMMANDS_EDIT,
             [MANAGER_ROLE], 1)
@@ -315,8 +315,8 @@ class PortalGenerator:
         mp(UPDATE_NOTIFICATION,                 role_owner_manager, 1)
         mp(MANAGE_NOTIFICATION_SUBSCRIPTIONS,   role_owner_manager, 1)
         mp(VIEW_TRIGGER,
-            [ZEN_MANAGER_ROLE, OWNER_ROLE,
-             MANAGER_ROLE, ZEN_USER_ROLE],
+            [ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, OWNER_ROLE, MANAGER_ROLE,
+             ZEN_USER_ROLE],
             1)
 
     def setupDefaultSkins(self, p):
