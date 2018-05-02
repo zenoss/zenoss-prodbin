@@ -74,8 +74,9 @@ class TemplateFacade(ZuulFacade):
                 pass
 
     def getTemplates(self, id):
-        # see if we are asking for all templates
+        # strip 'IVirtualRoot' from id (ZEN-29985)
         uid = getUtility(IVirtualRoot).strip_virtual_root(id)
+        # see if we are asking for all templates
         if uid == self._root.getPrimaryId():
             return self._getTemplateNodes()
         # otherwise we are asking for instance of a template
