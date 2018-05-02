@@ -273,7 +273,6 @@ BYE BYE BORDERS
 .z-cse .password-split,
 .z-cse .user-prefs-cell,
 .z-cse .user-prefs-cell div,
-.z-cse .x-boundlist,
 .z-cse .x-panel .x-panel-header-default-framed-top,
 .z-cse #dataSourceTreeGrid .x-grid-row .x-grid-cell,
 .z-cse #graphGrid .x-grid-row .x-grid-cell,
@@ -400,16 +399,11 @@ BYE BYE BORDERS
 
     .z-cse #master_panel #subselecttreepaneldetail_nav .x-grid-row-over,
     .z-cse #newTabsPane ul li:hover,
-    .z-cse .x-boundlist-item-over,
     .z-cse .x-grid-row-over,
     .z-cse #trigger-master_panel .x-grid-row-over,
     .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over,
     .z-cse #templateTree .x-grid-row-over
     { background-image: none; background-color: #d2e0f1 !important;}
-
-    /* drop-down backgrounds */
-    .z-cse .x-boundlist-floating .x-boundlist-list-ct
-    { background-image: none; background-color: #eee; }
 
     .z-cse .x-grid-with-row-lines .x-grid-cell-inner {
         line-height: 20px;
@@ -1282,8 +1276,6 @@ BYE BYE BORDERS
     .z-cse .dialog_container select,
     .z-cse .innerzentable .user-prefs-cell .tableheader,
     .z-cse .portlet-body thead .yui-dt-label a,
-    .z-cse .x-boundlist-floating .x-boundlist-item,
-    .z-cse .x-boundlist-item-over,
     .z-cse .x-btn-arrowslide-toolbar-small span,
     .z-cse .x-btn-default-small-disabled .x-btn-inner,
     .z-cse .x-btn-default-toolbar-small .x-btn-inner,
@@ -1346,12 +1338,9 @@ BYE BYE BORDERS
     { background-color: #f0f0f0; }
 
     /* context menus */
-    .z-cse .x-boundlist-floating,
-    .z-cse .x-boundlist-floating .x-boundlist-list-ct,
     .z-cse .x-menu-body
     { background-color: #f4f4f4 !important; }
-        .z-cse .x-menu-body .x-menu-item-text,
-        .z-cse .x-boundlist-item
+        .z-cse .x-menu-body .x-menu-item-text
         { color: #4b4b4c !important; }
 
         /* diabled text */
@@ -1614,7 +1603,6 @@ BYE BYE BORDERS
         }
         .z-cse > body > .x-boundlist {
             min-height: 20px;
-            border: 0;
         }
         .z-cse > body > .x-boundlist > .x-boundlist-list-ct {
             line-height: 20px;
@@ -2326,6 +2314,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #breadCrumbPane a
     { color: #00b5c1; text-decoration: none; }
 
+    .z-cse.z-cse-dark a.z-entity:hover {
+        color: #00e5f4 !important;
+    }
+
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
     .z-cse.z-cse-dark .detail-form-panel .x-form-field,
@@ -2387,22 +2379,6 @@ BYE BYE BORDERS
     }
         .z-cse.z-cse-dark .x-portlet div.europagraph {
             background-color: transparent;
-        }
-
-    /* infrastrucure | devices | < device > | modeler plugins multiselect */
-    .z-cse.z-cse-dark #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
-    .z-cse.z-cse-dark #modeler_plugins table.x-form-fieldcontainer .x-boundlist {
-        background-color: rgba(255,255,255,0.15);
-    }
-    .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item,
-    .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item {
-            color: #eee !important;
-        }
-        .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-item-over,
-        .z-cse.z-cse-dark #device_modeler_plugins .x-boundlist-selected,
-        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-item-over,
-        .z-cse.z-cse-dark #modeler_plugins .x-boundlist-selected {
-                color: #4b4b4c !important;
         }
 
     /* events | triggers */
@@ -2543,4 +2519,62 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-fieldset-header-text,
     .z-cse.z-cse-dark label.x-component.x-component-default {
         color: #ccc;
+    }
+
+    /* Drop-down menu styling */
+    .z-cse .x-boundlist-item {
+        background-color: #fff;
+    }
+
+    .z-cse.z-cse-dark .x-boundlist-item {
+        background-color: #2a2a2a;
+    }
+
+    .z-cse .x-boundlist-floating {
+        margin-top: -2px;
+        border-top-width: 1px;
+    }
+
+    .z-cse .x-boundlist {
+        border-color: #8cacd4;
+    }
+
+    .z-cse.z-cse-dark .x-boundlist {
+        border-color: #4b6f9b;
+    }
+
+    .z-cse .x-boundlist-item-over,
+    .z-cse .x-boundlist-selected {
+        background-color: #d2e0f1;
+    }
+
+    .z-cse.z-cse-dark .x-boundlist-item-over,
+    .z-cse.z-cse-dark .x-boundlist-selected {
+        background-color: #4b6f9b;
+    }
+
+    .z-cse .x-pickerfield-open .x-form-trigger-wrap {
+        position: relative;
+    }
+
+    .z-cse .x-pickerfield-open .x-form-trigger-wrap:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: -1px;
+        left: 0;
+        border: 1px solid #8cacd4;
+    }
+
+    .z-cse.z-cse-dark .x-pickerfield-open .x-form-trigger-wrap:after {
+        border-color: #4b6f9b;
+    }
+
+    .x-pickerfield-open-above .x-form-trigger-wrap:after {
+        top: -1px;
+    }
+
+    #searchbox-container .x-pickerfield-open .x-form-trigger-wrap:after {
+        content: none;
     }
