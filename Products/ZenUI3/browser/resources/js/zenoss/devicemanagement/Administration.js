@@ -847,8 +847,26 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                             }
                             // do an update that only toggles the enabled
                         }
+                    },{
+                        xtype: 'tbfill'
+                    },{
+                        id: 'timeinfo',
+                        xtype: 'tbtext',
+                        cls: 'lastupdated',
+                        text: _t('Updating...')
                     }
                 ],
+                ShowUserTime: function() {
+                    setInterval(function (){
+                        var box = Ext.getCmp('timeinfo'),
+                        dtext = Zenoss.date.renderWithTimeZone(new Date()/1000);
+                        dtext += " (" + Zenoss.USER_TIMEZONE + ")";
+                        dtext += _t(' Container Date/Time/TimeZone: ');
+                        dtext += moment.tz(moment.now, Zenoss.CC_TIMEZONE).format(Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT);
+                        dtext += " (" + Zenoss.CC_TIMEZONE + ")";
+                        box.setText(_t('Current Date/Time/TimeZone: ') + dtext);
+                    }, 1000);
+                },
                 store: Ext.create('Zenoss.maintwindow.Store', {}),
                 columns: [
                     {
@@ -876,9 +894,19 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                         dataIndex: 'startTime_data',
                         hidden:true
                     },{
+                        id: 'maint_start_local',
+                        dataIndex: 'start',
+                        header: _t('Start ('+Zenoss.CC_TIMEZONE+')'),
+                        width: 140,
+                        filter: false,
+                        sortable: true,
+                        renderer: function(val){
+                            return moment.tz(moment.unix(val), Zenoss.CC_TIMEZONE).format(Zenoss.USER_DATE_FORMAT+' '+Zenoss.USER_TIME_FORMAT);
+                        }
+                    },{
                         id: 'maint_start',
                         dataIndex: 'start',
-                        header: _t('Start'),
+                        header: _t('Start ('+Zenoss.USER_TIMEZONE+')'),
                         width: 140,
                         filter: false,
                         sortable: true,
@@ -937,6 +965,12 @@ Ext.define("Zenoss.devicemanagement.Administration", {
             }
             data = selected[0].data;
             maintDialog(this, data);
+        },
+        afterRender: function(){
+            this.callParent();
+            this.applyState(this.getState());
+            this.ShowUserTime();
+
         },
         beforeRender: function() {
             Zenoss.remote.DeviceManagementRouter.getTimeZone({}, function(response){
