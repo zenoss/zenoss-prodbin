@@ -44,6 +44,7 @@ light blue button hover     #b6cbe4
 
 blue links light            #00b5c1 formerly #3b88cb
 blue links dark             #00b5c1 formerly #89c5fa
+blue links dark hover       #06e0ee
 
 light text:                 #fafafa
 dark text:                  #4b4b4c
@@ -2400,6 +2401,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-menu a:visited,
     .z-cse.z-cse-dark #breadCrumbPane a
     { color: #00b5c1; text-decoration: none; }
+
+    .z-cse.z-cse-dark a.z-entity:hover {
+        color: #06e0ee !important;
+    }
 
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
