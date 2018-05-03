@@ -44,7 +44,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         templates = facade.getTemplates(id)
-        data =  Zuul.marshal(templates)
+        data = Zuul.marshal(templates)
         return data
 
     def getDeviceClassTemplates(self, id):
