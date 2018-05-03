@@ -87,7 +87,7 @@
                                     </a>
                                 </div>
                                 <div id="sign-out-link">
-                                    <a href="/zport/dmd/logoutUser">sign out</a>
+                                    <a href="/zport/dmd/logoutUser">Logout</a>
                                 </div>
                                 <div>
                                     <div id="help-icon-container">
