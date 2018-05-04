@@ -41,8 +41,11 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import (
-   ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
-   ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS,
+    ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
+    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE,
+    ZEN_MANAGE_GLOBAL_SETTINGS, MANAGER_ROLE, ZEN_MANAGE_GLOBAL_COMMANDS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
 )
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
@@ -90,22 +93,22 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../editSettings'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dataRootManage'
-                , 'permissions'   : (ZEN_MANAGE_DMD,)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'manageUserFolder'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS, )
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -115,17 +118,17 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../../About/zenossVersions'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG,)
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
            )
          },
@@ -697,13 +700,11 @@ class UserSettings(ZenModelRM):
             return self.acl_users._getGroupsForPrincipal(user)
         return ()
 
-
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'updatePropsFromDict')
     def updatePropsFromDict(self, propdict):
         props = self.propertyIds()
         for k, v in propdict.items():
             if k in props: setattr(self,k,v)
-
 
     def iseditable(self):
         """Can the current user edit this settings object.
@@ -711,7 +712,7 @@ class UserSettings(ZenModelRM):
         currentUser = getSecurityManager().getUser()
 
         # Managers can edit any users' settings.
-        if currentUser.has_role("Manager"):
+        if currentUser.has_role(MANAGER_ROLE):
             return True
 
         # thisUser can be None if the plugin that created it is inactive.
@@ -719,13 +720,13 @@ class UserSettings(ZenModelRM):
         if thisUser is None:
             return False
 
-        # ZenManagers can edit any users' settings except for Managers.
-        if currentUser.has_role("ZenManager") \
-            and not thisUser.has_role("Manager"):
+        # Users can edit themselves
+        if currentUser == thisUser:
             return True
 
-        # Users can edit their own settings.
-        if thisUser.getUserName() == currentUser.getUserName():
+        # CZAdmins can edit any users' settings except for Managers.
+        if (currentUser.has_role(CZ_ADMIN_ROLE) and not
+                thisUser.has_role(MANAGER_ROLE)):
             return True
 
         return False
@@ -822,24 +823,6 @@ class UserSettings(ZenModelRM):
 
         # update only email and page size if true
         outOfTurnUpdate = False
-        # Verify existing password
-        curuser = self.getUser().getId()
-        if not oldpassword or not self.ZenUsers.authenticateCredentials(curuser, oldpassword):
-            if REQUEST:
-                reqSettings = REQUEST.form
-                if str(self.defaultPageSize) == reqSettings['defaultPageSize'] and \
-                    self.email == reqSettings['email']:
-                    messaging.IMessageSender(self).sendToBrowser(
-                        'Error',
-                        'Confirmation password is empty or invalid. Please'+
-                        ' confirm your password for security reasons.',
-                        priority=messaging.WARNING
-                    )
-                    return self.callZenScreen(REQUEST)
-                else:
-                    outOfTurnUpdate = True
-            else:
-                raise ValueError("Current password is incorrect.")
 
         # update role info
         roleManager = self.acl_users.roleManager
@@ -1341,7 +1324,8 @@ class GroupSettings(UserSettings):
         """Can the current user edit this settings object.
         """
         currentUser = getSecurityManager().getUser()
-        return currentUser.has_role("Manager") or currentUser.has_role("ZenManager")
+        return (currentUser.has_role(MANAGER_ROLE) or
+                currentUser.has_role(CZ_ADMIN_ROLE))
 
     def _getG(self):
         return self.zport.acl_users.groupManager

@@ -26,7 +26,6 @@ from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
 from Products.ZenUtils.mysql import MySQLdb
@@ -36,6 +35,11 @@ from Products.ZenUtils.Version import (Version, VersionNotSupported,
 from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGE_DMD, ZEN_MANAGE_GLOBAL_SETTINGS, ZEN_MANAGE_USERS,
+    ZEN_VIEW_USERS, ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
+)
 
 log = logging.getLogger("zen.ZenossInfo")
 
@@ -92,22 +96,22 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../dmd/editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dmd/dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : '../dmd/ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../dmd/ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS, )
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -117,17 +121,17 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : 'zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG,)
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../dmd/userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
            )
           },

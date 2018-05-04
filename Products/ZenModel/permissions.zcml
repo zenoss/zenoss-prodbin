@@ -1,4 +1,5 @@
 <configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:meta="http://namespaces.zope.org/meta"
            i18n_domain="Five">
 
   <!-- Permissions here should parallel ZenModel.ZenossSecurity -->
@@ -188,4 +189,72 @@
       id="zenoss.ManageTrigger"
       title="Manage Trigger"
       />
+
+  <meta:provides feature="czadmin-perms"/>
+
+  <permission
+      id="zenoss.ManageGlobalSettings"
+      title="Manage Global Settings"
+      />
+
+  <permission
+      id="zenoss.ManageGlobalCommands"
+      title="Manage Global Commands"
+      />
+
+  <permission
+      id="zenoss.ManageControlCenter"
+      title="Manage Control Center"
+      />
+
+  <permission
+      id="zenoss.ViewUsers"
+      title="View Users"
+      />
+
+  <permission
+      id="zenoss.ManageUsers"
+      title="Manage Users"
+      />
+
+  <permission
+      id="zenoss.ManageZenPacks"
+      title="Manage ZenPacks"
+      />
+
+  <permission
+      id="zenoss.ViewSoftwareVersions"
+      title="View Software Versions"
+      />
+
+  <permission
+      id="zenoss.ManageEventConfig"
+      title="Manage Event Configuration"
+      />
+
+  <permission
+      id="zenoss.ManageUISettings"
+      title="Manage UI Settings"
+      />
+
+  <permission
+      id="zenoss.ManageLDAPSettings"
+      title="Manage LDAP Settings"
+      />
+
+  <permission
+      id="zenoss.ViewLicensing"
+      title="View Licensing"
+      />
+
+  <permission
+      id="zenoss.ManageSupportBundles"
+      title="Manage Support Bundles"
+      />
+
+  <permission
+      id="zenoss.ManageImpactSettings"
+      title="Manage Impact Settings"
+      />
+
 </configure>
