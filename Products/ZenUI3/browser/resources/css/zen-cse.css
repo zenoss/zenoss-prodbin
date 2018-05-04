@@ -2703,3 +2703,25 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .refreshevery {
         background-color: #3c3c3c;
     }
+
+    /* fix for icons */
+    .z-cse.z-cse-dark .x-hmenu-sort-asc .x-menu-item-icon,
+    .z-cse.z-cse-dark .x-hmenu-sort-desc .x-menu-item-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-color: #ccc;
+        background-size: 75%;
+        background-position: center;
+    }
+    .z-cse.z-cse-dark .x-menu-item-checked:before {
+        content: '●';
+        position: absolute;
+        top: 50%;
+        font-size: 18px;
+        transform: translateX(9px) translateY(-57%);
+    }
+    .z-cse.z-cse-dark .x-menu-item-checked .x-menu-group-icon {
+        display: none;
+        background-image: none;
+    }
