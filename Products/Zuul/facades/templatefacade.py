@@ -12,6 +12,7 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
+from zope.component import getUtility
 from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
@@ -33,6 +34,7 @@ from Products.ZenModel.GraphPoint import GraphPoint
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenRRD.utils import rpneval
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 log = logging.getLogger('zen.TemplateFacade')
 
@@ -72,11 +74,13 @@ class TemplateFacade(ZuulFacade):
                 pass
 
     def getTemplates(self, id):
+        # strip 'IVirtualRoot' from id (ZEN-29985)
+        uid = getUtility(IVirtualRoot).strip_virtual_root(id)
         # see if we are asking for all templates
-        if id == self._root.getPrimaryId():
-            return  self._getTemplateNodes()
+        if uid == self._root.getPrimaryId():
+            return self._getTemplateNodes()
         # otherwise we are asking for instance of a template
-        return self._getTemplateLeaves(id)
+        return self._getTemplateLeaves(uid)
 
     def getTree(self, id):
         """
