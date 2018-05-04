@@ -841,11 +841,6 @@ BYE BYE BORDERS
     .z-cse .x-btn.x-btn-default-large-over.over,
     .z-cse .x-btn.x-btn-default-toolbar-large-over.over
     { background-color: #b6cbe4; }
-        .z-cse .x-btn-default-small-over span,
-        .z-cse .x-btn-default-toolbar-small-over span,
-        .z-cse .x-btn-default-large-over span,
-        .z-cse .x-btn-default-toolbar-large-over span
-        { color: #fafafa; }
         .z-cse .x-btn-default-small-over button,
         .z-cse .x-btn-default-toolbar-small-over button,
         .z-cse .x-btn-default-large-over button,
@@ -911,6 +906,12 @@ BYE BYE BORDERS
     /* context menu separator */
     .z-cse .x-menu-icon-separator
     { opacity: 0; }
+    .z-cse .x-menu-item-separator {
+        border-color: #8cacd4;
+    }
+    .z-cse.z-cse-dark .x-menu-item-separator {
+        border-color: #4b6f9b;
+    }
     /* refresh every header */
     .z-cse .refreshevery {
         background-color: #ccc;
@@ -1981,40 +1982,79 @@ BYE BYE BORDERS
         text-indent: 4px;
     }
 
-    .z-cse .x-datepicker .x-datepicker-inner a.x-datepicker-date {
-        color: #ccc;
+    /* datepicker */
+    .z-cse .x-datepicker {
+        border-color: #8cacd4;
     }
-    .z-cse .x-datepicker .x-datepicker-active a.x-datepicker-date {
-        color: #3b88cb;
+    .z-cse table.x-datepicker-inner td a,
+    .z-cse .x-monthpicker-item a {
+        background-color: inherit;
+        color: inherit;
+    }
+    .z-cse .x-monthpicker-months {
+        border-right-color: #8cacd4;
+    }
+    .z-cse .x-datepicker-footer,
+    .z-cse .x-monthpicker-buttons {
+        border-top-color: #8cacd4;
+    }
+    .z-cse table.x-datepicker-inner th {
+        border-bottom-color: #8cacd4;
+    }
+    .z-cse table.x-datepicker-inner td {
+        color: #ccc;
+        border-color: #f4f4f4;
+    }
+    .z-cse table.x-datepicker-inner .x-datepicker-active {
+        color: #4b4b4c;
+    }
+    .z-cse .x-datepicker-month button,
+    .z-cse .x-datepicker-month span {
+        color: #4b4b4c !important;
+    }
+    .z-cse:not(.z-cse-dark) .x-datepicker-month .x-btn-split-right {
+        background-image: url('../img/xtheme-zenoss/button/arrow.gif');
     }
     .z-cse table.x-datepicker-inner a:hover,
-    .z-cse table.x-datepicker-inner .x-datepicker-disabled a:hover
-    { background-image: none; background-color: transparent; border: 0; }
+    .z-cse table.x-datepicker-inner .x-datepicker-disabled a:hover,
+    .z-cse .x-datepicker-today a.x-datepicker-date {
+        background-color: transparent;
+        border: 0;
+    }
     .z-cse .x-datepicker,
-    .z-cse .x-monthpicker
-    { background-image: none; background-color: #eee; border: 0; }
-    .z-cse table.x-datepicker-inner td
-    { border-color: #eee; }
+    .z-cse .x-monthpicker,
+    .z-cse .x-datepicker-header,
+    .z-cse table.x-datepicker-inner th{
+        background-color: #f4f4f4;
+    }
+    .z-cse .x-datepicker-footer,
+    .z-cse .x-monthpicker-buttons {
+        background-color: #fff;
+    }
     .z-cse .x-datepicker-header,
     .z-cse table.x-datepicker-inner th,
     .z-cse .x-datepicker-footer,
-    .z-cse .x-monthpicker-buttons
-    { background-image: none; background-color: #ccc; border: 0; }
-    .z-cse .x-datepicker .x-monthpicker .x-monthpicker-item a
-    { color: #555; }
-    .z-cse .x-datepicker-today,
-    .z-cse .x-monthpicker-item a.x-monthpicker-selected {
-        background-color: #b6cbe4;
+    .z-cse .x-monthpicker-buttons {
+        background-image: none;
     }
-        .z-cse .x-datepicker table.x-datepicker-inner .x-datepicker-today a.x-datepicker-date {
-            background-image: none;
-            background-color: transparent;
-            border: 0;
-            color: #fafafa;
-        }
-    .z-cse .x-datepicker-active:hover,
-    .z-cse .x-monthpicker-item a:hover {
+    .z-cse table.x-datepicker-inner .x-datepicker-today,
+    .z-cse table.x-datepicker-inner .x-datepicker-selected,
+    .z-cse .x-monthpicker-item a.x-monthpicker-selected {
+        background-color: #8cacd4;
+        color: #fafafa;
+    }
+    .z-cse table.x-datepicker-inner td:hover,
+    .z-cse .x-monthpicker-item a:hover,
+    .z-cse table.x-datepicker-inner .x-datepicker-today:hover,
+    .z-cse table.x-datepicker-inner .x-datepicker-selected:hover,
+    .z-cse .x-monthpicker-item a.x-monthpicker-selected:hover {
         background-color: #d2e0f1;
+        color: #4b4b4c;
+    }
+    /* hack for removing white background from the icons */
+    .z-cse .x-monthpicker-yearnav-prev,
+    .z-cse .x-monthpicker-yearnav-next {
+        border-radius: 3px;
     }
 
     .z-cse .x-panel-hierarchy .x-grid-body {
@@ -2417,6 +2457,60 @@ BYE BYE BORDERS
         background-color: #555;
     }
 
+    /* datepicker */
+    .z-cse.z-cse-dark .x-datepicker {
+        border-color: #4b6f9b;
+    }
+    .z-cse.z-cse-dark table.x-datepicker-inner td a,
+    .z-cse.z-cse-dark .x-monthpicker-item a {
+        background-color: inherit;
+        color: inherit;
+    }
+    .z-cse.z-cse-dark .x-monthpicker-months {
+        border-right-color: #4b6f9b;
+    }
+    .z-cse.z-cse-dark .x-datepicker-footer,
+    .z-cse.z-cse-dark .x-monthpicker-buttons {
+        border-top-color: #4b6f9b;
+    }
+    .z-cse.z-cse-dark table.x-datepicker-inner th {
+        border-bottom-color: #4b6f9b;
+    }
+    .z-cse.z-cse-dark table.x-datepicker-inner td {
+        color: #8c8c8c;
+        border-color: #505050;
+    }
+    .z-cse.z-cse-dark table.x-datepicker-inner .x-datepicker-active,
+    .z-cse.z-cse-dark table.x-datepicker-inner th,
+    .z-cse.z-cse-dark .x-monthpicker-item {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark .x-datepicker-month button,
+    .z-cse.z-cse-dark .x-datepicker-month span {
+        color: #ccc !important;
+    }
+    .z-cse.z-cse-dark .x-datepicker,
+    .z-cse.z-cse-dark .x-monthpicker,
+    .z-cse.z-cse-dark .x-datepicker-header,
+    .z-cse.z-cse-dark table.x-datepicker-inner th,
+    .z-cse.z-cse-dark .x-datepicker-footer,
+    .z-cse.z-cse-dark .x-monthpicker-buttons {
+        background-color: #505050;
+    }
+    .z-cse.z-cse-dark .x-monthpicker-item a.x-monthpicker-selected,
+    .z-cse.z-cse-dark table.x-datepicker-inner .x-datepicker-today,
+    .z-cse.z-cse-dark table.x-datepicker-inner .x-datepicker-selected{
+        background-color: #8cacd4;
+        color: #fff;
+    }
+    .z-cse.z-cse-dark table.x-datepicker-inner td:hover,
+    .z-cse.z-cse-dark .x-monthpicker-item a:hover,
+    .z-cse.z-cse-dark table.x-datepicker-inner .x-datepicker-today:hover,
+    .z-cse.z-cse-dark table.x-datepicker-inner .x-datepicker-selected:hover,
+    .z-cse.z-cse-dark .x-monthpicker-item a.x-monthpicker-selected:hover {
+        background-color: #4b6f9b;
+    }
+
     /* infrastructure | network map */
     .z-cse.z-cse-dark #network_map_form {
         background-color: #777;
@@ -2548,11 +2642,11 @@ BYE BYE BORDERS
 
     /* Drop-down menu styling */
     .z-cse .x-boundlist-item {
-        background-color: #fff;
+        background-color: #f4f4f4;
     }
 
     .z-cse.z-cse-dark .x-boundlist-item {
-        background-color: #2a2a2a;
+        background-color: #505050;
     }
 
     .z-cse .x-boundlist-floating {
