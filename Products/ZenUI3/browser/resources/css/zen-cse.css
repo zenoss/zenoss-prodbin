@@ -2171,6 +2171,19 @@ BYE BYE BORDERS
         padding: 4px;
     }
 
+    /* fix for icons */
+    .z-cse .x-menu-item-checked:before {
+        content: '●';
+        position: absolute;
+        top: 50%;
+        font-size: 18px;
+        transform: translateX(9px) translateY(-57%);
+    }
+    .z-cse .x-menu-item-checked .x-menu-group-icon {
+        display: none;
+        background-image: none;
+    }
+
 
 /*
         =====================================================================================
@@ -2713,15 +2726,4 @@ BYE BYE BORDERS
         background-color: #ccc;
         background-size: 75%;
         background-position: center;
-    }
-    .z-cse.z-cse-dark .x-menu-item-checked:before {
-        content: '●';
-        position: absolute;
-        top: 50%;
-        font-size: 18px;
-        transform: translateX(9px) translateY(-57%);
-    }
-    .z-cse.z-cse-dark .x-menu-item-checked .x-menu-group-icon {
-        display: none;
-        background-image: none;
     }
