@@ -2698,3 +2698,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark label.x-component.x-component-default {
         color: #ccc;
     }
+
+    /* refresh every header */
+    .z-cse.z-cse-dark .refreshevery {
+        background-color: #3c3c3c;
+    }
