@@ -247,10 +247,8 @@ Ext.onReady(function() {
                     cls: 'evdetail_bd',
                     items: [   {
                         xtype:'toolbar',
-                        width: "105%",
                         style: {
-                            position: "relative",
-                            top: -1
+                            marginTop: 5
                         },
                         hidden: !config.showActions,
                         id: 'actiontoolbar',
@@ -351,8 +349,7 @@ Ext.onReady(function() {
                         id: 'evdetail_log',
                         cls: 'log-content',
                         hidden: false,
-                        autoScroll: true,
-                        height: 200
+                        autoScroll: true
                     }
                     ]
                 }

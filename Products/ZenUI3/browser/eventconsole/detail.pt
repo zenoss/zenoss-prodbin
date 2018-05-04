@@ -1,4 +1,4 @@
-<html>
+<html tal:attributes="class here/dmd/ZenUsers/getUserTheme">
     <head>
         <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
@@ -6,6 +6,8 @@
             href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
