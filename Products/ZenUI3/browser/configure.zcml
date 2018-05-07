@@ -195,7 +195,7 @@
     template="templates/collectortemplate.pt"
     name="collectorTemplate"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageControlCenter"
     />
 
 <browser:page
