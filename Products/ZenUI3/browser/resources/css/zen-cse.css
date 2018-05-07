@@ -661,12 +661,6 @@ BYE BYE BORDERS
                 color: #4b4b4c !important;
         }
 
-    /* infrastrucure | devices | < device > | modeler plugins multiselect */
-    .z-cse #device_modeler_plugins table.x-form-fieldcontainer .x-boundlist,
-    .z-cse #modeler_plugins table.x-form-fieldcontainer .x-boundlist {
-        background-color: rgba(255,255,255,0.4);
-    }
-
     .z-cse #zclinkitem {
         float: right;
         margin: 8px 108px 0 0 !important;
@@ -925,6 +919,7 @@ BYE BYE BORDERS
     }
 
     /* drop-down menu */
+    .z-cse .x-boundlist,
     .z-cse .x-boundlist-item {
         background-color: #fff;
     }
@@ -2646,6 +2641,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-boundlist {
         border-color: #4b6f9b;
     }
+    .z-cse.z-cse-dark .x-boundlist,
     .z-cse.z-cse-dark .x-boundlist-item {
         background-color: #505050;
     }
