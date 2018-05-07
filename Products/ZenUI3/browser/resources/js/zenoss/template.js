@@ -527,8 +527,6 @@ footerBar.on('buttonClick', function(actionName, id, values) {
                     function () {
                         tree.store.clearFilter();
                         reloadTree();
-                        // footerBar.buttonDelete.setDisabled(true);
-                        // footerBar.buttonContextMenu.setDisabled(true);
                     });
                 // we should manualy remove record from store to refresh view and get rid of old nodes;
                 // for some reasons after store reload tree nodes are not refreshed;
