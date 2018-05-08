@@ -12,7 +12,8 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 _CSE_CONFIG = {
         'vhost': None,
         'virtualroot': None,
-        'zing-host': None
+        'zing-host': None,
+        'zing-port': None,
     }
 
 def getCSEConf():
@@ -29,10 +30,18 @@ def getCSEConf():
 
 def getZenossURI(request):
     # if we aren't running as a cse, get uri from request
+    zenoss_uri = getZingURI(request)
+    cse_conf = getCSEConf()
+    if cse_conf and all(cse_conf.values()):
+        zenoss_uri += cse_conf.get('virtualroot', '/')
+    return zenoss_uri
+
+def getZingURI(request):
+    # if we aren't running as a cse, get uri from request
     cse_conf = getCSEConf()
     zenoss_uri = "https://"
     if cse_conf and all(cse_conf.values()):
-        zenoss_uri += cse_conf['vhost'] + '.' + cse_conf['zing-host'] + cse_conf.get('virtualroot', '/')
+        zenoss_uri += "{}.{}:{}".format(cse_conf['vhost'], cse_conf['zing-host'], cse_conf['zing-port'])
     else:
         # HTTP_X_FORWARDED_HOST should handle vhost
         zenoss_uri += request.environ.get("HTTP_X_FORWARDED_HOST") or \

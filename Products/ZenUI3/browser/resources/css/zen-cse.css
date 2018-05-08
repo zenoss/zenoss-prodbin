@@ -1491,7 +1491,9 @@ BYE BYE BORDERS
     .z-cse .europagraph path.domain {
         stroke: rgba(0,0,0,0.3);
     }
-    .z-cse .europagraph text {
+    /* ZEN-30017 - do not change text in all svg only in Axis label */
+    .z-cse .europagraph .nv-axislabel {
+    /*.z-cse .europagraph text {*/
         text-transform: uppercase;
     }
 
