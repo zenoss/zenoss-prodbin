@@ -880,6 +880,7 @@ BYE BYE BORDERS
         background-color: #fff !important;
         border: 1px solid #8cacd4;
     }
+
     .z-cse .x-menu-item {
         background-image: none;
     }
@@ -958,6 +959,33 @@ BYE BYE BORDERS
 
     .z-cse #searchbox-container .x-pickerfield-open .x-form-trigger-wrap:after {
         content: none;
+    }
+
+    .z-cse .x-btn.x-btn-menu-active em {
+        position: relative;
+    }
+
+    .z-cse .x-btn.x-btn-menu-active em::after {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        bottom: -2px;
+        left: -2px;
+        content: '';
+        border: 1px solid #8cacd4;
+    }
+
+    .z-cse .x-btn.x-btn-default-toolbar-large.x-btn-menu-active em::after,
+    .z-cse .x-btn.x-btn-default-large.x-btn-menu-active em::after {
+        top: -3px;
+        right: -3px;
+        bottom: -3px;
+        left: -3px;
+    }
+
+    /* jobs drop-down */
+    .z-cse .x-menu .x-container-jobs-grid {
+        border: 1px solid #8cacd4;
     }
 
     /* infrastructure | network map */
@@ -2653,6 +2681,15 @@ BYE BYE BORDERS
 
     .z-cse.z-cse-dark .x-pickerfield-open .x-form-trigger-wrap:after {
         border-color: #4b6f9b;
+    }
+
+    .z-cse.z-cse-dark .x-btn.x-btn-menu-active em::after {
+        border-color: #4b6f9b;
+    }
+
+    /* jobs drop-down */
+    .z-cse.z-cse-dark .x-menu .x-container-jobs-grid {
+        border: 1px solid #4b6f9b;
     }
 
     /* infrastructure | network map */
