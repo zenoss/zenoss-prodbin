@@ -11,4 +11,11 @@
     permission="zope2.Public"
     />
 
+<browser:page
+    name="Auth0Logout"
+    for="*"
+    class="Products.ZenUtils.Auth0.Auth0Logout.Auth0Logout"
+    permission="zope2.Public"
+    />
+
 </configure>
