@@ -880,7 +880,6 @@ BYE BYE BORDERS
         background-color: #fff !important;
         border: 1px solid #8cacd4;
     }
-
     .z-cse .x-menu-item {
         background-image: none;
     }
@@ -902,12 +901,14 @@ BYE BYE BORDERS
         left: 0;
         border: 1px solid #b6cbe4;
     }
+
     /* context menu separator */
     .z-cse .x-menu-icon-separator
     { opacity: 0; }
     .z-cse .x-menu-item-separator {
         border-color: #8cacd4;
     }
+
     /* refresh every header */
     .z-cse .refreshevery {
         background-color: #ccc;
@@ -924,25 +925,20 @@ BYE BYE BORDERS
     .z-cse .x-boundlist-item {
         background-color: #fff;
     }
-
     .z-cse .x-boundlist-floating {
         margin-top: -2px;
         border-top-width: 1px;
     }
-
     .z-cse .x-boundlist {
         border-color: #8cacd4;
     }
-
     .z-cse .x-boundlist-item-over,
     .z-cse .x-boundlist-selected {
         background-color: #d2e0f1;
     }
-
     .z-cse .x-pickerfield-open .x-form-trigger-wrap {
         position: relative;
     }
-
     .z-cse .x-pickerfield-open .x-form-trigger-wrap:after {
         content: '';
         position: absolute;
@@ -952,19 +948,15 @@ BYE BYE BORDERS
         left: 0;
         border: 1px solid #8cacd4;
     }
-
     .z-cse .x-pickerfield-open-above .x-form-trigger-wrap:after {
         top: -1px;
     }
-
     .z-cse #searchbox-container .x-pickerfield-open .x-form-trigger-wrap:after {
         content: none;
     }
-
     .z-cse .x-btn.x-btn-menu-active em {
         position: relative;
     }
-
     .z-cse .x-btn.x-btn-menu-active em::after {
         position: absolute;
         top: -2px;
@@ -974,7 +966,6 @@ BYE BYE BORDERS
         content: '';
         border: 1px solid #8cacd4;
     }
-
     .z-cse .x-btn.x-btn-default-toolbar-large.x-btn-menu-active em::after,
     .z-cse .x-btn.x-btn-default-large.x-btn-menu-active em::after {
         top: -3px;
@@ -2121,6 +2112,7 @@ BYE BYE BORDERS
         background-color: #d2e0f1;
         color: #4b4b4c;
     }
+    
     /* hack for removing white background from the icons */
     .z-cse .x-monthpicker-yearnav-prev,
     .z-cse .x-monthpicker-yearnav-next {
@@ -2649,7 +2641,6 @@ BYE BYE BORDERS
     }
 
     /* context menu */
-
     .z-cse.z-cse-dark .x-menu-body {
         background-color: #505050 !important;
         border-color: #4b6f9b;
@@ -2675,16 +2666,13 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-boundlist-item {
         background-color: #505050;
     }
-
     .z-cse.z-cse-dark .x-boundlist-item-over,
     .z-cse.z-cse-dark .x-boundlist-selected {
         background-color: #4b6f9b;
     }
-
     .z-cse.z-cse-dark .x-pickerfield-open .x-form-trigger-wrap:after {
         border-color: #4b6f9b;
     }
-
     .z-cse.z-cse-dark .x-btn.x-btn-menu-active em::after {
         border-color: #4b6f9b;
     }
