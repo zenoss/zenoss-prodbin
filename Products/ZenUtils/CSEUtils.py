@@ -41,7 +41,8 @@ def getZingURI(request):
     cse_conf = getCSEConf()
     zenoss_uri = "https://"
     if cse_conf and all(cse_conf.values()):
-        zenoss_uri += "{}.{}:{}".format(cse_conf['vhost'], cse_conf['zing-host'], cse_conf['zing-port'])
+        port = "" if cse_conf['zing-port'] == "443" else ":{}".format(cse_conf['zing-port'])
+        zenoss_uri += "{}.{}{}".format(cse_conf['vhost'], cse_conf['zing-host'], port)
     else:
         # HTTP_X_FORWARDED_HOST should handle vhost
         zenoss_uri += request.environ.get("HTTP_X_FORWARDED_HOST") or \
