@@ -56,7 +56,7 @@
             return graphs;
         });
 
-    CURRENT_TIME = "0s-ago",
+    var CURRENT_TIME = "0s-ago",
         DATE_RANGES = [
             ["1h-ago", _t('Last Hour')],
             ["1d-ago", _t('Last 24 Hours')],
@@ -70,7 +70,7 @@
             '7d-ago': 604800000,
             '30d-ago': 2419200000,
             '1y-ago': 31536000000
-        },
+        };
 
         /**
          * An example of using a custom renderer to show stacked graphs

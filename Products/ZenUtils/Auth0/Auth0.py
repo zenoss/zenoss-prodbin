@@ -16,7 +16,7 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
-from Products.ZenUtils.CSEUtils import getZenossURI
+from Products.ZenUtils.CSEUtils import getZenossURI, getZingURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
 
@@ -82,6 +82,7 @@ class Auth0(BasePlugin):
 
     meta_type = 'Auth0 plugin'
     session_key = 'auth0'
+    cookie_key = 'zauth0_key'
     cache = {}
 
     def __init__(self, id, title=None):
@@ -163,21 +164,18 @@ class Auth0(BasePlugin):
     def resetCredentials(self, request, response):
         """resetCredentials satisfies the PluggableAuthService
             ICredentialsResetPlugin interface.
-        The Auth0 session variables are cleared and the user is redirected to
-            the Auth0 logout in order to end their Auth0 SSO session.
+        Redirects to the ZING logout url.  ZING will handle logging out of Auth0
+            by calling the /zport/dmd/Auth0Logout endpoint on each CZ instance.
         NOTE:
         Logging out of the UI calls Products/ZenModel/skins/zenmodel/logoutUser.py
             which calls resetCredentials, this bypasses the PAS logout.
         """
-        if Auth0.session_key in request.SESSION:
-            del request.SESSION[Auth0.session_key]
+        # Clear session variables and redirect to the ZC logout.
+        request.SESSION.clear()
         conf = getAuth0Conf()
         if conf:
-            response.redirect('%sv2/logout?' % conf['tenant'] +
-                              'client_id=%s&' % conf['clientid'] +
-                              'returnTo=%s/zport/dmd' % getZenossURI(request),
-                              lock=True)
             log.info('Redirecting user to Auth0 logout')
+            response.redirect("{}/logout".format(getZingURI(request)))
 
 
     def extractCredentials(self, request):

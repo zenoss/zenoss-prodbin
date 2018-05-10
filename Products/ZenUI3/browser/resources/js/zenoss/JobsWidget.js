@@ -101,9 +101,9 @@ Ext.define("Zenoss.JobsWidget", {
                 style: 'background:transparent;padding:0;border:0',
                 items: [{
                     xtype: 'container',
+                    cls: 'x-container-jobs-grid',
                     width: 425,
                     style: {
-                        border: '1px solid #444',
                         '-webkit-border-radius': 5,
                         '-moz-border-radius': 5,
                         '-ms-border-radius': 5,
