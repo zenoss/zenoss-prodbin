@@ -51,6 +51,11 @@ Ext.define("Zenoss.form.IDField", {
                     success: function (response) {
                         // name is valid if we get responseText="True"
                         me._serverIsValid = (response && response.responseText === "True");
+
+                        if (!me._serverIsValid) {
+                            // maybe we receive server error text
+                            me.validationErrorText = response && response.responseText || me.validationErrorText;
+                        }
                         me.validate();
                     },
                     failure: function (response) {
