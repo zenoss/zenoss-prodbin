@@ -391,10 +391,21 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+
     var dialogId = "serverExceptionDialog", cmp;
     cmp = Ext.getCmp(dialogId);
     if(cmp) {
         cmp.destroy();
+    }
+
+    // If we're in a CSE environment and missing the zauth0_key cookie, we've been
+    // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
+    if (Zenoss.env.CSE_VIRTUAL_ROOT) {
+        if (document.cookie.indexOf('zauth0_key') === -1) {
+            console.log('Auth0 key not found; reloading page');
+            window.location.reload();
+            return;
+        }
     }
 
     Ext.create('Zenoss.dialog.SimpleMessageDialog', {

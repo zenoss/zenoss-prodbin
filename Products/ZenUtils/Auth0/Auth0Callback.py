@@ -79,6 +79,9 @@ class Auth0Callback(BrowserView):
 
         Auth0.storeIdToken(id_token, self.request.SESSION, conf, refresh_token)
 
+        # When authenticated with Auth0, a session cookie is set.
+        self.request.response.setCookie(Auth0.cookie_key, 1, path="/", secure=True, http_only=True)
+
         came_from = json.loads(base64.b64decode(urllib.unquote(state_arg)))['came_from']
         virtual_root = getCSEConf().get('virtualroot', '')
         if virtual_root and \

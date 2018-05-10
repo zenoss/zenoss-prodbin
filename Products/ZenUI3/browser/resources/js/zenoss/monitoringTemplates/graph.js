@@ -640,10 +640,12 @@ Ext.define("Zenoss.templates.GraphGrid", {
             },
             selModel: new Zenoss.SingleRowSelectionModel({
                 listeners: {
-                    select: function() {
+                    selectionchange: function (s, selection) {
+                        // enable/disable buttons when selection changes;
                         if (Zenoss.Security.hasPermission('Manage DMD')){
-                            Ext.getCmp('deleteGraphDefinitionButton').enable();
-                            Ext.getCmp('graphDefinitionMenuButton').enable();
+                            var doDisable = !(selection && selection.length);
+                            Ext.getCmp('deleteGraphDefinitionButton').setDisabled(doDisable);
+                            Ext.getCmp('graphDefinitionMenuButton').setDisabled(doDisable);
                         }
                     }
                 }

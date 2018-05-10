@@ -8,3 +8,4 @@
 ##############################################################################
 from Auth0 import *
 from Auth0Callback import *
+from Auth0Logout import *
