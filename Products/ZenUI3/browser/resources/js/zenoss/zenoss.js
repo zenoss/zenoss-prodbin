@@ -391,6 +391,15 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+    else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
+        Zenoss.flares.Manager.error('Unable to connect to the server. Will retry in a few moments.');
+
+        setTimeout(function () {
+            window.location.reload();
+        }, 30000);
+
+        return;
+    }
 
     var dialogId = "serverExceptionDialog", cmp;
     cmp = Ext.getCmp(dialogId);
