@@ -392,7 +392,7 @@ Ext.Direct.on('exception', function(e) {
         return;
     }
     else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
-        Zenoss.flares.Manager.error('Unable to connect to the server. Will retry in a few moments.');
+        Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
 
         setTimeout(function () {
             window.location.reload();
