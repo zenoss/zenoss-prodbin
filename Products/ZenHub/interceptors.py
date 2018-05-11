@@ -1,3 +1,11 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
 
 import logging
 import cPickle as pickle
@@ -23,73 +31,58 @@ class WorkerInterceptor(pb.Referenceable):
         self._admTimer = Metrology.timer('zenhub.applyDataMap')
         self._eventsSent = Metrology.meter("zenhub.eventsSent")
 
-    def remoteMessageReceived(self, broker, message, args, kw):
-        """Intercept requests and send them down to workers"""
-        self.log.error('remoteMessageReceived(self, broker, message, args, kw):'
-                  ' broker=%s, message=%s, args=%s, kw=%s',
-                  broker, message, args, kw)
+        self.meters = {
+            'sendEvent': self.mark_send_event_timer,
+            'sendEvents': self.mark_send_events_timer,
+            'applyDataMaps': self.mark_apply_datamaps_timer,
+        }
 
-        self._serviceCalls.mark()
-        self.log.error('self.service.__class__=%s', self.service.__class__)
-        svc = str(self.service.__class__).rpartition('.')[0]
-        self.log.error('svc=%s', svc)
-        instance = self.service.instance
-        self.log.error('instance=%s', instance)
-        args = broker.unserialize(args)
-        self.log.error('args=%s', args)
-        kw = broker.unserialize(kw)
-        self.log.error('kw=%s', kw)
-        # hide the types in the args: subverting the jelly protection mechanism
-        # but the types just passed through and the worker may not have loaded
-        # the required service before we try passing types for that service
-        # PB has a 640k limit, not bytes but len of sequences. When args are
-        # pickled the resulting string may be larger than 640k, split into
-        # 100k chunks
-        pickledArgs = pickle.dumps(
-            (args, kw), pickle.HIGHEST_PROTOCOL
+    @defer.inlineCallbacks
+    def remoteMessageRecieved(self, broker, message, args, kw):
+        try:
+            start = time()
+
+            dtw = yield self.zenhub.deferToWorker(
+                self.service_name,
+                self.service.instance,
+                message,
+                self.chunk_args(args, kw)
+            )
+
+            if message in self.meters:
+                self.meters[message](args, start)
+
+            defer.returnValue(
+                broker.serialize(dtw, self.perspective)
+            )
+        except Exception:
+            self.log.exception('Failed to handle remote procedure call')
+
+    @property
+    def service_name(self):
+        return str(self.service.__class__).rpartition('.')[0]
+
+    def chunk_args(self, args, kwargs):
+        pargs = pickle.dumps(
+            (args, kwargs), pickle.HIGHEST_PROTOCOL
         )
-        chunkedArgs = []
-        chunkSize = 102400
-        while pickledArgs:
-            chunk = pickledArgs[:chunkSize]
-            chunkedArgs.append(chunk)
-            pickledArgs = pickledArgs[chunkSize:]
+        chunked_args = []
+        chunk_size = 102400
+        while pargs:
+            chunk = pargs[:chunk_size]
+            chunked_args.append(chunk)
+            pargs = pargs[chunk_size:]
 
-        start = time()
+        return chunked_args
 
-        def recordTime(result):
-            # get in milliseconds
-            duration = int((time() - start) * 1000)
-            self._admTimer.update(duration)
-            return result
+    def mark_send_event_timer(self, events, start):
+        self._eventsSent.mark()
 
-        deferred = self.zenhub.deferToWorker(
-            svc, instance, message, chunkedArgs
-        )
-        if message == 'sendEvents':
-            if args and len(args) == 1:
-                self._eventsSent.mark(len(args[0]))
-        elif message == 'sendEvent':
-            self._eventsSent.mark()
-        elif message == 'applyDataMaps':
-            deferred.addCallback(recordTime)
+    def mark_send_events_timer(self, events, start):
+        self._eventsSent.mark(len(events))
 
-        return broker.serialize(deferred, self.perspective)
-
-    def remoteMessageReceived_monkey_patch(self, broker, message, args, kw):
-        # Short circuit sendEvent() calls
-
-        if message not in ('sendEvents', 'sendEvent'):
-            #return original(self, broker, message, args, kw)
-            return self.remoteMessageReceived(broker, message, args, kw)
-
-        args = broker.unserialize(args)
-        if message == 'sendEvents':
-            self.zem.sendEvents(*args)
-        elif message == 'sendEvent':
-            self.zem.sendEvent(*args)
-
-        return broker.serialize(defer.succeed("Events sent"), self.perspective)
+    def mark_apply_datamaps_timer(self, events, start):
+        self._admTimer.update(int((time() - start) * 1000))
 
     def __getattr__(self, attr):
         """Implement the HubService interface
