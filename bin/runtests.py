@@ -365,7 +365,7 @@ def runUnitTests(packages=None, modules=None, names=None, coverage="", count=0, 
         names = []
     invalid_packages = []
     for pkg in packages:
-        if pkg not in valid_packages:
+        if pkg not in valid_packages or pkg == 'ZenPacks.zenoss.Impact':
             packages.remove(pkg)
             invalid_packages.append(pkg)
     print "="*30
