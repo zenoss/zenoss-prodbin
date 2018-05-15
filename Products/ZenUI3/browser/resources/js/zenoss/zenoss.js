@@ -370,7 +370,16 @@ function setToDefaultCursorStyle() {
         setCursorStyle("default");
     }
 }
-Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
+Ext.Ajax.on('requestcomplete', function () {
+    Ext.namespace('Zenoss.env.DirectException');
+
+    setToDefaultCursorStyle();
+
+    if (Zenoss.env.DirectException.timeout) {
+        Zenoss.env.DirectException.timeout = clearTimeout(Zenoss.env.DirectException.timeout);
+        Zenoss.env.DirectException.errorMessage.hide();
+    }
+});
 Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
 
 
@@ -380,8 +389,9 @@ Ext.EventManager.on(window, 'beforeunload', function() {
     Zenoss.env.unloading=true;
 });
 
-
 Ext.Direct.on('exception', function(e) {
+    Ext.namespace('Zenoss.env.DirectException');
+
     if (Zenoss.env.unloading === true){
         return;
     }
@@ -392,11 +402,13 @@ Ext.Direct.on('exception', function(e) {
         return;
     }
     else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
-        Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
+        if (!Zenoss.env.DirectException.timeout) {
+            Zenoss.env.DirectException.errorMessage = Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
 
-        setTimeout(function () {
-            window.location.reload();
-        }, 30000);
+            Zenoss.env.DirectException.timeout = setTimeout(function () {
+                window.location.reload();
+            }, 30000);
+        }
 
         return;
     }
