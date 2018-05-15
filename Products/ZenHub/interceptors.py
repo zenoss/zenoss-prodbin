@@ -42,18 +42,24 @@ class WorkerInterceptor(pb.Referenceable):
         try:
             start = time()
 
-            dtw = yield self.zenhub.deferToWorker(
-                self.service_name,
-                self.service.instance,
-                message,
-                self.chunk_args(args, kw)
-            )
+            if message in ('sendEvent', 'sendEvents'):
+                xargs = broker.unserialize(args)
+                method = getattr(self.zenhub.zem, message, None)
+                state = yield method(xargs)
+
+            else:
+                state = yield self.zenhub.deferToWorker(
+                    self.service_name,
+                    self.service.instance,
+                    message,
+                    self.chunk_args(args, kw)
+                )
 
             if message in self.meters:
                 self.meters[message](args, start)
 
             defer.returnValue(
-                broker.serialize(dtw, self.perspective)
+                broker.serialize(state, self.perspective)
             )
         except Exception:
             self.log.exception('Failed to handle remote procedure call')

@@ -44,20 +44,14 @@ class WorkerInterceptorTest(TestCase):
         )
         self.service.__str__.return_value = 'service.__str__'
         self.zenhub = Mock(name='zenhub instance')
+        self.zenhub.deferToWorker.return_value = 'deferred'
         self.wi = WorkerInterceptor(zenhub=self.zenhub, service=self.service)
+        self.broker = Mock(name='pb.Broker', spec=pb.Broker)
 
     def test_remoteMessageRecieved(self):
-        service = MagicMock(name='service')
-        service.__class__ = 'Products.ZenHub.services.EventService.EventService'
-        service.__str__.return_value = 'attribute: service.__str__'
-        zenhub = Mock(name='zen_hub')
-        zenhub.deferToWorker.return_value = 'deferred'
-        wi = WorkerInterceptor(zenhub=zenhub, service=service)
-        broker = Mock(name='pb.Broker', spec=pb.Broker)
-
-        out = wi.remoteMessageRecieved(
-            broker=broker,  # twisted.spread.pb.Broke
-            message='sendEvents',
+        state = self.wi.remoteMessageRecieved(
+            broker=self.broker,  # twisted.spread.pb.Broke
+            message='applyDataMaps',
             args=self.cap_args,
             kw=self.cap_kw,
         )
@@ -65,20 +59,48 @@ class WorkerInterceptorTest(TestCase):
         # the event has been sent the ZenHub Workers
         svc_name = self.wi.service_name
         chunked_args = self.wi.chunk_args(self.cap_args, self.cap_kw)
-        zenhub.deferToWorker.assert_called_with(
+        self.zenhub.deferToWorker.assert_called_with(
             svc_name,
-            service.instance,
-            'sendEvents',
+            self.service.instance,
+            'applyDataMaps',
             chunked_args
         )
         # remoteMessageRecieved returns a Deferred
-        self.assertIsInstance(out, defer.Deferred)
-        # the result of out is pb.Broker.serialize()
-        self.assertEqual(out.result, broker.serialize.return_value)
+        self.assertIsInstance(state, defer.Deferred)
+        # the result of state is pb.Broker.serialize()
+        self.assertEqual(state.result, self.broker.serialize.return_value)
         # pb.Broker.serialize was called with expected args
-        broker.serialize.assert_called_with(
-            zenhub.deferToWorker.return_value,
-            wi.perspective
+        self.broker.serialize.assert_called_with(
+            self.zenhub.deferToWorker.return_value,
+            self.wi.perspective
+        )
+
+    def test_remoteMessageRecieved_sendEvent(self):
+        state = self.wi.remoteMessageRecieved(
+            broker=self.broker,  # twisted.spread.pb.Broke
+            message='sendEvent',
+            args=self.cap_args,
+            kw=self.cap_kw,
+        )
+
+        self.assertIsInstance(state, defer.Deferred)
+        self.broker.unserialize.assert_called_with(self.cap_args)
+        self.zenhub.zem.sendEvent.assert_called_with(
+            self.broker.unserialize.return_value
+        )
+
+    def test_remoteMessageRecieved_sendEvents(self):
+        state = self.wi.remoteMessageRecieved(
+            broker=self.broker,  # twisted.spread.pb.Broke
+            message='sendEvents',
+            args=self.cap_args,
+            kw=self.cap_kw,
+        )
+
+        self.assertIsInstance(state, defer.Deferred)
+        self.broker.unserialize.assert_called_with(self.cap_args)
+        self.zenhub.zem.sendEvents.assert_called_with(
+            self.broker.unserialize.return_value
         )
 
     def test_service_name(self):
