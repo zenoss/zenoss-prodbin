@@ -460,7 +460,11 @@
                                 var centerPanel = Ext.getCmp('center_panel').getEl().getWidth() - 277;
                                 // on resize, query panel directly -- sidebar may not be 277px
                                 var extra_column_threshold = 1000;
-                                var componentGraphsPnl = Ext.getCmp('device_component_graphs').getEl().getWidth();
+                                if (!Ext.getCmp('device_component_graphs')) {
+                                    var componentGraphsPnl = Ext.getCmp('component_graphs').getEl().getWidth();
+                                } else {
+                                    var componentGraphsPnl = Ext.getCmp('device_component_graphs').getEl().getWidth();
+                                }
                                 var panelWidth = componentGraphsPnl ? componentGraphsPnl : centerPanel;
                                 colCount = panelWidth > extra_column_threshold ? 2 : 1;
                             }
