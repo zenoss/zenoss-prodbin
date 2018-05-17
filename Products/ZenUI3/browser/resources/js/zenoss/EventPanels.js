@@ -1730,7 +1730,7 @@
         }
     });
 
-    Ext.define("Zenoss.EventRainbow", {
+    Ext.define("Zenoss.iEventRainbow", {
         extend:"Ext.toolbar.TextItem",
         alias: ['widget.eventrainbow'],
         constructor: function(config) {
@@ -1756,12 +1756,15 @@
             }
         },
         refresh: function(){
-            this.directFn({uid:this.uid, keys:['events']}, function(result){
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
-                    return;
-                }
-                this.updateRainbow(result.data.events);
-            }, this);
+            // we always need uid - so no uid no refresh;
+            if (this.uid) {
+                this.directFn({uid: this.uid, keys: ['events']}, function (result) {
+                    if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
+                        return;
+                    }
+                    this.updateRainbow(result.data.events);
+                }, this);
+            }
         },
         updateRainbow: function(severityCounts) {
             this.setText(Zenoss.render.events(severityCounts, this.count));

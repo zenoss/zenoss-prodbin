@@ -117,20 +117,17 @@ Ext.onReady(function () {
                 component.store.load({
                     scope: this,
                     callback: function (records, operation, success) {
-                        var selnode = getSelectionModel().getSelectedNode();
-                        var isclass = selnode.data.uid.startswith('/zport/dmd/Devices');
+                        // no needs to take care of "CSE_VIRTUAL_ROOT" in devices uid's
+                        // simply use device path and strip everithing with "Devices" from it;
+                        var selnode = getSelectionModel().getSelectedNode(),
+                            path = selnode && selnode.data.path,
+                            deviceToSelect = this.store.first();
 
-                        if (selnode.data.uid === "/zport/dmd/Devices" || !isclass) {
-                            //root node doesn't have a path attr
-                            this.setValue(this.store.first());
+                        path = path && path.replace(/^Devices/, '');
+                        if (path) {
+                            deviceToSelect = this.findRecordByValue(path);
                         }
-                        else if (isclass) {
-                            var path = selnode.data.path;
-                            path = path.replace(/^Devices/, '');
-                            if (this.findRecordByValue(path)) {
-                                this.setValue(path);
-                            }
-                        }
+                        this.setValue(deviceToSelect);
                     }
                 });
             },
