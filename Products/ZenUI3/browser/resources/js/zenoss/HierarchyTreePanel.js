@@ -604,7 +604,8 @@
          * Override this method if your tree implements a custom path setup
          **/
         getNodePathById: function (nodeId) {
-            var depth = this.root.uid.split('/').length - this.rootDepth,
+            var rootUid = Zenoss.env.CSE_VIRTUAL_ROOT ? this.root.uid.replace(Zenoss.env.CSE_VIRTUAL_ROOT, '') : this.root.uid,
+                depth = rootUid.split('/').length - this.rootDepth,
                 parts = nodeId.split(this.nodeIdSeparator),
                 path = [],
                 segment = Ext.Array.splice(parts, 0, depth + 1).join(this.nodeIdSeparator);
