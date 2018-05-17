@@ -1730,7 +1730,7 @@
         }
     });
 
-    Ext.define("Zenoss.iEventRainbow", {
+    Ext.define("Zenoss.EventRainbow", {
         extend:"Ext.toolbar.TextItem",
         alias: ['widget.eventrainbow'],
         constructor: function(config) {
