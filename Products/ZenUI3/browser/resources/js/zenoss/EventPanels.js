@@ -1756,12 +1756,17 @@
             }
         },
         refresh: function(){
-            this.directFn({uid:this.uid, keys:['events']}, function(result){
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
-                    return;
-                }
-                this.updateRainbow(result.data.events);
-            }, this);
+            // check if uid has virtual root variable at start;
+            var uid = Zenoss.env.maybeAddVirtualRoot(this.uid);
+            // we always need uid - so no uid no refresh;
+            if (uid) {
+                this.directFn({uid: uid, keys: ['events']}, function (result) {
+                    if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
+                        return;
+                    }
+                    this.updateRainbow(result.data.events);
+                }, this);
+            }
         },
         updateRainbow: function(severityCounts) {
             this.setText(Zenoss.render.events(severityCounts, this.count));
