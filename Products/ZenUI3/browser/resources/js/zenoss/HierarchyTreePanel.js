@@ -335,16 +335,8 @@
                      * Used by the tree store to determine what
                      * to send to the server
                      **/
-                    getId: function () {
-                        var uid = this.get('uid');
-                        var CSEVirtualRoot = Zenoss.env.CSE_VIRTUAL_ROOT;
-
-                        // Add /cseN/ if it is absent to prevent conflicts
-                        if (CSEVirtualRoot && uid && uid.indexOf(CSEVirtualRoot) === -1) {
-                            uid = (CSEVirtualRoot + uid).replace('//', '/');
-                        }
-
-                        return uid;
+                    getId: function() {
+                        return Zenoss.env.maybeAddVirtualRoot(this.get('uid'));
                     },
                     proxy: {
                         simpleSortMode: true,
