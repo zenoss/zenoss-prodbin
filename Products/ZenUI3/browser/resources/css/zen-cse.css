@@ -728,21 +728,6 @@ BYE BYE BORDERS
         font-size: 12px;
         text-transform: uppercase;
     }
-    .z-cse div[id|=bindtemplatesdialog] .x-boundlist-list-ct,
-    .z-cse #bindTemplatesDialog-body .x-boundlist-list-ct {
-        background-color: rgba(255,255,255,0.05) !important;
-    }
-    .z-cse div[id|=bindtemplatesdialog] .x-boundlist-item,
-    .z-cse #bindTemplatesDialog-body .x-boundlist-item {
-        color: #eee !important;
-        padding: 4px 8px;
-    }
-        .z-cse div[id|=bindtemplatesdialog] .x-boundlist-item-over,
-        .z-cse div[id|=bindtemplatesdialog] .x-boundlist-selected,
-        .z-cse #bindTemplatesDialog-body .x-boundlist-item-over,
-        .z-cse #bindTemplatesDialog-body .x-boundlist-selected {
-                color: #4b4b4c !important;
-        }
 
     /* infrastructure | < device > | Monitoring Templates | Edit Threshold */
     .z-cse #thresholdItemSelector .x-form-fieldcontainer {
@@ -926,6 +911,9 @@ BYE BYE BORDERS
     .z-cse .x-boundlist-item {
         background-color: #fff;
     }
+    .z-cse .x-boundlist-item {
+        color: #4b4b4c;
+    }
     .z-cse .x-boundlist-floating {
         margin-top: -2px;
         border-top-width: 1px;
@@ -933,9 +921,13 @@ BYE BYE BORDERS
     .z-cse .x-boundlist {
         border-color: #8cacd4;
     }
-    .z-cse .x-boundlist-item-over,
     .z-cse .x-boundlist-selected {
+        background-color: #8cacd4;
+        color: #fafafa;
+    }
+    .z-cse .x-boundlist-item-over {
         background-color: #d2e0f1;
+        color: #4b4b4c;
     }
     .z-cse .x-pickerfield-open .x-form-trigger-wrap {
         position: relative;
@@ -2679,12 +2671,18 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-boundlist {
         border-color: #4b6f9b;
     }
+    .z-cse.z-cse-dark .x-boundlist-item {
+        color: #ccc;
+    }
     .z-cse.z-cse-dark .x-boundlist,
     .z-cse.z-cse-dark .x-boundlist-item {
         background-color: #505050;
     }
-    .z-cse.z-cse-dark .x-boundlist-item-over,
     .z-cse.z-cse-dark .x-boundlist-selected {
+        background-color: #8cacd4;
+        color: #fff;
+    }
+    .z-cse.z-cse-dark .x-boundlist-item-over {
         background-color: #4b6f9b;
     }
     .z-cse.z-cse-dark .x-pickerfield-open .x-form-trigger-wrap:after {
