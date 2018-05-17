@@ -2299,6 +2299,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable .x-resizable-pinned {
         background-color: #333 !important;
     }
+    .z-cse.z-cse-dark .x-window-body-closable label.x-form-item-label,
+    .z-cse.z-cse-dark .x-window-body-closable label {
+        color: #ccc;
+    }
 
     /* <ZEN-29844> tab panel tabs dark styles*/
     .z-cse.z-cse-dark .white-background-panel .x-tab {
