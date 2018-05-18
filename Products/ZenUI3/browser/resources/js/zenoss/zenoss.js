@@ -196,9 +196,11 @@ Zenoss.env.initPriorities = function(){
 
 // helper fn ot add CSE_VIRTUAL_ROOT variable to string;
 Zenoss.env.maybeAddVirtualRoot = function(str) {
-    var CSEVirtualRoot = Zenoss.env.CSE_VIRTUAL_ROOT || '';
+    var CSEVirtualRoot = Zenoss.env.CSE_VIRTUAL_ROOT || '',
+        // replace/add virtual roo propert always at start of string;
+        regex = new RegExp('^'+CSEVirtualRoot);
     // Add /virtualRoot/ if it is absent to prevent conflicts;
-    return str ? (CSEVirtualRoot + str.replace(CSEVirtualRoot, '')) : str;
+    return str ? (CSEVirtualRoot + str.replace(regex, '')) : str;
 };
 
 Zenoss.env.textMasks = {
