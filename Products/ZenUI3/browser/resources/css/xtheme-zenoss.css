@@ -7344,8 +7344,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   border-color: green; }
 
 .x-grid-tree-loading span {
-  font-style: italic;
-  color: #444444; }
+  font-style: italic; }
 
 .x-tree-animator-wrap {
   overflow: hidden; }
