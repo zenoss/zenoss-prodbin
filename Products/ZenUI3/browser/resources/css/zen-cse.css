@@ -1868,13 +1868,6 @@ BYE BYE BORDERS
         .z-cse #NetworkDetailCardPanel .x-form-arrow-trigger {
             height: 23px;
         }
-        .z-cse #config_property_panel .x-toolbar-docked-top {
-            height: 34px;
-            padding-left: 6px;
-        }
-            .z-cse #config_property_panel .x-grid-header-ct {
-                top: 34px !important;
-            }
 
     /* infrastructure | processes */
     .z-cse #processForm fieldset,
