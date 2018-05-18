@@ -782,7 +782,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "https://help.zenoss.com/display/CSE3/Zenoss+Cloud+Collection+Zone"
+        return "https://help.zenoss.com/display/cloud/Collection+Zone"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
