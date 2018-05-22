@@ -66,12 +66,6 @@ function deleteNode(e) {
     report_tree.deleteSelectedNode();
 };
 
-function maybeAddVirtualRoot(str) {
-    var CSEVirtualRoot = Zenoss.env.CSE_VIRTUAL_ROOT || '';
-    // Add /VirtualRoot/ if it is absent to prevent conflicts
-    return str ? (CSEVirtualRoot + str.replace(CSEVirtualRoot, '')) : str;
-};
-
 /*
  * add report class to zenpack
  */
@@ -205,7 +199,7 @@ Ext.define('Zenoss.ReportTreePanel', {
     editReport: function (node) {
         var selNode = node || this.getSelectionModel().getSelectedNode(),
             // Add /VirtualRoot/ if it is absent to prevent conflicts
-            editUrl = maybeAddVirtualRoot(selNode && selNode.get('edit_url'));
+            editUrl = Zenoss.render.link(false, selNode && selNode.get('edit_url'));
 
         // we should also check if something is selected;
         if(selNode && editUrl) {
@@ -251,7 +245,7 @@ report_tree = new Zenoss.ReportTreePanel({
                 } else {
                     report_panel.backcompat.processed = false;
                     // Add /VirtualRoot/ if it is absent to prevent conflicts
-                    var uid = maybeAddVirtualRoot(attrs.uid);
+                    var uid = Zenoss.render.link(false, attrs.uid);
                     report_panel.setContext(attrs.leaf ? Ext.urlAppend(uid, 'adapt=false') : '');
                 }
 
