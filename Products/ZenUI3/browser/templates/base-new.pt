@@ -74,10 +74,9 @@
             <div class="bg">
                 <div class="bg-leftcap">
                     <div class="bg-tile">
-                        <div class="bg-logo"></div>
+                        <a class="external-link bg-logo" href="/" rel="nofollow"></a>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
-                            <div id="nav-zc"><a href="/">Zenoss Cloud</a></div>
                             <div id="header-extra">
                                 <div id="searchbox-container"></div>
                                 <div id="saved-search-container"></div>
