@@ -1275,6 +1275,8 @@ Ext.onReady(function () {
             {
                 id: 'device_grid',
                 text: 'Devices',
+                // do not show on component groups
+                contextRegex: '^(?!/zport/dmd/ComponentGroup)',
                 listeners: {
                     render: updateNavTextWithCount
                 }
