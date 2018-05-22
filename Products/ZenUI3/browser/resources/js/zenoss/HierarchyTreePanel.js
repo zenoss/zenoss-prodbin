@@ -336,7 +336,7 @@
                      * to send to the server
                      **/
                     getId: function() {
-                        return Zenoss.env.maybeAddVirtualRoot(this.get('uid'));
+                        return Zenoss.render.link(false, this.get('uid'));
                     },
                     proxy: {
                         simpleSortMode: true,
