@@ -194,7 +194,6 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
-
 Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,

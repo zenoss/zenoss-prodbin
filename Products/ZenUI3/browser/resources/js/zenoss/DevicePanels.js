@@ -184,7 +184,7 @@ var deviceColumns = [
         header: _t('Events'),
         renderer: function(ev, ignored, record) {
             var table = Zenoss.render.worstevents(ev),
-            url = record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events';
+                url = Zenoss.render.link(false, record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events');
             if (table){
                 table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
             }
