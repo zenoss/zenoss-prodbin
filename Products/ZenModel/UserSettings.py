@@ -253,13 +253,6 @@ class UserSettingsManager(ZenModelRM):
         if uf: return uf.getPrimaryUrlPath()
         return ""
 
-    def getUserTheme(self):
-        ut = self.getUserSettings().userTheme
-        return ut if ut else "z-cse z-cse-dark"
-
-    def getAllThemes(self):
-        return [{'name':'Light', 'class':'z-cse'},{'name':'Dark', 'class':'z-cse z-cse-dark'}]
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     @validate_csrf_token
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
