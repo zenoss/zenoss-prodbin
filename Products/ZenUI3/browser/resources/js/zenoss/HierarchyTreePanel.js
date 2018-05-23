@@ -444,7 +444,7 @@
         update: function (data) {
             function doUpdate(root, data) {
                 Ext.each(data, function (datum) {
-                    var node = root.findChild('id', datum.id);
+                    var node = root.findChild('id', datum.id, true);
                     if (node) {
                         node.data = datum;
                         node.setText(node.data.text);
@@ -518,7 +518,7 @@
                 if (keys[index] === undefined) {
                     return;
                 }
-                var node = current.findChild(field, keys[index]);
+                var node = current.findChild(field, keys[index], true);
                 if (node) {
                     current = node;
                 }
@@ -556,10 +556,10 @@
                     function (success, node) {
                         var lastNode = node;
                         if (success && node) {
-                            node = node.findChild(field, last);
-                            if (node) {
-                                me.getSelectionModel().select(node);
-                                Ext.callback(callback, scope || me, [true, node]);
+                            child = node.findChild(field, last, true);
+                            if (child) {
+                                me.getSelectionModel().select(child);
+                                Ext.callback(callback, scope || me, [true, child]);
                                 return;
                             }
                         }
