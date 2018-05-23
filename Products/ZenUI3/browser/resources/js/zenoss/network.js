@@ -393,6 +393,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
     toolbar.add( {
             xtype: 'button',
             iconCls: 'delete',
+            tooltip: 'Delete IP Addresses',
             handler: deleteIpAddresses
         },{
             xtype: 'tbspacer',
