@@ -298,41 +298,43 @@
             Ext.applyIf(config, {
                 stateId: config.id || 'config_property_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
-                tbar:[
-
-                    {
-                    xtype: 'button',
-                    iconCls: 'customize',
-                    tooltip: _t('Customize'),
-                    disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
-                    ref: 'customizeButton',
-                    handler: function(button) {
-                        var grid = button.up("configpropertygrid"),
-                            data,
-                            selected = grid.getSelectionModel().getSelection();
-                        if (Ext.isEmpty(selected)) {
-                            return;
+                tbar: {
+                    // height: 34,
+                    padding: '0 0 0 10',
+                    margin: '0 0 7 0',
+                    items: [{
+                        xtype: 'button',
+                        iconCls: 'customize',
+                        tooltip: _t('Customize'),
+                        disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
+                        ref: 'customizeButton',
+                        handler: function (button) {
+                            var grid = button.up("configpropertygrid"),
+                                data,
+                                selected = grid.getSelectionModel().getSelection();
+                            if (Ext.isEmpty(selected)) {
+                                return;
+                            }
+                            // single selection
+                            data = selected[0].data;
+                            showEditConfigPropertyDialog(data, grid);
                         }
-                        // single selection
-                        data = selected[0].data;
-                        showEditConfigPropertyDialog(data, grid);
-                    }
                     }, {
-                    xtype: 'button',
-                    iconCls: 'refresh',
-                    tooltip: _t('Refresh'),
-                    ref: '../refreshButton',
-                    disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
-                    handler: function(button) {
-                        var grid = button.up("configpropertygrid");
-                        grid.refresh();
-                    }
-                    },{
+                        xtype: 'button',
+                        iconCls: 'refresh',
+                        tooltip: _t('Refresh'),
+                        ref: '../refreshButton',
+                        disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
+                        handler: function (button) {
+                            var grid = button.up("configpropertygrid");
+                            grid.refresh();
+                        }
+                    }, {
                         xtype: 'button',
                         ref: '../deleteButton',
                         tooltip: _t('Delete'),
                         text: _t('Delete Local Copy'),
-                        handler: function(button) {
+                        handler: function (button) {
                             var grid = button.up("configpropertygrid"),
                                 data,
                                 selected = grid.getSelectionModel().getSelection();
@@ -345,7 +347,7 @@
                                 Zenoss.message.info(_t('{0} can not be deleted from the root definition.'), data.id);
                                 return;
                             }
-                            if (!data.islocal){
+                            if (!data.islocal) {
                                 Zenoss.message.info(_t('{0} is not defined locally'), data.id);
                                 return;
                             }
@@ -355,12 +357,12 @@
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
-                                    handler: function() {
+                                    handler: function () {
                                         if (grid.uid) {
                                             router.deleteZenProperty({
                                                 uid: grid.uid,
                                                 zProperty: data.id
-                                            }, function(response){
+                                            }, function (response) {
                                                 grid.refresh();
                                             });
                                         }
@@ -371,8 +373,8 @@
                                 }]
                             }).show();
                         }
-                    }
-                ],
+                    }]
+                },
                 store: Ext.create('Zenoss.ConfigProperty.Store', {
                 }),
                 columns: [{
