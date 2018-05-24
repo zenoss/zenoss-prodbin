@@ -11,9 +11,6 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 import Migrate
-from Products.ZenModel.ZMigrateVersion import (
-    SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-)
 import servicemigration as sm
 sm.require("1.1.11")
 
@@ -22,7 +19,7 @@ class FixRabbitmqHealthCheck(Migrate.Step):
     """fix broken rabbitmq endpoints
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 2, 0)
 
     def cutover(self, dmd):
         try:
