@@ -9,13 +9,14 @@
 
 
 from zope.interface import implements
-from zope.component import adapts
+from zope.component import adapts, getUtility
 
 from Products.Zuul.interfaces import IComponentInfo, IComponent
 from Products.Zuul.infos import InfoBase, ProxyProperty, HasEventsInfoMixin, LockableMixin, BulkMetricLoadMixin
 from Products.Zuul.form.builder import FormBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import safe_hasattr as hasattr
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 
 class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadMixin):
@@ -63,7 +64,7 @@ class ComponentInfo(InfoBase, HasEventsInfoMixin, LockableMixin, BulkMetricLoadM
 
     @property
     def icon(self):
-        return self._object.getIconPath()
+        return getUtility(IVirtualRoot).ensure_virtual_root(self._object.getIconPath())
 
 
 class ComponentFormBuilder(FormBuilder):
