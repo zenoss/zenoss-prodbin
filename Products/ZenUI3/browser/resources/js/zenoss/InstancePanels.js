@@ -136,7 +136,8 @@ Ext.define("Zenoss.SimpleCardPanel", {
                 title: _t('Display: '),
                 parentPanel: this,
                 leftItems: [{
-                    xtype: 'select',
+                    xtype: 'combobox',
+                    width: 150,
                     ref: '../displaySelect',
                     queryMode: 'local',
                     value: config.instancesTitle,

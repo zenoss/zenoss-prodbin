@@ -383,4 +383,15 @@
         }
     });
 
+    /*
+    * ZEN-30134
+    * Override default cursor style for columns resizing in grid
+    * Do that because default cursor is "col-resize" and it's almost invisible on dark theme;
+    * http://docs.sencha.com/extjs/4.1.3/source/HeaderResizer.html#Ext-grid-plugin-HeaderResizer
+    */
+    Ext.grid.plugin.HeaderResizer.override({
+        wResizeCursor: 'ew-resize',
+        eResizeCursor: 'ew-resize'
+    });
+
 })();
