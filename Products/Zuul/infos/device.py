@@ -8,10 +8,11 @@
 ##############################################################################
 
 
-from zope.component import adapts
+from zope.component import adapts, getUtility
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils import IpUtil
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceOrganizerInfo
@@ -535,7 +536,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
 
     @property
     def icon(self):
-        return self._object.getIconPath()
+        return getUtility(IVirtualRoot).ensure_virtual_root(self._object.getIconPath())
 
     @property
     def pythonClass(self):
