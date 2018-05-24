@@ -11,9 +11,6 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 import Migrate
-from Products.ZenModel.ZMigrateVersion import (
-    SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-)
 import servicemigration as sm
 from servicemigration import HealthCheck
 sm.require("1.1.11")
@@ -23,7 +20,7 @@ class AddOpentsdbHbaseConnectionHealthCheck (Migrate.Step):
     """add new healthchecks to Opentsdb reader and writer for hbase connectivity
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 2, 0)
 
     def cutover(self, dmd):
         try:
