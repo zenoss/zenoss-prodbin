@@ -631,7 +631,8 @@ class DeviceFacade(TreeFacade):
 
         # find a device with the same ip on the same collector
         cat = IModelCatalogTool(self.context.Devices)
-        query = Eq('text_ipAddress', ipAddress)
+        query = And(Eq('text_ipAddress', ipAddress),
+                    Eq('objectImplements', 'Products.ZenModel.Device.Device'))
         search_results = cat.search(query=query)
 
         for brain in search_results.results:
@@ -741,7 +742,13 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        rrdTemplates = object.getRRDTemplates()
+        
+        if isinstance(object, Device):
+            devClassTemplates = set(object.deviceClass().getRRDTemplates())
+            devTemplates = set(object.getRRDTemplates())
+            rrdTemplates = list(devClassTemplates.union(devTemplates))
+        else:
+            rrdTemplates = object.getRRDTemplates()        
 
         # used to sort the templates
         def byTitleOrId(left, right):

@@ -371,15 +371,14 @@ class ZepFacade(ZuulFacade):
             userSettings = self._dmd.ZenUsers._getOb(user.getId())
             hasGlobalRoles = not userSettings.hasNoGlobalRoles()
             if not hasGlobalRoles:
-                adminRoles = userSettings.getAllAdminRoles()
-                if adminRoles:
-                    # get ids for the objects they have permission to access
-                    # and add to filter
-                    ids = [IGlobalIdentifier(x.managedObject()).getGUID() for x in adminRoles]
+                # get guids for the objects user has permission to access
+                # and add to filter
+                guids = userSettings.getAllAdminGuids(returnChildrenForRootObj=True)
+                if guids:
                     if filter is None:
                         filter = EventFilter()
                     tf = filter.tag_filter.add()
-                    tf.tag_uuids.extend(ids)
+                    tf.tag_uuids.extend(guids)
                 else:
                     # no permission to see events, return 0
                     result =  {

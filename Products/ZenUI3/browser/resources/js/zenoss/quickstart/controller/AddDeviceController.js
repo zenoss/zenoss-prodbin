@@ -234,7 +234,7 @@
 
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass).get('shortdescription');
+            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass, 0, false, true, true).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
                 if (Ext.isEmpty(host)) {

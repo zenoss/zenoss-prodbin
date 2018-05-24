@@ -18,7 +18,7 @@ if [[ -z "$EGG" ]]; then
 else
   CURRENT_VERSION=$(echo $EGG| cut -d'-' -f 2)
   if version_gt $FIXED_VERSION $CURRENT_VERSION; then
-    echo "ZenPacks.zenoss.${ZP_NAME}-${CURRENT_VERSION}-py2.7.egg needs patching. Issue ZEN-29562"
+    echo "ZenPacks.zenoss.${ZP_NAME}-${CURRENT_VERSION}-py2.7.egg needs patching. Issue ZEN-29563"
     FILE_TO_PATCH=$EGG/ZenPacks/zenoss/${ZP_NAME}/__init__.py
     patch -N $FILE_TO_PATCH <<__EOF__
 --- __init__.py

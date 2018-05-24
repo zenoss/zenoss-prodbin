@@ -829,7 +829,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                     uid:                    grid.uid,
                                     id:                     data.name,
                                     name:                   data.name,
-                                    startTime:              data.startdatetime,
+                                    startDateTime:          data.start,
                                     durationDays:           duration.days,
                                     durationHours:          duration.hrs,
                                     durationMinutes:        duration.mins,

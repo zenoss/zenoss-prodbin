@@ -125,7 +125,6 @@ class MaintenanceWindow(ZenModelRM):
 
     security = ClassSecurityInfo()
 
-
     REPEAT = "Never/Daily/Every Weekday/Weekly/Monthly: day of month/Monthly: day of week".split('/')
     NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, NTHWDAY = REPEAT
     DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -240,6 +239,7 @@ class MaintenanceWindow(ZenModelRM):
             return v
 
         oldAuditData = self.getAuditData()
+        prodStates = dict((key, value) for (key,value) in self.dmd.getProdStateConversions())
         msgs = []
         self.enabled = bool(enabled)
         if startDateTime:
@@ -260,6 +260,13 @@ class MaintenanceWindow(ZenModelRM):
                              0, 0, 0, -1))
         if repeat not in self.REPEAT:
             msgs.append('\'repeat\' has wrong value.')
+        if not isinstance(enabled, bool):
+            msgs.append('\'enabled\' has wrong value, use true or false.')
+        if not (startProductionState in prodStates.values() or
+            prodStates.get(startProductionState, None)):
+            msgs.append('\'startProductionState\' has wrong value.')
+        elif isinstance(startProductionState, str):
+            startProductionState = prodStates[startProductionState]
         if not msgs:
             durationDays = makeInt(durationDays, 'Duration days',
                                         minv=0)

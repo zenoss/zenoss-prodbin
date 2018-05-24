@@ -7,36 +7,36 @@
  *
  ****************************************************************************/
 
-Ext.onReady(function(){
+Ext.onReady(function () {
     Ext.ns('Zenoss.manufacturers');
 
 // ----------------------------------------------------------------- DIALOGS
 
-    Zenoss.manufacturers.productsDialog = function(grid, data) {
+    Zenoss.manufacturers.productsDialog = function (grid, data) {
         var baseid = "";
         var originalManufacturer = "";
-        if(typeof(data) === "undefined"){
+        if (typeof(data) === "undefined") {
             data = "";
             baseid = grid.uid ? grid.uid : "";
-        }else{
+        } else {
             baseid = data.uid.split("/products/")[0];
         }
         var addhandler, config, dialog, newEntry;
         newEntry = (data === "");
         var xtraData = {};
-        addhandler = function() {
+        addhandler = function () {
             var c = dialog.getForm().getForm().getValues();
             var params = {
-                uid:                    baseid,
-                prodname:               c.name,
-                oldname:                c.productname, // if they change the name of this product
-                partno:                 c.partNo,
-                type:                   c.prodtype,
-                prodkeys:               c.keys_panel,
-                description:            Ext.getCmp('desc_panel').getValue()
+                uid: baseid,
+                prodname: c.name,
+                oldname: c.productname, // if they change the name of this product
+                partno: c.partNo,
+                type: c.prodtype,
+                prodkeys: c.keys_panel,
+                description: Ext.getCmp('desc_panel').getValue()
             };
             if (newEntry) {
-                Zenoss.remote.ManufacturersRouter.addNewProduct({'params':params}, function(response){
+                Zenoss.remote.ManufacturersRouter.addNewProduct({'params': params}, function (response) {
                     if (response.success) {
                         if (grid) {
                             grid.refresh();
@@ -45,31 +45,34 @@ Ext.onReady(function(){
                 });
             } else {
                 var mancombo = Ext.getCmp('mansetting');
-                Zenoss.remote.ManufacturersRouter.editProduct({'params':params}, function(response){
+                Zenoss.remote.ManufacturersRouter.editProduct({'params': params}, function (response) {
                     if (response.success) {
                         if (grid) {
-                            if(originalManufacturer === mancombo.getValue()){
+                            if (originalManufacturer === mancombo.getValue()) {
                                 grid.refresh();
                             }
                         }
                     }
                 });
-                var moveTarget = "/zport/dmd/Manufacturers/"+mancombo.getValue();
-                if(originalManufacturer !== mancombo.getValue()){
+                var moveTarget = "/zport/dmd/Manufacturers/" + mancombo.getValue();
+                if (originalManufacturer !== mancombo.getValue()) {
                     params = {
-                        'moveFrom': "/zport/dmd/Manufacturers/"+originalManufacturer,
+                        'moveFrom': "/zport/dmd/Manufacturers/" + originalManufacturer,
                         'moveTarget': moveTarget,
                         'ids': [c.name]
                     };
-                    Zenoss.remote.ManufacturersRouter.moveProduct(params, function(response){
-                        if(response.success) {
-                            var tree = Ext.getCmp('manufacturers_tree');
-                            tree.refresh();
-                            tree.getStore().on('load', function(){
-                                var nodeId = moveTarget;
-                                    var node = tree.getRootNode().findChild("uid", nodeId, true);
-                                tree.getView().select(node);
-                            }, this, {single:true});
+                    Zenoss.remote.ManufacturersRouter.moveProduct(params, function (response) {
+                        if (response.success) {
+                            var grid = Ext.getCmp('productsgrid_id');
+                            grid.store.reload({
+                                callback: function () {
+                                    var tree = Ext.getCmp('manufacturers_tree'),
+                                        nodeId = moveTarget,
+                                        node = tree.store.findRecord('uid', nodeId, 0, false, false, true);
+                                    tree.getSelectionModel().select(node);
+                                },
+                                scope: this
+                            });
                         }
                     });
                 }
@@ -80,32 +83,35 @@ Ext.onReady(function(){
         // form config
         config = {
             submitHandler: addhandler,
-            height:Ext.getBody().getViewSize().height,
-            width:Ext.getBody().getViewSize().width*0.8, //80%
+            height: Ext.getBody().getViewSize().height,
+            width: Ext.getBody().getViewSize().width * 0.8, //80%
             id: 'productsDialog',
             contextUid: null,
             title: _t("Add New Product"),
             listeners: {
-                'afterrender': function(e){
-                    if(!newEntry){
+                'afterrender': function (e) {
+                    if (!newEntry) {
                         // this window will be used to EDIT the values instead of create from scratch
                         // grab extra data from server to populate code boxes:
-                       Zenoss.remote.ManufacturersRouter.getProductData({'uid':baseid, 'prodname':data.id}, function(response){
-                            if(response.success){
+                        Zenoss.remote.ManufacturersRouter.getProductData({
+                            'uid': baseid,
+                            'prodname': data.id
+                        }, function (response) {
+                            if (response.success) {
                                 xtraData = response.data[0];
                                 var instancegrid = Ext.getCmp('instancegrid_id');
                                 instancegrid.store.setBaseParam('id', data.id);
                                 instancegrid.setContext(baseid);
                                 var combo = Ext.getCmp('prodtype');
-                                if(data.type === "Hardware"){
+                                if (data.type === "Hardware") {
                                     combo.store.filter([{
-                                        filterFn: function(record) {
+                                        filterFn: function (record) {
                                             return record.get('name') === 'Hardware';
                                         }
                                     }]);
-                                }else{
+                                } else {
                                     combo.store.filter([{
-                                        filterFn: function(record) {
+                                        filterFn: function (record) {
                                             return record.get('name') !== 'Hardware';
                                         }
                                     }]);
@@ -114,14 +120,26 @@ Ext.onReady(function(){
                                 e.setTitle(Ext.String.format(_t("Edit Product Info for: {0}"), data.id));
                                 var fields = e.getForm().getForm().getFields();
                                 fields.findBy(
-                                    function(record){
-                                        switch(record.getName()){
-                                            case "name"             : record.setValue(xtraData.name);  break;
-                                            case "productname"      : record.setValue(xtraData.name);  break;
-                                            case "partNo"           : record.setValue(xtraData.partno);  break;
-                                            case "keys_panel"       : record.setValue(xtraData.prodKeys.toString());  break;
-                                            case "desc_panel"       : record.setValue(xtraData.desc);  break;
-                                            case "prodtype"         : record.setValue(xtraData.type); break;
+                                    function (record) {
+                                        switch (record.getName()) {
+                                            case "name"             :
+                                                record.setValue(xtraData.name);
+                                                break;
+                                            case "productname"      :
+                                                record.setValue(xtraData.name);
+                                                break;
+                                            case "partNo"           :
+                                                record.setValue(xtraData.partno);
+                                                break;
+                                            case "keys_panel"       :
+                                                record.setValue(xtraData.prodKeys.toString());
+                                                break;
+                                            case "desc_panel"       :
+                                                record.setValue(xtraData.desc);
+                                                break;
+                                            case "prodtype"         :
+                                                record.setValue(xtraData.type);
+                                                break;
                                         }
                                     }
                                 );
@@ -130,29 +148,19 @@ Ext.onReady(function(){
                             /*  get list of manufacturers and
                                 add them to the combo box
                             */
-                                var mancombo = Ext.getCmp('mansetting');
-                                originalManufacturer = data.uid.split("/products/")[0].split("/Manufacturers/")[1];
-                                var mandata = [];
-                                var tree = Ext.getCmp('manufacturers_tree');
-                                if (tree){ // if no tree, then dialog is being called from another context
-                                    var children = tree.items.items[0].node.childNodes;
-                                    for (var i = 0; i < children.length; i++){
-                                        mandata.push([children[i].data.text.text]);
-                                    }
-                                    mancombo.store.loadData(mandata);
-                                }else{
-                                    Zenoss.remote.ManufacturersRouter.returnTree({'id':'zport/dmd/Manufacturers'}, function(response){
-                                        for (var i = 0; i < response.length; i++){
-                                            mandata.push([response[i].text.text]);
-                                        }
-                                        mancombo.store.loadData(mandata);
-                                    });
-                                }
-                                mancombo.setValue(originalManufacturer);
+                            var mancombo = Ext.getCmp('mansetting');
+                            originalManufacturer = data.uid.split("/products/")[0].split("/Manufacturers/")[1];
+                            var mandata = [];
+                            var leftGrig = Ext.getCmp('manufacturers_tree');
+                            leftGrig.getStore().each(function (record) {
+                                mandata.push([record.data.text]);
+                            });
+                            mancombo.store.loadData(mandata);
+                            mancombo.setValue(originalManufacturer);
                         });
-                    }else{
-                            var tree = Ext.getCmp('manufacturers_tree');
-                            Ext.getCmp('mansetting').setValue(tree.getSelectionModel().getSelectedNode().data.text.text);
+                    } else {
+                        var leftGrig = Ext.getCmp('manufacturers_tree');
+                        Ext.getCmp('mansetting').setValue(leftGrig.getSelectionModel().getSelectedNode().data.text);
                     }
                 }
             },
@@ -161,8 +169,8 @@ Ext.onReady(function(){
                     xtype: 'tabpanel',
                     id: 'blackTabs',
                     listeners: {
-                        'afterrender': function(p){
-                            if(data.whichPanel === 'configprops'){
+                        'afterrender': function (p) {
+                            if (data.whichPanel === 'configprops') {
                                 p.setActiveTab(1);
                             }
                         }
@@ -173,7 +181,7 @@ Ext.onReady(function(){
                     items: [
                         {
                             title: _t('Product Details'),
-                            items:[
+                            items: [
                                 {
                                     xtype: 'panel',
                                     layout: 'hbox',
@@ -184,57 +192,57 @@ Ext.onReady(function(){
                                             name: 'name',
                                             fieldLabel: _t('Product Name'),
                                             margin: '0 10px 0 0',
-                                            width:320,
+                                            width: 320,
                                             regex: Zenoss.env.textMasks.allowedDescText,
                                             regexText: Zenoss.env.textMasks.allowedDescTextFeedback,
                                             allowBlank: false
-                                        },{
+                                        }, {
                                             xtype: 'hidden',
                                             name: 'productname'
-                                        },{
+                                        }, {
                                             xtype: 'textfield',
                                             name: 'partNo',
                                             margin: '0 20px 0 0',
                                             fieldLabel: _t('Part #'),
                                             regex: Zenoss.env.textMasks.allowedDescText,
                                             regexText: Zenoss.env.textMasks.allowedDescTextFeedback,
-                                            width:250
-                                        },{
+                                            width: 250
+                                        }, {
                                             xtype: 'combo',
                                             id: 'prodtype',
-                                            name:'prodtype',
+                                            name: 'prodtype',
                                             displayField: 'name',
                                             editable: false,
                                             typeAhead: false,
                                             allowBlank: false,
                                             fieldLabel: _t('Type'),
-                                            store:  Ext.create('Ext.data.ArrayStore', {
-                                                 model: 'Zenoss.model.Name',
-                                                 data: [[
+                                            store: Ext.create('Ext.data.ArrayStore', {
+                                                model: 'Zenoss.model.Name',
+                                                data: [[
                                                     _t('Hardware')
-                                                ],[
+                                                ], [
                                                     _t('Software')
-                                                ],[
+                                                ], [
                                                     _t('Operating System')
                                                 ]]
-                                             })
-                                        },{
+                                            })
+                                        }, {
                                             xtype: 'combo',
                                             id: 'mansetting',
-                                            name:'mansetting',
+                                            name: 'mansetting',
                                             displayField: 'name',
                                             editable: false,
                                             typeAhead: false,
                                             width: 200,
                                             fieldLabel: _t('Manufacturer'),
                                             queryMode: 'local',
-                                            store: [ 'none' ]
+                                            store: ['none']
                                         }
                                     ]
 
-                                },{
+                                }, {
                                     xtype: 'panel',
-                                    items:[
+                                    items: [
                                         {
                                             xtype: 'textfield',
                                             fieldLabel: _t('Product Keys (comma delimited)'),
@@ -242,41 +250,41 @@ Ext.onReady(function(){
                                             name: 'keys_panel',
                                             width: '98.5%',
                                             margin: '0 20 20 0'
-                                        },{
+                                        }, {
                                             xtype: 'minieditorpanel',
                                             name: 'desc_panel',
                                             id: 'desc_panel',
-                                            height:100,
-                                            width:'98.5%',
+                                            height: 100,
+                                            width: '98.5%',
                                             margin: '0 20 20 0',
                                             title: _t('Description')
-                                        },{
+                                        }, {
                                             xtype: 'instancepanel',
                                             hidden: newEntry,
                                             title: _t('Instances of this product'),
                                             id: 'instancegrid_id',
-                                            width:'98.5%'
+                                            width: '98.5%'
                                         }
                                     ]// panel items
-                              }
-                              ] // product details items
-                           },{
-                                title: _t('Configuration Properties'),
-                                hidden: newEntry,
-                                items:[
-                                    {
-                                        xtype: 'configpropertypanel',
-                                        style: 'background: #fff',
-                                        listeners: {
-                                            beforerender: function(g){
-                                                g.setHeight(Ext.getCmp('productsDialog').height-150);
-                                                g.setContext(data.uid);
-                                            }
+                                }
+                            ] // product details items
+                        }, {
+                            title: _t('Configuration Properties'),
+                            hidden: newEntry,
+                            items: [
+                                {
+                                    xtype: 'configpropertypanel',
+                                    style: 'background: #fff',
+                                    listeners: {
+                                        beforerender: function (g) {
+                                            g.setHeight(Ext.getCmp('productsDialog').height - 150);
+                                            g.setContext(data.uid);
                                         }
                                     }
-                                ]
-                            }
-                       ] // tab panel items
+                                }
+                            ]
+                        }
+                    ] // tab panel items
                 }// tab panel
             ], // config items
             // explicitly do not allow enter to submit the dialog
@@ -285,10 +293,12 @@ Ext.onReady(function(){
         if (Zenoss.Security.hasPermission('Manage Device')) {
             dialog = new Zenoss.SmartFormDialog(config);
             dialog.show();
-        }else{ return false; }
+        } else {
+            return false;
+        }
     };    // end edit product dialog
 
-   Ext.define('Zenoss.productsgrid.Model',  {
+    Ext.define('Zenoss.productsgrid.Model', {
         extend: 'Ext.data.Model',
         idProperty: 'id',
         fields: [
@@ -302,7 +312,7 @@ Ext.onReady(function(){
 
     Ext.define("Zenoss.productsgrid.Store", {
         extend: "Zenoss.NonPaginatedStore",
-        constructor: function(config) {
+        constructor: function (config) {
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.productsgrid.Model',
@@ -316,22 +326,22 @@ Ext.onReady(function(){
 
     Ext.define("Zenoss.manufacturers.ProductsGrid", {
         alias: ['widget.productsgrid'],
-        extend:"Zenoss.FilterGridPanel",
-        constructor: function(config) {
+        extend: "Zenoss.FilterGridPanel",
+        constructor: function (config) {
             config = config || {};
 
             Ext.applyIf(config, {
                 stateId: 'products_grid',
                 id: 'products_grid',
                 stateful: false,
-                loadMask:true,
+                loadMask: true,
                 multiSelect: true,
-                tbar:[
+                tbar: [
                     {
                         xtype: 'largetoolbar',
                         id: 'products_toolbar',
                         itemId: 'products_toolbar',
-                        height:30,
+                        height: 30,
                         disabled: true,
                         items: [
                             {
@@ -339,24 +349,27 @@ Ext.onReady(function(){
                                 iconCls: 'add',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Add a new product to this manufacturer'),
-                                handler: function() {
+                                handler: function () {
                                     var grid = Ext.getCmp("productsgrid_id");
                                     Zenoss.manufacturers.productsDialog(grid);
                                 }
-                            },{
+                            }, {
                                 xtype: 'button',
                                 iconCls: 'delete',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Delete selected items'),
-                                handler: function() {
+                                handler: function () {
                                     var grid = Ext.getCmp("productsgrid_id"),
                                         data = [],
                                         selected = grid.getSelectionModel().getSelection();
                                     if (Ext.isEmpty(selected)) {
                                         return;
                                     }
-                                    for (var i=0; selected.length > i; i++){
-                                        data.push({'context':selected[i].data.uid.split('/products/')[0], 'id':selected[i].data.id});
+                                    for (var i = 0; selected.length > i; i++) {
+                                        data.push({
+                                            'context': selected[i].data.uid.split('/products/')[0],
+                                            'id': selected[i].data.id
+                                        });
                                     }
                                     new Zenoss.dialog.SimpleMessageDialog({
                                         title: _t('Delete Product'),
@@ -364,8 +377,8 @@ Ext.onReady(function(){
                                         buttons: [{
                                             xtype: 'DialogButton',
                                             text: _t('OK'),
-                                            handler: function() {
-                                                Zenoss.remote.ManufacturersRouter.removeProducts({'products':data}, function(response){
+                                            handler: function () {
+                                                Zenoss.remote.ManufacturersRouter.removeProducts({'products': data}, function (response) {
                                                     if (response.succesws) {
                                                         grid.refresh();
                                                     }
@@ -377,11 +390,11 @@ Ext.onReady(function(){
                                         }]
                                     }).show();
                                 }
-                            },{
+                            }, {
                                 xtype: 'button',
                                 iconCls: 'customize',
                                 tooltip: _t('View and/or Edit selected'),
-                                handler: function() {
+                                handler: function () {
                                     var grid = Ext.getCmp("productsgrid_id"),
                                         data,
                                         selected = grid.getSelectionModel().getSelection();
@@ -395,29 +408,22 @@ Ext.onReady(function(){
                                     Zenoss.manufacturers.productsDialog(grid, data);
                                 }
                             }]
-                        }
+                    }
                 ],
                 store: Ext.create('Zenoss.productsgrid.Store', {}),
                 listeners: {
-                    afterrender: function(e){
-                        e.getStore().on('load', function(){
+                    afterrender: function (e) {
+                        e.getStore().on('load', function () {
                             Ext.getCmp('products_toolbar').setDisabled(false);
                         });
                     },
-                    select: function(e, record){
+                    select: function (e, record) {
                         var bar = Ext.getCmp('products_toolbar');
-                        if(e.getCount() > 1){
+                        if (e.getCount() > 1) {
                             bar.items.items[2].setDisabled(true);
-                        }else{
+                        } else {
                             bar.items.items[2].setDisabled(false);
                         }
-                        var token = Ext.History.getToken().split(":");
-                        var newToken = Ext.String.format("{0}:{1}:{2}",
-                                                         token[0],
-                                                         token[1],
-                                                         record.get('uid')
-                                                         );
-                        Ext.History.add(newToken);
                     }
                 },
                 columns: [
@@ -427,32 +433,32 @@ Ext.onReady(function(){
                         dataIndex: 'id',
                         flex: 1,
                         sortable: true
-                    },{
+                    }, {
                         id: 'uid_id',
                         dataIndex: 'uid',
                         hidden: true
-                    },{
+                    }, {
                         header: _t("Type"),
                         id: 'type_id',
                         dataIndex: 'type',
                         width: 200,
                         sortable: true,
                         filter: []
-                    },{
+                    }, {
                         header: _t("Product Keys"),
                         id: 'keys_id',
                         dataIndex: 'key',
                         flex: 1,
                         sortable: true,
-                        renderer: function(e){
-                            return Ext.htmlEncode(e.toString().replace(",",",  "));
+                        renderer: function (e) {
+                            return Ext.htmlEncode(e.toString().replace(",", ",  "));
                         },
                         filter: []
-                    },{
+                    }, {
                         header: _t('Count'),
                         id: 'count_id',
                         dataIndex: 'count',
-                        width:70,
+                        width: 70,
                         sortable: true,
                         filter: []
                     }]
@@ -460,23 +466,12 @@ Ext.onReady(function(){
             this.callParent(arguments);
             this.on('itemdblclick', this.onRowDblClick, this);
         },
-        selectByToken: function(id) {
-            // decode the id
-            var uid = Ext.Object.fromQueryString("uid=" + id).uid;
-            var idx = this.getStore().findExact('uid', uid), record, view = this.getView();
-
-            if (idx !== -1) {
-                record = this.getStore().getAt(idx);
-                this.getSelectionModel().select(record);
-                view.focusRow(idx);
-            }
-        },
-        setContext: function(uid) {
+        setContext: function (uid) {
             this.uid = uid;
             // load the grid's store
             this.callParent(arguments);
         },
-        onRowDblClick: function() {
+        onRowDblClick: function () {
             var data,
                 selected = this.getSelectionModel().getSelection();
             if (!selected) {
@@ -489,9 +484,7 @@ Ext.onReady(function(){
     });
 
 
-
-
-   Ext.define('Zenoss.instancegrid.Model',  {
+    Ext.define('Zenoss.instancegrid.Model', {
         extend: 'Ext.data.Model',
         idProperty: 'device',
         fields: [
@@ -502,7 +495,7 @@ Ext.onReady(function(){
 
     Ext.define("Zenoss.instancegrid.Store", {
         extend: "Zenoss.NonPaginatedStore",
-        constructor: function(config) {
+        constructor: function (config) {
             config = config || {};
             Ext.applyIf(config, {
                 model: 'Zenoss.instancegrid.Model',
@@ -516,15 +509,15 @@ Ext.onReady(function(){
 
     Ext.define("Zenoss.manufacturers.InstanceGrid", {
         alias: ['widget.instancepanel'],
-        extend:"Zenoss.FilterGridPanel",
-        constructor: function(config) {
+        extend: "Zenoss.FilterGridPanel",
+        constructor: function (config) {
             config = config || {};
 
             Ext.applyIf(config, {
                 stateId: 'instance_grid',
                 id: 'instance_grid',
                 stateful: true,
-                loadMask:true,
+                loadMask: true,
                 store: Ext.create('Zenoss.instancegrid.Store', {}),
                 columns: [
                     {
@@ -533,10 +526,10 @@ Ext.onReady(function(){
                         dataIndex: 'device',
                         flex: 1,
                         sortable: true,
-                        renderer: function(name, row, record) {
-                            return Zenoss.render.link(null,record.raw.uid, name);
+                        renderer: function (name, row, record) {
+                            return Zenoss.render.link(null, record.raw.uid, name);
                         }
-                    },{
+                    }, {
                         header: _t('Name'),
                         id: 'instance_id',
                         dataIndex: 'id',
@@ -547,7 +540,7 @@ Ext.onReady(function(){
             });
             this.callParent(arguments);
         },
-        setContext: function(uid) {
+        setContext: function (uid) {
             this.uid = uid;
             // load the grid's store
             this.callParent(arguments);
@@ -555,16 +548,12 @@ Ext.onReady(function(){
     });
 
 
-
-
-
-
     Ext.define('Zenoss.manufacturers.CodeEditorField', {
         extend: 'Ext.form.field.TextArea',
         alias: 'widget.codefield',
         cls: 'codemirror-field',
         originalValue: "",
-        initComponent: function() {
+        initComponent: function () {
             var me = this;
             Ext.applyIf(me, {
                 listeners: {
@@ -576,33 +565,33 @@ Ext.onReady(function(){
             });
             this.callParent(arguments);
         },
-        onCodeeditorfieldRender: function(abstractcomponent) {
+        onCodeeditorfieldRender: function (abstractcomponent) {
             var me = this;
             var element = document.getElementById(abstractcomponent.getInputId());
-            this.editor = CodeMirror.fromTextArea(element, {'lineNumbers':true});
-            this.editor.on('cursorActivity', function(){
-                if (me.getValue() !== me.originalValue){
+            this.editor = CodeMirror.fromTextArea(element, {'lineNumbers': true});
+            this.editor.on('cursorActivity', function () {
+                if (me.getValue() !== me.originalValue) {
                     me.ownerCt.getDockedItems()[0].addCls('edited_feedback');
-                }else{
+                } else {
                     me.ownerCt.getDockedItems()[0].removeCls('edited_feedback');
                 }
             });
         },
-        focus: function() {
+        focus: function () {
             this.editor.focus();
         },
-        onFocus: function() {
+        onFocus: function () {
             this.fireEvent('focus', this);
         },
-        destroy: function() {
+        destroy: function () {
             this.editor.toTextArea();
             this.callParent(arguments);
         },
-        getValue: function() {
+        getValue: function () {
             this.editor.save();
             return this.callParent(arguments);
         },
-        setValue: function(value) {
+        setValue: function (value) {
             if (this.editor) {
                 this.editor.setValue(value);
                 this.originalValue = value;
@@ -624,9 +613,9 @@ Ext.onReady(function(){
             handles: 's',
             pinned: true
         },
-        height:200,
+        height: 200,
         style: 'background:white',
-        initComponent: function() {
+        initComponent: function () {
             var me = this;
             Ext.applyIf(me, {
                 items: [
@@ -640,21 +629,19 @@ Ext.onReady(function(){
 
             this.callParent(arguments);
         },
-        focus: function() {
+        focus: function () {
             this.down('codefield').focus();
         },
-        getValue: function() {
+        getValue: function () {
             return this.down('codefield').getValue();
         },
-        setValue: function(value) {
+        setValue: function (value) {
             this.down('codefield').setValue(value);
         },
-        reset: function() {
+        reset: function () {
             this.down('codefield').setValue('');
         }
     });
-
-
 
 
 });

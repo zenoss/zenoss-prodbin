@@ -398,6 +398,7 @@ class DeviceRouter(TreeRouter):
         If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
+        query = "*" if not query else query
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = [{'name':escape(dev.name),
                    'uuid':IGlobalIdentifier(dev._object).getGUID()}

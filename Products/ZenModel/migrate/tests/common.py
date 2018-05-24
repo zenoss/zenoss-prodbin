@@ -13,9 +13,12 @@ from servicemigration import context, service
 
 import logging
 log = logging.getLogger("zen.migrate")
+log.setLevel(logging.CRITICAL)
+
 
 def fakeContextFromFile(jsonfile):
     jsonfile = os.path.join(os.path.dirname(__file__), jsonfile)
+
     class FakeServiceContext(context.ServiceContext):
 
         def __init__(self, filename=None):
@@ -44,9 +47,12 @@ def fakeContextFromFile(jsonfile):
 
         def deployService(self, servicedef, parent):
             if parent._Service__data['ID'] == 'new-service':
-                raise Exception("Can't deploy a service to a parent that is a new service.")
+                raise Exception(
+                    "Can't deploy a service to a parent that is a new service."
+                )
             newservice = service.deserialize(json.loads(servicedef))
-            newservice._Service__data["ParentServiceID"] = parent._Service__data["ID"]
+            newservice._Service__data["ParentServiceID"
+                                      ] = parent._Service__data["ID"]
             self.services.append(newservice)
 
         def servicedef(self):
@@ -54,7 +60,10 @@ def fakeContextFromFile(jsonfile):
             This method is not available to the real ServiceContext.
             It's only here for testing purposes.
             """
-            return sorted([service.serialize(s) for s in self.services], key=lambda s: s['Name'])
+            return sorted(
+                [service.serialize(s) for s in self.services],
+                key=lambda s: s['Name']
+            )
 
         def addLogFilter(self, name, value):
             self.__logFilters[name] = {
@@ -68,9 +77,12 @@ def fakeContextFromFile(jsonfile):
 
     return FakeServiceContext()
 
+
 class FakeDmd:
+
     def __init__(self):
         None
+
     def getProductName(self):
         return "Resource Manager"
 
@@ -103,7 +115,7 @@ def compare(this, that, path=None):
         # Duplicate this behavior when comparing dictionaries.
         dis = dict((k.lower(), this[k]) for k in sorted(this.iterkeys()))
         dat = dict((k.lower(), that[k]) for k in sorted(that.iterkeys()))
-        get_val = lambda d,k: d.get(k, compare.missingKey)
+        get_val = lambda d, k: d.get(k, compare.missingKey)
         keys = set(chain(dis.iterkeys(), dat.iterkeys()))
         iab = [(k, (get_val(dis, k), get_val(dat, k))) for k in keys]
     elif isinstance(this, basestring):
@@ -111,8 +123,11 @@ def compare(this, that, path=None):
             return True, None, None
         if not isinstance(that, basestring):
             return False, path, compare.Diff(this, that)
-        if any ('\n' in i for i in (this, that)):
-            diff = difflib.unified_diff(this.replace('\r', '').split('\n'), that.replace('\r', '').split('\n'))
+        if any('\n' in i for i in (this, that)):
+            diff = difflib.unified_diff(
+                this.replace('\r', '').split('\n'),
+                that.replace('\r', '').split('\n')
+            )
 
             # Since we ignored '\r', we need to see if the diff actually found 0 differences,
             # but iterating diff will empty it, so make a copy to count the diffs
@@ -133,6 +148,8 @@ def compare(this, that, path=None):
         if not r:
             return False, p, n
     return True, None, None
+
+
 compare.Diff = namedtuple('Diff', ['actual', 'expected'])
 compare.missingKey = '<<KEY NOT PRESENT>>'
 
@@ -167,35 +184,53 @@ class ServiceMigrationTestCase(object):
         else:
             dmd = FakeDmd()
         with mock.patch(sm_context, new=lambda: self._fakeContext):
-            with mock.patch.dict('os.environ', {'SERVICED_SERVICE_IMAGE': '67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest'}):
+            with mock.patch.dict(
+                'os.environ', {
+                    'SERVICED_SERVICE_IMAGE':
+                        '67nh3y829fh3dsemstmfjpg11/resmgr_5.0:latest'
+                }
+            ):
                 getattr(migration, self.migration_class_name)().cutover(dmd)
         actual = self._fakeContext.servicedef()
         expected = fakeContextFromFile(svcdef_after).servicedef()
         result, rpath, rdiff = compare(actual, expected)
         if not result:
             if isinstance(rdiff, compare.Diff):
-                self.fail("Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
-                        % (rdiff.expected, rpath, rdiff.actual))
+                self.fail(
+                    "Migration failed: Expected\n\n%s\n\n at %s, got \n\n%s\n\n instead."
+                    % (rdiff.expected, rpath, rdiff.actual)
+                )
             else:
-                self.fail("Migration failed: Unified Diff at %s:\n\n%s\n"
-                        % (rpath, "\n".join(rdiff)))
+                self.fail(
+                    "Migration failed: Unified Diff at %s:\n\n%s\n" %
+                    (rpath, "\n".join(rdiff))
+                )
 
     def test_cutover_correctness(self):
         self._test_cutover(self.initial_servicedef, self.expected_servicedef)
 
         if len(self.expected_log_filters) != len(self._fakeContext.logFilters):
-            self.fail("Migration failed: Expected %d log filters; found %d" %
-                (len(self.expected_log_filters), len(self._fakeContext.logFilters)))
+            self.fail(
+                "Migration failed: Expected %d log filters; found %d" % (
+                    len(self.expected_log_filters),
+                    len(self._fakeContext.logFilters)
+                )
+            )
 
-        elif len(self.expected_log_filters)  > 0:
+        elif len(self.expected_log_filters) > 0:
             for name, value in self.expected_log_filters.iteritems():
-                if not self._fakeContext.logFilters.has_key(name):
-                    self.fail("Migration failed: Did not find expected log filter '%s'" % name)
+                if name not in self._fakeContext.logFilters:
+                    self.fail(
+                        "Migration failed: Did not find expected log filter '%s'"
+                        % name
+                    )
                 else:
                     actual = self._fakeContext.logFilters[name]["Filter"]
                     if value != actual:
-                        self.fail("Migration failed: for log filter '%s', Expected:\n%s\n\nGot:\n%s\n\n"
-                            % (name, value, actual))
+                        self.fail(
+                            "Migration failed: for log filter '%s', Expected:\n%s\n\nGot:\n%s\n\n"
+                            % (name, value, actual)
+                        )
 
     def test_cutover_idempotence(self):
         self._test_cutover(self.expected_servicedef, self.expected_servicedef)

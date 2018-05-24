@@ -122,7 +122,10 @@ class PropertiesFacade(ZuulFacade):
         # make sure it is the correct type
         ztype = obj.getPropertyType(prop)
         if ztype == 'int':
-            value = int(value)
+            try:
+                value = int(value)
+            except ValueError:
+                raise Exception('Invalid value entered for {}'.format(prop))
         if ztype == 'float':
             value = float(value)
         if ztype == 'string':

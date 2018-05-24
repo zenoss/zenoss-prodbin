@@ -613,7 +613,7 @@ class ZenModeler(PBDaemon):
         @type: boolean
         """
         delay = device.getSnmpLastCollection() + self.collage
-        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
+        if delay >= float(DateTime.DateTime()) and device.getSnmpStatusNumber() == 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True

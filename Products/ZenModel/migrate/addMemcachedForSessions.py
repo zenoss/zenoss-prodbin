@@ -51,7 +51,7 @@ class AddMemcachedForSessions(Migrate.Step):
     Update memcache healthcheck, and add the service to Core
     """
 
-    version = Migrate.Version(200, 1, 1)
+    version = Migrate.Version(200, 2, 0)
     changed = False
 
     def cutover(self, dmd):

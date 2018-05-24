@@ -1,144 +1,175 @@
+<!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <link rel="shortcut icon"
               type="image/x-icon"
               href="/zport/dmd/favicon.ico"/>
         <title>Login</title>
         <style>
-            .inputbox {
-                border: medium none;
-                background: transparent none;
-                width: 180px;
-                font-size: 110%;
-                color: #444;
-                text-align: center;
-                position: absolute;
-                left: 367px;
-                z-index: 100;
+            html, body {
+                height: 100%;
             }
-            .submitbutton {
-                position: absolute;
-                z-index: 100;
-                background: transparent url('zenoss-login-button.png');
-                top: 245px;
-                left: 466px;
-                width: 90px;
-                height: 32px;
-                border: medium none;
-                cursor: hand; cursor: pointer;
-            }
-            * { zoom: 1; } /* IE7 compatibility */
             body {
+                position: relative;
                 margin: 0;
                 padding: 0;
                 background-color: #888;
-                position: relative;
-                z-index: 0;
+                font-family: sans-serif;
             }
-            #topbar {
-                height: 20%;
-                position: relative;
-                z-index: 0;
+            .form-group {
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-pack: justify;
+                -ms-flex-pack: justify;
+                justify-content: space-between;
+                margin-bottom: 10px;
             }
-            #middlebar {
-                text-align:center;
-                height:360px;
+            .form-label {
+                margin-left: 28px;
+                padding-top: 7px;
+                font-size: 14px;
+            }
+            .inputbox {
+                width: 180px;
+                height: 27px;
+                padding-right: 4px;
+                padding-left: 4px;
+                border: 1.5px solid #888888;
+                border-radius: 15px;
+                background: #fff;
+                font-size: 110%;
+                color: #444;
+                text-align: center;
+            }
+            .submitbutton {
+                -ms-flex-negative: 0;
+                flex-shrink: 0;
+                margin-left: auto;
+                background-image: url('zenoss-login-button.png');
+                width: 90px;
+                height: 32px;
+                border: 0;
+                cursor: pointer;
+            }
+            .middlebar {
+                text-align: center;
                 border-width: 2px 0;
                 border-style: solid;
                 border-color: #444;
-                background-color:#f4f4f4;
-                position: relative;
-                z-index: 1;
+                background-color: #f4f4f4;
             }
-            #container {
-                width:671px;
-                margin: 0 auto;
-                height:360px;
-                position: relative;
-                z-index: 1;
-            }
-            #loginimg {
-                position: absolute;
-                height: 360px;
+            .container {
                 width: 671px;
-                top: 0;
-                left: -50px;
-                z-index: 2;
+                min-height: 360px;
+                margin-right: auto;
+                margin-left: auto;
+                overflow: hidden;
+                background-color: #f6f6f6;
+                background-image: url('zenoss-login-background.png');
+                background-repeat: no-repeat;
             }
-            #errorbox {
-                width: 300px;
-                position: absolute;
-                top: 250px;
-                left: 210px;
-                z-index: 100;
-            }
-            span.error {
-                font-family: sans-serif;
-                color: #8B0000;
-            }
-            #copyright {
+            .copyright {
+                margin-top: 15px;
+                margin-bottom: 15px;
                 color: #4e7aba;
                 font-size: 70%;
-                font-family: sans-serif;
                 text-align: center;
-                width: 300px;
+            }
+            .loginform {
                 position: absolute;
-                top: 300px;
-                left: 265px;
-                z-index: 2;
+                top: 20%;
+                left: 0;
+                width: 100%;
+            }
+            .errorbox {
+                margin-right: 16px;
+                width: 190px;
+                color: #8B0000;
+                font-size: 14px;
+            }
+            .submit-row {
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
+                min-height: 50px;
+            }
+            .right-column {
+                float: right;
+                margin-right: 65px;
+                width: 300px;
+            }
+            .right-column-inputs {
+                margin-top: 157px;
+            }
+            .right-column-bottom {
+                margin-top: 14px;
             }
         </style>
-        <script>
-            function onload() {
-                if (window.location != window.top.location) {
-                    window.top.location.href = window.location.href;
-                }
-                if ( window.location.hash) {
-                    var fragment = document.getElementById('fragment')
-                    var hash = encodeURIComponent( window.location.hash)
-                    fragment.value = hash
-                }
-                document.getElementById('username').focus();
-            }
-        </script>
     </head>
 
-    <body onload="onload()">
-        <div id="topbar"></div>
-        <form name="loginform"
-            method="POST"
+    <body>
+        <form class="loginform"
+              name="loginform"
+              method="POST"
               tal:attributes="action string:${here/absolute_url_path}/login">
-                <input type="hidden" name="came_from" value=""
-                       tal:attributes="value request/came_from | string:"/>
-                <input type="hidden" name="submitted" value="true" />
-            <input id="fragment" type="hidden" name="fragment" value="" />
-            <div id="middlebar">
-                <div id="container">
-                    <div id="loginimg"
-                        style="background:transparent url(zenoss-login.png)
-                        no-repeat">
-                    </div>
-                    <input id="username" type="text" name="__ac_name"
-                           class="inputbox" style="top:160px"/>
-                    <input id="passwrd" type="password" name="__ac_password" 
-                           class="inputbox" style="top:202px;"/> 
-                    <div id="errorbox">
-                        <tal:block define="msg here/zport/getLoginMessage"
-                            tal:omit-tag=""
-                            tal:on-error="string:">
-                            <span class="error" tal:condition="msg"
-                                  tal:content="structure msg" />
-                        </tal:block>
-                    </div>
-                    <tal:block tal:content="structure here/getLoginButton"/>
-                    <div id="copyright">
-                        <p>Copyright &copy; 2005-<span tal:content="here/getCurrentYear"/> 
-                            Zenoss, Inc. | Version <span tal:content="here/getZenossVersionShort"/>
-                        </p>
+            <input type="hidden" name="came_from" value=""
+                   tal:attributes="value request/came_from | string:"/>
+            <input type="hidden" name="submitted" value="true"/>
+            <input id="fragment" type="hidden" name="fragment" value=""/>
+            <div class="middlebar">
+                <div class="container">
+                    <div class="right-column">
+                        <div class="right-column-inputs">
+                            <div class="form-group">
+                                <label class="form-label" for="username">Username</label>
+                                <input id="username" type="text" name="__ac_name"
+                                       class="inputbox"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="passwrd">Password</label>
+                                <input id="passwrd" type="password" name="__ac_password"
+                                       class="inputbox"/>
+                            </div>
+                        </div>
+                        <div class="right-column-bottom">
+                            <div class="submit-row">
+                                <div class="errorbox">
+                                    <tal:block define="msg here/zport/getLoginMessage"
+                                             tal:omit-tag=""
+                                             tal:on-error="string:"
+                                             tal:condition="msg"
+                                             tal:content="structure msg" />
+                                </div>
+                                <tal:block tal:content="structure here/getLoginButton"/>
+                            </div>
+                            <div class="copyright">
+                                Copyright &copy; 2005-<span tal:content="here/getCurrentYear"/>
+                                Zenoss, Inc. | Version <span tal:content="here/getZenossVersionShort"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
         <tal:block tal:content="structure here/getExtraLoginFormContents"/>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
+                if (window.location !== window.top.location) {
+                    window.top.location.href = window.location.href;
+                }
+
+                if (window.location.hash) {
+                    var fragment = document.getElementById('fragment');
+                    var hash = encodeURIComponent(window.location.hash);
+                    fragment.value = hash;
+                }
+
+                document.getElementById('username').focus();
+            });
+        </script>
     </body>
 </html>

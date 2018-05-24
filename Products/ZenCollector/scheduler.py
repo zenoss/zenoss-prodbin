@@ -183,6 +183,9 @@ class CallableTask(object):
                  'component': os.path.basename(sys.argv[0]).replace('.py', ''), },
                 device=self.task._devId,
                 summary="Missed run: {}".format(self.task.name),
+                message=self._scheduler._displayStateStatistics(
+                    '', self.taskStats.states
+                ),
                 severity=Event.Warning, eventKey=self.task.name)
             self.task.missed = True
         except Exception:

@@ -19,7 +19,7 @@ sm.require("1.1.11")
 class RateCutoff(Migrate.Step):
     """Fix the credentials for consumer and query services"""
 
-    version = Migrate.Version(200, 1, 0)
+    version = Migrate.Version(200, 2, 0)
 
     def cutover(self, dmd):
         try:

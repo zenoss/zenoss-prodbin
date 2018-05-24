@@ -140,9 +140,9 @@ class ModelCatalogTool(object):
             for key, value in globFilters.iteritems():
                 if key in indexed:
                     if user_filters_query:
-                        user_filters_query = And(user_filters_query, MatchRegexp(key, '.*%s.*' % value))
+                        user_filters_query = And(user_filters_query, MatchRegexp(key, value))
                     else:
-                        user_filters_query = MatchRegexp(key, '.*%s.*' % value)
+                        user_filters_query = MatchRegexp(key, value)
                 else:
                     not_indexed_user_filters[key] = value
 
