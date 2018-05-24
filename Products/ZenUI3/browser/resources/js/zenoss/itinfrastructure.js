@@ -98,10 +98,6 @@ Ext.onReady(function () {
         displayField: 'name',
         allowBlank: false,
         queryMode: 'local',
-        listConfig: {
-            resizable: true,
-            minWidth: 250
-        },
         store: new Ext.data.DirectStore({
             id: 'deviceClassStore',
             root: 'deviceClasses',
@@ -1275,6 +1271,8 @@ Ext.onReady(function () {
             {
                 id: 'device_grid',
                 text: 'Devices',
+                // do not show on component groups
+                contextRegex: '^(?!/zport/dmd/ComponentGroup)',
                 listeners: {
                     render: updateNavTextWithCount
                 }
@@ -1970,50 +1968,55 @@ Ext.onReady(function () {
 
                 },
                 onGetMenuItems: function (uid) {
-                    var menuItems = [];
-                    if (uid.match('^/zport/dmd/Devices')) {
-                        menuItems.push([
-                            {
+                    var menuItems = [],
+                        // also check for Zenoss.env.CSE_VIRTUAL_ROOT in uid's
+                        devices = Zenoss.render.link(false, '/zport/dmd/Devices'),
+                        componentGroups = Zenoss.render.link(false, '/zport/dmd/ComponentGroups');
+                    uid = Zenoss.render.link(false, uid);
+
+                    if (uid.startsWith(devices)) {
+                        menuItems.push({
                                 xtype: 'menuitem',
                                 text: _t('Bind Templates'),
                                 hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
                                 handler: function () {
                                     bindTemplatesDialog.show();
                                 }
-                            },
-                            {
+                            },{
                                 xtype: 'menuitem',
                                 text: _t('Reset Bindings'),
                                 hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
                                 handler: function () {
                                     resetTemplatesDialog.show();
                                 }
-                            }
-                        ]);
+                            });
                     }
 
-                    menuItems.push({
-                        xtype: 'menuitem',
-                        text: _t('Clear Geocode Cache'),
-                        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
-                        handler: function () {
-                            REMOTE.clearGeocodeCache({}, function (data) {
-                                var msg = (data.success) ?
-                                    _t('Geocode Cache has been cleared') :
-                                    _t('Something happened while trying to clear Geocode Cache');
-                                var dialog = new Zenoss.dialog.SimpleMessageDialog({
-                                    message: msg,
-                                    buttons: [
-                                        {
-                                            xtype: 'DialogButton',
-                                            text: _t('OK')
-                                        }
-                                    ]
+                    // ZEN-30091 - This function has nothing to do with component groups and should not be present.
+                    if (!uid.startsWith(componentGroups)) {
+                        menuItems.push({
+                            xtype: 'menuitem',
+                            text: _t('Clear Geocode Cache'),
+                            hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                            handler: function () {
+                                REMOTE.clearGeocodeCache({}, function (data) {
+                                    var msg = (data.success) ?
+                                        _t('Geocode Cache has been cleared') :
+                                        _t('Something happened while trying to clear Geocode Cache');
+                                    var dialog = new Zenoss.dialog.SimpleMessageDialog({
+                                        message: msg,
+                                        buttons: [
+                                            {
+                                                xtype: 'DialogButton',
+                                                text: _t('OK')
+                                            }
+                                        ]
+                                    });
+                                    dialog.show();
                                 });
-                                dialog.show();
-                            });
-                        }
-                    });
+                            }
+                        });
+                    }
 
                     menuItems.push({
                         xtype: 'menuitem',

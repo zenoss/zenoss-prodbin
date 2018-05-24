@@ -240,14 +240,14 @@ var statusRenderer = function (statusNum) {
     var color = 'red',
         desc = _t('Down');
     if (statusNum === 0) {
-        color = 'green';
+        color = '#00e000';
         desc = _t('Up');
     }
     else if (statusNum === 5) {
-        color = 'gray';
+        color = '#afafaf';
         desc = _t('N/A');
     }
-    return '<span style="color:' + color + '">' + desc + '</span>';
+    return '<span style="font-size: 12px;font-weight: bold !important;color:' + color + '">' + desc + '</span>';
 };
 
 var ipAddressColumnConfig = [{
@@ -393,6 +393,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
     toolbar.add( {
             xtype: 'button',
             iconCls: 'delete',
+            tooltip: 'Delete IP Addresses',
             handler: deleteIpAddresses
         },{
             xtype: 'tbspacer',
