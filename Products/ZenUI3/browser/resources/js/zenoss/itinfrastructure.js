@@ -98,10 +98,6 @@ Ext.onReady(function () {
         displayField: 'name',
         allowBlank: false,
         queryMode: 'local',
-        listConfig: {
-            resizable: true,
-            minWidth: 250
-        },
         store: new Ext.data.DirectStore({
             id: 'deviceClassStore',
             root: 'deviceClasses',
