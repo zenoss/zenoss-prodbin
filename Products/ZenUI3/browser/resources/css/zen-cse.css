@@ -2207,6 +2207,30 @@ BYE BYE BORDERS
         background-image: none;
     }
 
+    /* inspector window */
+    .z-cse .inspector-window {
+        padding: 0;
+    }
+
+    .z-cse .inspector .inspector-header {
+        padding-top: 8px;
+        background-image: none;
+        background-color: inherit;
+    }
+
+    .z-cse .inspector .inspector-header .header-icon-wrapper,
+    .z-cse .inspector .inspector-header .header-title{
+        background: none;
+    }
+
+    .z-cse .inspector .inspector-body {
+        background-color: #eee;
+    }
+
+    .z-cse .inspector .inspector-header .header-title {
+        margin-left: 28px !important;
+    }
+
 
 /*
         =====================================================================================
