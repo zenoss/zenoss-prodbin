@@ -2231,6 +2231,15 @@ BYE BYE BORDERS
         margin-left: 28px !important;
     }
 
+    .z-cse .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #4b4b4c;
+    }
+
+    .z-cse .inspector .eventrainbow td.severity-icon-small {
+        padding-right: 4px;
+        width: 36px;
+        text-align: right;
+    }
 
 /*
         =====================================================================================
@@ -2857,4 +2866,10 @@ BYE BYE BORDERS
         background-color: #ccc;
         background-size: 75%;
         background-position: center;
+    }
+
+    /* inspector window */
+    .z-cse.z-cse-dark .inspector span.status-up,
+    .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #5a5a5a;
     }

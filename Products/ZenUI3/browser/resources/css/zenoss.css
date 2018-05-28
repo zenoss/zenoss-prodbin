@@ -121,6 +121,8 @@ a:link, a:visited {
 
 .inspector .inspector-header .header-title .name a {
   color: black;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .inspector .inspector-header .header-title .name a:hover, .inspector .inspector-header .header-title .name a:visited, .inspector .inspector-header .header-title .name a:link {
