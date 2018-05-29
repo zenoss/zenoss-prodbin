@@ -31,3 +31,16 @@ def getBearerToken(request):
     if auth is None or len(auth) < 9 or auth[:7].lower() != 'bearer ':
         return None
     return auth.split()[-1]
+
+def parseCookies(request):
+    '''
+    Parses out the cookies from the zope request and returns them as
+    a dictionary.
+    '''
+    cookies = {}
+    header = request.get_header('Cookie', '')
+    for cookie in [c.strip() for c in header.split(';') if c.strip() != '']:
+        data = cookie.split('=')
+        if len(data) == 2:
+            cookies[data[0]] = data[1]
+    return cookies
