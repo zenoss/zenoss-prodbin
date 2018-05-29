@@ -1323,9 +1323,12 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 
 
 .graph-panel {
-  padding: 5px;
+  margin: 5px;
 }
 
+.nvd3-svg {
+   overflow: visible;
+}
 
 .ext-ie .inspector .inspector-header .header-title .info {
   background: transparent;
@@ -1732,6 +1735,7 @@ div.europagraph {
       float:right;
       opacity:.5;
       cursor:pointer;
+      margin: 5px 5px 0 5px;
   }
 
   .z-europa-menu-body .x-menu-item-link {
