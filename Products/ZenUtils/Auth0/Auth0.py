@@ -15,7 +15,7 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IRolesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS, parseCookies
+from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
 from Products.ZenUtils.CSEUtils import getZenossURI, getZingURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
@@ -52,11 +52,13 @@ def getAuth0Conf():
         config = getGlobalConfiguration()
         for k in _AUTH0_CONFIG:
             d[k] = config.get('auth0-' + k)
+        if not all(d.values()) and any(d.values()):
+            raise Exception('Auth0 config is missing values. Expecting: %s' % ', '.join(['auth0-%s' % value for value in _AUTH0_CONFIG.keys()]))
         _AUTH0_CONFIG = d if all(d.values()) else None
         # Whitelist is a comma separated array of strings
-        if _AUTH0_CONFIG:
+        if _AUTH0_CONFIG and _AUTH0_CONFIG['whitelist']:
             _AUTH0_CONFIG['whitelist'] = [s.strip() for s in _AUTH0_CONFIG['whitelist'].split(',') if s.strip() != '']
-    return _AUTH0_CONFIG
+    return _AUTH0_CONFIG or None
 
 def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
@@ -163,8 +165,10 @@ class Auth0(BasePlugin):
         # Clear session variables and redirect to the ZC logout.
         request.SESSION.clear()
         response.expireCookie(Auth0.zc_token_key)
-        log.info('Redirecting user to Auth0 logout')
-        response.redirect("/logout")
+        conf = getAuth0Conf()
+        if conf:
+            log.info('Redirecting user to Auth0 logout: %s' % conf)
+            response.redirect("/logout")
 
 
     def extractCredentials(self, request):
@@ -178,17 +182,13 @@ class Auth0(BasePlugin):
             log.debug('Incomplete Auth0 config in GlobalConfig - not using Auth0 login')
             return {}
 
-        cookies = parseCookies(request)
-        token = cookies.get(Auth0.zc_token_key, None)
+        token = request.cookies.get(Auth0.zc_token_key, None)
         if not token:
             log.debug('No Auth0 token found in cookies')
             return {}
 
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
-            if not token:
-                log.debug('No Auth0 token found in cookies')
-                return {}
             sessionInfo = Auth0.storeIdToken(token, request.SESSION, conf)
 
         if not sessionInfo.userid:
@@ -232,8 +232,7 @@ class Auth0(BasePlugin):
         sessionInfo = request.SESSION.get(Auth0.session_key)
         currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
         if not sessionInfo:
-            cookies = parseCookies(request)
-            token = cookies.get(Auth0.zc_token_key, None)
+            token = request.cookies.get(Auth0.zc_token_key, None)
             if token:
                 sessionInfo = self.storeIdToken(token, request.SESSION, conf)
                 if sessionInfo:
