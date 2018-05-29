@@ -11,7 +11,7 @@
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
-<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
+<html class="z-cse z-cse-dark">
     <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -35,6 +35,13 @@
         <tal:block tal:content="structure provider:all-css"/>
 
         <!-- Static javascript -->
+        <script>
+        // get user theme
+        // window.localStorage.setItem("z-theme","dark");
+        if (window.localStorage.getItem("z-theme") === "light") {
+            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark");
+        }
+        </script>
         <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
         <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>
@@ -227,4 +234,7 @@ Ext.History.init(function(mgr){
 
 </body>
 </html>
+
+
+
 </metal:block>
