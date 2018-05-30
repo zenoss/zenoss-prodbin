@@ -464,6 +464,7 @@
             },
             this);
         },
+
         expandGraph: function(){
             var config = {},
                 drange = "null",
@@ -485,21 +486,20 @@
             config.hasMenu = false;
             config.xtype = 'europagraph';
             config.height = window.outerHeight * 0.75;
-            config.width = Math.min(window.outerWidth * 0.80, config.height * 1.6180339887);
-            config.maxWidth = 2000;
             config.autoScroll = true;
             delete config.html;
 
             var win = Ext.create('Zenoss.dialog.BaseWindow', {
                 cls: 'white-background-panel',
                 layout: 'fit',
-                width: config.width * 1.15,
-                height: config.height * 1.05,
+                // ZEN-30103
+                width: '90%',
                 resizable: false,
                 items: [config]
             });
             win.show();
         },
+
         adjustHeight: function(chart) {
             // adjust height based on graph content
             var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0);
