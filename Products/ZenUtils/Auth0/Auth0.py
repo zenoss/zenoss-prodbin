@@ -168,7 +168,7 @@ class Auth0(BasePlugin):
         conf = getAuth0Conf()
         if conf:
             log.info('Redirecting user to Auth0 logout: %s' % conf)
-            response.redirect("/logout")
+            response.redirect("/logout.html")
 
 
     def extractCredentials(self, request):
