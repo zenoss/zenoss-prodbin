@@ -426,11 +426,11 @@ Ext.Direct.on('exception', function(e) {
         cmp.destroy();
     }
 
-    // If we're in a CSE environment and missing the zauth0_key cookie, we've been
+    // If we're in a CSE environment and missing the accessToken cookie, we've been
     // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
     if (Zenoss.env.CSE_VIRTUAL_ROOT) {
-        if (document.cookie.indexOf('zauth0_key') === -1) {
-            console.log('Auth0 key not found; reloading page');
+        if (document.cookie.indexOf('accessToken') === -1) {
+            console.log('Auth0 accessToken not found; reloading page');
             window.location.reload();
             return;
         }
