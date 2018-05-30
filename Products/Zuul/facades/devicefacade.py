@@ -740,9 +740,7 @@ class DeviceFacade(TreeFacade):
         object = self._getObject(id)
         
         if isinstance(object, Device):
-            devClassTemplates = set(object.deviceClass().getRRDTemplates())
-            devTemplates = set(object.getRRDTemplates())
-            rrdTemplates = list(devClassTemplates.union(devTemplates))
+            rrdTemplates = object.getAvailableTemplates()
         else:
             rrdTemplates = object.getRRDTemplates()        
 
