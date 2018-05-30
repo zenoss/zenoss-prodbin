@@ -215,7 +215,6 @@ Zenoss.env.isDarkTheme = (function () {
 
     return false;
 }());
-Zenoss.env.isLightTheme = !Zenoss.env.isDarkTheme;
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
