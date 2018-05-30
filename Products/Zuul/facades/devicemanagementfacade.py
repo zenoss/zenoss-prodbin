@@ -91,10 +91,6 @@ class DeviceManagementFacade(ZuulFacade):
         add a new user command id
         """
         obj = self._getObject(params['uid'])
-
-        if not obj.ZenUsers.authenticateCredentials(obj.ZenUsers.getUser().getId(), params['password']):
-            raise Exception('Add new command failed. Incorrect or missing password.')
-            
         obj.manage_addUserCommand(newId=params['name'], cmd=params['command'], desc=params['description'])
         
     def deleteUserCommand(self, uid, id):

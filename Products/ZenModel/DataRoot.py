@@ -782,7 +782,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "https://help.zenoss.com/display/cloud/Collection+Zone"
+        return "https://help.zenoss.com/pages/viewpage.action?pageId=65849"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
@@ -893,18 +893,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
 
         if REQUEST:
-            curuser = self.dmd.ZenUsers.getUser().getId()
-            curpasswd = REQUEST.get('curPasswd')
-
-            if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'Confirmation password is empty or invalid. Please'
-                    ' confirm your password for security reasons.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
                 activateSessionBasedAuthentication(self.zport)
