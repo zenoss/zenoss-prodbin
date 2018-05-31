@@ -384,6 +384,14 @@ BYE BYE BORDERS
         padding: 2px 0 9px;
     }
 
+    /*ZEN-30098*/
+    .z-cse.z-cse-dark .x-surface text {
+        fill: #4b4b4c;
+    }
+    .z-cse .x-surface path {
+        stroke: #999;
+    }
+
     /* filter coloring */
     .z-cse #component_searchfield-inputEl
     /* .z-cse .x-grid-filter .x-form-field, */
@@ -2288,6 +2296,15 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable label {
         color: #ccc;
     }
+
+    /*ZEN-30098*/
+    .z-cse.z-cse-dark .x-surface text {
+        fill: #999;
+    }
+    .z-cse.z-cse-dark .x-surface path {
+        stroke: #ccc;
+    }
+
 
     /* <ZEN-29844> tab panel tabs dark styles*/
     .z-cse.z-cse-dark .white-background-panel .x-tab {
