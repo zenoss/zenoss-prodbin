@@ -448,7 +448,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
     },
 
     onItemDblClick: function(view, record) {
-        window.location = record.get("uid");
+        window.location = Zenoss.render.link(null, record.get("uid"));
     },
     applyOptions: function(options){
         // only request the visible columns
