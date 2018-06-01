@@ -353,7 +353,9 @@
             Ext.applyIf(root, {
                 id: root.id,
                 uid: root.uid,
-                text: _t(root.text || root.id)
+                text: _t(root.text || root.id),
+                // if we set root node here we should make it expanded to allow store on load build right tree node view;
+                expanded: true
             });
             this.root = root;
             this.stateHash = {};
@@ -393,7 +395,10 @@
                                 this.expandPath(this.stateHash[p]);
                             }
                         }
-                    }
+                    },
+                    // we should listen load event only ones on apply state
+                    // because all next loads/reloads will fire this and break tree;
+                    single: true
                 }
             });
         },
@@ -408,14 +413,6 @@
                         this.addHistoryToken(this.getView(), this.getRootNode().firstChild);
                         this.getRootNode().firstChild.expand();
                         this.getSelectionModel().select(this.getRootNode().firstChild);
-                    }
-                }, this, { single: true });
-            } else {
-
-                // always expand the first shown root if we can
-                this.getRootNode().on('expand', function () {
-                    if (this.getRootNode().firstChild) {
-                        this.getRootNode().firstChild.expand();
                     }
                 }, this, { single: true });
             }
