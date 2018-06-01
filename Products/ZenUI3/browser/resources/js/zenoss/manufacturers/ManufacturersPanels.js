@@ -63,13 +63,16 @@ Ext.onReady(function () {
                     };
                     Zenoss.remote.ManufacturersRouter.moveProduct(params, function (response) {
                         if (response.success) {
-                            var tree = Ext.getCmp('manufacturers_tree');
-                            tree.refresh();
-                            tree.getStore().on('load', function () {
-                                var nodeId = moveTarget;
-                                var node = tree.getRootNode().findChild("uid", nodeId, true);
-                                tree.getView().select(node);
-                            }, this, {single: true});
+                            var grid = Ext.getCmp('productsgrid_id');
+                            grid.store.reload({
+                                callback: function () {
+                                    var tree = Ext.getCmp('manufacturers_tree'),
+                                        nodeId = moveTarget,
+                                        node = tree.store.findRecord('uid', nodeId, 0, false, false, true);
+                                    tree.getSelectionModel().select(node);
+                                },
+                                scope: this
+                            });
                         }
                     });
                 }

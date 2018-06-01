@@ -21,7 +21,7 @@ Ext.define('Zenoss.software.SoftwareGridPanel', {
                 width: 280,
                 header: _t('Manufacturer'),
                 renderer: function(v) {
-                    return Ext.String.format('<a href="{0}">{1}</a>', v.uid, v.name);
+                    return Zenoss.render.link(false, v.uid, v.name);
                 }
             }, {
                 dataIndex: 'namelink',

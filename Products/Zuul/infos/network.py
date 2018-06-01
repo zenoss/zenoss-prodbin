@@ -77,7 +77,7 @@ class IpNetworkInfo(InfoBase):
     @property
     def ipcount(self):
         return str(self._object.countIpAddresses()) + '/' + \
-               str(self._object.freeIps())
+               "{:,}".format(self._object.freeIps())
 
     # zProperties
     def getZAutoDiscover(self):
@@ -157,6 +157,11 @@ class IpNetworkInfo(InfoBase):
 
 class IpAddressInfo(InfoBase, BulkLoadMixin):
     implements(IIpAddressInfo)
+
+    @property
+    @info
+    def manageDevice(self):
+        return self._object.manageDevice()
 
     @property
     @info

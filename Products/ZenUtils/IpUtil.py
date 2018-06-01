@@ -221,6 +221,15 @@ def ipFromIpMask(ipmask):
     """
     return ipmask.split("/")[0]
 
+def ipAndMaskFromIpMask(ipmask):
+    """
+    Get just the IP address and Mask from string like 1.1.1.1/24
+    """
+    if ipmask.find("/") > -1:
+        ip, netmask = ipmask.split("/",1)
+        return ip, netmask
+    return ipmask, ""
+
 def strip(ip):
     """
     Convert a numeric IP address to a string

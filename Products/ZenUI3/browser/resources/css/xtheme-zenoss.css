@@ -2639,6 +2639,9 @@ table.x-datepicker-inner .x-datepicker-disabled a {
 .x-menu-date-item {
   border-color: #99BBE8; }
 
+#center_panel, #footer_panel {
+  z-index: 0; }
+
 .x-panel .x-grid-body {
   background: white;
   border-color: #99bce8;
@@ -6266,183 +6269,6 @@ a.x-tab-close-btn:hover {
   background-repeat: repeat-x;
   background-image: url('../img/xtheme-zenoss/tab/tab-default-bottom-disabled-bg.gif'); }
 
-.x-autowidth-table table.x-grid-table {
-  table-layout: auto;
-  width: auto !important; }
-
-.x-tree-no-lines .x-tree-elbow {
-  background-color: transparent; }
-
-.x-tree-no-lines .x-tree-elbow-end {
-  background-color: transparent; }
-
-.x-tree-no-lines .x-tree-elbow-line {
-  background-color: transparent; }
-
-.x-tree-arrows .x-tree-elbow-plus {
-  background: transparent no-repeat 0 0; }
-
-.x-tree-arrows .x-tree-elbow-end-plus {
-  background: transparent no-repeat 0 0; }
-
-.x-tree-arrows .x-tree-elbow-end-minus {
-  background: transparent no-repeat -16px 0; }
-
-.x-tree-arrows .x-tree-elbow-minus {
-  background: transparent no-repeat -16px 0; }
-
-.x-tree-arrows .x-tree-elbow {
-  background-color: transparent !important; }
-
-.x-tree-arrows .x-tree-elbow-end {
-  background-color: transparent !important; }
-
-.x-tree-arrows .x-tree-elbow-line {
-  background-color: transparent !important; }
-
-.x-tree-arrows .x-tree-expander-over .x-tree-elbow-plus, .x-tree-arrows .x-tree-expander-over .x-tree-elbow-end-plus {
-  background-position: -32px 0; }
-
-.x-tree-arrows .x-tree-expander-over .x-tree-elbow-minus, .x-tree-arrows .x-tree-expander-over .x-tree-elbow-end-minus {
-  background-position: -48px 0; }
-
-.x-tree-arrows .x-grid-tree-node-expanded .x-tree-elbow-plus, .x-tree-arrows .x-grid-tree-node-expanded .x-tree-elbow-end-plus {
-  background-position: -16px 0; }
-
-.x-tree-arrows .x-grid-tree-node-expanded .x-tree-expander-over .x-tree-elbow-plus, .x-tree-arrows .x-grid-tree-node-expanded .x-tree-expander-over .x-tree-elbow-end-plus {
-  background-position: -48px 0; }
-
-.x-tree-elbow-plus, .x-tree-elbow-minus, .x-tree-elbow-end-plus, .x-tree-elbow-end-minus {
-  cursor: pointer; }
-
-.x-tree-lines .x-tree-elbow {
-  background-image: url('../img/xtheme-zenoss/tree/elbow.gif'); }
-.x-tree-lines .x-tree-elbow-end {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-end.gif'); }
-.x-tree-lines .x-tree-elbow-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-plus.gif'); }
-.x-tree-lines .x-tree-elbow-end-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-end-plus.gif'); }
-.x-tree-lines .x-grid-tree-node-expanded .x-tree-elbow-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-minus.gif'); }
-.x-tree-lines .x-grid-tree-node-expanded .x-tree-elbow-end-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-end-minus.gif'); }
-.x-tree-lines .x-tree-elbow-line {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-line.gif'); }
-
-.x-tree-no-lines .x-tree-elbow-plus, .x-tree-no-lines .x-tree-elbow-end-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-plus-nl.gif'); }
-.x-tree-no-lines .x-grid-tree-node-expanded .x-tree-elbow-plus, .x-tree-no-lines .x-grid-tree-node-expanded .x-tree-elbow-end-plus {
-  background-image: url('../img/xtheme-zenoss/tree/elbow-end-minus-nl.gif'); }
-
-.x-tree-arrows .x-tree-elbow-plus, .x-tree-arrows .x-tree-elbow-minus, .x-tree-arrows .x-tree-elbow-end-plus, .x-tree-arrows .x-tree-elbow-end-minus {
-  background-image: url('../img/xtheme-zenoss/tree/arrows.gif'); }
-
-.x-tree-icon {
-  margin: 2px 3px 0 0; }
-
-.x-grid-with-row-lines .x-tree-icon {
-  margin-top: 1px; }
-
-.x-tree-elbow, .x-tree-elbow-end, .x-tree-elbow-plus, .x-tree-elbow-end-plus, .x-tree-elbow-empty, .x-tree-elbow-line {
-  height: 20px;
-  width: 16px; }
-
-.x-grid-with-row-lines .x-tree-elbow, .x-grid-with-row-lines .x-tree-elbow-end, .x-grid-with-row-lines .x-tree-elbow-plus, .x-grid-with-row-lines .x-tree-elbow-end-plus, .x-grid-with-row-lines .x-tree-elbow-empty, .x-grid-with-row-lines .x-tree-elbow-line {
-  height: 19px;
-  background-position: 0 -1px; }
-
-.x-tree-icon-leaf {
-  width: 16px;
-  background-image: url('../img/xtheme-zenoss/tree/leaf.gif'); }
-
-.x-tree-icon-parent {
-  width: 16px;
-  background-image: url('../img/xtheme-zenoss/tree/folder.gif'); }
-
-.x-grid-tree-node-expanded .x-tree-icon-parent {
-  background-image: url('../img/xtheme-zenoss/tree/folder-open.gif'); }
-
-.x-grid-rowbody {
-  padding: 0; }
-
-.x-grid-cell-treecolumn .x-grid-cell-inner {
-  padding: 0;
-  line-height: 19px; }
-
-.x-grid-with-row-lines .x-grid-cell-treecolumn .x-grid-cell-inner {
-  line-height: 17px; }
-
-.x-tree-panel .x-grid-cell-inner {
-  cursor: pointer; }
-.x-tree-panel .x-grid-cell-inner img {
-  display: inline-block;
-  vertical-align: top; }
-
-.x-ie .x-tree-panel .x-tree-elbow, .x-ie .x-tree-panel .x-tree-elbow-end, .x-ie .x-tree-panel .x-tree-elbow-plus, .x-ie .x-tree-panel .x-tree-elbow-end-plus, .x-ie .x-tree-panel .x-tree-elbow-empty, .x-ie .x-tree-panel .x-tree-elbow-line {
-  vertical-align: -6px; }
-
-.x-grid-editor-on-text-node .x-form-text {
-  padding-left: 1px;
-  padding-right: 1px; }
-
-.x-ie .x-grid-editor-on-text-node .x-form-text {
-  padding-left: 2px;
-  padding-right: 2px; }
-
-.x-opera .x-grid-editor-on-text-node .x-form-text {
-  padding-left: 2px;
-  padding-right: 2px; }
-
-.x-tree-checkbox {
-  margin: 4px 3px 0 0;
-  display: inline-block;
-  vertical-align: top;
-  width: 13px;
-  height: 13px;
-  background: no-repeat;
-  background-image: url('../img/xtheme-zenoss/form/checkbox.gif');
-  overflow: hidden;
-  padding: 0;
-  border: 0; }
-.x-tree-checkbox::-moz-focus-inner {
-  padding: 0;
-  border: 0; }
-
-.x-grid-with-row-lines .x-tree-checkbox {
-  margin-top: 3px; }
-
-.x-tree-checkbox-checked {
-  background-position: 0 -13px; }
-
-.x-tree-drop-ok-append .x-dd-drop-icon {
-  background-image: url('../img/xtheme-zenoss/tree/drop-append.gif'); }
-
-.x-tree-drop-ok-above .x-dd-drop-icon {
-  background-image: url('../img/xtheme-zenoss/tree/drop-above.gif'); }
-
-.x-tree-drop-ok-below .x-dd-drop-icon {
-  background-image: url('../img/xtheme-zenoss/tree/drop-below.gif'); }
-
-.x-tree-drop-ok-between .x-dd-drop-icon {
-  background-image: url('../img/xtheme-zenoss/tree/drop-between.gif'); }
-
-.x-grid-tree-loading .x-tree-icon {
-  background-image: url('../img/xtheme-zenoss/tree/loading.gif'); }
-
-.x-tree-ddindicator {
-  height: 1px;
-  border-width: 1px 0px 0px;
-  border-style: dotted;
-  border-color: green; }
-
-.x-grid-tree-loading span {
-  font-style: italic;
-  color: #444444; }
-
-.x-tree-animator-wrap {
-  overflow: hidden; }
-
 .x-surface {
   display: -moz-inline-box;
   -moz-box-orient: vertical;
@@ -7518,8 +7344,7 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
   border-color: green; }
 
 .x-grid-tree-loading span {
-  font-style: italic;
-  color: #444444; }
+  font-style: italic; }
 
 .x-tree-animator-wrap {
   overflow: hidden; }
@@ -9152,9 +8977,6 @@ $menu-icon-unchecked: 'menu/unchecked.gif';
 
 #evdetail-sep {
   left: 35px !important; }
-
-#evdetail-popout {
-  height: 47px !important; }
 
 #severity-icon-body, #evdetail-sep-body {
   height: 0px !important; }

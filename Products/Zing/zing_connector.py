@@ -28,7 +28,8 @@ GLOBAL_ZING_CONNECTOR_ENDPOINT = "zing-connector-endpoint"
 GLOBAL_ZING_CONNECTOR_TIMEOUT = "zing-connector-timeout"
 DEFAULT_HOST = "http://localhost:9237"
 DEFAULT_ENDPOINT = "/api/model/ingest"
-PING_ENDPOINT = "/_admin/ping"
+PING_PORT = "9000"
+PING_ENDPOINT = "/ping"
 DEFAULT_TIMEOUT = 5
 
 
@@ -36,10 +37,22 @@ class ZingConnectorConfig(object):
     def __init__(self, host=None, endpoint=None, timeout=None):
         host = host or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_URL) or DEFAULT_HOST
         endpoint = endpoint or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_ENDPOINT) or DEFAULT_ENDPOINT
-        timeout = timeout or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_TIMEOUT) or DEFAULT_TIMEOUT
         self.facts_url = urlparse.urljoin(host, endpoint)
-        self.ping_url = urlparse.urljoin(host, PING_ENDPOINT)
+
+        timeout = timeout or getGlobalConfiguration().get(GLOBAL_ZING_CONNECTOR_TIMEOUT) or DEFAULT_TIMEOUT
         self.timeout = timeout
+
+        parts = urlparse.urlsplit(host)
+        start = parts.netloc.rfind(":")
+        if start != -1:
+            newNetloc = parts.netloc[:start+1] + PING_PORT
+        else:
+            newNetloc = parts.netloc + ":" + PING_PORT
+
+        l = list(parts)
+        l[1] = newNetloc
+        adminUrl = urlparse.urlunsplit(tuple(l))
+        self.ping_url = urlparse.urljoin(adminUrl, PING_ENDPOINT)
 
 
 class ZingConnectorClient(object):
@@ -103,7 +116,7 @@ class ZingConnectorClient(object):
             resp = self.session.get(self.ping_url, timeout=0.2)
             resp_code = resp.status_code
         except Exception as e:
-            log.debug("Zing connector is unavailable")
+            log.debug("Zing connector is unavailable at {}".format(self.ping_url))
         return resp_code == 200
 
 

@@ -11,7 +11,7 @@
 
 <metal:block  metal:define-macro="base-new">
     <!DOCTYPE html>
-<html tal:attributes="class here/dmd/ZenUsers/getUserTheme" >
+<html class="z-cse z-cse-dark">
     <head>
         <title>
             <tal:block tal:content="here/dmd/instanceIdentifier"/>:
@@ -35,6 +35,13 @@
         <tal:block tal:content="structure provider:all-css"/>
 
         <!-- Static javascript -->
+        <script>
+        // get user theme
+        // window.localStorage.setItem("z-theme","dark");
+        if (window.localStorage.getItem("z-theme") === "light") {
+            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark");
+        }
+        </script>
         <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
         <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>
@@ -63,8 +70,9 @@
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block metal:define-slot="head-local"/>
 
+        <!-- add name attribute to zen-cse.css link to later get and inject this styles to iframes -->
         <link tal:condition="python:True" rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/zen-cse.css" />
+            href="/++resource++zenui/css/zen-cse.css" name="zen_cse_css" />
 
     </head>
 
@@ -73,7 +81,7 @@
             <div class="bg">
                 <div class="bg-leftcap">
                     <div class="bg-tile">
-                        <div class="bg-logo"></div>
+                        <a class="external-link bg-logo" href="/" rel="nofollow"></a>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
                             <div id="header-extra">
@@ -85,7 +93,7 @@
                                     </a>
                                 </div>
                                 <div id="sign-out-link">
-                                    <a href="/zport/dmd/logoutUser">sign out</a>
+                                    <a href="/zport/dmd/logoutUser">Logout</a>
                                 </div>
                                 <div>
                                     <div id="help-icon-container">
@@ -226,4 +234,7 @@ Ext.History.init(function(mgr){
 
 </body>
 </html>
+
+
+
 </metal:block>

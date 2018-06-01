@@ -33,6 +33,7 @@ from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils.Utils import getPasswordFields, maskSecureProperties
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
@@ -304,7 +305,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         process = facade.getInfo(uid)
+        secure_properties = getPasswordFields(process)
         data = Zuul.marshal(process, keys)
+        maskSecureProperties(data, secure_properties)
         disabled = not Zuul.checkPermission('Manage DMD', self.context)
         return DirectResponse(data=data, disabled=disabled)
 
@@ -398,6 +401,7 @@ class DeviceRouter(TreeRouter):
         If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
+        query = "*" if not query else query
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = [{'name':escape(dev.name),
                    'uuid':IGlobalIdentifier(dev._object).getGUID()}

@@ -58,6 +58,9 @@ class EventLoggerAdapter(logging.LoggerAdapter):
                                             msg=msg)
         return msg, kwargs
 
+def quote_and_escape(value):
+    return '"{}"'.format(value.replace('"', '\\"'))
+
 class Manager(object):
     """
     Provides lookup access to processing pipes and performs caching.
@@ -127,9 +130,10 @@ class Manager(object):
         if cls:
             catalog = catalog or self._catalogs.get(element_type_id)
             if catalog:
+                quoted_id = quote_and_escape(id)
                 results = IModelCatalogTool(catalog).search(cls,
-                                                       query=Or(Eq('id', id),
-                                                                Eq('name', id)),
+                                                       query=Or(Eq('id', quoted_id),
+                                                                Eq('name', quoted_id)),
                                                        filterPermissions=False,
                                                        limit=1, fields=["uuid"])
                 if results.total:
@@ -176,7 +180,8 @@ class Manager(object):
             ip_address = None
             ip_decimal = None
 
-        query_set = Or(Eq('id', identifier), Eq('name', identifier))
+        quoted_id = quote_and_escape(identifier)
+        query_set = Or(Eq('id', quoted_id), Eq('name', quoted_id))
         if ip_decimal is not None:
             query_set.addSubquery(Eq('decimal_ipAddress', str(ip_decimal)))
         device_brains = list(dev_cat.search(types=Device,

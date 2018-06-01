@@ -195,7 +195,7 @@
     template="templates/collectortemplate.pt"
     name="collectorTemplate"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageControlCenter"
     />
 
 <browser:page
@@ -366,13 +366,6 @@
     name="getDaemonLogs"
     for="Products.ZenModel.interfaces.IDataRoot"
     permission="zenoss.Common"
-    />
-
-<browser:page
-    template="templates/localDocumentation.pt"
-    name="localDocumentation"
-    for="*"
-    permission="zope2.Public"
     />
 
 <browser:view

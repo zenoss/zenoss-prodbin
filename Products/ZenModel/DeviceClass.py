@@ -174,16 +174,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
-        
-        if ip:
-            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
-            netroot = mon.getNetworkRoot()
-            ipobj = netroot.findIp(ip)
-            if ipobj:
-                dev = ipobj.device()
-                if dev:
-                    raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-    
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
@@ -195,6 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                             deviceName, dev)
                 
         if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
@@ -307,7 +298,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 @rtype: string
                 """
                 o = StringIO()
-                d.exportXml(o, exportPasswords=True)
+                d.exportXml(o, exportPasswords=True, move=True)
                 return switchClass(o, module, klass)
 
             def devImport(xmlfile):
@@ -331,8 +322,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             xmlfile = devExport(dev, module, klass)
             log.debug('Removing device %s from %s', devname, source)
             source.devices._delObject(devname)
-            # doing this search will cause the deletion to commit to solr:
-            IModelCatalogTool(self.getDmd()).search(limit=0, commit_dirty=True)
             log.debug('Importing device %s to %s', devname, target)
             devImport(xmlfile)
             exported = True

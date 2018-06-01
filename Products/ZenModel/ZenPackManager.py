@@ -16,7 +16,6 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
-from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.Utils import binPath, varPath
@@ -24,6 +23,12 @@ from Products.ZenWidgets import messaging
 import os
 import tempfile
 import logging
+
+from ZenossSecurity import (
+    ZEN_MANAGE_DMD, ZEN_MANAGE_GLOBAL_SETTINGS, ZEN_MANAGE_GLOBAL_COMMANDS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
+)
 
 log = logging.getLogger('zen.ZenPackManager')
 
@@ -61,22 +66,22 @@ class ZenPackManager(ZenModelRM):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : '../ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : 'viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS,)
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -86,17 +91,17 @@ class ZenPackManager(ZenModelRM):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG, )
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
             )
          },

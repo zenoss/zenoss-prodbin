@@ -31,7 +31,10 @@ echo "Solr is running"
 
 echo "Starting runtest.py"
 $PYTHON $ZENHOME/bin/runtests.py $@
-echo "Tests finished"
+EXIT_CODE=$?
+echo "Tests finished with exit_code=$EXIT_CODE"
 
 echo "Stopping Solr (up to 180 sec)..."
 /opt/solr/bin/solr stop -p $SOLR_TEST_PORT 1> /dev/null
+
+exit $EXIT_CODE

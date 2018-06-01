@@ -2169,7 +2169,7 @@ dialog_addUserGroup
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Manage Users',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ()
@@ -2201,7 +2201,7 @@ dialog_addUserToGroup
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Manage Users',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ()
@@ -2233,7 +2233,7 @@ dialog_deleteUserGroups
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Manage Users',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ()
@@ -5329,7 +5329,7 @@ dialog_addUser
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Manage Users',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ()
@@ -5361,7 +5361,7 @@ dialog_deleteUsers
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Manage Users',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ()

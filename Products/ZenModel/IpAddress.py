@@ -66,6 +66,7 @@ class IpAddress(ManagedEntity, IpAddressIndexable):
     _relations = ManagedEntity._relations + (
         ("network", ToOne(ToManyCont,"Products.ZenModel.IpNetwork","ipaddresses")),
         ("interface", ToOne(ToMany,"Products.ZenModel.IpInterface","ipaddresses")),
+        ("manageDevice", ToOne(ToOne,"Products.ZenModel.Device","ipaddress")),
         ("clientroutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","nexthop")),
         )
 

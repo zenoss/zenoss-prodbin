@@ -553,7 +553,11 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
+                    deselect: function() {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
+                    },
                     select: function(sm, row) {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
                         // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired
@@ -564,8 +568,6 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 return;
                             }
                             this.previousRow = row;
-                            this.detailcontainer.removeAll();
-                            this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,

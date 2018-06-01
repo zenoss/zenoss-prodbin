@@ -152,19 +152,7 @@
                         text: _t('Refresh Tree'),
                         handler: function (item, e) {
                             var tree = item.parentMenu.tree;
-                            tree.getStore().load({
-                                scope: tree,
-                                callback: function (records, opts, success) {
-                                    if (success) {
-                                        var root = tree.getRootNode();
-                                        var treeState = tree.getTreeState(root);
-                                        var childNodes = opts.response.result[0];
-                                        root.removeAll();
-                                        root.appendChild(childNodes);
-                                        tree.restoreTreeState(treeState);
-                                    }
-                                }
-                            });
+                            tree.refresh();
                         }
                     },
                     {
@@ -335,8 +323,8 @@
                      * Used by the tree store to determine what
                      * to send to the server
                      **/
-                    getId: function () {
-                        return this.get("uid");
+                    getId: function() {
+                        return Zenoss.render.link(false, this.get('uid'));
                     },
                     proxy: {
                         simpleSortMode: true,
@@ -347,7 +335,7 @@
                     fields: Zenoss.model.BASE_TREE_FIELDS.concat(config.extraFields || [])
                 });
                 config.store = new Ext.create('Ext.data.TreeStore', {
-                    clearOnLoad: false,
+                    // clearOnLoad: false,
                     model: modelId,
                     nodeParam: 'uid',
                     defaultRootId: root.uid,
@@ -365,13 +353,17 @@
             Ext.applyIf(root, {
                 id: root.id,
                 uid: root.uid,
-                text: _t(root.text || root.id)
+                text: _t(root.text || root.id),
+                // if we set root node here we should make it expanded to allow store on load build right tree node view;
+                expanded: true
             });
             this.root = root;
             this.stateHash = {};
             if (config.stateful) {
+                // additional event that will listen store node expan/collapse to save current tree state;
+                this.addEvents('nodestatechange')
                 this.stateEvents = this.stateEvents || [];
-                this.stateEvents.push('expandnode', 'collapsenode');
+                this.stateEvents.push('nodestatechange');
             }
 
             Zenoss.HierarchyTreePanel.superclass.constructor.apply(this, arguments);
@@ -403,39 +395,35 @@
                                 this.expandPath(this.stateHash[p]);
                             }
                         }
-                    }
+                    },
+                    // we should listen load event only ones on apply state
+                    // because all next loads/reloads will fire this and break tree;
+                    single: true
                 }
             });
         },
         initEvents: function () {
-            var me = this;
+            var store =  this.getStore();
             Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
 
             if (this.selectRootOnLoad && !Ext.History.getToken()) {
                 this.getRootNode().on('expand', function () {
                     // The first child is our real root
                     if (this.getRootNode().firstChild) {
-                        me.addHistoryToken(me.getView(), this.getRootNode().firstChild);
-                        me.getRootNode().firstChild.expand();
-                        me.getSelectionModel().select(this.getRootNode().firstChild);
-                    }
-                }, this, { single: true });
-            } else {
-
-                // always expand the first shown root if we can
-                this.getRootNode().on('expand', function () {
-                    if (this.getRootNode().firstChild) {
+                        this.addHistoryToken(this.getView(), this.getRootNode().firstChild);
                         this.getRootNode().firstChild.expand();
+                        this.getSelectionModel().select(this.getRootNode().firstChild);
                     }
                 }, this, { single: true });
             }
             this.addEvents('filter');
             this.on('itemclick', this.addHistoryToken, this);
-            this.on({
-                beforeexpandnode: function (node) {
+            store.on({
+                expand: function (node) {
                     this.stateHash[node.id] = node.getPath();
+                    this.fireEvent('nodestatechange');
                 },
-                beforecollapsenode: function (node) {
+                collapse: function (node) {
                     delete this.stateHash[node.id];
                     var tPath = node.getPath();
                     for (var t in this.stateHash) {
@@ -445,7 +433,9 @@
                             }
                         }
                     }
-                }
+                    this.fireEvent('nodestatechange');
+                },
+                scope: this
             });    // add some listeners for state
         },
         addHistoryToken: function (view, node) {
@@ -464,7 +454,6 @@
             }
 
             doUpdate(this.getRootNode(), data);
-
         },
         selectByToken: function (nodeId) {
             nodeId = unescape(nodeId);
@@ -596,7 +585,8 @@
          * Override this method if your tree implements a custom path setup
          **/
         getNodePathById: function (nodeId) {
-            var depth = this.root.uid.split('/').length - this.rootDepth,
+            var rootUid = Zenoss.env.CSE_VIRTUAL_ROOT ? this.root.uid.replace(Zenoss.env.CSE_VIRTUAL_ROOT, '') : this.root.uid,
+                depth = rootUid.split('/').length - this.rootDepth,
                 parts = nodeId.split(this.nodeIdSeparator),
                 path = [],
                 segment = Ext.Array.splice(parts, 0, depth + 1).join(this.nodeIdSeparator);
@@ -768,49 +758,43 @@
             this.addTreeNode(params);
         },
         addTreeNode: function (params) {
-            var callback = function (provider, response) {
-                var result = response.result;
-                var me = this;
-                if (result.success) {
-                    // look for another node on result and assume it's the new node, grab it's id
-                    // TODO would be best to normalize the names of result node
-                    var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
-                    this.getStore().load({
-                        callback: function () {
+            var me = this,
+                callback = function (provider, response) {
+                    var result = response.result;
+                    if (result.success) {
+                        // look for another node on result and assume it's the new node, grab it's id
+                        // TODO would be best to normalize the names of result node
+                        var nodeId = Zenoss.env.PARENT_CONTEXT + '/' + params.id;
+                        me.refresh(function () {
                             nodeId = nodeId.replace(/\//g, '.');
-                            me.selectByToken(nodeId);
-                        }
-                    });
-
-                    this.refresh();
-                }
-                else {
-                    Ext.Msg.alert('Error', result.msg);
-                }
-            };
+                            this.selectByToken(nodeId);
+                        }, me);
+                    }
+                    else {
+                        Ext.Msg.alert('Error', result.msg);
+                    }
+                };
 
             this.addNodeFn(params, Ext.bind(callback, this));
         },
         deleteSelectedNode: function () {
-            var node = this.getSelectionModel().getSelectedNode();
-            var me = this;
-            var parentNode = node.parentNode;
-            var uid = node.get('uid');
-            var params = { uid: uid };
+            var me = this,
+                selModel = this.getSelectionModel(),
+                node = selModel.getSelectedNode(),
+                parentNode = node && node.parentNode,
+                params;
+            // nothing to delete;
+            if (!node) return;
+
+            // select parentNode of removed node
+            selModel.select(parentNode);
+            params = { uid: node.get('uid') };
 
             function callback(provider, response) {
                 // Only update the UI if the response indicates success
                 if (Zenoss.util.isSuccessful(response)) {
-                    // Select the parent node since the current one was deleted.
-                    me.getSelectionModel().select(parentNode);
-
-                    // Refresh the parent node's tree to remove our node.
-                    me.getStore().load({
-                        callback: function () {
-                            me.selectByToken(parentNode.get('uid'));
-                            me.getRootNode().firstChild.expand();
-                        }
-                    });
+                    // simply remove selected node from view without refresh;
+                    parentNode.removeChild(node);
                 }
             }
 
@@ -821,7 +805,6 @@
             }
 
             this.deleteNodeFn(params, callback);
-            this.refresh();
         },
         canMoveOrganizer: function (organizerUid, targetUid) {
             var orgPieces = organizerUid.split('/'),
@@ -836,19 +819,33 @@
             // is the top level organizer (e.g. Locations, Groups)
             return orgPieces[3] === targetPieces[3];
         },
-        refresh: function (callback, scope) {
-            // Disable “Loading…” mask during the request
-            this.view.loadMask.disabled = true;
-            this.getStore().load({
+
+        refresh: function (callbackFn, scope) {
+            var root = this.getRootNode(),
+                treeState = this.getTreeState(root),
+                store = this.getStore(),
+                filtered = store.isFiltered();
+            // we should not remove nodes from tree before or after load to refresh tree
+            // because store will take care of it on load with this parameter "clearOnLoad: true";
+            // we need to only restore previous state of tree;
+
+            // if store was filtered before refresh wen need to drop filters and load initial data to store,
+            // on after load we should restore filter - this way we'll always have fresh data in tree (after add/remove);
+            // to avoid that we need to implement filter functionality on server side;
+            if (filtered) {
+                store.clearFilter();
+            }
+            store.load({
                 scope: this,
                 callback: function (records, opts, success) {
                     if (success) {
-                        var root = this.getRootNode();
-                        var treeState = this.getTreeState(root);
-                        var childNodes = opts.response.result[0];
-                        root.removeAll();
-                        root.appendChild(childNodes);
                         this.restoreTreeState(treeState);
+                        if (callbackFn) {
+                            callbackFn.apply(scope || this, arguments);
+                        }
+                    }
+                    if (filtered) {
+                        this.filterTree(this.up('HierarchyTreePanelSearch').down('searchfield'));
                     }
                 }
             });

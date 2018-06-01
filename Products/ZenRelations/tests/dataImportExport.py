@@ -9,13 +9,13 @@
 
 
 objnoprops = \
-"""<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location'>
+"""<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location' move='False'>
 </object>
 """
 
 
 objwithprops = \
-"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
+"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device' move='False'>
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
@@ -26,7 +26,7 @@ objwithprops = \
 """
 
 objwithtoone = \
-"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
+"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device' move='False'>
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
@@ -38,7 +38,7 @@ objwithtoone = \
 """
 
 objwithtomany = \
-"""<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location'>
+"""<object id='loc' module='Products.ZenRelations.tests.TestSchema' class='Location' move='False'>
 <tomany id='devices'>
 <link objid='dev'/>
 </tomany>
@@ -46,7 +46,7 @@ objwithtomany = \
 """
 
 objwithtomanycont = \
-"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
+"""<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device' move='False'>
 <property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
 0
 </property>
@@ -54,7 +54,7 @@ objwithtomanycont = \
 ()
 </property>
 <tomanycont id='interfaces'>
-<object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface'>
+<object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface' move='False'>
 </object>
 </tomanycont>
 </object>

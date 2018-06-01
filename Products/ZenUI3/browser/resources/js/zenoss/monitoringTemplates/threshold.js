@@ -285,22 +285,16 @@
                          * If they have permission and they select a row, show the
                          * edit and delete buttons
                          **/
-                        select: function () {
-                            // enable the "Delete Threshold" button
+                        selectionchange: function (s, selection) {
+                            // enable/disable the "Delete Threshold" button
                             if (Zenoss.Security.hasPermission('Manage DMD')) {
-                                me.deleteButton.enable();
-                                me.editButton.enable();
+                                var doDisable = !(selection && selection.length);
+                                me.deleteButton.setDisabled(doDisable);
+                                me.editButton.setDisabled(doDisable);
                             }
                         }
                     }
                 }),
-                viewConfig: {
-                    plugins: {
-                        ptype: 'gridviewdragdrop',
-                        dragText: _t('Drag to add to Graph Definition'),
-                        dragGroup: 'addtoGraph'
-                    }
-                },
                 title: _t('Thresholds'),
                 store: Ext.create('Zenoss.thresholds.Store', { }),
                 listeners: listeners,

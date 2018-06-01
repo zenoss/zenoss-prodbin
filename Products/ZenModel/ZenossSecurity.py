@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -14,6 +14,7 @@
 # Zenoss Roles
 ZEN_USER_ROLE = 'ZenUser'
 ZEN_MANAGER_ROLE = 'ZenManager'
+CZ_ADMIN_ROLE = 'CZAdmin'
 OWNER_ROLE = 'Owner'
 MANAGER_ROLE = 'Manager'
 
@@ -24,7 +25,7 @@ NOTIFICATION_VIEW_ROLE = "Notification View"
 NOTIFICATION_UPDATE_ROLE = "Notification Update"
 NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE = "Notification Subscription Manager"
 
-# Triggers also get their own roles which are managed locally on 'stub' objects.
+# Triggers also get their own roles which are managed locally on 'stub' objects
 # the real data for triggers is persisted externally in the event processing
 # system.
 TRIGGER_VIEW_ROLE = "Trigger View"
@@ -104,3 +105,26 @@ ZEN_ADMINISTRATORS_VIEW='Administrators View'
 
 # Included for ZenPack upgrades only. No longer used.
 ZEN_VIEW_MODIFICATIONS='Unused'
+
+# Global settings
+ZEN_MANAGE_GLOBAL_SETTINGS='Manage Global Settings'
+ZEN_MANAGE_GLOBAL_COMMANDS='Manage Global Commands'
+ZEN_VIEW_USERS='View Users'
+ZEN_MANAGE_USERS='Manage Users'
+ZEN_MANAGE_ZENPACKS='Manage ZenPacks'
+ZEN_VIEW_SOFTWARE_VERSIONS='View Software Versions'
+ZEN_MANAGE_EVENT_CONFIG='Manage Event Configuration'
+ZEN_MANAGE_UI_SETTINGS='Manage UI Settings'
+ZEN_MANAGE_CONTROL_CENTER='Manage Control Center'
+
+# LDAPAuthenticator ZenPack settings
+ZEN_MANAGE_LDAP_SETTINGS='Manage LDAP Settings'
+
+# Licensing ZenPack settings
+ZEN_VIEW_LICENSING='View Licensing'
+
+# SupportBundle ZenPack settings
+ZEN_MANAGE_SUPPORT_BUNDLES='Manage Support Bundles'
+
+# Impact ZenPack settings
+ZEN_MANAGE_IMPACT_SETTINGS='Manage Impact Settings'

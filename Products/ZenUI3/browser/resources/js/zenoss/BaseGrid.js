@@ -451,6 +451,8 @@
             var values = this.getSearchValues();
             // ZEN-23418 Convert firstSeen and/or lastSeen date filter params to UTC before making query request
             var timeParams = ["firstTime", "lastTime"];
+            var store = this.grid.getStore();
+
             timeParams.forEach(function (paramKey) {
                 if (values[paramKey]) {
                     var timeParam = values[paramKey];
@@ -467,17 +469,25 @@
                     }
                 }
             });
-            if (!this.grid.store.proxy.extraParams) {
-                this.grid.store.proxy.extraParams = {};
+            if (!store.proxy.extraParams) {
+                store.proxy.extraParams = {};
             }
+
             // this will make sure that all subsequent buffer loads have the parameters
-            this.grid.store.proxy.extraParams.params = values;
+            store.proxy.extraParams.params = values;
 
             // reset their scrolling when the filters change
             this.grid.scrollToTop();
 
             // only load the store if a context has been applied
-            if (Ext.isDefined(this.grid.getContext()) || this.grid.getStore().autoLoad) {
+            if (Ext.isDefined(this.grid.getContext()) || store.autoLoad) {
+                // ZEN-29746 (ZEN-28768):
+                // If the store has pageMap property then we have to clean it,
+                // otherwise not filtered data will appear on the page
+                if (store.pageMap) {
+                    store.pageMap.clear();
+                }
+
                 this.grid.getStore().load({
                     callback: function () {
                         this.grid.fireEvent('filterschanged', this.grid, values);

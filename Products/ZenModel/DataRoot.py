@@ -48,7 +48,12 @@ from Products.ZenEvents.Exceptions import (
     MySQLConnectionError, pythonThresholdException, rpnThresholdException)
 
 from ZenModelRM import ZenModelRM
-from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
+from ZenossSecurity import (
+    ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW, ZEN_MANAGE_GLOBAL_SETTINGS,
+    ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_VIEW_USERS, ZEN_MANAGE_USERS,
+    ZEN_MANAGE_ZENPACKS, ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG,
+    ZEN_MANAGE_UI_SETTINGS,
+)
 from interfaces import IDataRoot
 from zExceptions import Unauthorized
 
@@ -161,22 +166,22 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : 'editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : 'dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : 'ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS,)
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -186,17 +191,17 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG, )
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : 'userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
             )
           },
@@ -773,14 +778,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return getattr(self, 'productName', 'core')
 
-
     def getProductHelpLink(self):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "/zport/dmd/localDocumentation"
-        # return "http://www.zenoss.com/resources/documentation"
-
+        return "https://help.zenoss.com/pages/viewpage.action?pageId=65849"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
@@ -891,18 +893,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
 
         if REQUEST:
-            curuser = self.dmd.ZenUsers.getUser().getId()
-            curpasswd = REQUEST.get('curPasswd')
-
-            if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'Confirmation password is empty or invalid. Please'
-                    ' confirm your password for security reasons.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
                 activateSessionBasedAuthentication(self.zport)

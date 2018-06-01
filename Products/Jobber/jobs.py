@@ -18,7 +18,6 @@ import signal
 import subprocess
 import socket
 from datetime import datetime
-
 import transaction
 from AccessControl.SecurityManagement import (
         newSecurityManager, noSecurityManager
@@ -200,6 +199,9 @@ class Job(Task):
         user = utool.getUserById(job_record.user)
         if user is None:
             user = self.dmd.zport.acl_users.getUserById(job_record.user)
+        if user is None:
+            # Can't get users when using Auth0 at this time, use zenoss_system
+            user = self.dmd.zport.acl_users.getUserById("zenoss_system")
         user = user.__of__(utool)
         newSecurityManager(None, user)
 

@@ -194,7 +194,6 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
-
 Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,
@@ -370,7 +369,16 @@ function setToDefaultCursorStyle() {
         setCursorStyle("default");
     }
 }
-Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
+Ext.Ajax.on('requestcomplete', function () {
+    Ext.namespace('Zenoss.env.DirectException');
+
+    setToDefaultCursorStyle();
+
+    if (Zenoss.env.DirectException.timeout) {
+        Zenoss.env.DirectException.timeout = clearTimeout(Zenoss.env.DirectException.timeout);
+        Zenoss.env.DirectException.errorMessage.hide();
+    }
+});
 Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
 
 
@@ -380,8 +388,9 @@ Ext.EventManager.on(window, 'beforeunload', function() {
     Zenoss.env.unloading=true;
 });
 
-
 Ext.Direct.on('exception', function(e) {
+    Ext.namespace('Zenoss.env.DirectException');
+
     if (Zenoss.env.unloading === true){
         return;
     }
@@ -391,10 +400,32 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+    else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
+        if (!Zenoss.env.DirectException.timeout) {
+            Zenoss.env.DirectException.errorMessage = Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
+
+            Zenoss.env.DirectException.timeout = setTimeout(function () {
+                window.location.reload();
+            }, 30000);
+        }
+
+        return;
+    }
+
     var dialogId = "serverExceptionDialog", cmp;
     cmp = Ext.getCmp(dialogId);
     if(cmp) {
         cmp.destroy();
+    }
+
+    // If we're in a CSE environment and missing the accessToken cookie, we've been
+    // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
+    if (Zenoss.env.CSE_VIRTUAL_ROOT) {
+        if (document.cookie.indexOf('accessToken') === -1) {
+            console.log('Auth0 accessToken not found; reloading page');
+            window.location.reload();
+            return;
+        }
     }
 
     Ext.create('Zenoss.dialog.SimpleMessageDialog', {

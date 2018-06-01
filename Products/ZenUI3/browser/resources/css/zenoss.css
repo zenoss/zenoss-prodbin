@@ -213,15 +213,14 @@ a:link, a:visited {
 
 
 .evdetail-popout {
-  width: 20px;
-  height: 50px;
+  width: 25px;
+  height: 48px;
   cursor: hand;
   cursor: pointer;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/popout.png) center center no-repeat;
 }
 
-
-.evdetail_close .x-panel-body {
+.evdetail_close {
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png) center center no-repeat;
   height: 50px;
   width: 25px;
@@ -231,7 +230,6 @@ a:link, a:visited {
 
 
 .evdetail_props {
-  float: left;
   padding: 1em;
 }
 
@@ -1615,14 +1613,10 @@ a.z-entity:hover{
     margin-bottom:10px;
 }
 #evdetail_log-body{
-    height:170px !important;
+    max-height:170px !important;
 }
-#evdetail_services{
-    margin:10px 0 10px 25px !important;
-    height: 25px !important;
-}
-.evdetail_props {
-  float: none !important;
+#evdetail_services:empty{
+    display: none;
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
@@ -2139,4 +2133,8 @@ span.syntax-text  {
   width:75px;
   float:left;
   text-align:right;
+}
+#NetworkDetailCardPanel a.z-entity{
+  padding-right: 0px;
+  padding-left: 0px;
 }

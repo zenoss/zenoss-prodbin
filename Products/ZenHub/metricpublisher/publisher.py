@@ -142,7 +142,7 @@ class RedisListPublisher(BasePublisher):
                  buflen=defaultMetricBufferSize,
                  pubfreq=defaultPublishFrequency,
                  channel=defaultMetricsChannel,
-                 maxOutstandingMetrics=defaultMetricBufferSize):
+                 maxOutstandingMetrics=defaultMaxOutstandingMetrics):
         super(RedisListPublisher, self).__init__(buflen, pubfreq)
         self._batch_size = INITIAL_REDIS_BATCH
         self._host = host

@@ -300,8 +300,12 @@ Ext.apply(Zenoss.render, {
 
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
-        var parts;
-        if (!uid) {
+        var parts,
+            vTypes = Ext.form.VTypes;
+        // ZEN-29776: do not render ipaddress as link
+        // since there is no such object in the system and
+        // "192.168.1.1/24" is not an zope uid format.
+        if (!uid || vTypes.ipaddress(uid) || vTypes.ipaddresswithnetmask(uid)) {
             return uid;
         }
         if (Ext.isObject(uid)) {
@@ -431,6 +435,18 @@ Ext.apply(Zenoss.render, {
             return Zenoss.render.default_uid_renderer(item.uid, item.text);
         }
         return item.text;
+    },
+
+    DeviceZcLink: function(uid, intro, text) {
+        var anchor = '<a href="http://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
+        var loc = window.location.host;
+        var encodedQuery = encodeURIComponent(JSON.stringify({
+            contextUUID: uid
+        }));
+        var landing = '/#/_lucky?q=';
+        var url = loc + landing + encodedQuery;
+        var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
+        return link
     },
 
     EventClass: function(uid, name) {
