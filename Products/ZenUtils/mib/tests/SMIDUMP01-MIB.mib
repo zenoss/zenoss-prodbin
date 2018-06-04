@@ -1,0 +1,37 @@
+SMIDUMP01-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, NOTIFICATION-TYPE, OBJECT-TYPE,
+	Integer32, snmpModules
+        FROM SNMPv2-SMI;
+
+smidump01 MODULE-IDENTITY
+    LAST-UPDATED "201805030000Z"
+    ORGANIZATION "Zenoss Inc."
+    CONTACT-INFO "EMail: dev@zenoss.com"
+    DESCRIPTION  "This is a test MIB module."
+    REVISION     "201805030000Z"
+    DESCRIPTION
+            "Initial version."
+    ::= { snmpModules 501 }
+
+
+smidump01Notifications OBJECT IDENTIFIER ::= { smidump01 0 }
+smidump01Objects OBJECT IDENTIFIER ::= { smidump01 1 }
+
+dumpCount OBJECT-TYPE
+	SYNTAX     Integer32 (0..2147483647)
+	MAX-ACCESS read-only
+	STATUS     current
+	DESCRIPTION
+		"The number of dumps thus far."
+	::= { smidump01Objects 1 }
+
+
+smidump01Notification01 NOTIFICATION-TYPE
+	OBJECTS { dumpCount }
+	STATUS current
+	DESCRIPTION "A sample description."
+	::= { smidump01Notifications 1 }
+
+END
