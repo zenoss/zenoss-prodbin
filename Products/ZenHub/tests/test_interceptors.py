@@ -58,7 +58,7 @@ class WorkerInterceptorTest(TestCase):
 
         # the event has been sent the ZenHub Workers
         svc_name = self.wi.service_name
-        chunked_args = self.wi.chunk_args(self.cap_args, self.cap_kw)
+        chunked_args = self.wi.serialize_args(self.cap_args, self.cap_kw)
         self.zenhub.deferToWorker.assert_called_with(
             svc_name,
             self.service.instance,
@@ -108,8 +108,8 @@ class WorkerInterceptorTest(TestCase):
             self.wi.service_name, 'Products.ZenHub.services.EventService'
         )
 
-    def test_chunk_args(self):
-        chunked_args = self.wi.chunk_args(self.cap_args, self.cap_kw)
+    def test_serialize_args(self):
+        chunked_args = self.wi.serialize_args(self.cap_args, self.cap_kw)
         self.assertEqual(
             pickle.loads(''.join(chunked_args)),
             (self.cap_args, self.cap_kw)
@@ -122,11 +122,11 @@ class WorkerInterceptorTest(TestCase):
             )]
         )
 
-    def test_chunk_args_long(self):
+    def test_serialize_args_long(self):
         # build args that will be more than the 102400 char limit once pickled
         args = ['10 chr str' for _ in range(100000)]
         kwargs = {'kw': 'args', }
-        chunked_args = self.wi.chunk_args(args, kwargs)
+        chunked_args = self.wi.serialize_args(args, kwargs)
 
         # join the chunked args back to a sting, and unpickle them.
         self.assertEqual(
