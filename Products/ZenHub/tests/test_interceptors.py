@@ -158,3 +158,10 @@ class WorkerInterceptorTest(TestCase):
         self.wi._admTimer.update.assert_called_with(
             (mtime() - start) * 1000
         )
+
+    def test_callTime_property(self):
+        '''Required by ZenHub.heartbeat
+        WorkerInterceptor Service is expected to have a callTime initialized
+        to int(0)
+        '''
+        self.assertEqual(self.wi.callTime, 0)
