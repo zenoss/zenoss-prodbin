@@ -52,7 +52,7 @@ class WorkerInterceptor(pb.Referenceable):
                     self.service_name,
                     self.service.instance,
                     message,
-                    self.chunk_args(args, kw)
+                    self.serialize_args(args, kw)
                 )
 
             if message in self.meters:
@@ -68,18 +68,10 @@ class WorkerInterceptor(pb.Referenceable):
     def service_name(self):
         return str(self.service.__class__).rpartition('.')[0]
 
-    def chunk_args(self, args, kwargs):
-        pargs = pickle.dumps(
-            (args, kwargs), pickle.HIGHEST_PROTOCOL
-        )
-        chunked_args = []
-        chunk_size = 102400
-        while pargs:
-            chunk = pargs[:chunk_size]
-            chunked_args.append(chunk)
-            pargs = pargs[chunk_size:]
-
-        return chunked_args
+    def serialize_args(self, args, kwargs):
+        pargs = pickle.dumps((args, kwargs), pickle.HIGHEST_PROTOCOL)
+        size = 102400
+        return [pargs[i:i + size] for i in xrange(0, len(pargs), size)]
 
     def mark_send_event_timer(self, events, start):
         self._eventsSent.mark()
