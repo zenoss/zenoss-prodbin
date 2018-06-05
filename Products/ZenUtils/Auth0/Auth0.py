@@ -35,7 +35,6 @@ PLUGIN_VERSION = 3
 
 _AUTH0_CONFIG = {
     'audience': None,
-    'clientid': None,
     'tenant': None,
     'whitelist': None,
     'tenantkey': None,
@@ -190,7 +189,7 @@ class Auth0(BasePlugin):
         if not sessionInfo:
             sessionInfo = Auth0.storeIdToken(token, request.SESSION, conf)
 
-        if not sessionInfo.userid:
+        if not sessionInfo or not sessionInfo.userid:
             log.debug('No userid found in sessionInfo - not directing to Auth0 login')
             return {}
 
