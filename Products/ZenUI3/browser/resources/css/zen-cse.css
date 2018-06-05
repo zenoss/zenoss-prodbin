@@ -2704,7 +2704,7 @@ BYE BYE BORDERS
 
     /* reports | table headers */
     .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
-    { background-color: #808080; }
+    { background-color: #808080; border-right: 2px solid #979797; }
 
 
     /* advanced | settings */
