@@ -16,7 +16,6 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
-from Products.ZenUtils.CSEUtils import getZenossURI, getZingURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
 from zope.component import getUtility
@@ -36,7 +35,6 @@ PLUGIN_VERSION = 3
 
 _AUTH0_CONFIG = {
     'audience': None,
-    'clientid': None,
     'tenant': None,
     'whitelist': None,
     'tenantkey': None,
@@ -191,11 +189,14 @@ class Auth0(BasePlugin):
         if not sessionInfo:
             sessionInfo = Auth0.storeIdToken(token, request.SESSION, conf)
 
-        if not sessionInfo.userid:
+        if not sessionInfo or not sessionInfo.userid:
             log.debug('No userid found in sessionInfo - not directing to Auth0 login')
             return {}
 
         if time.time() > sessionInfo.expiration:
+            # The stored session data is invalid, and we're using Auth0; remove the Auth0 data
+            # from the session.
+            request.SESSION.delete(Auth0.session_key)
             return {}
 
         return {'auth0_userid': sessionInfo.userid}
