@@ -16,7 +16,6 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
-from Products.ZenUtils.CSEUtils import getZenossURI, getZingURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
 from zope.component import getUtility
@@ -196,6 +195,9 @@ class Auth0(BasePlugin):
             return {}
 
         if time.time() > sessionInfo.expiration:
+            # The stored session data is invalid, and we're using Auth0; remove the Auth0 data
+            # from the session.
+            request.SESSION.delete(Auth0.session_key)
             return {}
 
         return {'auth0_userid': sessionInfo.userid}
