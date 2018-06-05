@@ -352,7 +352,7 @@ BYE BYE BORDERS
     .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse #edit_panel-body input[type=password],
     .z-cse #edit_panel-body input[type=text],
-    .z-cse #filterButton,
+    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #ldapConfigDropDown input[type=text],
     .z-cse #man_center_panel > .x-toolbar .x-form-item,
     .z-cse #propList input[type=text],
@@ -1943,7 +1943,9 @@ BYE BYE BORDERS
         cursor: default;
         background-color:  #f4f4f4;
     }
-    .z-cse #contentPaneContainer input.tableheader:hover {
+    /*ZEN-30221*/
+    .z-cse #contentPaneContainer input.tableheader:hover,
+    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
         cursor: pointer;
         background-color:  #b6cbe4;
     }
@@ -2323,7 +2325,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
-    .z-cse.z-cse-dark #filterButton,
+    .z-cse.z-cse-dark #contentPaneContainer input[type=button], /*ZEN-30221*/
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
