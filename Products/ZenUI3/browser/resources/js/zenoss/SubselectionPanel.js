@@ -529,17 +529,19 @@
             }
         },
         setContext:function (uid) {
+
             //called to load the nav tree
             this.loaded = false;
-            this.contextId = uid;
+            // ZEN-30062
+            this.contextId = Zenoss.render.link(false, uid);
             this.treepanel.setRootNode([]);
-            this.getNavConfig(uid);
+            this.getNavConfig(this.contextId);
             this.fireEvent('contextchange', this);
         },
         getSelectionModel:function () {
             return this.treepanel.getSelectionModel();
         },
-        getNavConfig:function (uid) {
+        getNavConfig: function(uid) {
             //Direct call to get nav configs from server
             var me = this;
             var myCallback = function (provider, response) {
