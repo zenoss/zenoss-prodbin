@@ -27,6 +27,8 @@ Ext.define("Zenoss.form.LinkField", {
     },
     setValue: function(value) {
         var origValue = value;
+        var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
+        var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a)/);
         if (Ext.isEmpty(value)) {
             value = _t('None');
         } else {
@@ -37,7 +39,13 @@ Ext.define("Zenoss.form.LinkField", {
                 });
                 value = items.join('<br/>');
             } else {
-                value = Zenoss.render.link(value);
+                if (linkMatch && nameMatch) {
+                    var link = linkMatch[1];
+                    var name = nameMatch[1];
+                    value = Zenoss.render.link(null, link, name);
+                } else {
+                    value = Zenoss.render.link(value);
+                }
             }
         }
         this.callParent([value]);
