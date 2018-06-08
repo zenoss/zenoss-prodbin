@@ -27,11 +27,11 @@ Ext.define("Zenoss.form.LinkField", {
     },
     setValue: function(value) {
         var origValue = value;
-        var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
-        var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a)/);
         if (Ext.isEmpty(value)) {
             value = _t('None');
         } else {
+            var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
+            var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a>)/);
             if (Ext.isArray(value)){
                 var items = [];
                 Ext.each(value, function(v){
