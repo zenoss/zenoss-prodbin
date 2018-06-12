@@ -1885,11 +1885,10 @@ Ext.onReady(function () {
             allowBlank: true
         });
 
+        // ZEN-30271
+        var node = getSelectionModel().getSelectedNode(),
+            uid = node ? Zenoss.render.link(false, node.get('uid')) : "";
 
-        var uid = "";
-        if (getSelectionModel().getSelectedNode()) {
-            uid = getSelectionModel().getSelectedNode().get('uid');
-        }
         if (uid.startswith('/zport/dmd/Devices')) {
             var store = Ext.create('Zenoss.ConfigProperty.Store', {
                 autoLoad: true
