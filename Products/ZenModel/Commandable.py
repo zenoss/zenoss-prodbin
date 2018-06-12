@@ -26,8 +26,10 @@ from Products.PageTemplates.Expressions import getEngine
 from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenWidgets import messaging
 from DateTime import DateTime
+from zope.component import getUtility
 import os
 import popen2
 import fcntl
@@ -68,8 +70,8 @@ class Commandable:
                     'User command %s has been created.' % newId
                 )
                 screenName = REQUEST.get("editScreenName", "")
-                return REQUEST.RESPONSE.redirect(uc.getPrimaryUrlPath() +
-                        '/%s' % screenName if screenName else '')
+                path = getUtility(IVirtualRoot).ensure_virtual_root(uc.getPrimaryUrlPath())
+                return REQUEST.RESPONSE.redirect(path + '/%s' % screenName if screenName else '')
             return self.callZenScreen(REQUEST, True)
         return uc
 
@@ -246,7 +248,8 @@ class Commandable:
         for this Commandable object.
         '''
         unused(commandId)
-        url = self.getUrlForUserCommands()
+        url = getUtility(IVirtualRoot).ensure_virtual_root(
+            self.getUrlForUserCommands())
         if url:
             return REQUEST.RESPONSE.redirect(url)
         return self.callZenScreen(REQUEST)
