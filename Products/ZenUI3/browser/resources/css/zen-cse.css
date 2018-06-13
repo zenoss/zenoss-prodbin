@@ -384,8 +384,12 @@ BYE BYE BORDERS
         padding: 2px 0 9px;
     }
 
+    /*ZEN-30098*/
     .z-cse .x-surface path {
         stroke: #999;
+    }
+    .z-cse .x-surface text {
+        fill: #ccc;
     }
 
     /* filter coloring */
@@ -2284,9 +2288,6 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark .x-surface path {
         stroke: #ccc;
-    }
-    .z-cse.z-cse-dark .x-surface text {
-        fill: #4b4b4c;
     }
 
     /* <ZEN-29844> tab panel tabs dark styles*/
