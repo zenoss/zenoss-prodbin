@@ -84,7 +84,7 @@
     </mx:HBox>
 
     <mx:HTTPService id="initialData"
-                    url="/zport/dmd/getXMLEdges"
+                    url="getXMLEdges"
                     showBusyCursor="true" resultFormat="e4x"
                     fault="badHTTPRequest();"
                     result="gotData(['Node','Edge','fromID','toID'], event)">
@@ -94,7 +94,7 @@
             <filter>{_selectedClass}</filter>
         </mx:request>
     </mx:HTTPService>
-    <mx:HTTPService id="moreData" url="/zport/dmd/getXMLEdges"
+    <mx:HTTPService id="moreData" url="getXMLEdges"
                     showBusyCursor="true" resultFormat="e4x"
                     fault="badHTTPRequest();"
                     result="updateData(event)">
