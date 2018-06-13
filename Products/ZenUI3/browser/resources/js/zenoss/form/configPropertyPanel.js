@@ -299,9 +299,8 @@
                 stateId: config.id || 'config_property_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
                 tbar: {
-                    // height: 34,
+                    height: 45,
                     padding: '0 0 0 10',
-                    margin: '0 0 7 0',
                     items: [{
                         xtype: 'button',
                         iconCls: 'customize',

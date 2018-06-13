@@ -197,6 +197,13 @@
                                          '     </div> ' +
                                          '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
                                          '</div>'),
+        /**
+         * @cfg {int} maxLinkLength
+         * The max limit for url length limited by ZServer header max length
+         * which is 8192 bytes. As in JS max char memory size is 2 bytes
+         * 4096 is the max safe number.
+         */
+        maxLinkLength: 4096,
         constructor: function(config) {
             var padding = "padding:5px 5px 5px 0px;";
             // backcompat from graph dimensions from rrd
@@ -447,7 +454,7 @@
             router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
                     link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
-                    if (link.length > 2000) {
+                    if (link.length > this.maxLinkLength) {
                         Zenoss.message.error('Unable to generate link, length is too great');
                     } else {
                         new Zenoss.dialog.ErrorDialog({
@@ -688,7 +695,7 @@
             router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
                     link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
-                    if (link.length > 2000) {
+                    if (link.length > this.maxLinkLength) {
                         Zenoss.message.error('Unable to generate link, length is too great');
                     } else {
                         redirect.location = link;

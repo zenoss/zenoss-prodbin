@@ -1238,21 +1238,6 @@ BYE BYE BORDERS
             margin: -1px 0 0 0;
         }
 
-    /* events | event classes */
-    .z-cse #class_center_panel .largetoolbar {
-        height: 45px !important;
-        padding-top: 4px;
-    }
-    .z-cse #nav_combo .x-form-arrow-trigger {
-        height: 23px;
-    }
-    .z-cse #class_center_panel #mapping_toolbar {
-        height: 30px;
-        margin-bottom: 8px;
-        padding-top: 0;
-        top: 2px !important;
-    }
-
     /* events | triggers */
     .z-cse #triggers_grid_panel > .x-toolbar-docked-top,
     .z-cse #notifications_panel .x-toolbar-docked-top {
@@ -2734,7 +2719,7 @@ BYE BYE BORDERS
 
     /* reports | table headers */
     .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
-    { background-color: #808080; }
+    { background-color: #808080; border-right: 2px solid #979797; }
 
 
     /* advanced | settings */
