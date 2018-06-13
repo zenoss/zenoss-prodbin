@@ -136,7 +136,7 @@ for a ZenPack.
              name, self.context().id, self._locator.getLineNumber() ))
 
         if name == 'object':
-            if attrs.get('class') == 'Device':
+            if attrs.get('class') == 'Device' and not attrs.get('move', False):
                 devId = attrs['id'].split('/')[-1]
                 dev = self.dmd.Devices.findDeviceByIdOrIp(devId)
                 if dev:

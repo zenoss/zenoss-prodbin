@@ -1,0 +1,91 @@
+{
+    "moduleName" : r"SMIDUMP01-MIB",
+
+    "SMIDUMP01-MIB" : {
+        "nodetype" : r"module",
+        "language" : r"SMIv2",
+        "organization" :    
+            r"""Zenoss Inc.""",
+        "contact" : 
+            r"""EMail: dev@zenoss.com""",
+        "description" :
+            r"""This is a test MIB module.""",
+        "revisions" : (
+            {
+                "date" : r"2018-05-03 00:00",
+                "description" :
+                    r"""Initial version.""",
+            },
+        ),
+        "identity node" : r"smidump01",
+    },
+
+    "imports" : (
+        {"module" : r"SNMPv2-SMI", "name" : r"MODULE-IDENTITY"},
+        {"module" : r"SNMPv2-SMI", "name" : r"NOTIFICATION-TYPE"},
+        {"module" : r"SNMPv2-SMI", "name" : r"OBJECT-TYPE"},
+        {"module" : r"SNMPv2-SMI", "name" : r"Integer32"},
+        {"module" : r"SNMPv2-SMI", "name" : r"snmpModules"},
+    ),
+
+    "nodes" : {
+        "smidump01" : {
+            "nodetype" : r"node",
+            "moduleName" : r"SMIDUMP01-MIB",
+            "oid" : r"1.3.6.1.6.3.501",
+            "status" : r"current",
+        }, # node
+        "smidump01Notifications" : {
+            "nodetype" : r"node",
+            "moduleName" : r"SMIDUMP01-MIB",
+            "oid" : r"1.3.6.1.6.3.501.0",
+        }, # node
+        "smidump01Objects" : {
+            "nodetype" : r"node",
+            "moduleName" : r"SMIDUMP01-MIB",
+            "oid" : r"1.3.6.1.6.3.501.1",
+        }, # node
+        "dumpCount" : {
+            "nodetype" : r"scalar",
+            "moduleName" : r"SMIDUMP01-MIB",
+            "oid" : r"1.3.6.1.6.3.501.1.1",
+            "status" : r"current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : r"Integer32",
+                    "ranges" : [
+                    {
+                        "min" : r"0",
+                        "max" : r"2147483647"
+                    },
+                    ],
+                    "range" : {
+                        "min" : r"0",
+                        "max" : r"2147483647"
+                    },
+                },
+            },
+            "access" : r"readonly",
+            "description" :
+                r"""The number of dumps thus far.""",
+        }, # scalar
+    }, # nodes
+
+    "notifications" : {
+        "smidump01Notification01" : {
+            "nodetype" : r"notification",
+            "moduleName" : r"SMIDUMP01-MIB",
+            "oid" : r"1.3.6.1.6.3.501.0.1",
+            "status" : r"current",
+            "objects" : {
+                "dumpCount" : {
+                    "nodetype" : r"object",
+                    "module" : r"SMIDUMP01-MIB"
+                },
+            },
+            "description" :
+                r"""A sample description.""",
+        }, # notification
+    }, # notifications
+
+}
