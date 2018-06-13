@@ -38,6 +38,7 @@ _AUTH0_CONFIG = {
     'tenant': None,
     'whitelist': None,
     'tenantkey': None,
+    'emailkey': None,
 }
 
 
@@ -114,7 +115,7 @@ class Auth0(BasePlugin):
             request.response.expireCookie(Auth0.zc_token_key)
 
     @staticmethod
-    def storeIdToken(id_token, request, conf):
+    def storeToken(token, request, conf):
         """ Save the important parts of the token in session storage.
             Returns the corresponding SessionInfo object.  If we can't
             return the object for any reason, we remove the Auth0 information
@@ -123,14 +124,14 @@ class Auth0(BasePlugin):
         try:
             session = request.SESSION
             # get the key id from the jwt header
-            key_id = jwt.get_unverified_header(id_token)['kid']
+            key_id = jwt.get_unverified_header(token)['kid']
             key = Auth0._getKey(key_id, conf)
             if not key:
                 log.warn('Invalid jwt kid (key id) - not setting session info')
                 Auth0.removeToken(request)
                 return None
 
-            payload = jwt.decode(id_token, key, verify=True,
+            payload = jwt.decode(token, key, verify=True,
                                  algorithms=['RS256'],
                                  audience=conf['audience'],
                                  issuer=conf['tenant'])
@@ -157,8 +158,15 @@ class Auth0(BasePlugin):
                 Auth0.removeToken(request)
                 return None
 
+            emailkey = conf.get('emailkey', 'https://dev.zing.ninja/email')
+            email = payload.get(emailkey, None)
+
             sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
-            sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
+            # use the email as the userid, if defined, otherwise fall back to parsing the sub field.
+            if email:
+                sessionInfo.userid = email
+            else:
+                sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
             sessionInfo.expiration = payload['exp']
             sessionInfo.roles = payload.get('https://zenoss.com/roles', [])
             return sessionInfo
@@ -170,8 +178,10 @@ class Auth0(BasePlugin):
     def resetCredentials(self, request, response):
         """resetCredentials satisfies the PluggableAuthService
             ICredentialsResetPlugin interface.
-        Redirects to the ZING logout url.  ZING will handle logging out of Auth0
-            by calling the /zport/dmd/Auth0Logout endpoint on each CZ instance.
+        Clears the session, removes the Auth0 cookie, then redirects to the
+            ZING logout url.  Removal of the cookie effectively logs the user
+            out of all CZ instances, and the redirect will log the user out
+            of ZING.
         NOTE:
         Logging out of the UI calls Products/ZenModel/skins/zenmodel/logoutUser.py
             which calls resetCredentials, this bypasses the PAS logout.
@@ -203,7 +213,7 @@ class Auth0(BasePlugin):
 
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
-            sessionInfo = Auth0.storeIdToken(token, request, conf)
+            sessionInfo = Auth0.storeToken(token, request, conf)
 
         if not sessionInfo or not sessionInfo.userid:
             log.debug('No userid found in sessionInfo - not directing to Auth0 login')
@@ -251,7 +261,7 @@ class Auth0(BasePlugin):
         if not sessionInfo:
             token = request.cookies.get(Auth0.zc_token_key, None)
             if token:
-                sessionInfo = self.storeIdToken(token, request, conf)
+                sessionInfo = self.storeToken(token, request, conf)
                 if sessionInfo:
                     return True
 
