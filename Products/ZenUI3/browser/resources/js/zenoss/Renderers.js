@@ -438,7 +438,7 @@ Ext.apply(Zenoss.render, {
     },
 
     DeviceZcLink: function(uid, intro, text) {
-        var anchor = '<a href="http://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
+        var anchor = '<a href="https://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
         var loc = window.location.host;
         var encodedQuery = encodeURIComponent(JSON.stringify({
             contextUUID: uid
