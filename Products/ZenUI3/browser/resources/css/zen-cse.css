@@ -2192,6 +2192,39 @@ BYE BYE BORDERS
         background-image: none;
     }
 
+    /* inspector window */
+    .z-cse .inspector-window {
+        padding: 0;
+    }
+
+    .z-cse .inspector .inspector-header {
+        padding-top: 8px;
+        background-image: none;
+        background-color: inherit;
+    }
+
+    .z-cse .inspector .inspector-header .header-icon-wrapper,
+    .z-cse .inspector .inspector-header .header-title{
+        background: none;
+    }
+
+    .z-cse .inspector .inspector-body {
+        background-color: #eee;
+    }
+
+    .z-cse .inspector .inspector-header .header-title {
+        margin-left: 28px !important;
+    }
+
+    .z-cse .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #4b4b4c;
+    }
+
+    .z-cse .inspector .eventrainbow td.severity-icon-small {
+        padding-right: 4px;
+        width: 36px;
+        text-align: right;
+    }
 
 /*
         =====================================================================================
@@ -2818,4 +2851,10 @@ BYE BYE BORDERS
         background-color: #ccc;
         background-size: 75%;
         background-position: center;
+    }
+
+    /* inspector window */
+    .z-cse.z-cse-dark .inspector span.status-up,
+    .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #5a5a5a;
     }
