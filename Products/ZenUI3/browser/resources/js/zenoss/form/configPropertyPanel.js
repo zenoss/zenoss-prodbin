@@ -298,8 +298,8 @@
             Ext.applyIf(config, {
                 stateId: config.id || 'config_property_grid',
                 sm: Ext.create('Zenoss.SingleRowSelectionModel', {}),
-                tbar: {
-                    height: 45,
+                dockedItems:[{
+                    xtype: 'largetoolbar',
                     padding: '0 0 0 10',
                     items: [{
                         xtype: 'button',
@@ -373,7 +373,7 @@
                             }).show();
                         }
                     }]
-                },
+                }],
                 store: Ext.create('Zenoss.ConfigProperty.Store', {
                 }),
                 columns: [{

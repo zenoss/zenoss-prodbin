@@ -160,7 +160,7 @@ Ext.onReady(function () {
                         });
                     } else {
                         var leftGrig = Ext.getCmp('manufacturers_tree');
-                        Ext.getCmp('mansetting').setValue(leftGrig.getSelectionModel().getSelectedNode().data.text);
+                        Ext.getCmp('mansetting').setValue(leftGrig.getSelectionModel().getSelected().data.text);
                     }
                 }
             },
@@ -186,12 +186,14 @@ Ext.onReady(function () {
                                     xtype: 'panel',
                                     layout: 'hbox',
                                     margin: '0 0 30px 0',
+                                    defaults: {
+                                         margin: '0 10 0 0'
+                                    },
                                     items: [
                                         {
                                             xtype: 'textfield',
                                             name: 'name',
                                             fieldLabel: _t('Product Name'),
-                                            margin: '0 10px 0 0',
                                             width: 320,
                                             regex: Zenoss.env.textMasks.allowedDescText,
                                             regexText: Zenoss.env.textMasks.allowedDescTextFeedback,
@@ -202,7 +204,6 @@ Ext.onReady(function () {
                                         }, {
                                             xtype: 'textfield',
                                             name: 'partNo',
-                                            margin: '0 20px 0 0',
                                             fieldLabel: _t('Part #'),
                                             regex: Zenoss.env.textMasks.allowedDescText,
                                             regexText: Zenoss.env.textMasks.allowedDescTextFeedback,
@@ -336,12 +337,10 @@ Ext.onReady(function () {
                 stateful: false,
                 loadMask: true,
                 multiSelect: true,
-                tbar: [
-                    {
+                dockedItems:[{
                         xtype: 'largetoolbar',
                         id: 'products_toolbar',
                         itemId: 'products_toolbar',
-                        height: 30,
                         disabled: true,
                         items: [
                             {
@@ -356,6 +355,8 @@ Ext.onReady(function () {
                             }, {
                                 xtype: 'button',
                                 iconCls: 'delete',
+                                disabled: true,
+                                itemId: 'delete',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Delete selected items'),
                                 handler: function () {
@@ -393,6 +394,8 @@ Ext.onReady(function () {
                             }, {
                                 xtype: 'button',
                                 iconCls: 'customize',
+                                itemId: 'edit',
+                                disabled: true,
                                 tooltip: _t('View and/or Edit selected'),
                                 handler: function () {
                                     var grid = Ext.getCmp("productsgrid_id"),
@@ -465,6 +468,14 @@ Ext.onReady(function () {
             });
             this.callParent(arguments);
             this.on('itemdblclick', this.onRowDblClick, this);
+            this.on('selectionchange', this.onSelectionChange, this);
+        },
+        onSelectionChange: function (sm, records) {
+            var state = !records.length,
+                deleteBtn = this.down('#delete'),
+                editBtn = this.down('#edit');
+            deleteBtn.setDisabled(state);
+            editBtn.setDisabled(state);
         },
         setContext: function (uid) {
             this.uid = uid;
