@@ -1,0 +1,112 @@
+{
+   "ID": "bqhlxv5yrpnhlre6jtx2zpfk",
+   "Name": "memcached",
+   "Title": "",
+   "Version": "",
+   "Context": {},
+   "Environment": [],
+   "Startup": "${ZENHOME:-/opt/zenoss}/bin/zenmemcached",
+   "Description": "Free \u0026 open source, high-performance, distributed memory object caching system",
+   "Tags": [
+     "daemon"
+   ],
+   "OriginalConfigs": {
+     "/etc/sysconfig/memcached": {
+       "Filename": "/etc/sysconfig/memcached",
+       "Owner": "root:root",
+       "Permissions": "0644",
+       "Content": "PORT=\"11211\"\nUSER=\"nobody\"\nMAXCONN=\"4096\"\nCACHESIZE=\"{{percentScale .RAMCommitment 0.9 | bytesToMB}}\"\n{{ $size := (getContext . \"global.conf.zodb-cache-max-object-size\") }}\nOPTIONS=\"-v -R 4096 -I {{if $size}} {{$size}} {{else}} 1048576 {{end}}\"\n"
+     }
+   },
+   "ConfigFiles": {
+     "/etc/sysconfig/memcached": {
+       "Filename": "/etc/sysconfig/memcached",
+       "Owner": "root:root",
+       "Permissions": "0644",
+       "Content": "PORT=\"11211\"\nUSER=\"nobody\"\nMAXCONN=\"4096\"\nCACHESIZE=\"{{percentScale .RAMCommitment 0.9 | bytesToMB}}\"\n{{ $size := (getContext . \"global.conf.zodb-cache-max-object-size\") }}\nOPTIONS=\"-v -R 4096 -I {{if $size}} {{$size}} {{else}} 1048576 {{end}}\"\n"
+     }
+   },
+   "Instances": 1,
+   "InstanceLimits": {
+     "Min": 1,
+     "Max": 0,
+     "Default": 0
+   },
+   "ChangeOptions": null,
+   "ImageID": "8c9fm32zvwlcz8l0rd8vnu68u/resmgr_6.2:latest",
+   "PoolID": "RM_Pool",
+   "DesiredState": 1,
+   "CurrentState": "started",
+   "HostPolicy": "",
+   "Hostname": "",
+   "Privileged": false,
+   "Launch": "auto",
+   "Endpoints": [
+     {
+       "Name": "memcached",
+       "Purpose": "export",
+       "Protocol": "tcp",
+       "PortNumber": 11211,
+       "PortTemplate": "",
+       "VirtualAddress": "",
+       "Application": "memcached",
+       "ApplicationTemplate": "memcached",
+       "AddressConfig": {
+         "Port": 0,
+         "Protocol": ""
+       },
+       "VHosts": null,
+       "VHostList": [],
+       "AddressAssignment": {
+         "ID": "",
+         "AssignmentType": "",
+         "HostID": "",
+         "PoolID": "",
+         "IPAddr": "",
+         "Port": 0,
+         "ServiceID": "",
+         "EndpointName": ""
+       },
+       "PortList": []
+     }
+   ],
+   "ParentServiceID": "bp608bvmxiwada62ocwpvvvdc",
+   "Volumes": [],
+   "CreatedAt": "2018-03-07T22:24:37.49109062Z",
+   "UpdatedAt": "2018-06-18T19:16:11.170834725Z",
+   "DeploymentID": "Lab",
+   "DisableImage": false,
+   "LogConfigs": [],
+   "Snapshot": {
+     "Pause": "",
+     "Resume": ""
+   },
+   "DisableShell": false,
+   "Runs": null,
+   "Commands": {},
+   "RAMCommitment": "1G",
+   "RAMThreshold": 0,
+   "CPUCommitment": 1,
+   "Actions": null,
+   "HealthChecks": {
+     "answering": {
+       "Script": "{ echo stats; sleep 1; } | nc 127.0.0.1 11211 | grep -q uptime",
+       "Timeout": 0,
+       "Interval": 5,
+       "Tolerance": 0
+     }
+   },
+   "Prereqs": [],
+   "MonitoringProfile": {
+     "MetricConfigs": [],
+     "GraphConfigs": [],
+     "ThresholdConfigs": []
+   },
+   "MemoryLimit": 0,
+   "CPUShares": 0,
+   "PIDFile": "",
+   "StartLevel": 1,
+   "EmergencyShutdownLevel": 0,
+   "EmergencyShutdown": false,
+   "DatabaseVersion": 25
+ }
