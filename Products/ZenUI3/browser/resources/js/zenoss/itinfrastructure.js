@@ -1394,7 +1394,8 @@ Ext.onReady(function () {
                 'administration': true,
                 'overriddenobjects': true
             };
-            var uid = Zenoss.env.PARENT_CONTEXT;
+            // ZEN-30062 
+            var uid = Zenoss.render.link(false,Zenoss.env.PARENT_CONTEXT);
             if (config.contextRegex) {
                 var re = new RegExp(config.contextRegex);
                 return re.test(uid);
@@ -1884,11 +1885,10 @@ Ext.onReady(function () {
             allowBlank: true
         });
 
+        // ZEN-30271
+        var node = getSelectionModel().getSelectedNode(),
+            uid = node ? Zenoss.render.link(false, node.get('uid')) : "";
 
-        var uid = "";
-        if (getSelectionModel().getSelectedNode()) {
-            uid = getSelectionModel().getSelectedNode().get('uid');
-        }
         if (uid.startswith('/zport/dmd/Devices')) {
             var store = Ext.create('Zenoss.ConfigProperty.Store', {
                 autoLoad: true
