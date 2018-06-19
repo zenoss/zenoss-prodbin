@@ -2584,7 +2584,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-tree-panel .x-grid-row-over  span,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
-    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
+    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #fafafa !important }
 
     /* dark charts */
