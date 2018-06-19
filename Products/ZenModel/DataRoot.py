@@ -33,9 +33,11 @@ from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from ZODB.transact import transact
 from Commandable import Commandable
 from datetime import datetime
+from zope.component import getUtility
 import os
 import sys
 import string
@@ -89,7 +91,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
-    instanceIdentifier = 'Zenoss'
+    cz_prefix = getUtility(IVirtualRoot).get_prefix()
+    instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
     smtpHost = ''
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
@@ -599,7 +602,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 return None
         if not obj: return None
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(obj.getPrimaryUrlPath())
+            path = getUtility(IVirtualRoot).ensure_virtual_root(obj.getPrimaryUrlPath())
+            REQUEST['RESPONSE'].redirect(path)
 
 
     def getXMLEdges(self, objid, depth=1, filter="/"):
@@ -782,7 +786,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "https://help.zenoss.com/pages/viewpage.action?pageId=65849"
+        return "https://help.zenoss.com/docs/collection-zone"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
@@ -893,18 +897,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
 
         if REQUEST:
-            curuser = self.dmd.ZenUsers.getUser().getId()
-            curpasswd = REQUEST.get('curPasswd')
-
-            if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'Confirmation password is empty or invalid. Please'
-                    ' confirm your password for security reasons.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
                 activateSessionBasedAuthentication(self.zport)

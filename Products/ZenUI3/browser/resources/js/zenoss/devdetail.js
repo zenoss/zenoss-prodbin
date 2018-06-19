@@ -332,7 +332,7 @@ var componentCard = {
             var grid = Ext.getCmp('component_card').componentgrid,
             sm = grid.getSelectionModel(),
             uuid = sm.selected.items[0].data.uuid;
-            var loc = window.location.host;
+            var loc = "https://" + window.location.host;
             var encodedQuery = encodeURIComponent(JSON.stringify({
                 contextUUID: uuid
             }));
