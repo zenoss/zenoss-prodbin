@@ -208,6 +208,14 @@ Zenoss.env.textMasks = {
         allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
 };
 
+Zenoss.env.isDarkTheme = (function () {
+    if (document.documentElement.classList.contains('z-cse-dark')) {
+        return true;
+    }
+
+    return false;
+}());
+
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
