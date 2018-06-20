@@ -116,15 +116,6 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             }
         });
         ProcessTreePanel.superclass.constructor.call(this, config);
-        // preselect root node on store load;
-        this.store.on('load', function(t, records) {
-            var rootNode = this.getRootNode(),
-                visibleRootNode = rootNode && rootNode.firstChild;
-            if (visibleRootNode) {
-                visibleRootNode.expand();
-                this.getSelectionModel().select(visibleRootNode);
-            }
-        }, this);
     },
     onNodeDrop: function(element, event, target) {
         var uid, targetUid, params, callback, dropped;
