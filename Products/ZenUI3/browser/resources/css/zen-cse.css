@@ -384,6 +384,14 @@ BYE BYE BORDERS
         padding: 2px 0 9px;
     }
 
+    /*ZEN-30098*/
+    .z-cse .x-surface path {
+        stroke: #999;
+    }
+    .z-cse .x-surface text {
+        fill: #ccc;
+    }
+
     /* filter coloring */
     .z-cse #component_searchfield-inputEl
     /* .z-cse .x-grid-filter .x-form-field, */
@@ -2226,6 +2234,11 @@ BYE BYE BORDERS
         text-align: right;
     }
 
+    /* ZEN-30304: hide empty flash player that produce swfobject.js for its internal need */
+    .z-cse body > object[type="application/x-shockwave-flash"]:not([data]) {
+      visibility: hidden;
+    }
+
 /*
         =====================================================================================
         DARK THEME
@@ -2305,6 +2318,14 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable label.x-form-item-label,
     .z-cse.z-cse-dark .x-window-body-closable label {
         color: #ccc;
+    }
+
+    /*ZEN-30098*/
+    .z-cse.z-cse-dark .x-surface text {
+        fill: #999;
+    }
+    .z-cse.z-cse-dark .x-surface path {
+        stroke: #ccc;
     }
 
     /* <ZEN-29844> tab panel tabs dark styles*/
@@ -2584,7 +2605,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-tree-panel .x-grid-row-over  span,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
-    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
+    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #fafafa !important }
 
     /* dark charts */
@@ -2851,6 +2873,13 @@ BYE BYE BORDERS
         background-color: #ccc;
         background-size: 75%;
         background-position: center;
+    }
+
+    .z-cse.z-cse-dark img.x-action-col-icon.restarticon,
+    .z-cse.z-cse-dark .x-grid-icon-pending {
+        padding: 1px;
+        background-color: #ccc;
+        border-radius: 50%;
     }
 
     /* inspector window */
