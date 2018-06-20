@@ -2778,6 +2778,11 @@ BYE BYE BORDERS
         background-color: transparent;
     }
 
+    /*ZEN-30100 background for graphs in floating windows*/
+    .z-cse.z-cse-dark .x-window .europagraph {
+        background: #545454;
+    }
+
     /* events | classes | < class modal > | configuration properties modal */
     .z-cse.z-cse-dark .x-window-body-closable #blackTabs .x-panel-default {
         background-color: transparent !important;
