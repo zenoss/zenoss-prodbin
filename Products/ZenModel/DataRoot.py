@@ -91,7 +91,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
-    instanceIdentifier = 'Zenoss'
+    cz_prefix = getUtility(IVirtualRoot).get_prefix()
+    instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
     smtpHost = ''
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
@@ -785,7 +786,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "https://help.zenoss.com/pages/viewpage.action?pageId=65849"
+        return "https://help.zenoss.com/docs/collection-zone"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
