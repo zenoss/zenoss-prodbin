@@ -2854,6 +2854,13 @@ BYE BYE BORDERS
         background-position: center;
     }
 
+    .z-cse.z-cse-dark img.x-action-col-icon.restarticon,
+    .z-cse.z-cse-dark .x-grid-icon-pending {
+        padding: 1px;
+        background-color: #ccc;
+        border-radius: 50%;
+    }
+
     /* inspector window */
     .z-cse.z-cse-dark .inspector span.status-up,
     .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
