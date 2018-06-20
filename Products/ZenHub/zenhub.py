@@ -25,7 +25,6 @@ from XmlRpcService import XmlRpcService
 
 import collections
 import heapq
-import logging
 from metrology import Metrology
 from metrology.registry import registry
 from metrology.instruments import Gauge
@@ -55,7 +54,7 @@ from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import (
     zenPath, getExitMessage, unused, load_config, load_config_override,
-    ipv6_available, atomicWrite, wait
+    ipv6_available, wait
 )
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
@@ -114,6 +113,8 @@ from Products.ZenHub import XML_RPC_PORT
 from Products.ZenHub import PB_PORT
 from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
+
+from Products.ZenHub.interceptors import WorkerInterceptor
 
 # How often we check the number of running workers in Seconds
 CHECK_WORKER_INTERVAL = 60
@@ -302,72 +303,6 @@ class HubRealm(object):
         return pb.IPerspective, self.hubAvitar, lambda: None
 
 
-class WorkerInterceptor(pb.Referenceable):
-    """Redirect service requests to one of the worker processes. Note
-    that everything else (like change notifications) go through
-    locally hosted services."""
-
-    callTime = 0.
-
-    def __init__(self, zenhub, service):
-        self.zenhub = zenhub
-        self.service = service
-        self._serviceCalls = Metrology.meter("zenhub.serviceCalls")
-        self.log = logging.getLogger('zen.zenhub.WorkerInterceptor')
-        self._admTimer = Metrology.timer('zenhub.applyDataMap')
-        self._eventsSent = Metrology.meter("zenhub.eventsSent")
-
-    def remoteMessageReceived(self, broker, message, args, kw):
-        """Intercept requests and send them down to workers"""
-        self._serviceCalls.mark()
-        svc = str(self.service.__class__).rpartition('.')[0]
-        instance = self.service.instance
-        args = broker.unserialize(args)
-        kw = broker.unserialize(kw)
-        # hide the types in the args: subverting the jelly protection mechanism
-        # but the types just passed through and the worker may not have loaded
-        # the required service before we try passing types for that service
-        # PB has a 640k limit, not bytes but len of sequences. When args are
-        # pickled the resulting string may be larger than 640k, split into
-        # 100k chunks
-        pickledArgs = pickle.dumps(
-            (args, kw), pickle.HIGHEST_PROTOCOL
-        )
-        chunkedArgs = []
-        chunkSize = 102400
-        while pickledArgs:
-            chunk = pickledArgs[:chunkSize]
-            chunkedArgs.append(chunk)
-            pickledArgs = pickledArgs[chunkSize:]
-
-        start = time.time()
-
-        def recordTime(result):
-            # get in milliseconds
-            duration = int((time.time() - start) * 1000)
-            self._admTimer.update(duration)
-            return result
-
-        deferred = self.zenhub.deferToWorker(
-            svc, instance, message, chunkedArgs
-        )
-        if message == 'sendEvents':
-            if args and len(args) == 1:
-                self._eventsSent.mark(len(args[0]))
-        elif message == 'sendEvent':
-            self._eventsSent.mark()
-        elif message == 'applyDataMaps':
-            deferred.addCallback(recordTime)
-
-        return broker.serialize(deferred, self.perspective)
-
-    def __getattr__(self, attr):
-        """Implement the HubService interface
-        by forwarding to the local service
-        """
-        return getattr(self.service, attr)
-
-
 class _ZenHubWorklist(object):
 
     def __init__(self):
@@ -432,6 +367,7 @@ class _ZenHubWorklist(object):
 
     def push(self, job):
         heapq.heappush(self[job.method], job)
+
     append = push
 
 

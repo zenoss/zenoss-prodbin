@@ -262,7 +262,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     #
     ##########################################################################
 
-    def exportXml(self, ofile, ignorerels=[], root=False, exportPasswords=False):
+    def exportXml(self, ofile, ignorerels=[], root=False, exportPasswords=False, move=False):
         """Return an xml based representation of a RelationshipManager
         <object id='/Devices/Servers/Windows/dhcp160.confmon.loc' 
             module='Products.Confmon.IpInterface' class='IpInterface'>
@@ -275,8 +275,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         modname = self.__class__.__module__
         classname = self.__class__.__name__
         id = root and self.getPrimaryId() or self.id
-        stag = "<object id='%s' module='%s' class='%s'>\n" % (
-                    id , modname, classname)
+        stag = "<object id='%s' module='%s' class='%s' move='%s'>\n" % (
+                    id , modname, classname, move)
         ofile.write(stag)
         zendocAdapter = zope.component.queryAdapter( self, IZenDocProvider )
         if zendocAdapter is not None:

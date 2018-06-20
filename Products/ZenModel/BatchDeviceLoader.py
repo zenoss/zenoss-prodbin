@@ -387,7 +387,7 @@ windows_device_3 setTitle="Windows AD Server 1", setHWTag="service-tag-ABCDEF", 
         """
         self.log.debug("Applying other properties...")
         internalVars = [
-            'deviceName', 'devicePath', 'loader', 'loader_arg_keys',
+            'deviceName', 'devicePath', 'loader', 'loader_arg_keys', 'manageIp',
         ]
 
         @transactional
