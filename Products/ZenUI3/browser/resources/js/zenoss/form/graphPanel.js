@@ -493,7 +493,7 @@
                 cls: 'white-background-panel',
                 layout: 'fit',
                 // ZEN-30103
-                width: '90%',
+                width: (window.outerWidth-40),
                 resizable: false,
                 items: [config]
             });
