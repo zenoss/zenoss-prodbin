@@ -2234,6 +2234,11 @@ BYE BYE BORDERS
         text-align: right;
     }
 
+    /* ZEN-30304: hide empty flash player that produce swfobject.js for its internal need */
+    .z-cse body > object[type="application/x-shockwave-flash"]:not([data]) {
+      visibility: hidden;
+    }
+
 /*
         =====================================================================================
         DARK THEME
