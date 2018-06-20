@@ -11,6 +11,8 @@
 import sys
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
@@ -92,8 +94,9 @@ class MultiGraphReport(BaseReport):
         gg = self.graphGroups._getOb(gg.id)
         if REQUEST:
             audit('UI.Report.AddGraphGroup', self.id, graphGroup=gg.id)
-            return REQUEST['RESPONSE'].redirect(
-                '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id))
+            url = '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return gg
 
 
@@ -150,6 +153,7 @@ class MultiGraphReport(BaseReport):
         if REQUEST:
             audit('UI.Report.AddCollection', self.id, collection=col.id)
             url = '%s/collections/%s' % (self.getPrimaryUrlPath(), new_id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
             return REQUEST['RESPONSE'].redirect(url)
         return col
 
@@ -205,6 +209,7 @@ class MultiGraphReport(BaseReport):
         if REQUEST:
             audit('UI.Report.AddGraphDefinition', self.id, graphDefinition=graph.id)
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
             return REQUEST['RESPONSE'].redirect(url)
         return graph
         
