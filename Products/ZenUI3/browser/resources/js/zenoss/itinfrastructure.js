@@ -1142,6 +1142,7 @@ Ext.onReady(function () {
         }),
         router: REMOTE,
         nodeName: 'Device',
+        selectRootOnLoad: false,
         deleteNodeFn: function (args, callback) {
             REMOTE.getDeviceUids(args, function (response) {
                 deleteDevicesWithProgressBar(Ext.getCmp('device_grid'),
@@ -1391,7 +1392,8 @@ Ext.onReady(function () {
                 'administration': true,
                 'overriddenobjects': true
             };
-            var uid = Zenoss.env.PARENT_CONTEXT;
+            // ZEN-30062 
+            var uid = Zenoss.render.link(false,Zenoss.env.PARENT_CONTEXT);
             if (config.contextRegex) {
                 var re = new RegExp(config.contextRegex);
                 return re.test(uid);
@@ -1881,11 +1883,10 @@ Ext.onReady(function () {
             allowBlank: true
         });
 
+        // ZEN-30271
+        var node = getSelectionModel().getSelectedNode(),
+            uid = node ? Zenoss.render.link(false, node.get('uid')) : "";
 
-        var uid = "";
-        if (getSelectionModel().getSelectedNode()) {
-            uid = getSelectionModel().getSelectedNode().get('uid');
-        }
         if (uid.startswith('/zport/dmd/Devices')) {
             var store = Ext.create('Zenoss.ConfigProperty.Store', {
                 autoLoad: true
@@ -2070,8 +2071,9 @@ Ext.onReady(function () {
 
     // if there is no history, select the top node
     if (!Ext.History.getToken()) {
-        var node = Ext.getCmp('devices').getRootNode();
-        node.fireEvent('expand', node);
+        var node = Ext.getCmp('devices').getRootNode(),
+            selModel = getSelectionModel()
+        selModel.select(node.firstChild);
     }
 
 }); // Ext. OnReady

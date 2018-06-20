@@ -210,8 +210,8 @@ class ReportRouter(TreeRouter):
         if newId:
             tokens.append(newId)
         paths = []
-        # ["", "zport", "dmd", "Reports", <new node or an ancestor, at 4>, ...]
-        for x in range(4, len(tokens) + 1):
+        # ["", "cse_virtual_root", "zport", "dmd", "Reports", <new node or an ancestor, at 5>, ...]
+        for x in range(5, len(tokens) + 1):
             paths.append('/'.join(tokens[:x]))
         nodes = [self._getFacade().getTree(id) for id in paths]
         return [Marshaller(node).marshal(localKeys) for node in nodes]
