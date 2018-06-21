@@ -10,17 +10,14 @@
 
 import socket
 import re
-import os
 import logging
-import subprocess
 from collections import OrderedDict
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter, queryUtility
+from zope.component import getMultiAdapter, queryUtility, getUtility
 from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
-from Products.Zuul.catalog.interfaces import IComponentFieldSpec
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -28,7 +25,6 @@ from Products.Zuul.catalog.component_catalog import get_component_field_spec, pa
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
-from Products.Jobber.jobs import SubprocessJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -46,9 +42,9 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
-from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
 from AccessControl import getSecurityManager
@@ -744,9 +740,7 @@ class DeviceFacade(TreeFacade):
         object = self._getObject(id)
         
         if isinstance(object, Device):
-            devClassTemplates = set(object.deviceClass().getRRDTemplates())
-            devTemplates = set(object.getRRDTemplates())
-            rrdTemplates = list(devClassTemplates.union(devTemplates))
+            rrdTemplates = object.getAvailableTemplates()
         else:
             rrdTemplates = object.getRRDTemplates()        
 
@@ -1055,7 +1049,7 @@ class DeviceFacade(TreeFacade):
             org_id = org.getPrimaryId()
             if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
                 devtypes.append({
-                    'value': org_id,
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
                     'description': org_name,
                     'protocol': "",
                 })
@@ -1081,7 +1075,7 @@ class DeviceFacade(TreeFacade):
                 if matched_org_to_dev_cls and ptcl == 'WMI':
                     ptcl = "WinRM"
                 devtypes.append({
-                    'value': org_id,
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
                     'description': desc,
                     'protocol': ptcl,
                 })

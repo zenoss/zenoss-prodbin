@@ -199,6 +199,10 @@ darker input fields:           #505050
         width: 14px;
     }
 
+    /* ZEN-30116 background changes for panel header */
+    .z-cse .x-panel-header-default {
+        background-color: #f3f3f3;
+    }
 /* <ZEN-29844> floating windows light theme inheritance */
 .z-cse .x-window,
 .z-cse .x-window-header {
@@ -344,6 +348,7 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -352,7 +357,6 @@ BYE BYE BORDERS
     .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse #edit_panel-body input[type=password],
     .z-cse #edit_panel-body input[type=text],
-    .z-cse #filterButton,
     .z-cse #ldapConfigDropDown input[type=text],
     .z-cse #man_center_panel > .x-toolbar .x-form-item,
     .z-cse #propList input[type=text],
@@ -382,6 +386,14 @@ BYE BYE BORDERS
     .z-cse #header {
         background-color: #fff;
         padding: 2px 0 9px;
+    }
+
+    /*ZEN-30098*/
+    .z-cse .x-surface path {
+        stroke: #999;
+    }
+    .z-cse .x-surface text {
+        fill: #ccc;
     }
 
     /* filter coloring */
@@ -1234,21 +1246,6 @@ BYE BYE BORDERS
             margin: -1px 0 0 0;
         }
 
-    /* events | event classes */
-    .z-cse #class_center_panel .largetoolbar {
-        height: 45px !important;
-        padding-top: 4px;
-    }
-    .z-cse #nav_combo .x-form-arrow-trigger {
-        height: 23px;
-    }
-    .z-cse #class_center_panel #mapping_toolbar {
-        height: 30px;
-        margin-bottom: 8px;
-        padding-top: 0;
-        top: 2px !important;
-    }
-
     /* events | triggers */
     .z-cse #triggers_grid_panel > .x-toolbar-docked-top,
     .z-cse #notifications_panel .x-toolbar-docked-top {
@@ -1958,6 +1955,7 @@ BYE BYE BORDERS
         cursor: default;
         background-color:  #f4f4f4;
     }
+    /*ZEN-30221*/
     .z-cse #contentPaneContainer input.tableheader:hover {
         cursor: pointer;
         background-color:  #b6cbe4;
@@ -2207,6 +2205,44 @@ BYE BYE BORDERS
         background-image: none;
     }
 
+    /* inspector window */
+    .z-cse .inspector-window {
+        padding: 0;
+    }
+
+    .z-cse .inspector .inspector-header {
+        padding-top: 8px;
+        background-image: none;
+        background-color: inherit;
+    }
+
+    .z-cse .inspector .inspector-header .header-icon-wrapper,
+    .z-cse .inspector .inspector-header .header-title{
+        background: none;
+    }
+
+    .z-cse .inspector .inspector-body {
+        background-color: #eee;
+    }
+
+    .z-cse .inspector .inspector-header .header-title {
+        margin-left: 28px !important;
+    }
+
+    .z-cse .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #4b4b4c;
+    }
+
+    .z-cse .inspector .eventrainbow td.severity-icon-small {
+        padding-right: 4px;
+        width: 36px;
+        text-align: right;
+    }
+
+    /* ZEN-30304: hide empty flash player that produce swfobject.js for its internal need */
+    .z-cse body > object[type="application/x-shockwave-flash"]:not([data]) {
+      visibility: hidden;
+    }
 
 /*
         =====================================================================================
@@ -2289,6 +2325,20 @@ BYE BYE BORDERS
         color: #ccc;
     }
 
+    /*ZEN-30221*/
+    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
+        cursor: pointer;
+        background-color:  #b6cbe4;
+    }
+
+    /*ZEN-30098*/
+    .z-cse.z-cse-dark .x-surface text {
+        fill: #999;
+    }
+    .z-cse.z-cse-dark .x-surface path {
+        stroke: #ccc;
+    }
+
     /* <ZEN-29844> tab panel tabs dark styles*/
     .z-cse.z-cse-dark .white-background-panel .x-tab {
         background-color: #333 !important;
@@ -2337,8 +2387,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
     .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse.z-cse-dark #contentPaneContainer input[type=button], /*ZEN-30221*/
     .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
-    .z-cse.z-cse-dark #filterButton,
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
@@ -2495,6 +2545,14 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item
     { color: #ccc !important; }
 
+    /* ZEN-30116 background changes for panel header */
+    .z-cse.z-cse-dark .x-panel-header-default {
+        background-color: #4e4e4e;
+    }
+    .z-cse.z-cse-dark .codemirror-field {
+        background: #212121;
+    }
+
     /* dark theme chart text */
     .z-cse.z-cse-dark #network_map-body text
     { fill: #ccc; }
@@ -2519,6 +2577,16 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .detail-form-panel .x-form-field,
     .z-cse.z-cse-dark .detail-form-panel .display-field
     { color: #eee }
+
+    /*ZEN-30102-30103 make a chart legends visible in window panel*/
+    .z-cse.z-cse-dark .zenfooter_data,
+    .z-cse.z-cse-dark .zenfooter_dates {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark .zenfooter_value_row:hover td {
+        background-color: #ddd;
+        color: black !important;
+    }
 
     /* tips dark */
     .z-cse.z-cse-dark .x-tip {
@@ -2566,7 +2634,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-tree-panel .x-grid-row-over  span,
     .z-cse.z-cse-dark #master_panel .x-panel-hierarchy .x-grid-row-over .x-grid-cell-inner,
     .z-cse.z-cse-dark #master_panel #deviceDetailNav .x-grid-row-over .x-grid-cell-inner,
-    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner
+    .z-cse.z-cse-dark #master_panel #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
+    .z-cse.z-cse-dark #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #fafafa !important }
 
     /* dark charts */
@@ -2719,7 +2788,7 @@ BYE BYE BORDERS
 
     /* reports | table headers */
     .z-cse.z-cse-dark #contentPaneContainer .innerzentable th
-    { background-color: #808080; }
+    { background-color: #808080; border-right: 2px solid #979797; }
 
 
     /* advanced | settings */
@@ -2736,6 +2805,11 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable .CodeMirror-lines,
     .z-cse.z-cse-dark .CodeMirror-line {
         background-color: transparent;
+    }
+
+    /*ZEN-30100 background for graphs in floating windows*/
+    .z-cse.z-cse-dark .x-window .europagraph {
+        background: #545454;
     }
 
     /* events | classes | < class modal > | configuration properties modal */
@@ -2833,4 +2907,17 @@ BYE BYE BORDERS
         background-color: #ccc;
         background-size: 75%;
         background-position: center;
+    }
+
+    .z-cse.z-cse-dark img.x-action-col-icon.restarticon,
+    .z-cse.z-cse-dark .x-grid-icon-pending {
+        padding: 1px;
+        background-color: #ccc;
+        border-radius: 50%;
+    }
+
+    /* inspector window */
+    .z-cse.z-cse-dark .inspector span.status-up,
+    .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
+        color: #5a5a5a;
     }

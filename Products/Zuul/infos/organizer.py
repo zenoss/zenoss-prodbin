@@ -9,6 +9,8 @@
 
 
 from zope.interface import implements
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul.interfaces import IOrganizerInfo, ILocationOrganizerInfo
 from Products.Zuul.infos import InfoBase, HasEventsInfoMixin
 
@@ -41,6 +43,11 @@ class DeviceClassInfo(OrganizerInfo, HasEventsInfoMixin):
         
 class LocationOrganizerInfo(OrganizerInfo, HasEventsInfoMixin):
     implements(ILocationOrganizerInfo)
+
+    @property
+    def uid(self):
+        _uid = super(LocationOrganizerInfo, self).uid
+        return getUtility(IVirtualRoot).ensure_virtual_root(_uid)
 
     def getName(self):
         return self._object.getOrganizerName()

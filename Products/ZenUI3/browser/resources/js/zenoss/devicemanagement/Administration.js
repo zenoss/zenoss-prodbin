@@ -445,8 +445,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                 id:           c.id,
                 name:         c.name,
                 description:  c.description,
-                command:      c.command,
-                password:     c.psword
+                command:      c.command
             };
             if(newEntry){
                 Zenoss.remote.DeviceManagementRouter.addUserCommand({params:params}, function(response){
@@ -522,11 +521,6 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                     height:55,
                     ref: 'cmd',
                     fieldLabel: _t('Command')
-                },{
-                    xtype: 'password',
-                    name: 'psword',
-                    width:220,
-                    fieldLabel: _t('Confirm Password')
                 }
             ],
             // explicitly do not allow enter to submit the dialog

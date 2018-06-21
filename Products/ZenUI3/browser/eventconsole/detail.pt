@@ -1,4 +1,4 @@
-<html tal:attributes="class here/dmd/ZenUsers/getUserTheme">
+<html class="z-cse z-cse-dark">
     <head>
         <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
@@ -12,10 +12,14 @@
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block tal:content="structure provider:jssnippets"/>
+        <script>
+        // get user theme
+        if (window.localStorage.getItem("z-theme") === "light") {
+            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark")
+        }
+        </script>
     </head>
     <body class="zenui3">
-
-
 
 <!--The following is using a python statement to avoid permission issues for non-global roles -->
 <script tal:content="python: 'Ext.onReady(function() { Zenoss.env.EVENTSGRID_STATEID = \'' + here.id + '_evconsole\';  });'" >

@@ -48,7 +48,7 @@
                           case "STARTED":
                             return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif", status);
                           case "PENDING":
-                            return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
+                            return Ext.String.format("<img class='x-grid-icon-pending' src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
                           case "ABORTED":
                             return "<span class=\"tree-severity-icon-small-warning\" style=\"padding-left:18px;padding-top:2px;\">Aborted</span>";
                           case "SUCCESS":

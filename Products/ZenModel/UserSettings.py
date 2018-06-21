@@ -253,13 +253,6 @@ class UserSettingsManager(ZenModelRM):
         if uf: return uf.getPrimaryUrlPath()
         return ""
 
-    def getUserTheme(self):
-        ut = self.getUserSettings().userTheme
-        return ut if ut else "z-cse z-cse-dark"
-
-    def getAllThemes(self):
-        return [{'name':'Light', 'class':'z-cse'},{'name':'Dark', 'class':'z-cse z-cse-dark'}]
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     @validate_csrf_token
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
@@ -318,7 +311,7 @@ class UserSettingsManager(ZenModelRM):
         return ''.join(choice(chars) for i in range(6))
 
 
-    def authenticateCredentials(self, login, password):
+    def authenticateCredentials(self, login, password, auth0_userid=None):
         """
         Authenticates a given set of credentials against all configured
         authentication plugins. Returns True for successful authentication and
@@ -338,8 +331,12 @@ class UserSettingsManager(ZenModelRM):
         # try each authenticator until a non-None user_id is returned
         for authenticator_id, auth in authenticators:
             try:
-                uid_and_info = auth.authenticateCredentials(
-                    {'login':login, 'password':password})
+                credentials = {
+                    'login':login,
+                    'password':password,
+                    'auth0_userid': auth0_userid,
+                    'extractor': 'auth0_plugin'}
+                uid_and_info = auth.authenticateCredentials(credentials)
 
                 if isinstance(uid_and_info, tuple):
                     # make sure tuple has enough values to unpack

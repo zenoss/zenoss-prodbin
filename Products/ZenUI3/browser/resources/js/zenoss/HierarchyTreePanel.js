@@ -353,7 +353,9 @@
             Ext.applyIf(root, {
                 id: root.id,
                 uid: root.uid,
-                text: _t(root.text || root.id)
+                text: _t(root.text || root.id),
+                // if we set root node here we should make it expanded to allow store on load build right tree node view;
+                expanded: true
             });
             this.root = root;
             this.stateHash = {};
@@ -393,7 +395,10 @@
                                 this.expandPath(this.stateHash[p]);
                             }
                         }
-                    }
+                    },
+                    // we should listen load event only ones on apply state
+                    // because all next loads/reloads will fire this and break tree;
+                    single: true
                 }
             });
         },
@@ -401,24 +406,6 @@
             var store =  this.getStore();
             Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
 
-            if (this.selectRootOnLoad && !Ext.History.getToken()) {
-                this.getRootNode().on('expand', function () {
-                    // The first child is our real root
-                    if (this.getRootNode().firstChild) {
-                        this.addHistoryToken(this.getView(), this.getRootNode().firstChild);
-                        this.getRootNode().firstChild.expand();
-                        this.getSelectionModel().select(this.getRootNode().firstChild);
-                    }
-                }, this, { single: true });
-            } else {
-
-                // always expand the first shown root if we can
-                this.getRootNode().on('expand', function () {
-                    if (this.getRootNode().firstChild) {
-                        this.getRootNode().firstChild.expand();
-                    }
-                }, this, { single: true });
-            }
             this.addEvents('filter');
             this.on('itemclick', this.addHistoryToken, this);
             store.on({
@@ -669,7 +656,8 @@
                             this.filterTree(field);
                         }
                     }
-                };
+                },
+                rootNode = this.getRootNode();
 
             if (liveSearch) {
                 listeners.change = this.filterTree;
@@ -677,9 +665,29 @@
             if (this.searchField && this.ownerCt.regSearchListeners) {
                 this.ownerCt.regSearchListeners(listeners);
             }
-            this.getRootNode().expand(false, true, function (node) {
-                node.expandChildNodes();
-            });
+            // check if root node is loaded and expand it;
+            // if not loaded we should listen store load and than expand root node;
+            if (rootNode.isLoaded()) {
+                rootNode.expand(false, this.selectFirstOnLoad, this);
+            } else {
+                this.store.on('load', function() {
+                        // get fresh root node if store change old root;
+                        this.getRootNode().expand(false, this.selectFirstOnLoad, this);
+                    },
+                this, {single: true});
+            }
+        },
+        selectFirstOnLoad: function() {
+            var rootNode = this.store.getRootNode(),
+                visibleRootNode = rootNode.firstChild || rootNode;
+            // always expand first visible root node;
+            if (visibleRootNode) {
+                visibleRootNode.expand();
+            }
+            // select visible root node only if we haven't something selected before (saved in token);
+            if (this.selectRootOnLoad && !Ext.History.getToken()) {
+                this.getSelectionModel().select(visibleRootNode);
+            }
         },
         expandAll: function () {
             // we have a hidden pseudo-root so we need to

@@ -16,13 +16,12 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
-from Products.ZenUtils.CSEUtils import getZenossURI, getZingURI
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 import base64
-import httplib
-import json
 import jwt
 import logging
 import time
@@ -35,11 +34,12 @@ PLUGIN_TITLE = 'Provide auth via Auth0 service'
 PLUGIN_VERSION = 3
 
 _AUTH0_CONFIG = {
-        'clientid': None,
-        'client-secret': None,
-        'tenant': None,
-        'connection': None
-    }
+    'audience': None,
+    'tenant': None,
+    'whitelist': None,
+    'tenantkey': None,
+    'emailkey': None,
+}
 
 
 def getAuth0Conf():
@@ -51,8 +51,13 @@ def getAuth0Conf():
         config = getGlobalConfiguration()
         for k in _AUTH0_CONFIG:
             d[k] = config.get('auth0-' + k)
+        if not all(d.values()) and any(d.values()):
+            raise Exception('Auth0 config is missing values. Expecting: %s' % ', '.join(['auth0-%s' % value for value in _AUTH0_CONFIG.keys()]))
         _AUTH0_CONFIG = d if all(d.values()) else None
-    return _AUTH0_CONFIG
+        # Whitelist is a comma separated array of strings
+        if _AUTH0_CONFIG and _AUTH0_CONFIG['whitelist']:
+            _AUTH0_CONFIG['whitelist'] = [s.strip() for s in _AUTH0_CONFIG['whitelist'].split(',') if s.strip() != '']
+    return _AUTH0_CONFIG or None
 
 def manage_addAuth0(context, id, title=None):
     obj = Auth0(id, title)
@@ -80,6 +85,8 @@ class Auth0(BasePlugin):
         from a cookie, the Authorization header, or query args
     """
 
+    zc_token_key = 'accessToken'
+
     meta_type = 'Auth0 plugin'
     session_key = 'auth0'
     cookie_key = 'zauth0_key'
@@ -102,80 +109,90 @@ class Auth0(BasePlugin):
         return Auth0.cache['keys'].setdefault(key_id, None)
 
     @staticmethod
-    def storeIdToken(id_token, session, conf, refresh_token):
-        """ Save the important parts of the token in session storage.
-            Returns the corresponding SessionInfo object.
-        """
-        # get the key id from the jwt header
-        key_id = jwt.get_unverified_header(id_token)['kid']
-        key = Auth0._getKey(key_id, conf)
-        if not key:
-            session.pop(Auth0.session_key, None)
-            log.warn('Invalid jwt kid (key id) - not setting session info')
-            return None
-
-        payload = jwt.decode(id_token, key, verify=True,
-                             algorithms=['RS256'],
-                             audience=conf['clientid'],
-                             issuer=conf['tenant'])
-
-        sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
-        sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
-        sessionInfo.expiration = payload['exp']
-        sessionInfo.roles = payload['https://zenoss.com/roles']
-        sessionInfo.refreshToken = refresh_token
-        return sessionInfo
-
+    def removeToken(request):
+        request.SESSION.pop(Auth0.session_key, None)
+        if request.response:
+            request.response.expireCookie(Auth0.zc_token_key)
 
     @staticmethod
-    def _refreshToken(session, conf):
-        """ Refresh an expired token
-            Returns the SessionInfo object from the new token
+    def storeToken(token, request, conf):
+        """ Save the important parts of the token in session storage.
+            Returns the corresponding SessionInfo object.  If we can't
+            return the object for any reason, we remove the Auth0 information
+            from the session and expire the cookie.
         """
-        refresh_token = session.get(Auth0.session_key, SessionInfo()).refreshToken
-        if not refresh_token:
-            log.warn('No refresh token - not getting new id token')
-            return None
-
-        data = {
-            "grant_type": "refresh_token",
-            "client_id": conf['clientid'],
-            "client_secret": conf['client-secret'],
-            "refresh_token": refresh_token
-        }
-
-        domain = conf['tenant'].replace('https://', '').replace('/', '')
-        conn = httplib.HTTPSConnection(domain)
-        headers = {"content-type": "application/json"}
         try:
-            conn.request('POST', '/oauth/token', json.dumps(data), headers)
-            resp_string = conn.getresponse().read()
-        except Exception as a:
-            log.error('Unable to obtain new token from Auth0: %s', a)
+            session = request.SESSION
+            # get the key id from the jwt header
+            key_id = jwt.get_unverified_header(token)['kid']
+            key = Auth0._getKey(key_id, conf)
+            if not key:
+                log.warn('Invalid jwt kid (key id) - not setting session info')
+                Auth0.removeToken(request)
+                return None
+
+            payload = jwt.decode(token, key, verify=True,
+                                 algorithms=['RS256'],
+                                 audience=conf['audience'],
+                                 issuer=conf['tenant'])
+
+            # Make sure we have an auth0 conf
+            conf = conf or getAuth0Conf()
+            if not conf:
+                log.warn('Incomplete Auth0 config in GlobalConfig - not using Auth0 login')
+                Auth0.removeToken(request)
+                return None
+
+            # Verify that the tenant is in our whitelist.
+            # + The tenantkey is used to lookup the tenant from the jwt.
+            tenantkey = conf.get('tenantkey', 'https://dev.zing.ninja/tenant')
+            tenant = payload.get(tenantkey, None) # ie: "https://dev.zing.ninja/tenant": "alphacorp", in jwt
+            if not tenant:
+                log.warn('No auth0 tenant specified in jwt for tenantkey: {}'.format(tenantkey))
+                Auth0.removeToken(request)
+                return None
+            # + Get the whitelist from global.conf and verify that it's in the list.
+            whitelist = conf.get('whitelist', [])
+            if not tenant in whitelist:
+                log.warn('Tenant {} is invalid. Not in whitelist: {}'.format(tenant, whitelist))
+                Auth0.removeToken(request)
+                return None
+
+            emailkey = conf.get('emailkey', 'https://dev.zing.ninja/email')
+            email = payload.get(emailkey, None)
+
+            sessionInfo = session.setdefault(Auth0.session_key, SessionInfo())
+            # use the email as the userid, if defined, otherwise fall back to parsing the sub field.
+            if email:
+                sessionInfo.userid = email
+            else:
+                sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
+            sessionInfo.expiration = payload['exp']
+            sessionInfo.roles = payload.get('https://zenoss.com/roles', [])
+            return sessionInfo
+        except Exception as ex:
+            log.debug('Error storing jwt token: {}'.format(ex.message))
+            Auth0.removeToken(request)
             return None
-
-        resp_data = json.loads(resp_string)
-        id_token = resp_data.get('id_token')
-        log.debug('Token refreshed')
-
-        return Auth0.storeIdToken(id_token, session, conf, refresh_token)
-
 
     def resetCredentials(self, request, response):
         """resetCredentials satisfies the PluggableAuthService
             ICredentialsResetPlugin interface.
-        Redirects to the ZING logout url.  ZING will handle logging out of Auth0
-            by calling the /zport/dmd/Auth0Logout endpoint on each CZ instance.
+        Clears the session, removes the Auth0 cookie, then redirects to the
+            ZING logout url.  Removal of the cookie effectively logs the user
+            out of all CZ instances, and the redirect will log the user out
+            of ZING.
         NOTE:
         Logging out of the UI calls Products/ZenModel/skins/zenmodel/logoutUser.py
             which calls resetCredentials, this bypasses the PAS logout.
         """
         # Clear session variables and redirect to the ZC logout.
         request.SESSION.clear()
+        response.expireCookie(Auth0.zc_token_key)
         conf = getAuth0Conf()
         if conf:
-            log.info('Redirecting user to Auth0 logout')
-            response.redirect("{}/logout".format(getZingURI(request)))
+            log.info('Redirecting user to Auth0 logout: %s' % conf)
+            response.redirect("/logout.html")
 
 
     def extractCredentials(self, request):
@@ -189,17 +206,24 @@ class Auth0(BasePlugin):
             log.debug('Incomplete Auth0 config in GlobalConfig - not using Auth0 login')
             return {}
 
+        token = request.cookies.get(Auth0.zc_token_key, None)
+        if not token:
+            log.debug('No Auth0 token found in cookies')
+            return {}
+
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
-            log.debug('No Auth0 session - not directing to Auth0 login')
+            sessionInfo = Auth0.storeToken(token, request, conf)
+
+        if not sessionInfo or not sessionInfo.userid:
+            log.debug('No userid found in sessionInfo - not directing to Auth0 login')
+            Auth0.removeToken(request)
             return {}
 
         if time.time() > sessionInfo.expiration:
-            log.debug('Token expired - attempting to refresh')
-            sessionInfo = Auth0._refreshToken(request.SESSION, conf)
-
-        if not sessionInfo or not sessionInfo.userid:
-            log.debug('No Auth0 session - not directing to Auth0 login')
+            # The stored session data is invalid, and we're using Auth0; remove the Auth0 data
+            # from the session.
+            Auth0.removeToken(request)
             return {}
 
         return {'auth0_userid': sessionInfo.userid}
@@ -231,22 +255,19 @@ class Auth0(BasePlugin):
             log.debug('Incomplete Auth0 config in GlobalConfig - not directing to Auth0 login')
             return False
 
-        zenoss_uri = getZenossURI(request)
-        # pass state to auth0 so we can redirect user to where they wanted to go
-        state_obj = {
-            "came_from": request.ACTUAL_URL
-        }
-        state = base64.urlsafe_b64encode(json.dumps(state_obj))
+        # It's possible for a fresh start to get here, but ZC has already logged us in.  If we have
+        # a jwt token, try to use that before redirecting to ZC.
+        sessionInfo = request.SESSION.get(Auth0.session_key)
+        if not sessionInfo:
+            token = request.cookies.get(Auth0.zc_token_key, None)
+            if token:
+                sessionInfo = self.storeToken(token, request, conf)
+                if sessionInfo:
+                    return True
 
-        uri = "%sauthorize?" % conf['tenant'] + \
-              "response_type=code&" + \
-              "client_id=%s&" % conf['clientid'] + \
-              "state=%s&" % state + \
-              "scope=openid offline_access&" + \
-              "prompt=none&" + \
-              "redirect_uri=%s/zport/Auth0Callback" % zenoss_uri
-
-        request['RESPONSE'].redirect(uri, lock=1)
+        currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
+        redirect = base64.urlsafe_b64encode(currentLocation)
+        request['RESPONSE'].redirect('/czlogin.html?redirect={}'.format(redirect), lock=1)
         return True
 
     def getRolesForPrincipal(self, principal, request=None):
