@@ -1142,6 +1142,7 @@ Ext.onReady(function () {
         }),
         router: REMOTE,
         nodeName: 'Device',
+        selectRootOnLoad: false,
         deleteNodeFn: function (args, callback) {
             REMOTE.getDeviceUids(args, function (response) {
                 deleteDevicesWithProgressBar(Ext.getCmp('device_grid'),
@@ -2073,8 +2074,9 @@ Ext.onReady(function () {
 
     // if there is no history, select the top node
     if (!Ext.History.getToken()) {
-        var node = Ext.getCmp('devices').getRootNode();
-        node.fireEvent('expand', node);
+        var node = Ext.getCmp('devices').getRootNode(),
+            selModel = getSelectionModel()
+        selModel.select(node.firstChild);
     }
 
 }); // Ext. OnReady

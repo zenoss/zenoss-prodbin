@@ -756,7 +756,7 @@ function createLocalMIBAddAction() {
         permission: 'Manage DMD',
         handler: function(btn, e){
             var node = getSelectedMibTreeNode(),
-                src = node.data.uid + '/uploadfile',
+                src = Zenoss.render.link(false, node.data.uid) + '/uploadfile',
                 win = new Zenoss.dialog.CloseDialog({
                     id: 'fileuploadwindow',
                     width: 300,
