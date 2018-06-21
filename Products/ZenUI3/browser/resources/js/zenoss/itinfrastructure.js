@@ -1077,7 +1077,7 @@ Ext.onReady(function () {
             item.un('navloaded', item.selectFirst, item);
 
             // switch to the "details" panel
-            container.setActiveItem(1);
+            master.setActiveItem(1);
 
             // wait until the nav has loaded from the server to
             // select the nav item
@@ -1095,7 +1095,7 @@ Ext.onReady(function () {
                 Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
             }
         } else {
-            container.setActiveItem(0);
+            master.setActiveItem(0);
             Zenoss.HierarchyTreePanel.prototype.selectByToken.call(this, parts[0]);
         }
     }
@@ -1361,20 +1361,17 @@ Ext.onReady(function () {
             Zenoss.InfraDetailNav.superclass.constructor.call(this, config);
         },
         selectByToken: function (nodeId) {
-            var selNode = Ext.bind(function () {
-                var sel = this.getSelectionModel().getSelectedNode();
-                if (!(sel && nodeId === sel.id)) {
-                    var navtree = this.down('detailnavtreepanel');
-                    var n = navtree.getRootNode().findChild('id', nodeId);
-                    if (n) {
-                        navtree.getSelectionModel().select(n);
+            var selNode = function () {
+                    var navtree = this.down('detailnavtreepanel'),
+                        rootNode = navtree.getRootNode(),
+                        toSelect = rootNode ? (rootNode.findChild('id', nodeId) || rootNode.firstChild) : null;
+
+                    if (toSelect) {
+                        navtree.getSelectionModel().select(toSelect);
                     }
-                }
-                this.un('navloaded', this.selectFirst, this);
-                this.on('navloaded', this.selectFirst, this);
-            }, this);
+                };
             if (this.loaded) {
-                selNode();
+                selNode.call(this);
             } else {
                 this.on('navloaded', selNode, this, { single: true });
             }
@@ -1407,9 +1404,8 @@ Ext.onReady(function () {
             return Zenoss.nav.get('DeviceGroup');
         },
         onSelectionChange: function (nodes) {
-            var node;
-            if (nodes.length) {
-                node = nodes[0];
+            var node = nodes && nodes[0];
+            if (node) {
                 var detailPanel = Ext.getCmp('detail_panel');
                 var contentPanel = Ext.getCmp(node.data.id);
                 contentPanel.setContext(this.contextId);
@@ -1537,14 +1533,16 @@ Ext.onReady(function () {
                     id: 'organizer_events',
                     width: 152,
                     listeners: {
-                        'render': function (me) {
-                            me.getEl().on('click', function () {
+                        click: {
+                            fn: function() {
                                 if (Zenoss.Security.hasPermission('View')) {
-                                    Ext.getCmp("master_panel").layout.setActiveItem(1);
+                                    Ext.getCmp("master_panel").setActiveItem(1);
                                     var detailnav = Ext.getCmp('detail_nav');
                                     detailnav.selectByToken('events_grid');
                                 }
-                            });
+                            },
+                            // will fire "click" on element click;
+                            element: 'el'
                         }
                     }
                 },
@@ -1782,7 +1780,6 @@ Ext.onReady(function () {
             }],
             listeners: {
                 beforecardchange: function (me, card, index) {
-
                     var node, selectedNode, tree;
                     if (index === 1) {
                         node = getSelectionModel().getSelectedNode().data;
