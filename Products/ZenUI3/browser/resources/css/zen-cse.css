@@ -1956,8 +1956,7 @@ BYE BYE BORDERS
         background-color:  #f4f4f4;
     }
     /*ZEN-30221*/
-    .z-cse #contentPaneContainer input.tableheader:hover,
-    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
+    .z-cse #contentPaneContainer input.tableheader:hover {
         cursor: pointer;
         background-color:  #b6cbe4;
     }
@@ -2324,6 +2323,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable label.x-form-item-label,
     .z-cse.z-cse-dark .x-window-body-closable label {
         color: #ccc;
+    }
+
+    /*ZEN-30221*/
+    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
+        cursor: pointer;
+        background-color:  #b6cbe4;
     }
 
     /*ZEN-30098*/
