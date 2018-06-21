@@ -199,6 +199,10 @@ darker input fields:           #505050
         width: 14px;
     }
 
+    /* ZEN-30116 background changes for panel header */
+    .z-cse .x-panel-header-default {
+        background-color: #f3f3f3;
+    }
 /* <ZEN-29844> floating windows light theme inheritance */
 .z-cse .x-window,
 .z-cse .x-window-header {
@@ -2533,6 +2537,14 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #searchbox-container .searchfield-black .x-form-field,
     .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item
     { color: #ccc !important; }
+
+    /* ZEN-30116 background changes for panel header */
+    .z-cse.z-cse-dark .x-panel-header-default {
+        background-color: #4e4e4e;
+    }
+    .z-cse.z-cse-dark .codemirror-field {
+        background: #212121;
+    }
 
     /* dark theme chart text */
     .z-cse.z-cse-dark #network_map-body text
