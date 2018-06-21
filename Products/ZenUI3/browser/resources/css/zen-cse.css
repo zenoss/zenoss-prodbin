@@ -344,6 +344,7 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
+    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -352,7 +353,6 @@ BYE BYE BORDERS
     .z-cse #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse #edit_panel-body input[type=password],
     .z-cse #edit_panel-body input[type=text],
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #ldapConfigDropDown input[type=text],
     .z-cse #man_center_panel > .x-toolbar .x-form-item,
     .z-cse #propList input[type=text],
