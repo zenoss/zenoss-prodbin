@@ -10,7 +10,7 @@
     <local:Outline id="outline" x="15" y="0"
                    filters="{calcFilters(app().roamer.currentItem, data as Item)}"/>
     <local:Circle id="circle" x="15" y="0"/>
-    <mx:Image id="img1" source="/zport/dmd/img/icons/{data.data.@icon}"
+    <mx:Image id="img1" source="{data.data.@icon}"
               horizontalAlign="center"
               verticalAlign="middle"
               x="30" y="11" height="40" width="40"/>

@@ -17,7 +17,7 @@ from zope.interface import ro, implements
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from decorator import decorator
 from contextlib import contextmanager
-from zope.component import adapts
+from zope.component import adapts, getUtility
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from ZODB.POSException import ConflictError
@@ -31,6 +31,7 @@ from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
@@ -271,8 +272,7 @@ class SearchableMixin(object):
         return _escape(self._context.titleOrId())
 
     def searchIcon(self):
-        return self._context.getIconPath()
-
+        return getUtility(IVirtualRoot).ensure_virtual_root(self._context.getIconPath())
 
 class ComponentWrapper(SearchableMixin,IndexableWrapper):
     adapts(DeviceComponent)
