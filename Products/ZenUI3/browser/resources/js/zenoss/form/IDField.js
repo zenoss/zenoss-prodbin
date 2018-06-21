@@ -15,7 +15,6 @@ Ext.ns('Zenoss.form');
 Ext.define("Zenoss.form.IDField", {
     alias: ['widget.idfield'],
     extend: "Ext.form.TextField",
-    anchor:'80%',
     /*
     * Context on which to check for id validity. Defaults to
     * Zenoss.env.PARENT_CONTEXT.
@@ -26,68 +25,55 @@ Ext.define("Zenoss.form.IDField", {
     */
     maskRe: /[a-zA-Z0-9-_~,.$\(\)# @]/,
     _serverIsValid: false,
+    validationErrorText: _t('That name is invalid or is already in use.'),
+    // invalid text from server on success callback;
+    _serverInvalidText: '',
     /*
-    * Validator function that makes a request to the parent context and calls
-    * the checkValidId method.
+    * "validator" fn should return error message - if not valid, or true - if valid;
+    * if we want to validate field from Ajax we should call Ajax with some(300 ms) timeout to allow user end typing
+    * and on response revalidate field;
     */
     validator: function(value) {
-        var context = this.context || Zenoss.env.PARENT_CONTEXT;
+        var context = this.context || Zenoss.env.PARENT_CONTEXT,
+            me = this,
+            errorText = me._serverInvalidText || me.validationErrorText;
 
         // Don't bother with empty values
         if (Ext.isEmpty(value)) {
             return true;
         }
-        // if the value has not changed do not send an ajax request
-        if(typeof this._previousValue !== 'undefined'){
-            if (value === this._previousValue) {
-                return this.reportResponse(this._previousResponseText);
-            }
-        }
-        this._previousValue = value;
 
-        if (this.vtransaction) {
-            Ext.Ajax.abort(this.vtransaction);
-        }
-        function callback(response) {
-            this._previousResponseText = response.responseText;
-            return this.reportResponse(response.responseText);
-        }
-        this.vtransaction = Ext.Ajax.request({
-            url: Zenoss.render.link(false, context) + '/checkValidId?id='+value,
-            method: 'GET',
-            success: callback,
+        if (value !== me._previousValue) {
+            // stop validation task if it exist;
+            clearTimeout(me.validationTask);
+            // call Ajax with timeout to allow user end typing;
+            me.validationTask = setTimeout(function () {
+                Ext.Ajax.request({
+                    url: context + '/checkValidId?id=' + value,
+                    method: 'GET',
+                    success: function (response) {
+                        // name is valid if we get responseText="True"
+                        me._serverIsValid = (response.responseText === "True");
+                        // clear server invalid message to always get new one;
+                        me._serverInvalidText = '';
 
-            failure: function(response) {
-                this.markInvalid(_t('That name is invalid or is already in use.'));
-                this.fireEvent('validitychange', this, false);
-            },
-            scope: this
-        });
-        return true;
-    },
-    validate: function() {
-        var result = this.callParent(arguments);
-        return result && this._serverIsValid;
-    },
-    /**
-    * Interprets a response from the server to determine if this field is valid.
-    **/
-    reportResponse: function(responseText) {
-        if (responseText === "True") {
-            this.fireEvent('validitychange', this, true);
-            this._serverIsValid = true;
-            return true;
+                        if (!me._serverIsValid) {
+                            // maybe we receive server error text
+                            me._serverInvalidText = response.responseText || me.validationErrorText;
+                        }
+                        me.validate();
+                    },
+                    failure: function (response) {
+                        me._serverIsValid = false;
+                        me.validate();
+                    }
+                });
+            }, 300);
         }
-        // the server responds with a string of why it is invalid
-        this._serverIsValid = false;
-        this.markInvalid(
-            _t('That name is invalid: ') + ' ' + responseText
-        );
-
-        // let any event listeners know that we are invalid
-        this.fireEvent('validitychange', this, false);
-
-        return false;
+        me._previousValue = value;
+        // always return true, later on Ajax callback we will revalidate this field;
+        // we will have errorText after Ajax
+        return me._serverIsValid ? true :  errorText;
     }
 });
 

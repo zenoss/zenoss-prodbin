@@ -191,7 +191,7 @@
          * </ul>
          **/
         datapoints: [],
-        graphTemplate: new  Ext.Template('<div id="{graphId}" class="europagraph" style="{graphPadding}height:{graphHeight}px;"> ' +
+        graphTemplate: new  Ext.Template('<div id="{graphId}" class="europagraph" style="padding: 0 5px 0 0;height:{graphHeight}px;"> ' +
                                          '     <div class="graph_title">{graphTitle}' +
                                          '        <div class="graph_description">{description}</div>'+
                                          '     </div> ' +
@@ -205,7 +205,6 @@
          */
         maxLinkLength: 4096,
         constructor: function(config) {
-            var padding = "padding:5px 5px 5px 0px;";
             // backcompat from graph dimensions from rrd
             // the properties were saved on each graph definition and we want to
             // preserve backward compabability
@@ -219,15 +218,12 @@
             var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
 
             // dynamically adjust the height;
-            config.graphPadding = padding;
             config.graphHeight = config.height - 50;
             config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
                 html: this.graphTemplate.apply(config),
                 cls: 'graph-panel',
-                bodyStyle: {
-                    padding: "5px"
-                },
+                margin: 5,
                 graph_params: {
                     drange: DATE_RANGES[ZSDTR][0],
                     end: config.end || CURRENT_TIME,
@@ -243,6 +239,7 @@
             // let's make sure that has happened
             this.on('afterrender', this.initChart, this);
             this.on('afterrender', this.buildMenu, this, {single: true});
+            this.on('resize', this.refreshOnResize, this);
             this.callParent(arguments);
         },
         beforeDestroy: function() {
@@ -336,7 +333,7 @@
             p.then(function(chart) {
                 chart.afterRender = function() {
                     self.adjustHeight(chart);
-                },
+                };
 
                 // Here we set an onUpdate function for the chart, which takes a promise as an argument (the update
                 // ajax request) and disables the controls until the promise is either fulfilled or it fails.
@@ -429,6 +426,13 @@
             });
 
         },
+        // graph panel resize listener - will resize and refresh chart on component/browser resize;
+        refreshOnResize: function(t, newWidth, newHeight, oldWidth, oldHeight) {
+            var chart = zenoss.visualization.chart.getChart(this.graphId);
+            if (chart) {
+                chart.resize();
+            }
+        },
         displayLink: function(){
             var config = {},
                 encodedConfig, link,
@@ -467,6 +471,7 @@
             },
             this);
         },
+
         expandGraph: function(){
             var config = {},
                 drange = "null",
@@ -488,21 +493,20 @@
             config.hasMenu = false;
             config.xtype = 'europagraph';
             config.height = window.outerHeight * 0.75;
-            config.width = Math.min(window.outerWidth * 0.80, config.height * 1.6180339887);
-            config.maxWidth = 2000;
             config.autoScroll = true;
             delete config.html;
 
             var win = Ext.create('Zenoss.dialog.BaseWindow', {
                 cls: 'white-background-panel',
                 layout: 'fit',
-                width: config.width * 1.15,
-                height: config.height * 1.05,
+                // ZEN-30103
+                width: (window.outerWidth-40),
                 resizable: false,
                 items: [config]
             });
             win.show();
         },
+
         adjustHeight: function(chart) {
             // adjust height based on graph content
             var footerHeight = Number(chart.$div.find(".zenfooter").outerHeight() || 0);
