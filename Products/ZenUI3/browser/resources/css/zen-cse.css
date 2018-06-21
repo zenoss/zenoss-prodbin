@@ -199,6 +199,10 @@ darker input fields:           #505050
         width: 14px;
     }
 
+    /* ZEN-30116 background changes for panel header */
+    .z-cse .x-panel-header-default {
+        background-color: #f3f3f3;
+    }
 /* <ZEN-29844> floating windows light theme inheritance */
 .z-cse .x-window,
 .z-cse .x-window-header {
@@ -2534,6 +2538,14 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #thresholdItemSelector .x-form-fieldcontainer .x-boundlist-item
     { color: #ccc !important; }
 
+    /* ZEN-30116 background changes for panel header */
+    .z-cse.z-cse-dark .x-panel-header-default {
+        background-color: #4e4e4e;
+    }
+    .z-cse.z-cse-dark .codemirror-field {
+        background: #212121;
+    }
+
     /* dark theme chart text */
     .z-cse.z-cse-dark #network_map-body text
     { fill: #ccc; }
@@ -2558,6 +2570,16 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .detail-form-panel .x-form-field,
     .z-cse.z-cse-dark .detail-form-panel .display-field
     { color: #eee }
+
+    /*ZEN-30102-30103 make a chart legends visible in window panel*/
+    .z-cse.z-cse-dark .zenfooter_data,
+    .z-cse.z-cse-dark .zenfooter_dates {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark .zenfooter_value_row:hover td {
+        background-color: #ddd;
+        color: black !important;
+    }
 
     /* tips dark */
     .z-cse.z-cse-dark .x-tip {
@@ -2776,6 +2798,11 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-window-body-closable .CodeMirror-lines,
     .z-cse.z-cse-dark .CodeMirror-line {
         background-color: transparent;
+    }
+
+    /*ZEN-30100 background for graphs in floating windows*/
+    .z-cse.z-cse-dark .x-window .europagraph {
+        background: #545454;
     }
 
     /* events | classes | < class modal > | configuration properties modal */
