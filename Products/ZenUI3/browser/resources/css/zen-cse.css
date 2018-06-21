@@ -2324,8 +2324,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #app-portal > .x-toolbar .x-form-item-body,
     .z-cse.z-cse-dark #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse.z-cse-dark #contentPaneContainer input[type=button], /*ZEN-30221*/
+    .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
