@@ -332,7 +332,7 @@ var componentCard = {
             var grid = Ext.getCmp('component_card').componentgrid,
             sm = grid.getSelectionModel(),
             uuid = sm.selected.items[0].data.uuid;
-            var loc = window.location.host;
+            var loc = "https://" + window.location.host;
             var encodedQuery = encodeURIComponent(JSON.stringify({
                 contextUUID: uuid
             }));
@@ -498,7 +498,8 @@ device_graphs.on('resize', function(panel, width) {
     // always redraw the graphs completely when we resize the page,
     // this way the svg's are the correct size.
     panel.setContext(panel.uid);
-});
+    // add resize buffer to allow user finish resize action and to not resize graphs too often;
+}, device_graphs, {buffer: 300});
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs'

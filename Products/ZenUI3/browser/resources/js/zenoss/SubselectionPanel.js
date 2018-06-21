@@ -10,69 +10,6 @@
 
 (function () {
 
-    Ext.define("Zenoss.SlidingCardLayout", {
-        extend:"Ext.layout.CardLayout",
-        alias:['layout.slide'],
-        sizeAllCards:true,
-        setActiveItem:function (index) {
-            var C = this.owner,
-                B = C.body,
-                card = C.getComponent(index),
-                active = this.activeItem,
-                activeIndex = Ext.Array.indexOf(C.items.items, active), shiftsCallback;
-            if (card !== active) {
-                if (active) {
-                    if (card) {
-                        C.fireEvent('beforecardchange', C, card, index, active, activeIndex);
-                        if (!card.rendered) {
-                            this.renderItem(card, index, C.getLayoutTarget());
-                        }
-                        card.show();
-                        if (card.doLayout && (this.layoutOnCardChange ||
-                            !card.rendered)) {
-                            card.doLayout();
-                        }
-                        var _done = 0;
-
-                        shiftsCallback = function() {
-                            _done++;
-                            if (_done === 2) {
-                                C.fireEvent('cardchange', C, card, index, active,
-                                    activeIndex);
-                            }
-                        };
-
-                        var x = B.getX(),
-                            w = B.getWidth(),
-                            s = [x - w, x + w],
-                            cfg = {
-                                duration:250,
-                                easing:'ease',
-                                opacity:0,
-                                callback:shiftsCallback
-                            };
-                        card.el.setY(B.getY());
-                        card.el.setX((activeIndex < index ? s[1] : s[0]));
-                        active.el.shift(Ext.applyIf({
-                            x:activeIndex < index ? s[0] : s[1]
-                        }, cfg));
-                        card.el.shift(Ext.applyIf({
-                            x:x,
-                            opacity:1
-                        }, cfg));
-                    }
-                }
-                this.activeItem = card;
-                this.initLayout();
-            }
-
-        }
-
-    });
-
-    Ext.layout.container['slide'] = Zenoss.SlidingCardLayout;
-
-
     Ext.define("Zenoss.HorizontalSlidePanel", {
         alias:['widget.horizontalslide'],
         extend:"Ext.Panel",
@@ -81,9 +18,9 @@
                 html:(config && config.text) ? config.text : ''
             });
             config = Ext.applyIf(config || {}, {
-                cls:'subselect',
-                layout:'slide',
-                activeItem:0
+                cls: 'subselect',
+                layout: 'card',
+                activeItem: 0
             });
             var items = [];
             Ext.each(config.items, function (item, index) {
@@ -97,7 +34,7 @@
                     cls:index ? 'toleft' : 'toright',
                     ui:'arrowslide',
                     handler:function () {
-                        this.layout.setActiveItem(index ? 0 : 1);
+                        this.setActiveItem(index ? 0 : 1);
 
                     },
                     scope:this
@@ -145,6 +82,37 @@
             this.addEvents('beforecardchange');
             this.addEvents('cardchange');
             Zenoss.HorizontalSlidePanel.superclass.initEvents.call(this);
+        },
+
+        // handler for "slide" animation on card change;
+        // we shouldn't override card layout "setActiveItem" method to not break anything when component change active card;
+        setActiveItem: function(item) {
+            var activeItem = this.layout.getActiveItem(),
+                newCard = this.layout.parseActiveItem(item),
+                newIndex = this.items.indexOf(newCard),
+                index = this.items.indexOf(activeItem);
+
+            if (newCard != activeItem) {
+                this.fireEvent('beforecardchange', this, newCard, newIndex, activeItem, index);
+                activeItem.el.stopAnimation();
+                activeItem.el.slideOut((newIndex > index ? 'l' : 'r'), {
+                    duration: 100,
+                    remove: false,
+                    callback: function () {
+                        var newActive = this.layout.oldSetActiveItem(item);
+                        newActive.el.stopAnimation();
+                        newActive.el.slideIn((newIndex > index ? 'r' : 'l'), {
+                            duration: 150,
+                            remove: false,
+                            callback: function () {
+                                this.fireEvent('cardchange', this, newActive, newIndex, activeItem, index);
+                            },
+                            scope: this
+                        });
+                    },
+                    scope: this
+                });
+            }
         }
     });
 
@@ -529,17 +497,19 @@
             }
         },
         setContext:function (uid) {
+
             //called to load the nav tree
             this.loaded = false;
-            this.contextId = uid;
+            // ZEN-30062
+            this.contextId = Zenoss.render.link(false, uid);
             this.treepanel.setRootNode([]);
-            this.getNavConfig(uid);
+            this.getNavConfig(this.contextId);
             this.fireEvent('contextchange', this);
         },
         getSelectionModel:function () {
             return this.treepanel.getSelectionModel();
         },
-        getNavConfig:function (uid) {
+        getNavConfig: function(uid) {
             //Direct call to get nav configs from server
             var me = this;
             var myCallback = function (provider, response) {

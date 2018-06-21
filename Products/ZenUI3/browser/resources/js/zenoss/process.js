@@ -68,13 +68,6 @@ function selectionchangeHandler(sm, nodes) {
     }
 }
 
-var selModel = new Zenoss.TreeSelectionModel({
-    listeners: {
-        beforeselect: beforeselectHandler,
-        selectionchange: selectionchangeHandler
-    }
-});
-
 var MoveProcessCallback = Ext.extend(Object, {
     constructor: function(tree, node) {
         this.tree = tree;
@@ -101,7 +94,12 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             cls: 'x-tree-noicon',
             directFn: router.getTree,
             router: router,
-            selModel: selModel,
+            selModel: new Zenoss.TreeSelectionModel({
+                listeners: {
+                    beforeselect: beforeselectHandler,
+                    selectionchange: selectionchangeHandler
+                }
+            }),
             listeners: {
                 scope: this,
                 expandnode: this.onExpandnode
@@ -118,7 +116,6 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             }
         });
         ProcessTreePanel.superclass.constructor.call(this, config);
-
     },
     onNodeDrop: function(element, event, target) {
         var uid, targetUid, params, callback, dropped;
@@ -261,6 +258,10 @@ Ext.define("Zenoss.process.ProcessGrid", {
             }]
         });
         this.callParent(arguments);
+        // preselect first record on store load;
+        this.store.on('load', function(store, records) {
+            this.getSelectionModel().select(records[0]);
+        }, this);
     },
 
     filterAndSelectRow: function(serviceClassName) {
