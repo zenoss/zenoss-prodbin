@@ -644,10 +644,6 @@ Ext.onReady(function(){
                         sortable: true,
                         filter: true
                     },{
-                        id: 'uid_id',
-                        dataIndex: 'uid',
-                        hidden: true
-                    },{
                         header: _t("EventClass Key"),
                         id: 'key_id',
                         dataIndex: 'eventClassKey',
