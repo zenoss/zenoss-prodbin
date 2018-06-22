@@ -561,7 +561,7 @@ class DeviceFacade(TreeFacade):
         assert isinstance(target, DeviceOrganizer)
         devs = (self._getObject(uid) for uid in uids)
         targetname = target.getOrganizerName()
-        exports = 0
+        moved_devices_count = 0
         if isinstance(target, DeviceGroup):
             for dev in devs:
                 paths = set(dev.getDeviceGroupNames())
@@ -581,8 +581,13 @@ class DeviceFacade(TreeFacade):
                 dev.setLocation(targetname)
                 notify(ObjectAddedToOrganizerEvent(dev, target))
         elif isinstance(target, DeviceClass):
-            exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
-        return exports
+            moved_devices_count = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
+
+        result = {
+            'success': bool(moved_devices_count),
+            'message': 'The %s devices have been moved' % moved_devices_count
+        }
+        return result
 
     def _setProductionState(self, uids, state):
         if isinstance(uids, basestring):
