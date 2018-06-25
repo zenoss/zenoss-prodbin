@@ -1823,6 +1823,11 @@ BYE BYE BORDERS
         display: inline-block;
         margin: -2px 2px 0 -2px;
     }
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .hastransform {
+        background-image: url('/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png') !important;
+        display: inline-block;
+        margin: -2px 2px 0 -2px;
+    }
 
     /* infrastructure | devices | details | modeler plugins */
     .z-cse #device_modeler_plugins .x-boundlist-item,
