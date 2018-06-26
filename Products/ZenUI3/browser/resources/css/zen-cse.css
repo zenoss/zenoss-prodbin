@@ -390,10 +390,10 @@ BYE BYE BORDERS
 
     /*ZEN-30098*/
     .z-cse .x-surface path {
-        stroke: #999;
+        stroke: #4b4b4c;
     }
     .z-cse .x-surface text {
-        fill: #ccc;
+        fill: #4b4b4c;
     }
 
     /* filter coloring */
@@ -2338,7 +2338,7 @@ BYE BYE BORDERS
 
     /*ZEN-30098*/
     .z-cse.z-cse-dark .x-surface text {
-        fill: #999;
+        fill: #ccc;
     }
     .z-cse.z-cse-dark .x-surface path {
         stroke: #ccc;
