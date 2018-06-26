@@ -102,16 +102,6 @@ class Commandable:
         '''
         command = self.getUserCommand(commandId)
         if command:
-            password = REQUEST.form.get('password', '')
-            if not self.dmd.ZenUsers.authenticateCredentials(
-                self.dmd.ZenUsers.getUser().getId(), password):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Password Error',
-                    'Invalid or empty password.',
-                    priority=messaging.WARNING
-                )
-                return REQUEST.RESPONSE.redirect(command.absolute_url_path())
-            del REQUEST.form['password']
             command.manage_changeProperties(**REQUEST.form)
             audit('UI.Command.Edit', commandId, action=REQUEST.form.get('command',''))
         return self.redirectToUserCommands(REQUEST)
