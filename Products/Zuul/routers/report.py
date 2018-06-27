@@ -155,8 +155,6 @@ class ReportRouter(TreeRouter):
                 audit('UI.Report.Delete', name)
 
         contextUid = '/'.join(uid.split('/')[:-1])
-        # ensure all uids have cse_virtual_root prefix
-        contextUid = getUtility(IVirtualRoot).ensure_virtual_root(contextUid)
         return self._getTreeUpdates(contextUid)
 
     def _getTreeUpdates(self, contextUid, newId=None):
@@ -210,6 +208,8 @@ class ReportRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def _marshalPath(self, contextUid, newId=None, localKeys=None):
+        # ensure all uids have cse_virtual_root prefix
+        contextUid = getUtility(IVirtualRoot).ensure_virtual_root(contextUid)
         tokens = contextUid.split('/')
         if newId:
             tokens.append(newId)
