@@ -34,7 +34,7 @@ class MailEvent(Event):
     Defaults for events created by the processor
     """
     agent = "zenmail"
-    eventGroup = "mail" 
+    eventGroup = "mail"
 
 
 # The following is copied from the Python standard library
@@ -68,7 +68,7 @@ class MessageProcessor(object):
     received via SMTP.
     """
 
-    def __init__(self, zem, defaultSeverity = 2): 
+    def __init__(self, zem, defaultSeverity = 2):
         """
         Initializer
 
@@ -80,6 +80,16 @@ class MessageProcessor(object):
         self.zem = zem
         self.eventSeverity = defaultSeverity
 
+    def parse_email_address(self, address):
+        two_part = re.compile(r'(.*) <(.*?)>$')
+        match = two_part.match(address)
+        if match:
+            return self.parse_email_address(match.group(2))
+        one_part = re.compile(r'''^[<"']?(.*?)[">']?$''')
+        match = one_part.match(address)
+        if match:
+            return match.group(1)
+
     def process(self, messageStr):
         """
         Convert an e-mail message into a Zenoss event.
@@ -89,7 +99,7 @@ class MessageProcessor(object):
         """
         message = email.message_from_string(messageStr)
         self.message = message
-        
+
         fromAddr = message.get('From')
         origFromAddr = fromAddr
         log.debug("Found a 'from' address of %s" % fromAddr)
@@ -97,22 +107,21 @@ class MessageProcessor(object):
             log.warning("Unable to process the 'from' address %s -- ignoring mail" \
                         % fromAddr)
             return
-        
-        pattern = re.compile(r'(.*) <(.*?)>$')
-        match = pattern.match(fromAddr)
-        fromAddr = match.group(2).split('@')[-1]
+
+        fromAddr = self.parse_email_address(fromAddr)
         log.debug("The from address after processing is '%s'" % fromAddr)
+        fromHost = fromAddr.split('@')[-1]
         try:
-            fromIp = socket.gethostbyname(fromAddr)
+            fromIp = socket.gethostbyname(fromHost)
         except socket.gaierror:
             fromIp = None
-            log.info('Hostname lookup failed for host: %s' % fromAddr)
+            log.info('Hostname lookup failed for host: %s' % fromHost)
 
         subject = message.get('Subject').replace("\r","").replace("\n", "")
 
         secs = self.getReceiveTime(message)
 
-        event = MailEvent(device=fromAddr, rcvtime=secs,
+        event = MailEvent(device=fromHost, rcvtime=secs,
                           fromEmailAddress=origFromAddr)
         if fromIp:
             event.ipAddress = fromIp
@@ -196,7 +205,7 @@ class MessageProcessor(object):
                      timestamp)
             tz = None
 
-        # Construct dt using the date and time as well as the timezone 
+        # Construct dt using the date and time as well as the timezone
         dt = datetime(t[0], t[1], t[2], t[3], t[4], t[5], 0, tz)
         secs = calendar.timegm(dt.utctimetuple())
         log.debug('Timestamp of the event (should be in UTC): %s -> %f',
@@ -211,7 +220,7 @@ class POPProcessor(MessageProcessor):
     implementing it here.
     """
 
-    def __init__(self, zem, defaultSeverity = 2): 
+    def __init__(self, zem, defaultSeverity = 2):
         """
         Initializer
 
@@ -229,7 +238,7 @@ class MailProcessor(MessageProcessor):
     implementing it here.
     """
 
-    def __init__(self, zem, defaultSeverity = 2): 
+    def __init__(self, zem, defaultSeverity = 2):
         """
         Initializer
 
@@ -242,15 +251,15 @@ class MailProcessor(MessageProcessor):
 
 class ZenMailTest(ZenScriptBase):
     """
-    Usage:  
-            
+    Usage:
+
     python MailProcessor.py file1 [...]
 
     Read text files that are saved emails and send events into Zenoss
     """
     def __init__(self):
         ZenScriptBase.__init__(self, connect=True)
-    
+
     def run(self):
         if len(self.args) == 0:
             log.critical("Need at least one input filename!")
