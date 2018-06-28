@@ -54,6 +54,7 @@ import logging
 import os
 import sys
 import tempfile
+import transaction
 
 import Globals
 
@@ -208,6 +209,11 @@ class ZenMib(ZCmdBase):
                 )
 
             processor.run()
+
+            if not self.options.nocommit:
+                transaction.commit()
+            else:
+                self.log.warn("Changes not saved (--nocommit was specified)")
         except Exception as ex:
             _logException(self.log, "Failure: %s", ex)
 
