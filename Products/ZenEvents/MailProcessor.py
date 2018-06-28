@@ -79,14 +79,14 @@ class MessageProcessor(object):
         """
         self.zem = zem
         self.eventSeverity = defaultSeverity
+        self.one_part_email = re.compile(r'''^[<"']?(.*?)[">']?$''')
+        self.two_part_email = re.compile(r'(.*) <(.*?)>$')
 
     def parse_email_address(self, address):
-        two_part = re.compile(r'(.*) <(.*?)>$')
-        match = two_part.match(address)
+        match = self.two_part_email.match(address)
         if match:
             return self.parse_email_address(match.group(2))
-        one_part = re.compile(r'''^[<"']?(.*?)[">']?$''')
-        match = one_part.match(address)
+        match = self.one_part_email.match(address)
         if match:
             return match.group(1)
 
@@ -104,11 +104,14 @@ class MessageProcessor(object):
         origFromAddr = fromAddr
         log.debug("Found a 'from' address of %s" % fromAddr)
         if not fromAddr or fromAddr.find('@') == -1:
-            log.warning("Unable to process the 'from' address %s -- ignoring mail" \
-                        % fromAddr)
+            log.warning("Unable to process the 'from' address %s -- ignoring mail", fromAddr)
             return
 
         fromAddr = self.parse_email_address(fromAddr)
+        if not fromAddr:
+            log.warning("Could not parse email address in the 'from' address %s -- ignoring mail",
+                        origFromAddr)
+            return
         log.debug("The from address after processing is '%s'" % fromAddr)
         fromHost = fromAddr.split('@')[-1]
         try:

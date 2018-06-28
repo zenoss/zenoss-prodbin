@@ -86,13 +86,14 @@ class TestMailProcessor(BaseTestCase):
     def testParseEmail(self):
         mp = MessageProcessor(self.zem, 2)
         cases = [
-            'info@test.example.com',
-            '<info@test.example.com>',
-            '"info@test.example.com"',
-            "'info@test.example.com'",
-            '"More Information" <info@test.example.com>',
+            'more.info@test.example.com',
+            '<more.info@test.example.com>',
+            '"more.info@test.example.com"',
+            '"more.info@test.example.com"',
+            "'more.info@test.example.com'",
+            '"More Information" <more.info@test.example.com>',
         ]
-        expected = 'info@test.example.com'
+        expected = 'more.info@test.example.com'
         for email in cases:
             parsed = mp.parse_email_address(email)
             self.assertEquals(parsed, expected)
