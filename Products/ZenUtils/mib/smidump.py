@@ -27,7 +27,12 @@ class SMIConfigFile(object):
 
         @param path {sequence} The paths to put into the config file.
         """
-        self._path = ':'.join(path)
+        paths = set(path)
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.debug(
+                "MIB file dependency search path(s): %s", ', '.join(paths)
+            )
+        self._path = ':'.join(paths)
         self._file = NamedTemporaryFile()
         self._makeConfig()
 
