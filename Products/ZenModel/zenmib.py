@@ -120,7 +120,7 @@ class MIBFileProcessor(BaseProcessor):
 
         # Add the directories of the MIB-files-to-load to the set of
         # paths to search for MIB file dependencies.
-        paths.extend(set(os.path.dirname(mf.filename) for mf in mibfiles))
+        paths.extend(_unique(os.path.dirname(mf.filename) for mf in mibfiles))
 
         loaderArgs = (self._moduleMgr, self._organizer)
 
