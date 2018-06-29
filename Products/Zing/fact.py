@@ -40,6 +40,27 @@ class Fact(object):
         return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
 
 
+def device_organizers_fact(device):
+    fact = Fact()
+    try:
+        fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
+    except:
+        pass
+    fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
+    fact.metadata[FactKeys.PLUGIN_KEY] = 'zen_organizers'
+    data = {}
+    if hasattr(device, "getDeviceClassName"):
+        data["device_class"] = device.getDeviceClassName()
+    if hasattr(device, "getLocationName") and device.getLocationName():
+        data["location"] = device.getLocationName()
+    if hasattr(device, "getSystemNames") and device.getSystemNames():
+        data["systems"] = device.getSystemNames()
+    if hasattr(device, "getDeviceGroupNames") and device.getDeviceGroupNames():
+        data["groups"] = device.getDeviceGroupNames()
+    fact.data = data
+    return fact
+
+
 class _FactEncoder(JSONEncoder):
 
     def _tweak_data(self, data_in):

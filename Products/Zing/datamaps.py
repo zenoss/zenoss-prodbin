@@ -11,7 +11,7 @@ import logging
 import transaction
 
 from .interfaces import IZingConnectorProxy, IZingDatamapHandler
-from .fact import Fact, FactKeys
+from .fact import Fact, FactKeys, device_organizers_fact
 
 from zope.interface import implements
 from zope.component.factory import Factory
@@ -19,10 +19,11 @@ from zope.component.factory import Factory
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 
 logging.basicConfig()
-log = logging.getLogger("zen.zing")
+log = logging.getLogger("zen.zing.datamaps")
 
 
 TX_DATA_FIELD_NAME = "zing_datamaps_state"
+
 
 class ObjectMapContext(object):
     def __init__(self, obj):
@@ -73,7 +74,8 @@ class ZingDatamapsTxState(object):
     def __init__(self):
         self.datamaps = []
         self.contexts = {}
-        self.devices_fact = {} # dummy fact per processed device
+        # for each processed device, we generate a fact with the organizers the device belongs to
+        self.devices_facts = {}
 
 
 class ZingDatamapHandler(object):
@@ -102,10 +104,12 @@ class ZingDatamapHandler(object):
         """ adds the datamap to the ZingDatamapsTxState in the current tx"""
         zing_state = self._get_zing_tx_state()
         zing_state.datamaps.append( (device, datamap) )
-        # Create a dummy fact for the device to make sure Zing has one for each device
+        # Add a fact with the organizers the device belongs to
         device_uid = device.getPrimaryId()
-        if device_uid not in zing_state.devices_fact:
-            zing_state.devices_fact[device_uid] = self.fact_from_device(device)
+        if device_uid not in zing_state.devices_facts:
+            f = device_organizers_fact(device)
+            if f.is_valid():
+                zing_state.devices_facts[device_uid] = f
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingDatamapsTxState in the current tx """
@@ -130,7 +134,7 @@ class ZingDatamapHandler(object):
                 if dm_facts:
                     facts.extend(dm_facts)
             # add dummy facts for the processed devices
-            device_facts = zing_state.devices_fact.values()
+            device_facts = zing_state.devices_facts.values()
             if device_facts:
                 facts.extend(device_facts)
             self._send_facts_in_batches(facts)

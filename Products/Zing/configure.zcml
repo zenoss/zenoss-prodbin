@@ -17,4 +17,5 @@
             name="ZingDatamapHandler"
     />
 
+    <subscriber handler=".model_events.model_change_listener"/>
 </configure>
