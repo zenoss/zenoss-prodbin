@@ -95,9 +95,6 @@
         </td>
     </tr>
 
-    <tr>
-    </tr>
-
     <tr tal:condition="here/isLoggedInUser">
         <td class="tableheader" style="padding:0 0 0 8px;border-bottom:solid 1px #888;background:#bbb;" colspan="4">
             <div style="font-size:14px;">
