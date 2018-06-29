@@ -14,7 +14,7 @@ from collections import namedtuple
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenModel.zenmib import (
-    DumpFileProcessor, MIBFileProcessor, SMIDump, SMIDumpTool
+    ZenMib, DumpFileProcessor, MIBFileProcessor, SMIDump, SMIDumpTool
 )
 from Products.ZenUtils.mib import MIBFile
 
@@ -76,8 +76,8 @@ class TestMIBFileProcessor(BaseTestCase):
         options.keeppythoncode = False
 
         log = logging.getLogger("zen.testzenmib")
-        log.setLevel(logging.DEBUG)
-        log.manager.disable = 0  # re-enable log output
+        # log.setLevel(logging.DEBUG)
+        # log.manager.disable = 0  # re-enable log output
 
         processor = MIBFileProcessor(log, self.dmd, options, [source])
         processor.run()
@@ -87,8 +87,6 @@ class TestMIBFileProcessor(BaseTestCase):
 
     def test_DumpFileProcessor(self):
         dump_filename = os.path.join(_testmibdir, "SMIDUMP01-MIB.mib.py")
-        # dump_data = _readfile(dump_filename)
-        # dump = SMIDump(dump_data)
 
         options = namedtuple(
             "options",
@@ -109,3 +107,44 @@ class TestMIBFileProcessor(BaseTestCase):
         processor.run()
 
         self._checkResults()
+
+
+class TestCommitFeature(BaseTestCase):
+
+    def setUp(self):
+        # Patching MIBFileProcessor so that nothing actually happens.
+        self.mfp_patcher = mock.patch(
+            "Products.ZenModel.zenmib.MIBFileProcessor"
+        )
+        self.commit_patcher = mock.patch("transaction.commit")
+        self.mfp_mock = self.mfp_patcher.start()
+        self.commit_mock = self.commit_patcher.start()
+        self.mfp_instance = mock.Mock()
+        self.mfp_mock.return_value = self.mfp_instance
+
+    def tearDown(self):
+        self.mfp_patcher.stop()
+        self.commit_patcher.stop()
+
+    def test_commit(self):
+        check = mock.Mock()
+        check.run, check.commit = self.mfp_instance.run, self.commit_mock
+
+        zenmib = ZenMib()
+        zenmib.inputArgs = ["/some/mibfile"]
+        zenmib.parseOptions()
+        zenmib.run()
+        self.assertTrue(self.mfp_instance.run.called)
+        self.assertTrue(self.commit_mock.called)
+
+        # asserts that processor.run is called before commit
+        check.has_calls([mock.call.run(), mock.call.commit()])
+
+    def test_nocommit(self):
+        zenmib = ZenMib()
+        zenmib.inputArgs = ["--nocommit", "/some/mibfile"]
+        zenmib.parseOptions()
+        zenmib.log = mock.Mock()  # disable logging
+        zenmib.run()
+        self.assertTrue(self.mfp_instance.run.called)
+        self.commit_mock.assert_not_called()
