@@ -1,6 +1,7 @@
 import logging
 import re
 
+from collections import OrderedDict
 from itertools import chain
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -27,7 +28,12 @@ class SMIConfigFile(object):
 
         @param path {sequence} The paths to put into the config file.
         """
-        self._path = ':'.join(path)
+        paths = list(OrderedDict.fromkeys(path))
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.debug(
+                "MIB file dependency search path(s): %s", ', '.join(paths)
+            )
+        self._path = ':'.join(paths)
         self._file = NamedTemporaryFile()
         self._makeConfig()
 
