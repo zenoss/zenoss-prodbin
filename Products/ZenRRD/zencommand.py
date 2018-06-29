@@ -386,11 +386,11 @@ class SshPerformanceCollectionTask(BaseTask):
 
         self.manage_ip_event = {
             'eventClass': Cmd_Fail,
-            'component': 'command',
             'device': self._devId,
             'summary': 'IP address not set, collection will be attempted\
                         with host name',
             'component' : COLLECTOR_NAME,
+            'eventKey': 'Empty_IP_address'
         }
 
     def __str__(self):
