@@ -45,13 +45,13 @@ class AddZproxyNginxImpactConfig(Migrate.Step):
 
         if orig_config:
             new_content = orig_config.content.replace(org_statement, new_statement)
-            if orig_config != new_content:
+            if orig_config.content != new_content:
                 orig_config.content = new_content
                 commit = True
 
         if current_config:
             new_content = current_config.content.replace(org_statement, new_statement)
-            if current_config != new_content:
+            if current_config.content != new_content:
                 with open(self.save_file, 'w+') as f:
                     f.write(current_config.content)
                 wrote = True
@@ -77,9 +77,7 @@ class AddZproxyNginxImpactConfig(Migrate.Step):
                 ctx.commit()
         finally:
             if wrote:
-                log.info(("A copy of your existing configuration has been saved to %s."
-                        " If you had made changes to zproxy-nginx.conf in the Control Center UI, "
-                        "please reapply them manually, then restart the service.") % self.save_file)
+                log.info(("A copy of your existing configuration has been saved to %s which is mounted to host's /opt/serviced/var/volumes/.../zenoss-var-ext directory.") % self.save_file)
 
 
 AddZproxyNginxImpactConfig()
