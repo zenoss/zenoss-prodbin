@@ -499,12 +499,13 @@ Ext.onReady(function(){
                 id: 'classes_mapping_grid',
                 stateful: false,
                 multiSelect: true,
-                tbar:[
+                dockedItems:[
                     {
                         xtype: 'largetoolbar',
                         id: 'mapping_toolbar',
                         itemId: 'mapping_toolbar',
-                        height:30,
+                        dock: 'top',
+                        height: 45,
                         disabled: true,
                         items: [
                             {
@@ -643,10 +644,6 @@ Ext.onReady(function(){
                         sortable: true,
                         filter: true
                     },{
-                        id: 'uid_id',
-                        dataIndex: 'uid',
-                        hidden: true
-                    },{
                         header: _t("EventClass Key"),
                         id: 'key_id',
                         dataIndex: 'eventClassKey',
@@ -780,7 +777,6 @@ Ext.onReady(function(){
     Ext.define('Zenoss.eventclass.XformMasterPanel', {
         extend: 'Ext.panel.Panel',
         alias: 'widget.xformmasterpanel',
-        overflowY: 'scroll',
         initComponent: function() {
             this.callParent(arguments);
         },

@@ -186,7 +186,9 @@ class ZenModelBase(object):
         if not redirect and REQUEST.get("redirect", None) :
             redirect = True
         if redirect:
-            nurl = "%s/%s" % (self.getPrimaryUrlPath(), screenName)
+            path = getUtility(IVirtualRoot).ensure_virtual_root(
+                self.getPrimaryUrlPath())
+            nurl = "%s/%s" % (path, screenName)
             REQUEST['RESPONSE'].redirect(nurl)
         else:
             REQUEST['URL'] = "%s/%s" % (self.absolute_url_path(), screenName)

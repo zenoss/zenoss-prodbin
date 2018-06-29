@@ -194,7 +194,6 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
-
 Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,
@@ -208,6 +207,14 @@ Zenoss.env.textMasks = {
         allowedDescText: /^[\w\?,\s\.\-]+$/,
         allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
 };
+
+Zenoss.env.isDarkTheme = (function () {
+    if (document.documentElement.classList.contains('z-cse-dark')) {
+        return true;
+    }
+
+    return false;
+}());
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
@@ -419,11 +426,11 @@ Ext.Direct.on('exception', function(e) {
         cmp.destroy();
     }
 
-    // If we're in a CSE environment and missing the zauth0_key cookie, we've been
+    // If we're in a CSE environment and missing the accessToken cookie, we've been
     // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
     if (Zenoss.env.CSE_VIRTUAL_ROOT) {
-        if (document.cookie.indexOf('zauth0_key') === -1) {
-            console.log('Auth0 key not found; reloading page');
+        if (document.cookie.indexOf('accessToken') === -1) {
+            console.log('Auth0 accessToken not found; reloading page');
             window.location.reload();
             return;
         }
