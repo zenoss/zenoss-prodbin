@@ -2555,7 +2555,10 @@ BYE BYE BORDERS
         background-color: #4e4e4e;
     }
     .z-cse.z-cse-dark .codemirror-field {
-        background: #212121;
+        background: #fafafa;
+    }
+    .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
+        color: #777777;
     }
 
     /* dark theme chart text */
