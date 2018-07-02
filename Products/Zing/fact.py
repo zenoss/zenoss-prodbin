@@ -46,7 +46,8 @@ def device_organizers_fact(device):
         fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
     except:
         pass
-    fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
+    if hasattr(device, "meta_type"):
+        fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
     fact.metadata[FactKeys.PLUGIN_KEY] = 'zen_organizers'
     data = {}
     if hasattr(device, "getDeviceClassName"):
