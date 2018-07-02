@@ -16,6 +16,8 @@ Available at:  /zport/dmd/report_router
 
 import logging
 from itertools import izip_longest
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.decorators import require
@@ -206,6 +208,8 @@ class ReportRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def _marshalPath(self, contextUid, newId=None, localKeys=None):
+        # ensure all uids have cse_virtual_root prefix
+        contextUid = getUtility(IVirtualRoot).ensure_virtual_root(contextUid)
         tokens = contextUid.split('/')
         if newId:
             tokens.append(newId)

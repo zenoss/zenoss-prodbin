@@ -1374,7 +1374,6 @@ BYE BYE BORDERS
     .z-cse #dialog_content select,
     .z-cse #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
     .z-cse #newTabsPane ul li a:hover,
-    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
     .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #4b4b4c; }
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -2555,7 +2554,10 @@ BYE BYE BORDERS
         background-color: #4e4e4e;
     }
     .z-cse.z-cse-dark .codemirror-field {
-        background: #212121;
+        background: #fafafa;
+    }
+    .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
+        color: #777777;
     }
 
     /* dark theme chart text */
