@@ -38,6 +38,7 @@ import AccessControl
 import logging
 from OFS.ObjectManager import ObjectManager
 from zope import component
+from zope.component import getUtility
 from zope.interface import verify
 from zope.event import notify 
 from interfaces import IFacade, IInfo
@@ -48,6 +49,7 @@ from utils import safe_hasattr as hasattr, get_dmd
 from BTrees.OOBTree import OOSet
 from Products.ZenWidgets import messaging
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from DateTime import DateTime
 
 
@@ -117,7 +119,10 @@ def marshal(obj, keys=None, marshallerName='', objs=None):
         marshalled_dict = {}
         for k in obj:
             try:
-                marshalled_dict[k] = marshal(obj[k], keys, marshallerName, objs)
+                if k == 'uid':
+                    marshalled_dict[k] = getUtility(IVirtualRoot).ensure_virtual_root(obj[k])
+                else:
+                    marshalled_dict[k] = marshal(obj[k], keys, marshallerName, objs)
             except AlreadySeenException:
                 pass
         return marshalled_dict
