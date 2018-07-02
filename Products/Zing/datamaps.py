@@ -31,7 +31,6 @@ class ObjectMapContext(object):
         self.meta_type = None
         self.name = None
         self.mem_capacity = None
-        self.location = None
         self.is_device = False
         self._extract_relevant_fields(obj)
 
@@ -56,13 +55,6 @@ class ObjectMapContext(object):
                 self.mem_capacity = obj.hw.totalMemory
             except Exception:
                 pass
-            try:
-                loc = obj.location()
-            except Exception:
-                pass
-            else:
-                if loc is not None:
-                    self.location = loc.titleOrId()
 
 
 class ZingDatamapsTxState(object):
@@ -219,7 +211,5 @@ class ZingDatamapHandler(object):
         if om_context.is_device:
             if om_context.mem_capacity is not None:
                 fact.data[FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
-            if FactKeys.LOCATION_KEY not in fact.data and om_context.location is not None:
-                fact.data[FactKeys.LOCATION_KEY] = om_context.location
 
 DATAMAP_HANDLER_FACTORY = Factory(ZingDatamapHandler)
