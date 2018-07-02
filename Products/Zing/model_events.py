@@ -1,3 +1,11 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
 
 import time
 
@@ -38,8 +46,9 @@ class PostCommitModelEventProcessor(object):
 
     def _publish_facts(self, facts):
         ts = time.time()
-        self._zing_connector_client.send_facts(facts)
-        log.warn("sending {} facts to zing-connector took {} seconds".format(len(facts), time.time() - ts))
+        if self._zing_connector_client.send_facts(facts):
+            elapsed = time.time() - ts
+            log.debug("sending {} facts to zing-connector took {} seconds".format(len(facts), elapsed))
 
     def _device_organizers_changed(self, model_event):
         return model_event.type in ORGANIZER_FACT_MODEL_EVENT_TYPES and \
@@ -53,9 +62,7 @@ class PostCommitModelEventProcessor(object):
             if model_event.device.uuid in ignore_uuids:
                 continue
             if self._device_organizers_changed(model_event):
-                log.warn("Need to send device organizers fact to zing")
                 uuid = self._get_uuid(model_event)
-                log.warn("adding uuid {}".format(uuid))
                 if uuid:
                     organizers_fact_uuids.add(uuid)
         for uuid in organizers_fact_uuids:
@@ -72,12 +79,13 @@ class PostCommitModelEventProcessor(object):
         facts = self._process(event)
         if facts:
             self._publish_facts(facts)
-            log.warn("processing post commit model change event took {} seconds".format(time.time() - ts))
+            # FIXME set this to debug
+            log.info("processing post commit model change event took {} seconds".format(time.time() - ts))
 
 
 @adapter(IMessagePostPublishingEvent)
 def model_change_listener(event):
-    log.warn("PACOOO processing post commit model change event...")
+    log.debug("Processing post commit model change event...")
     try:
         PostCommitModelEventProcessor().process(event)
     except Exception as e:

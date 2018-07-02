@@ -21,7 +21,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 
 
 logging.basicConfig()
-log = logging.getLogger("zen.zing")
+log = logging.getLogger("zen.zing.zing-connector")
 
 GLOBAL_ZING_CONNECTOR_URL = "zing-connector-url"
 GLOBAL_ZING_CONNECTOR_ENDPOINT = "zing-connector-endpoint"
@@ -102,6 +102,9 @@ class ZingConnectorClient(object):
         log.warn("{} out of {} facts were not processed.".format(failed, len(facts)))
 
     def send_facts(self, facts):
+        if not self.ping():
+            log.error("Error sending {} facts. Can't reach zing-connector".format(len(facts)))
+            return False
         resp_code = self._send_facts(facts)
         if resp_code != 200:
             log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp_code))

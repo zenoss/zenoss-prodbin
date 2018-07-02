@@ -44,7 +44,7 @@ def device_organizers_fact(device):
     fact = Fact()
     try:
         fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
-    except:
+    except Exception:
         pass
     if hasattr(device, "meta_type"):
         fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
