@@ -13,7 +13,6 @@ This migration script adds Auth0 plugin to PAS.
 '''
 
 import logging
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 
@@ -23,7 +22,7 @@ from Products.ZenUtils.Auth0.Auth0 import setup
 
 class AddAuth0(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 0)
 
     def cutover(self, dmd):
         setup(dmd)

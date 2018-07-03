@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2018-05-03 15:19:08.126911
+    Zenoss RelationshipManager export completed on 2018-07-03 19:00:17.968395
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.0.0]" export_date="2018-05-03 15:19:08.126911" zenoss_server="c2252be384c3" >
-<object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<objects version="[Zenoss, version 7.0.0]" export_date="2018-07-03 19:00:17.968395" zenoss_server="b2fa392e1cc2" >
+<object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 []
 </property>
@@ -206,9 +206,9 @@ True
 True
 </property>
 <tomanycont id='zenMenus'>
-<object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu' move='False'>
 <tomanycont id='zenMenuItems'>
-<object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem' move='False'>
 <property id='zendoc' type='string'>
 Custom Schema
 </property>
@@ -244,7 +244,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Basic template that only collects sysUpTime.
 </property>
@@ -255,7 +255,7 @@ Basic template that only collects sysUpTime.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -284,7 +284,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -299,7 +299,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='IpService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='IpService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Place holder for future use.
 </property>
@@ -310,7 +310,7 @@ Place holder for future use.
 Products.ZenModel.IpService
 </property>
 </object>
-<object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Monitors for OSProcess object
 </property>
@@ -321,7 +321,7 @@ Monitors for OSProcess object
 Products.ZenModel.OSProcess
 </property>
 <tomanycont id='datasources'>
-<object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Number of process matching process name.
 </property>
@@ -347,7 +347,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Number of process matching process name.
 </property>
@@ -360,7 +360,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 CPU consumed by processes.
 </property>
@@ -386,7 +386,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 CPU consumed by processes.
 </property>
@@ -402,7 +402,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Memory consumed by processes.
 </property>
@@ -428,7 +428,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Memory consumed by processes.
 </property>
@@ -443,7 +443,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu_cpu']
 </property>
@@ -487,7 +487,7 @@ True
 True
 </property>
 </object>
-<object id='Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['mem_mem']
 </property>
@@ -531,7 +531,7 @@ True
 True
 </property>
 </object>
-<object id='Process Count' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Process Count' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['count_count']
 </property>
@@ -574,7 +574,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='count' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='count' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Snmp
 </property>
@@ -602,7 +602,7 @@ here.getMaxProcessCount()
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -637,7 +637,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='cpu' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpu' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -671,7 +671,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -706,7 +706,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='mem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -740,7 +740,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Process Count' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Process Count' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -775,7 +775,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='count' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='count' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -811,7 +811,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='WinService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='WinService' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Place holder for future use.
 </property>
@@ -822,7 +822,7 @@ Place holder for future use.
 Products.ZenModel.WinService
 </property>
 </object>
-<object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Standard ethernet interface template with 75% utilization threshold
 </property>
@@ -833,7 +833,7 @@ Standard ethernet interface template with 75% utilization threshold
 Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
-<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -862,7 +862,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -881,7 +881,7 @@ For packet-oriented interfaces, the number of inbound packets that contained err
 </object>
 </tomanycont>
 </object>
-<object id='ifInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters.
 </property>
@@ -910,7 +910,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters.
 </property>
@@ -927,13 +927,13 @@ True
 The total number of octets received on the interface, including framing characters.
 </property>
 <tomanycont id='aliases'>
-<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='ifInUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifInUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
@@ -962,7 +962,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
@@ -981,7 +981,7 @@ The number of packets, delivered by this sub-layer to a higher (sub-)layer, whic
 </object>
 </tomanycont>
 </object>
-<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1007,7 +1007,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1027,7 +1027,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
@@ -1056,7 +1056,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
@@ -1075,7 +1075,7 @@ For packet-oriented interfaces, the number of outbound packets that could not be
 </object>
 </tomanycont>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
@@ -1104,7 +1104,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
@@ -1121,13 +1121,13 @@ True
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
 <tomanycont id='aliases'>
-<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
@@ -1156,7 +1156,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
@@ -1177,7 +1177,7 @@ The total number of packets that higher-level protocols requested be transmitted
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInErrors_ifInErrors', 'ifOutErrors_ifOutErrors']
 </property>
@@ -1221,7 +1221,7 @@ True
 True
 </property>
 </object>
-<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInUcastPackets_ifInUcastPackets', 'ifOutUcastPackets_ifOutUcastPackets']
 </property>
@@ -1265,7 +1265,7 @@ True
 True
 </property>
 </object>
-<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
@@ -1311,7 +1311,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Interface
 </property>
@@ -1334,7 +1334,7 @@ False
 0
 </property>
 </object>
-<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold'>
+<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Status/Perf
 </property>
@@ -1353,7 +1353,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1388,7 +1388,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1420,7 +1420,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1454,7 +1454,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1489,7 +1489,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1521,7 +1521,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1555,7 +1555,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1590,7 +1590,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='Utilization 75 perc' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='Utilization 75 perc' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1601,7 +1601,7 @@ Utilization 75 perc
 ${graphPoint/id}
 </property>
 </object>
-<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1636,7 +1636,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -1675,7 +1675,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='ethernetCsmacd_64' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='ethernetCsmacd_64' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Template for 64-bit interface counters.  Must use SNMP v2c for it to work.
 </property>
@@ -1686,7 +1686,7 @@ Template for 64-bit interface counters.  Must use SNMP v2c for it to work.
 Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
-<object id='ifHCInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifHCInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
@@ -1715,7 +1715,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifHCInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifHCInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
@@ -1732,13 +1732,13 @@ True
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
 <tomanycont id='aliases'>
-<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='ifHCInUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifHCInUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
 </property>
@@ -1767,7 +1767,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifHCInUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifHCInUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
 </property>
@@ -1786,7 +1786,7 @@ The number of packets, delivered by this sub-layer to a higher (sub-)layer, whic
 </object>
 </tomanycont>
 </object>
-<object id='ifHCOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifHCOutOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
 </property>
@@ -1815,7 +1815,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifHCOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifHCOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
 </property>
@@ -1832,13 +1832,13 @@ True
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
 </property>
 <tomanycont id='aliases'>
-<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='ifHCOutUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifHCOutUcastPkts' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
 </property>
@@ -1867,7 +1867,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifHCOutUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifHCOutUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
 </property>
@@ -1886,7 +1886,7 @@ The total number of packets that higher-level protocols requested be transmitted
 </object>
 </tomanycont>
 </object>
-<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -1915,7 +1915,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -1934,7 +1934,7 @@ For packet-oriented interfaces, the number of inbound packets that contained err
 </object>
 </tomanycont>
 </object>
-<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOperStatus' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -1960,7 +1960,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1980,7 +1980,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ifOutErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
@@ -2009,7 +2009,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
@@ -2030,7 +2030,7 @@ For packet-oriented interfaces, the number of outbound packets that could not be
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInErrors_ifInErrors', 'ifOutErrors_ifOutErrors']
 </property>
@@ -2071,7 +2071,7 @@ True
 True
 </property>
 </object>
-<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifHCInUcastPkts_ifHCInUcastPkts', 'ifHCOutUcastPkts_ifHCOutUcastPkts']
 </property>
@@ -2112,7 +2112,7 @@ True
 True
 </property>
 </object>
-<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifHCInOctets_ifHCInOctets', 'ifHCOutOctets_ifHCOutOctets']
 </property>
@@ -2155,7 +2155,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Interface
 </property>
@@ -2178,7 +2178,7 @@ False
 0
 </property>
 </object>
-<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold'>
+<object id='ifOperStatusChange' module='Products.ZenModel.ValueChangeThreshold' class='ValueChangeThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Status/Perf
 </property>
@@ -2197,7 +2197,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2232,7 +2232,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2264,7 +2264,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2298,7 +2298,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2333,7 +2333,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifHCInUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCInUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2365,7 +2365,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifHCOutUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCOutUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2399,7 +2399,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2434,7 +2434,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifHCInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2469,7 +2469,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifHCOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2509,7 +2509,7 @@ False
 </tomanycont>
 </object>
 </tomanycont>
-<object id='Discovered' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Discovered' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
@@ -2523,7 +2523,7 @@ http://www.zenoss.com
 10
 </property>
 </object>
-<object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 [('Generic Switch/Router', 'SNMP')]
 </property>
@@ -2536,7 +2536,7 @@ True
 <property visible="True" label="Connection Information" type="lines" description="Used by ZenPack authors to denote which zProperties comprise the credentials for this device class." id="zCredentialsZProperties" >
 ['zSnmpCommunity']
 </property>
-<object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Router' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
@@ -2546,18 +2546,18 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 <property visible="True" label="Icon Path" type="string" description="Specifies the icon to represent the device wherever device icon is shown, such as on the network map and device status page." id="zIcon" >
 /zport/dmd/img/icons/router.png
 </property>
-<object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Firewall' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='RSM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='RSM' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='TerminalServer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='TerminalServer' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='Cisco' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Cisco' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.CiscoMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Cisco template that collects cpu and free memory.  Has CPU threshold at 90%
 </property>
@@ -2568,7 +2568,7 @@ Cisco template that collects cpu and free memory.  Has CPU threshold at 90%
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This data source uses the avgBusy5 object. This object is the 5 minute exponentially-decayed moving average of the CPU busy percentage.
 </property>
@@ -2597,7 +2597,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='cpu5min' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cpu5min' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This data source uses the avgBusy5 object. This object is the 5 minute exponentially-decayed moving average of the CPU busy percentage.
 </property>
@@ -2608,13 +2608,13 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='mem5minFree' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='mem5minFree' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This data source uses the ciscoMemoryPoolFree object. This object indicates the number of bytes from the memory poolthat are currently unused on the managed device.
 </property>
@@ -2643,7 +2643,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='mem5minFree' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='mem5minFree' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This data source uses the ciscoMemoryPoolFree object. This object indicates the number of bytes from the memory poolthat are currently unused on the managed device.
 </property>
@@ -2654,13 +2654,13 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -2689,7 +2689,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -2704,7 +2704,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu5min_cpu5min']
 </property>
@@ -2748,7 +2748,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['mem5minFree_mem5minFree']
 </property>
@@ -2794,7 +2794,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='CPU' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -2819,7 +2819,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2854,7 +2854,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='CPU' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='CPU' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2865,7 +2865,7 @@ CPU
 ${graphPoint/id}
 </property>
 </object>
-<object id='cpu5min' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpu5min' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2899,7 +2899,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2934,7 +2934,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem5minFree' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='mem5minFree' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2973,10 +2973,10 @@ False
 </tomanycont>
 </object>
 </object>
-<object id='Switch' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Switch' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
 </object>
-<object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
@@ -2987,7 +2987,7 @@ False
 ['zSnmpCommunity']
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
 </property>
@@ -2998,7 +2998,7 @@ Net-SNMP template for late vintage unix device.  Has CPU threshold.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -3027,7 +3027,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -3038,7 +3038,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,/
 </property>
@@ -3047,7 +3047,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -3076,7 +3076,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -3087,7 +3087,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -3096,7 +3096,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -3125,7 +3125,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -3138,7 +3138,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
@@ -3167,7 +3167,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
@@ -3178,7 +3178,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -3187,7 +3187,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
@@ -3216,7 +3216,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
@@ -3227,7 +3227,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -3236,7 +3236,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3265,7 +3265,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3279,7 +3279,7 @@ True
 0
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </property>
@@ -3288,7 +3288,7 @@ __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3317,7 +3317,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3333,7 +3333,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3362,7 +3362,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3378,7 +3378,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3407,7 +3407,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -3423,7 +3423,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -3452,7 +3452,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -3467,7 +3467,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -3511,7 +3511,7 @@ True
 True
 </property>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawSystem_ssCpuRawSystem', 'ssCpuRawUser_ssCpuRawUser', 'ssCpuRawWait_ssCpuRawWait']
 </property>
@@ -3555,7 +3555,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailReal_memAvailReal']
 </property>
@@ -3599,7 +3599,7 @@ True
 True
 </property>
 </object>
-<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailSwap_memAvailSwap']
 </property>
@@ -3643,7 +3643,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -3687,7 +3687,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -3733,7 +3733,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -3758,7 +3758,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Idle' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Idle' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3793,7 +3793,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='CPU Utilization' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='CPU Utilization' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3804,7 +3804,7 @@ CPU Utilization
 ${graphPoint/id}
 </property>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3838,7 +3838,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3873,7 +3873,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3905,7 +3905,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -3937,7 +3937,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -3971,7 +3971,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -4006,7 +4006,7 @@ True
 4
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -4043,7 +4043,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Swap' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Swap' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -4078,7 +4078,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -4112,7 +4112,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -4147,7 +4147,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -4184,7 +4184,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average 5 min' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average 5 min' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -4219,7 +4219,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -4258,7 +4258,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 </property>
@@ -4269,7 +4269,7 @@ Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 Products.ZenModel.FileSystem
 </property>
 <tomanycont id='datasources'>
-<object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Amount of blocks used on the database.
 </property>
@@ -4298,7 +4298,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Amount of blocks used on the database.
 </property>
@@ -4309,7 +4309,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 ${here/blockSize},*
 </property>
@@ -4320,7 +4320,7 @@ ${here/blockSize},*
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['usedBlocks_usedBlocks']
 </property>
@@ -4370,7 +4370,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high disk usage' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high disk usage' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Filesystem
 </property>
@@ -4395,7 +4395,7 @@ here.getTotalBlocks() * .9
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -4430,7 +4430,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='high disk usage' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high disk usage' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -4441,7 +4441,7 @@ high disk usage
 ${graphPoint/id}
 </property>
 </object>
-<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -4481,7 +4481,7 @@ False
 </tomanycont>
 </object>
 </tomanycont>
-<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 [('Linux Server', 'SNMP')]
 </property>
@@ -4501,7 +4501,7 @@ HRSWInstalledMap
 ^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|^dm\-\d$
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Net-SNMP template for Linux devices.
 </property>
@@ -4512,7 +4512,7 @@ Net-SNMP template for Linux devices.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -4541,7 +4541,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -4554,7 +4554,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -4583,7 +4583,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -4596,7 +4596,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -4625,7 +4625,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -4636,7 +4636,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,/
 </property>
@@ -4645,7 +4645,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -4674,7 +4674,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -4685,7 +4685,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -4694,7 +4694,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -4723,7 +4723,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -4736,7 +4736,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memBuffer' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
@@ -4765,7 +4765,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
@@ -4776,7 +4776,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -4785,7 +4785,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memCached' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
@@ -4814,7 +4814,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
@@ -4825,7 +4825,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -4834,7 +4834,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4863,7 +4863,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4874,7 +4874,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,EXC,-
 </property>
@@ -4883,7 +4883,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4912,7 +4912,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4928,7 +4928,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4957,7 +4957,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4970,7 +4970,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -4999,7 +4999,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -5012,7 +5012,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -5041,7 +5041,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -5057,7 +5057,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -5086,7 +5086,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -5102,7 +5102,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -5131,7 +5131,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -5146,7 +5146,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -5190,7 +5190,7 @@ True
 True
 </property>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawSystem_ssCpuRawSystem', 'ssCpuRawUser_ssCpuRawUser', 'ssCpuRawWait_ssCpuRawWait']
 </property>
@@ -5234,7 +5234,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailReal_memAvailReal']
 </property>
@@ -5278,7 +5278,7 @@ True
 True
 </property>
 </object>
-<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailSwap_memAvailSwap']
 </property>
@@ -5322,7 +5322,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -5366,7 +5366,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -5412,7 +5412,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -5435,7 +5435,7 @@ False
 0
 </property>
 </object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -5460,7 +5460,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -5495,7 +5495,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -5530,7 +5530,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -5562,7 +5562,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -5594,7 +5594,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5628,7 +5628,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -5663,7 +5663,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5695,7 +5695,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -5729,7 +5729,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -5764,7 +5764,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -5775,7 +5775,7 @@ high load
 ${graphPoint/id}
 </property>
 </object>
-<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -5810,7 +5810,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5845,7 +5845,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -5882,7 +5882,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -5917,7 +5917,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -5952,7 +5952,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -5987,7 +5987,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -6022,7 +6022,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -6063,7 +6063,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 [('Windows Server', 'SNMP')]
 </property>
@@ -6077,7 +6077,7 @@ False
 .*
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Windows template that requires Informant MIB
 </property>
@@ -6088,7 +6088,7 @@ Windows template that requires Informant MIB
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='cpuPercentProcessorTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 A measure of how much time the processor actually spends working on productive threads and how often it was busy servicing requests.
 </property>
@@ -6117,7 +6117,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 A measure of how much time the processor actually spends working on productive threads and how often it was busy servicing requests.
 </property>
@@ -6128,13 +6128,13 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
 </tomanycont>
 </object>
-<object id='memoryAvailableKBytes' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The Available Memory counter indicates the amount of memory that is left after nonpaged pool allocations, paged pool allocations, process' working sets, and the file system cache have all taken their piece.
 </property>
@@ -6163,7 +6163,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The Available Memory counter indicates the amount of memory that is left after nonpaged pool allocations, paged pool allocations, process' working sets, and the file system cache have all taken their piece.
 </property>
@@ -6174,7 +6174,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -6183,7 +6183,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memoryPagesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The Pages/sec counter is a combination of Pages Input/sec and Pages Output/sec counters. Recall that Page Faults/sec is a combination of hard page faults and soft page faults. This counter, however, is a general indicator of how often the system is using the hard drive to store or retrieve memory associated data.
 </property>
@@ -6212,7 +6212,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The Pages/sec counter is a combination of Pages Input/sec and Pages Output/sec counters. Recall that Page Faults/sec is a combination of hard page faults and soft page faults. This counter, however, is a general indicator of how often the system is using the hard drive to store or retrieve memory associated data.
 </property>
@@ -6225,7 +6225,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -6254,7 +6254,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -6269,7 +6269,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
@@ -6313,7 +6313,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memoryAvailableKBytes_memoryAvailableKBytes']
 </property>
@@ -6357,7 +6357,7 @@ True
 True
 </property>
 </object>
-<object id='Paging' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Paging' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memoryPagesPerSec_memoryPagesPerSec']
 </property>
@@ -6403,7 +6403,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization over 90' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='CPU Utilization over 90' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -6428,7 +6428,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -6463,7 +6463,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='CPU Utilization over 90' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='CPU Utilization over 90' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -6474,7 +6474,7 @@ CPU Utilization over 90
 ${graphPoint/id}
 </property>
 </object>
-<object id='cpuPercentProcessorTime' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -6508,7 +6508,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -6543,7 +6543,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='memoryAvailableKBytes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -6580,7 +6580,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Paging' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Paging' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -6615,7 +6615,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='memoryPagesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -6651,7 +6651,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='HardDisk' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='HardDisk' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 HardDisk I/O template that requries Informat MIB
 </property>
@@ -6662,7 +6662,7 @@ HardDisk I/O template that requries Informat MIB
 Products.ZenModel.HardDisk
 </property>
 <tomanycont id='datasources'>
-<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6688,7 +6688,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -6698,7 +6698,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -6724,7 +6724,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -6736,7 +6736,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='IO Bytes' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='IO Bytes' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['lDiskDiskReadBytesPerSec_lDiskDiskReadBytesPerSec', 'lDiskDiskWriteBytesPerSec_lDiskDiskWriteBytesPerSec']
 </property>
@@ -6782,7 +6782,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='IO Bytes' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='IO Bytes' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -6817,7 +6817,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -6849,7 +6849,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -6887,9 +6887,9 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Solaris' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Solaris' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Net-SNMP template for Solaris devices.
 </property>
@@ -6900,7 +6900,7 @@ Net-SNMP template for Solaris devices.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -6929,7 +6929,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -6942,7 +6942,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -6971,7 +6971,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -6984,7 +6984,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -7013,7 +7013,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -7024,7 +7024,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,/
 </property>
@@ -7033,7 +7033,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -7062,7 +7062,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -7073,7 +7073,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
@@ -7082,7 +7082,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -7111,7 +7111,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -7124,7 +7124,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7153,7 +7153,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7164,7 +7164,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,EXC,-
 </property>
@@ -7173,7 +7173,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7202,7 +7202,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7218,7 +7218,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7247,7 +7247,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7260,7 +7260,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7289,7 +7289,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -7302,7 +7302,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -7331,7 +7331,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -7344,7 +7344,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -7373,7 +7373,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -7386,7 +7386,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -7415,7 +7415,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -7430,7 +7430,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -7474,7 +7474,7 @@ True
 True
 </property>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawSystem_ssCpuRawSystem', 'ssCpuRawUser_ssCpuRawUser', 'ssCpuRawWait_ssCpuRawWait']
 </property>
@@ -7518,7 +7518,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailReal_memAvailReal']
 </property>
@@ -7562,7 +7562,7 @@ True
 True
 </property>
 </object>
-<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailSwap_memAvailSwap']
 </property>
@@ -7606,7 +7606,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -7650,7 +7650,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -7696,7 +7696,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -7719,7 +7719,7 @@ False
 0
 </property>
 </object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -7744,7 +7744,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -7779,7 +7779,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -7814,7 +7814,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -7846,7 +7846,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -7878,7 +7878,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -7912,7 +7912,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -7947,7 +7947,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -7979,7 +7979,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -8013,7 +8013,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -8048,7 +8048,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -8059,7 +8059,7 @@ high load
 ${graphPoint/id}
 </property>
 </object>
-<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -8094,7 +8094,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -8129,7 +8129,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -8166,7 +8166,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -8201,7 +8201,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -8236,7 +8236,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -8277,12 +8277,12 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Darwin' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Darwin' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="File System Map Ignore Names" type="string" description="Sets a regular expression of file system names to ignore." id="zFileSystemMapIgnoreNames" >
 ^\/dev
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Net-SNMP template for Mac OS X devices.
 </property>
@@ -8293,7 +8293,7 @@ Net-SNMP template for Mac OS X devices.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt1' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -8322,7 +8322,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -8335,7 +8335,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt15' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -8364,7 +8364,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -8377,7 +8377,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -8406,7 +8406,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -8417,7 +8417,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,/
 </property>
@@ -8426,7 +8426,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailReal' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -8455,7 +8455,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -8468,7 +8468,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='memAvailSwap' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -8497,7 +8497,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -8510,7 +8510,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuIdle' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8539,7 +8539,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8550,7 +8550,7 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,EXC,-
 </property>
@@ -8559,7 +8559,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuRawWait' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8588,7 +8588,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8604,7 +8604,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuSystem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8633,7 +8633,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8646,7 +8646,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssCpuUser' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8675,7 +8675,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -8688,7 +8688,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawReceived' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -8717,7 +8717,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors read.
 </property>
@@ -8730,7 +8730,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='ssIORawSent' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -8759,7 +8759,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value for total number of sectors written.
 </property>
@@ -8772,7 +8772,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -8801,7 +8801,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -8816,7 +8816,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -8860,7 +8860,7 @@ True
 True
 </property>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawSystem_ssCpuRawSystem', 'ssCpuRawUser_ssCpuRawUser', 'ssCpuRawWait_ssCpuRawWait']
 </property>
@@ -8904,7 +8904,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailReal_memAvailReal']
 </property>
@@ -8948,7 +8948,7 @@ True
 True
 </property>
 </object>
-<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['memAvailSwap_memAvailSwap']
 </property>
@@ -8992,7 +8992,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -9036,7 +9036,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average 5 min' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['laLoadInt5_laLoadInt5']
 </property>
@@ -9082,7 +9082,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high load' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -9105,7 +9105,7 @@ False
 0
 </property>
 </object>
-<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='low CPU idle' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -9130,7 +9130,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -9165,7 +9165,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -9200,7 +9200,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -9232,7 +9232,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -9264,7 +9264,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -9298,7 +9298,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='IO' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -9333,7 +9333,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawReceived' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -9365,7 +9365,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssIORawSent' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -9399,7 +9399,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -9434,7 +9434,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high load' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -9445,7 +9445,7 @@ high load
 ${graphPoint/id}
 </property>
 </object>
-<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -9480,7 +9480,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -9515,7 +9515,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -9552,7 +9552,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Memory Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -9587,7 +9587,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -9622,7 +9622,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -9663,9 +9663,9 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Remote' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Remote' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='Scan' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Scan' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.portscan.IpServiceMap',)
 </property>
@@ -9673,7 +9673,7 @@ False
 True
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Blank device template.  No collection on port scanned devices.
 </property>
@@ -9686,7 +9686,7 @@ Products.ZenModel.Device
 </object>
 </tomanycont>
 </object>
-<object id='Cmd' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Cmd' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.cmd.uname', 'zenoss.cmd.df', 'zenoss.cmd.linux.ifconfig', 'zenoss.cmd.linux.memory', 'zenoss.cmd.linux.netstat_an', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.linux.process', 'zenoss.cmd.darwin.cpu', 'zenoss.cmd.darwin.ifconfig', 'zenoss.cmd.darwin.memory', 'zenoss.cmd.darwin.netstat_an', 'zenoss.cmd.darwin.process', 'zenoss.cmd.darwin.swap')
 </property>
@@ -9694,7 +9694,7 @@ Products.ZenModel.Device
 True
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 ZenPlugin template for late vintage unix device.  Has CPU threshold.
 </property>
@@ -9705,7 +9705,7 @@ ZenPlugin template for late vintage unix device.  Has CPU threshold.
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -9731,7 +9731,7 @@ True
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load one minute average
 </property>
@@ -9742,7 +9742,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load fifteen minute average
 </property>
@@ -9753,7 +9753,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for system load five minute average
 </property>
@@ -9764,14 +9764,14 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 100,/
 </property>
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9785,14 +9785,14 @@ True
 0
 </property>
 <tomanycont id='aliases'>
-<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </property>
 </object>
 </tomanycont>
 </object>
-<object id='ssCpuRawInterrupt' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawInterrupt' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9806,7 +9806,7 @@ True
 0
 </property>
 </object>
-<object id='ssCpuRawKernel' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawKernel' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9820,7 +9820,7 @@ True
 0
 </property>
 </object>
-<object id='ssCpuRawNice' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawNice' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9834,7 +9834,7 @@ True
 0
 </property>
 </object>
-<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9848,7 +9848,7 @@ True
 0
 </property>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9862,7 +9862,7 @@ True
 0
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Template for CPU performance
 </property>
@@ -9876,7 +9876,7 @@ True
 0
 </property>
 </object>
-<object id='ssRawContexts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssRawContexts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -9887,7 +9887,7 @@ True
 0
 </property>
 </object>
-<object id='ssRawInterrupts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ssRawInterrupts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -9900,7 +9900,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='mem' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -9926,7 +9926,7 @@ True
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total size of physical memory.
 </property>
@@ -9937,7 +9937,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='hrSwapSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='hrSwapSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total size of swap memory.
 </property>
@@ -9948,7 +9948,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of physical memory available.
 </property>
@@ -9959,14 +9959,14 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
 </tomanycont>
 </object>
-<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of swap memory available.
 </property>
@@ -9977,7 +9977,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of buffer memory.
 </property>
@@ -9988,7 +9988,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The amount of cached memory.
 </property>
@@ -9999,7 +9999,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='pageSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='pageSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -10009,7 +10009,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='uptime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='uptime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -10038,7 +10038,7 @@ True
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -10053,7 +10053,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Idle' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu_ssCpuRawIdle']
 </property>
@@ -10097,7 +10097,7 @@ True
 True
 </property>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='CPU Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu_ssCpuRawSystem', 'cpu_ssCpuRawUser', 'cpu_ssCpuRawWait']
 </property>
@@ -10141,7 +10141,7 @@ True
 True
 </property>
 </object>
-<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Memory' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['mem_memAvailReal', 'mem_memBuffer', 'mem_memCached']
 </property>
@@ -10185,7 +10185,7 @@ True
 True
 </property>
 </object>
-<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Free Swap' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['mem_memAvailSwap']
 </property>
@@ -10229,7 +10229,7 @@ True
 True
 </property>
 </object>
-<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load Average' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu_laLoadInt5']
 </property>
@@ -10275,7 +10275,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/CPU
 </property>
@@ -10300,7 +10300,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='CPU Idle' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Idle' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -10335,7 +10335,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='CPU Utilization' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='CPU Utilization' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10346,7 +10346,7 @@ CPU Utilization
 ${graphPoint/id}
 </property>
 </object>
-<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10380,7 +10380,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='CPU Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -10415,7 +10415,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10447,7 +10447,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -10479,7 +10479,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -10513,7 +10513,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Memory' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -10548,7 +10548,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10580,7 +10580,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -10612,7 +10612,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -10646,7 +10646,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Free Swap' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Free Swap' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -10681,7 +10681,7 @@ True
 4
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10715,7 +10715,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load Average' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -10750,7 +10750,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -10786,7 +10786,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='FileSystem' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Filesystem template that uses ZenPlugins
 </property>
@@ -10797,7 +10797,7 @@ Filesystem template that uses ZenPlugins
 Products.ZenModel.FileSystem
 </property>
 <tomanycont id='datasources'>
-<object id='disk' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='disk' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -10826,7 +10826,7 @@ True
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The value of how many blocks are free on the disk as calculated from the total blocks minus the Used.
 </property>
@@ -10837,7 +10837,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='availInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='availInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Inodes available.
 </property>
@@ -10848,7 +10848,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Total number of blocks.
 </property>
@@ -10859,7 +10859,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Total Inodes on disk
 </property>
@@ -10870,7 +10870,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Amount of blocks used.
 </property>
@@ -10881,14 +10881,14 @@ GAUGE
 True
 </property>
 <tomanycont id='aliases'>
-<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
 ${here/blockSize},*
 </property>
 </object>
 </tomanycont>
 </object>
-<object id='usedInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='usedInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 Inodes used.
 </property>
@@ -10903,7 +10903,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Block Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Block Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['disk_usedBlocks']
 </property>
@@ -10951,7 +10951,7 @@ AREA:percent#00cc00:utilization
 True
 </property>
 </object>
-<object id='Inode Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Inode Utilization' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['disk_totalInodes', 'disk_usedInodes']
 </property>
@@ -11001,7 +11001,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Filesystem
 </property>
@@ -11026,7 +11026,7 @@ here.getTotalBlocks() * .9
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Block Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Block Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -11061,7 +11061,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='Free Space 90 Percent' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -11072,7 +11072,7 @@ Free Space 90 Percent
 ${graphPoint/id}
 </property>
 </object>
-<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -11109,7 +11109,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Inode Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Inode Utilization' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -11148,7 +11148,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='totalInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='totalInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -11180,7 +11180,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='usedInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -11216,7 +11216,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Ethernet interface template for ZenPlugins with 75% utilization threshold
 </property>
@@ -11227,7 +11227,7 @@ Ethernet interface template for ZenPlugins with 75% utilization threshold
 Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
-<object id='intf' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='intf' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 COMMAND
 </property>
@@ -11256,7 +11256,7 @@ True
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -11270,7 +11270,7 @@ True
 0
 </property>
 </object>
-<object id='ifInMcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInMcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -11281,7 +11281,7 @@ True
 0
 </property>
 </object>
-<object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets received on the interface, including framing characters.
 </property>
@@ -11295,11 +11295,11 @@ True
 0
 </property>
 <tomanycont id='aliases'>
-<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
-<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
@@ -11313,7 +11313,7 @@ True
 0
 </property>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
 </property>
@@ -11327,7 +11327,7 @@ True
 0
 </property>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of octets transmitted out of the interface, including framing characters.
 </property>
@@ -11341,11 +11341,11 @@ True
 0
 </property>
 <tomanycont id='aliases'>
-<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
 </tomanycont>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
 </property>
@@ -11363,7 +11363,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Errors' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['intf_ifInErrors', 'intf_ifOutErrors']
 </property>
@@ -11407,7 +11407,7 @@ True
 True
 </property>
 </object>
-<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Packets' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['intf_ifInUcastPackets', 'intf_ifOutUcastPackets']
 </property>
@@ -11451,7 +11451,7 @@ True
 True
 </property>
 </object>
-<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Throughput' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['intf_ifInOctets', 'intf_ifOutOctets']
 </property>
@@ -11497,7 +11497,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Interface
 </property>
@@ -11522,7 +11522,7 @@ here.speed / 8 * .75
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Errors' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -11557,7 +11557,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -11589,7 +11589,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -11623,7 +11623,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Packets' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -11658,7 +11658,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -11690,7 +11690,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -11724,7 +11724,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Throughput' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -11759,7 +11759,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -11794,7 +11794,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -11835,7 +11835,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='SSH' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='SSH' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 True
 </property>
@@ -11843,13 +11843,13 @@ True
 ['zCommandUsername', 'zCommandPassword']
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property type="string" id="targetPythonClass" mode="w" >
 Products.ZenModel.Device
 </property>
 </object>
 </tomanycont>
-<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 [('Linux Server', 'SSH')]
 </property>
@@ -11862,20 +11862,20 @@ Products.ZenModel.Device
 </object>
 </object>
 </object>
-<object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<object id='Laser' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
+<object id='Laser' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='InkJet' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='InkJet' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
 </object>
-<object id='Power' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Power' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Collector Plugins" type="lines" description="" id="zCollectorPlugins" >
 ('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.APCDeviceMap', 'zenoss.snmp.PowerwareDeviceMap', 'zenoss.snmp.SnmpV3EngineIdMap')
 </property>
-<object id='UPS' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<object id='APC' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='UPS' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
+<object id='APC' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 APC Device Profile that tracks battery capacity, load and runtime
 </property>
@@ -11886,7 +11886,7 @@ APC Device Profile that tracks battery capacity, load and runtime
 Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
-<object id='batteryCapacity' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='batteryCapacity' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -11912,7 +11912,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='batteryCapacity' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='batteryCapacity' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -11922,7 +11922,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='batteryOutputLoad' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='batteryOutputLoad' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -11948,7 +11948,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='batteryOutputLoad' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='batteryOutputLoad' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -11958,7 +11958,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='batteryRunTimeRemaining' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='batteryRunTimeRemaining' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 SNMP
 </property>
@@ -11984,7 +11984,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='batteryRunTimeRemaining' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='batteryRunTimeRemaining' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -11994,7 +11994,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
+<object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -12023,7 +12023,7 @@ False
 Auto
 </property>
 <tomanycont id='datapoints'>
-<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
 This uses the sysUpTimeInstance object. This object is the length of time the system has been running.
 </property>
@@ -12038,7 +12038,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphs'>
-<object id='Battery' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Battery' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['batteryCapacity_batteryCapacity']
 </property>
@@ -12082,7 +12082,7 @@ True
 True
 </property>
 </object>
-<object id='Load' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Load' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['batteryOutputLoad_batteryOutputLoad']
 </property>
@@ -12126,7 +12126,7 @@ True
 True
 </property>
 </object>
-<object id='Runtime' module='Products.ZenModel.RRDGraph' class='RRDGraph'>
+<object id='Runtime' module='Products.ZenModel.RRDGraph' class='RRDGraph' move='False'>
 <property type="lines" id="dsnames" mode="w" >
 ['batteryRunTimeRemaining_batteryRunTimeRemaining']
 </property>
@@ -12172,7 +12172,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Battery' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Battery' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -12207,7 +12207,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryCapacity' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryCapacity' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -12241,7 +12241,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Load' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Load' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -12276,7 +12276,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryOutputLoad' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryOutputLoad' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -12310,7 +12310,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Runtime' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Runtime' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -12345,7 +12345,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryRunTimeRemaining' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryRunTimeRemaining' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -12385,14 +12385,14 @@ False
 </object>
 </object>
 </object>
-<object id='KVM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='KVM' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 </object>
-<object id='Ping' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<object id='Ping' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property visible="True" label="Ignore SNMP Monitor?" type="boolean" description="Whether or not to ignore monitoring SNMP on a device." id="zSnmpMonitorIgnore" >
 True
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Blank Template.
 </property>
