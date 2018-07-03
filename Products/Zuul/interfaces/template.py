@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from zope.interface import Interface
@@ -65,7 +65,7 @@ class IBasicDataSourceInfo(IInfo):
                                xtype='severity')
     eventClass = schema.TextLine(title=_t(u'Event Class'),
                                  xtype='eventclass')
-    cycletime = schema.Int(title=_t(u'Cycle Time (seconds)'))
+    cycletime = schema.TextLine(title=_t(u'Cycle Time (seconds)'))
     parser = schema.TextLine(title=_t(u'Parser'),
                              xtype='parser')
 
@@ -120,7 +120,6 @@ class IDataPointInfo(IInfo):
     createCmd = schema.Text(title=_t(u'Create Command'))
     rrdmin = schema.TextLine(title=_t(u'RRD Minimum'))
     rrdmax = schema.TextLine(title=_t(u'RRD Maximum'))
-    isrow = schema.Bool(title=_t(u'Read Only'))
     aliases = schema.TextLine(title=_t(u'Alias'),
                               xtype='alias')
 
@@ -320,5 +319,3 @@ class ITemplateFacade(IFacade):
         Set the sequence of the graph definitions uniquely identified by the
         items in the uids paramter.
         """
-
-

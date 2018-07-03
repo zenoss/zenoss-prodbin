@@ -538,10 +538,14 @@ class ZenProcessTask(ObservableMixin):
             summary = 'Process set contains 0 running processes: %s' % procClassName
             message = "%s\n   Using regex \'%s\' \n   All Processes have stopped since the last model occurred. Last Modification time (%s)" \
                         % (summary,procConfig.includeRegex,self._device.lastmodeltime)
+            dedupList = [self._devId, procConfig.generatedId, self.statusEvent['eventClass'],
+                            procConfig.processClass, str(procConfig.severity)]
+            dedupid = '|'.join(dedupList)
             self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
                                              summary=summary,
                                              message=message,
+                                             dedupid=dedupid,
                                              component=procConfig.originalName,
                                              eventKey=procConfig.processClass,
                                              severity=procConfig.severity)
@@ -735,11 +739,11 @@ class ZenProcessTask(ObservableMixin):
         """
         Display the processes in a sane manner.
 
-        @parameter procs: list of (pid, (name, args))
+        @parameter procs: list of (pid, name_with_args)
         @type procs: list of tuples
         """
         device_name = self._devId
-        proc_list = ['%s %s %s' % (pid, name, args) for pid, (name, args) in sorted(procs)]
+        proc_list = ['%s %s' % (pid, name_with_args) for pid, name_with_args in sorted(procs)]
         proc_list.append('')
         log.info("#===== Processes on %s:\n%s", device_name, '\n'.join(proc_list))
 
@@ -823,7 +827,7 @@ def mapResultsToDicts(showrawtables, results):
     @parameter results: results of SNMP table gets ie (OID + pid, value)
     @type results: dictionary of dictionaries
     @return: maps relating names and pids to each other
-    @rtype: dictionary, list of tuples
+    @rtype: list of tuples
     """
 
     def extract(dictionary, oid, value):
@@ -854,7 +858,7 @@ def mapResultsToDicts(showrawtables, results):
         path = paths.get(pid, '')
         if path and path.find('\\') == -1:
             name = path
-        arg = args.get(pid, '')
+        arg = unicode(args.get(pid, ''), errors="replace")
         procs.append( (pid, ( name + " " + arg).strip() ) )
 
     return procs

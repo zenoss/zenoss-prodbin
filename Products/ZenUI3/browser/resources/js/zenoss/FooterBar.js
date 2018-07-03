@@ -11,11 +11,7 @@
 (function(){
 
 Ext.ns('Zenoss');
-function createClickHandler(bubbleTargetId) {
-    return function(button, event) {
-        Ext.getCmp(bubbleTargetId).fireEvent('buttonClick', button.id);
-    };
-}
+
 
 // options comprises the following:
 //      addToZenPack: true puts the Add To ZenPack icon in, default true
@@ -179,7 +175,7 @@ Zenoss.footerHelper = function(itemName, footerBar, options) {
                             msg: Ext.String.format(_t('The selected {0} organizer will be deleted.'),
                                     itemName.toLowerCase()),
                             fn: function(buttonid){
-                                if (buttonid=='ok') {
+                                if (buttonid==='ok') {
                                     footerBar.fireEvent('buttonClick', 'deleteOrganizer');
                                 }
                             },

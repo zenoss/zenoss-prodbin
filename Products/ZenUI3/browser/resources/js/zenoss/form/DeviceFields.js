@@ -23,7 +23,8 @@
                     directFn: config.directFn,
                     root: config.root || 'data',
                     model: config.model || 'Zenoss.model.NameValue',
-                    initialSortColumn: config.initialSortColumn || 'name'
+                    initialSortColumn: config.initialSortColumn || 'name',
+                    initialSortDirection: config.initialSortDirection || 'ASC'
                 }),
                 valueField: 'value',
                 displayField: 'name',
@@ -62,7 +63,9 @@
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getPriorities,
                 cls: 'prioritycombo',
-                model: 'Zenoss.model.ValueIntModel'
+                model: 'Zenoss.model.ValueIntModel',
+                initialSortColumn: 'value',
+                initialSortDirection: 'DESC'
 
             });
             this.callParent([config]);
@@ -108,12 +111,33 @@
         constructor: function(config) {
             config = Ext.apply(config || {}, {
                 directFn: Zenoss.remote.DeviceRouter.getProductionStates,
-                model: 'Zenoss.model.ValueIntModel'
+                model: 'Zenoss.model.ValueIntModel',
+                initialSortColumn: 'value',
+                initialSortDirection: 'DESC'
             });
             this.callParent([config]);
         }
     });
 
+
+    Ext.define("Zenoss.devices.DeviceStatusMultiselectMenu", {
+        extend:"Zenoss.MultiselectMenu",
+        alias: ['widget.multiselect-devicestatus'],
+        constructor: function(config) {
+            var defaults = [];
+            config = Ext.apply(config || {}, {
+                text: '...',
+                cls: 'x-btn x-btn-default-toolbar-small',
+                source: [
+                    {name: 'Up', value: true},
+                    {name: 'Down', value: false},
+                    {name: 'Unknown', value: null},
+                ],
+                defaultValues: defaults
+            });
+            this.callParent([config]);
+        }
+    });
 
 
     Ext.define("Zenoss.devices.ProductionStateMultiselectMenu", {
@@ -206,7 +230,7 @@
             var manufacturer = config.manufacturer || "",
                 prodType = config.prodType || 'OS',
                 store = (config||{}).store ||
-                    prodType=='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
+                    prodType==='OS' ? new ZD.OSProductDataStore() : new ZD.HWProductDataStore();
             store.setBaseParam('manufacturer', manufacturer);
             config = Ext.applyIf(config||{}, {
                 store: store,

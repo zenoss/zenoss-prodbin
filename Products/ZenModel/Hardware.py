@@ -31,7 +31,7 @@ def manage_addHardware(context, id, title = None, REQUEST = None):
     context._setObject(id, d)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main') 
 
 addHardware = DTMLFile('dtml/addHardware',globals())
@@ -59,7 +59,7 @@ class Hardware(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         productName, manufacturer, **kwargs)
-        self.productClass.addRelation(prodobj)
+        self.setProductClass(prodobj)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Product Set',
@@ -82,9 +82,10 @@ class Hardware(MEProduct):
 
             manufs = self.getDmdRoot("Manufacturers")
             prodobj = manufs.createHardwareProduct(prodKey, manufacturer)
-            self.productClass.addRelation(prodobj)
+            self.setProductClass(prodobj)
         else:
-            self.productClass.removeRelation()
+            self.removeProductClass()
+
 
 
 InitializeClass(Hardware)

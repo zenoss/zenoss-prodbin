@@ -1,14 +1,12 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2018 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
-
-from Products.ZenUtils import Map
 
 __doc__="""Utils
 
@@ -36,6 +34,7 @@ import contextlib
 import string
 import xmlrpclib
 import httplib
+import shlex
 from decimal import Decimal
 import asyncore
 import copy
@@ -54,10 +53,12 @@ from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
 from ZServer.HTTPServer import zhttp_channel
 from zope.i18n import translate
+from zope.interface import providedBy
+from zope.schema import getFields
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from Products.ZenUtils.jsonutils import unjson
-
+from zope.schema._field import Password
 
 DEFAULT_SOCKET_TIMEOUT = 30
 
@@ -459,7 +460,8 @@ def getDisplayName(obj):
     Always returns something but it may not be pretty.
     """
     # TODO: better implementation, like getDisplayName() per class.
-    name = _getName(obj) or _getId(obj) or _getUid(obj)
+    name = obj.titleOrId() if hasattr(obj, 'titleOrId') else \
+            _getName(obj) or _getId(obj) or _getUid(obj)
     if name is None:
         return str(obj) #we tried our best
     return str(name() if callable(name) else name)
@@ -1006,10 +1008,12 @@ def edgesToXML(edges, start=()):
     xmlels = ['<Start name="%s" url="%s"/>' % start]
     nodeels = []
     edgeels = []
-    for a, b in edges:
-        node1 = nodet % (a[0], a[0], a[1], a[2])
-        node2 = nodet % (b[0], b[0], b[1], b[2])
-        edge1 = edget % (a[0], b[0])
+    for node_a, node_b in edges:
+        a_title, a_icon_path, a_color, a_id = node_a
+        b_title, b_icon_path, b_color, b_id = node_b
+        node1 = nodet % (a_id, a_title, a_icon_path, a_color)
+        node2 = nodet % (b_id, b_title, b_icon_path, b_color)
+        edge1 = edget % (a_title, b_id)
         if node1 not in nodeels: nodeels.append(node1)
         if node2 not in nodeels: nodeels.append(node2)
         if edge1 not in edgeels: edgeels.append(edge1)
@@ -1370,7 +1374,7 @@ def executeStreamCommand(cmd, writefunc, timeout=30):
     @param timeout: maxium number of seconds to wait for the command to execute
     @type timeout: number
     """
-    child = popen2.Popen4(cmd)
+    child = popen2.Popen4(shlex.split(cmd))
     flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
     fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
     pollPeriod = 1
@@ -1731,7 +1735,6 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
     Generator that can be used to load all objects of out a catalog and skip
     any objects that are no longer able to be loaded.
     """
-
     for brain in catalog(query):
         try:
             ob = brain.getObject()
@@ -1739,6 +1742,22 @@ def getObjectsFromCatalog(catalog, query=None, log=None):
         except (NotFound, KeyError, AttributeError):
             if log:
                 log.warn("Stale %s record: %s", catalog.id, brain.getPath())
+
+
+def getObjectsFromModelCatalog(catalog, query=None, log=None):
+    """
+    Generator that can be used to load objects out model catalog and skip
+    any objects that are no longer able to be loaded.
+    """
+    for brain in catalog.search(query=query):
+        try:
+            ob = brain.getObject()
+            if ob:
+                yield ob
+        except (NotFound, KeyError, AttributeError):
+            ob = None
+        if ob is None and log:
+            log.warn("Stale record in Model Catalog: %s", brain.getPath())
 
 
 _LOADED_CONFIGS = set()
@@ -2155,3 +2174,78 @@ def getTranslation(msgId, REQUEST, domain='zenoss'):
         if msg != msgId:
             return msg
     return msg
+
+def unpublished(func):
+    """Makes decorated method unpublished.
+
+    Removes docstring of decorated method thus it will not be
+    published by Zope.
+    """
+    func.__doc__ = None
+    return func
+
+
+def executeSshCommand(device, cmd, writefunc):
+    from Products.DataCollector.SshClient import SshClient
+
+    ssh_client_options = DictAsObj(
+        loginTries=device.zCommandLoginTries,
+        searchPath=device.zCommandSearchPath,
+        existenceTest=device.zCommandExistanceTest,
+        username=device.zCommandUsername,
+        password=device.zCommandPassword,
+        loginTimeout=device.zCommandLoginTimeout,
+        commandTimeout=device.zCommandCommandTimeout,
+        keyPath=device.zKeyPath,
+        concurrentSessions=device.zSshConcurrentSessions
+    )
+    connection = SshClient(device,
+                           device.manageIp,
+                           device.zCommandPort,
+                           options=ssh_client_options)
+    connection.clientFinished = reactor.stop
+    connection.workList.append(cmd)
+    connection._commands.append(cmd)
+    connection.run()
+    reactor.run()
+    # getResults() normally returns [(None, "command output")],
+    # or [(None,'')] in case of empty output,
+    # or [] when cmd was not executed in some reasons (e.g. wrong path)
+    for x in connection.getResults():
+        [writefunc(y) for y in x if y]
+
+
+def escapeSpecChars(value):
+    escape_re = re.compile(r'(?<!\\)(?P<char>[$&|+\-!(){}[\]^~*?:])')
+    return escape_re.sub(r'\\\g<char>', value)
+
+def getQueryArgsFromRequest(request):
+    """Returns a map of query args created from a zope HTTPRequest object
+    """
+    query_args = {}
+    for arg in request.QUERY_STRING.split('&'):
+        parts = arg.split('=', 1)
+        if len(parts) == 2:
+            query_args[parts[0]] = parts[1]
+        elif len(parts) == 1 and parts[0]:
+            query_args[parts[0]] = True
+    return query_args
+
+
+def getPasswordFields(interface):
+    passwordFields = set()
+    for iface in providedBy(interface):
+        fields = getFields(iface)
+        if not fields:
+            continue
+        for key, value in fields.iteritems():
+            if isinstance(value, Password):
+                passwordFields.add(key)
+    return passwordFields
+
+
+def maskSecureProperties(data, secure_properties=[]):
+    for prop in secure_properties:
+        if data.get(prop, None):
+            data.update({prop: '*' * len(data[prop])})
+    return data

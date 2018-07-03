@@ -1,0 +1,402 @@
+[
+  {
+     "ID": "e3qc5hr3ja3q1s3lkl9ekn66y",
+     "Name": "Zenoss.resmgr",
+     "Title": "zproxy",
+     "Version": "6.0.0",
+     "Context": {
+       "ZenPack.Default.RAMCommitment": "1G",
+       "ZenPack.Default.WorkerArgs": "--workers {{.Instances}} --workerid $CONTROLPLANE_INSTANCE_ID",
+       "global.conf.amqpadminport": "55672",
+       "global.conf.amqpadminusessl": "0",
+       "global.conf.amqphost": "127.0.0.1",
+       "global.conf.amqppassword": "zenoss",
+       "global.conf.amqpport": "5672",
+       "global.conf.amqpuser": "zenoss",
+       "global.conf.amqpusessl": "0",
+       "global.conf.amqpvhost": "/zenoss",
+       "global.conf.zauth-password": "MY_PASSWORD",
+       "global.conf.zauth-username": "zenoss_system",
+       "global.conf.zep-admin-password": "",
+       "global.conf.zep-admin-user": "root",
+       "global.conf.zep-db": "zenoss_zep",
+       "global.conf.zep-db-type": "mysql",
+       "global.conf.zep-host": "127.0.0.1",
+       "global.conf.zep-password": "zenoss",
+       "global.conf.zep-port": "3306",
+       "global.conf.zep-uri": "http://127.0.0.1:8084",
+       "global.conf.zep-user": "zenoss",
+       "global.conf.zodb-admin-password": "",
+       "global.conf.zodb-admin-user": "root",
+       "global.conf.zodb-cache-max-object-size": "1048576",
+       "global.conf.zodb-cacheservers": "127.0.0.1:11211",
+       "global.conf.zodb-cachesize": "1000",
+       "global.conf.zodb-db": "zodb",
+       "global.conf.zodb-db-type": "mysql",
+       "global.conf.zodb-host": "127.0.0.1 ",
+       "global.conf.zodb-password": "zenoss",
+       "global.conf.zodb-port": "3306",
+       "global.conf.zodb-user": "zenoss",
+       "tsd.storage.enable_compaction": "False"
+     },
+     "Environment": null,
+     "Startup": "/bin/supervisord -n -c /etc/zproxy/zproxy_supervisor.conf",
+     "Description": "Zenoss Resource Manager",
+     "Tags": [
+       "daemon"
+     ],
+     "OriginalConfigs": {
+       "/etc/zproxy/zproxy_supervisor.conf": {
+         "Filename": "/etc/zproxy/zproxy_supervisor.conf",
+         "Owner": "zenoss:zenoss",
+         "Permissions": "644",
+         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/zproxy_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:redis]\ncommand=redis-server /etc/redis.conf\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:zproxy]\ncommand=/opt/zenoss/zproxy/sbin/zproxy start\ndirectory=/opt/zenoss\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:zproxy_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+       },
+       "/opt/zenoss/zproxy/conf/zproxy-nginx.conf": {
+         "Filename": "/opt/zenoss/zproxy/conf/zproxy-nginx.conf",
+         "Owner": "zenoss:zenoss",
+         "Permissions": "644",
+         "Content": "##############################################################################\n#\n# Copyright (C) Zenoss, Inc. 2013, all rights reserved.\n#\n# This content is made available according to terms specified in\n# License.zenoss under the directory where your Zenoss product is installed.\n#\n##############################################################################\n\nworker_processes 2;\nerror_log /opt/zenoss/zproxy/logs/error.log error;\ndaemon off;\n\nuser zenoss;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n\n    access_log off;\n    error_log /opt/zenoss/zproxy/logs/error.log error;\n\n    lua_package_path \"./lib/lua/5.1/?.lua;;\";\n    lua_package_cpath \"./lib/?.so;./lib/lua/5.1/?.so;;\";\n    # Backend servers that did not respond\n    lua_shared_dict deads 10m;\n\n    proxy_set_header Host $http_host;\n    proxy_set_header X-Forwarded-Port $server_port;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n    proxy_set_header X-Forwarded-Protocol $scheme;\n    proxy_set_header X-Real-IP $remote_addr;\n\n    # Force cookies to HTTPOnly\n    proxy_cookie_path / \"/; HttpOnly\";\n\n    proxy_read_timeout 600;\n    proxy_connect_timeout 10;\n\n    proxy_temp_path /opt/zenoss/var/zproxy/proxy_temp;\n    client_body_temp_path /opt/zenoss/var/zproxy/client_body_temp;\n\n    gzip on;\n    gzip_comp_level 9;\n    gzip_proxied any;\n    gzip_min_length 1000;\n    gzip_buffers 4 32k;\n    gzip_types text/css text/plain application/atom+xml application/x-javascript application/javascript text/javascript;\n    gzip_disable msie6;\n    gzip_vary on;\n\n    resolver 8.8.8.8;\n\n    # this is needed to send the correct content type for things like css\n    include mime.types;\n\n    upstream zopes {\n        least_conn;\n        include zope-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream debugzopes {\n        least_conn;\n        server 127.0.0.1:9310;\n        keepalive 64;\n    }\n\n    upstream apizopes {\n        least_conn;\n        include apizopes-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream zauth {\n        least_conn;\n        include zauth-upstreams.conf;\n        keepalive 64;\n    }\n\n    map $host $whichzopes {\n        default zopes;\n        ~*zendebug debugzopes;\n        ~*zenapi apizopes;\n    }\n\n    pagespeed ListOutstandingUrlsOnError on;\n    pagespeed RewriteDeadlinePerFlushMs 100;\n    pagespeed RateLimitBackgroundFetches off;\n    pagespeed FileCachePath /opt/zenoss/var/zproxy/ngx_pagespeed_cache;\n    pagespeed ImageMaxRewritesAtOnce -1;\n\n    server {\n\n        listen 8080;\n        set $myhost $http_host;\n\n        pagespeed on;\n        pagespeed RewriteLevel CoreFilters;\n        pagespeed EnableFilters add_instrumentation,move_css_above_scripts,move_css_to_head,rewrite_style_attributes,in_place_optimize_for_browser,dedup_inlined_images,prioritize_critical_css;\n        pagespeed RespectXForwardedProto on;\n        pagespeed AvoidRenamingIntrospectiveJavascript off;\n        pagespeed MaxCombinedJsBytes -1;\n        pagespeed JsInlineMaxBytes 102400;\n        pagespeed StatisticsPath \"/ngx_pagespeed_statistics\";\n        pagespeed Disallow \"*/api/metrics*\";\n        pagespeed Disallow \"*/api/performance*\";\n        pagespeed Disallow \"*/ws/metrics*\";\n        pagespeed Disallow \"*/ping/status*\";\n        pagespeed Disallow \"*/static/*\";\n\n        # Ensure requests for pagespeed optimized resources go to the pagespeed handler\n        # and no extraneous headers get set.\n        location ~ \"\\.pagespeed\\.([a-z]\\.)?[a-z]{2}\\.[^.]{10}\\.[^.]+\" {\n         add_header \"\" \"\";\n        }\n        location ~ \"^/pagespeed_static/\" { }\n        location ~ \"^/ngx_pagespeed_beacon$\" { }\n        location ~ \"^/ngx_pagespeed_statistics\" {}\n\n        include zope-static.conf;\n\n        location / {\n            proxy_pass http://$whichzopes;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            add_header X-Frame-Options SAMEORIGIN;\n            add_header X-XSS-Protection \"1; mode=block\";\n        }\n\n        include zopereports-proxy.conf;\n\n        location ^~ /ping/ {\n            include zenoss-zapp-ping-nginx.cfg;\n            proxy_no_cache 1;\n            proxy_cache_bypass 1;\n            proxy_set_header Host $myhost;\n            proxy_method HEAD;\n        }\n\n        location ^~ /api/controlplane/kibana {\n            set $http_ws true;\n            access_by_lua_file 'conf/zenoss-require-auth.lua';\n            proxy_pass http://127.0.0.1:5601;\n            proxy_http_version 1.1;\n            proxy_set_header Upgrade $http_upgrade;\n            proxy_set_header Connection \"upgrade\";\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto $scheme;\n            rewrite /api/controlplane/kibana$ / break;\n            rewrite /api/controlplane/kibana/(.*)$ /$1 break;\n        }\n\n        # Legacy apps that don't do any auth validation\n        # Should 'include zenoss-legacy-nginx.cfg;'\n\n        # /api is for zapp rest APIs\n        location ^~ /api/ {\n            # Zapps do their own auth validation\n            include zenoss-zapp-nginx.cfg;\n            proxy_set_header Host $myhost;\n        }\n\n        # /ws is for zapp websockets\n        location ^~ /ws/ {\n            set $http_ws true;\n            # Zapps do their own auth validation\n            include zenoss-zapp-nginx.cfg;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header Upgrade $http_upgrade;\n            proxy_set_header Connection \"upgrade\";\n        }\n\n        # /static is for static files\n        location ^~ /static/ {\n            # Static data should always be allowed\n            include zenoss-authenticated-nginx.cfg;\n            proxy_http_version 1.1;\n        }\n\n        # /zauth is for authentication and authorization\n        location ^~ /zauth/ {\n            proxy_pass http://zauth;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n            rewrite /zauth/api/login /authorization/login break;\n            rewrite /zauth/api/validate /authorization/validate break;\n        }\n\n    }\n}\n"
+       }
+     },
+     "ConfigFiles": {
+       "/etc/zproxy/zproxy_supervisor.conf": {
+         "Filename": "/etc/zproxy/zproxy_supervisor.conf",
+         "Owner": "zenoss:zenoss",
+         "Permissions": "644",
+         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/zproxy_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:redis]\ncommand=redis-server /etc/redis.conf\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:zproxy]\ncommand=/opt/zenoss/zproxy/sbin/zproxy start\ndirectory=/opt/zenoss\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:zproxy_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+       },
+       "/opt/zenoss/zproxy/conf/zproxy-nginx.conf": {
+         "Filename": "/opt/zenoss/zproxy/conf/zproxy-nginx.conf",
+         "Owner": "zenoss:zenoss",
+         "Permissions": "644",
+         "Content": "##############################################################################\n#\n# Copyright (C) Zenoss, Inc. 2013, all rights reserved.\n#\n# This content is made available according to terms specified in\n# License.zenoss under the directory where your Zenoss product is installed.\n#\n##############################################################################\n\nworker_processes 2;\nerror_log /opt/zenoss/zproxy/logs/error.log error;\ndaemon off;\n\nuser zenoss;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n\n    access_log off;\n    error_log /opt/zenoss/zproxy/logs/error.log error;\n\n    lua_package_path \"./lib/lua/5.1/?.lua;;\";\n    lua_package_cpath \"./lib/?.so;./lib/lua/5.1/?.so;;\";\n    # Backend servers that did not respond\n    lua_shared_dict deads 10m;\n\n    proxy_set_header Host $http_host;\n    proxy_set_header X-Forwarded-Port $server_port;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n    proxy_set_header X-Forwarded-Protocol $scheme;\n    proxy_set_header X-Real-IP $remote_addr;\n\n    # Force cookies to HTTPOnly\n    proxy_cookie_path / \"/; HttpOnly\";\n\n    proxy_read_timeout 600;\n    proxy_connect_timeout 10;\n\n    proxy_temp_path /opt/zenoss/var/zproxy/proxy_temp;\n    client_body_temp_path /opt/zenoss/var/zproxy/client_body_temp;\n\n    gzip on;\n    gzip_comp_level 9;\n    gzip_proxied any;\n    gzip_min_length 1000;\n    gzip_buffers 4 32k;\n    gzip_types text/css text/plain application/atom+xml application/x-javascript application/javascript text/javascript;\n    gzip_disable msie6;\n    gzip_vary on;\n\n    resolver 8.8.8.8;\n\n    # this is needed to send the correct content type for things like css\n    include mime.types;\n\n    upstream zopes {\n        least_conn;\n        include zope-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream zopereports {\n        least_conn;\n        include zopereports-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream debugzopes {\n        least_conn;\n        server 127.0.0.1:9310;\n        keepalive 64;\n    }\n\n    upstream apizopes {\n        least_conn;\n        include apizopes-upstreams.conf;\n        keepalive 64;\n    }\n\n    upstream zauth {\n        least_conn;\n        include zauth-upstreams.conf;\n        keepalive 64;\n    }\n\n    map $host $whichzopes {\n        default zopes;\n        ~*zendebug debugzopes;\n        ~*zenapi apizopes;\n    }\n\n    pagespeed ListOutstandingUrlsOnError on;\n    pagespeed RewriteDeadlinePerFlushMs 100;\n    pagespeed RateLimitBackgroundFetches off;\n    pagespeed FileCachePath /opt/zenoss/var/zproxy/ngx_pagespeed_cache;\n    pagespeed ImageMaxRewritesAtOnce -1;\n\n    server {\n\n        listen 8080;\n        set $myhost $http_host;\n\n        pagespeed on;\n        pagespeed RewriteLevel CoreFilters;\n        pagespeed EnableFilters add_instrumentation,move_css_above_scripts,move_css_to_head,rewrite_style_attributes,in_place_optimize_for_browser,dedup_inlined_images,prioritize_critical_css;\n        pagespeed RespectXForwardedProto on;\n        pagespeed AvoidRenamingIntrospectiveJavascript off;\n        pagespeed MaxCombinedJsBytes -1;\n        pagespeed JsInlineMaxBytes 102400;\n        pagespeed StatisticsPath \"/ngx_pagespeed_statistics\";\n        pagespeed Disallow \"*/api/metrics*\";\n        pagespeed Disallow \"*/api/performance*\";\n        pagespeed Disallow \"*/ws/metrics*\";\n        pagespeed Disallow \"*/ping/status*\";\n        pagespeed Disallow \"*/static/*\";\n\n        # Ensure requests for pagespeed optimized resources go to the pagespeed handler\n        # and no extraneous headers get set.\n        location ~ \"\\.pagespeed\\.([a-z]\\.)?[a-z]{2}\\.[^.]{10}\\.[^.]+\" {\n         add_header \"\" \"\";\n        }\n        location ~ \"^/pagespeed_static/\" { }\n        location ~ \"^/ngx_pagespeed_beacon$\" { }\n        location ~ \"^/ngx_pagespeed_statistics\" {}\n\n        include zope-static.conf;\n\n        location / {\n            proxy_pass http://$whichzopes;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            add_header X-Frame-Options SAMEORIGIN;\n            add_header X-XSS-Protection \"1; mode=block\";\n        }\n\n        include zopereports-proxy.conf;\n\n        location ^~ /ping/ {\n            include zenoss-zapp-ping-nginx.cfg;\n            proxy_no_cache 1;\n            proxy_cache_bypass 1;\n            proxy_set_header Host $myhost;\n            proxy_method HEAD;\n        }\n\n        location ^~ /api/controlplane/kibana {\n            set $http_ws true;\n            access_by_lua_file 'conf/zenoss-require-auth.lua';\n            proxy_pass http://127.0.0.1:5601;\n            proxy_http_version 1.1;\n            proxy_set_header Upgrade $http_upgrade;\n            proxy_set_header Connection \"upgrade\";\n            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n            proxy_set_header X-Forwarded-Proto $scheme;\n            rewrite /api/controlplane/kibana$ / break;\n            rewrite /api/controlplane/kibana/(.*)$ /$1 break;\n        }\n\n        # Legacy apps that don't do any auth validation\n        # Should 'include zenoss-legacy-nginx.cfg;'\n\n        # /api is for zapp rest APIs\n        location ^~ /api/ {\n            # Zapps do their own auth validation\n            include zenoss-zapp-nginx.cfg;\n            proxy_set_header Host $myhost;\n        }\n\n        # /ws is for zapp websockets\n        location ^~ /ws/ {\n            set $http_ws true;\n            # Zapps do their own auth validation\n            include zenoss-zapp-nginx.cfg;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header Upgrade $http_upgrade;\n            proxy_set_header Connection \"upgrade\";\n        }\n\n        # /static is for static files\n        location ^~ /static/ {\n            # Static data should always be allowed\n            include zenoss-authenticated-nginx.cfg;\n            proxy_http_version 1.1;\n        }\n\n        # /zauth is for authentication and authorization\n        location ^~ /zauth/ {\n            proxy_pass http://zauth;\n            proxy_set_header Host $myhost;\n            proxy_http_version 1.1;\n            proxy_set_header  Accept-Encoding  \"\";\n            rewrite /zauth/api/login /authorization/login break;\n            rewrite /zauth/api/validate /authorization/validate break;\n        }\n\n    }\n}\n"
+       }
+     },
+     "Instances": 1,
+     "InstanceLimits": {
+       "Min": 1,
+       "Max": 0,
+       "Default": 0
+     },
+     "ChangeOptions": null,
+     "ImageID": "e3qc5hr3ja3q1s3lkl9ekn66y/resmgr_6.0:latest",
+     "PoolID": "default",
+     "DesiredState": 0,
+     "CurrentState": "stopped",
+     "HostPolicy": "",
+     "Hostname": "",
+     "Privileged": false,
+     "Launch": "auto",
+     "Endpoints": [
+       {
+         "Name": "zproxy",
+         "Purpose": "export",
+         "Protocol": "tcp",
+         "PortNumber": 8080,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zproxy",
+         "ApplicationTemplate": "zproxy",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": [
+           {
+             "Name": "zenoss5",
+             "Enabled": true
+           },
+           {
+             "Name": "zendebug",
+             "Enabled": false
+           },
+           {
+             "Name": "zenapi",
+             "Enabled": true
+           }
+         ],
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "zope",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 9080,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zope",
+         "ApplicationTemplate": "zope",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "zenreports",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 9290,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zenreports",
+         "ApplicationTemplate": "zenreports",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "zendebug",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 9310,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zendebug",
+         "ApplicationTemplate": "zendebug",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "zenapi",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 9320,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zenapi",
+         "ApplicationTemplate": "zenapi",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "metric_consumer",
+         "Purpose": "import",
+         "Protocol": "tcp",
+         "PortNumber": 8443,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "metric_consumer",
+         "ApplicationTemplate": "metric_consumer",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "zauth",
+         "Purpose": "import_all",
+         "Protocol": "tcp",
+         "PortNumber": 9180,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "zauth",
+         "ApplicationTemplate": "zauth",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       },
+       {
+         "Name": "central_query",
+         "Purpose": "import",
+         "Protocol": "tcp",
+         "PortNumber": 8888,
+         "PortTemplate": "",
+         "VirtualAddress": "",
+         "Application": "central_query",
+         "ApplicationTemplate": "central_query",
+         "AddressConfig": {
+           "Port": 0,
+           "Protocol": ""
+         },
+         "VHosts": null,
+         "VHostList": null,
+         "AddressAssignment": {
+           "ID": "",
+           "AssignmentType": "",
+           "HostID": "",
+           "PoolID": "",
+           "IPAddr": "",
+           "Port": 0,
+           "ServiceID": "",
+           "EndpointName": ""
+         },
+         "PortList": null
+       }
+     ],
+     "ParentServiceID": "",
+     "Volumes": [
+       {
+         "Owner": "zenoss:zenoss",
+         "Permission": "0775",
+         "ResourcePath": "zproxy",
+         "ContainerPath": "/opt/zenoss/var/zproxy",
+         "Type": "tmp",
+         "InitContainerPath": "",
+         "ExcludeFromBackups": false
+       }
+     ],
+     "CreatedAt": "2017-11-07T07:53:01.739489788Z",
+     "UpdatedAt": "2017-11-07T07:53:01.739489788Z",
+     "DeploymentID": "aws_deployment",
+     "DisableImage": false,
+     "LogConfigs": [
+       {
+         "Path": "/opt/zenoss/zproxy/logs/access.log",
+         "Type": "zproxy",
+         "Filters": [
+           "nginx_access"
+         ],
+         "LogTags": null,
+         "IsAudit": false
+       },
+       {
+         "Path": "/opt/zenoss/zproxy/logs/error.log",
+         "Type": "zproxy",
+         "Filters": [
+           "nginx_error"
+         ],
+         "LogTags": null,
+         "IsAudit": false
+       }
+     ],
+     "Snapshot": {
+       "Pause": "",
+       "Resume": ""
+     },
+     "DisableShell": false,
+     "Runs": null,
+     "Commands": null,
+     "RAMCommitment": "1G",
+     "CPUCommitment": 1,
+     "Actions": null,
+     "HealthChecks": {
+       "answering": {
+         "Script": "/opt/zenoss/bin/healthchecks/zproxy_answering",
+         "Timeout": 0,
+         "Interval": 5,
+         "Tolerance": 0
+       },
+       "ready": {
+         "Script": "curl -A 'Zenoss ready healthcheck' --output /dev/null --silent --write-out \"%{http_code}\" http://localhost:8080/robots.txt | grep 200 \u003e/dev/null",
+         "Timeout": 0,
+         "Interval": 30,
+         "Tolerance": 0
+       },
+       "running": {
+         "Script": "pgrep -fu zenoss nginx \u003e/dev/null",
+         "Timeout": 0,
+         "Interval": 5,
+         "Tolerance": 0
+       }
+     },
+     "Prereqs": null,
+     "MonitoringProfile": {
+       "MetricConfigs": [],
+       "GraphConfigs": [],
+       "ThresholdConfigs": []
+     },
+     "MemoryLimit": 0,
+     "CPUShares": 0,
+     "PIDFile": "",
+     "StartLevel": 2,
+     "EmergencyShutdownLevel": 0,
+     "EmergencyShutdown": false,
+     "DatabaseVersion": 1
+   }
+]

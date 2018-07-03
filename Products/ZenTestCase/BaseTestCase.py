@@ -11,6 +11,7 @@
 import logging
 
 import zope.component
+import zenoss.modelindex.api
 from zope.traversing.adapters import DefaultTraversable
 from transaction._transaction import Transaction
 
@@ -30,6 +31,10 @@ from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenEvents.MySqlEventManager import log
 from Products.ZenUtils.Utils import unused, load_config_override
 from zope.testing.cleanup import cleanUp
+
+from Products.Zuul.catalog.model_catalog import get_solr_config
+from Products.ZenUtils.virtual_root import register_cse_virtual_root
+from zenoss.modelindex.model_index import SearchParams
 
 log.warn = lambda *args, **kwds: None
 
@@ -84,6 +89,26 @@ class DummyManager(MySqlSendEventMixin, EventManagerBase):
     def applyEventContext(self, evt): return evt
     def applyDeviceContext(self, dev, evt): unused(dev); return evt
 
+
+def reset_model_catalog():
+    """
+    Deletes temporary documents from previous tests.
+    They should be cleaned by abort() but just in case
+    """
+    model_index = zope.component.createObject('ModelIndex', get_solr_config(test=True))
+    model_index.unindex_search(SearchParams(query="NOT tx_state:0"))
+
+
+def init_model_catalog_for_tests():
+    from Products.Zuul.catalog.model_catalog import register_model_catalog, register_data_manager_factory
+    from zenoss.modelindex.api import _register_factories, reregister_subscriptions
+    _register_factories()
+    register_model_catalog(test=True)
+    register_data_manager_factory(test=True)
+    reregister_subscriptions()
+    reset_model_catalog()
+
+
 class ZenossTestCaseLayer(ZopeLite):
 
     @classmethod
@@ -100,11 +125,12 @@ class ZenossTestCaseLayer(ZopeLite):
         from zenoss.protocols.adapters import registerAdapters
         registerAdapters()
 
+        # Register Model Catalog related stuff
+        init_model_catalog_for_tests()
+
         from twisted.python.runtime import platform
         platform.supportsThreads_orig = platform.supportsThreads
         platform.supportsThreads = lambda : None
-
-
 
     @classmethod
     def testTearDown(cls):
@@ -120,7 +146,6 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
     disableLogging = True
 
     def afterSetUp(self):
-
         super(BaseTestCase, self).afterSetUp()
 
         if self.disableLogging:
@@ -129,6 +154,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         gen = PortalGenerator()
         if hasattr( self.app, 'zport' ):
             self.app._delObject( 'zport', suppress_events=True)
+
         gen.create(self.app, 'zport', True)
         # builder params:
         # portal, cvthost, evtuser, evtpass, evtdb,
@@ -138,11 +164,12 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
                              '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
         builder.build()
         self.dmd = builder.dmd
-
         self.dmd.ZenUsers.manage_addUser('tester', roles=('Manager',))
         user = self.app.zport.acl_users.getUserById('tester')
         from AccessControl.SecurityManagement import newSecurityManager
         newSecurityManager(None, user)
+
+        register_cse_virtual_root()
 
         # Let's hide transaction.commit() so that tests don't fubar
         # each other
@@ -150,7 +177,6 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         Transaction.commit=lambda *x: None
 
         setDescriptors(self.dmd)
-
 
     def beforeTearDown(self):
         if hasattr( self, '_transaction_commit' ):

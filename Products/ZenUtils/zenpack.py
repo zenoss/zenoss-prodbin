@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2017, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -21,10 +21,12 @@ import shutil
 import time
 import tempfile
 import re
+import json
 from toposort import toposort_flatten
 from zipfile import ZipFile
 from StringIO import StringIO
 from pkg_resources import parse_requirements, Distribution, DistributionNotFound, get_distribution, parse_version, iter_entry_points, EGG_NAME
+from enum import Enum
 
 import Globals
 import transaction
@@ -39,11 +41,18 @@ from Products.ZenModel.ZenPack import (
     ZenPackNeedMigrateException
 )
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, get_temp_dir
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, varPath, get_temp_dir
 import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
+from Products.ZenModel.ZVersion import VERSION
 import ZenPackCmd as EggPackCmd
 from Products.Zuul import getFacade
+
+from zope.component import getUtilitiesFor
+from Products.ZenUtils.ZenPackInstallFilter import IZenPackInstallFilter
+
+ZPHISTORY = zenPath('zphistory.json')
+UPGRADE_FROM_FILE = varPath('upgrade_from_version.txt')
 
 HIGHER_THAN_CRITICAL = 100
 LSB_EXITCODE_PROGRAM_IS_NOT_RUNNING = 3
@@ -53,7 +62,7 @@ def RemoveZenPack(dmd, packName, log=None,
                         deleteFiles=True):
 
     if log:
-        log.debug('Removing Pack "%s"' % packName)
+        log.debug('Removing Pack "%s"', packName)
     if not skipDepsCheck:
         for pack in dmd.ZenPackManager.packs():
             if packName in pack.requires:
@@ -65,7 +74,7 @@ def RemoveZenPack(dmd, packName, log=None,
     except AttributeError:
         # Pack not in zeo, might still exist in filesystem
         if log:
-            log.debug('No ZenPack named %s in zeo' % packName)
+            log.debug('No ZenPack named %s in zeo', packName)
     if zp:
         try:
             # In 2.2 we added an additional parameter to the remove method.
@@ -81,7 +90,7 @@ def RemoveZenPack(dmd, packName, log=None,
     root = zenPath('Products', packName)
     if deleteFiles:
         if log:
-            log.debug('Removing %s' % root)
+            log.debug('Removing %s', root)
         recurse = ""
         if os.path.isdir(root):
             recurse = "r"
@@ -166,6 +175,7 @@ class ZenPackCmd(ZenScriptBase):
         elif self.options.createPackName:
             audit('Shell.ZenPack.Create', zenpack=self.options.createPackName)
 
+        ZenPack.currentServiceId = self.options.serviceId
 
         if self.options.createPackName:
             devDir, packName = os.path.split(self.options.createPackName)
@@ -187,9 +197,9 @@ class ZenPackCmd(ZenScriptBase):
             installedEggs = [ p for p in iter_entry_points('zenoss.zenpacks') ]
             theOne = filter(lambda x: x.name == self.options.removePackName, installedEggs)
             if not theOne:
-                raise ZenPackNotFoundExeption("Specified zenpack not installed")
+                raise ZenPackNotFoundException("Specified zenpack not installed")
             if len(theOne) > 1:
-                raise ZenPackException("Multipe matching distributions for {} found - aborting.".format(self.options.removePackName))
+                raise ZenPackException("Multiple matching distributions for {} found - aborting.".format(self.options.removePackName))
             actualZPDir = theOne[0].dist.location
             class ZPProxy:
                 def __init__(self, zpId, actualPath):
@@ -200,12 +210,13 @@ class ZenPackCmd(ZenScriptBase):
             proxy = ZPProxy(self.options.removePackName, actualZPDir)
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.unload(proxy, None)
-            EggPackCmd.DoEasyUninstall(self.options.removePackName)
-            if proxy.path().endswith(".egg") and os.path.exists(proxy.path()):
-                self.log.info("Deleting zenpack %s", proxy.path())
-                os.system('rm -rf "%s"' % proxy.path())
-            else:
-                self.log.error("Could not delete %s, skipping", proxy.path())
+
+            try:
+                os.system('pip uninstall -y "%s"' % self.options.removePackName)
+            except Exception as ex:
+                self.log.error('Could not uninstall "%s"', self.options.removePackName)
+                raise ex    # treat it as a fatal error
+
             return
 
         self.connect()
@@ -220,19 +231,37 @@ class ZenPackCmd(ZenScriptBase):
             sys.exit(1)
 
         if self.options.installPackName:
+            # Process each install filter utility - order does not matter
+            for name, util in getUtilitiesFor(IZenPackInstallFilter):
+                # Get normalized pack name to compare.  Split on path separator
+                # in case absolute path was given
+                egg_name = EGG_NAME(os.path.basename(os.path.normpath(self.options.installPackName)))
+                if not egg_name:
+                    self.stop('Could not determine egg name from "%s"' % self.options.installPackName)
+                packName = egg_name.group('name')
+                if not util.installable(packName):
+                    self.stop('Filter %s does not allow %s to be installed' \
+                              % (name, self.options.installPackName))
             if self.options.skipSameVersion and self._sameVersion():
                 return
             if not self.preInstallCheck(eggInstall):
                 self.stop('%s not installed' % self.options.installPackName)
             if eggInstall:
-                return EggPackCmd.InstallEggAndZenPack(
-                    self.dmd,
-                    self.options.installPackName,
-                    link=self.options.link,
-                    filesOnly=self.options.filesOnly,
-                    previousVersion= self.options.previousVersion,
-                    fromUI=self.options.fromui,
-                    serviceId=self.options.serviceId)
+                try:
+                    return EggPackCmd.InstallEggAndZenPack(
+                        self.dmd,
+                        self.options.installPackName,
+                        link=self.options.link,
+                        filesOnly=self.options.filesOnly,
+                        previousVersion= self.options.previousVersion,
+                        fromUI=self.options.fromui,
+                        serviceId=self.options.serviceId,
+                        ignoreServiceInstall=self.options.ignoreServiceInstall)
+                except (OSError,) as e:
+                    if self.options.link:
+                        self.stop('%s cannot be installed with --link option' % self.options.installPackName)
+                    else:
+                        self.stop('%s could not be installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -260,21 +289,27 @@ class ZenPackCmd(ZenScriptBase):
             return EggPackCmd.ExportZenPack(
                 self.dmd, self.options.exportPack)
         elif self.options.removePackName:
-            pack = self.dmd.ZenPackManager.packs._getOb(
-                                        self.options.removePackName, None)
+            try:
+                self.dmd.startPauseADM()
+                pack = self.dmd.ZenPackManager.packs._getOb(
+                                            self.options.removePackName, None)
 
-            if not pack:
-                if not self.options.ifinstalled:
-                    self.log.info('ZenPack %s is not installed.' %
-                                            self.options.removePackName)
-                    return False
-            else:
-                if pack:
-                    removeZenPackQueuesExchanges(pack.path())
-                    if pack.isEggPack():
-                        return EggPackCmd.RemoveZenPack(
-                                self.dmd, self.options.removePackName)
-                RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+                if not pack:
+                    if not self.options.ifinstalled:
+                        self.log.info(
+                            'ZenPack %s is not installed.',
+                            self.options.removePackName
+                        )
+                        return False
+                else:
+                    if pack:
+                        removeZenPackQueuesExchanges(pack.path())
+                        if pack.isEggPack():
+                            return EggPackCmd.RemoveZenPack(
+                                    self.dmd, self.options.removePackName)
+                    RemoveZenPack(self.dmd, self.options.removePackName, self.log)
+            finally:
+                self.dmd.stopPauseADM()
 
         elif self.options.list:
             for zpId in self.dmd.ZenPackManager.packs.objectIds():
@@ -322,23 +357,44 @@ class ZenPackCmd(ZenScriptBase):
         genericShippedPacks = [ Distribution.from_filename(pack).project_name for pack in shippedPacks ]
         databasePacks = self.dmd.ZenPackManager.packs.objectIds()
         installedPacks = [ p.name for p in iter_entry_points('zenoss.zenpacks') ]
-        inPacksNotInDB = set(genericShippedPacks) - set(databasePacks)
-        packsToFix = inPacksNotInDB & set(installedPacks)
+        packsInImageNotInDB = (set(installedPacks) | set(genericShippedPacks)) - set(databasePacks)
+        packsToFix = packsInImageNotInDB & set(installedPacks)
         return packsToFix
 
     def restore(self):
-        # First take care of packs in the new image that aren't in the database
-        fixedSomething = False
-        for pack in self.onlyInImage():
-             with open(os.devnull, 'w') as fnull:
-                 log.info('Erasing zenpack from disk %s', pack)
-                 cmd = ['zenpack', '--erase', pack, '--files-only']
-                 subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-                 fixedSomething = True
 
-        zpsToRestore = {}
+        ZPSource = Enum("ZPSource", "database disk")
+
+        zpsToRestore = {} # {'zpName': (version, filesOnly, zpSource)}
         linkedPacks = []
+
+        to_version = parse_version(VERSION)
+        # try to fetch version before upgrade
+        try:
+            with open(UPGRADE_FROM_FILE, 'r') as f:
+                from_version = f.readline().split('\n')[0]
+                from_version = parse_version(from_version)
+                log.info("Installing zenpacks that are new since %s", from_version)
+        except:
+            log.info(
+                "Unable to fetch version from before upgrade. "
+                "The new zenpacks installation process will be skipped."
+            )
+        # find any new zenpacks to be installed
+        else:
+            if os.path.isfile(ZPHISTORY):
+                self.log.info("Scanning %s for new Zenpacks.", ZPHISTORY)
+                zphistory = json.load(open(ZPHISTORY))
+                for zp in zphistory:
+                    zp_version = parse_version(zphistory[zp])
+                    if zp_version > from_version and zp_version <= to_version:
+                        self.log.info("Zenpack %s (new since %s) to be installed.", zp, zp_version)
+                        zpsToRestore[zp] = (get_distribution(zp).version, False, ZPSource.disk, False)
+                    else:
+                        self.log.info("Zenpack %s (new since %s) is not new.", zp, zp_version)
+
         for zpId in self.dmd.ZenPackManager.packs.objectIds():
+            zpSource = None
             restoreZenPack = False
             version = None
             filesOnly = True
@@ -366,9 +422,11 @@ class ZenPackCmd(ZenScriptBase):
                     if versionCmp > 0:
                         version = get_distribution(zpId).version
                         filesOnly = False
+                        zpSource = ZPSource.disk
                     # Zodb has a higher version that what's in the distirbution's package
                     elif versionCmp < 0:
                         filesOnly = False
+                        zpSource = ZPSource.database
 
             except (AttributeError, DistributionNotFound):
                 restoreZenPack = True
@@ -377,21 +435,28 @@ class ZenPackCmd(ZenScriptBase):
                 continue
             if restoreZenPack:
                 # Add to list of packs to restore
-                zpsToRestore[zpId] = (version, filesOnly)
+                zpsToRestore[zpId] = (version, filesOnly, zpSource, False)
 
-        # Restore linekd packs first, separately
+        # Restore linked packs first, separately
         for pack in linkedPacks:
             self._linkedRestore(pack)
 
-        # Figure out which packs have dependencies, and sort them accordingly
+        # Figure out which packs have dependencies, and sort them accordingly.
+        # Respect the source of the pack
         zpsToSort = {}
 
-        pattern = '(ZenPacks\.zenoss\.[a-zA-Z\.]*)'
-        for zpId in zpsToRestore.iterkeys():
-            zp = self.dmd.ZenPackManager.packs._objects[zpId]
-            deps = getattr(zp, 'dependencies', None)
-            if deps is None:
-                deps = zp.__Broken_state__['dependencies']
+        pattern = '(ZenPacks\.(?:[a-zA-Z]+\.?){2,})'
+        for zpId,zpDetails in zpsToRestore.items():
+            if zpDetails[2] == ZPSource.disk:
+                zp = get_distribution(zpId)
+                deps = {}
+                for dep in zp.requires():
+                    deps[dep.unsafe_name] = '' # TODO: need to have version as value in dict
+            else: # zpDetails[2] in (ZPSource.database, None):
+                zp = self.dmd.ZenPackManager.packs._objects[zpId]
+                deps = getattr(zp, 'dependencies', None)
+                if deps is None:
+                    deps = zp.__Broken_state__['dependencies']
             # Look to see if any packs have any other zenpack deps
             matches = filter(
                     lambda x: x,
@@ -405,6 +470,9 @@ class ZenPackCmd(ZenScriptBase):
                     depName = match.group(0)
                     if depName in zpsToRestore.keys():
                         depsSet.add(depName)
+                    elif depName not in [ pack.id for pack in self.dmd.ZenPackManager.packs() ]: # pack not installed in DB
+                        depsSet.add(depName)
+                        zpsToRestore[depName] = ('', False, None)
             zpsToSort[zpId] = depsSet
 
         # If Impact needs upgrading, ensure that it's installed first
@@ -426,6 +494,19 @@ class ZenPackCmd(ZenScriptBase):
         sortedPacks = toposort_flatten(zpsToSort)
         triedReversing = False
         fixedSomething = len(sortedPacks) > 0
+        # Installing all zenpacks with '--files-only' flag
+        # for preventing DistributionNotFound Error
+        for pack in sortedPacks:
+            candidate = self._findEggs(pack, zpsToRestore[pack][0])
+            if candidate:
+                try:
+                    EggPackCmd.InstallEggAndZenPack(
+                        self.dmd, candidate[0], filesOnly=True)
+                except OSError as e:
+                    self.log.info('%s could not be installed', candidate[0])
+
+        #exlude zenpacks which requires files-only install since we've done that already.
+        sortedPacks = [pack for pack in sortedPacks if not zpsToRestore[pack][1]]
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
             # Keep track of all the packs that failed to restore
@@ -441,6 +522,22 @@ class ZenPackCmd(ZenScriptBase):
                     triedReversing = True
             elif len(sortedPacks) != 0:
                 self.log.info("Failed to install packs: %s, will try again", ", ".join(sortedPacks))
+
+        transaction.commit()
+        self.dmd._p_jar.sync()
+
+        # take care of packs in the new image that aren't in the database
+        for pack in self.onlyInImage():
+            # skip those to be skipped
+            if pack in self.options.keepPackNames:
+                log.info('Keeping %s from being erased from disk', pack)
+                continue
+            with open(os.devnull, 'w') as fnull:
+                log.info('Erasing zenpack from disk %s', pack)
+                cmd = ['zenpack', '--erase', pack, '--files-only']
+                subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
+
+                fixedSomething = True
 
         if not fixedSomething:
             self.log.info("No broken zenpacks found")
@@ -459,10 +556,10 @@ class ZenPackCmd(ZenScriptBase):
         with open(os.devnull, 'w') as fnull:
             subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
 
-    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+    def _findEggs(self, zenpackID, zenpackVersion):
         # if the version has a dash, replace with an underscore
-        zenpackVersion = zenpackVersion.replace("-", "_", 1)
-        # look for the egg
+        # and format it
+        zenpackVersion = parse_version(zenpackVersion.replace("-", "_", 1))
         eggs = []
         for dirpath in zenPath(".ZenPacks"), zenPath("packs"):
             for f in os.listdir(dirpath):
@@ -478,17 +575,27 @@ class ZenPackCmd(ZenScriptBase):
                 # NOTE: also has groupings for 'pyver' and 'plat' if needed for
                 # later.
                 name, version = match.group('name', 'ver')
+                # formatting version to a standart
+                version = parse_version(version)
                 if name == zenpackID and (not zenpackVersion or version == zenpackVersion):
                     eggs.append(os.path.join(dirpath, f))
             # no point in checking the other dirpaths if an egg has been found
             if len(eggs) > 0:
                 break
+        return eggs
+
+    def _restore(self, zenpackID, zenpackVersion, filesOnly):
+        # look for the egg
+        eggs = self._findEggs(zenpackID, zenpackVersion)
         if len(eggs) == 0:
             self.log.info("Could not find install candidate for %s (%s)", zenpackID, zenpackVersion)
             return
         elif len(eggs) > 1:
             eggpaths = ", ".join(eggs)
-            self.log.error("Found more than one install candidate for %s (%s): %s [skipping]", zenpackID, zenpackVersion, eggpaths)
+            self.log.error(
+                "Found more than one install candidate for %s (%s): %s [skipping]",
+                zenpackID, zenpackVersion, eggpaths
+            )
             return
         candidate = eggs[0]
         self.log.info("Loading candidate %s", candidate)
@@ -499,13 +606,7 @@ class ZenPackCmd(ZenScriptBase):
                 if filesOnly:
                     cmd.append("--files-only")
                 cmd.extend(["--install", os.path.join(tempfile.gettempdir(), os.path.basename(candidate))])
-                try:
-                    with open(os.devnull, 'w') as fnull:
-                        # the first time fixes the easy-install path
-                        subprocess.check_call(cmd, stdout=fnull, stderr=fnull)
-                except Exception:
-                    pass
-                # the second time runs the loaders
+                self.log.debug("running cmd `%s`", (" ").join(cmd))
                 subprocess.check_call(cmd)
             finally:
                 try:
@@ -558,14 +659,14 @@ class ZenPackCmd(ZenScriptBase):
                 for parsed_req in parse_requirements([req]):
                     installed_version = installedPacks.get(parsed_req.project_name, None)
                     if installed_version is None:
-                        self.log.error('Zenpack %s requires %s' %
-                              (self.options.installPackName, parsed_req))
+                        self.log.error('Zenpack %s requires %s', self.options.installPackName, parsed_req)
                         prereqsMet = False
                     else:
                         if not installed_version in parsed_req:
                             self.log.error(
-                                'Zenpack %s requires %s, found: %s' %
-                                (self.options.installPackName, parsed_req, installed_version))
+                                'Zenpack %s requires %s, found: %s',
+                                self.options.installPackName, parsed_req, installed_version
+                            )
                             prereqsMet = False
             return prereqsMet
 
@@ -595,47 +696,56 @@ class ZenPackCmd(ZenScriptBase):
             missing = [zp for zp in requires
                     if zp not in self.dataroot.ZenPackManager.packs.objectIds()]
             if missing:
-                self.log.error('ZenPack %s was not installed because'
-                                % self.options.installPackName
-                                + ' it requires the following ZenPack(s): %s'
-                                % ', '.join(missing))
+                self.log.error(
+                    'ZenPack %s was not installed because', self.options.installPackName,
+                    ' it requires the following ZenPack(s): %s', ', '.join(missing)
+                )
                 return False
         return True
 
 
     def install(self, packName):
         zp = None
+        # We wrap our try in a try to abort our tansaction, but make sure we
+        # unpause applyDataMap functionality
         try:
-            # hide uncatalog error messages since they do not do any harm
-            log = logging.getLogger('Zope.ZCatalog')
-            oldLevel = log.getEffectiveLevel()
-            log.setLevel(HIGHER_THAN_CRITICAL)
-            zp = self.dmd.ZenPackManager.packs._getOb(packName)
-            self.log.info('Upgrading %s' % packName)
-            zp.upgrade(self.app)
-        except AttributeError:
             try:
-                module =  __import__('Products.' + packName, globals(), {}, [''])
-                zp = module.ZenPack(packName)
-            except (ImportError, AttributeError), ex:
-                self.log.debug("Unable to find custom ZenPack (%s), "
-                               "defaulting to generic ZenPack",
-                               ex)
-                zp = ZenPack(packName)
-            self.dmd.ZenPackManager.packs._setObject(packName, zp)
-            zp = self.dmd.ZenPackManager.packs._getOb(packName)
-            zp.install(self.app)
-        finally:
-            log.setLevel(oldLevel)
-        if zp:
-            for required in zp.requires:
+                # hide uncatalog error messages since they do not do any harm
+                log = logging.getLogger('Zope.ZCatalog')
+                oldLevel = log.getEffectiveLevel()
+                log.setLevel(HIGHER_THAN_CRITICAL)
+                zp = self.dmd.ZenPackManager.packs._getOb(packName)
+                self.log.info('Upgrading %s', packName)
+                self.dmd.startPauseADM()
+                zp.upgrade(self.app)
+            except AttributeError:
                 try:
-                    self.dmd.ZenPackManager.packs._getOb(required)
-                except:
-                    self.log.error("Pack %s requires pack %s: not installing",
-                                   packName, required)
-                    return
-        transaction.commit()
+                    module =  __import__('Products.' + packName, globals(), {}, [''])
+                    zp = module.ZenPack(packName)
+                except (ImportError, AttributeError), ex:
+                    self.log.debug(
+                        "Unable to find custom ZenPack (%s), defaulting to generic ZenPack", ex
+                    )
+                    zp = ZenPack(packName)
+                self.dmd.ZenPackManager.packs._setObject(packName, zp)
+                zp = self.dmd.ZenPackManager.packs._getOb(packName)
+                zp.install(self.app)
+            finally:
+                log.setLevel(oldLevel)
+            if zp:
+                for required in zp.requires:
+                    try:
+                        self.dmd.ZenPackManager.packs._getOb(required)
+                    except:
+                        self.log.error(
+                            "Pack %s requires pack %s: not installing",
+                            packName, required
+                        )
+                        return
+        except:
+            transaction.abort()
+        finally:
+            self.dmd.stopPauseADM()
 
     def extract(self, fname):
         """Unpack a ZenPack, and return the name"""
@@ -644,10 +754,10 @@ class ZenPackCmd(ZenScriptBase):
         zf = ZipFile(fname)
         name = zf.namelist()[0]
         packName = name.split('/')[0]
-        self.log.debug('Extracting ZenPack "%s"' % packName)
+        self.log.debug('Extracting ZenPack "%s"', packName)
         for name in zf.namelist():
             fullname = zenPath('Products', name)
-            self.log.debug('Extracting %s' % name)
+            self.log.debug('Extracting %s', name)
             if name.find('/.svn') > -1: continue
             if name.endswith('~'): continue
             if name.endswith('/'):
@@ -679,12 +789,13 @@ class ZenPackCmd(ZenScriptBase):
 
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
-            self.log.debug('Directory already in %s, not copying.',
-                           zenPath('Products'))
+            self.log.debug(
+                'Directory already in %s, not copying.', zenPath('Products')
+            )
             return packName
 
         # Copy the source dir over to Products
-        self.log.debug('Copying %s' % packName)
+        self.log.debug('Copying %s', packName)
         result = os.system('cp -r %s %s' % (srcDir, zenPath('Products')))
         if result == -1:
             self.stop('Error copying %s to %s' % (srcDir, zenPath('Products')))
@@ -713,8 +824,9 @@ class ZenPackCmd(ZenScriptBase):
 
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
-            self.log.debug('Directory already in %s, not copying.',
-                           zenPath('Products'))
+            self.log.debug(
+                'Directory already in %s, not copying.', zenPath('Products')
+            )
             return packName
 
         targetdir = zenPath("Products", packName)
@@ -762,6 +874,12 @@ class ZenPackCmd(ZenScriptBase):
                                action="store_true",
                                default=False,
                                help='List installed ZenPacks')
+        self.parser.add_option('--keep-pack',
+                               dest='keepPackNames',
+                               action='append',
+                               type='string',
+                               default=[],
+                               help='(Can be used multiple times) with --restore, pack name to not be deleted from disk if not found in zodb')
         self.parser.add_option('--link',
                                dest='link',
                                action="store_true",
@@ -799,13 +917,18 @@ class ZenPackCmd(ZenScriptBase):
                                dest='serviceId',
                                default=os.getenv('CONTROLPLANE_SERVICED_ID', ''),
                                help=optparse.SUPPRESS_HELP)
-
+        self.parser.add_option('--ignore-service-install',
+                               dest='ignoreServiceInstall',
+                               action='store_true',
+                               default=False,
+                               help='On install of a zenpack, do not attempt to install '
+                                    'any associated services into the control center')
         self.parser.prog = "zenpack"
         ZenScriptBase.buildOptions(self)
         self.parser.defaults['logpath'] = zenPath('log')
 
 if __name__ == '__main__':
-    logging.basicConfig()
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     log = logging.getLogger('zen.ZenPackCmd')
     try:
         zp = ZenPackCmd()

@@ -175,17 +175,19 @@ class DiscoverService(ModelerService):
                     defaultNetmasks = getattr(netroot, 'zDefaultNetworkTree', [])
                     if defaultNetmasks:
                         netmask = defaultNetmasks[0]
-                netroot.createIp(ip, netmask)
                 autoDiscover = getattr(netobj, 'zAutoDiscover', True)
                 # If we're not supposed to discover this IP, return None
                 if not force and not autoDiscover:
                     return None, False
                 kw['manageIp'] = ipunwrap(ip)
                 dev = manage_createDevice(self.dmd, **kw)
+                netroot.createIp(ip, netmask)
                 return dev, True
             except DeviceExistsError, e:
                 # Update device with latest info from zendisc
-                e.dev.setManageIp(kw['manageIp'])
+                # (if necessary)
+                if not e.dev.getManageIp():
+                    e.dev.setManageIp(kw['manageIp'])
 
                 # only overwrite title if it has not been set
                 if not e.dev.title or isip(e.dev.title):
@@ -197,7 +199,7 @@ class DiscoverService(ModelerService):
                 updateAttributes = {}
                 for k,v in kw.items():
                     if k not in ('manageIp', 'deviceName', 'devicePath',
-                            'discoverProto', 'performanceMonitor'):
+                            'discoverProto', 'performanceMonitor', 'productionState'):
                         updateAttributes[k] = v
                 # use updateDevice so we don't clobber existing device properties.
                 e.dev.updateDevice(**updateAttributes)
@@ -242,24 +244,21 @@ class DiscoverService(ModelerService):
             if ipobj: ips.append(ipobj.id)
         return ips
 
-
     @translateError
     def remote_getSubNetworks(self):
         "Fetch proxies for all the networks"
         return map(IpNetProxy,
                 self.dmd.Networks.getNetworkRoot().getSubNetworks())
 
-
     @translateError
-    def remote_getSnmpConfig(self, devicePath, snmpCategory='SNMP'):
+    def remote_getDeviceClassSnmpConfig(self, devicePath, category='SNMP'):
         "Get the snmp configuration defaults for scanning a device"
-        devroot = self.dmd.Devices.createOrganizer(devicePath)
+        devRoot = self.dmd.Devices.createOrganizer(devicePath)
         snmpConfig = {}
-        for name, value in devroot.zenPropertyItems():
-            if getzPropertyCategory(name) == snmpCategory:
+        for name, value in devRoot.zenPropertyItems():
+            if getzPropertyCategory(name) == category:
                 snmpConfig[name] = value
         return snmpConfig
-
 
     @translateError
     def remote_moveDevice(self, dev, path):

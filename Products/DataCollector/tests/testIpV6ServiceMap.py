@@ -108,6 +108,19 @@ class TestIpV6ServiceMap(BaseTestCase):
          for oid in data:
              result = self.serviceMap._extractAddressAndPort(oid)
              self.assertEqual(expected, result)
+             
+    def test_ignore_localhost_ipv4(self):
+        oid = ".1.3.6.1.2.1.6.20.1.4.1.4.127.0.0.1.25"
+        expected = []
+        result = self.serviceMap._extractAddressAndPort(oid)
+        self.assertTrue(len(result) == 0)
+
+    def test_ignore_localhost_ipv6(self):
+        oid = ".1.3.6.1.2.1.6.20.1.4.2.16.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1"
+        expected = []
+        result = self.serviceMap._extractAddressAndPort(oid)
+        self.assertTrue(len(result) == 0)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

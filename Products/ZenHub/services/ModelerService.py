@@ -10,6 +10,8 @@
 
 import Globals
 
+from itertools import ifilter
+from zope import component
 from Acquisition import aq_base
 from twisted.internet import defer, reactor
 from ZODB.transact import transact
@@ -18,6 +20,8 @@ from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenEvents import Event
+from Products.ZenCollector.interfaces import IConfigurationDispatchingFilter
+from Products.ZenUtils.events import pausedAndOptimizedIndexing
 import time
 import logging
 log = logging.getLogger('zen.ModelerService')
@@ -73,7 +77,7 @@ class ModelerService(PerformanceConfig):
     def remote_getDeviceConfig(self, names, checkStatus=False):
         result = []
         for name in names:
-            device = self.getPerformanceMonitor().findDevice(name)
+            device = self.getPerformanceMonitor().findDeviceByIdExact(name)
             if not device:
                 continue
             device = device.primaryAq()
@@ -92,7 +96,7 @@ class ModelerService(PerformanceConfig):
             if checkStatus and (device.getPingStatus() > 0
                                 or device.getSnmpStatus() > 0):
                 skipModelMsg = "device %s is down skipping modeling" % device.id
-            if (device.productionState <
+            if (device.getProductionState() <
                 device.getProperty('zProdStateThreshold', 0)):
                 skipModelMsg = "device %s is below zProdStateThreshold" % device.id
             if skipModelMsg:
@@ -108,47 +112,84 @@ class ModelerService(PerformanceConfig):
         monitor = self.dmd.Monitors.Performance._getOb(monitor)
         return [d.id for d in monitor.devices.objectValuesGen()]
 
+    def _getOptionsFilter(self, options):
+        deviceFilter = lambda x: True
+        if options:
+            dispatchFilterName = options.get('configDispatch', '') if options else ''
+            filterFactories = dict(component.getUtilitiesFor(IConfigurationDispatchingFilter))
+            filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                            filterFactories.get('', None)
+            if filterFactory:
+                deviceFilter = filterFactory.getFilter(options) or deviceFilter
+        return deviceFilter
+
     @translateError
-    def remote_getDeviceListByOrganizer(self, organizer, monitor=None):
+    def remote_getDeviceListByOrganizer(self, organizer, monitor=None, options=None):
         if monitor is None:
             monitor = self.instance
+        filter = self._getOptionsFilter(options)
         root = self.dmd.Devices.getOrganizer(organizer)
         #If getting all devices for a monitor, get them from the monitor
         if root.getPrimaryId() == '/zport/dmd/Devices':
             monitor = self.dmd.Monitors.Performance._getOb(monitor)
-            devices = ((d.id, d.snmpLastCollection) for d in monitor.devices.objectValuesGen())
+            devices = ((d.id, d.snmpLastCollection) for d in ifilter(filter, monitor.devices.objectValuesGen()))
         else:
-            devices= ((d.id, d.snmpLastCollection) for d in root.getSubDevicesGen()
+            devices= ((d.id, d.snmpLastCollection) for d in ifilter(filter, root.getSubDevicesGen())
                 if d.getPerformanceServerName() == monitor)
         return [d[0] for d in sorted(devices, key=lambda x:x[1])]
 
+    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    def pre_adm_check(self, map, device):
+        return None
+
+    #monkeypatched in MultiRealmIP, for ticket ZEN-21781
+    def post_adm_process(self, map, device, preadmdata):
+        pass
+
+    @transact
     @translateError
     def remote_applyDataMaps(self, device, maps, devclass=None, setLastCollection=False):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         adm = ApplyDataMap(self)
         adm.setDeviceClass(device, devclass)
-        def inner(map):
-            def action():
-                start_time = time.time()
-                completed= bool(adm._applyDataMap(device, map))
-                end_time=time.time()-start_time
-                if hasattr(map, "relname"):
-                    log.debug("Time in _applyDataMap for Device %s with relmap %s objects: %.2f", device.getId(),map.relname,end_time)
-                elif hasattr(map,"modname"):
-                    log.debug("Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f",device.getId(),len(map.items()),end_time)
-                else:
-                    log.debug("Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap",device.getId(),end_time)
-                return completed
-            return self._do_with_retries(action)
 
         changed = False
+        #with pausedAndOptimizedIndexing():
         for map in maps:
-            result = inner(map)
-            changed = changed or result
+            preadmdata = self.pre_adm_check(map, device)
+
+            start_time = time.time()
+            if adm._applyDataMap(device, map, commit=False):
+                changed = True
+
+            end_time = time.time() - start_time
+            changesubject = "device" if changed else "nothing"
+            if hasattr(map, "relname"):
+                log.debug(
+                    "Time in _applyDataMap for Device %s with relmap %s objects: %.2f, %s changed.",
+                    device.getId(),
+                    map.relname,
+                    end_time,
+                    changesubject)
+            elif hasattr(map, "modname"):
+                log.debug(
+                    "Time in _applyDataMap for Device %s with objectmap, size of %d attrs: %.2f, %s changed.",
+                    device.getId(),
+                    len(map.items()),
+                    end_time,
+                    changesubject)
+            else:
+                log.debug(
+                    "Time in _applyDataMap for Device %s: %.2f . Could not find if relmap or objmap, %s changed.",
+                    device.getId(),
+                    end_time,
+                    changesubject)
+
+            self.post_adm_process(map, device, preadmdata)
 
         if setLastCollection:
-            self._setSnmpLastCollection(device)
+            device.setSnmpLastCollection()
 
         return changed
 
@@ -158,7 +199,7 @@ class ModelerService(PerformanceConfig):
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         self._setSnmpLastCollection(device)
 
     def _do_with_retries(self, action):
@@ -178,7 +219,7 @@ class ModelerService(PerformanceConfig):
     @transact
     @translateError
     def remote_setSnmpConnectionInfo(self, device, version, port, community):
-        device = self.getPerformanceMonitor().findDevice(device)
+        device = self.getPerformanceMonitor().findDeviceByIdExact(device)
         device.updateDevice(zSnmpVer=version,
                             zSnmpPort=port,
                             zSnmpCommunity=community)

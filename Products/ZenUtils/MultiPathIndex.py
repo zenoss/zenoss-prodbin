@@ -19,6 +19,8 @@ from Products.PluginIndexes.common import safe_callable
 from BTrees.OOBTree import OOSet
 from BTrees.IIBTree import IISet, intersection, union, multiunion
 
+from Products.ZenUtils.CSEUtils import getCSEConf
+
 def _isSequenceOfSequences(seq):
     if not seq:
         return False
@@ -65,16 +67,18 @@ class MultiPathIndex(ExtendedPathIndex):
 
         if depth > 0:
             raise ValueError, "Can't do depth searches anymore"
-
         if not comps:
             comps = ['dmd']
             startlevel = 1
-        elif comps[0] == 'zport':
-            comps = comps[1:]
-        elif comps[0] != 'dmd':
+        else:
+            if comps[0] == getCSEConf().get('virtualroot', '').replace('/', ''):
+                comps = comps[1:]
+            if comps[0] == 'zport':
+                comps = comps[1:]
+
+        if comps[0] != 'dmd':
             raise ValueError, "Depth searches must start with 'dmd'"
         startlevel = len(comps)
-        #startlevel = len(comps)-1 if len(comps) > 1 else 1
 
         if len(comps) == 0:
             if depth == -1 and not navtree:
@@ -216,13 +220,14 @@ class MultiPathIndex(ExtendedPathIndex):
             paths = [paths]
 
         if docid in self._unindex:
-            unin = self._unindex[docid]
-            # Migrate old versions of the index to use OOSet
-            if isinstance(unin, set):
-                unin = self._unindex[docid] = OOSet(unin)
-            for oldpath in list(unin):
-                if list(oldpath.split('/')) not in paths:
-                    self.unindex_paths(docid, (oldpath,))
+            if isinstance(self._unindex[docid], set):
+                self._unindex[docid] = OOSet(self._unindex[docid])
+
+            unin = set(self._unindex[docid])
+            paths_set = {'/'.join(x) for x in paths}
+
+            for oldpath in unin - paths_set:
+                self.unindex_paths(docid, (oldpath,))
         else:
             self._unindex[docid] = OOSet()
             self._length.change(1)
@@ -230,7 +235,6 @@ class MultiPathIndex(ExtendedPathIndex):
         self.index_paths(docid, paths)
 
         return 1
-
 
     def index_paths(self, docid, paths):
         for path in paths:

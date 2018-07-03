@@ -16,6 +16,8 @@ Available at:  /zport/dmd/report_router
 
 import logging
 from itertools import izip_longest
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.decorators import require
@@ -25,7 +27,7 @@ from Products.Zuul.routers import TreeRouter
 from Products import Zuul
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.BaseReport import BaseReport
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger('zen.ReportRouter')
 
@@ -138,7 +140,7 @@ class ReportRouter(TreeRouter):
 
         # Getting all of the child nodes for auditing purposes
         node = self.context.dmd.unrestrictedTraverse(uid)
-        brains = ICatalogTool(node).search((ReportClass,BaseReport))
+        brains = IModelCatalogTool(node).search((ReportClass,BaseReport))
         family = []
         for brain in brains:
             family.append([brain.getPath(), isinstance(brain.getObject(), ReportClass)])
@@ -206,12 +208,14 @@ class ReportRouter(TreeRouter):
         return DirectResponse.succeed()
 
     def _marshalPath(self, contextUid, newId=None, localKeys=None):
+        # ensure all uids have cse_virtual_root prefix
+        contextUid = getUtility(IVirtualRoot).ensure_virtual_root(contextUid)
         tokens = contextUid.split('/')
         if newId:
             tokens.append(newId)
         paths = []
-        # ["", "zport", "dmd", "Reports", <new node or an ancestor, at 4>, ...]
-        for x in range(4, len(tokens) + 1):
+        # ["", "cse_virtual_root", "zport", "dmd", "Reports", <new node or an ancestor, at 5>, ...]
+        for x in range(5, len(tokens) + 1):
             paths.append('/'.join(tokens[:x]))
         nodes = [self._getFacade().getTree(id) for id in paths]
         return [Marshaller(node).marshal(localKeys) for node in nodes]
@@ -234,12 +238,15 @@ class ReportRouter(TreeRouter):
         facade = self._getFacade()
         return self._correctReportTitles(facade.getGraphReportDefs(uid))
 
-    def getMultiGraphReportDefs(self, uid, drange=None):
+    def getMultiGraphReportDefs(self, uid, drange=None, graphGroup=None):
         """
         Gets the json necessary for rendering graphs with the metric services
         for multi graph reports.
         @type  uid: string
         @param uid: unique identifier of an object
+        @param graphGroup: return the graph definition for the specific graph group
+        @type graphGroup: string
+
         """
         facade = self._getFacade()
-        return self._correctReportTitles(facade.getMultiGraphReportDefs(uid))
+        return self._correctReportTitles(facade.getMultiGraphReportDefs(uid, graphGroup=graphGroup))

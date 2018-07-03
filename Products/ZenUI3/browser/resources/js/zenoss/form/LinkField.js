@@ -29,13 +29,21 @@ Ext.define("Zenoss.form.LinkField", {
         var origValue = value;
         if (Ext.isEmpty(value)) {
             value = _t('None');
+        } else if (Ext.isObject(value)) {
+            value = Zenoss.render.link(null, value.uid, value.name);
+        } else if (Ext.isArray(value)) {
+            var items = [];
+            Ext.each(value, function(v){
+                items.push(Zenoss.render.link(v));
+            });
+            value = items.join('<br/>');
         } else {
-            if (Ext.isArray(value)){
-                var items = [];
-                Ext.each(value, function(v){
-                    items.push(Zenoss.render.link(v));
-                });
-                value = items.join('<br/>');
+            var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
+            var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a>)/);
+            if (linkMatch && nameMatch) {
+                var link = linkMatch[1];
+                var name = nameMatch[1];
+                value = Zenoss.render.link(null, link, name);
             } else {
                 value = Zenoss.render.link(value);
             }

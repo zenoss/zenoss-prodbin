@@ -16,7 +16,9 @@ appropriately and then return back a string
 
 import json
 import logging
+import re
 from datetime import datetime
+import pytz
 
 from Products.Five.browser import BrowserView
 
@@ -27,11 +29,15 @@ from interfaces import IEventManagerProxy
 
 log = logging.getLogger('zen.eventexport')
 
+DETAILS_KEY = "details"
+
+
 class EventsExporter(BrowserView):
     def __call__(self):
         body = self.request.form['body']
         state = unjson(body)
         params = state['params']
+        options = state['options']
         type = state['type']
         archive = state.get('isHistory', False)
 
@@ -39,95 +45,179 @@ class EventsExporter(BrowserView):
         filter_params = state['params']['params']
         del state['params']['params']
         params.update(filter_params)
-        getattr(self, type)(self.request.response, archive, **params)
+        getattr(self, type)(self.request.response, archive, options, **params)
         # aborting the long running export transaction so it is not retried
         import transaction
         transaction.abort()
 
-    def _query(self, archive, uid=None, fields=None, sort=None, dir=None, evids=None, excludeIds=None, params=None):
+    def _get_event_fields(self, event, requested_fields):
+        """
+            Returns the fields present in the event placing
+            requested_events first, details last and rest of
+            the fiels in alphabetic order
+        """
+        returned_fields = set(event.keys())
+        header = []
+        # Lets put the requested fields first
+        if requested_fields:
+            for field in requested_fields:
+                if field in returned_fields:
+                    returned_fields.remove(field)
+                header.append(field)
+        # returned_fields has the fields that have not been explicitely
+        #  requested. lets append them ensuring details are at the end
+        show_details = False
+        if DETAILS_KEY in returned_fields:
+            returned_fields.remove(DETAILS_KEY)
+            show_details = True
+        not_requested_fields = list(sorted(
+            returned_fields,
+            key=lambda x: x.lower()
+        ))
+        if show_details:
+            not_requested_fields.append(DETAILS_KEY)
+        header.extend(not_requested_fields)
+
+        return header
+
+    def _query(self, archive, uid=None, fields=None, sort=None, dir=None,
+               evids=None, excludeIds=None, params=None):
         jsonParams = params
         if isinstance(jsonParams, dict):
             jsonParams = json.dumps(jsonParams)
         zepRouter = EventsRouter(self.context, self.request)
-        summaryEvents = zepRouter.queryGenerator(archive=archive, sort=sort, dir=dir,
-                                                 evids=evids, excludeIds=excludeIds,
-                                                 params=jsonParams, uid=uid, detailFormat=True)
-        field_names = []
+        summaryEvents = zepRouter.queryGenerator(
+            archive=archive, sort=sort, dir=dir, evids=evids, uid=uid,
+            excludeIds=excludeIds, params=jsonParams, detailFormat=True
+        )
+        header = []
         for event in summaryEvents:
             # default values for fields some optional fields in ZEP events
             if isinstance(event.get('DeviceClass'), dict):
-                event['DeviceClass'] =  event['DeviceClass']['name']
+                event['DeviceClass'] = event['DeviceClass']['name']
             if 'device_uuid' in event:
                 del event['device_uuid']
 
-            details = {detail['key']:detail['value'] for detail in event['details'] if detail['key'] not in event}
-            event.update(details)
+            parsed_details = {
+                detail['key']: detail['value']
+                for detail in event[DETAILS_KEY]
+                if detail['key'] not in event
+            }
+            event[DETAILS_KEY] = parsed_details
 
-            del event['details']
             del event['log']
-            if not field_names:
-                field_names.extend(event.keys())
-            yield field_names, event
+            if not header:
+                header = self._get_event_fields(event, fields)
 
+            yield header, event
 
-    def csv(self, response, archive, **params):
+    def _convert(self, fmt):
+        d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
+             'HH': '%H', 'hh': '%I', 'mm': '%M',
+             'ss': '%S', 'a': '%p'}
+        pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
+        return pattern.sub(lambda x: d[x.group()], fmt)
+
+    def _timeformat(self, value, options):
+        utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(value)))
+        tz = pytz.timezone(options['tz'])
+        tval = tz.normalize(utc_dt.astimezone(tz))
+        if options['fmt'] == "iso":
+            return str(tval.isoformat())
+        if options['fmt'] == "unix":
+            return str(int(value))
+        if options['fmt'] == "user":
+            return str(tval.strftime(
+                self._convert(options['datefmt']+" "+options['timefmt']))
+            )
+
+    def csv(self, response, archive, options, **params):
         response.setHeader('Content-Type', 'application/vns.ms-excel')
-        response.setHeader('Content-Disposition', 'attachment; filename=events.csv')
+        response.setHeader('Content-Disposition',
+                           'attachment; filename=events.csv')
         from csv import writer
         writer = writer(response)
 
         wroteHeader = False
         for fields, evt in self._query(archive, **params):
+            data = []
             if not wroteHeader:
                 writer.writerow(fields)
                 wroteHeader = True
-            data = []
+            details = evt.get(DETAILS_KEY)
+
             for field in fields:
                 val = evt.get(field, '')
-                if field in ("lastTime", "firstTime") and val:
-                    val = datetime.utcfromtimestamp(val).isoformat()
-                data.append(str(val).replace('\n',' ').strip() if val or val is 0 else '')
+                if field in ("lastTime", "firstTime", "stateChange") and val:
+                    val = self._timeformat(val, options)
+                elif field == DETAILS_KEY and val:
+                    # ZEN-ZEN-23871: add all details in one column
+                    val = json.dumps(val)
+                elif not (val or val is 0) and details:
+                    # ZEN-27617: fill in value for requested field in details
+                    val = details.get(field, '')
+                data.append(
+                    str(val).replace('\n', ' ').strip()
+                    if (val or val is 0) else ''
+                )
             writer.writerow(data)
 
-    def xml(self, response, archive, **params):
+    def xml(self, response, archive, options, **params):
         response.setHeader('Content-Type', 'text/xml; charset=utf-8')
-        response.setHeader('Content-Disposition', 'attachment; filename=events.xml')
-
+        response.setHeader('Content-Disposition',
+                           'attachment; filename=events.xml')
         from xml.sax.saxutils import escape, quoteattr
-        response.write("""<?xml version="1.0" encoding="UTF-8"?>
-<!-- Common Event Format compliant event structure -->
-<ZenossEvents>
-""")
+        response.write(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<!-- Common Event Format compliant event structure -->\n'
+            '<ZenossEvents>\n'
+        )
 
         evutil = IEventManagerProxy(self)
         zem = evutil.event_manager()
-        reporterComponent = """\t<ReporterComponent>
-\t\t<url>%s</url>
-\t</ReporterComponent>
-""" % escape(zem.absolute_url())
-
+        reporterComponent = (
+            "\t<ReporterComponent>\n"
+            "\t\t<url>%s</url>\n"
+            "\t</ReporterComponent>\n"
+        ) % (escape(zem.absolute_url_path()))
 
         for fields, evt in self._query(archive, **params):
-            firstTime = datetime.utcfromtimestamp(evt['firstTime']).isoformat()
-            response.write('<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
-            response.write("""\t<SourceComponent>
-\t\t<DeviceClass>%s</DeviceClass>
-\t\t<device>%s</device>
-\t\t<ipAddress>%s</ipAddress>
-\t</SourceComponent>
-""" % (escape(str(evt.get('DeviceClass',''))), escape(str(evt.get('device',''))), escape(str(evt.get('ipAddress', '')))))
+            firstTime = self._timeformat(evt['firstTime'], options)
+            response.write(
+                '<ZenossEvent ReportTime=%s>\n' % quoteattr(firstTime))
+            response.write((
+                "\t<SourceComponent>\n"
+                "\t\t<DeviceClass>%s</DeviceClass>\n"
+                "\t\t<device>%s</device>\n"
+                "\t\t<ipAddress>%s</ipAddress>\n"
+                "\t</SourceComponent>\n"
+            ) % (
+                escape(str(evt.get('DeviceClass', ''))),
+                escape(str(evt.get('device', ''))),
+                escape(str(evt.get('ipAddress', '')))
+            ))
             response.write(reporterComponent)
-            response.write('\t<dedupid>%s</dedupid>\n' % escape(str(evt.pop('dedupid', ''))))
-            response.write('\t<summary>%s</summary>\n' % escape(str(evt.pop('summary', ''))))
-            response.write('\t<message>%s</message>\n' % escape(str(evt.pop('message', ''))))
+            for tag in ('dedupid', 'summary', 'message'):
+                response.write(
+                    '\t<{tag}>{val}</{tag}>\n'.format(
+                        tag=tag, val=escape(str(evt.pop(tag, '')))
+                    )
+                )
+
+            details = evt.get(DETAILS_KEY)
+            if details:
+                evt.update(details)
+                del evt[DETAILS_KEY]
 
             for key, value in evt.iteritems():
                 if value is not None:
-                    if key in ("lastTime", "firstTime"):
-                        value = datetime.utcfromtimestamp(value).isoformat()
+                    if key in ("lastTime", "firstTime", "stateChange"):
+                        value = self._timeformat(value, options)
                     key = str(key).replace('.', '_')
-                    response.write('\t<%s>%s</%s>\n' % (key, escape(str(value)), key))
+                    response.write(
+                        '\t<%s>%s</%s>\n' % (key, escape(str(value)), key)
+                    )
 
             response.write('</ZenossEvent>\n')
 
-        response.write( "</ZenossEvents>\n" )
+        response.write("</ZenossEvents>\n")

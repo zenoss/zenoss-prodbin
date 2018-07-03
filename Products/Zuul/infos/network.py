@@ -12,13 +12,19 @@ import re
 from itertools import imap
 from zope.interface import implements
 from zope.component import adapts
+from Products.AdvancedQuery import In, Eq
 from Products.ZenModel.IpNetwork import IpNetwork
 from Products.ZenModel.IpAddress import IpAddress
+from Products.ZenUtils.IpUtil import ipToDecimal
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.catalog.model_catalog import SearchResults, OBJECT_UID_FIELD as UID
 from Products.Zuul.interfaces import IIpNetworkInfo, IIpAddressInfo, IIpNetworkNode
 from Products.Zuul.infos import InfoBase, BulkLoadMixin
+from Products.Zuul.infos.catalog_tree_builder import ModelCatalogTreeBuilder
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import getZPropertyInfo, setZPropertyInfo
 from Products.Zuul.tree import TreeNode
+
 
 class IpNetworkNode(TreeNode):
     implements(IIpNetworkNode)
@@ -26,7 +32,7 @@ class IpNetworkNode(TreeNode):
 
     @property
     def text(self):
-        numInstances = self._object.getObject().countIpAddresses()
+        numInstances = self._get_cache.get_leaf_count(self.uid)
         text = super(IpNetworkNode, self).text + '/' + str(self._object.getObject().netmask)
         return {
             'text': text,
@@ -38,17 +44,22 @@ class IpNetworkNode(TreeNode):
     def _get_cache(self):
         cache = getattr(self._root, '_cache', None)
         if cache is None:
-            cache = TreeNode._buildCache(self, IpNetwork, IpAddress, 'ipaddresses', orderby='name' )
+            node_type = "Products.ZenModel.IpNetwork.IpNetwork"
+            leaf_type = "Products.ZenModel.IpAddress.IpAddress"
+            facet_field = "networkId"
+            cache = ModelCatalogTreeBuilder(self._root._get_object(), node_type,
+                                            leaf_type, facet_field=facet_field)
+            setattr(self._root, '_cache', cache)
         return cache
 
     @property
     def children(self):
-        nets = self._get_cache.search(self.uid)
+        nets = self._get_cache.get_children(self.uid)
         return imap(lambda x:IpNetworkNode(x, self._root, self), nets)
 
     @property
     def leaf(self):
-        nets = self._get_cache.search(self.uid)
+        nets = self._get_cache.get_children(self.uid)
         return not nets
 
     @property
@@ -66,7 +77,7 @@ class IpNetworkInfo(InfoBase):
     @property
     def ipcount(self):
         return str(self._object.countIpAddresses()) + '/' + \
-               str(self._object.freeIps())
+               "{:,}".format(self._object.freeIps())
 
     # zProperties
     def getZAutoDiscover(self):
@@ -146,6 +157,11 @@ class IpNetworkInfo(InfoBase):
 
 class IpAddressInfo(InfoBase, BulkLoadMixin):
     implements(IIpAddressInfo)
+
+    @property
+    @info
+    def manageDevice(self):
+        return self._object.manageDevice()
 
     @property
     @info

@@ -52,33 +52,32 @@ class TestDeviceClass(ZenModelBaseTest):
 
     def testSearchDevicesOneDevice(self):
         devices = self.dmd.Devices
-        self.assertRaises(Redirect, devices.searchDevices, "testdev2",
-                          REQUEST=dict(junk=1))
+        self.assertEqual( len(  devices._findDevice("testdev2") ), 1 )
 
     
     def testSearchDevicesNoDevice(self):
         devices = self.dmd.Devices
-        self.assertEqual(len(devices.searchDevices("adsf")), 0)
+        self.assertEqual(len(devices._findDevice("adsf")), 0)
 
     
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
-        self.assertEqual(len(devices.searchDevices("testdev*")), 2)
+        self.assertEqual(len(devices._findDevice("testdev*")), 2)
 
     def testSearchDevicesByTitle(self):
         self.dev2.setTitle('testtitle2')
-        foundDevices = self.dmd.Devices.searchDevices('testtitle2')
+        foundDevices = self.dmd.Devices._findDevice('testtitle2')
         self.assertEqual( len( foundDevices ), 1 )
         self.assertEqual( foundDevices[0].id, self.dev2.id )
         
     def testFindExact(self):
-        
         id = 'testdev'
         devices = self.dmd.Devices
         devices.createInstance('TESTDEV')
-        #inexact        
+        #inexact
         self.assertEqual(len(devices._findDevice(id)), 2)
         #exact
+
         dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
         
@@ -155,6 +154,45 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assertEqual(guid, newguid)
         path = self.dmd.guid_table.get(newguid, None)
         self.assertEqual(path, '/zport/dmd/Devices/Server/devices/testdev')
+
+    def testMoveDevicesRetainsProductionState(self):
+        self.dev._setProductionState(99)
+        self.dev.setPreMWProductionState(98)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        newProdState = self.dmd.Devices.Server.devices.testdev.getProductionState()
+        newPreMWProdState = self.dmd.Devices.Server.devices.testdev.getPreMWProductionState()
+        self.assertEqual(newProdState, 99)
+        self.assertEqual(newPreMWProdState, 98)
+
+    def testMoveDevicesRetainsComponentProductionState(self):
+        self.dev._setProductionState(99)
+        self.dev.setPreMWProductionState(98)
+        self.dev.os.addIpInterface('eth0', True)
+        component = self.dev.os.interfaces()[0]
+        component._setProductionState(49)
+        component.setPreMWProductionState(48)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+
+        component = self.dmd.Devices.Server.devices.testdev.os.interfaces()[0]
+        newProdState = component.getProductionState()
+        newPreMWProdState = component.getPreMWProductionState()
+        self.assertEqual(newProdState, 49)
+        self.assertEqual(newPreMWProdState, 48)
+
+    def testMoveDevicesRetainsComponentProductionStateAcquisition(self):
+        self.dev._setProductionState(99)
+        self.dev.os.addIpInterface('eth0', True)
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        
+        # Component production state is the same (acquired from device)
+        component = self.dmd.Devices.Server.devices.testdev.os.interfaces()[0]
+        newProdState = component.getProductionState()
+        self.assertEqual(newProdState, 99)
+
+        # Component production state still acquires from device
+        self.dev._setProductionState(59)
+        newProdState = component.getProductionState()
+        self.assertEqual(newProdState, 59)
 
     def testMoveDevicesWithPotentialCaseIssue(self):
         self.dmd.Devices.createInstance( 'TESTDEV' )

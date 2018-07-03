@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -16,10 +16,7 @@ Ext.define("Zenoss.ConsoleBar", {
     alias:['widget.consolebar'],
     extend:"Zenoss.LargeToolbar",
     constructor: function(config) {
-        var me = this;
         var title = config.title || 'Title';
-        var panel = config.parentPanel;
-
         delete config.title;
         config = Ext.apply(config||{}, {
             cls: 'largetoolbar consolebar',
@@ -54,7 +51,7 @@ Ext.define("Zenoss.ConsoleBar", {
     _getRegion: function(region) {
         var reg = null;
         Ext.getCmp(this.centerPanel).items.each(function(item){
-            if (item.region == region) {
+            if (item.region === region) {
                 reg = item;
             }
         });

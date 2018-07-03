@@ -34,7 +34,7 @@ def manage_addSoftware(context, id, title = None, REQUEST = None):
     d = Software(id, title)
     context._setObject(id, d)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 addSoftware = DTMLFile('dtml/addSoftware',globals())
@@ -110,7 +110,7 @@ class Software(MEProduct):
         if newProductName: productName = newProductName
         prodobj = self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                     productName, manufacturer, **kwargs)
-        self.productClass.addRelation(prodobj)
+        self.setProductClass(prodobj)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Product Set',
@@ -133,9 +133,9 @@ class Software(MEProduct):
 
             manufs = self.getDmdRoot("Manufacturers")
             prodobj = manufs.createSoftwareProduct(prodKey, manufacturer, isOS=True)
-            self.productClass.addRelation(prodobj)
+            self.setProductClass(prodobj)
         else:
-            self.productClass.removeRelation()
+            self.removeProductClass()
 
 
     def name(self):

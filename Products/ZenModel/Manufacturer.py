@@ -38,7 +38,7 @@ def manage_addManufacturer(context, id=None, REQUEST = None):
         context._setObject(id, d)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                      +'/manage_main') 
 
 addManufacturer = DTMLFile('dtml/addManufacturer',globals())
@@ -131,6 +131,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         if REQUEST: return self.callZenScreen(REQUEST)
 
    
+    security.declareProtected(ZEN_MANAGE_DMD, 'moveProducts')
     def moveProducts(self, moveTarget=None, ids=None, REQUEST=None):
         """Move product to different manufacturer.
         """

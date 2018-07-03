@@ -33,7 +33,7 @@ def relPath(obj, relname):
 
 def devicePathsFromComponent(comp):
     c_paths = IPathReporter(comp).getPaths()
-    return [path + ('device',) for path in c_paths[1:]]
+    return [path + ('device',) for path in c_paths]
 
 
 class DefaultPathReporter(object):
@@ -47,7 +47,8 @@ class DefaultPathReporter(object):
         paths = [self.context.getPhysicalPath()]
         # since all component path reporters extend DefaultPathReporter
         # we need to add our component Group hook in here as opposed to a subclass
-        if getattr(self.context, "getComponentGroups", None) is not None:
+        from Products.ZenModel.ManagedEntity import ManagedEntity
+        if isinstance(self.context, ManagedEntity):
             componentGroups = self.context.getComponentGroups()
             if componentGroups:
                 paths.extend(relPath(self.context, "componentGroups"))
@@ -60,6 +61,8 @@ class DevicePathReporter(DefaultPathReporter):
         paths.extend(relPath(dev, 'location'))
         paths.extend(relPath(dev, 'systems'))
         paths.extend(relPath(dev, 'groups'))
+        #for iface in self.context.os.interfaces.objectValuesGen(): # @TODO need to find an alternative
+        #    paths.extend(devicePathsFromComponent(iface))
         return paths
 
 
@@ -78,6 +81,14 @@ class InterfacePathReporter(DefaultPathReporter):
         return paths
 
 
+class IpAddressPathReporter(DefaultPathReporter):
+    def getPaths(self):
+        paths = super(IpAddressPathReporter, self).getPaths()
+        if self.context.interface(): 
+            paths.append(self.context.interface().getPrimaryPath() + ('ipaddresses',))
+        return paths
+
+
 class ProcessPathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ProcessPathReporter, self).getPaths()
@@ -88,5 +99,7 @@ class ProcessPathReporter(DefaultPathReporter):
 class ProductPathReporter(DefaultPathReporter):
     def getPaths(self):
         paths = super(ProductPathReporter, self).getPaths()
-        paths.extend(relPath(self.context, 'productClass'))
+        pc = self.context.productClass()
+        if pc:
+            paths.append(pc.getPhysicalPath())
         return paths

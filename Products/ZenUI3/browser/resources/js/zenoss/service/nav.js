@@ -21,7 +21,6 @@
     zs.addClassHandler = function(newId)
     {
         var grid = Ext.getCmp('navGrid'),
-            view = grid.getView(),
             store = grid.getStore(),
             params;
         grid.filterRow.clearFilters();
@@ -34,7 +33,7 @@
             grid.setFilter('name', newId);
             store.on('load', function() {
                 store.each(function(record){
-                    if (record.get("name") == newId) {
+                    if (record.get("name") === newId) {
                         grid.getSelectionModel().select(record);
                     }
                 }, this);
@@ -50,21 +49,22 @@
 
     zs.deleteHandler = function() {
         var grid = Ext.getCmp('navGrid'),
-            view = grid.getView(),
-            store = grid.getStore(),
+            store = grid.getStore(), callback,
             selected = grid.getSelectionModel().getSelected();
         if (selected) {
             var params = {
                 uid: selected.data.uid
             };
 
-            function callback(p, response){
+            callback = function(p, response){
                 var result = response.result;
                 if (result.success) {
                     grid.getSelectionModel().clearSelections();
                     store.on('load', function(){
                         grid.filterRow.clearFilters();
-                        if(!selected.index) return false;
+                        if(!selected.index) {
+                            return false;
+                        }
                            try{
                                 grid.getSelectionModel().select(selected.index);
                            }catch(e){
@@ -77,7 +77,7 @@
                 } else {
                     Zenoss.message.error(result.msg);
                 }
-            }
+            };
             Zenoss.remote.ServiceRouter.deleteNode(params, callback);
         } else {
             Zenoss.message.error(_t('Must select an item in the list.'));
@@ -138,7 +138,7 @@
     */
 
     zs.initNav = function(initialContext) {
-        var store, gridConfig, fb, navTree, navGrid, p, stateId;
+        var store, fb, navTree, navGrid, p, stateId;
 
         store = Ext.create('Zenoss.Service.Nav.Store',{});
         stateId = initialContext.split("/").reverse()[0];
@@ -172,7 +172,7 @@
                     id: 'master_panel',
                     region: 'west',
                     layout: 'fit',
-                    width: 250,                    
+                    width: 250,
                     split: true,
                     items: [p]
                 },{
@@ -217,7 +217,7 @@
         fb.on('buttonClick', zs.dispatcher);
         var footerHelperOptions = {
             contextGetter: new ContextGetter(),
-            
+
             onGetAddDialogItems: function () {
                 return [{
                     xtype: 'idfield',

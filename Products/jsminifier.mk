@@ -44,7 +44,7 @@ jsminifier = sencha_jsbuilder # sencha_jsbuilder | google_closure
 # If the archive is not found here, we'll end up searching for it on some
 # upstream server on the net.
 #
-downstream_pkg_url = http://zenpip.zendev.org/packages
+downstream_pkg_url = http://zenpip.zenoss.eng/packages
 prefer_downstream  = yes # express preference for downstream over upstream url
 
 # Specify if the md5 sum of the minifier archive should be verified 

@@ -19,10 +19,10 @@
 <tal:block metal:fill-slot="contentPane">
 <div id="portletContainer"></div>
 <script tal:define="settings python:here.ZenUsers.getUserSettings();
-                    json settings/dashboardState | string:null"
+                    json python:repr(settings.dashboardState)"
     tal:content="string:
     var start_time = '${here/server_time}';
-    var state = '${settings/dashboardState}';
+    var state = ${json};
     if(state) var dashboardState = evalJSON(state);
 "></script>
 <script>

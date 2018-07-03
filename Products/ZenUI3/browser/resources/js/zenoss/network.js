@@ -1,3 +1,4 @@
+/* global unescape:true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
@@ -83,13 +84,9 @@ var deleteNetwork = function() {
     tree.router.deleteNode({uid:uid},
         function(data) {
             if (data.success) {
-                tree.getStore().load({
-                    scope: this,
-                    callback: function() {
-                        tree.selectByToken(parentNode.get("id"));
-                        tree.addHistoryToken(tree.getView(), parentNode);
-                    }
-                });
+                tree.selectByToken(parentNode.get("id"));
+                tree.addHistoryToken(tree.getView(), parentNode);
+                tree.refresh();
             }
         }
     );
@@ -132,7 +129,7 @@ var discoverDevicesDialog = new Zenoss.MessageDialog({
 //********************************************
 function deselectOtherTree(treeid) {
     var tree, sm;
-    if (treeid == 'ipv6networks') {
+    if (treeid === 'ipv6networks') {
         tree = Ext.getCmp('networks');
     } else {
         tree = Ext.getCmp('ipv6networks');
@@ -187,7 +184,7 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
             // when getNodeById is ready.
             var subParts = unescape(tokenTreePath).split('.ipaddresses.');
             var tokenNodeId = subParts[0];
-            var node = this.getRootNode().findChild("id", tokenNodeId, true);
+            var node = this.getRootNode().findChild("id", tokenNodeId, true), selectIpAddress;
 
             if (node) {
                 this.getSelectionModel().select(node);
@@ -200,14 +197,14 @@ Ext.define("Zenoss.Network.NetworkNavTree", {
                 var store = instanceGrid.getStore();
                 var selModel = instanceGrid.getSelectionModel();
 
-                function selectIpAddress() {
+                selectIpAddress = function() {
                     store.each(function(record){
                         if ( record.data.name === ipAddress ) {
                             selModel.selectRange( store.indexOf(record), store.indexOf(record) );
                             return false;
                         }
                     });
-                }
+                };
 
                 selectIpAddress();
 
@@ -243,14 +240,14 @@ var statusRenderer = function (statusNum) {
     var color = 'red',
         desc = _t('Down');
     if (statusNum === 0) {
-        color = 'green';
+        color = '#00e000';
         desc = _t('Up');
     }
-    else if (statusNum == 5) {
-        color = 'gray';
+    else if (statusNum === 5) {
+        color = '#afafaf';
         desc = _t('N/A');
     }
-    return '<span style="color:' + color + '">' + desc + '</span>';
+    return '<span style="font-size: 12px;font-weight: bold !important;color:' + color + '">' + desc + '</span>';
 };
 
 var ipAddressColumnConfig = [{
@@ -265,24 +262,28 @@ var ipAddressColumnConfig = [{
             name;
     }
 }, {
-    id: 'device',
-    dataIndex: 'device',
-    header: _t('Device'),
+    id: 'mangeDevice',
+    dataIndex: 'manageDevice',
+    header: _t('Manage Device'),
     sortable: true,
     width: 200,
-    renderer: function(device, row, record) {
-        if (!device) return _t('No Device');
-        return Zenoss.render.link(device.uid, null, device.name);
+    renderer: function(manageDevice) {
+        if (!manageDevice) {
+            return _t('No Device');
+        }
+        return Zenoss.render.link(manageDevice.uid, null, manageDevice.name);
     }
 }, {
     id: 'interface',
     dataIndex: 'interface',
-    header: _t('Interface'),
+    header: _t('Interface / Device'),
     sortable: true,
-    width: 200,
-    renderer: function(iface, row, record){
-        if (!iface) return _t('No Interface');
-        return Zenoss.render.link(iface.uid, null, iface.name);
+    width: 300,
+    renderer: function(iface){
+        if (!iface) {
+            return _t('No Interface');
+        }
+        return Zenoss.render.link(iface.uid, null, iface.name) + " / " + Zenoss.render.link(iface.device.uid, null, iface.device.name);
     }
 },{
     id: 'macAddress',
@@ -303,7 +304,7 @@ var ipAddressColumnConfig = [{
     filter: false,
     sortable: false,
     width: 50,
-    renderer: function(pingNum, row, record){
+    renderer: function(pingNum){
         return statusRenderer(pingNum);
     }
 }, {
@@ -313,7 +314,7 @@ var ipAddressColumnConfig = [{
     filter: false,
     sortable: false,
     width: 50,
-    renderer: function(snmpNum, row, record){
+    renderer: function(snmpNum){
         return statusRenderer(snmpNum);
     }
 }
@@ -335,6 +336,7 @@ Ext.define('Zenoss.network.IpAddressModel',  {
         {name: 'interfaceDescription'},
         {name: 'device'},
         {name: 'interface'},
+        {name: 'manageDevice'},
         {name: 'pingstatus'},
         {name: 'snmpstatus'},
         {name: 'uid'}
@@ -391,6 +393,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
     toolbar.add( {
             xtype: 'button',
             iconCls: 'delete',
+            tooltip: 'Delete IP Addresses',
             handler: deleteIpAddresses
         },{
             xtype: 'tbspacer',
@@ -437,7 +440,7 @@ function reloadGridAndTree() {
 }
 
 
-function deleteIpAddresses(btn) {
+function deleteIpAddresses() {
     var grid = Ext.getCmp('NetworkDetailCardPanel').getInstancesGrid(),
         selections = grid.getSelectionModel().getSelection(),
         router = Zenoss.remote.NetworkRouter,
@@ -511,7 +514,7 @@ var showEditDescriptionDialog = function() {
 
     dialog.getForm().load({
         params: { uid: Zenoss.env.PARENT_CONTEXT, keys: ['id', 'description'] },
-        success: function(form, action) {
+        success: function() {
             dialog.show();
         },
         failure: function(form, action) {
@@ -531,7 +534,7 @@ Zenoss.footerHelper('Subnetwork', fb, {
         xtype: 'ContextConfigureMenu',
         id: 'network_context_menu',
         menuIds: ['Network'],
-        onGetMenuItems: function(uid) {
+        onGetMenuItems: function() {
             return [{
                 tooltip: _t('Discover devices on selected subnetwork'),
                 text: _t('Discover Devices'),

@@ -7,6 +7,9 @@
 	   )">
 
 <form action="manage_addGroup" method="post">
+<input type="hidden" name="csrf_token"
+        value="&dtml-get_csrf_token;">
+
 <table cellspacing="0" cellpadding="2" border="0">
   <tr>
     <td align="left" valign="top">

@@ -30,28 +30,31 @@ Zenoss.ToolTip = Ext.extend(Ext.ToolTip, {
        el.on('mouseenter', this.onMouseEnter, this);
        el.on('mouseleave', this.onTargetOut, this);
    },
-   onMouseEnter: function(e) {
-       this.clearTimer('hide');
+   onMouseEnter: function() {
+       var component = Ext.getCmp(this.target.id);
+
+       // if the target has a visible menu,
+       // allow the tooltip to autohide so that
+       // it does not get in the way
+       if(component && component.menu && !component.menu.hidden){
+           return;
+       } else {
+           this.clearTimer('hide');
+       }
    }
 });
 
 Zenoss.registerTooltip = function(config) {
-    var t, target = config.target,
+    var target = config.target,
         initialConfig = Ext.apply({}, config),
         cmp = Ext.getCmp(target);
-    if (typeof(cmp)!="undefined") {
+    if (Ext.isDefined(cmp)) {
         cmp.on('destroy', function(){
             Zenoss.TIPS[target] = initialConfig;
         });
-        if (cmp.btnEl) {
-            config.target = cmp.btnEl;
-        }
-    } else {
-        Ext.ComponentMgr.onAvailable(target, function(t){
-            t.tooltip = config;
-        });
     }
-    if ((t=Ext.get(target))) {
+
+    if (Ext.get(target)) {
         var tip = new Zenoss.ToolTip(config);
         Zenoss.TIPS[target] = tip;
     } else {
@@ -61,7 +64,7 @@ Zenoss.registerTooltip = function(config) {
 
 /*
  * Zenoss.registerTooltipFor
- * 
+ *
  * Looks up any tooltips for a component id and registers them. Used for items
  * that don't exist when Zenoss.registerTooltip was called.
  *

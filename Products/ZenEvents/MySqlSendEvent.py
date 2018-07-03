@@ -11,6 +11,7 @@
 Populate the events database with incoming events
 """
 
+import cgi
 import logging
 log = logging.getLogger("zen.Events")
 
@@ -79,6 +80,11 @@ class MySqlSendEventMixin:
         if log.isEnabledFor(logging.DEBUG):
             log.debug('%s%s%s' % ('=' * 15, '  incoming event  ', '=' * 15))
         if isinstance(event, dict):
+            # Fix for ZEN-28005 to thwart XSS attacks from incoming events
+            for f in event:
+                if f in ("eventClassKey", "component", "summary", "device", "eventClass"):
+                    if event[f] is not None and len(event[f]) > 0:
+                        event[f] = cgi.escape(event[f])
             event = buildEventFromDict(event)
 
         if getattr(event, 'eventClass', Unknown) == Heartbeat:

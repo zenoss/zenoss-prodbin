@@ -1,3 +1,5 @@
+<input type="hidden" name="csrf_token"
+        tal:attributes="value context/csrf_token/token">
 <h2>Install ZenPack</h2>
 <span id="errmsg" style="color:red;"></span>
 <p style="text-align:left;margin-top:5px;margin-bottom:3px;">

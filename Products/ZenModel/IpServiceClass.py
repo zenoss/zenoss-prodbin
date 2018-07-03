@@ -25,7 +25,7 @@ def manage_addIpServiceClass(context, id, REQUEST = None):
     ipsc = IpServiceClass(id)
     context._setObject(ipsc.id, ipsc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main') 
     return ipsc.id
 
 

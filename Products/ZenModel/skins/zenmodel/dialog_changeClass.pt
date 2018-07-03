@@ -2,7 +2,7 @@
 <p>
 To which class would you like to move this device?<br/>
 </p> 
-<form id="change_class_form" method="post" tal:attributes="action here/absolute_url">
+<form id="change_class_form" method="post" tal:attributes="action here/absolute_url_path">
 <select class="tableheader" name="deviceClassPath"
     tal:define="targets here/deviceClassMoveTargets">
     <option value=""></option>

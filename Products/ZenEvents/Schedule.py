@@ -161,8 +161,12 @@ class Schedule:
                     maintenance_devices=devices,
                     device=self.monitor,
                     prodState=prodState,
+                    monitor=self.monitor,
+                    status="New"
                 ))
-                self.executeMaintenanceWindow(mw, next)
+                mw.execute(next,
+                           batchSize=self.options.maintenceWindowBatchSize,
+                           inTransaction=True)
             else:
                 break
 
@@ -175,9 +179,6 @@ class Schedule:
     def callLater(self, seconds):
         return reactor.callLater(seconds, self.runEvents)
 
-    @transact
-    def executeMaintenanceWindow(self, mw, timestamp):
-        mw.execute(timestamp)
 
 if __name__ == "__main__":
     class MySchedule(Schedule):

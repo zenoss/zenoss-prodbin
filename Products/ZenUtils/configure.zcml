@@ -5,15 +5,27 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta"
     >
-
     <include package=".extdirect.zope"/>
     <include package=".guid"/>
     <include package=".controlplane"/>
 
+    <browser:page
+            for="*"
+            name="csrf_token"
+            class=".csrf.CSRFTokenView"
+            permission="zope.Public"
+            />
+
+    <utility provides=".ZenPackInstallFilter.IZenPackInstallFilter"
+             factory=".ZenPackInstallFilter.ZenPackInstallFilter"
+             name="list_filter"
+             />
+
+
     <utility provides=".ZodbFactory.IZodbFactoryLookup"
              factory=".ZodbFactory.ZodbFactoryLookup"
              />
-    
+
     <utility provides=".ZodbFactory.IZodbFactory"
              factory=".MySqlZodbFactory.MySqlZodbFactory"
              name="mysql"
@@ -37,7 +49,6 @@
             />
 
 
-    <!-- Re-fires IDatabaseOpenedWithRoot as IZopeApplicationOpenedEvent for subscribers -->
     <subscriber
             for="zope.processlifetime.IDatabaseOpenedWithRoot"
             handler=".events.notifyZopeApplicationOpenedSubscribers"
@@ -48,7 +59,12 @@
             handler=".events.registerUUID"
             />
 
+    <subscriber
+            for=".events.IZopeApplicationOpenedEvent"
+            handler=".events.disablePasResources"
+            />
+
     <!-- advertize that Zenoss provides pre/post backup events -->
-    <meta:provides feature="PrePostBackupEvents" /> 
+    <meta:provides feature="PrePostBackupEvents" />
 
 </configure>

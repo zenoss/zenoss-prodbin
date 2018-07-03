@@ -1,3 +1,4 @@
+/* globals Daemons */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
@@ -37,7 +38,7 @@
      * @class Daemons.view.daemons.List
      * @extends Ext.tree.Panel
      * @constructor
-     * This class represents the TreeGrid of all the deamons and services.
+     * This class represents the TreeGrid of all the daemons and services.
      */
     Ext.define('Daemons.view.daemons.List' ,{
         extend: 'Ext.tree.Panel',
@@ -48,6 +49,7 @@
         useArrows: true,
         animate: false,
         rootVisible: false,
+        hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
         viewConfig: {
             plugins: {
                 ptype:'treeviewdragdrop',
@@ -104,22 +106,23 @@
                 dataIndex: 'name'
             },{
                 text: _t('Type'),
-                flex: .15,
+                flex: 0.15,
                 tooltip: _t('Type'),
                 dataIndex: 'type',
                 sortable: true
             },{
                 text: _t('Uptime'),
-                flex: .25,
+                flex: 0.25,
                 tooltip: _t('Uptime'),
                 dataIndex: 'uptime',
                 sortable: true
             }, {
                 xtype: 'actioncolumn',
                 text: _t('AutoStart'),
-                flex: .25,
+                menuText: _t('AutoStart'),
+                flex: 0.25,
                 dataIndex: 'autostart',
-                tooltip: _t('Automatically or manually start this deamon'),
+                tooltip: _t('Automatically or manually start this daemon'),
                 ref: 'autostart',
                 sortable: true,
                 getClass: function(v, m, record) {
@@ -134,10 +137,11 @@
                 }
             },{
                 text: _t('Restart'),
-                flex: .1,
+                menuText: _t('Restart'),
+                flex: 0.1,
                 menuDisabled: true,
                 xtype: 'actioncolumn',
-                tooltip: _t('restart deamon'),
+                tooltip: _t('restart daemon'),
                 refreshingIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif',
                 stillIcon: '/++resource++zenui/img/ext4/icon/circle_arrows_still.png',
                 ref: 'restartcolumn',
@@ -160,14 +164,15 @@
                 }
             },{
                 text: _t('State'),
-                flex: .25,
+                menuText: _t('State'),
+                flex: 0.25,
                 xtype: 'actioncolumn',
                 ref: 'statuscolumn',
-                tooltip: _t('Click to stop/start the deamon'),
+                tooltip: _t('Click to stop/start the daemon'),
                 dataIndex: 'state',
                 sortable: true,
                 renderer: function(value) {
-                    if (value == 'up' || value == 'down'){
+                    if (value === 'up' || value === 'down'){
                         return Zenoss.render.pingStatus(value);
                     }
                     return value + "...";

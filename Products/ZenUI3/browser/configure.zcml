@@ -136,6 +136,13 @@
     />
 
 <browser:page
+    class=".testing.UserInterfaceTests"
+    name="uitests"
+    for="Products.ZenModel.interfaces.IDataRoot"
+    permission="zenoss.Common"
+    />
+
+<browser:page
     name="export_devices"
     class=".device_export.DeviceExporter"
     for="*"
@@ -155,20 +162,20 @@
     for="*"
     permission="zenoss.View"
     />
-    
+
 <browser:page
     template="templates/eventclasses.pt"
-    name="eventclasses" 
+    name="eventclasses"
     for="*"
     permission="zenoss.View"
-    />    
-    
+    />
+
 <browser:page
     template="templates/manufacturers.pt"
-    name="manufacturers" 
+    name="manufacturers"
     for="*"
     permission="zenoss.View"
-    />    
+    />
 
 <browser:page
     template="templates/process.pt"
@@ -178,7 +185,7 @@
     />
 
 <browser:page
-    template="templates/daemons.pt"
+    class=".pages.DaemonsView"
     name="daemons"
     for="*"
     permission="zenoss.View"
@@ -188,7 +195,7 @@
     template="templates/collectortemplate.pt"
     name="collectorTemplate"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageControlCenter"
     />
 
 <browser:page
@@ -238,7 +245,7 @@
     template="templates/triggers.pt"
     name="triggers"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.Common"
     />
 
 <browser:page
@@ -361,17 +368,17 @@
     permission="zenoss.Common"
     />
 
-<browser:page
-    template="templates/localDocumentation.pt"
-    name="localDocumentation"
+<browser:view
+    class=".views.GetDoc"
+    name="getDoc"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:view
-    class=".views.GetDoc"
-    name="getDoc"
-    for="*"
+    class=".views.NginxStaticLocationBlocks"
+    name="nginx_static"
+    for="OFS.interfaces.IApplication"
     permission="zope2.Public"
     />
 
@@ -384,7 +391,8 @@
 
 <browser:viewlet
     name="zenoss_data"
-    manager=".interfaces.IMainSnippetManager"
+    weight="3"
+    manager=".interfaces.IJavaScriptSrcManager"
     class=".javascript.ZenossData"
     permission="zope2.Public"
     />

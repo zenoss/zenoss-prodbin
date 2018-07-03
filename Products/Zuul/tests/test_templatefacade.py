@@ -1,29 +1,30 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import unittest
 from Products import Zuul
+from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TemplateFacadeTest(BaseTestCase):
 
     def afterSetUp(self):
         super(TemplateFacadeTest, self).afterSetUp()
-        
+
         self.facade = Zuul.getFacade('template', self.dmd)
         #  uid for a template
         self.uid = '/zport/dmd/Devices/rrdTemplates/test1'
         devices = self.dmd.Devices
         devices.manage_addRRDTemplate('test1')
         self.template = self.dmd.unrestrictedTraverse(self.uid)
-        
+
     def _createDummyThreshold(self):
         """
         Creates the test threshold used by the other
@@ -53,7 +54,7 @@ class TemplateFacadeTest(BaseTestCase):
             'testDataSource',
             dsOptions[0][0]
         )
-        
+
         datasource.sourcetype = 'COMMAND'
         return datasource
 
@@ -63,13 +64,13 @@ class TemplateFacadeTest(BaseTestCase):
         """
         source = self._createDummyDataSource()
         return self.facade.addDataPoint(source.absolute_url_path(), 'testDataPoint')
-            
+
     def testCanAddThreshold(self):
         """ Verify that we can add a dummy threshold
         """
         threshold = self._createDummyThreshold()
         self.assertTrue(threshold)
-        
+
     def testCanGetThresholdDetails(self):
         """
         Unit test for retrieving the information about a threshold. This will need
@@ -77,7 +78,7 @@ class TemplateFacadeTest(BaseTestCase):
         """
         threshold = self._createDummyThreshold()
         details = self.facade.getThresholdDetails(threshold.id)
-        
+
         # all of the fields we should be returning
         self.assertTrue(details)
         self.assertTrue(details.name)
@@ -97,7 +98,7 @@ class TemplateFacadeTest(BaseTestCase):
         self.assertEquals(result.minval, '12');
         self.assertEquals(result.severity, 3);
         self.assertTrue('uptime' in result.dataPoints.lower());
-        
+
     def testCanCreateDataSource(self):
         """
         Make sure we can create a DataSource, this will be used by the
@@ -119,7 +120,7 @@ class TemplateFacadeTest(BaseTestCase):
         self.assertEqual(newInfo.enabled, True)
         self.assertEqual(newInfo.severity, data['severity'])
         self.assertEqual(newInfo.eventClass, data['eventClass'])
-        
+
     def testCanEditDataPointDetails(self):
         data = {'createCmd': 'foobar', 'rrdmin': 'foo', 'rrdmax': 'bar', 'isrow': False}
         datapoint = self._createDummyDataPoint()
@@ -129,7 +130,33 @@ class TemplateFacadeTest(BaseTestCase):
         self.assertEqual(newInfo.isrow, data['isrow'])
         self.assertEqual(newInfo.createCmd, data['createCmd'])
         self.assertEqual(newInfo.rrdmin, data['rrdmin'])
-        
+
+    def testDeletingThresholdDeletesTheGraphPoint(self):
+        threshold = self._createDummyThreshold()
+        template = threshold._object.rrdTemplate()
+        template.graphDefs._setObject('test', GraphDefinition("test"))
+        template.graphDefs.test.manage_addThresholdGraphPoints([threshold.name])
+        self.facade.removeThreshold(threshold.uid)
+        self.assertEquals(len(template.thresholds()), 0)
+        self.assertEquals(len(template.graphDefs.test.graphPoints()), 0)
+
+    def testDeletingDataPointDeletesTheGraphPoint(self):
+        datapoint = self._createDummyDataPoint()
+        template = datapoint.datasource().rrdTemplate()
+        template.graphDefs._setObject('test', GraphDefinition("test"))
+        template.graphDefs.test.manage_addDataPointGraphPoints([datapoint.name()])
+        self.facade.deleteDataPoint(datapoint.getPrimaryId())
+        self.assertEquals(len(template.graphDefs.test.graphPoints()), 0)
+
+    def testDeletingSourceDeletesTheGraphPoint(self):
+        datapoint = self._createDummyDataPoint()
+        template = datapoint.datasource().rrdTemplate()
+        template.graphDefs._setObject('test', GraphDefinition("test"))
+        template.graphDefs.test.manage_addDataPointGraphPoints([datapoint.name()])
+        self.facade.deleteDataSource(datapoint.datasource().getPrimaryId())
+        self.assertEquals(len(template.datasources()), 0)
+        self.assertEquals(len(template.graphDefs.test.graphPoints()), 0)
+
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(TemplateFacadeTest),))
 

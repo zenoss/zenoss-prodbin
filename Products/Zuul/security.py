@@ -4,6 +4,10 @@ from App.config import getConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
 from Products.PluggableAuthService import interfaces
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from collective.beaker.interfaces import ISession
+
+import logging
+log = logging.getLogger('zen.Security')
 
 import time
 
@@ -42,13 +46,11 @@ class AuthorizationTool(object):
         password = request.get('password', None)
         return {'login': login, 'password': password}
 
-
     def extractGlobalConfCredentials(self):
         conf = getGlobalConfiguration()
         login = conf.get('zauth-username', None)
         password = conf.get('zauth-password', None)
         return {'login':login, 'password':password}
-
 
     def extractSessionCredentials(self):
         session = self.context.REQUEST.SESSION
@@ -65,10 +67,10 @@ class AuthorizationTool(object):
         @return: dictionary with the token id and expiration
         """
         if expires is None:
-            expires = time.time() + 60 * getConfiguration().session_timeout_minutes
-        tokenId = request.SESSION.id
+            expires = self._getSessionTimeout()
+        tokenId = request.SESSION.getId()
         token = dict(id=tokenId, expires=expires)
-        self.context.temp_folder.session_data[tokenId] = token
+        request.SESSION.set(tokenId, token)
         return token
 
     def getToken(self, sessionId):
@@ -76,11 +78,30 @@ class AuthorizationTool(object):
         @param sessionId:
         @return:
         """
-        return self.context.temp_folder.session_data.get(sessionId, None)
+        sessionData = self._getSessionData(sessionId)
+        if sessionData:
+            return sessionData.get(sessionId, None)
+        return None
 
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
         if token is None:
+            log.debug("Token is None for sessionid %s", sessionId)
             return True
+        log.debug("Token is %s for sessionid %s", token, sessionId)
+        newexp = self._getSessionTimeout()
+        token['expires'] = newexp
 
-        return time.time() >= token['expires']
+        expired = time.time() >= token['expires']
+        log.debug("Token expired = %s", expired)
+        return expired
+
+    def _getSessionData(self, id):
+        # For some reason Products.BeakerSessionDataManager doesn't support getSessionDataByKey
+        #sess = self.context.session_data_manager.getSessionDataByKey(sessionId)
+        session = ISession(self.context.REQUEST)
+        return session.get_by_id(id)
+
+    def _getSessionTimeout(self):
+        expires = time.time() + 60 * getConfiguration().session_timeout_minutes
+        return expires

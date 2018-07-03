@@ -48,7 +48,7 @@
                           case "STARTED":
                             return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif", status);
                           case "PENDING":
-                            return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
+                            return Ext.String.format("<img class='x-grid-icon-pending' src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
                           case "ABORTED":
                             return "<span class=\"tree-severity-icon-small-warning\" style=\"padding-left:18px;padding-top:2px;\">Aborted</span>";
                           case "SUCCESS":
@@ -64,7 +64,7 @@
                     flex: 1,
                     renderer: function(val, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        if (record.get('status') != "PENDING") {
+                        if (record.get('status') !== "PENDING") {
                             var link = Zenoss.render.default_uid_renderer(record.get('deviceUid'), val);
                             return link.replace("<a ", "<a target='_blank' ");
                         }
@@ -78,9 +78,9 @@
                     header: _t('Credentials'),
                     renderer: function(props, metadata, record) {
                         addErrorToolTip(metadata, record);
-                        var values = [], msg, link, hash = window.location.hash, key;
+                        var values = [], msg, key;
                         for (key in props) {
-                            if (key.indexOf('Password') == -1) {
+                            if (key.indexOf('Password') === -1) {
                                 values.push(props[key]);
                             }
                         }
@@ -94,7 +94,7 @@
                 }, {
                     dataIndex: 'collector',
                     header: _t('Collector'),
-                    hidden: Zenoss.env.COLLECTORS.length == 1 ? true:  false
+                    hidden: Zenoss.env.COLLECTORS.length === 1 ? true:  false
                 }, {
                     dataIndex: 'displayDeviceClass',
                     header: _t('Type'),
@@ -136,11 +136,12 @@
                         Zenoss.remote.JobsRouter.deleteJobs({
                             jobids: [record.get('uuid')]
                         }, function(response) {
-                            store.remove(record);
+                            if (response.success) {
+                                store.remove(record);
+                            }
                         });
 
                         var uid = record.get('deviceUid');
-
                         if (record.get('status') !== "PENDING") {
                             Zenoss.remote.DeviceRouter.removeDevices({
                                 uids: [uid],
@@ -180,25 +181,25 @@
         alias: 'widget.wizardadddeviceview',
         stepTitle:  _t('Add Infrastructure'),
         stepId: 'add-device',
-        stepHeight: 630,
         constructor: function(config) {
-            var me = this;
             config = config || {};
             Ext.applyIf(config, {
-                layout: 'border',
+                layout: "vbox",
                 items:[{
                     xtype: 'form',
-                    height: 400,
+                    region: 'center',
                     layout: 'hbox',
+                    width: "100%",
+                    defaults: {
+                        height: 220,
+                        cls: "wizardColumn",
+                        overflowY: "auto"
+                    },
+                    defaultType: "fieldset",
                     items: [{
-                        width: 175,
-                        xtype: 'fieldset',
-                        height: 275,
                         autoScroll: true,
-                        style: {
-                            borderRight: '1px solid #CACACA !important'
-                        },
                         title: _t('Category'),
+                        flex: 0.7,
                         items:[{
                             xtype: 'radiogroup',
                             itemId: 'category',
@@ -208,63 +209,59 @@
                             items: []
                         }]
                     }, {
-                        xtype: 'fieldset',
-                        width: 250,
-                        height: 275,
                         title: _t('Type'),
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
+                        flex: 1,
+                        layout: "anchor",
                         items: [{
-                            xtype: 'combo',
-                            name: 'deviceclass',
+                            xtype: "grid",
                             itemId: 'deviceType',
-                            queryMode: 'local',
-                            queryParam: false,
-                            width: 200,
+                            anchor: "100%",
+                            cls: "device-type-grid",
+                            header: false,
+                            hideHeaders: true,
+                            columns: [
+                                {
+                                    dataIndex: "value",
+                                    flex: 1,
+                                    // use shortdescription as display field
+                                    renderer: function(value, metaData, record){
+                                        return record.get("shortdescription");
+                                    }
+                                }
+                            ],
                             emptyText:  _t('Select one...'),
-                            editable: true,
-                            store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {}),
-                            valueField: 'value',
-                            displayField: 'shortdescription'
+                            store: Ext.create('Zenoss.quickstart.Wizard.store.DeviceType', {})
                         }]
                     },{
-                        xtype: 'fieldset',
-                        width: 250,
                         itemId: 'credentials',
                         title: _t('Connection Information'),
+                        flex: 1.5,
                         style: {
-                            paddingLeft: "15px"
+                            borderRight: "0 !important"
                         },
-                        layout: 'anchor',
-                        autoHeight: true,
-                        autoScroll: true,
-                        minHeight: 300,
                         defaults: {
+                            width: "100%",
                             labelAlign: 'top',
-                            anchor: "90%"
                         }
                     }]
                 }, {
                     region: 'south',
-                    xtype: 'fieldset',
                     title: _t('Devices'),
-                    width: 860,
-                    height: 190,
+                    xtype: "fieldset",
+                    width: "100%",
                     items: [{
                         xtype: 'deviceaddgrid',
                         autoScroll: true,
                         height: 150,
                         emptyText: _t('Add infrastructure using the above form'),
-                        // the width is so that the right edge of the
-                        // grid lines up with the Authentication form
-                        width: 860
+                        emptyCls: "empty-grid-text"
                     }]
 
                 }]
             });
             this.callParent([config]);
+
+            this.query("grid[itemId='deviceType']")[0].getView().stripeRows = false;
         }
 
     });

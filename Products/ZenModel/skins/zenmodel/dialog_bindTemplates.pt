@@ -12,7 +12,7 @@
 	tal:define="formName python:here.meta_type == 'Device' and 'objTemplates' or 'templates'">
 <input type="submit" name="bindTemplates:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url}', '${formName}')" />
+                        '${here/absolute_url_path}', '${formName}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

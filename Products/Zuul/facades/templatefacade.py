@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,10 +12,12 @@ import logging
 from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
+from zope.component import getUtility
 from Products.AdvancedQuery import Eq
 from Products.ZenUtils.Utils import prepId
 from Products import Zuul
-from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.interfaces import ITemplateFacade, ITemplateNode, IRRDDataSourceInfo, \
     IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf, IGraphPointInfo
 from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo, DeviceClassTemplateNode
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr, UncataloguedObjectException
@@ -26,10 +28,13 @@ from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.GraphPoint import GraphPoint
+from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.DeviceClass import DeviceClass
-
+from Products.ZenRRD.utils import rpneval
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 log = logging.getLogger('zen.TemplateFacade')
 
@@ -42,13 +47,14 @@ class TemplateFacade(ZuulFacade):
 
     def _getTemplateNodes(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
-        brains = catalog.search(types=RRDTemplate)
+        fields_to_return = [ "id" ]
+        brains = catalog.search(types=RRDTemplate, fields=fields_to_return)
         nodes = {}
         # create 1 node for each template type
         for brain in brains:
             if brain.id not in nodes:
                 try:
-                    nodes[brain.id] = ITemplateNode(brain.getObject())
+                    nodes[str(brain.id)] = ITemplateNode(brain.getObject())
                 except UncataloguedObjectException:
                     pass
         for key in sorted(nodes.keys(), key=str.lower):
@@ -68,11 +74,13 @@ class TemplateFacade(ZuulFacade):
                 pass
 
     def getTemplates(self, id):
+        # strip 'IVirtualRoot' from id (ZEN-29985)
+        uid = getUtility(IVirtualRoot).strip_virtual_root(id)
         # see if we are asking for all templates
-        if id == self._root.getPrimaryId():
-            return  self._getTemplateNodes()
+        if uid == self._root.getPrimaryId():
+            return self._getTemplateNodes()
         # otherwise we are asking for instance of a template
-        return self._getTemplateLeaves(id)
+        return self._getTemplateLeaves(uid)
 
     def getTree(self, id):
         """
@@ -89,7 +97,7 @@ class TemplateFacade(ZuulFacade):
         """
         @returns list of targets for our new template
         """
-        cat = ICatalogTool(self._dmd)
+        cat = IModelCatalogTool(self._dmd)
         results = []
         # it can be any device class that we add the template too
         brains = cat.search(types=[DeviceClass])
@@ -151,12 +159,22 @@ class TemplateFacade(ZuulFacade):
     def deleteTemplate(self, uid):
         return self._deleteObject(uid)
 
+    def _removeDataPointFromGraphs(self, datapoint):
+        template = datapoint.datasource().rrdTemplate()
+        for graphDef in template.graphDefs():
+            for point in graphDef.graphPoints():
+                if (isinstance(point, DataPointGraphPoint)
+                        and datapoint.name() == point.dpName):
+                    self._deleteObject(point.getPrimaryId())
+
     def deleteDataSource(self, uid):
         """
         @param String uid: Unique Identifier of the data source we wish to delete
         """
         obj = self._getObject(uid)
         template = obj.rrdTemplate()
+        for datapoint in obj.datapoints():
+            self._removeDataPointFromGraphs(datapoint)
         template.manage_deleteRRDDataSources((obj.id,))
 
     def deleteDataPoint(self, uid):
@@ -165,6 +183,7 @@ class TemplateFacade(ZuulFacade):
         """
         obj = self._getObject(uid)
         datasource = obj.datasource()
+        self._removeDataPointFromGraphs(obj)
         datasource.manage_deleteRRDDataPoints((obj.id,))
 
     def _editDetails(self, info, data):
@@ -268,7 +287,7 @@ class TemplateFacade(ZuulFacade):
         """
         threshold = self._getObject(uid)
         template = threshold.rrdTemplate()
-        info = IThresholdInfo(threshold)
+        info = IInfo(threshold)
         # don't show the "selected one" in the list of avaialble
         info.allDataPoints = [point for point in template.getRRDDataPointNames()]
         return info
@@ -362,6 +381,16 @@ class TemplateFacade(ZuulFacade):
         """Removes the threshold
         @param string uid
         """
+        # look through all the graph definitions and remove any where the
+        # threshold point matches the threshold we are deleting
+        obj = self._getObject(uid)
+        template = obj.rrdTemplate()
+        for graphDef in template.graphDefs():
+            for point in graphDef.graphPoints():
+                if isinstance(point, ThresholdGraphPoint) and point.threshId == obj.id:
+                    self._deleteObject(point.getPrimaryId())
+
+        # finally delete the threshold
         return self._deleteObject(uid)
 
     def getGraphs(self, uid):
@@ -375,7 +404,7 @@ class TemplateFacade(ZuulFacade):
         datasource = self._getObject(dataSourceUid)
         for dp in datasource.datapoints():
             self.addDataPointToGraph(dp.getPrimaryId(), graphUid, includeThresholds)
-            
+
     def addDataPointToGraph(self, dataPointUid, graphUid, includeThresholds=False):
         if isinstance(dataPointUid, basestring):
             uids = [dataPointUid]
@@ -386,7 +415,7 @@ class TemplateFacade(ZuulFacade):
         return graph.manage_addDataPointGraphPoints([d.name() for d in datapoints], includeThresholds)
 
     def getCopyTargets(self, uid, query=''):
-        catalog = ICatalogTool(self._dmd)
+        catalog = IModelCatalogTool(self._dmd)
         template = self._getObject(uid)
         types = ['Products.ZenModel.DeviceClass.DeviceClass']
         brains = catalog.search(types=types)
@@ -508,7 +537,7 @@ class TemplateFacade(ZuulFacade):
 
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
-        return ICatalogTool(obj)
+        return IModelCatalogTool(obj)
 
     def _getTemplate(self, uid):
         obj = self._getObject(uid)
@@ -542,3 +571,26 @@ class TemplateFacade(ZuulFacade):
         except ObjectNotFoundException:
             pass
         return templates
+ 
+    def getDataPointsRPNValues(self, maxval, thuid, selecteddps, minval):
+        threshold = self._getObject(thuid)
+        dpsrpn = []
+        for point in selecteddps:
+            dpParams = {}
+            for graph in threshold.rrdTemplate.getGraphDefs():
+                dpParams.update({
+                    'rpnvalue': pobj.rpn if pobj.rpn else ''
+                    for pobj in graph.getDataPointGraphPoints(point)
+                })
+            dpParams['name'] = point
+            #if we can't use rpn to the entered values, return raw values back
+            try:
+                dpParams.update({'maxrpn': rpneval(maxval, dpParams.get('rpnvalue', ''))})
+            except:
+                dpParams.update({'maxrpn': maxval})
+            try:
+                dpParams.update({'minrpn': rpneval(minval, dpParams.get('rpnvalue', ''))})
+            except:
+                dpParams.update({'minrpn': minval})
+            dpsrpn.append(dpParams)
+        return dpsrpn

@@ -1,15 +1,25 @@
+/* global EventActionManager:true, moment:true */
+/* jshint freeze: false, eqeqeq: false */
+/*TODO: move overriding the prototype to a util funciton */
+
+
 (function(){ // Local scope
+/**
+ * Base namespace to contain all Zenoss-specific JavaScript.
+ */
+Ext.namespace('Zenoss');
+
 /**
  * Check compatibilty mode turned on
  */
 if(navigator.userAgent.indexOf("Trident") > -1 && navigator.userAgent.indexOf("MSIE 7.0") > -1){
     Ext.onReady(function(){
         Ext.Msg.show({
-        title: _t("Compatibility Mode Unsupported"),
-        msg: _t("Zenoss does not support running in IE Compatibility Mode."),
-        buttons: Ext.Msg.OK,
-        cls: "compatibilityModeAlert"
-    });
+            title: _t("Compatibility Mode Unsupported"),
+            msg: _t("Zenoss does not support running in IE Compatibility Mode."),
+            buttons: Ext.Msg.OK,
+            cls: "compatibilityModeAlert"
+        });
     });
 }
 /**
@@ -22,20 +32,16 @@ Ext.BLANK_IMAGE_URL = '/++resource++zenui/img/s.gif';
  **/
 Zenoss.logDirectRequests = false;
 
-    Ext.apply(Ext.direct.RemotingProvider.prototype, {
-        queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
-            // will render a stack trace on firefox
-            if (Zenoss.logDirectRequests) {
-                console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
-                console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
-            }
-        })
-    });
+Ext.apply(Ext.direct.RemotingProvider.prototype, {
+    queueTransaction: Ext.Function.createInterceptor(Ext.direct.RemotingProvider.prototype.queueTransaction, function(transaction) {
+        // will render a stack trace on firefox
+        if (Zenoss.logDirectRequests) {
+            console.log(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+            console.trace(Ext.String.format("Router: {0} Method: {1}", transaction.action, transaction.method));
+        }
+    })
+});
 
-/**
- * Base namespace to contain all Zenoss-specific JavaScript.
- */
-Ext.namespace('Zenoss');
 /**
  * Constants
  */
@@ -63,11 +69,90 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
-    /**
-     *
-     * @param except Return all columns except the ones
-     * where id is in this array.
-     */
+/**
+ * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function.
+ * Currently new version of ExtJs hasn't fixed deprecated calls in GC function
+ */
+
+Ext.enableGarbageCollector = false;
+Zenoss.env.enableGarbageCollector = true;
+
+Zenoss.env.garbageCollect = function() {
+    if (!Zenoss.env.enableGarbageCollector) {
+        clearInterval(Zenoss.collectorThreadId);
+    } else {
+        var EC = Ext.cache,
+            eid,
+            d,
+            o,
+            t;
+
+        for (eid in EC) {
+            if (!EC.hasOwnProperty(eid)) {
+                continue;
+            }
+
+            o = EC[eid];
+
+            // Skip document and window elements
+            if (o.skipGarbageCollection) {
+                continue;
+            }
+
+            d = o.dom;
+
+            // Should always have a DOM node
+            if (!d) {
+                Ext.Error.raise('Missing DOM node in element garbage collection: ' + eid);
+            }
+
+            // Check that document and window elements haven't got through
+            if (d && (d.getElementById || d.navigator)) {
+                Ext.Error.raise('Unexpected document or window element in element garbage collection');
+            }
+
+            // -------------------------------------------------------
+            // Determining what is garbage:
+            // -------------------------------------------------------
+            // !d.getBoundingClientRect()
+            // no getBoundingClientRect() == direct orphan, definitely garbage
+            // -------------------------------------------------------
+            // !d.getBoundingClientRect() && !document.getElementById(eid)
+            // display none elements have no getBoundingClientRect() so we will
+            // also try to look it up by it's id. However, check
+            // getBoundingClientRect() first so we don't do unneeded lookups.
+            // This enables collection of elements that are not orphans
+            // directly, but somewhere up the line they have an orphan
+            // parent.
+            // -------------------------------------------------------
+            if (d && (!d.parentNode || (!d.getBoundingClientRect() && !Ext.getElementById(eid)))) {
+                if (Ext.enableListenerCollection) {
+                    Ext.EventManager.removeAll(d);
+                }
+                delete EC[eid];
+            }
+        }
+        // Cleanup IE Object leaks
+        if (Ext.isIE) {
+            t = {};
+            for (eid in EC) {
+                if (!EC.hasOwnProperty(eid)) {
+                    continue;
+                }
+                t[eid] = EC[eid];
+            }
+            EC = Ext.cache = t;
+        }
+    }
+};
+
+Zenoss.collectorThreadId = setInterval(Zenoss.env.garbageCollect, 30000);
+
+/**
+ *
+ * @param except Return all columns except the ones
+ * where id is in this array.
+ */
 Zenoss.env.getColumnDefinitions = function(except) {
     Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col){
         if (Zenoss.events.customColumns[col.dataIndex]) {
@@ -76,7 +161,7 @@ Zenoss.env.getColumnDefinitions = function(except) {
     });
     if (except) {
         return Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(d){
-            return Ext.Array.indexOf(except, d.id)==-1;
+            return Ext.Array.indexOf(except, d.id)===-1;
         });
     }
     else {
@@ -109,7 +194,6 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
-
 Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,
@@ -117,32 +201,72 @@ Zenoss.env.textMasks = {
         allowedNameTextMaskDash: /[\w\s\-]/i,
         allowedNameTextDash: /^[\w\s\-]+$/,
         allowedNameTextFeedbackDash: 'Only letters, numbers, underscores, dashes and spaces allowed',
+        allowedNameTextDashDot: /^[\w\s\-\.]+$/,
+        allowedNameTextFeedbackDashDot: 'Only letters, numbers, underscores, dashes, periods, and spaces allowed',
         allowedDescTextMask: /[\w\?,\s\.\-]/i,
         allowedDescText: /^[\w\?,\s\.\-]+$/,
         allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
 };
+
+Zenoss.env.isDarkTheme = (function () {
+    if (document.documentElement.classList.contains('z-cse-dark')) {
+        return true;
+    }
+
+    return false;
+}());
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
     constructor: function() {
         this.callParent(arguments);
-        this.on('statechange', this.save, this);
+        this.on('statechange', this.onStateChange, this);
         this.task = null;
+        this.isDirty = false;
+        this.prevStateString = null;
     },
     setState: function(stateString) {
         var state = Ext.decode(stateString);
         this.state = Ext.isObject(state) ? state : {};
     },
+
+    onStateChange: function(me, key, val){
+        var newStateString = Ext.JSON.encode(this.state);
+
+        // if prev and new state are the same, we done
+        if(this.prevStateString == newStateString){
+            this.isDirty = false;
+            return;
+        }
+
+        // if prevStateString is null, it is the first
+        // time setting state, so skip marking dirty
+        // and saving
+        if(this.prevStateString !== null){
+            this.isDirty = true;
+            this.save();
+        }
+
+        this.prevStateString = newStateString;
+    },
+
     // Private
     save: function() {
+        // no point in savin if things aint changed
+        if(!this.isDirty){
+            return;
+        }
+
         // in the case where we get multiple requests to
         // update the state just send one request
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
                 this.directFn(
-                    {state: Ext.encode(this.state)}
-                );
+                    {state: Ext.encode(this.state)},
+                    function(){
+                        this.isDirty = false;
+                    });
             }, this);
         }
         // delay for half a second
@@ -153,6 +277,7 @@ Ext.define('Zenoss.state.PersistentProvider', {
             {state: Ext.encode(this.state)},
             function() {
                 Ext.callback(callback, scope);
+                this.isDirty = false;
             }
         );
     }
@@ -162,7 +287,7 @@ Ext.state.Manager.setProvider(Ext.create('Zenoss.state.PersistentProvider'));
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
-Ext.Direct.on('event', function(e, provider){
+Ext.Direct.on('event', function(e){
     if ( Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.asof) ) {
         Zenoss.env.asof = e.result.asof || null;
     }
@@ -189,6 +314,9 @@ Ext.Direct.on('event', function(e){
     }
 });
 
+/**
+ * After every router request show a flare is the "msg" property is set
+ **/
 Ext.Direct.on('event', function(e){
     if (Ext.isDefined(e.result) && e.result && Ext.isDefined(e.result.msg)) {
         var success = e.result.success || false,
@@ -214,8 +342,18 @@ Ext.Direct.on('event', function(e){
  * actions had an effect.
  */
 function openAjaxRequests() {
-    var i = 0, request;
-    for (request in Ext.Ajax.requests) {
+    var i = 0, idx, request, currentTime = new Date().getTime();
+    for (idx in Ext.Ajax.requests) {
+        request = Ext.Ajax.requests[idx];
+        // mark the first time we are checking on this request
+        if (!request.firstCheckTime) {
+            request.firstCheckTime = new Date().getTime();
+        }
+        // do not count requests that have been open for a long time (longer than 3 minutes)
+        // those are most likely failures that ExtJs hasn't cleaned up.
+        if ((currentTime - request.firstCheckTime > 180000)) {
+            continue;
+        }
         i++;
     }
     return i;
@@ -225,7 +363,7 @@ function setCursorStyle(style) {
     if (document.body) {
         document.body.style.cursor = style;
     }
-};
+}
 
 Ext.Ajax.on('beforerequest', function(){
     setCursorStyle("wait");
@@ -239,7 +377,16 @@ function setToDefaultCursorStyle() {
         setCursorStyle("default");
     }
 }
-Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
+Ext.Ajax.on('requestcomplete', function () {
+    Ext.namespace('Zenoss.env.DirectException');
+
+    setToDefaultCursorStyle();
+
+    if (Zenoss.env.DirectException.timeout) {
+        Zenoss.env.DirectException.timeout = clearTimeout(Zenoss.env.DirectException.timeout);
+        Zenoss.env.DirectException.errorMessage.hide();
+    }
+});
 Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
 
 
@@ -249,8 +396,9 @@ Ext.EventManager.on(window, 'beforeunload', function() {
     Zenoss.env.unloading=true;
 });
 
-
 Ext.Direct.on('exception', function(e) {
+    Ext.namespace('Zenoss.env.DirectException');
+
     if (Zenoss.env.unloading === true){
         return;
     }
@@ -260,10 +408,32 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+    else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
+        if (!Zenoss.env.DirectException.timeout) {
+            Zenoss.env.DirectException.errorMessage = Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
+
+            Zenoss.env.DirectException.timeout = setTimeout(function () {
+                window.location.reload();
+            }, 30000);
+        }
+
+        return;
+    }
+
     var dialogId = "serverExceptionDialog", cmp;
     cmp = Ext.getCmp(dialogId);
     if(cmp) {
         cmp.destroy();
+    }
+
+    // If we're in a CSE environment and missing the accessToken cookie, we've been
+    // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
+    if (Zenoss.env.CSE_VIRTUAL_ROOT) {
+        if (document.cookie.indexOf('accessToken') === -1) {
+            console.log('Auth0 accessToken not found; reloading page');
+            window.location.reload();
+            return;
+        }
     }
 
     Ext.create('Zenoss.dialog.SimpleMessageDialog', {
@@ -296,55 +466,6 @@ Ext.Direct.on('event', function(e){
     if (serverExceptionDialog && Ext.isDefined(e.result)){
         serverExceptionDialog.hide();
         serverExceptionDialog.destroy();
-    }
-});
-
-
-/*
-* Add the ability to specify an axis for autoScroll.
-* autoScroll: true works just as before, but now can also do:
-* autoScroll: 'x'
-* autoScroll: 'y'
-*
-* Code by Tom23, http://www.extjs.com/forum/showthread.php?t=80663
-*/
-
-Ext.Element.prototype.setOverflow = function(v, axis) {
-    axis = axis ? axis.toString().toUpperCase() : '';
-    var overflowProp = 'overflow';
-    if (axis == 'X' || axis == 'Y') {
-        overflowProp += axis;
-    }
-    if(v=='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
-        this.dom.style[overflowProp] = 'hidden';
-        (function(){this.dom.style[overflowProp] = 'auto';}).defer(1, this);
-    }else{
-        this.dom.style[overflowProp] = v;
-    }
-};
-
-Ext.override(Ext.Panel, {
-    setAutoScroll : function() {
-        if(this.rendered && this.autoScroll){
-            var el = this.body || this.el;
-            if(el){
-                el.setOverflow('auto', this.autoScroll);
-            }
-        }
-    }
-});
-
-var origGetDragData = Ext.dd.DragZone.prototype.getDragData;
-Ext.override(Ext.dd.DragZone, {
-    getDragData: function(e) {
-        var t = Ext.lib.Event.getTarget(e);
-        // If it's a link, set the target to the ancestor cell so the browser
-        // doesn't do the default anchor-drag behavior. Otherwise everything
-        // works fine, so proceed as normal.
-        if (t.tagName=='A') {
-            e.target = e.getTarget('div.x-grid3-cell-inner');
-        }
-        return origGetDragData.call(this, e);
     }
 });
 
@@ -442,56 +563,12 @@ Ext.define("Zenoss.ExtraHooksSelectionModel", {
             this.selectingRow = false;
         }
     },
-    selectRange: function (startRow, endRow, keepExisting) {
+    selectRange: function () {
         this.suspendEvents();
         Zenoss.ExtraHooksSelectionModel.superclass.selectRange.apply(
             this, arguments);
         this.resumeEvents();
         this.fireEvent('rangeselect', this);
-    }
-});
-
-
-/**
- * @class Zenoss.PostRefreshHookableDataView
- * @extends Ext.DataView
- * A DataView that fires a custom event after the view has refreshed.
- * @constructor
- */
-Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
-    constructor: function(config) {
-        Zenoss.PostRefreshHookableDataView.superclass.constructor.apply(
-            this, arguments);
-        this.addEvents(
-            /**
-             * @event afterrefresh
-             * Fires after the view has been rendered.
-             * @param {DataView} this
-             */
-            'afterrefresh');
-    }
-});
-
-Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
-    /**
-     * This won't survive upgrade.
-     */
-    refresh: function(){
-        this.clearSelections(false, true);
-        this.el.update("");
-        var records = this.store.getRange();
-        if(records.length < 1){
-            if(!this.deferEmptyText || this.hasSkippedEmptyText){
-                this.el.update(this.emptyText);
-            }
-            this.hasSkippedEmptyText = true;
-            this.all.clear();
-            return;
-        }
-        this.tpl.overwrite(this.el, this.collectData(records, 0));
-        this.fireEvent('afterrefresh', this);
-        this.all.fill(Ext.query(this.itemSelector, this.el.dom));
-        this.updateIndexes(0);
     }
 });
 
@@ -556,21 +633,23 @@ Ext.define("Zenoss.MultiselectMenu", {
         }
         var result = [];
         Ext.each(this.menu.items.items, function(item){
-            if (item.checked) result[result.length] = item.value;
+            if (item.checked)  {
+                result[result.length] = item.value;
+            }
         });
         return result;
     },
     setValue: function(val) {
+        var check = function(item) {
+            var shouldCheck = false;
+            try{
+                shouldCheck = val.indexOf(item.value)!==-1;
+            } catch(e) {}
+            item.setChecked(shouldCheck);
+        };
         if (!val) {
             this.initialSetValue(this.initialConfig);
         } else {
-            function check(item) {
-                var shouldCheck = false;
-                try{
-                    shouldCheck = val.indexOf(item.value)!=-1;
-                } catch(e) {var _x;}
-                item.setChecked(shouldCheck);
-            }
             if (!this.hasLoaded) {
                 this._initialValue = val;
                 this.menu.on('add', function(menu, item) {
@@ -609,15 +688,16 @@ Ext.define("Zenoss.StatefulRefreshMenu", {
         var savedInterval = interval[0] || 60;
         // removing one second as an option
         // for performance reasons
-        if (savedInterval == 1) {
+        if (savedInterval === 1) {
             savedInterval = 5;
         }
 
         var items = this.items.items;
         Ext.each(items, function(item) {
-            if (item.value == savedInterval)
+            item.checked = false;
+            if (item.value === savedInterval) {
                 item.checked = true;
-                return;
+            }
         }, this);
         this.trigger.on('afterrender', function() {
             this.trigger.setInterval(savedInterval);
@@ -640,6 +720,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
         var menu = {
             xtype: 'statefulrefreshmenu',
             id: config.stateId || 'evc_refresh',
+            refreshWhenHidden: false,
             trigger: this,
             width: 127,
             items: [{
@@ -665,6 +746,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
                 xtype: 'menucheckitem',
                 text: '1 minute',
                 value: 60,
+                checked: true,
                 group: 'refreshgroup'
             },{
                 xtype: 'menucheckitem',
@@ -695,7 +777,7 @@ Ext.define("Zenoss.RefreshMenuButton", {
         var isValid = false;
         // make sure what they are setting is a valid option
         this.menu.items.each(function(item){
-            if (item.value == interval) {
+            if (item.value === interval) {
                 isValid = true;
             }
         });
@@ -705,6 +787,11 @@ Ext.define("Zenoss.RefreshMenuButton", {
         }
     },
     poll: function(){
+        // do not poll if the user is not looking at the tab, refreshWhenHidden will force the refresh
+        if (Ext.isString(document.visibilityState) && document.visibilityState == "hidden" && ! this.refreshWhenHidden) {
+            this.refreshTask.delay(this.interval*1000);
+            return;
+        }
         if (this.interval>0) {
             if ( !this.disabled ) {
                 if (Ext.isDefined(this.pollHandler)){
@@ -795,7 +882,7 @@ Ext.define("EventActionManager", {
                     xtype: 'DialogButton',
                     text: _t('Cancel'),
                     ref: '../cancelButton',
-                    handler: function(btn, evt) {
+                    handler: function() {
                         me.cancelled = true;
                         me.finishAction();
                     }
@@ -806,12 +893,12 @@ Ext.define("EventActionManager", {
                 'updateRequestComplete': true
             },
             listeners: {
-                updateRequestIncomplete: function(data) {
+                updateRequestIncomplete: function() {
                     if (!me.cancelled) {
                         me.run();
                     }
                 },
-                updateRequestComplete: function(data) {
+                updateRequestComplete: function() {
                     me.finishAction();
                 }
             },
@@ -822,9 +909,9 @@ Ext.define("EventActionManager", {
                 // are just executing on a filter, we don't have any idea
                 // how many will be updated, so show a progress bar just
                 // in case.
-                return me.params.evids.length > 100 || me.params.evids.length == 0;
+                return me.params.evids.length > 100 || me.params.evids.length === 0;
             },
-            action: function(params, callback) {
+            action: function() {
                 throw('The EventActionManager action must be implemented before use.');
             },
             startAction: function() {
@@ -925,37 +1012,6 @@ Ext.onReady(function() {
 });
 
 /**
- * @class Zenoss.ColumnFieldSet
- * @extends Ext.form.FieldSet
- * A FieldSet with a column layout
- * @constructor
- */
-Ext.define("Zenoss.ColumnFieldSet", {
-    extend: "Ext.form.FieldSet",
-    alias: ['widget.ColumnFieldSet'],
-    constructor: function(userConfig) {
-
-        var baseConfig = {
-            items: {
-                layout: 'column',
-                border: false,
-                items: userConfig.__inner_items__,
-                defaults: {
-                    layout: 'anchor',
-                    border: false,
-                    bodyStyle: 'padding-left: 15px'
-                }
-            }
-        };
-
-        delete userConfig.__inner_items__;
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.ColumnFieldSet.superclass.constructor.call(this, config);
-
-    } // constructor
-}); // Zenoss.ColumnFieldSet
-
-/**
  * General utilities
  */
 Ext.namespace('Zenoss.util');
@@ -984,21 +1040,7 @@ Zenoss.util.isSuccessful = function(response) {
     return response.result && response.result.success;
 };
 
-Zenoss.util.addLoadingMaskToGrid = function(grid){
-    // load mask stuff
-    grid.store.proxy.on('beforeload', function(){
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask;
-        mask.show();
-    }, grid);
-    grid.store.proxy.on('load', function(){
-        var container = this.container;
-        container._treeLoadMask = container._treeLoadMask || new Ext.LoadMask(this.container);
-        var mask = container._treeLoadMask;
-        mask.hide();
-    }, grid);
-};
+Zenoss.env.ACTIONS = ['history', 'drop', 'status', 'heartbeat', 'log', 'alert_state', 'detail'];
 
 Zenoss.env.SEVERITIES = [
     [5, 'Critical'],
@@ -1010,7 +1052,9 @@ Zenoss.env.SEVERITIES = [
 ];
 
 Zenoss.util.convertSeverity = function(severity){
-    if (Ext.isString(severity)) return severity;
+    if (Ext.isString(severity)) {
+        return severity;
+    }
     var sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical'];
     return sevs[severity];
 };
@@ -1025,7 +1069,14 @@ Zenoss.util.render_severity = function(sev) {
 };
 
 Zenoss.util.render_status = function(stat) {
-    return Zenoss.render.evstatus(stat);
+    return "<div style='text-align: center;'>" +
+        Zenoss.render.evstatus(stat) +
+        "</div>";
+};
+
+Zenoss.util.render_status_text = function(stat) {
+    return Zenoss.render.evstatus(stat) +
+        "<span style='vertical-align: middle; padding-left:5px;'>"+ stat +"</span>";
 };
 
 Zenoss.util.render_linkable = function(name, col, record) {
@@ -1038,11 +1089,10 @@ Zenoss.util.render_linkable = function(name, col, record) {
     }
 };
 
-
 Zenoss.util.render_device_group_link = function(name, col, record) {
     var links = record.data.DeviceGroups.split('|'),
         returnString = "",
-        link = undefined;
+        link;
     // return a pipe-deliminated set of links to the ITInfrastructure page
     for (var i = 0; i < links.length; i++) {
         link = links[i];
@@ -1054,7 +1104,7 @@ Zenoss.util.render_device_group_link = function(name, col, record) {
     return returnString;
 };
 
-
+/* jshint bitwise: false */
 Zenoss.util.base64 = {
     base64s : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
     encode: function(decStr){
@@ -1106,10 +1156,10 @@ Zenoss.util.base64 = {
             decOut += String.fromCharCode((bits & 0xff0000) >>16,
                                           (bits & 0xff00) >>8, bits & 0xff);
         }
-        if(encStr.charCodeAt(i -2) == 61){
+        if(encStr.charCodeAt(i -2) === 61){
             return(decOut.substring(0, decOut.length -2));
         }
-        else if(encStr.charCodeAt(i -1) == 61){
+        else if(encStr.charCodeAt(i -1) === 61){
             return(decOut.substring(0, decOut.length -1));
         }
         else {
@@ -1117,7 +1167,7 @@ Zenoss.util.base64 = {
         }
     }
 };
-
+/* jshint bitwise: true */
 // two functions for converting IP addresses
 Zenoss.util.dot2num = function(dot) {
     var d = dot.split('.');
@@ -1213,57 +1263,7 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
 
 };
 
-/**
- * This converts server side types to Ext Controls,
- * it first looks for specific types based on the field name
- * and then reverts to a translation of the type.
- * @param {string} fieldId the "name" of the field (e.g. eventClass)
- * @param {string} type can be string, int, etc
- * @returns {string} The "xtype" of the control
- **/
-Zenoss.util.getExtControlType = function(fieldId, type) {
-    var customControls = {
-        'eventClass': 'EventClass',
-        'severity': 'Severity',
-        'dsnames': 'DataPointItemSelector'
-    },
-    types = {
-        'int': 'numberfield',
-        'string': 'textfield',
-        'boolean': 'checkbox',
-        'text': 'textarea'
-    };
 
-    // see if a component of this type is registered (then return it)
-    if (Ext.ComponentMgr.isRegistered(fieldId)) {
-        return fieldId;
-    }
-
-    // check our conversions defined above
-    if (customControls[fieldId]) {
-        return customControls[fieldId];
-    }
-
-    // default to "textfield" if we don't have it set up yet"
-    return (types[type] || 'textfield');
-};
-
-/**
- * The code searches for a column index using the column name
- * @param {array} columns represents the grid columns
- * @param {id} id the name of the column
- * @returns {int} the column index
- **/
-Zenoss.util.getColumnIndex = function(columns, id) {
-   var colIndex = -1;
-   Ext.each(columns, function(col, index) {
-       if (col.id == id) {
-           colIndex = index;
-           return false;
-       }
-   });
-   return colIndex;
-};
 
 /**
 * Used in BaseGrid.js by onFocus() and onResize() events.
@@ -1298,95 +1298,25 @@ Zenoss.util.validateConfig = function() {
                 // will show a stacktrace in firebug
                 console.error(error);
             }
-        };
+        }
     });
 };
 
 /**
- * Proxy that will only allow one request to be loaded at a time.  Requests
- * made while the proxy is already loading a previous requests will be discarded
+* Used in AddDeviceController.js by _AddJob(record) method.
+ * Convert IPv6 addresses to a Zope-friendly format.
+ * Original source: Products.ZenUtils.IpUtil.py -> ipwrap(ip).
  */
-Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {
-    constructor: function(config){
-        Zenoss.ThrottlingProxy.superclass.constructor.apply(this, arguments);
-        this.loading = false;
-        //add event listeners for throttling
-        this.addListener('beforeload', function(proxy, options){
-            if (!proxy.loading){
-                proxy.loading = true;
-                return true;
-            }
-            return false;
-        });
-        this.addListener('load', function(proxy, options){
-            proxy.loading = false;
-        });
-        this.addListener('exception', function(proxy, options){
-            proxy.loading = false;
-        });
-
+Zenoss.util.ipv6wrap = function(string) {
+    if (Ext.form.VTypes.ipv6address(string)) {
+        var wrapped = string.replace(/:/g, '..');
+        return wrapped.replace(/%/g, '...');
     }
-});
-
-/**
- * Zenoss date patterns and manipulations
- */
-Ext.namespace('Zenoss.date');
-
-/**
- * A set of useful date formats. All dates should come from the server as
- * ISO8601Long, but we may of course want to render dates in many different
- * ways.
- */
-Ext.apply(Zenoss.date, {
-    ISO8601Long:"Y-m-d H:i:s",
-    ISO8601Short:"Y-m-d",
-    ShortDate: "n/j/Y",
-    LongDate: "l, F d, Y",
-    FullDateTime: "l, F d, Y g:i:s A",
-    MonthDay: "F d",
-    ShortTime: "g:i A",
-    LongTime: "g:i:s A",
-    SortableDateTime: "Y-m-d\\TH:i:s",
-    UniversalSortableDateTime: "Y-m-d H:i:sO",
-    YearMonth: "F, Y"
-});
-
-
-/**
- * This takes a unix timestamp and renders it in the
- * logged in users's selected timezone.
- * Format is optional, if not passed in the default will be used.
- * NOTE: value here must be in seconds, not milliseconds
- **/
-Zenoss.date.renderWithTimeZone = function (value, format) {
-    if (Ext.isNumeric(value)) {
-        if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a";
-        }
-        return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
-    }
-    return value;
-};
-
-Zenoss.date.renderDateColumn = function(format) {
-    return function(v) {
-        return Zenoss.date.renderWithTimeZone(v, format);
-    };
+    return string;
 };
 
 
-// Fix an IE bug
-Ext.override(Ext.Shadow, {
-    realign: Ext.Function.createInterceptor(Ext.Shadow.prototype.realign,
-        function(l, t, w, h) {
-            if (Ext.isIE) {
-                var a = this.adjusts;
-                a.h = Math.max(a.h, 0);
-            }
-        }
-    )
-});
+
 
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
@@ -1404,40 +1334,6 @@ String.prototype.startswith = function(str){
 
 String.prototype.endswith = function(str){
     return (this.match(str+'$')==str);
-};
-
-
-/* Readable dates */
-
-var _time_units = [
-    ['year',   60*60*24*365],
-    ['month',  60*60*24*30],
-    ['week',   60*60*24*7],
-    ['day',    60*60*24],
-    ['hour',   60*60],
-    ['minute', 60],
-    ['second', 1]
-];
-
-Date.prototype.readable = function(precision) {
-    var diff = (new Date().getTime() - this.getTime())/1000,
-        remaining = Math.abs(diff),
-        result = [];
-    for (i=0;i<_time_units.length;i++) {
-        var unit = _time_units[i],
-            unit_name = unit[0],
-            unit_mult = unit[1],
-            num = Math.floor(remaining/unit_mult);
-        remaining = remaining - num * unit_mult;
-        if (num) {
-            result.push(num + " " + unit_name + (num>1 ? 's' : ''));
-        }
-        if (result.length == precision) {
-            break;
-        }
-    }
-    var base = result.join(' ');
-    return diff >= 0 ? base + " ago" : "in " + base;
 };
 
 
@@ -1463,12 +1359,12 @@ cbSplit = function (str, separator, limit) {
         flags = (separator.ignoreCase ? "i" : "") +
                 (separator.multiline  ? "m" : "") +
                 (separator.sticky     ? "y" : ""),
-        separator = RegExp(separator.source, flags + "g"), // make `global` and avoid `lastIndex` issues by working with a copy
+        separator = new RegExp(separator.source, flags + "g"), // make `global` and avoid `lastIndex` issues by working with a copy
         separator2, match, lastIndex, lastLength;
 
     str = str + ""; // type conversion
     if (!cbSplit._compliantExecNpcg) {
-        separator2 = RegExp("^" + separator.source + "$(?!\\s)", flags); // doesn't need /g or /y, but they don't hurt
+        separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags); // doesn't need /g or /y, but they don't hurt
     }
 
     /* behavior for `limit`: if it's...
@@ -1485,7 +1381,7 @@ cbSplit = function (str, separator, limit) {
             return [];
         }
     }
-
+    /* jshint boss: true */
     while (match = separator.exec(str)) {
         lastIndex = match.index + match[0].length; // `separator.lastIndex` is not reliable cross-browser
 
@@ -1551,7 +1447,7 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
             return false;
         default:
             var len, threshold = Zenoss.settings.deviceMoveJobThreshold || 5;
-            if (devices == null) {
+            if (devices === null) {
                 len = 0;
             } else if (!Ext.isArray(devices)) {
                 len = 1;
@@ -1561,7 +1457,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
             return threshold <= len;
     }
 };
-
 
 // The data for all states
     Zenoss.util.states = [
@@ -1618,7 +1513,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
         {"abbr":"WY","name":"Wyoming","slogan":"Like No Place on Earth"}
     ];
 
-
 // Create a portlets object
 //
 Ext.define('PortletManager', {
@@ -1630,6 +1524,6 @@ Ext.define('PortletManager', {
         this.addEvents('ready', 'beforeregister');
     }
 });
-Zenoss.PortletManager = new PortletManager();
+Zenoss.PortletManager = Ext.create('PortletManager', {});
 
 })(); // End local scope

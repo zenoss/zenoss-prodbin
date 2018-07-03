@@ -10,7 +10,7 @@
 from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import ToMany
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.AdvancedQuery import Eq, Not, And
 from .ComponentOrganizer import (
     ComponentOrganizer,
@@ -23,7 +23,7 @@ def manage_addComponentGroup(context, id, description=None, REQUEST=None):
     context._setObject(id, d)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 class ComponentGroup(ComponentOrganizer):
@@ -48,9 +48,9 @@ class ComponentGroup(ComponentOrganizer):
         return [comp.primaryAq() for comp in self.components()]
 
     def getSubComponents(self):
-        cat = ICatalogTool(self)
-        query = And(Not(Eq('objectImplements', 'Products.ZenModel.ComponentGroup.ComponentGroup')),
-                    Not(Eq('objectImplements', 'Products.ZenModel.Device.Device')))
+        cat = IModelCatalogTool(self)
+        # @TODO: Can we avoid NOTs ?
+        query = Eq('objectImplements', 'Products.ZenModel.DeviceComponent.DeviceComponent')
         brains = cat.search(query=query)
         children = []
         for brain in brains:

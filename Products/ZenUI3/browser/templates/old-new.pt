@@ -52,14 +52,27 @@ if (Zenoss.env.pageHasBreadCrumbs) {
     } catch(e) {}
 }
 Ext.onReady(function(){
-    var outerItems = [],
-    innerItems = [{
-        region: 'center',
-        autoScroll: true,
-        bodyCls: 'z-bc-content-pane',
-        contentEl: 'contentPaneContainer',
-        split: true
-    }];
+    var outerItems = [], innerItems = [];
+    /*
+     * To use an Ext-based center panel (instead of just rendering the contentPaneContainer div),
+     * have your template include a js file that declares a 'Zenoss.LegacyInnerPanelItem' and make
+     * singleton class.  Refer to the support.js page for an example.
+     *
+     * Only one Zenoss.LegacyInnerPanelItem should be declared, otherwise the last one wins
+     */
+    if (Ext.ClassManager.isCreated('Zenoss.LegacyInnerPanelItem')) {
+        var item = Zenoss.LegacyInnerPanelItem.data;
+        item.region = 'center';
+        innerItems.push(item);
+    } else {
+        innerItems.push({
+            region: 'center',
+            autoScroll: true,
+            bodyCls: 'z-bc-content-pane',
+            contentEl: 'contentPaneContainer',
+            split: true
+        });
+    }
     if (Zenoss.env.pageHasTabs) {
         outerItems.push({
             region: 'west',
@@ -110,7 +123,7 @@ Ext.onReady(function(){
 
     Zenoss.util.callWhenReady('center_panel', function(){
         Ext.getCmp('center_panel').add({
-           layout: 'border',
+            layout: 'border',
             id: 'backcompat-layout-panel',
             defaults: {
                 border: false

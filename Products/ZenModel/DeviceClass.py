@@ -28,7 +28,10 @@ from ZODB.transact import transact
 from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max, And
 from Products.CMFCore.utils import getToolByName
 from Products.ZenMessaging.ChangeEvents.events import DeviceClassMovedEvent
-from Products.ZenModel.ZenossSecurity import ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_DELETE_DEVICE, ZEN_EDIT_LOCAL_TEMPLATES,
+    ZEN_ADD, ZEN_MANAGE_DMD
+)
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
 from Products.ZenUtils.Search import (
@@ -40,8 +43,9 @@ from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.Exceptions import DeviceExistsError
+from Products.Zuul.utils import safe_hasattr as hasattr
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -55,7 +59,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
     dc = DeviceClass(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
@@ -148,6 +152,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     childMoveTargets = getPeerDeviceClassNames
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'createInstance')
     def createInstance(self, devId, performanceMonitor="localhost", manageIp=""):
         """
         Create an instance based on its location in the device tree
@@ -163,20 +168,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         self._checkDeviceExists(devId, performanceMonitor, manageIp)
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(devId)
+        dev.resetProductionState()
         self.devices._setObject(devId, dev)
-        return self.devices._getOb(devId)
+        devInContext = self.devices._getOb(devId)
+        return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
-        
-        if ip:
-            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
-            netroot = mon.getNetworkRoot()
-            ipobj = netroot.findIp(ip)
-            if ipobj:
-                dev = ipobj.device()
-                if dev:
-                    raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-    
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
@@ -188,6 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                             deviceName, dev)
                 
         if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
@@ -223,6 +221,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
 
         exported = False
+
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
 
@@ -299,7 +298,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 @rtype: string
                 """
                 o = StringIO()
-                d.exportXml(o, exportPasswords=True)
+                d.exportXml(o, exportPasswords=True, move=True)
                 return switchClass(o, module, klass)
 
             def devImport(xmlfile):
@@ -331,12 +330,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             source.devices._delObject(devname)
             target.devices._setObject(devname, dev)
         dev = target.devices._getOb(devname)
+
         IGlobalIdentifier(dev).guid = guid
         dev.setLastChange()
         dev.setAdminLocalRoles()
-        dev.index_object()
-        notify(IndexingEvent(dev, idxs=('path', 'searchKeywords'),
-                             update_metadata=True))
+        notify(IndexingEvent(dev))
 
         return exported
 
@@ -363,7 +361,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             if devicewasExported:
                 numExports += 1
         return numExports
-
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False,
@@ -402,7 +399,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             location = device.getLocationName()
             if not location: location = "Unknown"
             deviceInfo[device.id] = (systemNames, location,
-                                    device.productionState,
+                                    device.getProductionState(),
                                     device.getDeviceClassPath())
         return deviceInfo
 
@@ -427,7 +424,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             user = dev.getProperty('zWinUser','')
             passwd = dev.getProperty( 'zWinPassword', '')
             sev = dev.getProperty( 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url()))
+            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url_path()))
         return starttime, devinfo
 
 
@@ -459,11 +456,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Search device summary index and return device objects
         """
-        if not query: return []
-        zcatalog = self._getCatalog()
-        if not zcatalog: return []
-        results = zcatalog({'summary':query})
-        return self._convertResultsToObj(results)
+        # @TODO delete?
+        # deviceSearch catalog does not have a summary index nor metadata
+        return []
 
 
     security.declareProtected('View', 'searchInterfaces')
@@ -489,47 +484,45 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         return devices
 
-    def _findDevice(self, devicename, useTitle=True):
+    def _findDevice(self, devicename, useTitle=True, commit_dirty=False):
         """
         Returns all devices whose ip/id/title match devicename.
         ip/id matches are at the front of the list.
 
         @rtype: list of brains
         """
-        idIpQuery = Or( MatchGlob('id', devicename),
-                        Eq('getDeviceIp', devicename) )
-        if useTitle:
-            titleOrIdQuery = MatchGlob('titleOrId', devicename)
-            query = Or( idIpQuery, titleOrIdQuery )
-            rankSort = RankByQueries_Max( ( idIpQuery, 16 ),
-                                          ( titleOrIdQuery, 8 ) )
-            devices = self._getCatalog().evalAdvancedQuery(query, (rankSort,))
-        else:
-            devices = self._getCatalog().evalAdvancedQuery(idIpQuery)
-        return devices
+        ors = [ MatchGlob('id', devicename), MatchGlob('text_ipAddress', devicename) ]
 
-    def findDevicePath(self, devicename):
+        if useTitle:
+            ors.append(MatchGlob('name', devicename))
+
+        query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
+        fields = [ "name", "id", "text_ipAddress" ]
+        search_results = IModelCatalogTool(self.dmd.Devices).search(query=query, fields=fields, commit_dirty=commit_dirty)
+        return list(search_results.results)
+
+    def findDevicePath(self, devicename, commit_dirty=False):
         """
         Look up a device and return its path
         """
-        ret = self._findDevice(devicename)
+        ret = self._findDevice(devicename, commit_dirty=commit_dirty)
         if not ret: return ""
-        return ret[0].getPrimaryId
+        return ret[0].getPath()
 
-    def findDevice(self, devicename):
+    def findDevice(self, devicename, commit_dirty=False):
         """
         Returns the first device whose ip/id matches devicename.  If
         there is no ip/id match, return the first device whose title
         matches devicename.
         """
-        ret = self._findDevice(devicename)
+        ret = self._findDevice(devicename, commit_dirty=commit_dirty)
         if ret: return ret[0].getObject()
 
-    def findDeviceByIdOrIp(self, devicename):
+    def findDeviceByIdOrIp(self, devicename, commit_dirty=False):
         """
         Returns the first device that has an ip/id that matches devicename
         """
-        ret = self._findDevice( devicename, False )
+        ret = self._findDevice( devicename, False, commit_dirty=commit_dirty )
         if ret: return ret[0].getObject()
 
     def findDeviceByIdExact(self, devicename):
@@ -537,10 +530,13 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Look up device in catalog and return it.  devicename
         must match device id exactly
         """
-        for brains in self._getCatalog()(id=devicename):
-            dev = brains.getObject()
-            if dev.id == devicename:
-                return dev
+        if devicename:
+            query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
+            search_results = IModelCatalogTool(self.dmd.Devices).search(query=query)
+            for brain in search_results.results:
+                dev = brain.getObject()
+                if dev.id == devicename:
+                    return dev
 
     def findDevicePingStatus(self, devicename):
         """
@@ -554,7 +550,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         Return generator of components, by meta_type if specified
         """
-        catalog = ICatalogTool(self)
+        catalog = IModelCatalogTool(self)
         COMPONENT = 'Products.ZenModel.DeviceComponent.DeviceComponent'
         monitorq, typeq = None, None
         if monitored:
@@ -799,42 +795,29 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             )
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_ADD, 'createCatalog')
     def createCatalog(self):
         """
-        Make the catalog for device searching
+        Make the catalog for device searching.
+        deviceSearch catalog is deprecated.
         """
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
+        from Products.Zuul.catalog.legacy import LegacyCatalogAdapter
+        if hasattr(self, self.default_catalog):
+            self._delObject(self.default_catalog)
+        setattr(self, self.default_catalog, LegacyCatalogAdapter(self, self.default_catalog))
 
-        # Make catalog for Devices
-        manage_addZCatalog(self, self.default_catalog,
-            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        for idxname in ['id',
-            'getDeviceIp','getDeviceClassPath','getProdState','titleOrId']:
-            cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
-        cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
-        cat.addIndex('path', makeMultiPathIndex('path'))
-        zcat.addColumn('getPrimaryId')
-        zcat.addColumn('id')
-        zcat.addColumn('path')
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'reIndex')
     def reIndex(self):
         """
         Go through all devices in this tree and reindex them.
         """
-        zcat = getToolByName(self, self.default_catalog)
-        zcat.manage_catalogClear()
         for dev in self.getSubDevicesGen_recursive():
             if dev.hasObject('componentSearch'):
                 dev._delObject('componentSearch')
             dev._create_componentSearch()
-            dev.index_object()
             notify(IndexingEvent(dev))
             for comp in dev.getDeviceComponentsNoIndexGen():
                 notify(IndexingEvent(comp))
-
 
     def buildDeviceTreeProperties(self):
         """

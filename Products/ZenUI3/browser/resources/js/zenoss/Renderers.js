@@ -58,15 +58,15 @@ function pingStatusBase(bool) {
      * We need to handle all cases and also make sure they are
      * handled in proper order.
      */
-    if (bool == null || !Ext.isDefined(bool)) {
+    if (bool === null || !Ext.isDefined(bool)) {
         return 'Unknown';
     }
 
     if(Ext.isString(bool)){
-        if(bool.toLowerCase() == "none"){
+        if(bool.toLowerCase() === "none"){
             return 'Unknown';
         }else{
-            bool = bool.toLowerCase() == 'up';
+            bool = bool.toLowerCase() === 'up';
         }
     }
 
@@ -75,6 +75,28 @@ function pingStatusBase(bool) {
 }
 
 Ext.apply(Zenoss.render, {
+
+    date: function(date, format) {
+        if (!format && typeof format !== "string" && !(format instanceof String)) {
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
+        }
+        // timestamp in seconds (UNIX style)
+        if (Ext.isNumeric(date)) {
+            return moment.unix(date).tz(Zenoss.USER_TIMEZONE).format(format);
+        }
+        // Ext Datetime object
+        if (Ext.isDate(date)) {
+            return moment.tz(date, Zenoss.USER_TIMEZONE).format(format);
+        }
+        return date;
+    },
+
+    conditionalEscaping: function(data) {
+        if (!Zenoss.settings.enableHtmlInEventFields)
+            return Ext.htmlEncode(data);
+        else
+            return data;
+    },
 
     bytesString: function(num) {
         return num===0 ? '0' :convertToUnits(num, 1024.0, 'B');
@@ -135,7 +157,7 @@ Ext.apply(Zenoss.render, {
         if (Ext.isObject(ip)) {
             ip = ip.name;
         }
-        if (!ip||ip=='0.0.0.0') {
+        if (!ip||ip==='0.0.0.0') {
             return '';
         }
         return Ext.isString(ip) ? ip : Zenoss.util.num2dot(ip);
@@ -156,7 +178,7 @@ Ext.apply(Zenoss.render, {
         if (!evstatus){
             return '';
         }
-        return '<div class="status-icon-small-'+evstatus.toLowerCase()+'"><'+'/div>';
+        return '<span class="status-icon-small status-icon-small-'+evstatus.toLowerCase()+'"><'+'/span>';
     },
 
     events: function(value, count) {
@@ -265,15 +287,25 @@ Ext.apply(Zenoss.render, {
                 return renderer(uid, name);
             }
         }
+        if (!url.startswith(Zenoss.env.CSE_VIRTUAL_ROOT)) {
+            url = Zenoss.env.CSE_VIRTUAL_ROOT + url.replace(/^\/+/g, '');
+        }
         if (url && name) {
             return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
+        }
+        if (url) {
+           return url;
         }
     },
 
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
-        var parts;
-        if (!uid) {
+        var parts,
+            vTypes = Ext.form.VTypes;
+        // ZEN-29776: do not render ipaddress as link
+        // since there is no such object in the system and
+        // "192.168.1.1/24" is not an zope uid format.
+        if (!uid || vTypes.ipaddress(uid) || vTypes.ipaddresswithnetmask(uid)) {
             return uid;
         }
         if (Ext.isObject(uid)) {
@@ -287,13 +319,13 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, uid, name);
     },
 
-    linkFromGrid: function(value, metaData, record) {
+    linkFromGrid: function(value) {
         var item;
-        if (typeof(value == 'object')) {
+        if (Ext.isObject(value)) {
             item = value;
-            if(item == null){
+            if(item === null){
                 return value;
-            }else if(item.url != null) {
+            }else if(item.url) {
                 return Zenoss.render.link(null, item.url, item.text);
             }else if(item.uid) {
                 return Zenoss.render.link(item.uid, null, item.text);
@@ -303,7 +335,7 @@ Ext.apply(Zenoss.render, {
         return Ext.htmlEncode(value);
     },
 
-    LinkFromGridGuidGroup: function(name, col, record) {
+    LinkFromGridGuidGroup: function(name) {
         if (!name) {
             return name;
         }
@@ -317,12 +349,12 @@ Ext.apply(Zenoss.render, {
         return results.join(" | ");
     },
 
-    LinkFromGridUidGroup: function(name, col, record) {
+    LinkFromGridUidGroup: function(name) {
         if (!name) {
             return name;
         }
 
-        var url, results = [];
+        var results = [];
         Ext.each(name, function(item) {
             results.push(Zenoss.render.default_uid_renderer(item.uid, item.name));
         });
@@ -331,31 +363,39 @@ Ext.apply(Zenoss.render, {
     },
 
     componentLinkFromGrid: function(obj, col, record) {
-        if (!obj)
+        if (!obj) {
             return;
+        }
 
-        if (typeof(obj) == 'string')
+        if (typeof(obj) === 'string') {
             obj = record.data;
+        }
 
-        if (!obj.title && obj.name)
+        if (!obj.title && obj.name) {
             obj.title = obj.name;
+        }
 
-        if (this.subComponentGridPanel || this.componentType != obj.meta_type)
+        if (this.subComponentGridPanel || this.componentType !== obj.meta_type) {
             return '<a href="javascript:Ext.getCmp(\'component_card\').componentgrid.jumpToEntity(\''+obj.uid+'\', \''+obj.meta_type+'\');">'+obj.title+'</a>';
-
+        }
         return obj.title;
     },
 
-    Device: function(uid, name) {
+    Device: function(uid, name, fragment) {
+        if (!Ext.isString(fragment)) {
+            fragment = 'deviceDetailNav:device_overview';
+        }
         // For now, link to the old device page
-        return Zenoss.render.link(null, uid+'/devicedetail#deviceDetailNav:device_overview', name);
+        return Zenoss.render.link(null, uid+'/devicedetail#'+fragment, name);
     },
 
     DeviceClass: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Devices/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#devices:.zport.dmd.Devices' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -363,7 +403,9 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Locations/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#locs:.zport.dmd.Locations' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -371,14 +413,18 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Groups/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#groups:.zport.dmd.Groups' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
     DeviceSystem: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Systems/, '');
         value = value.replace(/\/devices\/.*$/, '');
-        var url = '/zport/dmd/itinfrastructure#systems:.zport.dmd.Systems' + value.replace(/\//g,'.');
-        if (!Ext.isString(name)) name = value;
+        var url = '/zport/dmd/itinfrastructure#systemsTree:.zport.dmd.Systems' + value.replace(/\//g,'.');
+        if (!Ext.isString(name)) {
+            name = value;
+        }
         return Zenoss.render.link(null, url, name);
     },
 
@@ -391,11 +437,23 @@ Ext.apply(Zenoss.render, {
         return item.text;
     },
 
+    DeviceZcLink: function(uid, intro, text) {
+        var anchor = '<a href="https://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
+        var loc = window.location.host;
+        var encodedQuery = encodeURIComponent(JSON.stringify({
+            contextUUID: uid
+        }));
+        var landing = '/#/_lucky?q=';
+        var url = loc + landing + encodedQuery;
+        var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
+        return link
+    },
+
     EventClass: function(uid, name) {
         return Zenoss.render.default_uid_renderer(uid, name);
     },
 
-    IpServiceClass: function(value, metadata, record, rowIndex, colIndex, store) {
+    IpServiceClass: function(value, metadata, record) {
         // this is intended to set directly as a column renderer instead of
         // using Types.js. See the Ext.grid.ColumnModel.setRenderer
         // documentation
@@ -403,7 +461,7 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.serviceClass('ipservice', uid, value);
     },
 
-    WinServiceClass: function(value, metadata, record, rowIndex, colIndex, store) {
+    WinServiceClass: function(value, metadata, record) {
         // this is intended to set directly as a column renderer instead of
         // using Types.js. See the Ext.grid.ColumnModel.setRenderer
         // documentation
@@ -416,7 +474,7 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, url, name);
     },
 
-    nextHop: function(value, metadata, record, rowIndex, colIndex, store) {
+    nextHop: function(value){
         var link = "";
         if (value && value.uid && value.id) {
             link += Zenoss.render.IpAddress(value.uid, value.id);
@@ -456,19 +514,49 @@ Ext.apply(Zenoss.render, {
         }
         return Zenoss.render.link(null, url, name);
     },
-    eventSummaryRow:function (data, metadata, record, rowIndex, columnIndex, store){
+
+    HyperlinkTag : function(uid, name) {
+        //When we get hyperlink tag return it back
+        return Zenoss.render.link(null, uid, null);
+    },
+
+    eventSummaryRow:function (data, metadata, record){
         var msg = record.data.message;
-        if (!msg || msg == "None" ) {
+        if (!msg || msg === "None" ) {
             msg = record.data.summary;
         }
-        msg = Ext.htmlEncode(msg);
+        msg = Zenoss.render.conditionalEscaping(msg);
         msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
         msg = msg.replace(/\"/g, '&quot;');
-        metadata.tdAttr = 'data-qtip="' + msg + '" data-qwidth="500"';
-        data = Ext.htmlEncode(data);
-        return data;
-    }
+        metadata.tdAttr = 'data-qtip="' + Zenoss.render.conditionalEscaping(msg) + '" data-qwidth="500"';
 
+        data = Zenoss.render.conditionalEscaping(data);
+        return data;
+    },
+
+    zProperty: function(value, record) {
+        // if value is an object or array, it must be stringified via JSON
+        if (typeof value === "object") {
+            value = JSON.stringify(value);
+        }
+        var severityFields = ['zEventSeverity', 'zFlappingSeverity'];
+        if (severityFields.includes(record.data.id)) {
+            if (value === -1) {
+                value = 'Default (-1)';
+            } else {
+                value = Ext.String.format('{0} ({1})', Zenoss.util.convertSeverity(value), value);
+                value = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+        }
+        return Ext.htmlEncode(value);
+    },
+
+    // Renders the paths of properties by removing the '/zport/dmd/Devices' from the start.
+    PropertyPath: function(path) {
+        var exclusions = ['zport', 'dmd', 'Devices'],
+            exclude = function(v) { return exclusions.indexOf(v) === -1; };
+        return '/' + path.split('/').slice(1).filter(exclude).join('/');
+    }
 
 }); // Ext.apply
 

@@ -162,14 +162,14 @@ Ext.onReady(function() {
                 generateHtml: function(renderedData, eventData) {
                     var template = new Ext.XTemplate(this.template),
                         props = {
-                            properties: renderedData['details']
+                            properties: renderedData.details
                         },
                         details = [];
 
                     if (this.hasOwnProperty('keys')) {
                         Ext.each(this.keys, function(key) {
-                            Ext.each(renderedData['details'], function(detail) {
-                                if (detail.key == key) {
+                            Ext.each(renderedData.details, function(detail) {
+                                if (detail.key === key) {
                                     details.push(detail);
                                 }
                             }, this);
@@ -193,41 +193,47 @@ Ext.onReady(function() {
         extend:"Ext.Panel",
         alias: "widget.detailpanel",
         isHistory: false,
-        layout: 'border',
+        layout: {
+            type: 'vbox',
+            align: 'stretch'
+        },
         constructor: function(config){
             this.sections = [];
             this.renderers = {};
             config.onDetailHide = config.onDetailHide || Ext.emptyFn;
-            config.items = [
-                // Details Toolbar
-                {
+            config.items = [{ // Details Toolbar
                     id: 'evdetail_hd',
-                    region: 'north',
-                    layout: 'border',
-                    height: 50,
+                    layout: {
+                        type: 'hbox'
+                    },
+                    defaults: {
+                        height: 50
+                    },
                     cls: 'evdetail_hd',
                     items: [{
-                        region: 'west',
-                        width: 77,
-                        height:47,
-                        defaults:{height:47},
-                        layout: 'hbox',
-                        items: [{
-                            id: 'severity-icon',
-                            cls: 'severity-icon'
-                        },{
-                            id: 'evdetail-sep',
-                            cls: 'evdetail-sep'
-                        }]
-                    }, {
-                        region: 'center',
-                        id: 'evdetail-summary',
-                        html: ''
+                        id: 'severity-icon',
+                        cls: 'severity-icon'
                     },{
-                        region: 'east',
+                        id: 'evdetail-sep',
+                        cls: 'evdetail-sep'
+                    }, {
+                        xtype: 'displayfield',
+                        id: 'evdetail-summary',
+                        fieldStyle: {
+                            'font-size': '15px',
+                            'font-family': 'helvetica,sans-serif',
+                            'white-space': 'nowrap',
+                            'text-overflow': 'ellipsis',
+                            'overflow': 'hidden'
+                        },
+                        flex: 1
+                    },{
                         id: 'evdetail-tools',
                         layout: 'hbox',
-                        width: 57,
+                        margin: '0 5 0 5',
+                        defaults: {
+                            xtype: 'component'
+                        },
                         items: [{
                             id: 'evdetail-popout',
                             cls: 'evdetail-popout'
@@ -236,25 +242,19 @@ Ext.onReady(function() {
                             cls: 'evdetail_close'
                         }]
                     }]
-                },
-
-                // Details Body
-                {
+                },{// Details Body
                     id: 'evdetail_bd',
-                    region: 'center',
-                    width: "90%",
+                    flex: 1,
                     autoScroll: true,
                     cls: 'evdetail_bd',
-                    items: [   {
+                    items: [{
                         xtype:'toolbar',
-                        width: "105%",
                         style: {
-                            position: "relative",
-                            top: -1
+                            marginTop: 5
                         },
                         hidden: !config.showActions,
                         id: 'actiontoolbar',
-                        items:[ {
+                        items:[{
                                 xtype: 'tbtext',
                                 text: _t('Event Actions:')
                             },
@@ -262,10 +262,8 @@ Ext.onReady(function() {
                             Zenoss.events.EventPanelToolbarActions.close,
                             Zenoss.events.EventPanelToolbarActions.reopen,
                             Zenoss.events.EventPanelToolbarActions.unclose
-
                         ]
-                    },
-                    {
+                    },{
                         id: 'event_detail_properties',
                         frame: false,
                         defaults: {
@@ -280,18 +278,12 @@ Ext.onReady(function() {
                                 }
                             }
                         }
-                    },
-
-                    // Event Log Header
-                    {
+                    },{// Event Log Header
                         id: 'evdetail-log-header',
                         cls: 'evdetail-log-header',
                         hidden: false,
                         html: '<'+'hr/><'+'h2>LOG<'+'/h2>'
-                    },
-
-                    // Event Audit Form
-                    {
+                    },{// Event Audit Form
                         xtype: 'form',
                         id: 'log-container',
                         width: '90%',
@@ -313,6 +305,13 @@ Ext.onReady(function() {
                             width: 300,
                             xtype: 'textfield',
                             name: 'message',
+                            listeners: {
+                                specialkey: function(formEl, e){
+                                    if (e.getCharCode() == Ext.EventObject.ENTER) {
+                                        this.up('form').down('button').handler()
+                                    }
+                                }
+                            },
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                             id: 'detail-logform-message'
                         },{
@@ -337,19 +336,13 @@ Ext.onReady(function() {
                                     });
                             }
                         }]
-                    },
-
-                    // Event Log Content
-                    {
+                    },{// Event Log Content
                         id: 'evdetail_log',
                         cls: 'log-content',
                         hidden: false,
-                        autoScroll: true,
-                        height: 200
-                    }
-                    ]
+                        autoScroll: true
+                    }]
                 }
-
             ];
 
             this.callParent([config]);
@@ -367,7 +360,7 @@ Ext.onReady(function() {
                     return val;
                 },
                 component: function(value, sourceData) {
-                    var val = sourceData.component_title;
+                    var val = Ext.htmlEncode(sourceData.component_title);
                     if (sourceData.component_url) {
                         val = Zenoss.render.default_uid_renderer(
                             sourceData.component_url,
@@ -399,13 +392,13 @@ Ext.onReady(function() {
                     return Ext.htmlEncode(value);
                 },
                 summary: function(value, sourceData) {
-                    return Ext.htmlEncode(value);
+                    return Zenoss.render.conditionalEscaping(value);
                 },
                 dedupid: function(value, sourceData) {
                     return Ext.htmlEncode(value);
                 },
                 message: function(value, sourceData) {
-                    return Ext.htmlEncode(value);
+                    return Zenoss.render.conditionalEscaping(value);
                 },
                 eventClassKey: function(value, sourceData) {
                     return Ext.htmlEncode(value);
@@ -532,7 +525,7 @@ Ext.onReady(function() {
         removeSection: function(section_id) {
             var remove_idx;
             Ext.each(this.sections, function(item, idx, sections) {
-                if (item.id == section_id) {
+                if (item.id === section_id) {
                     remove_idx = idx;
                 }
             });
@@ -551,20 +544,25 @@ Ext.onReady(function() {
         },
 
         toggleSection: function(section_id) {
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             var cmp = Ext.getCmp(section_id), el = cmp.getEl();
             // workaround IE not hiding/showing sections by explicitly setting the style on the dom nodes
-            if (el.dom.style.display == "none") {
+            if (el.dom.style.display === "none") {
                 el.dom.style.display = "block";
+                state[section_id] = true;
             }
             else {
                 el.dom.style.display = "none";
+                state[section_id] = false;
             }
+            Ext.state.Manager.set("evDetailSectionsState", state);
+            this.getBody().doLayout();
         },
 
         findSection: function(section_id) {
             var section;
             Ext.each(this.sections, function(item) {
-                if (item.id == section_id) {
+                if (item.id === section_id) {
                     section = item;
                 }
             });
@@ -580,7 +578,7 @@ Ext.onReady(function() {
         renderData: function(eventData) {
             var renderedData = {};
             Ext.iterate(eventData, function(key) {
-                if (key == 'details') {
+                if (key === 'details') {
                     var detailsData = [];
                     Ext.each(eventData[key], function(item) {
                         var val = this.extractData(item.key, item.value, eventData);
@@ -613,7 +611,7 @@ Ext.onReady(function() {
             if (this.renderers.hasOwnProperty(key)) {
                 data = this.renderers[key](value, sourceData);
             }
-            else if (value) {
+            else if (value || typeof(value) == 'number') {
                 data = value;
             }
             else {
@@ -623,9 +621,9 @@ Ext.onReady(function() {
         },
 
         setSummary: function(summary){
-            var panel = Ext.getCmp('evdetail-summary');
-            if (panel && panel.el){
-                panel.update(summary);
+            var summaryCmp = Ext.getCmp('evdetail-summary');
+            if (summaryCmp && summaryCmp.el){
+                summaryCmp.setValue(summary);
             }
         },
 
@@ -648,6 +646,14 @@ Ext.onReady(function() {
             eventData.firstTime = Zenoss.date.renderWithTimeZone(eventData.firstTime);
             eventData.lastTime = Zenoss.date.renderWithTimeZone(eventData.lastTime);
             eventData.stateChange = Zenoss.date.renderWithTimeZone(eventData.stateChange);
+            // Convert log timestamps to localized dates
+            eventData.log = eventData.log.map(
+                function(item) {
+                    item[1] = Zenoss.date.renderWithTimeZone(item[1]/1000);
+                    return item;
+                }
+            )
+
             var renderedData = this.renderData(eventData);
 
             this.setSummary(renderedData.summary);
@@ -657,12 +663,21 @@ Ext.onReady(function() {
             // the log form.
             Ext.getCmp('detail-logform-evid').setValue(eventData.evid);
 
+            var state = Ext.state.Manager.get("evDetailSectionsState", {});
             // Update the data sections
             Ext.each(this.sections, function(section) {
                 var cmp = Ext.getCmp(section.id),
-                    html;
+                    html, el = cmp.getEl();
                 html = section.generateHtml(renderedData, eventData);
                 cmp.update(html);
+                var section_state = (section.id in state) ? state[section.id] : false;
+                if (el) {
+                   if (section_state) {
+                       el.dom.style.display = "block";
+                   } else {
+                       el.dom.style.display = "none";
+                   }
+               }
             }, this);
 
             // Update Logs
@@ -681,7 +696,7 @@ Ext.onReady(function() {
 
                 findParams: function() {
                     var params = {
-                            evids: [eventData['evid']]
+                            evids: [eventData.evid]
                         };
                     return params;
                 }
@@ -691,7 +706,7 @@ Ext.onReady(function() {
                 closeButton = actiontoolbar.query("button[iconCls='close']")[0],
                 unAckButton = actiontoolbar.query("button[iconCls='unacknowledge']")[0],
                 reopenButton = actiontoolbar.query("button[iconCls='reopen']")[0],
-                state = eventData['eventState'].toLowerCase();
+                state = eventData.eventState.toLowerCase();
 
             // disable all buttons
             ackButton.disable();
@@ -701,13 +716,13 @@ Ext.onReady(function() {
 
             // enable based on state (i.e. Which state can I go to from my current?)
             if (Zenoss.Security.hasPermission('Manage Events')) {
-                if (state == "new") {
+                if (state === "new") {
                     ackButton.enable();
                     closeButton.enable();
-                } else if (state == "acknowledged") {
+                } else if (state === "acknowledged") {
                     unAckButton.enable();
                     closeButton.enable();
-                } else if ((state == "closed") || (state == "cleared"))  {
+                } else if ((state === "closed") || (state === "cleared"))  {
                     reopenButton.enable();
                 }
             }
@@ -755,18 +770,9 @@ Ext.onReady(function() {
         wipe: function() {
             // hook to perform clean up actions when the panel is closed
         },
-        expandAll: function() {
-            Ext.each(this.sections, function(section) {
-                var cmp = Ext.getCmp(section.id), el = cmp.getEl();
-                if (el) {
-                    el.dom.style.display = "block";
-                }
-            }, this);
-        },
         load: function(event_id) {
             if (event_id !== this.event_id) {
                 this.event_id = event_id;
-                this.expandAll();
                 this.refresh();
             }
         },

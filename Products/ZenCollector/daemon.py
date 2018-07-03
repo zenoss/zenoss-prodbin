@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, 2010, 2012, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,6 +12,9 @@ import signal
 import time
 import logging
 import json
+import re
+from metrology import Metrology
+from metrology.instruments import Gauge
 import zope.interface
 from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
@@ -41,7 +44,7 @@ log = logging.getLogger("zen.daemon")
 
 class DummyListener(object):
     zope.interface.implements(IConfigurationListener)
-    
+
     def deleted(self, configurationId):
         """
         Called when a configuration is deleted from the collector
@@ -144,7 +147,7 @@ class CollectorDaemon(RRDDaemon):
         """
         return self._prefs
 
-    def __init__(self, preferences, taskSplitter, 
+    def __init__(self, preferences, taskSplitter,
                  configurationListener=DUMMY_LISTENER,
                  initializationCallback=None,
                  stoppingCallback=None):
@@ -152,7 +155,7 @@ class CollectorDaemon(RRDDaemon):
         Constructs a new instance of the CollectorDaemon framework. Normally
         only a singleton instance of a CollectorDaemon should exist within a
         process, but this is not enforced.
-        
+
         @param preferences: the collector configuration
         @type preferences: ICollectorPreferences
         @param taskSplitter: the task splitter to use for this collector
@@ -178,7 +181,7 @@ class CollectorDaemon(RRDDaemon):
             raise TypeError("taskSplitter must provide ITaskSplitter")
         else:
             self._taskSplitter = taskSplitter
-        
+
         if not IConfigurationListener.providedBy(configurationListener):
             raise TypeError(
                     "configurationListener must provide IConfigurationListener")
@@ -203,7 +206,7 @@ class CollectorDaemon(RRDDaemon):
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
 
-        # setup daemon statistics
+        # setup daemon statistics (deprecated names)
         self._statService = StatisticsService()
         self._statService.addStatistic("devices", "GAUGE")
         self._statService.addStatistic("dataPoints", "DERIVE")
@@ -211,6 +214,42 @@ class CollectorDaemon(RRDDaemon):
         self._statService.addStatistic("taskCount", "GAUGE")
         self._statService.addStatistic("queuedTasks", "GAUGE")
         self._statService.addStatistic("missedRuns", "GAUGE")
+
+        # namespace these a bit so they can be used in ZP monitoring.
+        # prefer these stat names and metrology in future refs
+        self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
+        daemon = self
+        class DeviceGauge(Gauge):
+            @property
+            def value(self):
+                return len(daemon._devices)
+        Metrology.gauge('collectordaemon.devices', DeviceGauge())
+
+        # Scheduler statistics
+        class RunningTasks(Gauge):
+            @property
+            def value(self):
+                return daemon._scheduler._executor.running
+        Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
+
+        class TaskCount(Gauge):
+            @property
+            def value(self):
+                return daemon._scheduler.taskCount
+        Metrology.gauge('collectordaemon.taskCount', TaskCount())
+
+        class QueuedTasks(Gauge):
+            @property
+            def value(self):
+                return daemon._scheduler._executor.queued
+        Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
+
+        class MissedRuns(Gauge):
+            @property
+            def value(self):
+                return daemon._scheduler.missedRuns
+        Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
+
         zope.component.provideUtility(self._statService, IStatisticsService)
 
         self._deviceGuids = {}
@@ -245,16 +284,25 @@ class CollectorDaemon(RRDDaemon):
         self.preferences.postStartup()
         self.addedPostStartupTasks = False
 
+        # Variables used by enterprise collector in resmgr
+        #
+        # flag that indicates we have finished loading the configs for the first time after a restart
+        self.firstConfigLoadDone = False
+        # flag that indicates the daemon has received the encryption key from zenhub
+        self.encryptionKeyInitialized = False
+        # flag that indicates the daemon is loading the cached configs
+        self.loadingCachedConfigs = False
+
     def buildOptions(self):
         """
-        Method called by CmdBase.__init__ to build all of the possible 
+        Method called by CmdBase.__init__ to build all of the possible
         command-line options for this collector daemon.
         """
         super(CollectorDaemon, self).buildOptions()
 
         maxTasks = getattr(self.preferences, 'maxTasks', None)
         defaultMax = maxTasks if maxTasks else 500
-        
+
         self.parser.add_option('--maxparallel',
                                 dest='maxTasks',
                                 type='int',
@@ -265,24 +313,17 @@ class CollectorDaemon(RRDDaemon):
                                type='int',
                                default=0,
                                help='How often to logs statistics of current tasks, value in seconds; very verbose')
-        self.parser.add_option('--dispatch',
-                               dest='configDispatch',
+        addWorkerOptions(self.parser)
+        self.parser.add_option('--traceMetricName',
+                               dest='traceMetricName',
                                type='string',
-                               help = SUPPRESS_HELP)
-        self.parser.add_option('--workerid',
-                               dest = 'workerid',
-                               type = 'int',
-                               default = 0,
-                               help = SUPPRESS_HELP)
-        self.parser.add_option('--workers',
-                               type="int",
-                               default=1,
-                               help = SUPPRESS_HELP)
-        self.parser.add_option('--writeStatistics',
-                               dest='writeStatistics',
-                               type='int',
-                               default=60,
-                               help='How often to write internal statistics value in seconds')
+                               default=None,
+                               help='trace metrics whose name matches this regex')
+        self.parser.add_option('--traceMetricKey',
+                               dest='traceMetricKey',
+                               type='string',
+                               default=None,
+                               help='trace metrics whose key value matches this regex')
 
         frameworkFactory = zope.component.queryUtility(IFrameworkFactory, self._frameworkFactoryName)
         if hasattr(frameworkFactory, 'getFrameworkBuildOptions'):
@@ -298,16 +339,9 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).parseOptions()
         self.preferences.options = self.options
 
-        options = self.options.__dict__
-        dispatchFilterName = options.get('configDispatch', '') if options else ''
-        filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
-        filterFactory = filterFactories.get(dispatchFilterName, None) or \
-                        filterFactories.get('', None)
-        if filterFactory:
-            configFilter = filterFactory.getFilter(options)
-            if configFilter:
-                self.preferences.configFilter = configFilter
-                log.debug("Filter configured: %s:%s", filterFactory, self.preferences.configFilter)
+        configFilter = parseWorkerOptions(self.options.__dict__)
+        if configFilter:
+            self.preferences.configFilter = configFilter
 
     def connected(self):
         """
@@ -330,10 +364,19 @@ class CollectorDaemon(RRDDaemon):
 
     def _startup(self):
         d = defer.maybeDeferred( self._getInitializationCallback() )
+        d.addCallback( self._initEncryptionKey )
         d.addCallback( self._startConfigCycle )
         d.addCallback( self._startMaintenance )
         d.addErrback( self._errorStop )
         return d
+
+    @defer.inlineCallbacks
+    def _initEncryptionKey(self, prv_cb_result=None):
+        # encrypt dummy msg in order to initialize the encryption key
+        data = yield self._configProxy.encrypt("Hello") # block until we get the key
+        if data: # encrypt returns None if an exception is raised
+            self.encryptionKeyInitialized = True
+            self.log.info("Daemon's encryption key initialized")
 
     def watchdogCycleTime(self):
         """
@@ -360,6 +403,26 @@ class CollectorDaemon(RRDDaemon):
                 eventCopy['device_guid'] = guid
         return eventCopy
 
+    def should_trace_metric(self, metric, contextkey):
+        """
+        Tracer implementation - use this function to indicate whether a given
+        metric/contextkey combination is to be traced.
+        :param metric: name of the metric in question 
+        :param contextkey: context key of the metric in question
+        :return: boolean indicating whether to trace this metric/key
+        """
+        tests = []
+        if self.options.traceMetricName:
+            tests.append((self.options.traceMetricName, metric))
+        if self.options.traceMetricKey:
+            tests.append((self.options.traceMetricKey, contextkey))
+
+        result = [bool(re.search(exp, subj)) for exp, subj in tests]
+
+        return len(result) > 0 and all(result)
+
+
+    @defer.inlineCallbacks
     def writeMetric(self, contextKey, metric, value, metricType, contextId,
                     timestamp='N', min='U', max='U',
                     threshEventData={}, deviceId=None, contextUUID=None,
@@ -386,23 +449,31 @@ class CollectorDaemon(RRDDaemon):
             'contextUUID': contextUUID,
             'key': contextKey
         }
+        if self.should_trace_metric(metric, contextKey):
+            tags['mtrace'] = "{}".format(int(time.time()))
+
         metric_name = metric
         if deviceId:
             tags['device'] = deviceId
-            metric_name = metrics.ensure_prefix(deviceId, metric_name)
-
-        # write the raw metric to Redis
-        self._metric_writer.write_metric(metric_name, value, timestamp, tags)
 
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
+            if metricType == 'COUNTER' and min == 'U':
+                # COUNTER implies only positive derivatives are valid.
+                min = 0
+
             dkey = "%s:%s" % (contextUUID, metric)
             value = self._derivative_tracker.derivative(
-                dkey, (int(value), timestamp), min, max)
+                dkey, (float(value), timestamp), min, max)
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric,
+            # write the  metric to Redis
+            try:
+                yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
+            except Exception as e:
+                self.log.debug("Error sending metric %s", e)
+            yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 
     def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
@@ -414,10 +485,14 @@ class CollectorDaemon(RRDDaemon):
             contextId = metadata['contextId']
             deviceId = metadata['deviceId']
             contextUUID = metadata['contextUUID']
+            if metadata:
+                metric_name = metrics.ensure_prefix(metadata, metric)
+            else:
+                metric_name = metric
         except KeyError as e:
             raise Exception("Missing necessary metadata: %s" % e.message)
         deviceUUID = metadata.get('deviceUUID')
-        return self.writeMetric(key, metric, value, metricType, contextId,
+        return self.writeMetric(key, metric_name, value, metricType, contextId,
                 timestamp, min, max, threshEventData, deviceId, contextUUID,
                 deviceUUID)
 
@@ -434,7 +509,7 @@ class CollectorDaemon(RRDDaemon):
 
         metadata = json.loads(metricinfo)
         # reroute to new writeMetric method
-        self.writeMetricWithMetadata(
+        return self.writeMetricWithMetadata(
                 metric,
                 value,
                 rrdType,
@@ -495,10 +570,10 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("remote_updateDeviceConfigs: workerid %s processing %s device configs", self.options.workerid, len(configs))
         for config in configs:
             self.remote_updateDeviceConfig(config)
-            
+
     def remote_notifyConfigChanged(self):
         """
-        Called from zenhub to notify that the entire config should be updated  
+        Called from zenhub to notify that the entire config should be updated
         """
         if self.reconfigureTimeout and self.reconfigureTimeout.active():
             # We will run along with the already scheduled task
@@ -587,7 +662,11 @@ class CollectorDaemon(RRDDaemon):
                     task_.startDelay = 0
                 else:
                     task_.startDelay = startDelay
-            self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            try:
+                self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            except ValueError:
+                self.log.exception("Error adding device config")
+                continue
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):
@@ -598,6 +677,10 @@ class CollectorDaemon(RRDDaemon):
             # all pending tasks have completed
             if not self.options.cycle:
                 self._pendingTasks.append(taskName)
+        # put tasks on pause after configuration update to prevent unnecessary collections ZEN-25463
+        if configId in self._unresponsiveDevices:
+            self.log.debug("Pausing tasks for device %s", configId)
+            self._scheduler.pauseTasksForConfig(configId)
 
         return True
 
@@ -630,7 +713,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("purgeOmittedDevices: deletedConfigs=%s", ','.join(deletedDevices))
         for configId in deletedDevices:
             self._deleteDevice(configId)
-            
+
     def _deleteDevice(self, deviceId):
         self.log.debug("Device %s deleted" % deviceId)
 
@@ -642,7 +725,7 @@ class CollectorDaemon(RRDDaemon):
     def _errorStop(self, result):
         """
         Twisted callback to receive fatal messages.
-        
+
         @param result: the Twisted failure
         @type result: failure object
         """
@@ -705,10 +788,6 @@ class CollectorDaemon(RRDDaemon):
             log.debug("Starting Task Stat logging")
             loop = task.LoopingCall(self._displayStatistics, verbose=True)
             loop.start(self.options.logTaskStats, now=False)
-
-        log.debug("Starting Statistic posting")
-        loop = task.LoopingCall(self._postStatistics)
-        loop.start(self.options.writeStatistics, now=False)
 
         interval = self.preferences.cycleInterval
         self.log.debug("Initializing maintenance Cycle")
@@ -780,7 +859,7 @@ class CollectorDaemon(RRDDaemon):
                 self._scheduler.addTask(task, now=True)
             self.addedPostStartupTasks = True
 
-    def _postStatistics(self):
+    def postStatisticsImpl(self):
         self._displayStatistics()
 
         # update and post statistics if we've been configured to do so
@@ -806,6 +885,10 @@ class CollectorDaemon(RRDDaemon):
 
             stat = self._statService.getStatistic("missedRuns")
             stat.value = self._scheduler.missedRuns
+
+
+            diff = self.metricWriter().dataPoints - self._dataPointsMetric.count
+            self._dataPointsMetric.mark(diff)
 
             self._statService.postStatistics(self.rrdStats)
 
@@ -885,3 +968,28 @@ class StatisticsService(object):
             # counter is an ever-increasing value, but otherwise...
             if stat.type != 'COUNTER':
                 stat.value = 0
+
+def addWorkerOptions(parser):
+    parser.add_option('--dispatch',
+                           dest='configDispatch',
+                           type='string',
+                           help = SUPPRESS_HELP)
+    parser.add_option('--workerid',
+                           dest = 'workerid',
+                           type = 'int',
+                           default = 0,
+                           help = SUPPRESS_HELP)
+    parser.add_option('--workers',
+                           type="int",
+                           default=1,
+                           help = SUPPRESS_HELP)
+
+def parseWorkerOptions(options):
+    dispatchFilterName = options.get('configDispatch', '') if options else ''
+    filterFactories = dict(getUtilitiesFor(IConfigurationDispatchingFilter))
+    filterFactory = filterFactories.get(dispatchFilterName, None) or \
+                    filterFactories.get('', None)
+    if filterFactory:
+        filter = filterFactory.getFilter(options)
+        log.debug("Filter configured: %s:%s", filterFactory, filter)
+        return filter

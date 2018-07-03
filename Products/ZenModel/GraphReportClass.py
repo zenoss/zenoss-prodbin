@@ -35,7 +35,7 @@ def manage_addGraphReportClass(context, id, title = None, REQUEST = None):
             'Report Organizer Created',
             'Report organizer %s was created.' % id
         )
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 addGraphReportClass = DTMLFile('dtml/addGraphReportClass',globals())
 

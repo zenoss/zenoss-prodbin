@@ -10,7 +10,7 @@
 
 """ZenDaemon
 
-Base class for making deamon programs
+Base class for making daemon programs
 """
 
 import re
@@ -21,6 +21,7 @@ import socket
 import logging
 
 from twisted.python import log as twisted_log
+from twisted.logger import globalLogBeginner
 
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.CmdBase import CmdBase
@@ -152,6 +153,9 @@ class ZenDaemon(CmdBase):
         """
         Create formating for log entries and set default log level
         """
+        # Initialize twisted logging to go nowhere. (it may be re-enabled by SIGUSR1)
+        globalLogBeginner.beginLoggingTo([lambda x: None], redirectStandardIO=False, discardBuffer=True)
+
         # Setup python logging module
         rootLog = logging.getLogger()
         rootLog.setLevel(logging.WARN)
@@ -161,8 +165,14 @@ class ZenDaemon(CmdBase):
         formatter = logging.Formatter(
                 '%(asctime)s %(levelname)s %(name)s: %(message)s')
 
+        if self.options.logfileonly:
+            #clear out existing handlers
+            hdlrs = rootLog.handlers
+            for hdlr in hdlrs:
+                rootLog.removeHandler(hdlr)
+
         if self.options.watchdogPath or self.options.daemon \
-                or self.options.duallog:
+                or self.options.duallog or self.options.logfileonly:
             logdir = self.checkLogpath() or zenPath("log")
 
             handler = logging.handlers.RotatingFileHandler(
@@ -174,7 +184,8 @@ class ZenDaemon(CmdBase):
             handler.setFormatter(formatter)
             rootLog.addHandler(handler)
 
-        if not (self.options.watchdogPath or self.options.daemon):
+        if not (self.options.watchdogPath or self.options.daemon \
+                        or self.options.logfileonly):
             # We are logging to the console
             # Find the stream handler and make it match our desired log level
             if self.options.weblog:
@@ -403,6 +414,9 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('--duallog', default=False,
                 dest='duallog', action="store_true",
                 help="Log to console and log file")
+        self.parser.add_option('--logfileonly', default=False,
+                dest='logfileonly', action="store_true",
+                help="Log to log file and not console")
         self.parser.add_option('--weblog', default=False,
                 dest='weblog', action="store_true",
                 help="output log info in HTML table format")
@@ -419,3 +433,8 @@ class ZenDaemon(CmdBase):
                 dest='socketOption', default=[], action='append',
                 help="Set listener socket options. "
                 "For option details: man 7 socket")
+        self.parser.add_option('--heartbeattimeout',
+                dest='heartbeatTimeout',
+                type='int',
+                help="Set a heartbeat timeout in seconds for a daemon",
+                default=900)

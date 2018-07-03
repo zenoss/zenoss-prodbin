@@ -35,7 +35,7 @@ def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
     ci.compPath = compPath
     ci.sequence = sequence
     if REQUEST is not None:
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url_path() +'/manage_main') 
 
 addCollectionItem = DTMLFile('dtml/addCollectionItem',globals())
 

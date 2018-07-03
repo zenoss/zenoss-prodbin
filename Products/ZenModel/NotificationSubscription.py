@@ -34,7 +34,7 @@ def manage_addNotificationSubscriptionManager(context, REQUEST=None):
     nsm = NotificationSubscriptionManager(NotificationSubscriptionManager.root)
     context._setObject(NotificationSubscriptionManager.root, nsm)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 class NotificationSubscriptionManager(ZenModelRM):
     """Manage notification subscriptions.
@@ -75,7 +75,7 @@ def manage_addNotificationSubscription(context, id, title = None, REQUEST = None
     ns = NotificationSubscription(id, title)
     context._setObject(id, ns)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 class NoneDefaultingDict(dict):
     def __missing__(self, key):

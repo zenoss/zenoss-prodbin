@@ -135,8 +135,14 @@ class MinMaxThreshold(ThresholdClass):
                 evaluated = talesEval(express, context)
                 value = evaluated
             except:
+                nodeName = context.getNodeName()
+                if nodeName == 'Device':
+                    location = '{} of Device {}'.format(self.dsnames, context.id)
+                else:
+                    location = '{} of {} {} in Device {}'.format(self.dsnames, nodeName, context.id, context.device().id)
+
                 msg= "User-supplied Python expression (%s) for %s caused error: %s" % (
-                           value, readablePropName, self.dsnames)
+                           value, readablePropName, location)
                 log.error(msg)
                 raise pythonThresholdException(msg)
                 value = None
@@ -322,13 +328,15 @@ class MinMaxThresholdInstance(MetricThresholdInstance):
                 return []
 
             try:
-                minval = rpneval(minval, rpn)
+                if minval is not NaN:
+                    minval = rpneval(minval, rpn)
             except:
                 minval= 0
                 self.raiseRPNExc()
 
             try:
-                maxval = rpneval(maxval, rpn)
+                if maxval is not NaN:
+                    maxval = rpneval(maxval, rpn)
             except:
                 maxval= 0
                 self.raiseRPNExc()

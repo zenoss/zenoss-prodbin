@@ -13,7 +13,7 @@ Zuul facades are part of the Python API.  The main functions of facades are
 objects representing objects related to the retrieved object, and (2) given an
 info object bind its properties to a ZenModel object and save it. The UID is
 typically an acquisition path, e.g. '/zport/dmd/Devices'. Facades use an
-ICatalogTool to search for the ZenModel object using the UID.
+IModelCatalogTool to search for the ZenModel object using the UID.
 
 Documentation for the classes and methods in this module can be found in the
 definition of the interface that they implement.
@@ -21,38 +21,40 @@ definition of the interface that they implement.
 
 import logging
 import re
-from itertools import imap
+from itertools import imap, islice
 from Acquisition import aq_parent
+from zope.component import getUtility
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, Generic
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In, MatchGlob
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
-    ITreeFacade, IInfo, ICatalogTool, IOrganizerInfo
+    ITreeFacade, IInfo, IOrganizerInfo
 )
 from Products.Zuul.utils import unbrain, get_dmd, UncataloguedObjectException
-from Products.Zuul.tree import SearchResults
+from Products.Zuul.tree import SearchResults, StaleResultsException
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 log = logging.getLogger('zen.Zuul')
 
 organizersToClass = {
     "groups": "DeviceGroup",
     "systems": "System",
-    "location": "Location",
-    "deviceClass": "DeviceClass"
+    "location": "Location"
 }
 organizersToPath = {
     "groups": "Groups",
     "systems": "Systems",
-    "location": "Locations",
-    "deviceClass": "Devices"
+    "location": "Locations"
 
 }
 
@@ -77,6 +79,7 @@ class ZuulFacade(object):
             return get_dmd()
 
     def _getObject(self, uid):
+        uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
         try:
             obj = self._dmd.unrestrictedTraverse(str(uid))
         except Exception, e:
@@ -137,7 +140,7 @@ class TreeFacade(ZuulFacade):
         raise NotImplementedError
 
     def deviceCount(self, uid=None):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
     def validRegex(self, r):
@@ -149,63 +152,71 @@ class TreeFacade(ZuulFacade):
 
     def findMatchingOrganizers(self, organizerClass, organizerPath, userFilter):
         filterRegex = '(?i)^%s.*%s.*' % (organizerPath, userFilter)
+        filterRegex = '/zport/dmd/{0}*{1}*'.format(organizerPath, userFilter)
         if self.validRegex(filterRegex):
             orgquery = (Eq('objectImplements','Products.ZenModel.%s.%s' % (organizerClass, organizerClass)) &
                         MatchRegexp('uid', filterRegex))
-            paths = [b.getPath() for b in ICatalogTool(self._dmd).search(query=orgquery)]
+            paths = [ "{0}".format(b.getPath()) for b in IModelCatalogTool(self._dmd).search(query=orgquery)]
             if paths:
-                return Generic('path', {'query':paths})
+                return In('path', paths)
 
     def getDeviceBrains(self, uid=None, start=0, limit=50, sort='name',
                         dir='ASC', params=None, hashcheck=None):
-        cat = ICatalogTool(self._getObject(uid))
+        return self.getObjectBrains(uid=uid, start=start, limit=limit, sort=sort,
+                                    dir=dir, params=params, hashcheck=hashcheck, types='Products.ZenModel.Device.Device')
+
+    def getObjectBrains(self, uid=None, start=0, limit=50, sort='name',
+                        dir='ASC', params=None, hashcheck=None, types=(), fields=[]):
+
+        cat = IModelCatalogTool(self._getObject(uid))
+
         reverse = bool(dir == 'DESC')
         qs = []
         query = None
         globFilters = {}
-        if params is None:
-            params = {}
+        prodStates = None
+        params = params if params else {}
         for key, value in params.iteritems():
             if key == 'ipAddress':
-                ip = ensureIp(value)
-                try:
-                    checkip(ip)
-                except IpAddressError:
-                    pass
-                else:
-                    if numbip(ip):
-                        minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('ipAddress', str(minip), str(maxip)))
+                qs.append(MatchGlob('text_ipAddress', '{}*'.format(value)))
+            elif key == 'productionState':
+                qs.append(Or(*[Eq('productionState', str(state))
+                             for state in value]))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
                 if not organizerQuery:
                     return []
                 qs.append(organizerQuery)
-            elif key == 'productionState':
-                qs.append(Or(*[Eq('productionState', str(state))
-                             for state in value]))
             else:
                 globFilters[key] = value
         if qs:
             query = And(*qs)
-        brains = cat.search(
-            'Products.ZenModel.Device.Device', start=start,
-            limit=limit, orderby=sort, reverse=reverse,
-            query=query, globFilters=globFilters, hashcheck=hashcheck
-        )
-        return brains
+
+        return cat.search(
+                types, start=start,
+                limit=limit, orderby=sort, reverse=reverse,
+                query=query, globFilters=globFilters, hashcheck=hashcheck, fields=fields)
+
 
     def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None, hashcheck=None):
+        params = params if params else {}
+        # Passing a key that's not an index in the catalog will
+        # cause a serious performance penalty.  Remove 'status' from
+        # the 'params' parameter before passing it on.
+        statuses = params.pop('status', None)
         brains = self.getDeviceBrains(uid, start, limit, sort, dir, params,
                                       hashcheck)
 
         # ZEN-10057 - Handle the case of empty results for a filter with no matches
         if not brains:
-            return SearchResults([], 0, [])
+            return SearchResults(iter([]), 0, '0')
 
-        devices = list(imap(IInfo, imap(unbrain, brains)))
+        devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
+
+        if statuses is not None and len(statuses) < 3:
+            devices = [d for d in devices if d.status in statuses]
 
         uuids = set(dev.uuid for dev in devices)
         if uuids:
@@ -219,7 +230,7 @@ class TreeFacade(ZuulFacade):
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
                      dir='ASC', params=None):
         # do the catalog search
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = bool(dir == 'DESC')
         brains = cat.search(self._instanceClass, start=start, limit=limit,
                             orderby=sort, reverse=reverse)
@@ -234,6 +245,8 @@ class TreeFacade(ZuulFacade):
         if id.startswith("/"):
             organizer = context.getOrganizer(id)
         else:
+            # call prepId for each segment.
+            id = '/'.join(context.prepId(s) for s in id.split('/'))
             organizer = context._getOb(id)
         organizer.description = description
         return IOrganizerInfo(organizer)
@@ -257,17 +270,16 @@ class TreeFacade(ZuulFacade):
         to move the organizer
         @param string organizerUid: unique id of the ogranizer we are moving
         """
-
         organizer = self._getObject(organizerUid)
         parent = organizer.getPrimaryParent()
         parent.moveOrganizer(targetUid, [organizer.id])
         target = self._getObject(targetUid)
-        # reindex all the devices under the organizer
+        # Get a list of the organizer's child objects to reindex
         childObjects = []
-        if isinstance(parent, DeviceOrganizer):
-            childObjects = parent.getSubDevices()
-        elif isinstance(parent, ComponentOrganizer):
-            childObjects = parent.getSubComponents()
+        if isinstance(organizer, DeviceOrganizer):
+            childObjects = organizer.getSubDevices()
+        elif isinstance(organizer, ComponentOrganizer):
+            childObjects = organizer.getSubComponents()
 
         for dev in childObjects:
             dev.index_object()
@@ -296,3 +308,4 @@ from .application import ApplicationFacade
 from .monitor import MonitorFacade
 from userfacade import UserFacade
 from .hostfacade import HostFacade
+from .modelqueryfacade import ModelQueryFacade

@@ -40,7 +40,7 @@ from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
-                                             IScheduledTask
+                                             IPausingScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SubConfigurationTaskSplitter,\
                                         TaskStates, \
@@ -146,6 +146,9 @@ class MySshClient(SshClient):
                                                self.port)
         self.tasks = set()
         self.is_expired = False     # TODO: placeholder; not implemented yet
+
+    def __str__(self):
+        return self.description
 
     def run(self):
         d = self.connect_defer = defer.Deferred()
@@ -289,8 +292,15 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         return self
 
     def getEventKey(self, point):
-        # fetch datapoint name from filename path and add it to the event key
-        return self.eventKey + '|' + point.rrdPath.split('/')[-1]
+        # get datapoint name and add it to the event key
+        dpName = point.rrdPath.split('/')[-1]
+        if dpName == '':
+            try:
+                dpName = point.dpName
+            except AttributeError:
+                dpName = ''
+
+        return self.eventKey + '|' + dpName
 
     def commandKey(self):
         "Provide a value that establishes the uniqueness of this command"
@@ -317,7 +327,7 @@ class SshPerformanceCollectionTask(BaseTask):
     A task that performs periodic performance collection for devices providing
     data via SSH connections.
     """
-    zope.interface.implements(IScheduledTask)
+    zope.interface.implements(IPausingScheduledTask)
 
     STATE_CONNECTING = 'CONNECTING'
     STATE_FETCH_DATA = 'FETCH_DATA'
@@ -374,6 +384,15 @@ class SshPerformanceCollectionTask(BaseTask):
         self.executed = 0
         self._lastErrorMsg = ''
 
+        self.manage_ip_event = {
+            'eventClass': Cmd_Fail,
+            'component': 'command',
+            'device': self._devId,
+            'summary': 'IP address not set, collection will be attempted\
+                        with host name',
+            'component' : COLLECTOR_NAME,
+        }
+
     def __str__(self):
         return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
                self.name, self.configId, len(self._datasources))
@@ -394,6 +413,11 @@ class SshPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
+            if not self._manageIp and self._useSsh:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Info)
+            else:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Clear)
+
             yield self._connector.connect(self)
 
             if self._useSsh:
@@ -413,7 +437,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                          summary=e.message,
                                          component=COLLECTOR_NAME,
                                          severity=Event.Error)
-            raise e
+            raise
         else:
             self._returnToNormalSchedule()
 
@@ -589,6 +613,7 @@ class SshPerformanceCollectionTask(BaseTask):
                 event['output'] = output
                 results.events.append(event)
 
+    @defer.inlineCallbacks
     def _storeResults(self, resultList):
         """
         Store the values in RRD files
@@ -603,14 +628,18 @@ class SshPerformanceCollectionTask(BaseTask):
                     'eventKey': datasource.getEventKey(dp),
                     'component': dp.component,
                 }
-                self._dataService.writeMetricWithMetadata(
-                    dp.dpName,
-                    value,
-                    dp.rrdType,
-                    min=dp.rrdMin,
-                    max=dp.rrdMax,
-                    threshEventData=threshData,
-                    metadata=dp.metadata)
+                try:
+                    yield self._dataService.writeMetricWithMetadata(
+                        dp.dpName,
+                        value,
+                        dp.rrdType,
+                        min=dp.rrdMin,
+                        max=dp.rrdMax,
+                        threshEventData=threshData,
+                        metadata=dp.metadata)
+                except Exception, e:
+                    log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(dp.metadata, e))
+
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)
@@ -663,6 +692,12 @@ class SshPerformanceCollectionTask(BaseTask):
         if self._lastErrorMsg:
             display += "%s\n" % self._lastErrorMsg
         return display
+
+    def pause(self):
+        self.cleanup()
+
+    def resume(self):
+        pass
 
 
 if __name__ == '__main__':

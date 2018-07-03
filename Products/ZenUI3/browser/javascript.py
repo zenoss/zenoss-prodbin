@@ -12,6 +12,7 @@ import os
 import Globals
 import zope.interface
 import md5
+from urlparse import urljoin
 from interfaces import IMainSnippetManager
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
     JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
@@ -22,10 +23,37 @@ from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
 from Products.ZenUtils.extdirect.zope.metaconfigure import allDirectRouters
 from zope.publisher.browser import TestRequest
 from zope.component import getAdapter
+from Products.ZenUtils.Utils import monkeypatch
 from Products.ZenModel.ZVersion import VERSION
 from Products.Zuul.decorators import memoize
 
+from .resources import COMPILED_JS_EXISTS
+
+
 dummyRequest = TestRequest()
+
+# this will contained every registered resource directory
+_registered_resources = []
+
+
+@monkeypatch('Products.Five.browser.metaconfigure')
+def resourceDirectory(*args, **kwargs):
+    """
+    There isn't a way to ask the site manager for a list of registered
+    resource directories and since they are defined in zenpacks we don't
+    know the list ahead of time.
+    This is used so we can look for JS test files instead of requiring each one
+    to be explicitly registered somehow.
+    """
+    global _registered_resources
+    # will be name and directory
+    _registered_resources.append(kwargs)
+    return original(*args, **kwargs)
+
+
+def getAllZenPackResources():
+    # make a copy so the original isn't mutated
+    return [x for x in _registered_resources if "zenpack" in x['directory'].lower()]
 
 @memoize
 def getPathModifiedTime(path):
@@ -45,11 +73,10 @@ SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 LINK_TAG_SRC_TEMPLATE = '<link rel="stylesheet" type="text/css" href="%s"></link>\n'
 
 
+def absolutifyPath(path):
+    return urljoin('/zport/dmd', path)
+getVersionedPath = absolutifyPath
 
-
-def getVersionedPath(path):
-    token = getPathModifiedTime(path) or VERSION
-    return '%s?v=%s' % (path, token)
 
 class MainSnippetManager(JavaScriptSnippetManager):
     """
@@ -76,22 +103,21 @@ class CSSSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(LINK_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(LINK_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)
         return js
 
-    
+
 class JavaScriptSrcViewlet(ViewletBase):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None
 
     def render(self):
-        val = None
-        if self.path:
-            val = SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(self.path)
-        return val
+        if not self.path:
+            return
+        return SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(self.path)
 
 
 class JavaScriptSrcBundleViewlet(ViewletBase):
@@ -103,7 +129,7 @@ class JavaScriptSrcBundleViewlet(ViewletBase):
         vals = []
         if self.paths:
             for path in self.paths.split():
-                vals.append(SCRIPT_TAG_SRC_TEMPLATE % getVersionedPath(path))
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % absolutifyPath(path))
         js = ''
         if vals:
             js = "".join(vals)
@@ -125,13 +151,23 @@ class ExtDirectViewlet(JavaScriptSrcViewlet):
         path = self.path  + "?v=" + self.directHash
         return SCRIPT_TAG_SRC_TEMPLATE % path
 
+
 class ZenossAllJs(JavaScriptSrcViewlet):
+    """
+    When Zope is in debug mode, we want to use the development JavaScript source
+    files, so we don't have to make changes to a single huge file. If Zope is in
+    production mode and the compressed file is not available, we will use the
+    source files instead of just giving up.
+    """
     zope.interface.implements(IJavaScriptSrcViewlet)
 
-    def render(self):
-        token = getPathModifiedTime("/++resource++zenui/js/deploy/zenoss-compiled.js") or VERSION
-        path = "%s?v=%s" %("zenoss-all.js", token)
-        return SCRIPT_TAG_SRC_TEMPLATE % (path)
+    def update(self):
+        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
+            # Use the view that creates concatenated js on the fly from disk
+            self.path = "/zport/dmd/zenoss-all.js"
+        else:
+            # Use the compiled javascript
+            self.path = "/++resource++zenui/js/deploy/zenoss-compiled.js"
 
 
 class ExtAllJs(JavaScriptSrcViewlet):
@@ -207,6 +243,7 @@ class ZenossData(JavaScriptSnippet):
         productionStates = [dict(name=s[0],
                                  value=int(s[1])) for s in
                             self.context.dmd.getProdStateConversions()]
+
         # timezone
         # to determine the timezone we look in the following order
         # 1. What the user has saved
@@ -214,13 +251,21 @@ class ZenossData(JavaScriptSnippet):
         # 3. the timezone of the browser
         user = self.context.dmd.ZenUsers.getUserSettings()
         timezone = user.timezone
+        date_fmt = user.dateFormat
+        time_fmt = user.timeFormat
         snippet = """
+          (function(){
+            Ext.namespace('Zenoss.env');
+
             Zenoss.env.COLLECTORS = %r;
             Zenoss.env.priorities = %r;
             Zenoss.env.productionStates = %r;
             Zenoss.USER_TIMEZONE = "%s" || jstz.determine().name();
-        """ % ( collectors, priorities, productionStates, timezone )
-        return snippet
+            Zenoss.USER_DATE_FORMAT = "%s" || "YYYY/MM/DD";
+            Zenoss.USER_TIME_FORMAT = "%s" || "HH:mm:ss";
+          })();
+        """ % ( collectors, priorities, productionStates, timezone, date_fmt, time_fmt )
+        return SCRIPT_TAG_TEMPLATE % snippet
 
 class BrowserState(JavaScriptSnippet):
     """

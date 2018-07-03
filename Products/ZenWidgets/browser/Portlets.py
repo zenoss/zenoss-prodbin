@@ -12,7 +12,7 @@ import re
 import json
 
 from Products.Five.browser import BrowserView
-from Products.AdvancedQuery import Eq, Or
+from Products.AdvancedQuery import Eq, In, And
 
 from Products.ZenUtils.Utils import relative_time
 from Products.Zuul import getFacade
@@ -29,6 +29,7 @@ from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 import logging
 log = logging.getLogger('zen.portlets')
@@ -88,17 +89,24 @@ class ProductionStatePortletView(BrowserView):
                 {'Device':'<a href=/>', 'Prod State':'Maintenance'},
             ]}"
         """
-        devroot = self.context.dmd.Devices
+
         if isinstance(prodStates, basestring):
             prodStates = [prodStates]
-        orderby, orderdir = 'id', 'asc'
-        catalog = getattr(devroot, devroot.default_catalog)
-        queries = []
-        for state in prodStates:
-            queries.append(Eq('getProdState', state))
-        query = Or(*queries)
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+
+        def getProdStateInt(prodStateString):
+            for t in self.context.getProdStateConversions():
+                if t[0] == prodStateString:
+                    return t[1]
+
+        numericProdStates = [getProdStateInt(p) for p in prodStates]
+
+        catalog = IModelCatalogTool(self.context.getPhysicalRoot().zport.dmd)
+        query = In('productionState', numericProdStates)
+
+        query = And(query, Eq('objectImplements', 'Products.ZenModel.Device.Device'))
+        objects = list(catalog.search(query=query, orderby='id', fields="uuid"))
         devs = (x.getObject() for x in objects)
+
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
             if not self.context.checkRemotePerm(ZEN_VIEW, dev): continue
@@ -211,7 +219,7 @@ class DeviceIssuesPortletView(BrowserView):
             dev = manager.getObject(uuid)
             if dev and isinstance(dev, Device):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
-                    or dev.productionState < zem.prodStateDashboardThresh
+                    or dev.getProductionState() < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):
                     continue
                 alink = dev.getPrettyLink()

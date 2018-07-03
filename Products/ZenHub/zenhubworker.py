@@ -11,11 +11,12 @@
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
-from Products.ZenHub.zenhub import LastCallReturnValue
+from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
 from Products.DataCollector.plugins import DataMaps
@@ -31,6 +32,9 @@ import cPickle as pickle
 import time
 import signal
 import os
+from metrology import Metrology
+
+from Products.ZenUtils.debugtools import ContinuousProfiler
 
 IDLE = "None/None"
 class _CumulativeWorkerStats(object):
@@ -54,12 +58,17 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
 
     def __init__(self):
+        signal.signal(signal.SIGUSR2, signal.SIG_IGN)
         ZCmdBase.__init__(self)
-
+        if self.options.profiling:
+            self.profiler = ContinuousProfiler('zenhubworker', log=self.log)
+            self.profiler.start()
         self.current = IDLE
         self.currentStart = 0
-        self.numCalls = 0
+        self.numCalls = Metrology.meter("zenhub.workerCalls")
         try:
+            self.log.debug("establishing SIGUSR1 signal handler")
+            signal.signal(signal.SIGUSR1, self.sighandler_USR1)
             self.log.debug("establishing SIGUSR2 signal handler")
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
         except ValueError:
@@ -72,7 +81,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         loadPlugins(self.dmd)
         self.pid = os.getpid()
         self.services = {}
-        factory = ReconnectingPBClientFactory()
+        factory = ReconnectingPBClientFactory(pingPerspective=False)
         self.log.debug("Connecting to %s:%d",
                        self.options.hubhost,
                        self.options.hubport)
@@ -84,7 +93,24 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         def stop(*args):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
-        factory.startLogin(c)
+        factory.setCredentials(c)
+
+        self.log.debug("Creating async MetricReporter")
+        daemonTags = {
+            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
+            'zenoss_monitor': self.options.monitor,
+            'internal': True
+        }
+
+        def stopReporter():
+            if self.metricreporter:
+                return self.metricreporter.stop()
+
+        # Order of the shutdown triggers matter. Want to stop reporter first, calling metricWriter() below
+        # registers shutdown triggers for the actual metric http and redis publishers.
+        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
+        self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
+        self.metricreporter.start()
 
     def audit(self, action):
         """
@@ -92,8 +118,19 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         """
         pass
 
+    def sighandler_USR1(self, signum, frame):
+        try:
+            if self.options.profiling:
+                self.profiler.dump_stats()
+            super(zenhubworker, self).sighandler_USR1(signum, frame)
+        except:
+            pass
+
     def sighandler_USR2(self, *args):
-        self.reportStats()
+        try:
+            self.reportStats()
+        except:
+            pass
 
     def reportStats(self):
         now = time.time()
@@ -108,9 +145,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                 svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
                 for method,stats in sorted(svcob.callStats.items()):
                     loglines.append(" - %-48s %-32s %8d %12.2f %8.2f %s" %
-                                    (svc, method, 
-                                     stats.numoccurrences, 
-                                     stats.totaltime, 
+                                    (svc, method,
+                                     stats.numoccurrences,
+                                     stats.totaltime,
                                      stats.totaltime/stats.numoccurrences if stats.numoccurrences else 0.0,
                                      isoDateTime(stats.lasttime)))
             self.log.debug('\n'.join(loglines))
@@ -118,8 +155,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             self.log.debug("no service activity statistics")
 
     def gotPerspective(self, perspective):
-        "Once we are connected to zenhub, register ourselves"
-        d = perspective.callRemote('reportingForWork', self)
+        """Once we are connected to zenhub, register ourselves"""
+        d = perspective.callRemote('reportingForWork', self, pid=self.pid)
         def reportProblem(why):
             self.log.error("Unable to report for work: %s", why)
             reactor.stop()
@@ -189,8 +226,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         args, kw = pickle.loads(joinedArgs)
 
         # see if this is our last call
-        self.numCalls += 1
-        lastCall = self.numCalls >= self.options.calllimit
+        self.numCalls.mark()
+        lastCall = self.numCalls.count >= self.options.calllimit
 
         def runOnce():
             res = m(*args, **kw)
@@ -206,7 +243,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         try:
             for i in range(4):
                 try:
-                    yield self.async_syncdb()
+                    if i > 0:
+                        #only sync for retries as it already happened above
+                        yield self.async_syncdb()
                     result = runOnce()
                     defer.returnValue(result)
                 except RemoteConflictError, ex:
@@ -231,6 +270,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         self.log.info("Shutting down")
         self.reportStats()
         self.log.info("Stopping reactor")
+        if self.options.profiling:
+            self.profiler.stop()
         try:
             reactor.stop()
         except error.ReactorNotRunning:
@@ -263,6 +304,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                type='int',
                                help="Maximum number of remote calls before restarting worker",
                                default=200)
+        self.parser.add_option('--profiling', dest='profiling',
+                               action='store_true', default=False,
+                               help="Run with profiling on")
+        self.parser.add_option('--monitor', dest='monitor',
+                               default='localhost',
+                               help='Name of the distributed monitor this hub runs on')
+        self.parser.add_option('--workernum',
+                               dest='workernum',
+                               type='int',
+                               default=0)
 
 if __name__ == '__main__':
     zhw = zenhubworker()

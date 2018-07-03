@@ -16,6 +16,7 @@ from interfaces import ISecurityManager, IPermissionsDeclarationViewlet
 from AccessControl import getSecurityManager
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul.interfaces import IAuthorizationTool
+from collective.beaker.interfaces import ISession
 
 ZAUTH_COOKIE = 'ZAuthToken'
 
@@ -58,7 +59,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         """
         self._setAuthorizationCookie()
         permissions = self.permissionsForCurrentContext()
-        managedObjectGuids = self.getManagedObjectGuids()
+        managedObjectGuids = self.getManagedObjectGuids(returnChildrenForRootObj=True)
         data = json(permissions)
         func = """
 <script type="text/javascript">
@@ -78,9 +79,11 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         return func
 
     def _setAuthorizationCookie(self):
+        session = ISession(self.context.REQUEST)
         authorization = IAuthorizationTool(self.context)
         token = authorization.createAuthToken(self.request)
-        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=True, http_only=True)
+
+        self.request.response.setCookie(ZAUTH_COOKIE, token['id'], path="/", secure=session.secure, http_only=True)
 
     def hasGlobalRoles(self):
         """
@@ -95,7 +98,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         """
         return permissionsForContext(self.context)
 
-    def getManagedObjectGuids(self):
+    def getManagedObjectGuids(self, returnChildrenForRootObj=False):
         """
         If the currently logged in user is a restricted user this will return
         all of the guids for items he can administer.
@@ -103,6 +106,5 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         guids = []
         us = self.context.dmd.ZenUsers.getUserSettings()
         if us.hasNoGlobalRoles():
-            for ar in us.getAllAdminRoles():
-                guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
+            guids = us.getAllAdminGuids(returnChildrenForRootObj=returnChildrenForRootObj)
         return guids

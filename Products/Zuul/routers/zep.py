@@ -14,17 +14,19 @@ Operations for Events.
 Available at:  /zport/dmd/evconsole_router
 """
 
-import time
+import cgi
 import logging
 import re
+import time
 from json import loads
-from AccessControl import getSecurityManager
+from lxml.html.clean import clean_html
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
+from zenoss.protocols.services import ServiceResponseError
+from AccessControl import getSecurityManager
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import isoToTimestamp
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
@@ -33,12 +35,13 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.Zuul.utils import get_dmd
 from Products.ZenUI3.browser.eventconsole.grid import column_config
-from Products.Zuul.interfaces import ICatalogTool
+from Products.ZenUI3.security.security import permissionsForContext
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
-from zenoss.protocols.services import ServiceResponseError
-from lxml.html.clean import clean_html
 
+READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
 log = logging.getLogger('zen.%s' % __name__)
 
@@ -62,14 +65,21 @@ class _FilterParser(object):
         numeric_details = [ d['key'] for d in zep_facade.getDetails() if d['type'] == 2 ]
 
         # Sets config variables
-        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor' ]
+        self.PARSEABLE_PARAMS = [ 'device', 'component', 'eventClass', 'ownerid', 'summary', 'message', 'monitor',
+                                  'agent', 'eventClassKey', 'eventGroup', 'eventKey', 'dedupid', 'evid' ]
         self.PARAM_TO_FIELD_MAPPING = { 'device': 'element_title',
                                         'component': 'element_sub_title',
                                         'eventClass': 'event_class',
                                         'ownerid': 'current_user_name',
                                         'summary': 'event_summary',
                                         'message' :'message',
-                                        'monitor': 'monitor' }
+                                        'monitor': 'monitor',
+                                        'agent': 'agent',
+                                        'eventClassKey': 'event_class_key',
+                                        'eventGroup': 'event_group',
+                                        'eventKey': 'event_key',
+                                        'dedupid': 'fingerprint',
+                                        'evid': 'uuid' }
         self.PARSEABLE_DETAILS = detail_list
         self.PARAM_TO_DETAIL_MAPPING = param_to_detail_mapping
         for detail in self.PARSEABLE_DETAILS:
@@ -200,9 +210,10 @@ class EventsRouter(DirectRouter):
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
         self.zep = Zuul.getFacade('zep', context)
-        self.catalog = ICatalogTool(context)
+        self.catalog = IModelCatalogTool(context)
         self.manager = IGUIDManager(context.dmd)
         self._filterParser = _FilterParser(self.zep)
+        self.use_permissions = False
 
     def _canViewEvents(self):
         """
@@ -213,13 +224,16 @@ class EventsRouter(DirectRouter):
         if not user.hasNoGlobalRoles():
             return True
         # make sure they have view permission on something
+        if len(user.getAllAdminRoles()) > 0:
+            self.use_permissions = True
         return len(user.getAllAdminRoles()) > 0
 
     def _timeRange(self, value):
         try:
             values = []
-            for t in value.split('/'):
-                values.append(int(isoToTimestamp(t)) * 1000)
+            splitter = ' TO ' if ' TO ' in value else '/'
+            for t in value.split(splitter):
+                values.append(float(t))
             return values
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
@@ -323,12 +337,21 @@ class EventsRouter(DirectRouter):
             return self.queryArchive(limit=limit, start=start, sort=sort,
                                      dir=dir, params=params, exclusion_filter=exclusion_filter, keys=keys, uid=uid,
                                      detailFormat=detailFormat)
-        # special case for dmd/Devices in which case we want to show all events
-        # by default events are not tagged with the root device classes because it would be on all events
-        if uid == "/zport/dmd/Devices":
-            uids = [x.getPrimaryId() for x in self.context.dmd.Devices.children()]
-        else:
-            uids = [uid]
+
+        def child_uids(org):
+            """Return list of uids for children of Organizer org."""
+            return [x.getPrimaryId() for x in org.children()]
+
+        # Events don't get tagged with the top-level organizers. We compensate
+        # for that here so that the events view for Devices, Groups, Systems,
+        # and Locations will show aggregation of all of the top-level
+        # organizers children.
+        uids = {
+            '/zport/dmd/Devices': child_uids(self.context.dmd.Devices),
+            '/zport/dmd/Locations': child_uids(self.context.dmd.Locations),
+            '/zport/dmd/Groups': child_uids(self.context.dmd.Groups),
+            '/zport/dmd/Systems': child_uids(self.context.dmd.Systems),
+            }.get(uid, [uid])
 
         exclude_params = self._filterParser.findExclusionParams(params)
         if len(exclude_params) > 0:
@@ -340,7 +363,8 @@ class EventsRouter(DirectRouter):
         filter = self._buildFilter(uids, params)
         if exclusion_filter is not None:
             exclusion_filter = self._buildFilter(uids, exclusion_filter)
-        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter, exclusion_filter=exclusion_filter)
+        events = self.zep.getEventSummaries(limit=limit, offset=start, sort=self._buildSort(sort,dir), filter=filter,
+                                            exclusion_filter=exclusion_filter, use_permissions=self.use_permissions)
         eventFormat = EventCompatInfo
         if detailFormat:
             eventFormat = EventCompatDetailInfo
@@ -381,6 +405,10 @@ class EventsRouter(DirectRouter):
         @rtype:   generator
         @return:  Generator returning events.
         """
+
+        if isinstance(params, basestring):
+            params = loads(params)
+
         if not self._canViewEvents():
             return
         includeFilter, excludeFilter = self._buildRequestFilters(uid, params, evids, excludeIds)
@@ -464,9 +492,13 @@ class EventsRouter(DirectRouter):
                 if not param_tags:
                     param_tags = ['dne'] # Filter everything (except "does not exist'). An empty tag list would be ignored.
 
+            status_filter = params.get('eventState', [])
+            if params.get('eventStateText', None):
+                status_filter = list(set(status_filter + params.get('eventStateText')))
+
             filter_params = {
                 'severity': params.get('severity'),
-                'status': [i for i in params.get('eventState', [])],
+                'status': status_filter,
                 'event_class': filter(None, [params.get('eventClass')]),
                 'first_seen': params.get('firstTime') and self._timeRange(params.get('firstTime')),
                 'last_seen': params.get('lastTime') and self._timeRange(params.get('lastTime')),
@@ -488,7 +520,13 @@ class EventsRouter(DirectRouter):
                 'message': params.get('message'),
             }
             parsed_params = self._filterParser.parseParams(params)
+            # ZEN23418: Add 1 sec to first_seen and last_seen range filters,
+            # so that it includes {events: event['{first|last}_seen'] <= params['{firstTime|lastTime}']}
             filter_params.update(parsed_params)
+            if filter_params['first_seen'] is not None and len(filter_params['first_seen']) == 2:
+                filter_params['first_seen'][1] = filter_params['first_seen'][1]+1000
+            if filter_params['last_seen'] is not None and len(filter_params['last_seen']) == 2:
+                filter_params['last_seen'][1] = filter_params['last_seen'][1]+1000
 
             parsed_details = self._filterParser.parseDetails(details)
             if len(parsed_details) > 0:
@@ -513,7 +551,7 @@ class EventsRouter(DirectRouter):
 
         context_uuids = []
         for context in contexts:
-            if context and context.id not in ('Events', 'dmd'):
+            if context and context.id not in ('Events', 'Devices', 'dmd'):
                 try:
                     # make a specific instance of tag_filter just for the context tag.
                     if not context_uuids:
@@ -557,11 +595,41 @@ class EventsRouter(DirectRouter):
         else:
             raise Exception('Could not find event %s' % evid)
 
+    def _hasPermissionsForAllEvents(self, permission, evids):
+        try:
+            dmd = get_dmd()
+            target_permission = permission.lower()
+            events_filter = self._buildFilter(uids=None, params={}, specificEventUuids=evids)
+            event_summaries = self.zep.getEventSummaries(0, filter=events_filter, use_permissions=True)
+            devices = set()
+            for summary in event_summaries['events']:
+                d = EventCompatInfo(self.context.dmd, summary)
+                dev_obj = dmd.getObjByPath(d.device['uid'])
+                devices.add(dev_obj)
+            for device in devices:
+                if not permissionsForContext(device)[target_permission]:
+                    return False
+            return True
+        except Exception as e:
+            log.debug(e)
+            return False
+
     def manage_events(self, evids=None, excludeIds=None, params=None, uid=None, asof=None, limit=None, timeout=None):
+        user = self.context.dmd.ZenUsers.getUserSettings()
         if Zuul.checkPermission(ZEN_MANAGE_EVENTS, self.context):
             return True
         if params.get('excludeNonActionables'):
             return Zuul.checkPermission('ZenCommon', self.context)
+        if user.hasNoGlobalRoles():
+            try:
+                if uid is not None:
+                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+                else:
+                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+            except (AttributeError, KeyError):
+                return False
+            manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+            return organizer_name in manage_events_for
         return False
 
     def write_event_logs(self, evid=None, message=None):
@@ -617,8 +685,8 @@ class EventsRouter(DirectRouter):
             log.debug('Found specific event ids, adding to params.')
             includeUuids = evids
 
-        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
         exclude_params = self._filterParser.findExclusionParams(params)
+        includeFilter = self._buildFilter([uid], params, specificEventUuids=includeUuids)
 
         # the only thing excluded in an event filter is a list of event uuids
         # which are passed as EventTagFilter using the OR operator.
@@ -825,9 +893,9 @@ class EventsRouter(DirectRouter):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
 
-
     @require(ZEN_MANAGE_EVENTS)
-    def add_event(self, summary, device, component, severity, evclasskey, evclass=None):
+    def add_event(self, summary, device, component, severity, evclasskey,
+                  evclass=None, monitor=None, **kwargs):
         """
         Create a new event.
 
@@ -845,11 +913,21 @@ class EventsRouter(DirectRouter):
         @type  evclass: string
         @param evclass: Event class for the new event
         @rtype:   DirectResponse
+
+        For other parameters please see class Event.
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
-            self.zep.create(summary, severity, device, component, eventClassKey=evclasskey,
-                            eventClass=evclass)
+            # Fix for ZEN-28005 to thwart XSS attacks from incoming events
+            summary = cgi.escape(summary)
+            device = cgi.escape(device)
+            component = cgi.escape(component)
+            evclasskey = cgi.escape(evclasskey)
+            if evclass is not None and len(evclass) > 0:
+                evclass = cgi.escape(evclass)
+            self.zep.create(summary, severity, device, component,
+                            eventClassKey=evclasskey, eventClass=evclass,
+                            monitor=monitor, **kwargs)
             return DirectResponse.succeed("Created event")
         except NoConsumersException:
             # This occurs if the event is queued but there are no consumers - i.e. zeneventd is not
@@ -1041,7 +1119,8 @@ class EventsRouter(DirectRouter):
         """
         msg, url = self.zep.createEventMapping(evrows, evclass)
         if url:
-            msg += " | "+url.split('/dmd/')[1]
+            msg += " | " + url.split('/dmd/')[1]
+        audit('UI.Event.Classify', evrows, message=msg, event_class=evclass)
         return DirectResponse(msg, success=bool(url))
 
     @require(ZEN_MANAGE_EVENTS)

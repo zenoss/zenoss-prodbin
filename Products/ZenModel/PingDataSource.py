@@ -16,6 +16,7 @@ Defines datasource for zenping
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 import Products.ZenModel.RRDDataSource as RRDDataSource
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 PING_DATAPOINTS = (
     'rtt_avg',
@@ -58,11 +59,13 @@ class PingDataSource(RRDDataSource.RRDDataSource):
     def useZenCommand(self):
         return False
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'addDataPoints')
     def addDataPoints(self):
         for dp in PING_DATAPOINTS:
             if self.datapoints._getOb(dp, None) is None:
                 self.manage_addRRDDataPoint(dp)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
         '''validation, etc'''
         if REQUEST:

@@ -8,7 +8,7 @@
         //combo.doQuery(combo.allQuery, true);
     };
 
-    var clickToEditConfig = function(obj, superclass) {
+    var clickToEditConfig = function(obj) {
         return {
             constructor: function(config) {
                 var title = _t('Click to edit this field');
@@ -82,8 +82,6 @@
     };
 
     Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, {});
-
-
     Zenoss.ClickToEditField = Ext.extend(Zenoss.form.LinkField, clickToEditConfig(Zenoss.ClickToEditField));
     Ext.reg('clicktoedit', "Zenoss.ClickToEditField");
 
@@ -92,6 +90,96 @@
                                    clickToEditConfig(Zenoss.ClickToEditNoLink));
     Ext.reg('clicktoeditnolink', "Zenoss.ClickToEditNoLink");
 
+    // waits till user clicks to fetch and display
+    // link info
+    Ext.define("Zenoss.form.ClickToDisplayField", {
+        extend: "Zenoss.form.LinkField",
+        alias: ['widget.clicktodisplay'],
+        constructor: function(config){
+            this.getContext = config.getContext;
+            this.callParent([config]);
+        },
+        initComponent: function() {
+            this.callParent(arguments);
+
+            // set up the "Show Links" link
+            var a = document.createElement("a");
+            a.href = "#";
+            a.innerText = "Show Links";
+            this.displayLinkEl = new Ext.Element(a);
+            this.displayLinkEl.on("click", this.fetchLinks.bind(this));
+
+            // set up loading spinner
+            var spinner = document.createElement("div");
+            spinner.innerHTML = "<img style='height: 20px;' src='img/spinning_wheel_throbber.gif'>";
+            this.spinnerEl = new Ext.Element(spinner);
+
+            this.on("afterrender", function(){
+                this.bodyEl.appendChild(this.displayLinkEl);
+                this.bodyEl.appendChild(this.spinnerEl);
+                this.hideLinkList();
+                this.hideSpinner();
+            });
+
+            // get a reference to getInfo, and make sure
+            // it doesnt get batched
+            this.getInfo = Zenoss.util.isolatedRequest(REMOTE.getInfo);
+        },
+
+        // show and hide the "Show Links" link
+        showFetchLink: function(){
+            this.displayLinkEl.show();
+        },
+        hideFetchLink: function(){
+            this.displayLinkEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.displayLinkEl.hide();
+        },
+
+        showSpinner: function(){
+            this.spinnerEl.show();
+        },
+        hideSpinner: function(){
+            this.spinnerEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.spinnerEl.hide();
+        },
+
+        // show and hide the list of links
+        showLinkList: function(){
+            this.inputEl.show();
+        },
+        hideLinkList: function(){
+            // make inputEl hide using display
+            // rather than visibility
+            this.inputEl.setVisibilityMode(Ext.Element.DISPLAY);
+            this.inputEl.hide();
+        },
+
+        // fetch the list of links
+        fetchLinks: function(){
+            var contextUid = this.getContext();
+            if(!contextUid){
+                Zenoss.message.error("Unable to fetch links: cannot determine context uid");
+                return;
+            }
+
+            this.showSpinner();
+            this.hideFetchLink();
+
+            this.getInfo({keys: ["links"], uid: contextUid}, function(results){
+                this.hideSpinner();
+
+                if(!results.success){
+                    Zenoss.message.error("Unable to fetch links: "+ results.msg);
+                    this.showFetchLink();
+                    return;
+                }
+
+                var links = results.data ? results.data.links : "";
+                this.setValue(links);
+                this.showLinkList();
+            }.bind(this));
+        }
+    });
 
     function editManuInfo (vals, uid) {
         function name(uid) {
@@ -115,7 +203,7 @@
             listConfig: {
                 resizable: true, resizeHandles: 'e'
             },
-            listeners: {'select': function(combo, record, index){
+            listeners: {'select': function(combo, record){
                 record = record[0];
                 var productCombo = Ext.getCmp('hwproductcombo');
                 resetCombo(productCombo, record.data.name);
@@ -144,7 +232,7 @@
             listConfig: {
                 resizable: true, resizeHandles: 'e'
             },
-            listeners: {'select': function(combo, record, index){
+            listeners: {'select': function(combo, record){
                 record = record[0];
                 var productCombo = Ext.getCmp('osproductcombo');
                 resetCombo(productCombo, record.data.name);
@@ -190,7 +278,7 @@
                     var form = btn.refOwner.editForm.getForm(),
                         vals = form.getValues();
                     Ext.apply(vals, {uid:uid});
-                    REMOTE.setProductInfo(vals, function(r) {
+                    REMOTE.setProductInfo(vals, function() {
                         Ext.getCmp('device_overview').load();
                         win.destroy();
                     });
@@ -199,7 +287,7 @@
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
                 id: 'win-cancel-button',
-                handler: function(btn){
+                handler: function(){
                     win.destroy();
                 }
             }]
@@ -361,7 +449,7 @@
                         collector: vals.collector,
                         hashcheck: ''
                     };
-                    Zenoss.remote.DeviceRouter.setCollector(submitVals, function(data) {
+                    Zenoss.remote.DeviceRouter.setCollector(submitVals, function() {
                         Ext.getCmp('device_overview').load();
                     });
                     win.destroy();
@@ -370,7 +458,7 @@
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
                 id: 'editcollector-cancel-button',
-                handler: function(btn) {
+                handler: function() {
                     win.destroy();
                 }
             }]
@@ -434,10 +522,11 @@
                 ref: '../grouplist',
                 addGroup: function(group, displayOnly) {
                     if (group in this.groups) {
-                        if (this.groups[group] == 'del')
+                        if (this.groups[group] === 'del') {
                             this.groups[group] = '';
-                        else
+                        } else {
                             return;
+                        }
                     }
                     else {
                         this.groups[group] = displayOnly ? '' : 'add';
@@ -472,15 +561,17 @@
                     });
                     this.bubble(function() {this.doLayout();});
 
-                    if (displayOnly) return;
+                    if (displayOnly) {
+                        return;
+                    }
                     win.setHeight(win.getHeight() + this.getHeight() - oldHeight);
                 },
                 delGroup: function(group, panel) {
-                    if (this.groups[group] == 'add')
+                    if (this.groups[group] === 'add') {
                         delete this.groups[group];
-                    else
+                    } else {
                         this.groups[group] = 'del';
-
+                    }
                     var oldHeight = this.getHeight();
                     panel.destroy();
                     this.bubble(function() {this.doLayout();});
@@ -508,16 +599,16 @@
                             hashcheck: ''
                         };
 
-                        if (op == 'del') {
-                            submitVals['uid'] = config.dmdPrefix + group;
-                            Zenoss.remote.DeviceRouter.removeDevices(submitVals, function(data) {
+                        if (op === 'del') {
+                            submitVals.uid = config.dmdPrefix + group;
+                            Zenoss.remote.DeviceRouter.removeDevices(submitVals, function() {
                                 Ext.getCmp('device_overview').load();
                             });
                         }
-                        if (op == 'add') {
-                            submitVals['target'] = config.dmdPrefix + group;
-                            submitVals['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(submitVals.uids);
-                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                        if (op === 'add') {
+                            submitVals.target = config.dmdPrefix + group;
+                            submitVals.asynchronous = Zenoss.settings.deviceMoveIsAsync(submitVals.uids);
+                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function() {
                                 Ext.getCmp('device_overview').load();
                             });
                         }
@@ -528,7 +619,7 @@
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
                 id: 'editgroups-cancel-button',
-                handler: function(btn) {
+                handler: function() {
                     win.destroy();
                 }
             }]
@@ -590,7 +681,7 @@
                 text: _t('Cancel'),
                 xtype: 'DialogButton',
                 id: 'editlocation-cancel-button',
-                handler: function(btn) {
+                handler: function() {
                     win.destroy();
                 }
             }]
@@ -621,9 +712,10 @@
             text: _t('Save'),
             xtype:'button',
             ref: '../savebtn',
-            disabled: true,
+            disabled: Zenoss.Security.doesNotHavePermission('Manage Device') &&
+                      Zenoss.Security.doesNotHavePermission('Change Device Production State'),
             hidden: true,
-            handler: function(btn){
+            handler: function(){
                 this.refOwner.getForm().submit();
             }
         },{
@@ -640,12 +732,12 @@
         bodyCls: 'device-overview-form',
         style:{'background-color':'#fafafa'},
         listeners: {
-            add: function(me, field, index){
+            add: function(me, field){
                 if (isField(field)) {
                     this.onFieldAdd.call(this, field);
                 }
             },
-            validitychange: function(me, isValid, eOpts) {
+            validitychange: function(me, isValid) {
                 this.setButtonsDisabled(!isValid);
             }
         },
@@ -707,7 +799,7 @@
         _indexOfFieldName: function(name) {
             var idx = -1, items = this.getItems(), i;
             for ( i = 0; i < items.length; i++ ){
-                if (items[i].name == name){
+                if (items[i].name === name){
                     idx = i;
                     break;
                 }
@@ -784,7 +876,7 @@
                             xtype: 'clicktoeditnolink',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editConnectionInfo(this.contextUid);
                                 },
                                 scope: this
@@ -800,18 +892,18 @@
                         },{
                             fieldLabel: _t('First Seen'),
                             id: 'first-seen-label',
-                            name: 'firstSeen',
-                            xtype: "datedisplayfield"
+                            name: 'created_timestamp',
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Last Change'),
                             id: 'last-change-label',
                             name: 'lastChanged',
-                            xtype: "datedisplayfield"
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Model Time'),
                             id: 'model-time-label',
                             name: 'lastCollected',
-                            xtype: "datedisplayfield"
+                            xtype: "datedisplayfield",
                         },{
                             fieldLabel: _t('Locking'),
                             id: 'locking-label',
@@ -828,7 +920,10 @@
                             hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
                             setValue: function(val) {
                                 if (val) {
-                                    val = Ext.String.format("<a href='{0}'>{1}</a>", val, _t('Connect to this device'));
+                                    val = Ext.String.format(
+                                        "<a href='{0}'>{1}</a>",
+                                        val, _t('Connect to this device')
+                                    );
                                     Ext.form.field.Display.prototype.setValue.apply(this, [val]);
                                 }
                             }
@@ -840,7 +935,7 @@
 
                         listeners: {
                             actioncomplete: function(form, action) {
-                                if (action.type=='directsubmit') {
+                                if (action.type==='directsubmit') {
                                     var bar = Ext.getCmp('devdetailbar');
                                     if (bar) {
                                         bar.refresh();
@@ -889,7 +984,7 @@
                             xtype: 'clicktoeditnolink',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editCollector(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -901,7 +996,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -913,7 +1008,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -925,7 +1020,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -937,7 +1032,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editManuInfo(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -971,7 +1066,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editGroups(this.getValues().systems, this.contextUid, {
                                         title: _t('Set Systems'),
                                         instructions: _t('Add/Remove systems'),
@@ -989,7 +1084,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editGroups(this.getValues().groups, this.contextUid, {
                                         title: _t('Set Groups'),
                                         instructions: _t('Add/Remove groups'),
@@ -1007,7 +1102,7 @@
                             xtype: 'clicktoedit',
                             permission: 'Manage Device',
                             listeners: {
-                                labelclick: function(p){
+                                labelclick: function(){
                                     editLocation(this.getValues(), this.contextUid);
                                 },
                                 scope: this
@@ -1016,9 +1111,11 @@
                             name: 'location',
                             id: 'location-editlink'
                         },{
+                            xtype: 'clicktodisplay',
                             fieldLabel: _t('Links'),
                             name: 'links',
-                            id: 'links-label'
+                            id: 'links-label',
+                            getContext: function(){ return this.contextUid; }.bind(this)
                         },{
                             xtype: 'textarea',
                             grow: true,
@@ -1072,7 +1169,7 @@
                 var o = {},
                 vals = scope.form.getValues(false, true);
                 Ext.apply(o, vals, scope.form.baseParams);
-                REMOTE.setInfo(o, function(result){
+                REMOTE.setInfo(o, function(){
                     this.form.clearInvalid();
                     this.form.setValues(vals);
                     this.form.afterAction(this, true);
@@ -1097,7 +1194,7 @@
             Ext.each(this.forms, function(f){
                 Ext.each(f.getForm().getFields().items, function(field) {
                     key = field.name;
-                    if (Ext.Array.indexOf(keys, key)==-1 && (key != 'links') && (key != 'uptime')) {
+                    if (Ext.Array.indexOf(keys, key)===-1 && (key !== 'links') && (key !== 'uptime')) {
                         keys.push(key);
                     }
                 });
@@ -1105,7 +1202,7 @@
             return keys;
         },
         load: function() {
-            var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams), me = this;
+            var o = Ext.apply({keys:this.getFieldNames()}, this.baseParams);
             var callback = function(result) {
                 this.loadedData = result.data;
                 var D = result.data;
@@ -1117,6 +1214,9 @@
                 } else {
                     D.memory = 'Unknown/Unknown';
                 }
+                if (D.snmpCommunity) {
+                   D.snmpCommunity = Ext.String.htmlEncode(D.snmpCommunity);
+                }
                 D.comments = Ext.htmlDecode(D.comments);
                 D.tagNumber = Ext.htmlDecode(D.tagNumber);
                 D.serialNumber = Ext.htmlDecode(D.serialNumber);
@@ -1127,11 +1227,12 @@
                 } else {
                     Ext.getCmp('device-connection-editlink').show();
                 }
+                D.deviceConnectionInfo = Ext.String.htmlEncode(D.deviceConnectionInfo);
                 this.setValues(D);
 
-                // load zLinks and uptime in a separate request since they
+                // load uptime in a separate request since it
                 // can be very expensive
-                var opts = Ext.apply({keys:['links', 'uptime']}, this.baseParams);
+                var opts = Ext.apply({keys:['uptime']}, this.baseParams);
                 this.api.load(opts, function(results){
                     this.setValues(results.data);
                 }, this);

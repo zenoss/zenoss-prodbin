@@ -112,7 +112,7 @@ class NetworkRouter(TreeRouter):
         """
         self.api.deleteSubnet(uid)
         audit('UI.Network.DeleteSubnet', subnet=uid)
-        return DirectResponse.succeed(tree=self.getTree())
+        return DirectResponse.succeed("Network removed")
 
 
     def getTree(self, id='/zport/dmd/Networks'):
@@ -192,7 +192,7 @@ class NetworkRouter(TreeRouter):
 
         keys = ['name', 'netmask', 'pingstatus', 'snmpstatus', 'uid',
                 'device', 'interface', 'macAddress',
-                'interfaceDescription']
+                'interfaceDescription', 'manageDevice']
         data = Zuul.marshal(instances.results, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)

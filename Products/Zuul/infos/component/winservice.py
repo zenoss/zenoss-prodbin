@@ -31,11 +31,6 @@ class WinServiceInfo(ComponentInfo):
         return self._object.serviceclass()
 
     @property
-    def usesMonitorAttribute(self):
-        return (not safe_hasattr(self._object, "startMode") \
-                or self._object.startMode != "Disabled")
-
-    @property
     def monitored(self):
         return self._object.monitored() if self.usesMonitorAttribute else ""
 

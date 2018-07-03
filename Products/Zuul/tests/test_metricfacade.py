@@ -9,8 +9,12 @@
 
 
 import unittest
+import json
 from Products import Zuul
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenModel.ThresholdGraphPoint import ThresholdGraphPoint
+from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.ZenModel.GraphDefinition import GraphDefinition
 from zenoss.protocols.services import JsonRestServiceClient
 
 class MockRestServiceClient(JsonRestServiceClient):
@@ -40,15 +44,25 @@ class MetricFacadeTest(BaseTestCase):
         metric = template.datasources()[0].datapoints()[0]
         cf = "avg"
         metric = self.facade._buildMetric(dev, metric, cf)
-        self.assertEquals(metric['metric'], "device1/test_test")
-        self.assertEquals(metric['aggregator'], 'avg')
+        self.assertEquals(metric[0]['metric'], "device1/test_test")
+        self.assertEquals(metric[0]['aggregator'], 'avg')
 
     def testRequestBuilder(self):
         metric = ["laLoadInt1_laLoadInt1"]
         dev = self.dmd.Devices.createInstance('device1')
-        request = self.facade._buildRequest([dev], metric, None, None, "LAST")
+        request = self.facade._buildRequest([dev], metric, None, None, "LAST", "1m-avg")
         self.assertEquals(request['returnset'], 'LAST')
 
+    def testMetricServiceGraphDefinitionProjections(self):
+        device = self.dmd.Devices.createInstance('test')
+        template = RRDTemplate('test')
+        self.dmd.Devices.rrdTemplates._setObject('test', template)
+        template = self.dmd.Devices.rrdTemplates.test
+        template.graphDefs._setObject('test', GraphDefinition('test'))
+        graph = template.graphDefs()[0]
+        info = Zuul.infos.metricserver.MetricServiceGraphDefinition(graph, device)
+        graph.graphPoints._setObject('test', ThresholdGraphPoint('test'))
+        self.assertEquals([], info.projections)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(MetricFacadeTest),))

@@ -134,19 +134,20 @@ class TestIpService(ZenModelBaseTest):
         self.ipsvc.unsetManageIp()
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
-        # Restrict the service to only one IP address
-        # Happens when a service restarts with new configuration
+        # When a service restarts with new configuration
+        # it will still use custom manageIp (ZEN-21533)
         self.ipsvc.setManageIp('2.3.4.5/24')
         self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
         self.ipsvc.ipaddresses = [ '1.2.3.4' ]
-        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+
 
         # Remove an IP address from an interface
         self.ipsvc.ipaddresses = [ '0.0.0.0' ]
         self.ipsvc.setManageIp('1.2.3.4/24')
         self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
         self.iface.setIpAddresses(['10.20.30.40/8'])
-        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
 
     def testInfoObjectServiceKeysCatalog(self):

@@ -221,6 +221,15 @@ def ipFromIpMask(ipmask):
     """
     return ipmask.split("/")[0]
 
+def ipAndMaskFromIpMask(ipmask):
+    """
+    Get just the IP address and Mask from string like 1.1.1.1/24
+    """
+    if ipmask.find("/") > -1:
+        ip, netmask = ipmask.split("/",1)
+        return ip, netmask
+    return ipmask, ""
+
 def strip(ip):
     """
     Convert a numeric IP address to a string
@@ -554,11 +563,11 @@ def ensureIp(ip):
             octet = int(octet)
         except ValueError:
             octet = 0
-            
+
         # make it 0 if not in the valid ip range
-        if not (0 < octet < 255):
+        if not (0 < octet < 256):
             octets[idx] = '0'
-            
+
     return '.'.join(octets)
 
 def get_ip_version(ip):
@@ -582,3 +591,9 @@ def isRemotelyReachable(ip):
         return not ip_address.is_link_local and not ip_address.is_loopback
     except ValueError:
         return False
+
+def get_default_netmask(ip):
+    netmask = 24
+    if get_ip_version(ip) == 6:
+        netmask = 48
+    return netmask

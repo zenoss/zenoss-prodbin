@@ -1,13 +1,12 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2007, 2018, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-import signal
 from Products.CMFCore.DirectoryView import registerDirectory
 registerDirectory('js', globals())
 
@@ -17,16 +16,24 @@ from patches import dirviewmonkey
 from patches import mysqladaptermonkey
 from patches import signalsmonkey
 from patches import advancedquerymonkey
+from patches import xmlmonkey
+from patches import ofsmonkey
+from Products.ZenUtils import pbkdf2  # Register PBKDF2 for password hashing
 from Products.ZenUtils.Utils import unused
-unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey)
-
-from Products.ZenUtils.dumpthreads import dump_threads
-from Signals.SignalHandler import SignalHandler
-SignalHandler.registerHandler(signal.SIGUSR1, dump_threads)
+unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey, xmlmonkey, pbkdf2, ofsmonkey)
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
                                              manage_addMultiPathIndexForm
+
+from Products.PluggableAuthService import registerMultiPlugin
+from AccessControl.Permissions import add_user_folders
+from AccountLocker.AccountLocker import AccountLocker
+from AccountLocker.AccountLocker import manage_addAccountLocker
+from AccountLocker.AccountLocker import manage_addAccountLockerForm
+
+from Auth0.Auth0 import Auth0
+from Auth0.Auth0 import manage_addAuth0
 
 def initialize(context):
     context.registerClass(
@@ -35,6 +42,23 @@ def initialize(context):
         constructors=(manage_addMultiPathIndexForm, manage_addMultiPathIndex),
         #icon="www/index.gif",
         visibility=None)
+
+
+    registerMultiPlugin(AccountLocker.meta_type)
+
+    context.registerClass(AccountLocker,
+                        permission=add_user_folders,
+                        constructors=(manage_addAccountLockerForm, manage_addAccountLocker),
+                        visibility=None,
+                        )
+
+    registerMultiPlugin(Auth0.meta_type)
+    context.registerClass(Auth0,
+                        permission=add_user_folders,
+                        constructors=(manage_addAuth0, ),
+                        visibility=None,
+                        )
+
 
 def safeTuple(arg):
     """

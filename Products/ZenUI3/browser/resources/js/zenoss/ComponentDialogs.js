@@ -75,7 +75,7 @@
                                 operation.params.uid = config.uid;
                                 operation.params.keys = ['uid', 'name'];
                                 operation.params.meta_type =  'IpInterface';
-                                delete operation.params['query'];
+                                delete operation.params.query;
                             }
                         }
                     })
@@ -184,8 +184,7 @@
                             beforeload: function(store, operation){
                                 operation.params.uid = '/zport/dmd/Processes';
                                 operation.params.sort = 'name';
-                                delete operation.params['query'];
-
+                                delete operation.params.query;
                             }
                         }
                     })
@@ -345,7 +344,7 @@
                     triggerAction: 'all',
                     store: new Zenoss.NonPaginatedStore({
                         model: modelId,
-                        directFn: Zenoss.remote.ServiceRouter.getClassNames, 
+                        directFn: Zenoss.remote.ServiceRouter.getClassNames,
                         listeners: {
                             beforeload: function(store, operation){
                                 operation.params.uid = '/zport/dmd/Services/WinService';

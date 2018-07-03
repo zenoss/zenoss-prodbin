@@ -30,7 +30,7 @@ Ext.onReady(function(){
     };
 
     updateThresholds = function(uid) {
-        var panel, root, grid;
+        var panel;
         panel = Ext.getCmp('top_detail_panel');
 
         if ( ! Ext.getCmp(thresholdsId) ) {
@@ -41,7 +41,7 @@ Ext.onReady(function(){
     };
 
     updateGraphs = function(uid) {
-        var panel, root;
+        var panel;
         panel = Ext.getCmp('bottom_detail_panel');
         if ( ! Ext.getCmp(graphsId) ) {
             panel.add({

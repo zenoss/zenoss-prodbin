@@ -11,16 +11,19 @@
 import socket
 import re
 import logging
+from collections import OrderedDict
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter
-from Products.AdvancedQuery import Eq, Or, Generic, And
+from zope.component import getMultiAdapter, queryUtility, getUtility
+from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool, IInfo, ITemplateNode, IMetricServiceGraphDefinition
+from Products.Zuul.catalog.component_catalog import get_component_field_spec, pad_numeric_values_for_indexing
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
@@ -39,10 +42,13 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
+from AccessControl import getSecurityManager
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 
 iszprop = re.compile("z[A-Z]").match
@@ -107,11 +113,17 @@ class DeviceFacade(TreeFacade):
 
     def findComponentIndex(self, componentUid, uid=None, meta_type=None,
                            sort='name', dir='ASC', name=None):
-        comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
-                                       dir=dir, name=name)
-        for i, b in enumerate(comps):
-            if '/'.join(b._object.getPrimaryPath())==componentUid:
-                return i
+        brains, total = self._typecatComponentBrains(uid=uid, meta_type=meta_type, sort=sort, dir=dir, name=name)
+        if brains is None:
+            comps = self._componentSearch(uid=uid, meta_type=meta_type, sort=sort,
+                                           dir=dir, name=name)
+            for i, b in enumerate(comps):
+                if '/'.join(b._object.getPrimaryPath())==componentUid:
+                    return i
+        else:
+            for i, b in enumerate(brains):
+                if b.getPath() == componentUid:
+                    return i
 
     def _filterComponents(self, comps, keys, query):
         """
@@ -149,13 +161,71 @@ class DeviceFacade(TreeFacade):
                 results.append(comp)
         return results
 
+    def _typecatComponentBrains(self, uid=None, types=(), meta_type=(), start=0,
+            limit=None, sort='name', dir='ASC', name=None, keys=()):
+        obj = self._getObject(uid)
+        spec = get_component_field_spec(meta_type)
+        if spec is None:
+            return None, 0
+        typecat = spec.get_catalog(obj, meta_type)
+        sortspec = ()
+        if sort:
+            if sort not in typecat._catalog.indexes:
+                # Fall back to slow queries and sorting
+                return None, 0
+            sortspec = ((sort, dir),)
+        querySet = [Generic('path', uid)]
+        if name:
+            querySet.append(Or(*(MatchGlob(field, '*%s*' % name) for field in spec.fields)))
+        brains = typecat.evalAdvancedQuery(And(*querySet), sortspec)
+        total = len(brains)
+        if limit is None:
+            brains = brains[start:]
+        else:
+            brains = brains[start:start+limit]
+        return brains, total
+
+    def _typecatComponentPostProcess(self, brains, total, sort='name', reverse=False):
+        hash_ = str(total)
+        comps = map(IInfo, map(unbrain, brains))
+        # fetch any rrd data necessary
+        self.bulkLoadMetricData(comps)
+        # Do one big lookup of component events and add to the result objects
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            uuids = [r.uuid for r in comps]
+            zep = getFacade('zep')
+            severities = zep.getWorstSeverity(uuids)
+            for r in comps:
+                r.setWorstEventSeverity(severities[r.uuid])
+        sortedComps = sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse)
+        return SearchResults(iter(sortedComps), total, hash_, False)
+
+    # Get components from model catalog. Not used for now
+    def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
+        """ """
+        model_catalog = IModelCatalogTool(self.context.dmd)
+        query = {}
+        if meta_type:
+            query["meta_type"] = meta_type
+        query["objectImplements"] = "Products.ZenModel.DeviceComponent.DeviceComponent"
+        query["deviceId"] = uid
+        model_query_results = model_catalog.search(query=query)
+        brains = [ brain for brain in model_query_results.results ]
+        return brains
+
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
         reverse = dir=='DESC'
-        if isinstance(types, basestring):
-            types = (types,)
+        if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
+            brains, total = self._typecatComponentBrains(uid, types, meta_type, start,
+                    limit, sort, dir, name, keys)
+            if brains is not None:
+                return self._typecatComponentPostProcess(brains, total, sort, reverse)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
+        if isinstance(types, basestring):
+            types = (types,)
         querySet = []
         if meta_type:
             querySet.append(Or(*(Eq('meta_type', t) for t in meta_type)))
@@ -169,8 +239,15 @@ class DeviceFacade(TreeFacade):
         brains = cat.evalAdvancedQuery(query)
 
         # unbrain the results
-        comps=map(IInfo, map(unbrain, brains))
-
+        comps = []
+        for brain in brains:
+            try:
+                comps.append(IInfo(unbrain(brain)))
+            except:
+                log.warn('There is broken component "{}" in componentSearch catalog on {} device.'.format(
+                     brain.id, obj.device().id
+                     )
+                )
 
         # filter the components
         if name is not None:
@@ -188,7 +265,7 @@ class DeviceFacade(TreeFacade):
                     val = val()
                 if IInfo.providedBy(val):
                     val = val.name
-            return val
+            return pad_numeric_values_for_indexing(val)
 
         # sort the components
         sortedResults = list(sorted(comps, key=componentSortKey, reverse=reverse))
@@ -201,6 +278,15 @@ class DeviceFacade(TreeFacade):
 
         # fetch any rrd data necessary
         self.bulkLoadMetricData(pagedResult)
+
+        # Do one big lookup of component events and add to the result objects
+        showSeverityIcon = self.context.dmd.UserInterfaceSettings.getInterfaceSettings().get('showEventSeverityIcons')
+        if showSeverityIcon:
+            uuids = [r.uuid for r in pagedResult]
+            zep = getFacade('zep')
+            severities = zep.getWorstSeverity(uuids)
+            for r in pagedResult:
+                r.setWorstEventSeverity(severities[r.uuid])
 
         return SearchResults(iter(pagedResult), total, hash_, False)
 
@@ -239,16 +325,37 @@ class DeviceFacade(TreeFacade):
                 for key, val in record.iteritems():
                     info.setBulkLoadProperty(key, val)
 
-    def getComponentTree(self, uid):
-        from Products.ZenEvents.EventManagerBase import EventManagerBase
+    # Get component types from model catalog. Not used for now
+    def _get_component_types_from_model_catalog(self, uid):
+        """ """
         componentTypes = {}
         uuidMap = {}
+        model_catalog = IModelCatalogTool(self.context.dmd)
+        model_query = Eq('objectImplements', "Products.ZenModel.DeviceComponent.DeviceComponent")
+        model_query = And(model_query, Eq("deviceId", uid))
+        model_query_results = model_catalog.search(query=model_query, fields=["uuid", "meta_type"])
 
+        for brain in model_query_results.results:
+            uuidMap[brain.uuid] = brain.meta_type
+            compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
+            compType['count'] += 1
+        return (componentTypes, uuidMap)
+
+    def _get_component_types_from_zcatalog(self, uid):
+        """ """
+        componentTypes = {}
+        uuidMap = {}
         dev = self._getObject(uid)
         for brain in dev.componentSearch():
             uuidMap[brain.getUUID] = brain.meta_type
             compType = componentTypes.setdefault(brain.meta_type, { 'count' : 0, 'severity' : 0 })
             compType['count'] += 1
+        return (componentTypes, uuidMap)
+
+    def getComponentTree(self, uid):
+        from Products.ZenEvents.EventManagerBase import EventManagerBase
+
+        componentTypes, uuidMap = self._get_component_types_from_zcatalog(uid)
 
         # Do one big lookup of component events and merge back in to type later
         if not uuidMap:
@@ -273,7 +380,7 @@ class DeviceFacade(TreeFacade):
         return result
 
     def getDeviceUids(self, uid):
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         return [b.getPath() for b in cat.search('Products.ZenModel.Device.Device')]
 
     def deleteComponents(self, uids):
@@ -288,6 +395,7 @@ class DeviceFacade(TreeFacade):
                 raise Exception("%s %s cannot be manually deleted" %
                             (getattr(comp,'meta_type','component'),comp.id))
 
+
     def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
         def dbDeleteDevices(uids):
@@ -299,10 +407,6 @@ class DeviceFacade(TreeFacade):
                 parent = dev.getPrimaryParent()
                 dev.deleteDevice(deleteStatus=deleteEvents,
                                  deletePerf=deletePerf)
-                # Make absolutely sure that the count gets updated
-                # when we delete a device.
-                parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
-                parent.setCount()
             return deletedIds
 
         def uidChunks(uids, chunksize=10):
@@ -436,10 +540,15 @@ class DeviceFacade(TreeFacade):
         dev = self._getObject(uid)
         dev.manage_snmpCommunity()
 
-    def renameDevice(self, uid, newId):
+    def renameDevice(self, uid, newId, retainGraphData=False):
         dev = self._getObject(uid)
         # pass in the request for the audit
-        return dev.renameDevice(newId, self.context.REQUEST)
+        return dev.renameDevice(newId, self.context.REQUEST, retainGraphData)
+
+    def resumeCollection(self, uid):
+        device = self._getObject(uid)
+        device.renameInProgress = False
+        return "OK!"
 
     def _moveDevices(self, uids, target):
         # Resolve target if a path
@@ -479,6 +588,15 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
 
+    def doesMoveRequireRemodel(self, uid, target):
+        # Resolve target if a path
+        if isinstance(target, basestring):
+            target = self._getObject(target)
+        assert isinstance(target, DeviceClass)
+        targetClass = target.getPythonDeviceClass()
+        dev = self._getObject(uid)
+        return dev and dev.__class__ != targetClass
+
     @info
     def moveDevices(self, uids, target, asynchronous=True):
         if asynchronous:
@@ -508,15 +626,35 @@ class DeviceFacade(TreeFacade):
                     return self.context.Devices.findDeviceByIdExact(deviceName)
 
         # find a device with the same ip on the same collector
-        query = Eq('getDeviceIp', ipAddress)
-        cat = self.context.Devices.deviceSearch
-        brains = cat.evalAdvancedQuery(query)
-        for brain in brains:
+        cat = IModelCatalogTool(self.context.Devices)
+        query = And(Eq('text_ipAddress', ipAddress),
+                    Eq('objectImplements', 'Products.ZenModel.Device.Device'))
+        search_results = cat.search(query=query)
+
+        for brain in search_results.results:
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
 
+    def getDeviceByName(self, deviceName):
+        return self.context.Devices.findDeviceByIdExact(deviceName)
+
     @info
     def setCollector(self, uids, collector, moveData=False, asynchronous=True):
+        # Keep 'moveData' in signature even though it's unused now
+        if asynchronous:
+            prettyUids = ", ".join([uid.split('/')[-1] for uid in uids])
+            return self._dmd.JobManager.addJob(
+                FacadeMethodJob, description="Move devices %s to collector %s" % (prettyUids, collector),
+                kwargs=dict(
+                    facadefqdn="Products.Zuul.facades.devicefacade.DeviceFacade",
+                    method="_setCollector",
+                    uids=uids,
+                    collector=collector
+                ))
+        else:
+            return self._setCollector(uids, collector)
+
+    def _setCollector(self, uids, collector, moveData=False, asynchronous=True):
         movedDevices = []
         for uid in uids:
             info = self.getInfo(uid)
@@ -525,12 +663,8 @@ class DeviceFacade(TreeFacade):
                 'fromCollector': info.collector,
             })
             info.collector = collector
-            notify(IndexingEvent(info._object))
 
-        event = DeviceCollectorChangeEvent(self.context, collector,
-                                          movedDevices, asynchronous)
-        notify(event) # This will put the job records on the event, maybe
-        return event.jobs if event.jobs else None
+        # If an event is desired at this point, use a DeviceCollectorChangeEvent here
 
     @info
     def addDevice(self, deviceName, deviceClass, title=None, snmpCommunity="",
@@ -575,11 +709,13 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobrecords
 
-    def remodel(self, deviceUid):
-        fake_request = {'CONTENT_TYPE': 'xml'}
+    def remodel(self, deviceUid, collectPlugins='', background=True):
+        #fake_request will break not a background command 
+        fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
-            device, background=True, REQUEST=fake_request)
+            device, background=background, collectPlugins=collectPlugins,
+            REQUEST=fake_request)
 
     def addLocalTemplate(self, deviceUid, templateId):
         """
@@ -602,7 +738,11 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        rrdTemplates = object.getRRDTemplates()
+        
+        if isinstance(object, Device):
+            rrdTemplates = object.getAvailableTemplates()
+        else:
+            rrdTemplates = object.getRRDTemplates()        
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -640,9 +780,16 @@ class DeviceFacade(TreeFacade):
 
     def _getBoundTemplates(self, uid, isBound):
         obj = self._getObject(uid)
-        for template in obj.getAvailableTemplates():
-            if (template.id in obj.zDeviceTemplates) == isBound:
-                yield template
+        templates = (
+            template
+            for template in obj.getAvailableTemplates()
+            if (template.id in obj.zDeviceTemplates) == isBound
+        )
+        if isBound:
+            templates = sorted(
+                templates, key=lambda x: obj.zDeviceTemplates.index(x.id)
+            )
+        return templates
 
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
@@ -738,12 +885,13 @@ class DeviceFacade(TreeFacade):
         # getGraphObjects is expected to return a tuple of size 2.
         # The graph definition and the context for that graph
         # definition.
-        for graph, ctx in obj.getGraphObjects():
-            info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
-            # if there is a separate context display that as the title
-            if ctx != obj:
-                info._showContextTitle = True
-            graphs.append(info)
+        if hasattr(obj, "getGraphObjects"):
+            for graph, ctx in obj.getGraphObjects():
+                info = getMultiAdapter((graph, ctx), IMetricServiceGraphDefinition)
+                # if there is a separate context display that as the title
+                if ctx != obj:
+                    info._showContextTitle = True
+                graphs.append(info)
         return graphs
 
     def addIpRouteEntry(self, uid, dest, routemask, nexthopid, interface,
@@ -781,10 +929,26 @@ class DeviceFacade(TreeFacade):
         obj = self._getObject(uid)
         objects = []
         for inst in obj.getSubInstances(relName):
-          if inst.isLocal(propname) and inst not in objects:
-            objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            if inst.isLocal(propname) and inst not in objects:
+                proptype = inst.getPropertyType(propname)
+                objects.append({
+                    'devicelink':inst.getPrimaryDmdId(),
+                    'props':self.maskPropertyPassword(inst, propname),
+                    'proptype':proptype
+                })
+                if relName == 'devices':
+                    objects[-1].update({
+                        'objtype':relName,
+                        'name':inst.titleOrId(),
+                        'devicelink':inst.getPrimaryUrlPath()
+                    })
         for inst in obj.getOverriddenObjects(propname):
-          objects.append( { 'devicelink':inst.getPrimaryDmdId(), 'props':getattr(inst, propname), 'proptype': inst.getPropertyType(propname) } )
+            proptype = inst.getPropertyType(propname)
+            objects.append({
+                'devicelink':inst.getPrimaryDmdId(),
+                'props':self.maskPropertyPassword(inst, propname),
+                'proptype':proptype
+            })
         return objects
 
     def getOverriddenObjectsParent(self, uid, propname=''):
@@ -793,8 +957,8 @@ class DeviceFacade(TreeFacade):
             prop = ''
             proptype = ''
         else:
-            prop = getattr(obj, propname)
             proptype = obj.getPropertyType(propname)
+            prop = self.maskPropertyPassword(obj, propname)
         return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
 
     def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
@@ -815,7 +979,7 @@ class DeviceFacade(TreeFacade):
         This clears the geocode cache by reseting the latlong property of
         all locations.
         """
-        results = ICatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
+        results = IModelCatalogTool(self._dmd.Locations).search('Products.ZenModel.Location.Location')
         for brain in results:
             try:
                 brain.getObject().latlong = None
@@ -848,25 +1012,25 @@ class DeviceFacade(TreeFacade):
         else:
             components = list(getObjectsFromCatalog(obj.componentSearch, query, log))
 
-        graphDef = None
-
-        # get the graph def
+        graphDefault = None
+        graphDict = {}
+        # find the graph for each component and a default graph for components without one
         for comp in components:
-            # find the first instance
             for graph, ctx in comp.getGraphObjects():
                 if graph.id == graphId:
-                    graphDef = graph
+                    if not graphDefault:
+                        graphDefault = graph
+                    graphDict[comp.id] = graph
                     break
-            if graphDef:
-                break
-        if not graphDef:
+        if not graphDefault:
             return []
 
         if allOnSame:
-            return [MultiContextMetricServiceGraphDefinition(graphDef, components)]
+            return [MultiContextMetricServiceGraphDefinition(graphDefault, components)]
 
         graphs = []
         for comp in components:
+            graph = graphDict.get(comp.id, graphDefault)
             info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
             graphs.append(info)
         return graphs
@@ -881,10 +1045,12 @@ class DeviceFacade(TreeFacade):
         # include the top level organizers in the list of device types
         organizers = [org] + subOrgs
         for org in organizers:
+            org_name = org.getOrganizerName()
+            org_id = org.getPrimaryId()
             if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
                 devtypes.append({
-                    'value': org.getPrimaryId(),
-                    'description': org.getOrganizerName(),
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
+                    'description': org_name,
                     'protocol': "",
                 })
                 continue
@@ -900,11 +1066,53 @@ class DeviceFacade(TreeFacade):
 
                 # special case for migrating from WMI to WinRM so we
                 # can allow the zenpack to be backwards compatible
-                if org.getOrganizerName() == '/Server/Microsoft/Windows' and ptcl == 'WMI':
+                # ZEN-19596:  Add support for Cluster and any sub-class for
+                #             Windows and Cluster
+                ms_dev_classes = ('/Server/Microsoft/{}'.format(cls)
+                                  for cls in ('Windows', 'Cluster'))
+                matched_org_to_dev_cls = any(org_name.startswith(cls)
+                                             for cls in ms_dev_classes)
+                if matched_org_to_dev_cls and ptcl == 'WMI':
                     ptcl = "WinRM"
                 devtypes.append({
-                    'value': org.getPrimaryId(),
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
                     'description': desc,
                     'protocol': ptcl,
                 })
         return sorted(devtypes, key=lambda x: x.get('description'))
+
+    def getDeviceClasses(self, allClasses=True):
+        """
+        Get a list of device classes.
+        If not allClasses, get only device classes which should use the standard
+        device creation job.
+        """
+        devices = self._dmd.Devices
+        deviceClasses = []
+        user = getSecurityManager().getUser()
+        def getOrganizerNames(org, user, deviceClasses):
+            if user.has_permission(ZEN_VIEW, org) and allClasses or org.getZ('zUsesStandardDeviceCreationJob', True):
+                deviceClasses.append(org.getOrganizerName())
+            for suborg in org.children(checkPerm=False):
+                getOrganizerNames(suborg, user, deviceClasses)
+        getOrganizerNames(devices, user, deviceClasses)
+        deviceClasses.sort(key=lambda x: x.lower())
+        return deviceClasses
+
+    def getAllCredentialsProps(self):
+        """
+        Get a list of available credentials props
+        """
+        props = OrderedDict()
+        for prop in self.context.dmd.Devices.zCredentialsZProperties:
+            props[prop] = prop
+        for org in self.context.dmd.Devices.getSubOrganizers():
+            for prop in org.zCredentialsZProperties:
+                props[prop] = prop
+        return props.keys()
+
+    def maskPropertyPassword(self, inst, propname):
+        prop = getattr(inst, propname)
+        if inst.zenPropIsPassword(propname):
+            prop = "*" * len(prop)
+        return prop

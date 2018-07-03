@@ -50,7 +50,7 @@ class MonitorFacade(object):
         """
         createObject("PerformanceConf", self._perf, monitorId, sourceId)
         monitor = self._perf.get(monitorId)
-        return IInfo(monitor)
+        return monitor
 
     def delete(self, monitorId):
         """

@@ -19,6 +19,7 @@ Ext.define("Zenoss.IFramePanel", {
         config = Ext.applyIf(config || {}, {
             timeout: 5000, // Wait 5s for iframe to initialize before failing
             pollInterval: 50,
+            processed: true,
             loadMask: _t('Loading...'),
             src: config.url || 'about:blank',
             ignoreClassName: false
@@ -29,18 +30,25 @@ Ext.define("Zenoss.IFramePanel", {
     initComponent: function(){
         this.callParent(arguments);
         this.addEvents('frameload', 'framefailed', 'isReady');
-        this.on('frameload', function(win) {
+        this.on('frameload', function() {
+            this.injectCss();
             // Load any messages that may have been created by the frame
             Zenoss.messenger.checkMessages();
+            this.iframeEl.show();
+        }, this);
+        // double check not always "frameload" is fired
+        this.on('load', function() {
+            this.injectCss();
+            this.iframeEl.show();
         }, this);
     },
-    onRender: function(ct, position) {
+    onRender: function() {
         Zenoss.IFramePanel.superclass.onRender.apply(this, arguments);
         // Hook up load events
         this.frame = this.getEl();
         this.waitForLoad();
     },
-    afterRender: function(container) {
+    afterRender: function() {
         Zenoss.IFramePanel.superclass.afterRender.apply(this, arguments);
         if (!this.ownerCt) {
             var pos = this.getPosition(),
@@ -62,17 +70,15 @@ Ext.define("Zenoss.IFramePanel", {
                 return;
             }
             body = this.getBody();
-            if (currentUrl == 'about:blank' || currentUrl == '') {
+            if (currentUrl === 'about:blank' || currentUrl === '') {
                 // if an iframe is reused, it could have a body and
                 // className immediately, but not the desired ones.
                 // in that case, poll until the ready test fails,
                 // then again until it succeeds.
                 if (readyTooEarly) {
-                    readyTooEarly = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    readyTooEarly = !!body && (this.ignoreClassName || !!body.className);
                 } else {
-                    ready = !!body
-                            && (this.ignoreClassName || !!body.className);
+                    ready = !!body && (this.ignoreClassName || !!body.className);
 
                     // Allow subclasses and clients defined when the panel is ready
                     ready = ready && this.fireEvent('isReady', this.getWindow());
@@ -80,7 +86,7 @@ Ext.define("Zenoss.IFramePanel", {
             } else {
                 dom = body ? body.dom : null;
                 href = this.getDocument().location.href;
-                ready = href != currentUrl || (dom && dom.innerHTML);
+                ready = href !== currentUrl || (dom && dom.innerHTML);
 
                 // Allow subclasses and clients defined when the panel is ready
                 ready = ready && this.fireEvent('isReady', this.getWindow());
@@ -102,13 +108,44 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url == 'about:blank' || url == '') {
+        if (url === 'about:blank' || url === '') {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
                     '_dc=' + new Date().getTime()));
         }
+        // hide iframe el to avoid flickering on injectCss;
+        // show it on after load;
+        this.iframeEl.hide();
         this.waitForLoad();
+    },
+    /*
+    * this fn inject zen-cse.css into iframe document to make styles same as in main page
+    * we should call it every time on after iframe load;
+    * */
+    injectCss: function() {
+        var iframe = this.getFrame(),
+            html = document.getElementsByTagName('html')[0],
+            // zen_cse_css - name of zen-cse.css link in base-new.pt template
+            css = document.querySelector('[name=zen_cse_css]'),
+            cssClone,
+            iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
+            cseClasses = [];
+
+        Ext.each(html.classList, function(key, item) {
+            if (typeof key === 'string' && key.startsWith('z-cse')) {
+                cseClasses.push(key);
+            }
+        });
+
+        if (css && iframeHtml) {
+            cssClone = css.cloneNode();
+            Ext.Array.each(cseClasses, function(item) {
+                iframeHtml.classList.add(item);
+            });
+            cssClone.innerHTML = css.innerHTML;
+            iframe.contentDocument.head.appendChild(cssClone);
+        }
     }
 });
 
@@ -146,7 +183,9 @@ Ext.define("Zenoss.BackCompatPanel", {
                 }, this);
             }
         }, this);
-
+        this.on('load', function(){
+            this.processed = true;
+        }); 
         // the frame is not finished loading until Ext is ready
         this.on('isReady', function(win){
             return Ext.isDefined(win.Ext) && Ext.isDefined(win.Ext.onReady);
@@ -181,7 +220,7 @@ Zenoss.util.registerBackCompatMenu = function(menu, btn, align, offsets){
         contentEl: menu,
         border: false,
         shadow: !Ext.isIE,
-        bodyCls: menu.id=='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
+        bodyCls: menu.id==='contextmenu_items' ? 'z-bc-z-menu z-bc-page-menu' : 'z-bc-z-menu'
     });
 
     layer.render(Ext.getBody());

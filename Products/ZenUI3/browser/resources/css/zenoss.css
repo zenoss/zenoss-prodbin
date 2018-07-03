@@ -62,12 +62,21 @@ a:link, a:visited {
 }
 
 .inspector .inspector-header {
-  height: 54px;
   color: black;
   font-size: 15px;
-  background: bottom #bdbdbd url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+  background: top #959595 url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
   border-top: 3px solid #BBBBBB;
   border-bottom: 1px solid #949494;
+}
+
+.inspector .inspector-header > .x-box-inner {
+  height: auto !important;
+}
+
+.inspector .inspector-header .x-box-inner > div {
+  position: relative !important;
+  width: inherit !important;
+  height: auto !important;
 }
 
 .inspector .inspector-header a {
@@ -82,25 +91,38 @@ a:link, a:visited {
   text-decoration: underline;
 }
 
-.inspector .inspector-header .header-icon {
-  height: 50px;
-  width: 43px;
+.inspector .inspector-header .header-icon-wrapper {
+  position: absolute;
+  top: 50% !important;
+  left: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  width: 48px;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) no-repeat;
+  transform: translateY(-50%);
 }
 
 .inspector .inspector-header .header-title {
-  height: 50px;
+  position: static !important;
+  min-height: 45px;
+  margin-left: 45px !important;
+  padding-right: 10px;
   padding-left: 30px;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png) left center no-repeat;
 }
 
 .inspector .inspector-header .header-title .name {
-  font-size: 13pt;
+  font-size: 14px;
   font-weight: bold;
 }
 
+
 .inspector .inspector-header .header-title .name a {
   color: black;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .inspector .inspector-header .header-title .name a:hover, .inspector .inspector-header .header-title .name a:visited, .inspector .inspector-header .header-title .name a:link {
@@ -119,6 +141,11 @@ a:link, a:visited {
 
 .inspector .inspector-header .header-title .info a:hover, .inspector .inspector-header .header-title .info a:visited, .inspector .inspector-header .header-title .info a:link {
   color: #383838;
+}
+
+.inspector .header-icon {
+  max-width: 43px;
+  max-height: 38px;
 }
 
 .inspector .inspector-body {
@@ -213,15 +240,14 @@ a:link, a:visited {
 
 
 .evdetail-popout {
-  width: 20px;
-  height: 50px;
+  width: 25px;
+  height: 48px;
   cursor: hand;
   cursor: pointer;
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/popout.png) center center no-repeat;
 }
 
-
-.evdetail_close .x-panel-body {
+.evdetail_close {
   background: transparent url(/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png) center center no-repeat;
   height: 50px;
   width: 25px;
@@ -231,7 +257,6 @@ a:link, a:visited {
 
 
 .evdetail_props {
-  float: left;
   padding: 1em;
 }
 
@@ -285,11 +310,9 @@ a:link, a:visited {
   text-align: right;
 }
 
-
-
-
-
-
+.time {
+  white-space: nowrap;
+}
 
 
 .no-events {
@@ -420,6 +443,7 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 }
 
 .status-icon-small {
+  display: inline-block;
   width: 16px;
   height: 14px;
   background: transparent url() no-repeat;
@@ -446,6 +470,8 @@ div.zenportlet .severity-icon-small.clear, .largetoolbar .severity-icon-small.cl
 
 
 .status-icon-small-aged, .status-icon-small-cleared, .status-icon-small-closed {
+  display: inline-block;
+  vertical-align: middle;
   width: 16px;
   height: 14px;
   background: transparent url() no-repeat;
@@ -1324,9 +1350,12 @@ a.z-entity:link, a.z-entity:hover, a.z-entity:visited {
 
 
 .graph-panel {
-  padding: 5px;
+  margin: 5px;
 }
 
+.nvd3-svg {
+   overflow: visible;
+}
 
 .ext-ie .inspector .inspector-header .header-title .info {
   background: transparent;
@@ -1614,14 +1643,10 @@ a.z-entity:hover{
     margin-bottom:10px;
 }
 #evdetail_log-body{
-    height:170px !important;
+    max-height:170px !important;
 }
-#evdetail_services{
-    margin:10px 0 10px 25px !important;
-    height: 25px !important;
-}
-.evdetail_props {
-  float: none !important;
+#evdetail_services:empty{
+    display: none;
 }
 /* fix diff between ie and everything else on jobs button */
 .x-ie #jobswidget-btnWrap .x-btn-inner{
@@ -1707,16 +1732,20 @@ a.z-entity:hover{
 .nodata:before {
   content: "No Data Available";
 }
-
+.timeout:before {
+  content: "Request Timeout";
+}
+.timeout,
 .nodata {
+  color: #a6a6a6;
   display: block;
-  position: relative;
+  font-family: monospace;
+  font-size: 18px;
+  letter-spacing: -0.05rem;
   margin: auto;
-  top: 40px;
-  color: blue;
+  position: relative;
   text-align: center;
-  font-size: 18pt;
-  font-style: italic;
+  top: 40px;
 }
 
 /* customize graph appearance */
@@ -1725,12 +1754,40 @@ div.europagraph {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-img.europaGraphGear {
-    float:right;
-    position:relative;
-    top:-15px;
-    opacity:.5;
-    cursor:pointer
+  div.europagraph.z-hidden-footer .zenfooter {
+    display: none !important;
+  }
+
+  img.europaGraphGear {
+      float:right;
+      opacity:.5;
+      cursor:pointer;
+      margin: 5px 5px 0 5px;
+  }
+
+  .z-europa-menu-body .x-menu-item-link {
+    padding-left: 33px;
+  }
+
+  /* hide gear on expanded graphs */
+  .x-window-body-closable img.europaGraphGear {
+    display: none;
+  }
+
+img.europaGraphGear.spinnerino {
+    animation-name: spin;
+    animation-duration: 1500ms;
+    animation-iteration-count: infinite;
+}
+@keyframes spin {
+    from { opacity: .5; }
+    25% { opacity: .25; }
+    50% { opacity: .5; }
+    75% { opacity: .25; }
+    to {
+        transform: rotate(360deg);
+        opacity: .5;
+    }
 }
 
 /* make graph points visible */
@@ -1744,12 +1801,27 @@ img.europaGraphGear {
   font-style: italic;
 }
 .zenfooter {
+    margin: 0 20px;
     position: relative;
     top: -15px;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
+.zenfooter th {
+  font-weight: bold;
+}
+.zenfooter_data_text {
+  height: 18px;
+}
+.zenfooter_content > tbody > tr td,
+.zenfooter_content > tbody > tr th {
+    padding: 1px 3px;
+  }
+
 /* style the graph titles */
 .graph_title {
-    margin: -6px 0 10px 0;
+    margin: 6px 0 10px 0;
     display: inline-block;
     margin-bottom: -10px;
     overflow: auto;
@@ -1757,9 +1829,7 @@ img.europaGraphGear {
     padding-left: 10px;
     margin-left: 10px;
     font-size: 1.2em;
-    position: relative;
-    top: -15px;
-    overflow: hide;
+    overflow: hidden;
 }
 .graph_description {
     display: inline-block;
@@ -1769,13 +1839,8 @@ img.europaGraphGear {
     margin-left: 10px;
 }
 .message {
-  width: 100%;
   height: 40%;
-  border-style: solid;
-  border-width: 1px;
-  background-color: #fafafa;
-  border-color: #c1c1c1;
-  margin-bottom: 25px;
+
 }
 
 /* customize graph appearance */
@@ -1804,11 +1869,22 @@ img.europaGraphGear {
 }
 
 .zenfooter_box {
-  width: 10px;
-  height: 10px;
-  border: solid 1px black;
+  width: 12px;
+  height: 12px;
+  border-radius: 12px;
+  border: 1.5px solid;
   float: left;
   margin: 2px 2px 2px 2px;
+}
+
+.zenfooter_threshold {
+  color: #555;
+  font-style: italic;
+}
+
+.zenchart .nvtooltip table td.legend-color-guide div {
+  border: 0;
+  border-radius: 12px;
 }
 
 .zenfooter_data,
@@ -1836,6 +1912,27 @@ img.europaGraphGear {
   font-size: 8pt;
 }
 
+.zencheckbox_allonsame label,
+.zenfooter_value_row {
+  cursor: pointer;
+}
+
+.zenfooter_value_row:hover {
+  background-color: #ddd;
+}
+
+.zenchart_lowlight {
+  opacity: .15;
+}
+  .zenchart_spotlight {
+    opacity: 1;
+    stroke-width: 4 !important;
+  }
+
+.print-optimized .zenfooter {
+  max-height: none;
+}
+
 .zenfooter_dates {
   font-weight: bold;
   text-align: center;
@@ -1845,6 +1942,27 @@ img.europaGraphGear {
   font-weight: bold;
   font-size: 8pt;
   text-align: center;
+}
+
+.projectionPlots {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 15%;
+}
+
+.info_icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    color: white;
+    background-color: #99bada;
+    display: block;
+    float: right;
+}
+
+.info_icon span {
+    padding-left: 4px;
 }
 /* with 17+ version of FF, button breaks. This fixes it */
 .toright .x-btn-icon{
@@ -1990,19 +2108,19 @@ img.europaGraphGear {
 /* syntax highlighting classes */
 
 span.syntax-number  {
-    color: brown;
+  color: #ceb24f;
 }
 
 span.syntax-string  {
-    color: green;
+  color: #96b781;
 }
 
 span.syntax-boolean {
-    color: blue;
+  color: #9bc1ef;
 }
 
 span.syntax-text  {
-    color: white;
+  color: #9786c4;
 }
 
 .grid-action.checked.enabled {
@@ -2039,4 +2157,15 @@ span.syntax-text  {
 
 .compatibilityModeAlert .x-window-header-body{
   background: #000000;
+}
+
+.add-user-label{
+  line-height:20px;
+  width:75px;
+  float:left;
+  text-align:right;
+}
+#NetworkDetailCardPanel a.z-entity{
+  padding-right: 0px;
+  padding-left: 0px;
 }

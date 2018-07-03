@@ -1,0 +1,64 @@
+<!--
+    ##############################################################################
+    #
+    # Copyright (C) Zenoss, Inc. 2015, all rights reserved.
+    #
+    # This content is made available according to terms specified in
+    # License.zenoss under the directory where your Zenoss product is installed.
+    #
+    ##############################################################################
+-->
+
+<metal:block  metal:define-macro="base-new">
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>
+        <tal:block tal:content="here/dmd/instanceIdentifier"/>:
+        User Interface Tests
+      </title>
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+
+      <link rel="stylesheet" type="text/css"
+            tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
+            />
+      <link rel="stylesheet" type="text/css"
+            tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenoss.css')"
+            />
+
+      <link rel="stylesheet" type="text/css"
+            tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenui3.css')"
+            />
+      <link rel="stylesheet" type="text/css"
+            tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++extjs/examples/ux/css/CheckHeader.css')"
+            />
+      <tal:block tal:content="structure provider:js-security"/>
+      <tal:block tal:content="structure provider:all-js"/>
+      <tal:block tal:content="structure provider:all-css"/>
+      <tal:block tal:content="structure provider:head-extra"/>
+      <tal:block tal:content="structure provider:jssnippets"/>
+
+
+      <link rel="shortcut icon" type="image/png" href="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine_favicon.png">
+        <link rel="stylesheet" href="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.css">
+
+          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine.js"></script>
+          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/jasmine-html.js"></script>
+          <script src="/++resource++zenui/js/jasmine/lib/jasmine-2.3.4/boot.js"></script>
+
+          <!-- include source files here... -->
+          <script src="/++resource++zenui/js/jasmine/src/Player.js"></script>
+          <script src="/++resource++zenui/js/jasmine/src/Song.js"></script>
+          <tal:block tal:repeat="testFile view/getTestFiles">
+              <script tal:attributes="src testFile"></script>
+          </tal:block>
+          <!-- include spec files here... -->
+
+    </head>
+
+    <body>
+
+    </body>
+  </html>
+</metal:block>

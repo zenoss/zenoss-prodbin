@@ -14,7 +14,7 @@ Zenoss JSON API
 
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import contextRequire
-from Products.Zuul.interfaces.tree import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.marshalling import Marshaller
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.System import System
@@ -22,6 +22,8 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Utils import getDisplayType
 from Products import Zuul
 import logging
+import zlib
+import base64
 log = logging.getLogger(__name__)
 
 
@@ -92,10 +94,9 @@ class TreeRouter(DirectRouter):
         # Trac #29148: When we delete a DeviceClass we also delete its devices
         #     and child device classes and their devices, so audit them all.
         if isinstance(node, DeviceClass):
-            childBrains = ICatalogTool(node).search((
+            childBrains = IModelCatalogTool(node).search((
                 'Products.ZenModel.DeviceClass.DeviceClass',
-                'Products.ZenModel.Device.Device',
-            ))
+                'Products.ZenModel.Device.Device', ), fields="meta_type")
             for child in childBrains:
                 audit(['UI', getDisplayType(child), 'Delete'], child.getPath())
         elif isinstance(node, System):
@@ -129,6 +130,36 @@ class TreeRouter(DirectRouter):
         audit(['UI', display_type, 'Move'], organizerUid, to=targetUid)
         data = facade.moveOrganizer(targetUid, organizerUid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
+
+    def gzip_b64(self, string):
+        """
+        gzip an arbitrary string, base64 encode it, and return it
+        """
+        try:
+            compressed = base64.urlsafe_b64encode(zlib.compress(string))
+        except Exception as e:
+            log.exception(e)
+            return DirectResponse.exception(e, 'Unable to compress data')
+        return DirectResponse.succeed(data=Zuul.marshal({'data': compressed}))
+
+    def gunzip_b64(self, string):
+        """
+        Base 64 decode a string, then gunzip it and return the result as JSON.
+        The input to this method should be gzipped, base 64 encoded JSON.  Base
+        64 encoded strings are allowed to have up to 2 '='s of padding.  The zenoss
+        Ext router eats these, so there is some logic to try padding them back into
+        the string should initial decoding fail.
+        """
+        data = ''
+        for pad in ('', '=', '=='):
+            try:
+                data = zlib.decompress(base64.urlsafe_b64decode(string + pad))
+                break
+            except Exception as e:
+                if pad == '==':
+                    log.exception(e)
+                    return DirectResponse.exception(e, 'Unable to decompress data')
+        return DirectResponse.succeed(data=Zuul.marshal({'data': data}))
 
     def _getFacade(self):
         """
@@ -189,7 +220,7 @@ class TreeRouter(DirectRouter):
 
         # check to see if we are asking for the root
         primaryId = obj.getDmdRoot(obj.dmdRootName).getPrimaryId()
-        if id == primaryId:
+        if currentNode.uid == primaryId:
             root = Marshaller(currentNode).marshal(keys)
             root['children'] = children
             return [root]

@@ -17,6 +17,7 @@ A scheduled period of time during which a window is under maintenance.
 DAY_SECONDS = 24*60*60
 WEEK_SECONDS = 7*DAY_SECONDS
 
+import re
 import time
 import calendar
 import logging
@@ -33,6 +34,12 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
+
+import transaction
+from ZODB.transact import transact
 
 
 def lastDayPreviousMonth(seconds):
@@ -118,7 +125,6 @@ class MaintenanceWindow(ZenModelRM):
 
     security = ClassSecurityInfo()
 
-
     REPEAT = "Never/Daily/Every Weekday/Weekly/Monthly: day of month/Monthly: day of week".split('/')
     NEVER, DAILY, EVERY_WEEKDAY, WEEKLY, MONTHLY, NTHWDAY = REPEAT
     DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -167,7 +173,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStartDateTime(self):
         "Return start time as a string with nice sort qualities"
-        return Time.LocalDateTime(self.start)
+        return "%s %s" % (Time.LocalDateTime(self.start), Time.getLocalTimezone())
 
     def niceStartProductionState(self):
         "Return a string version of the startProductionState"
@@ -192,7 +198,7 @@ class MaintenanceWindow(ZenModelRM):
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
                                      startDate='',
-                                     startHours='',
+                                     startHours='00',
                                      startMinutes='00',
                                      durationDays='0',
                                      durationHours='00',
@@ -204,7 +210,8 @@ class MaintenanceWindow(ZenModelRM):
                                      stopProductionState=RETURN_TO_ORIG_PROD_STATE,
                                      enabled=True,
                                      skip=1,
-                                     REQUEST=None):
+                                     REQUEST=None,
+                                     startDateTime=None):
         "Update the maintenance window from GUI elements"
         def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
             if acceptBlanks:
@@ -232,23 +239,34 @@ class MaintenanceWindow(ZenModelRM):
             return v
 
         oldAuditData = self.getAuditData()
+        prodStates = dict((key, value) for (key,value) in self.dmd.getProdStateConversions())
         msgs = []
-        # startHours, startMinutes come from menus.  No need to catch
-        # ValueError on the int conversion.
-        startHours = int(startHours)
-        startMinutes = int(startMinutes)
         self.enabled = bool(enabled)
-        import re
-        try:
-            month, day, year = re.split('[^ 0-9]', startDate)
-        except ValueError:
-            msgs.append("Date needs three number fields")
-        day = int(day)
-        month = int(month)
-        year = int(year)
-        if not msgs:
-            t = time.mktime((year, month, day, startHours, startMinutes,
+        if startDateTime:
+            t = int(startDateTime)
+        else:
+            startHours = int(startHours) if startHours else 0
+            startMinutes = int(startMinutes) if startMinutes else 0
+            self.enabled = bool(enabled)
+            try:
+                month, day, year = re.split('[^ 0-9]', startDate)
+            except ValueError:
+                msgs.append("Date needs three number fields")
+            day = int(day)
+            month = int(month)
+            year = int(year)
+            if not msgs:
+                t = time.mktime((year, month, day, startHours, startMinutes,
                              0, 0, 0, -1))
+        if repeat not in self.REPEAT:
+            msgs.append('\'repeat\' has wrong value.')
+        if not isinstance(enabled, bool):
+            msgs.append('\'enabled\' has wrong value, use true or false.')
+        if not (startProductionState in prodStates.values() or
+            prodStates.get(startProductionState, None)):
+            msgs.append('\'startProductionState\' has wrong value.')
+        elif isinstance(startProductionState, str):
+            startProductionState = prodStates[startProductionState]
         if not msgs:
             durationDays = makeInt(durationDays, 'Duration days',
                                         minv=0)
@@ -270,6 +288,8 @@ class MaintenanceWindow(ZenModelRM):
                     '\n'.join(msgs),
                     messaging.WARNING
                 )
+            else:
+                raise Exception('Window Edit Failed: ' + '\n'.join(msgs))
         else:
             self.start = t
             self.duration = duration
@@ -280,8 +300,15 @@ class MaintenanceWindow(ZenModelRM):
             self.stopProductionState = stopProductionState
             self.skip = skip
             now = time.time()
-            if self.started and self.nextEvent(now) < now:
-                self.end()
+            if self.started:
+                if ((t + duration * 60) < now) or (t > now) or (not self.enabled):
+                    # We're running. If we should have already ended OR the start was 
+                    # moved into the future OR the MW is now disabled, end().
+                    self.end()
+            elif (t < now) and ((t + duration * 60) > now) and (self.enabled):
+                # We aren't running, but we've scheduled the MW to be going on right now.
+                self.begin()
+
             if REQUEST:
                 flare = 'Maintenance window changes were saved.'
                 if self.enabled:
@@ -319,7 +346,7 @@ class MaintenanceWindow(ZenModelRM):
 
     def occurDay(self, start, now, skip=1, day=6, occur=0):
         date = time.localtime(start)
-        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, 1)
+        time_for_mktime = (date.tm_hour, date.tm_min, date.tm_sec, 0, 0, -1)
         log.debug('start date: %s; day: %d; occur: %d; skip: %d', str(date), day,
                   occur, skip)
         # get a list of (mday, wday) tuples for current month
@@ -345,7 +372,7 @@ class MaintenanceWindow(ZenModelRM):
                         log.debug('skipping this occurrence. skip = %d', skip)
                         return self.occurDay(startTime + DAY_SECONDS, now, skip - 1,
                                              day, tmp_occur)
-                    elif mday > date.tm_mday:
+                    elif startTime >= now:
                         log.debug('Window will start on: %s',
                                   str(time.localtime(startTime)))
                         return startTime
@@ -507,7 +534,8 @@ class MaintenanceWindow(ZenModelRM):
 
 
     security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT, 'setProdState')
-    def setProdState(self, state, ending=False):
+    def setProdState(self, state, ending=False, batchSize=None,
+                     inTransaction=False):
         """
         At any one time there is one production state for each device to be in,
         and that is the state that is the most 'blacked out' in all of the active
@@ -524,51 +552,83 @@ class MaintenanceWindow(ZenModelRM):
         @type state: integer
         @parameter ending: are we ending a maintenance window?
         @type ending: boolean
+        @parameter batchSize: number of processed devices per separate transaction
+        @type batchSize: integer
+        @parameter inTransaction: process each batch in separate transaction
+        @type inTransaction: boolean
         """
         # Note: self.begin() starts our window before we get called, so the
         #       following takes into account our window state too.
         #       Conversely, self.end() ends the window before calling this code.
         devices = self.fetchDevices()
-        minDevProdStates = self.fetchDeviceMinProdStates( devices )
+        minDevProdStates = self.fetchDeviceMinProdStates(devices)
 
-        for device in devices:
-            if ending:
-                # Note: If no maintenance windows apply to a device, then the
-                #       device won't exist in minDevProdStates
-                # This takes care of the case where there are still active
-                # maintenance windows.
-                minProdState = minDevProdStates.get(device.id,
-                                            device.preMWProductionState)
+        def _setProdState(devices_batch):
+            for device in devices_batch:
+                # In case we try to move Component Group into MW
+                # some of objects in CG may not have production state
+                # we skip them.
+                if ending:
+                    # Note: If no maintenance windows apply to a device, then the
+                    #       device won't exist in minDevProdStates
+                    # This takes care of the case where there are still active
+                    # maintenance windows.
+                    minProdState = minDevProdStates.get(device.id,
+                                                device.getPreMWProductionState())
 
-            elif device.id in minDevProdStates:
-                minProdState = minDevProdStates[device.id]
+                elif device.id in minDevProdStates:
+                    minProdState = minDevProdStates[device.id]
 
-            else: # This is impossible for us to ever get here as minDevProdStates
-                  # has been added by self.fetchDeviceMinProdStates()
-                log.error("The device %s does not appear in any maintenance"
-                          " windows (including %s -- which is just starting).",
-                          device.id, self.displayName())
-                continue
-
-            if device.productionState < 300:
+                else: # This is impossible for us to ever get here as minDevProdStates
+                      # has been added by self.fetchDeviceMinProdStates()
+                    log.error("The device %s does not appear in any maintenance"
+                              " windows (including %s -- which is just starting).",
+                              device.id, self.displayName())
                     continue
 
-            self._p_changed = 1
-            # Changes the current state for a device, but *not*
-            # the preMWProductionState
-            oldProductionState = self.dmd.convertProdState(device.productionState)
-            newProductionState = self.dmd.convertProdState(minProdState)
-            log.info("MW %s changes %s's production state from %s to %s",
-                     self.displayName(), device.id, oldProductionState,
-                     newProductionState)
-            audit('System.Device.Edit', device, starting=str(not ending),
-                maintenanceWindow=self.displayName(),
-                productionState=newProductionState,
-                oldData_={'productionState':oldProductionState})
-            device.setProdState(minProdState, maintWindowChange=True)
+                # ZEN-13197: skip decommissioned devices
+                if device.getPreMWProductionState() and device.getPreMWProductionState() < 300:
+                    continue
+
+                self._p_changed = 1
+                # Changes the current state for a device, but *not*
+                # the preMWProductionState
+                oldProductionState = self.dmd.convertProdState(device.getProductionState())
+                # When MW ends Components will acquire production state from device
+                if not minProdState:
+                    newProductionState = "Acquired from parent"
+                else:
+                    newProductionState = self.dmd.convertProdState(minProdState)
+                log.info("MW %s changes %s's production state from %s to %s",
+                         self.displayName(), device.id, oldProductionState,
+                         newProductionState)
+                audit('System.Device.Edit', device, starting=str(not ending),
+                    maintenanceWindow=self.displayName(),
+                    productionState=newProductionState,
+                    oldData_={'productionState':oldProductionState})
+                if minProdState is None:
+                    device.resetProductionState()
+                else:
+                    device.setProdState(minProdState, maintWindowChange=True)
+
+        if inTransaction:
+            processFunc = transact(_setProdState)
+            # Commit transaction as errors during batch processing may
+            # abort transaction and changes to the object will not be saved.
+            transaction.commit()
+        else:
+            processFunc = _setProdState
+
+        if batchSize:
+            for i in xrange(0, len(devices), batchSize):
+                log.info('MW %s processing batch #%s', self.displayName(),
+                         i / batchSize + 1)
+                processFunc(devices[i:i + batchSize])
+        else:
+            processFunc(devices)
 
 
-    def begin(self, now = None):
+    def begin(self, now=None, batchSize=None, inTransaction=False):
         """
         Hook for entering the Maintenance Window: call if you override
         """
@@ -579,11 +639,12 @@ class MaintenanceWindow(ZenModelRM):
         # Make sure that we've started before the calculation of the production
         # state occurs.
         self.started = now
-        self.setProdState(self.startProductionState)
+        self.setProdState(self.startProductionState, batchSize=batchSize,
+                          inTransaction=inTransaction)
+        log.info("Finished start of maintenance window %s" % self.displayName())
 
 
-
-    def end(self):
+    def end(self, batchSize=None, inTransaction=False):
         """
         Hook for leaving the Maintenance Window: call if you override
         """
@@ -591,15 +652,17 @@ class MaintenanceWindow(ZenModelRM):
         # Make sure that the window has ended before the calculation of
         # the production state occurs.
         self.started = None
-        self.setProdState(self.stopProductionState, ending=True)
+        self.setProdState(self.stopProductionState, ending=True,
+                          batchSize=batchSize, inTransaction=inTransaction)
+        log.info("Finished end of maintenance window %s" % self.displayName())
 
 
-    def execute(self, now = None):
+    def execute(self, now=None, batchSize=None, inTransaction=False):
         "Take the next step: either start or stop the Maintenance Window"
         if self.started:
-            self.end()
+            self.end(batchSize, inTransaction)
         else:
-            self.begin(now)
+            self.begin(now, batchSize, inTransaction)
 
     def adjustDST(self, result):
         if result is None:
@@ -662,3 +725,4 @@ def createMaintenanceWindowCatalog(dmd):
     cat.addColumn('id')
     cat._catalog.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
     cat.addColumn('getPhysicalPath')
+

@@ -18,7 +18,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
         expanded: true,
         leaf: false,
         listeners: {
-            beforeclick: function(node, e) {
+            beforeclick: function(node) {
                 node.firstChild.select();
             },
             beforeappend: function(tree, me, node){
@@ -50,20 +50,21 @@ var REMOTE = Zenoss.remote.DeviceRouter,
                 }
             }
         },
-        action: function(node, target) {
-            var child = node.store.node.firstChild;
-            if (!child) {
-                node.store.node.on('append', function(tree,me,n){
-                    selectOnRender(n, tree.getSelectionModel());
-                }, node, {single:true});
-            } else {
-                if((typeof target.treepanel) != "undefined"){
-                    selectOnRender(child, target.treepanel.getSelectionModel());
-                }else if((typeof target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel) != "undefined"){
-                    selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
+        action: function (node, target) {
+            if (node.store && node.store.node) {
+                var child = node.store.node.firstChild;
+                if (!child) {
+                    node.store.node.on('append', function (tree, me, n) {
+                        selectOnRender(n, tree.getSelectionModel());
+                    }, node, { single: true });
+                } else {
+                    if (target.treepanel) {
+                        selectOnRender(child, target.treepanel.getSelectionModel());
+                    } else if (target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel) {
+                        selectOnRender(child, target.ownerCt.ownerCt.getComponent(0).getComponent(0).getComponent(0).getComponent(0).treepanel.getSelectionModel());
+                    }
                 }
             }
-
         }
     };
 
@@ -80,7 +81,7 @@ function refreshComponentTreeAndGrid(compType) {
         detailnav = Ext.getCmp('deviceDetailNav'),
         sel = sm.getSelectedNode(),
         compsNode = tree.getRootNode().findChildBy(function(n){
-            return n.get("text")=='Components';
+            return n.get("text")==='Components';
         }),
         gridpanel = Ext.getCmp('component_card').componentgrid;
     compType = compType || sel.data.id;
@@ -93,7 +94,7 @@ function refreshComponentTreeAndGrid(compType) {
     detailnav.loadComponents();
     detailnav.on('componenttreeloaded', function(){
         var node = compsNode.findChildBy(function(n){
-            return n.get("id") == compType;
+            return n.get("id") === compType;
         });
         if (node) {
             sm.select(node);
@@ -114,7 +115,7 @@ function refreshComponentTreeAndGrid(compType) {
 
 Zenoss.env.componentrefresh = refreshComponentTreeAndGrid;
 Zenoss.env.componentReloader = function(compType) {
-    return function(form, action) {
+    return function() {
         refreshComponentTreeAndGrid(compType);
     };
 };
@@ -173,7 +174,7 @@ function showMonitoringDialog() {
                     monitor: v
                 };
             Ext.apply(opts, componentGridOptions());
-            REMOTE.setComponentsMonitored(opts, function(r){
+            REMOTE.setComponentsMonitored(opts, function(){
                 refreshComponentTreeAndGrid();
             });
         },
@@ -212,22 +213,25 @@ function showMonitoringDialog() {
 }
 
 function componentGridOptions() {
-    var grid = Ext.getCmp('component_card').componentgrid,
-        sm = grid.getSelectionModel(),
+    var grid = Ext.getCmp('component_card').componentgrid;
+    if (grid !== undefined) {
+        var sm = grid.getSelectionModel(),
         rows = sm.getSelection(),
         pluck = Ext.Array.pluck,
         uids = pluck(pluck(rows, 'data'), 'uid'),
         name = Ext.getCmp('component_searchfield').getValue();
-    return {
-        uids: uids,
-        ranges: [],
-        name: name,
-        hashcheck: grid.lastHash
-    };
+
+        return {
+            uids: uids,
+            ranges: [],
+            name: name,
+            hashcheck: grid.lastHash
+        };
+    }
+    return {};
 }
 
     function showComponentLockingDialog() {
-        var sel = Ext.getCmp('deviceDetailNav').treepanel.getSelectionModel().getSelectedNode();
         REMOTE.getInfo({
             uid: componentGridOptions().uids[0],
             keys: ['locking', 'name']
@@ -244,7 +248,7 @@ function componentGridOptions() {
                     deletionChecked: locking.deletion,
                     sendEventChecked: locking.events,
                     submitFn: function(values) {
-                        REMOTE.lockComponents(values, function(response) {
+                        REMOTE.lockComponents(values, function() {
                             var grid = Ext.getCmp('component_card').componentgrid;
                             grid.refresh();
                         });
@@ -321,7 +325,33 @@ var componentCard = {
                 grid.getSelectionModel().deselectAll();
             }
         }]
-    }, '->', {
+    },{
+        id: "component-smart-view-button",
+        text: _t('Smart View'),
+        handler: function(){
+            var grid = Ext.getCmp('component_card').componentgrid,
+            sm = grid.getSelectionModel(),
+            uuid = sm.selected.items[0].data.uuid;
+            var loc = "https://" + window.location.host;
+            var encodedQuery = encodeURIComponent(JSON.stringify({
+                contextUUID: uuid
+            }));
+            var landing = '/#/_lucky?q=';
+            var url = loc + landing + encodedQuery;
+            window.location = url;
+        },
+        selectionChange() {
+            var sq = componentGridOptions();
+            if (sq.uids) {
+                this.disabled = sq.uids.length !== 1;
+                if (this.disabled) {
+                    this.el.dom.classList.add("unavail");
+                } else {
+                    this.el.dom.classList.remove("unavail");
+                }
+            }
+        }
+    },'->',{
         xtype: 'panel',
         baseCls: 'no-panel-class',
         ui: 'none',
@@ -333,7 +363,6 @@ var componentCard = {
                     emptyText: _t('Type to filter...'),
                     enableKeyEvents: true,
                     filterGrid: function() {
-                        var value = this.getValue();
                         var grid = Ext.getCmp('component_card').componentgrid;
                         grid.filter(this.getValue());
                     },
@@ -367,116 +396,6 @@ var componentCard = {
     }
 };
 
-var deviceInformation = {
-    xtype: 'fieldset',
-    layout: 'column',
-    title: _t('Device Information'),
-    defaults: {
-        columnWidth: 0.5
-    },
-    items: [{
-        layout: 'anchor',
-        defaultType: 'displayfield',
-        items: [{
-            name: 'name',
-            fieldLabel: _t('Host Name')
-        },{
-            xtype: 'inheritfield',
-            id: 'myinheritfield',
-            items: [{
-                xtype: 'textfield',
-                fieldLabel: 'Value'
-            }]
-        },{
-            name: 'deviceClass',
-            fieldLabel: _t('Device Class')
-        },{
-            name: 'groups',
-            fieldLabel: _t('Custom Groups')
-        },{
-            name: 'systems',
-            fieldLabel: _t('Systems')
-        },{
-            name: 'location',
-            fieldLabel: _t('Location')
-        },{
-            name: 'locking',
-            fieldLabel: _t('Locking')
-        },{
-            name: 'lastChanged',
-            fieldLabel: _t('Last Changed')
-        },{
-            name: 'lastCollected',
-            fieldLabel: _t('Last Collected')
-        }]
-    },{
-        layout: 'anchor',
-        items: [{
-            xtype: 'editabletextarea',
-            name: 'description',
-            fieldLabel: _t('Description')
-        },{
-            xtype: 'editabletextarea',
-            name: 'comments',
-            fieldLabel: _t('Comments')
-        },{
-            xtype: 'displayfield',
-            name: 'links',
-            fieldLabel: _t('Links')
-        }]
-    }]
-};
-
-var snmpInformation = {
-    xtype: 'fieldset',
-    defaultType: 'displayfield',
-    title: _t('SNMP Information'),
-    items: [{
-        name: 'snmpSysName',
-        fieldLabel: _t('SNMP SysName')
-    },{
-        name: 'snmpContact',
-        fieldLabel: _t('SNMP Contact')
-    },{
-        name: 'snmpLocation',
-        fieldLabel: _t('SNMP Location')
-    },{
-        name: 'snmpAgent',
-        fieldLabel: _t('SNMP Agent')
-    }]
-};
-
-var hwosInformation = {
-    xtype: 'fieldset',
-    defaultType: 'displayfield',
-    title: _t('Hardware/OS Information'),
-    items: [{
-        name: 'hwManufacturer',
-        fieldLabel: _t('Hardware Manufacturer')
-    },{
-        name: 'hwModel',
-        fieldLabel: _t('Hardware Model')
-    },{
-        name: 'osManufacturer',
-        fieldLabel: _t('OS Manufacturer')
-    },{
-        name: 'osModel',
-        fieldLabel: _t('OS Model')
-    },{
-        xtype: 'editable',
-        name: 'tagNumber',
-        fieldLabel: _t('Tag Number')
-    },{
-        xtype: 'editable',
-        name: 'serialNumber',
-        fieldLabel: _t('Serial Number')
-    },{
-        xtype: 'editable',
-        name: 'rackSlot',
-        fieldLabel: _t('Rack Slot')
-    }]
-};
-
 var overview = {
     xtype: 'deviceoverview',
     id: 'device_overview',
@@ -493,39 +412,39 @@ Zenoss.EventActionManager.configure({
     }
 });
 
-var createDevDetailEventsGrid = function(re_attach_to_container){
+    var createDevDetailEventsGrid = function(re_attach_to_container){
         var dev_detail_store = Ext.create('Zenoss.events.Store', {});
-        if (!Zenoss.settings.enableInfiniteGridForEvents)
+        if (!Zenoss.settings.enableInfiniteGridForEvents) {
             dev_detail_store.buffered = false;
+        }
+        var event_console = Ext.create('Zenoss.EventGridPanel', {
+            id: 'device_events',
+            stateId: 'device_events',
+            newwindowBtn: true,
+            actionsMenu: false,
+            commandsMenu: false,
+            enableColumnHide: false,
+            store: dev_detail_store,
+            columns: Zenoss.env.getColumnDefinitionsToRender('device_events'),
+            uid: Zenoss.env.device_uid
+        });
 
-    var event_console = Ext.create('Zenoss.EventGridPanel', {
-        id: 'device_events',
-        stateId: 'device_events',
-        newwindowBtn: true,
-        actionsMenu: false,
-        commandsMenu: false,
-        enableColumnHide: false,
-        store: dev_detail_store,
-        columns: Zenoss.env.getColumnDefinitionsToRender('device_events')
-        //columns: Zenoss.env.getColumnDefinitions(['device'])
-    });
+        if (re_attach_to_container === true)
+        {
+            var container_panel = Ext.getCmp('detail_card_panel');
+                container_panel.items.insert(1, event_console);
+            container_panel.layout.setActiveItem(1);
+        }
 
-    if (re_attach_to_container == true)
-    {
-        var container_panel = Ext.getCmp('detail_card_panel');
-        container_panel.items.insert(1, event_console);
-        container_panel.layout.setActiveItem(1);
-    }
+        event_console.on('recreateGrid', function (grid) {
+            var container_panel = Ext.getCmp('detail_card_panel');
+            container_panel.remove(grid.id, true);
+            grid = createDevDetailEventsGrid(true);
+            grid.setContext(Zenoss.env.device_uid);
+        });
 
-    event_console.on('recreateGrid', function (grid) {
-        var container_panel = Ext.getCmp('detail_card_panel');
-        container_panel.remove(grid.id, true);
-        grid = createDevDetailEventsGrid(true);
-        grid.setContext(Zenoss.env.device_uid);
-    });
-
-    return event_console;
-};
+        return event_console;
+    };
 
     var event_console = createDevDetailEventsGrid(false);
 
@@ -537,7 +456,7 @@ var configuration_properties = Ext.create('Zenoss.form.ConfigPropertyPanel', {
     id: 'device_config_properties'
 });
 
-var custom_properties = Ext.create('Zenoss.form.CustomPropertyPanel', {
+var custom_properties = Ext.create('widget.custompropertypanel', {
     id: 'custom_device_properties'
 });
 
@@ -547,33 +466,40 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 
 // find out how many columns the graph panel should be based on
 // on the width of the detail panel
-var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
-    extra_column_threshold = 1000;
+var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 277;
+var extra_column_threshold = 1000;
+var userColumns = Zenoss.settings.graphColumns;
 
+if (userColumns === 0) { // graphColumns 0 is "Auto"
+    userColumns = (center_panel_width > extra_column_threshold) ? 2 : 1;
+}
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
-    columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
+    columns: userColumns,
     id: 'device_graphs'
 });
-
 
 /**
  * Show either one column of graphs or two depending on how much space is available
  * after a resize.
  **/
-device_graphs.on('resize', function(panel, width, height, oldWidth, oldHeight) {
+device_graphs.on('resize', function(panel, width) {
     var columns = panel.columns;
-
-    if (width >= extra_column_threshold && columns == 1) {
-        panel.columns = 2;
-    }
-
-    if (width < extra_column_threshold && columns == 2) {
-        panel.columns = 1;
+    if (Zenoss.settings.graphColumns === 0) {
+        // graphColumns 0 is "Auto"
+        if (width >= extra_column_threshold && columns === 1) {
+            panel.columns = 2;
+        }
+        if (width < extra_column_threshold && columns === 2) {
+            panel.columns = 1;
+        }
+    } else {
+        panel.columns = Zenoss.settings.graphColumns;
     }
     // always redraw the graphs completely when we resize the page,
     // this way the svg's are the correct size.
     panel.setContext(panel.uid);
-});
+    // add resize buffer to allow user finish resize action and to not resize graphs too often;
+}, device_graphs, {buffer: 300});
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs'
@@ -592,16 +518,21 @@ Ext.define('Zenoss.DeviceDetailNav', {
             target: 'detail_card_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
             hasComponents: false,
+            viewConfig: {
+                preserveScrollOnRefresh: true
+            },
             listeners:{
-                render: function(panel) {
+                render: function() {
                     this.setContext(UID);
                 },
                 navloaded: function() {
-                    if(!this.hasComponents) return;
+                    if(!this.hasComponents) {
+                        return;
+                    }
                     this.loadComponents();
                 },
                 nodeloaded: function(tree, node) {
-                    if (node.id==UID) {
+                    if (node.id===UID) {
                         this.hasComponents = true;
                     }
                 },
@@ -611,10 +542,22 @@ Ext.define('Zenoss.DeviceDetailNav', {
         this.addEvents('componenttreeloaded');
         this.callParent([config]);
         if (Zenoss.settings.showPageStatistics){
-            var stats = Ext.create('Zenoss.stats.DeviceDetail');
+            Ext.create('Zenoss.stats.DeviceDetail');
         }
     },
     doLoadComponentTree: function(data) {
+            // Sorting all components alphabetically
+            data.sort(function (a,b){
+                var first = Zenoss.component.displayName(a.text.text);
+                var second = Zenoss.component.displayName(b.text.text);
+                if (first<second) {
+                    return -1;
+                }
+                if (first>second) {
+                    return 1;
+                }
+                return 0;
+            });
         var rootNode = this.treepanel.getStore().getNodeById(UID);
         if (data.length) {
             rootNode.appendChild(Ext.Array.map(data, function(d) {
@@ -654,7 +597,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
         token = Ext.History.getToken(),
         panelid = tree.ownerCt.id;
         // we are deeplinking to the node
-        if (!sel && token && token.slice(0,panelid.length)==panelid) {
+        if (!sel && token && token.slice(0,panelid.length)===panelid) {
 
             var parts = token.split(Ext.History.DELIMITER),
             type = parts[1],
@@ -670,23 +613,23 @@ Ext.define('Zenoss.DeviceDetailNav', {
                         selectOnRender(tosel, sm);
                     }, this, {single:true});
                 }
-                var card = Ext.getCmp('component_card');
+                card = Ext.getCmp('component_card');
                 if (rest) {
                     card.selectByToken(unescape(rest));
                 }
             }
         }
-        tree.on('afteritemcollapse', function(t){
+        tree.on('afteritemcollapse', function(){
             Ext.defer(function(){
                 Ext.getCmp('master_panel').doLayout();
             }, 300);
         });
-        tree.on('afteritemexpand', function(t){
+        tree.on('afteritemexpand', function(){
             Ext.defer(function(){
                 Ext.getCmp('master_panel').doLayout();
             }, 300);
         });
-        tree.on('afterrender', function(t){
+        tree.on('afterrender', function(){
             Ext.defer(function(){
                 Ext.getCmp('master_panel').doLayout();
             }, 300);
@@ -699,7 +642,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
             this.doLoadComponentTree(Zenoss.env.componentTree);
             delete Zenoss.env.componentTree;
         } else {
-            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID, sorting_dict:Zenoss.component.nameMap}, this.doLoadComponentTree, this);
+            Zenoss.remote.DeviceRouter.getComponentTree({uid:UID}, this.doLoadComponentTree, this);
         }
     },
     filterNav: function(navpanel, config){
@@ -720,14 +663,14 @@ Ext.define('Zenoss.DeviceDetailNav', {
             'devicecustomedit',
             'devicemanagement'
         ];
-        return (Ext.Array.indexOf(excluded, config.id)==-1);
+        return (Ext.Array.indexOf(excluded, config.id)===-1);
     },
-    onGetNavConfig: function(contextId) {
+    onGetNavConfig: function() {
         return Zenoss.nav.get('Device');
     },
     previousToken: null,
     selectByToken: function(token) {
-        if (token == this.previousToken) {
+        if (token === this.previousToken) {
             return;
         }
         this.previousToken = token;
@@ -737,9 +680,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
             sm = this.treepanel.getSelectionModel(),
             sel = sm.getSelectedNode(),
             findAndSelect = function() {
-                var nodeId = token;
                 // handle component deep linking
-                if (token.split(Ext.util.History.DELIMITER).length == 2) {
+                if (token.split(Ext.util.History.DELIMITER).length === 2) {
                     var pieces = token.split(Ext.util.History.DELIMITER),
                     type = pieces[0], rest = pieces[1];
                     var tosel = componentRootNode.findChild('id', type);
@@ -748,14 +690,14 @@ Ext.define('Zenoss.DeviceDetailNav', {
                         componentRootNode.on('append', findAndSelect, this, {single: true});
                     } else {
                         selectOnRender(tosel, sm);
-                        return Ext.getCmp('component_card').selectByToken(rest);
+                        return Ext.getCmp('component_card').selectByToken(unescape(rest));
                     }
                 }
 
                 var node = root.findChildBy(function(n){
-                    return n.get('id')==token;
+                    return n.get('id')===token;
                 });
-                if (node && sel!=node) {
+                if (node && sel!==node) {
                     selectOnRender(node, sm);
                 }
             };
@@ -767,7 +709,8 @@ Ext.define('Zenoss.DeviceDetailNav', {
     },
     onSelectionChange: function(node) {
 
-        var target, action, node = node[0];
+        var target, action;
+        node = node[0];
         target = Ext.getCmp('detail_card_panel');
         if (!node) {
             return;
@@ -790,7 +733,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
         }
         var token = Ext.History.getToken(),
             mytoken = this.id + Ext.History.DELIMITER + node.get('id');
-        if (!token || token.slice(0, mytoken.length)!=mytoken) {
+        if (!token || token.slice(0, mytoken.length)!==mytoken) {
             Ext.History.suspendEvents();
             Ext.History.add(mytoken);
             Ext.History.resumeEvents();
@@ -871,30 +814,9 @@ Ext.getCmp('center_panel').add({
 });
 
 Ext.getCmp('templateTree').setContext(UID);
-Ext.create('Zenoss.BindTemplatesDialog', {
-    id: 'bindTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.ResetTemplatesDialog', {
-    id: 'resetTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.OverrideTemplatesDialog', {
-    id: 'overrideTemplatesDialog',
-    context: UID
-});
 
-Ext.create('Zenoss.AddLocalTemplatesDialog', {
-    id: 'addLocalTemplatesDialog',
-    context: UID
-});
-
-Ext.create('Zenoss.removeLocalTemplateDialog', {
-    id: 'removeLocalTemplatesDialog',
-    context: UID
-});
 
 var editDeviceClass = function(deviceClass, uid) {
 
@@ -929,41 +851,62 @@ var editDeviceClass = function(deviceClass, uid) {
             ref: '../savebtn',
             disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
             handler: function(btn) {
-                var vals = btn.refOwner.editForm.getForm().getValues();
-                var submitVals = {
-                    uids: [uid],
-                    asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
-                    target: '/zport/dmd/Devices' + vals.deviceClass,
-                    hashcheck: ''
-                };
-                Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
-                    var moveToNewDevicePage = function() {
-                        var hostString = window.location.protocol + '//' +
-                            window.location.host;
-                        window.location = hostString + '/zport/dmd/Devices' +
-                            vals.deviceClass + '/devices' +
-                            uid.slice(uid.lastIndexOf('/'));
+                var vals = btn.refOwner.editForm.getForm().getValues(),
+                    target = '/zport/dmd/Devices' + vals.deviceClass,
+                    needRemodelVals = {
+                        uid: uid,
+                        target: target
                     };
+                Zenoss.remote.DeviceRouter.doesMoveRequireRemodel(needRemodelVals, function(data) {
                     if (data.success) {
-                        if (data.exports) {
-                         new Zenoss.dialog.SimpleMessageDialog({
+                        var moveToNewDevicePage = function() {
+                                var hostString = window.location.protocol + '//' +
+                                    window.location.host;
+                                window.location = hostString + '/zport/dmd/Devices' +
+                                    vals.deviceClass + '/devices' +
+                                    uid.slice(uid.lastIndexOf('/'));
+                                },
+                            submitVals = {
+                                uids: [uid],
+                                asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
+                                target: target,
+                                hashcheck: ''
+                            };
+                        if (data.remodelRequired) {
+                            new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Remodel Required'),
-                                message: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                message: _t("Not all of the configuration can be preserved, so a remodel of the device will be required. Performance templates will be reset to the defaults for the device class. Continue with move?"),
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
                                     handler: function() {
-                                        moveToNewDevicePage();
+                                        Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                            if (data.success) {
+                                                moveToNewDevicePage();
+                                            }
+                                        });
                                     }
                                 }, {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
                             }).show();
+                        } else {
+                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                if (data.success) {
+                                    moveToNewDevicePage();
+                                }
+                            });
                         }
-                        else {
-                            moveToNewDevicePage();
-                        }
+                    } else {
+                        new Zenoss.dialog.SimpleMessageDialog({
+                            title: _t('Unable To Move'),
+                            message: _t("A test to determine if the move would require a remodel has encountered an unexpected error, unable to move the device."),
+                            buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK')
+                            }]
+                        }).show();
                     }
                 });
                 win.destroy();
@@ -971,7 +914,7 @@ var editDeviceClass = function(deviceClass, uid) {
         }, {
             xtype: 'DialogButton',
             text: _t('Cancel'),
-            handler: function(btn) {
+            handler: function() {
                 win.destroy();
             }
         }]
@@ -1008,6 +951,14 @@ function modelDevice() {
         title: _t('Model Device')
     });
     win.show();
+}
+
+function resumeCollection() {
+    Zenoss.remote.DeviceRouter.resumeCollection(UID, function(data) {
+        Ext.defer(function() {
+            window.top.location.reload();
+        }, 1000);
+    });
 }
 
 Ext.getCmp('footer_bar').add([{
@@ -1061,35 +1012,45 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Bind Templates'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('bindTemplatesDialog').show();
+            Ext.create('Zenoss.BindTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Add Local Template'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('addLocalTemplatesDialog').show();
+            Ext.create('Zenoss.AddLocalTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Remove Local Template'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('removeLocalTemplatesDialog').show();
+            Ext.create('Zenoss.removeLocalTemplateDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Reset Bindings'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('resetTemplatesDialog').show();
+            Ext.create('Zenoss.ResetTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },{
         xtype: 'menuitem',
         text: _t('Override Template Here'),
         hidden: Zenoss.Security.doesNotHavePermission('Edit Local Templates'),
         handler: function(){
-            Ext.getCmp('overrideTemplatesDialog').show();
+            Ext.create('Zenoss.OverrideTemplatesDialog', {
+                context: UID
+            }).show();
         }
     },'-',{
         xtype: 'menuitem',
@@ -1182,7 +1143,12 @@ Ext.getCmp('footer_bar').add([{
                 uid: Zenoss.env.device_uid
             }).show();
         }
-
+    }, {
+        xtype: 'menuitem',
+        id: "resetRenameCmp",
+        text: _t('Resume Collection'),
+        hidden: Zenoss.Security.doesNotHavePermission('Admin Device'),
+        handler: resumeCollection
     },{
         xtype: 'menuitem',
         text: _t('Delete Device') + '...',
@@ -1192,7 +1158,6 @@ Ext.getCmp('footer_bar').add([{
                 uid: Zenoss.env.device_uid
             }).show();
         }
-
     },{
         xtype: 'menuitem',
         text: _t('Locking') + '...',
@@ -1254,7 +1219,6 @@ Ext.getCmp('footer_bar').add([{
     handler: modelDevice
 
 }]);
-
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');
@@ -1262,7 +1226,7 @@ Ext.getCmp('footer_bar').add([{
     }
 
     // make sure we are always at least selecting the first item.
-    if (window.location.hash == "") {
+    if (window.location.hash === "") {
         Ext.History.add("deviceDetailNav:device_overview");
     }
 

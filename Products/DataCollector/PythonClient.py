@@ -78,7 +78,7 @@ class PythonClient(BaseClient):
             return
 
         if isinstance(r, Failure):
-            log.warn("Error in %s: %s", plugin.name(), r.getErrorMessage())
+            log.error("Error in %s: %s", plugin.name(), r.getErrorMessage())
         else:
             log.debug("Results for %s: %s", plugin.name(), str(r))
             self.results.append((plugin, r))

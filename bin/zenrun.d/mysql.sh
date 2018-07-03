@@ -26,6 +26,6 @@ rebuild_zodb_session() {
         exit $rc
     fi
     echo "SUCCESS rebuilding $db"
-    exit 1
+    exit 0
 }
 

@@ -46,8 +46,8 @@ class SiteError:
         return header
     createEmailHeader = classmethod(createEmailHeader)
 
-        
-    def createReport(cls, errorType, errorValue, errorTrace, errorUrl, revision,
+
+    def createReport(cls, errorType, errorValue, errorTrace, errorUrl,
                         versionShort,
                         inHtml=True, contactName=None, contactEmail=None, 
                         comments=None):
@@ -74,7 +74,6 @@ class SiteError:
         msg = linebreak.join(['Type: %s' % errorType,
                                 'Value: %s' % errorValue,
                                 'URL: %s' % cls.cleanUrl(errorUrl),
-                                'Revision: %s' % revision,
                                 'Version: %s' % versionShort,
                                 '%s' % errorTrace,
                                 'Contact name: %s' % (contactName or ''),
@@ -84,8 +83,8 @@ class SiteError:
     createReport = classmethod(createReport)
 
 
-    def sendErrorEmail(self, errorType, errorValue, errorTrace, errorUrl, 
-                        revision, versionShort,
+    def sendErrorEmail(self, errorType, errorValue, errorTrace, errorUrl,
+                        versionShort,
                         contactName=None, contactEmail=None, comments=None,
                         smtphost=None, smtpport=25, usetls=False, usr='', 
                         pwd=''):
@@ -101,7 +100,7 @@ class SiteError:
         header = self.createEmailHeader(
                     fromAddress, self.ERRORS_ADDRESS, subject)
         body = self.createReport(errorType, errorValue, errorTrace, cleanUrl,
-                                revision, versionShort,
+                                versionShort,
                                 0, contactName, contactEmail, comments)
         mailSent = False
 

@@ -31,7 +31,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
             width: 310,
             plain: true,
             items: [{
-                id: 'addzenpackform',
+                itemId: 'addzenpackform',
                 xtype: 'form',
                 listeners: {
                     validitychange: function(form, isValid) {
@@ -68,27 +68,28 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     forceSelection: true,
                     triggerAction: 'all',
                     selectOnFocus: true,
-                    id: 'zpcombobox'
+                    itemId: 'zpcombobox'
                 }],
                 buttons: [{
                     text: _t('Submit'),
                     xtype: 'DialogButton',
                     disabled: true,
-                    handler: function () {
-                        var form = Ext.getCmp('addzenpackform'),
-                            chosenzenpack = form.getForm().findField('zpname').getValue(), i, targets = [];
+                    handler: function (t) {
+                        var form = t.up(),
+                            chosenzenpack = form.down('#zpcombobox').getValue(), i, targets = [], callback;
                         if (!Ext.isArray(me.target)) {
                             targets.push(me.target);
                         } else {
                             targets = me.target;
                         }
+                        callback = function() {
+                            Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
+                        };
                         for (i=0; i<targets.length; i++ ) {
                             Zenoss.remote.ZenPackRouter.addToZenPack({
                                 topack: targets[i],
                                 zenpack: chosenzenpack
-                            }, function (data) {
-                                Zenoss.message.info(_t("The item was added to {0}"), chosenzenpack);
-                            });
+                            }, callback);
                         }
                     }
                 },{
@@ -103,7 +104,6 @@ Ext.define("Zenoss.AddToZenPackWindow", {
         this.target = target;
     }
 });
-
 
 
 })();

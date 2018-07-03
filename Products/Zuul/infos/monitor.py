@@ -65,6 +65,13 @@ class MonitorTreeNode(object):
     def children(self):
         return self._children
 
+    @property
+    def devcount(self):
+        if self.type == "collector":
+            return self._ctx.devices.countObjects()
+        else:
+            return 0
+
 
 @implementer(IMonitorInfo)
 class MonitorInfo(InfoBase):

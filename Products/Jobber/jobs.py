@@ -17,7 +17,7 @@ import errno
 import signal
 import subprocess
 import socket
-
+from datetime import datetime
 import transaction
 from AccessControl.SecurityManagement import (
         newSecurityManager, noSecurityManager
@@ -199,6 +199,9 @@ class Job(Task):
         user = utool.getUserById(job_record.user)
         if user is None:
             user = self.dmd.zport.acl_users.getUserById(job_record.user)
+        if user is None:
+            # Can't get users when using Auth0 at this time, use zenoss_system
+            user = self.dmd.zport.acl_users.getUserById("zenoss_system")
         user = user.__of__(utool)
         newSecurityManager(None, user)
 
@@ -428,3 +431,22 @@ class SubprocessJob(Job):
             
             raise SubprocessJobFailed(exitcode)
         return exitcode
+
+class PruneJob(Job):
+    """
+    Prune old jobs in the job catalog.
+    """
+    @classmethod
+    def getJobType(cls):
+        return "Prune Job"
+
+    @classmethod
+    def getJobDescription(cls, **kwargs):
+        return "Prune jobs older than %s" % kwargs['untiltime']
+
+    def _run(self, untiltime, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.log.info("Prune jobs older than %s " % untiltime)
+        self.dmd.JobManager.deleteUntil(untiltime)
+        self.dmd.JobManager.lastPruneTime = datetime.now()

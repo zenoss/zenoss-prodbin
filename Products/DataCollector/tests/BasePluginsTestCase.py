@@ -7,9 +7,7 @@
 # 
 ##############################################################################
 
-
 import os
-from pprint import pprint, pformat
 import logging
 log = logging.getLogger("zen.BasePluginsTestCase")
 
@@ -18,6 +16,7 @@ from Products.ZenRRD.tests.BaseParsersTestCase import Object, filenames
 
 from Products.DataCollector.plugins.DataMaps \
         import RelationshipMap, ObjectMap, MultiArgs
+
 
 class BasePluginsTestCase(BaseTestCase):
 
@@ -42,8 +41,6 @@ class BasePluginsTestCase(BaseTestCase):
         else:
             print self.__class__.__name__, "had no counters or failed to parse."
 
-
-
     def __parseCommandAndOutput(self, filename, singleLine=True):
         """
         Parse out the command that was used to generate the output included in the file
@@ -63,9 +60,6 @@ class BasePluginsTestCase(BaseTestCase):
         datafile.close()    
         return command, output
 
-
-
-
     def _testDataFile(self, filename, Plugins, device=None):
         """
         Test a data file.
@@ -77,17 +71,20 @@ class BasePluginsTestCase(BaseTestCase):
         expected = eval("".join(expectedfile.readlines()))
         expectedfile.close()
 
+        cleaner = lambda command: ' '.join(command.split())
+        command = cleaner(command)
         plugins = [P() for P in Plugins 
-                if P.command == command and P.__name__ in expected]
+            if cleaner(P.command) == command and P.__name__ in expected]
 
         if not plugins:
             #if we fail to find a plugin the first time we might be dealing
             #with a multiline command, let's try to re-parse the datafile once more
             command, output = self.__parseCommandAndOutput(filename, singleLine=False)
+            command = cleaner(command)
             plugins = [P() for P in Plugins 
-                if P.command == command and P.__name__ in expected]
+                if cleaner(P.command) == command and P.__name__ in expected]
         if not plugins:
-                self.fail("No plugins for %s" % command)
+            self.fail("No plugins for %s" % command)
 
         device = device or Object()
         device.id = filename.split(os.path.sep)[-2]
@@ -95,7 +92,6 @@ class BasePluginsTestCase(BaseTestCase):
         expecteds = [expected[p.__class__.__name__] for p in plugins]
         dataMaps = [p.process(device, output, logging) or [] for p in plugins]
         return self._testDataMaps(zip(expecteds, dataMaps), filename)
-
 
     def _testDataMaps(self, expectedActuals, filename):
         """
@@ -134,7 +130,6 @@ class BasePluginsTestCase(BaseTestCase):
             self.fail("Data map type %s not supported." % (type(actual),))
 
         return counter
-
 
     def _testRelationshipMap(self, expected, relationshipMap, filename):
         """

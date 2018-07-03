@@ -9,10 +9,10 @@
         "    %(daemondir)s : The directory in which daemon is located"
     ],
     "Actions": {
-        "debug": "su - zenoss -c '%(daemonpath)s debug'",
-        "stats": "su - zenoss -c '%(daemonpath)s stats'"
+        "debug": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s debug'",
+        "stats": "su - zenoss -c '%(zenhome)s/bin/%(daemon)s stats'"
     },
-    "Command": "su - zenoss -c \"%(daemonpath)s run -c --duallog %(ZenPack.Default.WorkerArgs)s --monitor {{(parent .).Name}}\"",
+    "Command": "su - zenoss -c \"%(zenhome)s/bin/%(daemon)s run -c --logfileonly %(ZenPack.Default.WorkerArgs)s --monitor {{(parent .).Name}}\"",
     "ConfigFiles": {
         "%(zenhome)s/etc/%(daemon)s.conf": {
             "####": "Note: Contents defined by the output of '%(daemon)s genconf' ",
@@ -24,6 +24,12 @@
     },
     "Endpoints": [
         {
+            "Name": "zproxy",
+            "Application": "zproxy",
+            "PortNumber": 8080,
+            "Protocol": "tcp",
+            "Purpose": "import"
+        },{
             "Name": "zenhub",
             "Application": "{{(parent (parent .)).Name}}_zenhubPB",
             "PortNumber": 8789,

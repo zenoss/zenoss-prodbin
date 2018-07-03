@@ -7,14 +7,19 @@
 #
 ##############################################################################
 
-
 from zope.interface import implements
 from Products.Zuul.infos import InfoBase, ProxyProperty
+from Products.Zuul.infos.catalog_tree_builder import ModelCatalogTreeBuilder
 from Products.Zuul.utils import severityId
 from Products.Zuul.interfaces import template as templateInterfaces
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.utils import ZuulMessageFactory as _t
 from Products.ZenUtils.Utils import snmptranslate
+from zope.schema.vocabulary import SimpleVocabulary
+
+
+def rrdTemplateDataPointFactory(context):
+    return SimpleVocabulary.fromValues(context._object.rrdTemplate().getRRDDataPointNames())
 
 class TemplateInfo(InfoBase):
     description = ProxyProperty('description')
@@ -123,11 +128,12 @@ class DeviceClassTemplateNode(TreeNode):
     def _get_cache(self):
         cache = getattr(self._root, '_cache', None)
         if cache is None:
-            prefix = '/'.join(self._root.uid.split('/')[:4])
-            cache = TreeNode._buildCache(self,
-                                         'Products.ZenModel.DeviceClass.DeviceClass',
-                                         'Products.ZenModel.RRDTemplate.RRDTemplate',
-                                         'rrdTemplates', prefix, orderby='name')
+            node_type = "Products.ZenModel.DeviceClass.DeviceClass"
+            leaf_type = "Products.ZenModel.RRDTemplate.RRDTemplate"
+            root_object = self._root._object.getObject()
+            cache = ModelCatalogTreeBuilder(root_object, node_type,
+                                            leaf_type, load_leaves=True)
+            setattr(self._root, '_cache', cache)
         return cache
 
     @property
@@ -198,16 +204,13 @@ class DeviceClassTemplateNode(TreeNode):
         return "%s (%s)" % (self._object.name, path)
 
     def _get_templates(self):
-        idx = self._get_cache._instanceidx
         parts = self.uid.split('/')[3:]
         path = ''
         templates = {}
-        brains = self._get_cache._brains
         while parts:
             path = '/'.join((path, parts.pop(0))).lstrip('/')
-            rids = idx.get(path, {}).get(1, ())
-            for rid in rids:
-                brain = brains[rid]
+            uid = "/zport/dmd/{}".format(path)
+            for brain in self._get_cache.get_node_leaves(uid):
                 templates[brain.name] = brain
         return templates.values()
 
@@ -221,7 +224,7 @@ class DeviceClassTemplateNode(TreeNode):
         if not self.isOrganizer:
             return []
         # get all organizers as brains
-        orgs = self._get_cache.search(self.uid)
+        orgs = self._get_cache.get_child_nodes_brains(self.uid)
         templates = self._get_templates()
         path = self.path
         # return them both together
@@ -229,13 +232,11 @@ class DeviceClassTemplateNode(TreeNode):
         for brain in orgs:
             item = DeviceClassTemplateNode(brain, self._root, self)
             results.append(item)
-
         for template in templates:
             item = DeviceClassTemplateNode(template, self._root, self)
             item._organizerPath = path
             results.append(item)
         return results
-
 
 
 class RRDDataSourceInfo(InfoBase):
@@ -484,8 +485,15 @@ class DataPointInfo(InfoBase):
             if self._object.isCounter():
                 rateOptions['counter'] = True
                 rateOptions["resetThreshold"] = 1
+            else:
+                rateOptions['counter'] = False
             if self._object.rrdmax is not None:
                 rateOptions['counterMax'] = self._object.rrdmax
+                # a safe and large threshold to reduce counter wrapping noise
+                rateOptions['resetThreshold'] = 10 * self._object.rrdmax
+            else:
+                rateOptions['resetThreshold'] = 104857600
+
         return rateOptions
 
 
@@ -606,11 +614,11 @@ class GraphInfo(InfoBase):
     @property
     def description(self):
         return self._object.getDescription()
-    
+
     @description.setter
     def description(self, value):
         self._object.description = value
-        
+
     @property
     def rrdVariables(self):
         """

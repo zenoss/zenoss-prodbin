@@ -26,12 +26,6 @@
         />
 
     <utility
-        factory=".actions.PageAction"
-        provides=".interfaces.IAction"
-        name="page"
-        />
-
-    <utility
         factory=".actions.CommandAction"
         provides=".interfaces.IAction"
         name="command"
@@ -59,6 +53,4 @@
          instances are as well -->
     <subscriber handler=".OSProcessClass.onProcessClassRemoved"/>
     <subscriber handler=".ServiceClass.onServiceClassRemoved"/>
-    <subscriber handler=".subscribers.onInterfaceRemoved" />
-    <subscriber handler=".subscribers.onInterfaceAdded" />
 </configure>

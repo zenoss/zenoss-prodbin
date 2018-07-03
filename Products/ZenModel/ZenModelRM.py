@@ -1,14 +1,14 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-__doc__="""ZenModelRM
+__doc__ = """ZenModelRM
 
 $Id: ZenModelRM.py,v 1.50 2004/05/10 20:49:09 edahl Exp $"""
 
@@ -31,9 +31,17 @@ from Products.ZenWidgets import messaging
 from Products.ZenUtils.Utils import getSubObjects, zenPath
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGE_DMD,
+    ZEN_VIEW,
+    ZEN_CHANGE_DEVICE_PRODSTATE
+)
 
-class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
+
+from Products.Zuul.catalog.indexable import BaseIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
+
+class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker, BaseIndexable):
     """
     Base class for all Persistent classes that have relationships.
     Provides RelationshipManagement, Customized PropertyManagement,
@@ -44,20 +52,29 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
 
     default_catalog = ''
 
-    isInTree = 0 #should this class show in left nav tree
+    isInTree = 0  # should this class show in left nav tree
 
     security = ClassSecurityInfo()
 
     def __init__(self, id, title=None, buildRelations=True):
-        self.createdTime = DateTime(time.time())
+        self._created_timestamp = time.time()
+        self.createdTime = DateTime(self._created_timestamp)
         RelationshipManager.__init__(self, id, title, buildRelations)
 
+    @property
+    def created_timestamp(self):
+        try:
+            return self._created_timestamp
+        except AttributeError:
+            self._created_timestamp = self.createdTime.timeTime()
+            return self._created_timestamp
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'setTitle')
     def setTitle(self, title):
         self.title = title
-        from Products.Zuul.interfaces import ICatalogTool
-        ICatalogTool(self).update(self)
+        IModelCatalogTool(self).update(self)
 
-    security.declareProtected('Manage DMD', 'rename')
+    security.declareProtected(ZEN_MANAGE_DMD, 'rename')
     def rename(self, newId, REQUEST=None):
         """Delete device from the DMD"""
         renamed = False
@@ -75,26 +92,28 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             return self.callZenScreen(REQUEST, renamed)
         return renamed
 
-
-    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False, audit=True):
         """Edit a ZenModel object and return its proper page template
         """
         redirect = False
-        if REQUEST.form.has_key("newId"):
+        if "newId" in REQUEST.form:
             redirect = self.rename(REQUEST.form["newId"])
-        return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect, audit)
+        return ZenModelBase.zmanage_editProperties(
+            self, REQUEST, redirect, audit
+        )
 
-
-    def zmanage_addProperty(self, id, value, type, label, visible,
-                                prefix='c', REQUEST=None):
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_addProperty')
+    def zmanage_addProperty(
+        self, id, value, type, label, visible, prefix='c', REQUEST=None
+    ):
         """Add a new property via the web.
         Sets a new property with the given id, type, and value.
         Id must start with a 'c' for custom attributes added via the
         Custom Schema tab.
         """
         if type in type_converters and value:
-            value=type_converters[type](value)
+            value = type_converters[type](value)
         id = id.strip()
         if prefix and not id.startswith(prefix):
             id = prefix + id
@@ -123,6 +142,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 )
                 return self.callZenScreen(REQUEST)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_exportObject')
     def zmanage_exportObject(self, context=None, REQUEST=None):
         """Export objects to specific locations.
         """
@@ -166,7 +186,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 'Export Object', msg)
             return self.callZenScreen(REQUEST, redirect)
 
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_importObjects')
     def zmanage_importObjects(self, context=None, REQUEST=None):
         """Import an XML file as the Zenoss objects and properties it
         represents.
@@ -199,12 +219,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 'Import Objects', 'Objects imported')
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_importObject')
     def zmanage_importObject(self, REQUEST=None):
         """Import objects into Zenoss.
         """
         pass
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_delProperties')
     def zmanage_delProperties(self, ids=(), REQUEST=None):
         """Delete properties from an object.
         """
@@ -217,12 +238,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             )
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_delObjects')
     def zmanage_delObjects(self, ids=(), relation="", REQUEST=None):
         """Delete objects from this object or one of its relations.
         """
         target = self
-        if relation: target = self._getOb(relation)
+        if relation:
+            target = self._getOb(relation)
         for id in ids:
             target._delObject(id)
         if REQUEST:
@@ -232,8 +254,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             )
             return self.callZenScreen(REQUEST)
 
-
-    security.declareProtected('View', 'getDmdKey')
+    security.declareProtected(ZEN_VIEW, 'getDmdKey')
     def getDmdKey(self):
         """
         Hook to get the name of an object.  Usually its self.getId() but is
@@ -246,21 +267,17 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         return self.getId()
 
-
-    security.declareProtected('View', 'primarySortKey')
+    security.declareProtected(ZEN_VIEW, 'primarySortKey')
     def primarySortKey(self):
         """
         Hook for the value used to sort this object.  Defaults to self.getId().
         """
         return self.titleOrId()
 
-
-    security.declareProtected('View', 'viewName')
+    security.declareProtected(ZEN_VIEW, 'viewName')
     def viewName(self):
         return self.titleOrId()
 
-
-    #actions?
     def getTreeItems(self):
         nodes = []
         for item in self.objectValues():
@@ -268,51 +285,47 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 nodes.append(item)
         return nodes
 
-
     def getSubObjects(self, filter=None, decend=None, retobjs=None):
         return getSubObjects(self, filter, decend, retobjs)
-
 
     def getCreatedTimeString(self):
         """return the creation time as a string"""
         return self.createdTime.strftime('%Y/%m/%d %H:%M:%S')
 
-
     def getModificationTimeString(self):
         """return the modification time as a string"""
         return self.bobobase_modification_time().strftime('%Y/%m/%d %H:%M:%S')
 
-
     def changePythonClass(self, newPythonClass, container):
         """change the python class of a persistent object"""
         id = self.id
-        nobj = newPythonClass(id) #make new instance from new class
-        nobj = nobj.__of__(container) #make aq_chain same as self
+        nobj = newPythonClass(id)  # make new instance from new class
+        nobj = nobj.__of__(container)  # make aq_chain same as self
         nobj.oldid = self.id
-        nobj.setPrimaryPath() #set up the primarypath for the copy
-        #move all sub objects to new object
+        nobj.setPrimaryPath()  # set up the primarypath for the copy
+        # move all sub objects to new object
         nrelations = self.ZenSchemaManager.getRelations(nobj).keys()
         for sobj in self.objectValues():
-            RelationshipManager._delObject(self,sobj.getId())
+            RelationshipManager._delObject(self, sobj.getId())
             if not hasattr(nobj, sobj.id) and sobj.id in nrelations:
-                # confuse pychecker:
                 setObject = RelationshipManager._setObject
                 setObject(nobj, sobj.id, sobj)
-        nobj.buildRelations() #build out any missing relations
+        nobj.buildRelations()  # build out any missing relations
         # copy properties to new object
         noprop = getattr(nobj, 'zNoPropertiesCopy', [])
         for name in nobj.getPropertyNames():
-            if (getattr(self, name, None) and name not in noprop and
-                hasattr(nobj, "_updateProperty")):
+            if (
+                getattr(self, name, None)
+                and name not in noprop
+                and hasattr(nobj, "_updateProperty")
+            ):
                 val = getattr(self, name)
                 nobj._updateProperty(name, val)
         return aq_base(nobj)
 
-
     def getZenRootNode(self):
         """Return the root node for our zProperties."""
         return self.getDmdRoot(self.dmdRootName)
-
 
     def editableDeviceList(self):
         """
@@ -321,12 +334,10 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         if not getattr(aq_base(self), "deviceMoveTargets", False):
             return False
 
-        if self.isManager() or \
-            self.checkRemotePerm(ZEN_CHANGE_DEVICE_PRODSTATE, self):
-            return True
-
-        return False
-
+        return bool(
+            self.isManager() or
+            self.checkRemotePerm(ZEN_CHANGE_DEVICE_PRODSTATE, self)
+        )
 
     def creator(self):
         """
@@ -335,37 +346,34 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         Other methods (except reindex_all) are implemented on the concreate
         class.
         """
-        users=[]
+        users = []
         for user, roles in self.get_local_roles():
             if 'Owner' in roles:
                 users.append(user)
         return ', '.join(users)
 
-
     def index_object(self, idxs=None):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None:
+        if cat is not None:
             cat.catalog_object(self, self.getPrimaryId(), idxs=idxs)
-
-
 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
-        if cat != None:
+        if cat is not None:
             cat.uncatalog_object(self.getPrimaryId())
-
 
     def reindex_all(self, obj=None):
         """
         Called for in the CataLogAwarenessInterface not sure this is needed.
         """
-        if obj is None: obj=self
+        if obj is None:
+            obj = self
         if hasattr(aq_base(obj), 'index_object'):
             obj.index_object()
         if hasattr(aq_base(obj), 'objectValues'):
-            sub=obj.objectValues()
+            sub = obj.objectValues()
             for item in sub:
                 self.reindex_all(item)
         return 'done!'

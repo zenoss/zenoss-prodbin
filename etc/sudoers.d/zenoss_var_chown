@@ -1,0 +1,4 @@
+# Allows Zenoss to run a chown command in its var directory
+%zenoss ALL=(ALL) NOPASSWD: /opt/zenoss/bin/var_chown
+Defaults:zenoss !requiretty
+

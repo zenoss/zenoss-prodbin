@@ -24,7 +24,7 @@ from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from Products.PageTemplates.Expressions import getEngine
 
-from Products.ZenUtils.ZenTales import talesCompile
+from Products.ZenUtils.ZenTales import talesCompile, talesEvalStr
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
 
@@ -46,7 +46,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     eventKey = ''
     severity = 3
     commandTemplate = ""
-    cycletime = 300
+    cycletime = '${here/zCommandCollectionInterval}'
 
     _properties = (
         {'id':'sourcetype', 'type':'selection',
@@ -57,7 +57,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         {'id':'eventKey', 'type':'string', 'mode':'w'},
         {'id':'severity', 'type':'int', 'mode':'w'},
         {'id':'commandTemplate', 'type':'string', 'mode':'w'},
-        {'id':'cycletime', 'type':'int', 'mode':'w'},
+        {'id':'cycletime', 'type':'string', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (
@@ -83,6 +83,26 @@ class RRDDataSource(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
 
     
+    def talesEval(self, text, context):
+        if text is None:
+            return
+
+        device = context.device()
+        extra = {
+            'device': device,
+            'dev': device,
+            'devname': device.id,
+            'datasource': self,
+            'ds': self,
+        }
+
+        return talesEvalStr(str(text), context, extra=extra)
+
+
+    def getCycleTime(self, context):
+        return int(self.talesEval(self.cycletime, context))
+        
+
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
@@ -174,7 +194,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return newGps
 
 
-    def getCommand(self, context, cmd=None):
+    def getCommand(self, context, cmd=None, device=None):
         """Return localized command target.
         """
         # Perform a TALES eval on the expression using self
@@ -183,13 +203,14 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         if not cmd.startswith('string:') and not cmd.startswith('python:'):
             cmd = 'string:%s' % cmd
         compiled = talesCompile(cmd)
-        d = context.device()
+        d = device if device is not None else context.device()
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
                    'ds': self,
                    'datasource': self,
                    'here' : context,
+                   'context': context,
                    'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
@@ -200,7 +221,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return res
         
 
-    def getComponent(self, context, component=None):
+    def getComponent(self, context, component=None, device=None):
         """Return localized component.
         """
         if component is None:
@@ -209,7 +230,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                 not component.startswith('python:'):
             component = 'string:%s' % component
         compiled = talesCompile(component)
-        d = context.device()
+        d = device if device is not None else context.device()
         environ = {'dev' : d,
                    'device': d,
                    'devname': d.id,
@@ -240,6 +261,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return self.ZenEventManager.getSeverityString(self.severity)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, ignored=None):
         return ZenModelRM.zmanage_editProperties(self, REQUEST)
 
@@ -252,6 +274,7 @@ class SimpleRRDDataSource(RRDDataSource):
     security = ClassSecurityInfo()
     
     
+    security.declareProtected(ZEN_MANAGE_DMD, 'addDataPoints')
     def addDataPoints(self):
         """
         Make sure there is exactly one datapoint and that it has the same name

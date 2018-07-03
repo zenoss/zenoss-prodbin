@@ -35,7 +35,7 @@ def manage_addCustomDeviceReportClass(context, id, title = None, REQUEST = None)
             'Report Organizer Added',
             'Custom report organizer %s has been created.' % id
         )
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main') 
 
 addCustomDeviceReportClass = DTMLFile('dtml/addCustomDeviceReportClass',globals())
 

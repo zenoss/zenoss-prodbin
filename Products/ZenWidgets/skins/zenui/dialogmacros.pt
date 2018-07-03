@@ -14,9 +14,9 @@ loader = YAHOO.zenoss.getLoader();
 loader.require(['zenossutils']);
 loader.insert({
     onSuccess: function(){
-        mydialog = new Dialog.Box($('dialog'));
+        mydialog = new Dialog.Box($MK('dialog'));
         connect('dialog_close','onclick', mydialog.box.hide);
-        $('dialog').style.visibility = '';
+        $MK('dialog').style.visibility = '';
     }
 });
 </script>
@@ -57,7 +57,7 @@ loader.insert({
 <form name="proxy_form" id="proxy_form"
     style="position:absolute;visibility:hidden"
     tal:attributes="action here/absolute_url_path"></form>
-<form method="post" name="proxyForm" action="here/absolute_url"> 
+<form method="post" name="proxyForm" action="here/absolute_url_path"> 
     <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/> 
 </form>
 </tal:block>

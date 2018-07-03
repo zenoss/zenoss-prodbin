@@ -24,3 +24,8 @@ class SubprocessJobFailed(Exception):
     """
     def __init__(self, exitcode):
         self.exitcode = exitcode
+
+class FacadeMethodJobFailed(Exception):
+    """
+    A facade method job failed.
+    """

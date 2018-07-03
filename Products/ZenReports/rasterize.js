@@ -1,6 +1,7 @@
 var page = require('webpage').create(),
     system = require('system'),
-    address, output, size, username, password, outputFile;
+    address, output, size, username, password, outputFile,
+    pageZoomFactor, pageFormat;
 
 //phantomjs rasterize.js URL USERNAME PASSWORD PDF
 if (system.args.length < 5 || system.args.length > 7) {
@@ -12,6 +13,8 @@ if (system.args.length < 5 || system.args.length > 7) {
     username = system.args[2];
     password = system.args[3];
     outputFile = system.args[4];
+    pageFormat = system.args[5] || "Letter";
+    pageZoomFactor = system.args[6] || 1;
 
     page.settings.localToRemoteUrlAccessEnabled = true;
     page.settings.resourceTimeout = 10000;
@@ -23,18 +26,13 @@ if (system.args.length < 5 || system.args.length > 7) {
         console.log('Username and password were not provided');
     }
 
-    page.viewportSize = { width: 800, height: 800 };
-    if (system.args.length > 5 && system.args[2].substr(-4) === ".pdf") {
-        var pageFormat = system.args[5];
-        size = system.args[3].split('*');
-        page.paperSize = size.length === 2 ? { width: size[0], height: size[1], margin: '0px' }
-                                           : { format: pageFormat, orientation: 'portrait', margin: '1cm' };
-    }
-
-    if (system.args.length > 6) {
-        var pageZoomFactor = system.args[6];
-        page.zoomFactor = pageZoomFactor;
-    }
+    page.viewportSize = { width: 850, height: 1100 };
+    page.zoomFactor = pageZoomFactor;
+    page.paperSize = {
+        format: pageFormat,
+        orientation: "landscape",
+        margin: "0.25in"
+    };
 
     page.open(address, function (status) {
         if (status !== 'success') {
@@ -44,7 +42,7 @@ if (system.args.length < 5 || system.args.length > 7) {
             window.setTimeout(function () {
                 page.render(outputFile);
                 phantom.exit(0);
-            }, 200);
+            }, 1000);
         }
     });
 }

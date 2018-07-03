@@ -8,7 +8,7 @@
     <browser:viewletManager
         name="extdirect"
         provides=".interfaces.IExtDirectJavaScriptManager"
-        class=".javascript.ExtDirectJavaScriptManager" 
+        class=".javascript.ExtDirectJavaScriptManager"
         permission="zope.Public"
         />
 
@@ -22,7 +22,7 @@
     <browser:viewletManager
         name="jsonapi"
         provides=".interfaces.IJsonApiJavaScriptManager"
-        class=".javascript.JsonApiJavaScriptManager" 
+        class=".javascript.JsonApiJavaScriptManager"
         permission="zope.Public"
         />
 

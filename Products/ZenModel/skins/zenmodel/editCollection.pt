@@ -292,72 +292,74 @@
 </form>
 <br />
 
-<form method="get" name="collectionItemForm"
-    tal:attributes="action here/absolute_url_path">
+<div>
     <tal:block tal:define="
-        tableName string:collectionItemList; 
+        tableName string:collectionItemList;
         objects here/collection_items;
         tabletitle string:Collection Items;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='sequence'); 
+                                                sortedHeader='sequence');
         menu_id string:collectionItemList">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="zentablecontents">
+    <form method="get" name="collectionItemForm"
+        tal:attributes="action here/absolute_url_path">
+        <!-- BEGIN TABLE CONTENTS -->
+        <tr>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'sequence','Seq')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getId','Name')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getDesc','Item Description')"/>
+            <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getNumDevicesAndComponents','Number of'
+                        ' Devices/Components')"/>
+        </tr>
+        <tal:block tal:repeat="item batch">
+        <tr class="tablevalues">
+            <td>
+                <input tal:condition="here/isManager"
+                    type="text" name="seqmap:list" size="2"
+                    tal:attributes="value item/sequence"
+                    />
+                <input tal:condition="here/isManager"
+                    type="hidden" name="origseq:list"
+                    tal:attributes="value item/sequence"
+                    />
+                <span tal:condition="not:here/isManager" />
+            </td>
+            <td>
+                <input tal:condition="here/isManager"
+                    type="checkbox" name="ids:list"
+                    tal:attributes="value item/getId"/>
+                <a tal:condition="here/isManager"
+                    tal:attributes="href item/getPrimaryUrlPath"
+                    tal:content="item/getId">name</a>
+                <tal:block tal:condition="not:here/isManager"
+                     tal:content="item/getId"/>
+            </td>
+            <td tal:content="structure item/getDesc"></td>
+            <td tal:content="item/getNumDevicesAndComponents"></td>
 
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<tal:block metal:fill-slot="zentablecontents">
-<!-- BEGIN TABLE CONTENTS -->
-            
-    <tr>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'sequence','Seq')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getId','Name')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getDesc','Item Description')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getNumDevicesAndComponents','Number of'
-                    ' Devices/Components')"/>
-    </tr>
-    <tal:block tal:repeat="item batch">
-    <tr class="tablevalues">
-        <td>
-            <input tal:condition="here/isManager" 
-                type="text" name="seqmap:list" size="2"
-                tal:attributes="value item/sequence"
-                />
-            <input tal:condition="here/isManager"
-                type="hidden" name="origseq:list"
-                tal:attributes="value item/sequence"
-                />
-            <span tal:condition="not:here/isManager" />
-        </td>
-        <td>
-            <input tal:condition="here/isManager" 
-                type="checkbox" name="ids:list" 
-                tal:attributes="value item/getId"/>
-            <a tal:condition="here/isManager"
-                tal:attributes="href item/getPrimaryUrlPath" 
-                tal:content="item/getId">name</a>
-            <tal:block tal:condition="not:here/isManager"
-                 tal:content="item/getId"/>
-        </td>
-        <td tal:content="structure item/getDesc"></td>
-        <td tal:content="item/getNumDevicesAndComponents"></td>
-            
-    </tr>
-    </tal:block>
-    <tr>
-        <td colspan="4" class="tableheader" align='center'>
-        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
-        </td>
-    </tr>
+        </tr>
+        </tal:block>
         <!-- END TABLE CONTENTS -->
+    </form>
+    <form tal:attributes="method string:get;
+                action request/URL;
+                name string:graphList">
+        <tr>
+            <td colspan="4" class="tableheader" align='center'>
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
+            </td>
+        </tr>
 
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        
-</form>
+    </form>
+    </tal:block>
+    </tal:block>
+    </tal:block>
+</div>
 
 </tal:block>
 </tal:block>

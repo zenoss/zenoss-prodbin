@@ -33,6 +33,12 @@ class ITreeSpanningComponent(Interface):
         Return the device associated with this component.
         """
 
+    def get_indexable_peers():
+        """
+        return the other tree object/objects that need to be indexed when this
+         spanning component is updated
+        """
+
         
 class IDeviceOrganizer(Interface):
     """
@@ -51,6 +57,17 @@ class IIndexingEvent(IObjectEvent):
     """
     idxs = Attribute("The names of the indices to be reindexed")
     update_metadata = Attribute("Whether to update the metadata of the object")
+
+
+class IAfterIndexingEventSubscriber(Interface):
+    """
+    Notify interested subscribers that IndexingEvent has been processed
+    """
+    def after_indexing_event(event):
+        """
+        Custom behavior after the IndexingEvent is processed
+        @param event: processed IndexingEvent
+        """
 
 
 class IPathReporter(Interface):
@@ -80,3 +97,18 @@ class IGlobalCatalogFactory(Interface):
         @param portal_object: The portal object on which to remove the global catalog.
         @type portal_object: zport
         """
+
+class IComponentFieldSpec(Interface):
+    def get_fields():
+        """
+        Returns the fields associated with this type.
+        """
+
+
+class IModelCatalog(Interface):
+    """ Marker Interface to register an utility for the model catalog """
+
+
+class IModelCatalogTool(Interface):
+    """ Marker interface for the model catalog search tool """
+

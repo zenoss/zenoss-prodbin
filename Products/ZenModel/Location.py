@@ -20,7 +20,7 @@ import transaction
 from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
 
 from DeviceOrganizer import DeviceOrganizer
@@ -37,7 +37,7 @@ def manage_addLocation(context, id, description = "",
     loc.description = description
     loc.address = address
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() +'/manage_main')
 
 
 addLocation = DTMLFile('dtml/addLocation',globals())
@@ -107,6 +107,7 @@ class Location(DeviceOrganizer, ZenPackable):
         self.address = address
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'setAddress')
     def setAddress(self, address):
         """Sets the mailing address for this location"""
         self.address = address

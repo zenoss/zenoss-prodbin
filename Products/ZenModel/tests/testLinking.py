@@ -18,6 +18,7 @@ from itertools import count, islice
 numpairs = lambda x: (x*(x-1))*0.5
 
 from Products.ZenModel.IpInterface import manage_addIpInterface
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from ZenModelBaseTest import ZenModelBaseTest
 
 class TestLayer2Linking(ZenModelBaseTest):
@@ -29,20 +30,22 @@ class TestLayer2Linking(ZenModelBaseTest):
         self.iface = self.dev.os.interfaces._getOb('eth0')
         self.mac = '00:11:22:33:44:55'
         self.iface._setPropValue('macaddress', self.mac)
-        self.catalog = self.dmd.ZenLinkManager.layer2_catalog
+        self.catalog = IModelCatalogTool(self.dmd).layer2
 
     def testIndexAttributes(self):
-        brain = self.catalog()[0]
+        brain = list(self.catalog())[0]
         self.assertEqual(brain.deviceId, '/zport/dmd/Devices/devices/' + self.dev.id)
         self.assertEqual(brain.interfaceId, self.iface.getPrimaryId())
         self.assertEqual(brain.macaddress, self.mac)
-        self.assertEqual(brain.lanId, 'None')
+        self.assertEqual(brain.lanId, None)
 
     def testMacIndex(self):
-        self.assertEqual(self.catalog()[0].macaddress, self.mac)
+        brain = list(self.catalog())[0]
+        self.assertEqual(brain.macaddress, self.mac)
         MAC = '55:44:33:22:11:00'
         self.iface._setPropValue('macaddress', MAC)
-        self.assertEqual(self.catalog()[0].macaddress, MAC)
+        brain = list(self.catalog())[0] # need a search to trigger indexing
+        self.assertEqual(brain.macaddress, MAC)
 
 
 class TestLayer3Linking(ZenModelBaseTest):
@@ -166,11 +169,8 @@ class TestLayer3Linking(ZenModelBaseTest):
         def getLinkDevs(start):
             brains, been_there = self.dmd.ZenLinkManager.getLinkedNodes(
                 'Device', start.id)
-            devbrains = self.dmd.Devices.deviceSearch(
-                id=[x.deviceId for x in brains])
-            devobs = [x.getObject() for x in devbrains]
-            return devobs
-
+            device_ids = set( [ brain.deviceId for brain in brains ] )
+            return [ self.dmd.unrestrictedTraverse(uid) for uid in device_ids ]
         self.assertSameObs(getLinkDevs(devs[0]), ateam.values())
         self.assertSameObs(getLinkDevs(devs[1]), [devs[0], devs[1], devs[2]])
         self.assertSameObs(getLinkDevs(devs[2]), bteam.values())

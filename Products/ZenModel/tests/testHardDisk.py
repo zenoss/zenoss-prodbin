@@ -40,8 +40,7 @@ class TestHardDisk(ZenModelBaseTest):
         self.assert_(self.hdd.name() == 'hdd')
         self.assert_(self.hdd.hostname() == 'testdev')
         self.assert_(self.hdd.getParentDeviceName() == 'testdev')
-        #self.assert_(self.hdd.getParentDeviceUrl() == 'zport/dmd/Devices/devices/testdev')
-        self.assert_(self.hdd.getParentDeviceUrl() == 'http://nohost/zport/dmd/Devices/devices/testdev')
+        self.assert_(self.hdd.getParentDeviceUrl() == self.dev.absolute_url_path())
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -43,9 +43,10 @@
         <td class="tablevalues" tal:content="device/getDeviceClassPath"/>
         <td class="tablevalues" tal:content="python: device.convertToUsersTimeZone(device.createdTime.timeTime())"/>
         <td class="tablevalues" 
-            tal:content="python: device.convertToUsersTimeZone(device.getSnmpLastCollection().timeTime())"/>
+            tal:content="python: device.convertToUsersTimeZone(device.getSnmpLastCollection().timeTime())
+                                     if device.getSnmpLastCollection().timeTime() else device.getSnmpLastCollectionString()"/>
         <td class="tablevalues" 
-            tal:content="python: device.convertToUsersTimeZone(device.getLastChange().timeTime())"/>        
+            tal:content="python: device.convertToUsersTimeZone(device.getLastChange().timeTime())"/>
     </tr>
     <tr>
         <td colspan="5" class="tableheader">

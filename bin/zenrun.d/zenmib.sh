@@ -9,25 +9,15 @@
 ##############################################################################
 
 __DEFAULT__() {
-    local nocommit=0
-    if echo "$@" | egrep -- '--nocommit|--keeppythoncode'; then
-        nocommit=1
-    fi
-
     cd /mnt/pwd
     zenmib "$@"
-    status=$?
-    if [[ 1 = "$nocommit" ]]; then
-        return 1
-    else
-        return $status
-    fi
+    return $?
 }
 
 help() {
     echo "usage:"
     echo "   zenmib help"
-    echo "   zenmib run [--nocommit] <zenmib_file_url>"
+    echo "   zenmib run <zenmib_file_url>"
     return 1
 }
 

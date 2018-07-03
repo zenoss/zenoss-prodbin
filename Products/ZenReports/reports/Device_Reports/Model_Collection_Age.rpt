@@ -1,6 +1,6 @@
 <tal:block tal:define="
     objects  python:here.getDmdRoot('Devices').getSubDevices(
-           lambda x: x.snmpAgeCheck(48) and x.productionState > x.getZ('zProdStateThreshold') and not x.getZ('zSnmpMonitorIgnore'));
+           lambda x: x.snmpAgeCheck(48) and x.getProductionState() > x.getZ('zProdStateThreshold') and not x.getZ('zSnmpMonitorIgnore'));
     tableName string: modelcollreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                    sortedHeader='getSnmpLastCollection', defaultValue='Not Modeled');
@@ -43,7 +43,8 @@
         <td class="tablevalues" tal:content="device/getDeviceClassPath"/>
         <td class="tablevalues" tal:content="python: device.convertToUsersTimeZone(device.createdTime.timeTime())"/>
         <td class="tablevalues" 
-            tal:content="python: device.convertToUsersTimeZone(device.getSnmpLastCollection().timeTime())"/>        
+            tal:content="python: device.convertToUsersTimeZone(device.getSnmpLastCollection().timeTime())
+                                     if device.getSnmpLastCollection().timeTime() else device.getSnmpLastCollectionString()"/>
         <td class="tablevalues" 
             tal:content="python: device.convertToUsersTimeZone(device.getLastChange().timeTime())"/>
     </tr>

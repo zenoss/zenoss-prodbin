@@ -68,7 +68,7 @@ class CommandView(StreamingView):
         try:
             compiled = str(self.context.compile(cmd, target))
 
-            timeout = getattr(target, 'zCommandCommandtimeout',
+            timeout = getattr(target, 'zCommandUserCommandTimeout',
                               self.context.defaultTimeout)
             end = time.time() + timeout
             self.write('==== %s ====' % target.titleOrId())
@@ -81,7 +81,7 @@ class CommandView(StreamingView):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT)
             retcode = None
-            while time.time() < end:
+            while time.time() < end or retcode is not None:
                 line = p.stdout.readline()
                 if not line:
                     time.sleep(0.5)

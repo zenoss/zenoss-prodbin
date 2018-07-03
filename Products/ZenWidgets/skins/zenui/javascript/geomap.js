@@ -142,7 +142,7 @@ YAHOO.namespace('zenoss.geomap');
             }));
         },
         maximizeMapHeight: function() {
-            mapdiv = $('geomapcontainer');
+            mapdiv = $MK('geomapcontainer');
             mapoffset = getElementPosition(mapdiv).y;
             maxbottom = getViewportDimensions().h;
             newdims = {'h':maxbottom-mapoffset};
@@ -238,24 +238,24 @@ YAHOO.namespace('zenoss.geomap');
                 }
                 markers.push(marker);
                 google.maps.event.addListener(marker, 'click', (function(marker, index) {
-                    return function(){ 
-                        var clicklink = nodedata[index][2]; 
-                        clicklink = clicklink.replace('locationGeoMap', 'simpleLocationGeoMap'); 
-                        if (clicklink.search('ocationGeoMap')>0) { 
-                            location.href = clicklink; 
-                        } else { 
-                            currentWindow().parent.location.href = clicklink; 
-                        } 
-                    }; 
-                })(marker, index)); 
-                google.maps.event.addListener(marker, 'mouseover', (function(marker, index) { 
-                    return function(){ 
+                    return function(){
+                        var clicklink = nodedata[index][2];
+                        clicklink = clicklink.replace('locationGeoMap', 'simpleLocationGeoMap');
+                        if (clicklink.search('ocationGeoMap')>0) {
+                            location.href = clicklink;
+                        } else {
+                            currentWindow().parent.location.href = clicklink;
+                        }
+                    };
+                })(marker, index));
+                google.maps.event.addListener(marker, 'mouseover', (function(marker, index) {
+                    return function(){
                         infowindow.close();
-                        infowindow.setContent(_utils.infoContent(index)); 
-                        infowindow.open(gmap, marker); 
-                        marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1); 
-                    }; 
-                })(marker, index)); 
+                        infowindow.setContent(_utils.infoContent(index));
+                        infowindow.open(gmap, marker);
+                        marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
+                    };
+                })(marker, index));
             }
             index++;
             if(index >= nodedata.length){
@@ -436,16 +436,21 @@ YAHOO.namespace('zenoss.geomap');
     }
     /* SET UP AND RUN THE MAP */
     YAHOO.zenoss.geomap.initialize = function (container) {
-        addElementClass($('geomapcontainer'), "yui-skin-sam");
+        addElementClass($MK('geomapcontainer'), "yui-skin-sam");
         dialog = document.getElementById('geocodingdialog');
         var pollrate = document.location.search.split('=')[1]?document.location.search.split('=')[1]:polling;
         polling = pollrate;
         _engine.initMap(container);
         connect(currentWindow(), 'onresize', _engine.maximizeMapHeight);
         if (IS_MAP_PORTLET) {
-            var portlet_id = currentWindow().frameElement.parentNode.id.replace('_body', '');
-            var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
-            pobj.mapobject = new ZenGeoMapPortlet();
+            var containerObject = currentWindow().parent.ContainerObject;
+            // if containerObject is not defined, then the Dashboard
+            // zenpack is handling the layout
+            if(containerObject){
+                var portlet_id = currentWindow().frameElement.parentNode.id.replace('_body', '');
+                var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
+                pobj.mapobject = new ZenGeoMapPortlet();
+            }
         }
     }
 

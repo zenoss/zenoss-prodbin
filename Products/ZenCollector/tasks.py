@@ -29,6 +29,8 @@ class BaseTask(ObservableMixin):
     """
     Convenience class that consolidates some shared code.
     """
+    # By default, track when this task is 'late.'
+    suppress_late = False
 
     def __init__(self, *args, **kwargs):
         super(BaseTask, self).__init__()

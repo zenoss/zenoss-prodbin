@@ -1,0 +1,57 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+
+<h2 tal:define="form_title string:ZODB Users"
+    tal:replace="structure here/manage_tabs"> TABS </h2>
+
+<tal:block>
+
+<div>
+<div i18n:domain="AccountLocker">
+
+<h3 i18n:translate="">Current Attempts</h3>
+
+<table width="100%" cellpadding="2" cellspacing="0">
+
+ <tr>
+  <td width="16" />
+  <th align="left" width="15%" i18n:translate=""> Login Name </th>
+  <th align="left" width="25%" i18n:translate=""> Attempts </th>
+  <th align="left" width="25%" i18n:translate=""> Last </th>
+  <th align="left" width="25%" i18n:translate=""> IP </th>
+ </tr>
+
+ <form action="." method="POST">
+
+ <tr class="row-hilite"
+     tal:repeat="info here/listAttempts" 
+     tal:attributes="class python:repeat['info'].odd() and 'row-normal' or default"
+     >
+  <td>
+    <input type="checkbox" name="logins:list" value="USER_ID"
+           tal:attributes="value info/login" />
+  </td>
+  <td class="form-text" tal:content="info/login">LOGIN_NAME</td>
+  <td class="form-text" tal:content="info/count">COUNT</td>
+  <td class="form-text" tal:content="info/last">LAST</td>
+  <td class="form-text" tal:content="info/IP">IP</td>
+ </tr>
+
+ <tr>
+  <td />
+  <td colspan="4">
+    <input type="hidden" name="logins:list:default" value="" />
+    <input type="submit" name="manage_resetUsers:method"
+           value=" Reset Users " i18n:attributes="value" />
+  </td>
+ </tr>
+
+ </form>
+
+</table>
+
+</div>
+</div>
+
+</tal:block>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>

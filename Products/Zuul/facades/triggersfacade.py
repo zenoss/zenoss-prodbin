@@ -7,35 +7,33 @@
 #
 ##############################################################################
 
-
-from copy import deepcopy
-from datetime import datetime
+import cgi
 import logging
 import parser
+import zenoss.protocols.protobufs.zep_pb2 as zep
 
-from Acquisition import aq_parent
+from copy import deepcopy
 from zExceptions import BadRequest
 from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 from zope.interface import providedBy
-
-from Products.Zuul import marshal
-from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import IInfo
-from Products.Zuul.decorators import require
-from Products.ZenModel.NotificationSubscription import NotificationSubscription
-from Products.ZenModel.NotificationSubscriptionWindow import NotificationSubscriptionWindow
-from Products.ZenModel.Trigger import Trigger, InvalidTriggerActionType, DuplicateTriggerName
-import zenoss.protocols.protobufs.zep_pb2 as zep
-from zenoss.protocols.jsonformat import to_dict, from_dict
-from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
-from Products.ZenUtils import Utils
-from AccessControl import getSecurityManager
-
+from zope.schema import getFields
 from zenoss.protocols.interfaces import IQueueSchema
+from zenoss.protocols.jsonformat import to_dict, from_dict
 from zenoss.protocols.services.triggers import TriggerServiceClient
-
+from AccessControl import getSecurityManager
+from Acquisition import aq_parent
+from Products.ZenModel.interfaces import IAction
+from Products.ZenModel.NotificationSubscription import NotificationSubscription
+from Products.ZenModel.NotificationSubscriptionWindow import (
+    NotificationSubscriptionWindow
+)
+from Products.ZenModel.Trigger import (
+    Trigger,
+    InvalidTriggerActionType,
+    DuplicateTriggerName
+)
+from Products.ZenModel.UserSettings import GroupSettings
 from Products.ZenModel.ZenossSecurity import (
     MANAGER_ROLE, MANAGE_NOTIFICATION_SUBSCRIPTIONS, MANAGE_TRIGGER,
     NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, NOTIFICATION_UPDATE_ROLE,
@@ -44,10 +42,14 @@ from Products.ZenModel.ZenossSecurity import (
     UPDATE_TRIGGER, VIEW_NOTIFICATION, VIEW_TRIGGER,
     ZEN_MANAGER_ROLE,
 )
-
-from Products.ZenModel.UserSettings import GroupSettings
-from Products.ZenModel.interfaces import IAction
-from zope.schema import getFields
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils import Utils
+from Products.Zuul import marshal
+from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IInfo
+from Products.Zuul.decorators import require
+from Products.Zuul.form.schema import Password
 
 log = logging.getLogger('zen.TriggersFacade')
 
@@ -61,7 +63,9 @@ class TriggersFacade(ZuulFacade):
 
         config = getGlobalConfiguration()
         schema = getUtility(IQueueSchema)
-        self.triggers_service = TriggerServiceClient(config.get('zep_uri', 'http://localhost:8084'), schema)
+        self.triggers_service = TriggerServiceClient(
+            config.get('zep_uri', 'http://localhost:8084'), schema
+        )
 
         self.notificationPermissions = NotificationPermissionManager()
         self.triggerPermissions = TriggerPermissionManager()
@@ -115,9 +119,10 @@ class TriggersFacade(ZuulFacade):
 
     def synchronize(self):
         """
-        This method will first synchronize all triggers that exist in ZEP to their
-        corresponding objects in ZODB. Then, it will clean up notifications and
-        remove any subscriptions to triggers that no longer exist.
+        This method will first synchronize all triggers that exist in ZEP to
+        their corresponding objects in ZODB. Then, it will clean up
+        notifications and remove any subscriptions
+        to triggers that no longer exist.
         """
 
         log.debug('SYNC: Starting trigger and notification synchronization.')
@@ -130,7 +135,8 @@ class TriggersFacade(ZuulFacade):
         # delete all triggers in zodb that do not exist in zep.
         for t in zodb_triggers:
             if not self._getTriggerGuid(t) in zep_uuids:
-                log.info('SYNC: Found trigger in zodb that does not exist in zep, removing: %s' % t.id)
+                log.info('SYNC: Found trigger in zodb that does not exist'
+                         ' in zep, removing: %s', t.id)
                 self._removeNode(t)
 
         zodb_triggers = self._getTriggerManager().objectValues()
@@ -138,31 +144,37 @@ class TriggersFacade(ZuulFacade):
 
         # create all triggers in zodb that do not exist in zep.
         for t in trigger_set.triggers:
-            if not t.uuid in zodb_uuids:
-                log.info('SYNC: Found trigger uuid in zep that does not seem to exist in zodb, creating: %s' % t.name)
+            if t.uuid not in zodb_uuids and t.uuid.lower() not in zodb_uuids:
+                log.info('SYNC: Found trigger uuid in zep that does not seem'
+                         ' to exist in zodb, creating: %s', t.name)
                 triggerObject = Trigger(str(t.name))
-
                 try:
-                    self._getTriggerManager()._setObject(triggerObject.id, triggerObject)
-
+                    self._getTriggerManager()._setObject(
+                        triggerObject.id, triggerObject
+                    )
                 except BadRequest:
                     # looks like the id already exists, remove this specific
-                    # trigger from zep. This can happen if multiple createTrigger
-                    # requests are sent from the browser at once - the transaction
-                    # will not abort until after the requests to create a trigger
-                    # have already been sent to zep.
+                    # trigger from zep. This can happen if multiple
+                    # createTrigger requests are sent from the browser at once
+                    # the transaction will not abort until after the requests
+                    # to create a trigger have already been sent to zep.
                     # See https://dev.zenoss.com/tracint/ticket/28272
-                    log.info('SYNC: Found trigger with duplicate id in zodb, deleting from zep: %s (%s)' % (triggerObject.id, t.uuid))
+                    log.info('SYNC: Found trigger with duplicate id in zodb,'
+                             ' deleting from zep: %s (%s)',
+                             triggerObject.id, t.uuid)
                     self._removeTriggerFromZep(t.uuid)
-
                 else:
-                    # setting a guid fires off events, we have to acquire the object
-                    # before we adapt it, otherwise adapters responding to the event
-                    # will get the 'regular' Trigger object and not be able to handle
-                    # it.
-                    self._setTriggerGuid(self._getTriggerManager().findChild(triggerObject.id), str(t.uuid))
-
-                    self._setupTriggerPermissions(self._getTriggerManager().findChild(t.name))
+                    # setting a guid fires off events, we have to acquire the
+                    # object before we adapt it, otherwise adapters responding
+                    # to the event will get the 'regular' Trigger object and
+                    # not be able to handle it.
+                    self._setTriggerGuid(
+                        self._getTriggerManager().findChild(triggerObject.id),
+                        str(t.uuid)
+                    )
+                    self._setupTriggerPermissions(
+                        self._getTriggerManager().findChild(t.name)
+                    )
 
         # sync notifications
         for n in self._getNotificationManager().getChildNodes():
@@ -170,19 +182,20 @@ class TriggersFacade(ZuulFacade):
 
             subs = list(n.subscriptions)
             for s in subs:
-                if s not in zep_uuids:
+                if s not in zep_uuids and s.lower() not in zep_uuids:
                     # this trigger no longer exists in zep, remove it from
                     # this notification's subscriptions.
-                    log.info('SYNC: Notification subscription no longer valid: %s' % s)
+                    log.info('SYNC: Notification subscription no longer'
+                             ' valid: %s', s)
                     is_changed = True
                     n.subscriptions.remove(s)
 
             if is_changed:
-                log.debug('SYNC: Updating notification subscriptions: %s' % n.id)
+                log.debug('SYNC: Updating notification subscriptions: %s',
+                          n.id)
                 self.updateNotificationSubscriptions(n)
 
         log.debug('SYNC: Trigger and notification synchronization complete.')
-
 
     def getTriggers(self):
         self.synchronize()
@@ -191,7 +204,9 @@ class TriggersFacade(ZuulFacade):
         response, trigger_set = self.triggers_service.getTriggers()
         trigger_set = to_dict(trigger_set)
         if 'triggers' in trigger_set:
-            return self.triggerPermissions.findTriggers(user, self._guidManager, trigger_set['triggers'])
+            return self.triggerPermissions.findTriggers(
+                user, self._guidManager, trigger_set['triggers']
+            )
         else:
             return []
 
@@ -211,26 +226,28 @@ class TriggersFacade(ZuulFacade):
                 else:
                     raise Exception('Invalid filter expression.')
             else:
-                return True # source is empty string
-
+                return True  # source is empty string
 
     def addTrigger(self, newId):
         return self.createTrigger(
-            name = newId,
-            uuid = None,
-            rule = dict(
-                source = u'(dev.production_state == 1000) and (evt.severity >= 4)'
+            name=newId,
+            uuid=None,
+            rule=dict(
+                source=u'(dev.production_state == 1000) and (evt.severity >= 4)'
             )
         )
 
     @require(MANAGE_TRIGGER)
     def createTrigger(self, name, uuid=None, rule=None):
-        name = str(name)
+        # Fix for ZEN-28005 to thwart XSS attacks from incoming triggers
+        name = cgi.escape(str(name))
 
         zodb_triggers = self._getTriggerManager().objectValues()
         zodb_trigger_names = set(t.id for t in zodb_triggers)
         if name in zodb_trigger_names:
-            raise DuplicateTriggerName, ('The id "%s" is invalid - it is already in use.' % name)
+            raise DuplicateTriggerName(
+                'The id "%s" is invalid - it is already in use.' % name
+            )
 
         triggerObject = Trigger(name)
         self._getTriggerManager()._setObject(name, triggerObject)
@@ -258,8 +275,6 @@ class TriggersFacade(ZuulFacade):
         log.debug('Created trigger with uuid: %s ' % trigger.uuid)
         return trigger.uuid
 
-
-    @require(MANAGE_TRIGGER)
     def removeTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
@@ -272,7 +287,8 @@ class TriggersFacade(ZuulFacade):
             # Consider that that trigger may be subscribed to by notifications
             # that the current user cannot read/edit.
 
-            # if there was an error, the triggers service will throw an exception
+            # if there was an error,
+            # the triggers service will throw an exception
             self._removeTriggerFromZep(uuid)
 
             context = aq_parent(trigger)
@@ -283,14 +299,17 @@ class TriggersFacade(ZuulFacade):
             updated_count = 0
             for n in relevant_notifications:
                 n.subscriptions.remove(uuid)
-                log.debug('Removing trigger uuid %s from notification: %s' % (uuid, n.id))
+                log.debug('Removing trigger uuid %s from notification: %s',
+                          uuid, n.id)
                 self.updateNotificationSubscriptions(n)
                 updated_count += 1
 
             return updated_count
         else:
-            log.warning('User not authorized to remove trigger: User: %s, Trigger: %s' % (user.getId(), trigger.id))
-            raise Exception('User not authorized to remove trigger: User: %s, Trigger: %s' % (user.getId(), trigger.id))
+            log.warning('User not authorized to remove trigger: User: %s,'
+                        ' Trigger: %s', user.getId(), trigger.id)
+            raise Exception('User not authorized to remove trigger:'
+                            ' User: %s, Trigger: %s', user.getId(), trigger.id)
 
     def getNotificationsBySubscription(self, trigger_uuid):
         for n in self._getNotificationManager().getChildNodes():
@@ -300,32 +319,38 @@ class TriggersFacade(ZuulFacade):
     def getTrigger(self, uuid):
         user = getSecurityManager().getUser()
         trigger = self._guidManager.getObject(uuid)
+        if trigger is None:
+            log.warning("Could not find trigger with uuid: %s" % uuid)
+            raise Exception("Could not find trigger with uuid: %s" % uuid)
         log.debug('Trying to fetch trigger: %s' % trigger.id)
         if self.triggerPermissions.userCanViewTrigger(user, trigger):
             response, trigger = self.triggers_service.getTrigger(uuid)
             return to_dict(trigger)
         else:
-            log.warning('User not authorized to view this trigger: %s' % trigger.id)
-            raise Exception('User not authorized to view this trigger: %s' % trigger.id)
+            log.warning('User not authorized to view this trigger: %s',
+                        trigger.id)
+            raise Exception('User not authorized to view this trigger: %s',
+                            trigger.id)
 
     def getTriggerList(self):
         """
-        Retrieve a list of all triggers by uuid and name. This is used by the UI
-        to render triggers that a user may not have permission to otherwise view,
-        edit or manage.
+        Retrieve a list of all triggers by uuid and name. This is used by the
+        UI to render triggers that a user may not have permission to otherwise
+        view, edit or manage.
         """
         response, trigger_set = self.triggers_service.getTriggers()
         trigger_set = to_dict(trigger_set)
         triggerList = []
-        if 'triggers' in trigger_set:
-            for t in trigger_set['triggers']:
-                triggerList.append(dict(
-                    uuid = t['uuid'],
-                    name = t['name']
-                ))
+        user = getSecurityManager().getUser()
+        for t in trigger_set.get('triggers', []):
+            trigger = self._guidManager.getObject(t['uuid'])
+            if self.triggerPermissions.userCanViewTrigger(user, trigger):
+                triggerList.append({
+                    'uuid': t['uuid'],
+                    'name': t['name']
+                })
         return sorted(triggerList, key=lambda k: k['name'])
 
-    @require(UPDATE_TRIGGER)
     def updateTrigger(self, **data):
         user = getSecurityManager().getUser()
 
@@ -348,11 +373,13 @@ class TriggersFacade(ZuulFacade):
 
             triggerObj.users = data.get('users', [])
             self.triggerPermissions.clearPermissions(triggerObj)
-            self.triggerPermissions.updatePermissions(self._guidManager, triggerObj)
+            self.triggerPermissions.updatePermissions(
+                self._guidManager, triggerObj
+            )
 
         if self.triggerPermissions.userCanUpdateTrigger(user, triggerObj):
             if "name" in data:
-                triggerObj.setTitle(data["name"])
+                triggerObj.setTitle(cgi.escape(data["name"]))
                 parent = triggerObj.getPrimaryParent()
                 path = triggerObj.absolute_url_path()
                 oldId = triggerObj.getId()
@@ -363,27 +390,25 @@ class TriggersFacade(ZuulFacade):
                 if not newId:
                     raise Exception("New trigger id cannot be empty.")
                 if newId != oldId:
-                    # Now we have to rename the trigger id since its title changed
+                    # rename the trigger id since its title changed
                     try:
                         if triggerObj.getDmd().Triggers.findObject(newId):
                             message = 'Trigger %s already exists' % newId
                             # Duplicate trigger found
-                            raise Exception(message)    
+                            raise Exception(message)
                     except AttributeError as ex:
-                        # We came here in the good case, because the newId is not a duplicate
-                        pass                            
-        
+                        # the newId is not a duplicate
+                        pass
+
                     try:
                         parent.manage_renameObject(oldId, newId)
                         triggerObj.id = newId
                     except CopyError:
                         raise Exception("Trigger rename failed.")
-                    
+
             trigger = from_dict(zep.EventTrigger, data)
             response, content = self.triggers_service.updateTrigger(trigger)
             return content
-
-
 
     def _getTriggerManager(self):
         return self._dmd.findChild('Triggers')
@@ -391,21 +416,43 @@ class TriggersFacade(ZuulFacade):
     def _getNotificationManager(self):
         return self._dmd.findChild('NotificationSubscriptions')
 
-
     def getNotifications(self):
+        return self.getNotificationInfos()
+
+    def getNotificationInfos(self):
+        triggers = self.getTriggerList()
+
+        def makeInfo(notification):
+            notificationInfo = IInfo(notification)
+            notificationInfo.subscriptions = [
+                {"uuid": trigger["uuid"], "name": trigger["name"]}
+                for trigger in triggers
+                if trigger["uuid"] in notification.subscriptions
+            ]
+            return notificationInfo
+
+        return (
+            makeInfo(notification)
+            for notification in self.getNotificationSubscriptions()
+        )
+
+    def getNotificationSubscriptions(self):
         self.synchronize()
-
         user = getSecurityManager().getUser()
-        for n in self.notificationPermissions.findNotifications(user, self._getNotificationManager().getChildNodes()):
-            yield IInfo(n)
-
+        return (
+            notification
+            for notification in self._getNotificationManager().getChildNodes()
+            if self.notificationPermissions.validate(user, notification)
+        )
 
     def _updateContent(self, notification, data=None):
 
         try:
             util = getUtility(IAction, notification.action)
         except ComponentLookupError:
-            raise InvalidTriggerActionType("Invalid action type specified: %s" % notification.action)
+            raise InvalidTriggerActionType(
+                "Invalid action type specified: %s" % notification.action
+            )
 
         fields = {}
         for iface in providedBy(util.getInfo(notification)):
@@ -446,46 +493,52 @@ class TriggersFacade(ZuulFacade):
 
         return notification
 
-
-    @require(UPDATE_NOTIFICATION)
     def removeNotification(self, uid):
         user = getSecurityManager().getUser()
         notification = self._getObject(uid)
-        if self.notificationPermissions.userCanUpdateNotification(user, notification):
+        if self.notificationPermissions.userCanUpdateNotification(
+            user, notification
+        ):
             return self.removeNode(uid)
         else:
-            log.warning('User not authorized to remove notification: User: %s, Notification: %s' % (user.getId(), notification.id))
+            log.warning('User not authorized to remove notification: User:'
+                        ' %s, Notification: %s', user.getId(), notification.id)
             raise Exception('User not authorized to remove notification.')
 
     def getNotification(self, uid):
         user = getSecurityManager().getUser()
         notification = self._getObject(uid)
-        if self.notificationPermissions.userCanViewNotification(user, notification):
-            log.debug('getting notification: %s' % notification)
+        if self.notificationPermissions.userCanViewNotification(
+            user, notification
+        ):
+            log.debug('getting notification: %s', notification)
             return IInfo(notification)
         else:
-            log.warning('User not authorized to view this notification: %s' % uid)
-            raise Exception('User not authorized to view this notification: %s' % uid)
+            log.warning('User not authorized to view this notification: %s',
+                        uid)
+            raise Exception('User not authorized to view this notification:'
+                            ' %s', uid)
 
-    @require(MANAGE_NOTIFICATION_SUBSCRIPTIONS)
     def updateNotificationSubscriptions(self, notification):
         triggerSubscriptions = []
         notification_guid = IGlobalIdentifier(notification).getGUID()
         for subscription in notification.subscriptions:
-            triggerSubscriptions.append(dict(
-                delay_seconds = notification.delay_seconds,
-                repeat_seconds = notification.repeat_seconds,
-                subscriber_uuid = notification_guid,
-                send_initial_occurrence = notification.send_initial_occurrence,
-                trigger_uuid = subscription,
-            ))
-        subscriptionSet = from_dict(zep.EventTriggerSubscriptionSet, dict(
-            subscriptions = triggerSubscriptions
-        ))
-        self.triggers_service.updateSubscriptions(notification_guid, subscriptionSet)
+            triggerSubscriptions.append({
+                'delay_seconds': notification.delay_seconds,
+                'repeat_seconds': notification.repeat_seconds,
+                'subscriber_uuid': notification_guid,
+                'send_initial_occurrence':
+                    notification.send_initial_occurrence,
+                'trigger_uuid': subscription,
+            })
+        subscriptionSet = from_dict(
+            zep.EventTriggerSubscriptionSet,
+            {'subscriptions': triggerSubscriptions}
+        )
+        self.triggers_service.updateSubscriptions(
+            notification_guid, subscriptionSet
+        )
 
-
-    @require(UPDATE_NOTIFICATION)
     def updateNotification(self, **data):
         log.debug(data)
 
@@ -495,47 +548,81 @@ class TriggersFacade(ZuulFacade):
         if 'action' in data:
             del data['action']
 
-        notification = self._getObject(uid)
+        note = self._getObject(uid)
 
-        if not notification:
+        if not note:
             raise Exception('Could not find notification to update: %s' % uid)
 
         # don't update any properties unless the current user has the correct
         # permission.
         user = getSecurityManager().getUser()
-        if self.notificationPermissions.userCanUpdateNotification(user, notification):
+        if self.notificationPermissions.userCanUpdateNotification(
+            user, note
+        ):
             # update the action content data
-            action = getUtility(IAction, notification.action)
-            action.updateContent(notification.content, data)
+            action = getUtility(IAction, note.action)
 
+            passwordFields = set()
+            for iface in providedBy(action.getInfo(note)):
+                f = getFields(iface)
+                if f:
+                    for key, value in f.iteritems():
+                        if isinstance(value, Password):
+                            passwordFields.add(key)
+            for fieldName in passwordFields:
+                if fieldName in data:
+                    currValue = note.content.get(fieldName)
+                    # match Products/Zuul/form/builder.py
+                    maskedValue = '*' * len(currValue) if currValue else None
+                    # if the value is all *, change to real password as it didn't change
+                    if data[fieldName] == maskedValue:
+                        data[fieldName] = currValue
 
+            action.updateContent(note.content, data)
 
-        if self.notificationPermissions.userCanManageNotification(user, notification):
-            # if these values are not sent (in the case that the fields have been
-            # disabled, do not set the value.
+        if self.notificationPermissions.userCanManageNotification(
+            user, note
+        ):
+            # if these values are not sent (in the case that the fields have
+            # been disabled, do not set the value.
             if 'notification_globalRead' in data:
-                notification.globalRead = data.get('notification_globalRead')
+                note.globalRead = data.get('notification_globalRead')
+                log.debug('setting globalRead')
+            elif 'globalRead' in data:
+                note.globalRead = data.get('globalRead')
                 log.debug('setting globalRead')
 
             if 'notification_globalWrite' in data:
-                notification.globalWrite = data.get('notification_globalWrite')
+                note.globalWrite = data.get('notification_globalWrite')
+                log.debug('setting globalWrite')
+            elif 'globalWrite' in data:
+                note.globalWrite = data.get('globalWrite')
                 log.debug('setting globalWrite')
 
             if 'notification_globalManage' in data:
-                notification.globalManage = data.get('notification_globalManage')
+                note.globalManage = data.get(
+                    'notification_globalManage'
+                )
+                log.debug('setting globalManage')
+            elif 'globalManage' in data:
+                note.globalManage = data.get('globalManage')
                 log.debug('setting globalManage')
 
-            for field in notification._properties:
-                notification._updateProperty(field['id'], data.get(field['id']))
+            for field in note._properties:
+                note._updateProperty(
+                    field['id'], data.get(field['id'])
+                )
 
-            notification.subscriptions = data.get('subscriptions')
-            self.updateNotificationSubscriptions(notification)
+            note.subscriptions = data.get('subscriptions')
+            self.updateNotificationSubscriptions(note)
 
-            notification.recipients = data.get('recipients', [])
-            self.notificationPermissions.clearPermissions(notification)
-            self.notificationPermissions.updatePermissions(self._guidManager, notification)
+            note.recipients = data.get('recipients', [])
+            self.notificationPermissions.clearPermissions(note)
+            self.notificationPermissions.updatePermissions(
+                self._guidManager, note
+            )
 
-        log.debug('updated notification: %s' % notification)
+        log.debug('updated notification: %s', note)
 
     def getRecipientOptions(self):
         users = self._dmd.ZenUsers.getAllUserSettings()
@@ -552,11 +639,11 @@ class TriggersFacade(ZuulFacade):
 
     def fetchRecipientOption(self, recipient):
         my_type = 'group' if isinstance(recipient, GroupSettings) else 'user'
-        return dict(
-            type = my_type,
-            label = '%s (%s)' % (recipient.getId(), my_type.capitalize()),
-            value = IGlobalIdentifier(recipient).getGUID(),
-        )
+        return {
+            'type': my_type,
+            'label': '%s (%s)' % (recipient.getId(), my_type.capitalize()),
+            'value': IGlobalIdentifier(recipient).getGUID(),
+        }
 
     def getWindows(self, uid):
         notification = self._getObject(uid)
@@ -585,16 +672,10 @@ class TriggersFacade(ZuulFacade):
             raise Exception('Could not find window to update: %s' % uid)
         for field in window._properties:
             if field['id'] == 'start':
-                start = data['start']
-                start = start + " T" + data['starttime']
-                startDT = datetime.strptime(start, "%m-%d-%Y T%H:%M")
-                setattr(window, 'start', int(startDT.strftime('%s')))
+                # expect a unix timestamp
+                setattr(window, 'start', int(data['start_ts']))
             elif field['id'] == 'duration':
                 setattr(window, 'duration', int(data['duration']))
-            elif field['id'] == 'skip':
-                skip = data.get('skip')
-                if skip is not None:
-                    window.skip = skip
             else:
                 setattr(window, field['id'], data.get(field['id']))
 
@@ -614,13 +695,17 @@ class TriggersFacade(ZuulFacade):
             triggers = [x for x in triggers if x['name'] in names]
             for trigger in triggers:
                 uid = trigger['uuid']
-                nsIds = [x.id for x in self.getNotificationsBySubscription(uid)]
+                nsIds = [
+                    x.id for x in self.getNotificationsBySubscription(uid)
+                ]
                 notificationIds.extend(nsIds)
 
         triggerData = self.exportTriggers(triggers)
 
         if notificationIds:
-            notifications = [x for x in notifications if x.id in notificationIds]
+            notifications = [
+                x for x in notifications if x.id in notificationIds
+            ]
 
         notificationData = self.exportNotifications(notifications)
 
@@ -650,15 +735,18 @@ class TriggersFacade(ZuulFacade):
             config.update(contentsTab)
 
             config['recipients'] = [r['label'] for r in config['recipients']]
-            config['subscriptions'] = [x['name'] for x in config['subscriptions']]
+            config['subscriptions'] = [
+                x['name'] for x in config['subscriptions']
+            ]
 
             windows = []
             for window in notificationInfo._object.windows():
                 winconfig = marshal(IInfo(window))
-                for witem in ('meta_type', 'newId', 'id', 'inspector_type', 'uid'):
+                witems = ('meta_type', 'newId', 'id', 'inspector_type', 'uid')
+                for witem in witems:
                     del winconfig[witem]
                 windows.append(winconfig)
-            config['windows'] =  windows
+            config['windows'] = windows
 
             configs.append(config)
         return configs
@@ -686,14 +774,22 @@ class TriggersFacade(ZuulFacade):
         """
         Add any new trigger definitions to the system.
 
-        Note: modifies the triggers argument to add 'new_uuid' to the definition.
+        Note: modifies the triggers argument
+              to add 'new_uuid' to the definition.
 
         Does not attempt to link a trigger to a notification.
         """
         existingTriggers = [x['name'] for x in self.getTriggerList()]
-        existingUsers = [x.id for x in self._dmd.ZenUsers.getAllUserSettings()]
+        existingUsers = {
+            "{} (User)".format(x.id): IGlobalIdentifier(x).getGUID()
+            for x in self._dmd.ZenUsers.getAllUserSettings()
+        }
+        existingUsers.update({
+            "{} (Group)".format(x.id): IGlobalIdentifier(x).getGUID()
+            for x in self._dmd.ZenUsers.getAllGroupSettings()
+        })
 
-        removeDataList = [ 'subscriptions' ]
+        removeDataList = ['subscriptions']
 
         imported = 0
         for trigger in triggers:
@@ -714,11 +810,15 @@ class TriggersFacade(ZuulFacade):
                     del data[key]
 
             # Don't delete data from list you're looping through
+            data['users'] = []
             for user in trigger.get('users', []):
-                if user not in existingUsers:
-                    log.warning("Unable to find trigger %s user '%s' on this server -- skipping",
-                                name, user)
-                    data['users'].remove(user)
+                if user['label'] in existingUsers:
+                    newuser = deepcopy(user)
+                    newuser['value'] = existingUsers[user['label']]
+                    data['users'].append(newuser)
+                else:
+                    log.warning("Unable to find trigger %s user '%s' on this"
+                                " server -- skipping", name, user)
 
             # Make changes to the definition
             self.updateTrigger(**data)
@@ -731,30 +831,27 @@ class TriggersFacade(ZuulFacade):
         Add new notification definitions to the system.
         """
         existingNotifications = [x.id for x in self.getNotifications()]
-        existingTypes = [x.action for x in self.getNotifications()]
-        usersGroups = dict( (x['label'], x) for x in self.getRecipientOptions())
-        trigerToUuid = dict( (x['name'], x['uuid']) for x in self.getTriggers())
+        usersGroups = {x['label']: x for x in self.getRecipientOptions()}
+        trigerToUuid = {x['name']: x['uuid'] for x in self.getTriggers()}
 
         imported = 0
         for notification in notifications:
             name = notification.get('name')
             if name is None:
-                log.warn("Missing name in notification definition: %s", notification)
+                log.warn("Missing name in notification definition: %s",
+                         notification)
                 continue
             if name in existingNotifications:
                 log.warn("Skipping existing notification '%s'", name)
                 continue
             ntype = notification.get('action')
             if ntype is None:
-                log.warn("Missing 'action' in notification definition: %s", notification)
-                continue
-            if ntype not in existingTypes:
-                log.warn("The notification %s references an unknown action type: %s",
-                         name, ntype)
+                log.warn("Missing 'action' in notification definition: %s",
+                         notification)
                 continue
 
             data = deepcopy(notification)
-            obj = self.addNotification(name, ntype)
+            obj = self.createNotification(name, ntype)
             notification['uid'] = data['uid'] = obj.getPrimaryUrlPath()
 
             self.getRecipientsToImport(name, data, usersGroups)
@@ -781,44 +878,51 @@ class TriggersFacade(ZuulFacade):
 
     def getRecipientsToImport(self, name, data, usersGroups):
         recipients = []
-        for label in data.get('recipients', []):
+        for recipient in data.get('recipients', []):
+            label = recipient['label']
             if label in usersGroups:
-                recipients.append(usersGroups[label])
+                newrecipient = deepcopy(usersGroups[label])
+                newrecipient['write'] = recipient.get('write', False)
+                newrecipient['manage'] = recipient.get('manage', False)
+                recipients.append(newrecipient)
             else:
-                log.warn("Unable to find %s for recipients for notification %s",
-                         label, name)
+                log.warn('Unable to find %s for recipients for notification'
+                         ' %s', label, name)
         data['recipients'] = recipients
 
     def linkImportedNotificationToTriggers(self, notification, trigerToUuid):
         subscriptions = []
         for subscription in notification.get('subscriptions', []):
-            uuid = trigerToUuid.get(subscription['name'])
+            uuid = trigerToUuid.get(subscription)
             if uuid is not None:
                 subscriptions.append(uuid)
             else:
-                log.warn("Unable to link notification %s to missing trigger '%s'",
-                         notification['name'], subscription['name'])
+                log.warn("Unable to link notification %s to missing trigger"
+                         " '%s'", notification['name'], subscription['name'])
         notification['subscriptions'] = subscriptions
 
 
 class TriggerPermissionManager(object):
     """
     This object helps manage permissions with regard to a trigger. Triggers are
-    only stored in the zodb for managing permissions, all of the data associated
-    with a trigger is stored externally in ZEP.
+    only stored in the zodb for managing permissions, all of the data
+    associated with a trigger is stored externally in ZEP.
     """
 
     def __init__(self):
         self.securityManager = getSecurityManager()
 
     def userCanViewTrigger(self, user, trigger):
-        return trigger.globalRead or self.securityManager.checkPermission(VIEW_TRIGGER, trigger)
+        return trigger.globalRead or \
+            self.securityManager.checkPermission(VIEW_TRIGGER, trigger)
 
     def userCanUpdateTrigger(self, user, trigger):
-        return trigger.globalWrite or self.securityManager.checkPermission(UPDATE_TRIGGER, trigger)
+        return trigger.globalWrite or \
+            self.securityManager.checkPermission(UPDATE_TRIGGER, trigger)
 
     def userCanManageTrigger(self, user, trigger):
-        return trigger.globalManage or self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
+        return trigger.globalManage or \
+            self.securityManager.checkPermission(MANAGE_TRIGGER, trigger)
 
     def findTriggers(self, user, guidManager, triggers):
         results = []
@@ -826,15 +930,19 @@ class TriggerPermissionManager(object):
             triggerObject = guidManager.getObject(trigger['uuid'])
             if triggerObject and self.userCanViewTrigger(user, triggerObject):
 
-                # copy these properties that are stored on the dmd object to the
-                # json-friendly object that is getting passed to the UI
+                # copy these properties that are stored on the dmd object to
+                # the json-friendly object that is getting passed to the UI
                 trigger['globalRead'] = triggerObject.globalRead
                 trigger['globalWrite'] = triggerObject.globalWrite
                 trigger['globalManage'] = triggerObject.globalManage
 
                 trigger['userRead'] = True
-                trigger['userWrite'] = self.userCanUpdateTrigger(user, triggerObject)
-                trigger['userManage'] = self.userCanManageTrigger(user, triggerObject)
+                trigger['userWrite'] = self.userCanUpdateTrigger(
+                    user, triggerObject
+                )
+                trigger['userManage'] = self.userCanManageTrigger(
+                    user, triggerObject
+                )
 
                 trigger['users'] = triggerObject.users
 
@@ -852,29 +960,36 @@ class TriggerPermissionManager(object):
         trigger.manage_delLocalRoles(removeUserIds)
 
     def updatePermissions(self, guidManager, trigger):
-       # then add local roles back for all the users/groups that we just added
+        # then add local roles back for all the users/groups that we just added
         for user_info in trigger.users:
             log.debug(user_info)
             if user_info['type'] != 'manual':
                 userOrGroup = guidManager.getObject(user_info['value'])
 
-                trigger.manage_addLocalRoles(userOrGroup.id, [TRIGGER_VIEW_ROLE])
-                log.debug('Added role: %s for user or group: %s' % (TRIGGER_VIEW_ROLE, userOrGroup.id))
-
+                trigger.manage_addLocalRoles(
+                    userOrGroup.id, [TRIGGER_VIEW_ROLE]
+                )
+                log.debug('Added role: %s for user or group: %s',
+                          TRIGGER_VIEW_ROLE, userOrGroup.id)
 
                 if user_info.get('write'):
-                    trigger.manage_addLocalRoles(userOrGroup.id, [TRIGGER_UPDATE_ROLE])
-                    log.debug('Added role: %s for user or group: %s' % (TRIGGER_UPDATE_ROLE, userOrGroup.id))
+                    trigger.manage_addLocalRoles(
+                        userOrGroup.id, [TRIGGER_UPDATE_ROLE]
+                    )
+                    log.debug('Added role: %s for user or group: %s',
+                              TRIGGER_UPDATE_ROLE, userOrGroup.id)
 
                 if user_info.get('manage'):
-                    trigger.manage_addLocalRoles(userOrGroup.id, [TRIGGER_MANAGER_ROLE])
-                    log.debug('Added role: %s for user or group: %s' % (TRIGGER_MANAGER_ROLE, userOrGroup.id))
-
+                    trigger.manage_addLocalRoles(
+                        userOrGroup.id, [TRIGGER_MANAGER_ROLE]
+                    )
+                    log.debug('Added role: %s for user or group: %s',
+                              TRIGGER_MANAGER_ROLE, userOrGroup.id)
 
     def setupTrigger(self, trigger):
-        # Permissions are managed here because managing these default permissions
-        # on the class was not preventing the permissions from being acquired
-        # elsewhere.
+        # Permissions are managed here because managing these default
+        # permissions on the class was not preventing the permissions
+        # from being acquired elsewhere.
         trigger.manage_permission(
             VIEW_TRIGGER,
             (OWNER_ROLE,
@@ -913,14 +1028,16 @@ class NotificationPermissionManager(object):
     def __init__(self):
         self.securityManager = getSecurityManager()
 
-
     def userCanViewNotification(self, user, notification):
         """
         Check to see if the current user can view this notification. Take into
         account global settings of the notification, and then just defer a
         permission check to zope.
         """
-        return notification.globalRead or self.securityManager.checkPermission(VIEW_NOTIFICATION, notification)
+        return notification.globalRead or \
+            self.securityManager.checkPermission(
+                VIEW_NOTIFICATION, notification
+            )
 
     def userCanUpdateNotification(self, user, notification):
         """
@@ -928,11 +1045,33 @@ class NotificationPermissionManager(object):
         account global settings of the notification, and then just defer a
         permission check to zope.
         """
-        return notification.globalWrite or self.securityManager.checkPermission(UPDATE_NOTIFICATION, notification)
+        return notification.globalWrite or \
+            self.securityManager.checkPermission(
+                UPDATE_NOTIFICATION, notification
+            )
 
     def userCanManageNotification(self, user, notification):
-        return notification.globalManage or self.securityManager.checkPermission(MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification)
+        return notification.globalManage or \
+            self.securityManager.checkPermission(
+                MANAGE_NOTIFICATION_SUBSCRIPTIONS, notification
+            )
 
+    def validate(self, user, notification):
+        """Checks whether the given user may read the notification, and if
+        so, updates the notification's userWrite and userManage statuses
+        to reflect the user's permission level on those privileges.
+
+        Returns True if the user may read the notification.
+        """
+        if not self.userCanViewNotification(user, notification):
+            return False
+
+        notification.userRead = True
+        notification.userWrite = \
+            self.userCanUpdateNotification(user, notification)
+        notification.userManage = \
+            self.userCanManageNotification(user, notification)
+        return True
 
     def findNotifications(self, user, notifications):
         """
@@ -940,11 +1079,7 @@ class NotificationPermissionManager(object):
         permission on.
         """
         for notification in notifications:
-            if self.userCanViewNotification(user, notification):
-                notification.userRead = True
-                notification.userWrite = self.userCanUpdateNotification(user, notification)
-                notification.userManage = self.userCanManageNotification(user, notification)
-
+            if self.validate(user, notification):
                 yield notification
 
     def clearPermissions(self, notification):
@@ -963,30 +1098,48 @@ class NotificationPermissionManager(object):
             if recipient['type'] != 'manual':
                 userOrGroup = guidManager.getObject(recipient['value'])
                 if not userOrGroup:
-                    recipientsForRemoval[recipient['value']]= recipient
-                    log.info('Recipient %s not found: it may have been deleted. This recipient will be removed from the notification %s.', recipient['label'], notification.id)
+                    recipientsForRemoval[recipient['value']] = recipient
+                    log.info(
+                        'Recipient %s not found: it may have been deleted.'
+                        ' This recipient will be removed from the notification'
+                        ' %s.', recipient['label'], notification.id
+                    )
                     continue
 
-                notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_VIEW_ROLE])
-                log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_VIEW_ROLE, userOrGroup.id))
-
+                notification.manage_addLocalRoles(
+                    userOrGroup.id, [NOTIFICATION_VIEW_ROLE]
+                )
+                log.debug('Added role: %s for user or group: %s',
+                          NOTIFICATION_VIEW_ROLE, userOrGroup.id)
                 log.debug(recipient)
 
                 if recipient.get('write'):
-                    notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_UPDATE_ROLE])
-                    log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_UPDATE_ROLE, userOrGroup.id))
+                    notification.manage_addLocalRoles(
+                        userOrGroup.id, [NOTIFICATION_UPDATE_ROLE]
+                    )
+                    log.debug('Added role: %s for user or group: %s',
+                              NOTIFICATION_UPDATE_ROLE, userOrGroup.id)
 
                 if recipient.get('manage'):
-                    notification.manage_addLocalRoles(userOrGroup.id, [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE])
-                    log.debug('Added role: %s for user or group: %s' % (NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE, userOrGroup.id))
+                    notification.manage_addLocalRoles(
+                        userOrGroup.id,
+                        [NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE]
+                    )
+                    log.debug(
+                        'Added role: %s for user or group: %s',
+                        NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE,
+                        userOrGroup.id
+                    )
 
-        notification.recipients = [recip for recip in notification.recipients if recip['value'] not in recipientsForRemoval]
-
+        notification.recipients = [
+            recip for recip in notification.recipients
+            if recip['value'] not in recipientsForRemoval
+        ]
 
     def setupNotification(self, notification):
-        # Permissions are managed here because managing these default permissions
-        # on the class was not preventing the permissions from being acquired
-        # elsewhere.
+        # Permissions are managed here because managing these default
+        # permissions on the class was not preventing the permissions from
+        # being acquired elsewhere.
         notification.manage_permission(
             VIEW_NOTIFICATION,
             (OWNER_ROLE,
@@ -1015,4 +1168,3 @@ class NotificationPermissionManager(object):
              NOTIFICATION_SUBSCRIPTION_MANAGER_ROLE),
             acquire=False
         )
-

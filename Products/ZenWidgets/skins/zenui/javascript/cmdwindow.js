@@ -13,8 +13,8 @@ PollingDialog.prototype = {
         }, this));
     },
     fill: function(did, request) {
-        $(did+'_innercontent').innerHTML = request.responseText;
-        var elements = getFormElements($(did+'_innercontent'));
+        $MK(did+'_innercontent').innerHTML = request.responseText;
+        var elements = getFormElements($MK(did+'_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
         var submits = elements[2];
@@ -40,7 +40,7 @@ PollingDialog.prototype = {
                 )
             ]
         )
-        appendChildNodes($('frame'), mydialog);
+        appendChildNodes($MK('frame'), mydialog);
         return did;
     },
     showDialog: function(title, url, refreshRate){

@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -22,6 +22,7 @@ from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.routers import TreeRouter
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.Zuul.interfaces.info import IInfo
 
 
 class TemplateRouter(TreeRouter):
@@ -43,7 +44,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         templates = facade.getTemplates(id)
-        data =  Zuul.marshal(templates)
+        data = Zuul.marshal(templates)
         return data
 
     def getDeviceClassTemplates(self, id):
@@ -177,7 +178,7 @@ class TemplateRouter(TreeRouter):
         """
         facade = self._getFacade()
         thresholdDetails = facade.getThresholdDetails(uid)
-        form = IFormBuilder(thresholdDetails).render(fieldsets=False)
+        form = IFormBuilder(thresholdDetails).render()
         # turn the threshold into a dictionary
         data =  Zuul.marshal(dict(record=thresholdDetails, form=form))
         return data
@@ -290,6 +291,15 @@ class TemplateRouter(TreeRouter):
         data =  Zuul.marshal(dict(record=details, form=form))
         return data
 
+    def _getPasswordFields(self, obj):
+        """
+        Return fields for obj if it has xtype and it is password.
+        """
+        fields = IFormBuilder(IInfo(obj)).fields()
+        return [field for field in fields
+                        if fields[field].get('xtype', None)
+                        and fields[field].get('xtype') == 'password']                      
+
     @require('Manage DMD')
     def setInfo(self, **data):
         """
@@ -306,6 +316,7 @@ class TemplateRouter(TreeRouter):
         uid = data['uid']
         del data['uid']
         obj = self._getFacade()._getObject(uid)
+        passwordFields = self._getPasswordFields(obj)
         oldData = self._getInfoData(obj, data)
         info = self._getFacade().setInfo(uid, data)
         newData = self._getInfoData(obj, data)
@@ -313,7 +324,8 @@ class TemplateRouter(TreeRouter):
         thresholdType = obj.getTypeName() if isinstance(obj, ThresholdClass) else None
         audit(['UI', getDisplayType(obj), 'Edit'], obj, thresholdType=thresholdType,
               data_=newData, oldData_=oldData,
-              skipFields_=('newId',))  # special case in TemplateFacade.setInfo()
+              skipFields_=('newId',), # special case in TemplateFacade.setInfo()
+              maskFields_=passwordFields)  
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
     def _getInfoData(self, obj, keys):
@@ -696,12 +708,12 @@ class TemplateRouter(TreeRouter):
         """
         uid = data['uid']
         del data['uid']
-        for int_attr in ('miny', 'maxy'):
+        for axis_vals in ('miny', 'maxy'):
             try:
-                x = int(data[int_attr])
+                x = float(data[axis_vals])
             except (ValueError, KeyError):
                 x = -1
-            data[int_attr] = x
+            data[axis_vals] = x
         obj = self._getFacade()._getObject(uid)
         oldData = self._getInfoData(obj, data)
         self._getFacade().setInfo(uid, data)
@@ -732,3 +744,8 @@ class TemplateRouter(TreeRouter):
         facade = self._getFacade()
         templates = facade.getCollectorTemplate()
         return Zuul.marshal(templates)
+
+    def getDataPointsRPNValues(self, maxval, thuid, selecteddps, minval):
+        facade = self._getFacade()
+        dpRPN = facade.getDataPointsRPNValues(maxval, thuid, selecteddps, minval)
+        return DirectResponse.succeed(dpRPN=dpRPN)

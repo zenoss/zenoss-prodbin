@@ -29,7 +29,7 @@ def manage_addOSProcessClass(context, id=None, REQUEST = None):
     if id:
         context.manage_addOSProcessClass(id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main') 
 
 addOSProcessClass = DTMLFile('dtml/addOSProcessClass',globals())
 

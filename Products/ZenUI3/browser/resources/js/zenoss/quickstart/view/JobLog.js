@@ -9,8 +9,8 @@
 (function(){
 
     //Zenoss.quickstart.Wizard.openJobLogFile("4527f0fe-7860-412d-86b7-fe7c9cc794d5")
-    var ns = Ext.ns("Zenoss.quickstart.Wizard"),
-        router = Zenoss.remote.JobsRouter;
+    Ext.ns("Zenoss.quickstart.Wizard");
+    var router = Zenoss.remote.JobsRouter;
     Zenoss.quickstart.Wizard.openJobLogFile = function(jobid, deviceName) {
         router.getInfo({
             jobid: jobid
@@ -34,7 +34,7 @@
         alias: 'widget.joblog',
         constructor: function(config) {
             if (!config.job) {
-                throw new Exception("You must specify a jobid for the joblog dialog");
+                throw new Error("You must specify a jobid for the joblog dialog");
             }
             Ext.applyIf(config, {
                 height: 600,
@@ -72,7 +72,9 @@
             this.callParent(arguments);
         },
         refresh: function() {
-            if (this.job == null) return;
+            if (this.job === null) {
+                return;
+            }
             router.detail({jobid:this.jobid}, function(r){
                 var msg = _t("[!] Log file too large for job log screen (viewing last 100 lines). To view full log use link above.");
                 var html = "<b style=\'color:black\'>Log file: <a href='joblog?job=" + this.jobid + "'>" + r.logfile + "</a></b><br/><br/>";
@@ -81,7 +83,7 @@
                 }
                 for (var i=0; i < r.content.length; i++) {
                     var color = i%2 ? '#b58900' : '#657B83';
-                    if (r.content[i].indexOf("ERROR zen.") != -1) {
+                    if (r.content[i].indexOf("ERROR zen.") !== -1) {
                         color = "red";
                     }
                     html += "<pre style='font-family:Monaco,monospaced;font-size:12px;color:" +
@@ -95,7 +97,7 @@
                 var d = this.body.dom;
                 d.scrollTop = d.scrollHeight - d.offsetHeight + 16;
                 // check to see if we are finished, no need to keep polling if we are
-                if (html.indexOf("Finished with result") != -1) {
+                if (html.indexOf("Finished with result") !== -1) {
                     this.cancelUpdateTask();
                 }
             }, this);

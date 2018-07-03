@@ -29,6 +29,12 @@ var deviceColumns = [
             return Zenoss.render.Device(record.data.uid, name);
         }
     },{
+        id: 'snmpSysName',
+        dataIndex: 'snmpSysName',
+        width: 150,
+        hidden: true,
+        header: _t('System Name')
+    },{
         width: 100,
         dataIndex: 'ipAddress',
         header: _t('IP Address'),
@@ -38,9 +44,25 @@ var deviceColumns = [
     },{
         dataIndex: 'uid',
         header: _t('Device Class'),
-        id: 'deviceClass',
         width: 120,
         renderer: Zenoss.render.DeviceClass
+    },{
+        id: 'status',
+        dataIndex: 'status',
+        sortable: true,
+        hidden: true,
+        filter: {
+            xtype: 'multiselect-devicestatus'
+        },
+        header: _t('Device Status'),
+        renderer: function(status, row, record) {
+            switch(record.data.status){
+                case true: return Zenoss.render.pingStatus('Up');
+                case false: return Zenoss.render.pingStatus('Down');
+                default: return Zenoss.render.pingStatus(null);
+            }
+        },
+        width: 80
     },{
         id: 'productionState',
         dataIndex: 'productionState',
@@ -114,7 +136,7 @@ var deviceColumns = [
         dataIndex: 'systems',
         width: 100,
         hidden: true,
-        sortable: false,
+        sortable: true,
         header: _t('Systems'),
         renderer: function(systems) {
             var links = [];
@@ -129,7 +151,7 @@ var deviceColumns = [
         dataIndex: 'groups',
         width: 100,
         hidden: true,
-        sortable: false,
+        sortable: true,
         header: _t('Groups'),
         renderer: function(groups) {
             var links = [];
@@ -155,14 +177,14 @@ var deviceColumns = [
         }
     },{
         id: 'worstevents',
-        sortable: false,
+        sortable: true,
         filter: false,
         width: 75,
         dataIndex: 'events',
         header: _t('Events'),
         renderer: function(ev, ignored, record) {
             var table = Zenoss.render.worstevents(ev),
-            url = record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events';
+                url = Zenoss.render.link(false, record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events');
             if (table){
                 table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
             }
@@ -212,7 +234,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _includeRecord: function(sm, record, index) {
+    _includeRecord: function(sm, record) {
         if (record && this._selectAll) {
             delete this._excludedRecords[record.getId()];
         }
@@ -228,7 +250,7 @@ Ext.define("Zenoss.DeviceGridSelectionModel", {
      * @param record {Zenoss.device.DeviceModel}
      * @param index {Integer}
      */
-    _excludeRecord: function(sm, record, index) {
+    _excludeRecord: function(sm, record) {
         if (record && this._selectAll) {
             this._excludedRecords[record.getId()] = true;
         }
@@ -358,8 +380,10 @@ Ext.define('Zenoss.device.DeviceModel',{
     fields: [
         {name: 'uid', type: 'string'},
         {name: 'name', type: 'string'},
+        {name: 'snmpSysName', type: 'string'},
         {name: 'ipAddress', type: 'int'},
         {name: 'ipAddressString', type: 'string'},
+        {name: 'status', type: 'auto'},
         {name: 'productionState', type: 'string'},
         {name: 'serialNumber', type: 'string'},
         {name: 'tagNumber', type: 'string'},
@@ -424,7 +448,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
     },
 
     onItemDblClick: function(view, record) {
-        window.location = record.get("uid");
+        window.location = Zenoss.render.link(null, record.get("uid"));
     },
     applyOptions: function(options){
         // only request the visible columns
@@ -446,7 +470,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
             applyOptions: function(values) {
                 Ext.applyIf(values, funcs.fetcher());
             },
-            title: msg == "" ? _t("Lock Device") : _t("Lock Devices"),
+            title: msg === "" ? _t("Lock Device") : _t("Lock Devices"),
             message: msg,
             updatesChecked: locking.updates,
             deletionChecked: locking.deletion,
@@ -498,7 +522,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                             var sel = fetcher().uids,
                                 funcs = {'fetcher': fetcher, 'saveHandler': saveHandler, 'REMOTE': REMOTE};
 
-                                if(sel.length == 0){
+                                if(sel.length === 0){
                                     Zenoss.message.warning(_t("Please select 1 or more devices to lock"));
                                     return;
                                 }
@@ -679,7 +703,7 @@ function showComponentLockingDialog(msg, locking, funcs) {
                                             var opts = Ext.apply(fetcher(), {
                                                 collector: Ext.getCmp('collector').getValue()
                                             });
-                                            opts['asynchronous'] = Zenoss.settings.deviceMoveIsAsync(opts.uids);
+                                            opts.asynchronous = Zenoss.settings.deviceMoveIsAsync(opts.uids);
                                             REMOTE.setCollector(opts, saveHandler);
                                         }
                                     }, Zenoss.dialog.CANCEL

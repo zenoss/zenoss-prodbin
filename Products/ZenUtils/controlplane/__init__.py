@@ -20,8 +20,6 @@ def getConnectionSettings(options=None):
     else:
         o = options
     settings = {
-        "host": o.get("controlplane-host"),
-        "port": o.get("controlplane-port"),
         "user": o.get("controlplane-user", "zenoss"),
         "password": o.get("controlplane-password", "zenoss"),
         }
@@ -30,3 +28,4 @@ def getConnectionSettings(options=None):
     settings["user"] = os.environ.get('CONTROLPLANE_SYSTEM_USER', settings['user'])
     settings["password"] = os.environ.get('CONTROLPLANE_SYSTEM_PASSWORD', settings['password'])
     return settings
+

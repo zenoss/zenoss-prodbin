@@ -15,6 +15,7 @@ from Products.Zuul.interfaces import IAuthorizationTool
 
 ZAUTH_HEADER_ID = 'X-ZAuth-Token'
 
+
 class Authorization(BrowserView):
     """
     This view acts as a namespace so the client requests are /authorization/login and
@@ -24,11 +25,9 @@ class Authorization(BrowserView):
         if index == "login":
             return Login(self.context, self.request)
         if index == "validate":
-            try:
-                return Validate(self.context, self.request)
-            finally:
-                transaction.abort()
+            return Validate(self.context, self.request)
         raise Exception("Invalid authorization view %s" % index)
+
 
 class Login(BrowserView):
     """

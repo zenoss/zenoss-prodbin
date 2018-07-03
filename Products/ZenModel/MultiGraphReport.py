@@ -11,6 +11,8 @@
 import sys
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
@@ -28,7 +30,7 @@ def manage_addMultiGraphReport(context, id, REQUEST = None):
     context._setObject(gr.id, gr)
     if REQUEST is not None:
         audit('UI.Report.Add', gr.id, reportType=getDisplayType(gr), organizer=context)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 class MultiGraphReport(BaseReport):
@@ -92,8 +94,9 @@ class MultiGraphReport(BaseReport):
         gg = self.graphGroups._getOb(gg.id)
         if REQUEST:
             audit('UI.Report.AddGraphGroup', self.id, graphGroup=gg.id)
-            return REQUEST['RESPONSE'].redirect(
-                '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id))
+            url = '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return gg
 
 
@@ -150,6 +153,7 @@ class MultiGraphReport(BaseReport):
         if REQUEST:
             audit('UI.Report.AddCollection', self.id, collection=col.id)
             url = '%s/collections/%s' % (self.getPrimaryUrlPath(), new_id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
             return REQUEST['RESPONSE'].redirect(url)
         return col
 
@@ -205,6 +209,7 @@ class MultiGraphReport(BaseReport):
         if REQUEST:
             audit('UI.Report.AddGraphDefinition', self.id, graphDefinition=graph.id)
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
+            url = getUtility(IVirtualRoot).ensure_virtual_root(url)
             return REQUEST['RESPONSE'].redirect(url)
         return graph
         
@@ -240,22 +245,24 @@ class MultiGraphReport(BaseReport):
     ### Graphing
     
 
-    def getDefaultGraphDefs(self, drange=None):
+    def getDefaultGraphDefs(self, drange=None, graphGroup=None):
         """ Construct the list of graph dicts for this report.
         Similar in functionality to MetricMixin.getDefaultGraphDefs
         """
         graphs = []
         for gg in self.getGraphGroups():
+            if graphGroup and gg.id != graphGroup:
+                continue
             collection = gg.getCollection()
             things = collection and collection.getDevicesAndComponents()
             graphDef = gg.getGraphDef()
             if not things or not graphDef:
                 continue
             if gg.combineDevices:
-                graphs.append(dict(context=things, graphDef=graphDef, separateGraphs=False))
+                graphs.append(dict(context=things, graphDef=graphDef, collection=collection, separateGraphs=False))
             else:
                 for thing in things:
-                    graphs.append(dict(context=thing, graphDef=graphDef, separateGraphs=True))
+                    graphs.append(dict(context=thing, graphDef=graphDef, collection=collection, separateGraphs=True))
         return graphs
 
 

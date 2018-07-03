@@ -44,7 +44,7 @@ function getComponentEventPanelColumnDefinitions() {
                   'count'],
         cols;
     cols = Zenoss.util.filter(Zenoss.env.COLUMN_DEFINITIONS, function(col){
-        return Ext.Array.indexOf(fields, col.dataIndex) != -1;
+        return Ext.Array.indexOf(fields, col.dataIndex) !== -1;
     });
 
     // delete the ids to make sure we do not have duplicates,
@@ -66,8 +66,8 @@ function tbarButtoner(target, buttonDefs, combo, cardId, that) {
     var btns = tbar.add(buttonDefs);
     tbar.doLayout();
     tbar._btns = btns;
-    combo.on('select', function(c, selected){
-        if (c.value!=cardId) {
+    combo.on('select', function(c){
+        if (c.value!==cardId) {
             Ext.each(btns, tbar.remove, tbar);
         }
     }, that, {single:true});
@@ -78,6 +78,43 @@ Ext.define('Zenoss.component.TplUidNameModel', {
     idProperty: 'uid',
     fields: ['qtip', 'definition', 'hidden', 'leaf', 'description', 'name', 'text', 'id', 'meta_type', 'targetPythonClass', 'inspector_type', 'icon_cls', 'children', 'uid']
 });
+
+// getGraphDef can fetch graph defs and automatically
+// caches them
+var getGraphDef = (function(){
+    var graphDefsCache = {};
+    return function getGraphDef(data, cb, scope){
+        var name = data.uid,
+            cached = graphDefsCache[name];
+
+        // use cached result if available
+        if(cached){
+            // NOTE - result must be cloned because the receiver
+            // can do whatever they want with the referenced object
+            cb.call(scope, Ext.clone(cached.result), cached.event, cached.success);
+            return;
+        }
+
+        // create a new callback that will cache the result,
+        // then call the original callback
+        var callback = function(result, event, success){
+            if(!success){
+                cb.call(scope, result, event, success);
+                return;
+            }
+
+            // cache result
+            graphDefsCache[name] = {
+                result: result,
+                event: event,
+                success: success
+            };
+            cb.call(scope, Ext.clone(result), event, success);
+        };
+
+        Zenoss.remote.DeviceRouter.getGraphDefs(data, callback, scope);
+    };
+})();
 
 Zenoss.nav.register({
     Component: [{
@@ -91,7 +128,8 @@ Zenoss.nav.register({
                     id: cardid,
                     xtype: 'graphpanel',
                     viewName: 'graphs',
-                    text: _t('Graphs')
+                    text: _t('Graphs'),
+                    directFn: getGraphDef
                 };
 
             if (!Ext.get('graph_panel')) {
@@ -112,10 +150,9 @@ Zenoss.nav.register({
                     target.layout.activeItem.setContext(uid);
                 };
             if (!Ext.get('event_panel')) {
-                var panel = target.add({
+                target.add({
                     id: cardid,
                     xtype: 'SimpleEventGridPanel',
-                    displayFilters: false,
                     stateId: 'component-event-console',
                     columns: getComponentEventPanelColumnDefinitions()
                 });
@@ -144,7 +181,9 @@ Zenoss.nav.register({
                     tooltip: _t('Refresh events'),
                     handler: function(btn) {
                         var grid = btn.grid || this.ownerCt.ownerCt;
-                        if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
+                        if(grid.getComponent("event_panel")) {
+                            grid = grid.getComponent("event_panel");
+                        }
                         grid.refresh();
                     }
                 }),
@@ -153,7 +192,7 @@ Zenoss.nav.register({
                     iconCls: 'newwindow',
                     permission: 'View',
                     tooltip: _t('Go to event console'),
-                    handler: function(btn) {
+                    handler: function() {
                         var curState = Ext.state.Manager.get('evconsole') || {},
                         filters = curState.filters || {},
                         pat = /devices\/([^\/]+)(\/.*\/([^\/]+)$)?/,
@@ -224,11 +263,11 @@ Zenoss.nav.register({
                                 operation.params.uid = contextUid;
                             } else {
                                 operation.params.uid = contextUid;
-                                delete operation.params['query'];
+                                delete operation.params.query;
                             }
                         },
-                        load: function(store, records, success, eOpts) {
-                            if (records.length == 0) {
+                        load: function(store, records) {
+                            if (records.length === 0) {
                                 return;
                             }
                             if (!target.componentTemplatePanel) {
@@ -252,7 +291,7 @@ Zenoss.nav.register({
                     }
                 }),
                 listeners: {
-                    select: function(combo, records, eOpts){
+                    select: function(combo, records){
                         var tplUid = records[0].data.uid;
                         target.componentTemplatePanel.setContext(tplUid);
                         if (tplUid.startswith(contextUid)) {
@@ -279,7 +318,7 @@ Zenoss.nav.register({
                     xtype: 'button',
                     disabled: true,
                     text: _t('Create Local Copy'),
-                    handler: function(btn) {
+                    handler: function() {
                         var tplTbar = this.refOwner,
                             templateName = tplTbar.templateCombo.getValue(),
                             createLocalArgs;
@@ -301,7 +340,7 @@ Zenoss.nav.register({
                     text: _t('Delete Local Copy'),
                     disabled: true,
                     tooltip: _t('Delete the local copy of this template'),
-                    handler: function(btn) {
+                    handler: function() {
                         var tplTbar = this.refOwner,
                             templateName = tplTbar.templateCombo.getValue(),
                             removeLocalArgs;
@@ -353,7 +392,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
         this.relayEvents(this.getSelectionModel(), ['selectionchange']);
         this.on('selectionchange', this.onSelectionChange);
     },
-    onGetNavConfig: function(contextId) {
+    onGetNavConfig: function() {
         var grid = this.ownerCt.ownerCt.ownerCt.componentgrid,
             items = [],
             monitor = false;
@@ -362,7 +401,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             if (record.data.monitor) { monitor = true; }
         });
         Zenoss.util.each(Zenoss.nav.get('Component'), function(item){
-            if (!(item.id=='Graphs' && !monitor)) {
+            if (!(item.id==='Graphs' && !monitor)) {
                 items.push(item);
             }
         });
@@ -379,7 +418,7 @@ Ext.define("Zenoss.component.ComponentDetailNav", {
             'modeldevice',
             'historyevents'
         ];
-        return (Ext.Array.indexOf(excluded, config.id)==-1);
+        return (Ext.Array.indexOf(excluded, config.id)===-1);
     },
     onSelectionChange: function(sm, node) {
         var target = this.target || Ext.getCmp('component_detail_panel'),
@@ -448,7 +487,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 items = [],
                                 monitor = false;
                             Ext.each(grid.store.data.items, function(record){
-                                if (record.data.uid==uid && record.data.monitor) {
+                                if (record.data.uid===uid && record.data.monitor) {
                                     monitor = true;
                                 }
                             });
@@ -468,7 +507,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 'modeldevice',
                                 'historyevents'
                             ];
-                            return (Ext.Array.indexOf(excluded, cfg.id)==-1);
+                            return (Ext.Array.indexOf(excluded, cfg.id)===-1);
                         },
                         ref: '../../componentnavcombo',
                         getTarget: Ext.bind(function() {
@@ -496,7 +535,7 @@ Ext.define("Zenoss.component.ComponentPanel", {
     },
     setContext: function(uid, type) {
         this.contextUid = uid;
-        if (type!=this.componentType) {
+        if (type!==this.componentType) {
             this.componentType = type;
 
             var compType = this.componentType + 'Panel',
@@ -510,11 +549,15 @@ Ext.define("Zenoss.component.ComponentPanel", {
                     render: function(grid) {
                         grid.setContext(uid);
                     },
-                    rangeselect: function(sm) {
+                    rangeselect: function() {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
+                    deselect: function() {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
+                    },
                     select: function(sm, row) {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
                         // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired
@@ -525,15 +568,15 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 return;
                             }
                             this.previousRow = row;
-                            this.detailcontainer.removeAll();
-                            this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,
                                 token = Ext.History.getToken().split(delimiter, 1);
-                            Ext.util.History.suspendEvents(false);
-                            Ext.util.History.add(token + delimiter + this.componentType + delimiter + row.data.uid);
-                            Ext.util.History.resumeEvents();
+                            token = token + delimiter + this.componentType + delimiter + row.data.uid;
+                            // set the currenttoken so the "change" event isn't fired. Events are not able
+                            // to be suspended because we don't know when the change event will be fired.
+                            Ext.util.History.currentToken = token;
+                            Ext.util.History.setHash(token);
                             Ext.getCmp('component_monitor_menu_item').setDisabled(!row.data.usesMonitorAttribute);
                         } else {
                             this.detailcontainer.removeAll();
@@ -582,7 +625,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         var expandColumn = config.autoExpandColumn;
         if (expandColumn && config.columns) {
             Ext.each(config.columns, function(col){
-                if (expandColumn == col.id) {
+                if (expandColumn === col.id) {
                     col.flex = 1;
                 }
             });
@@ -591,22 +634,25 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         Ext.each(config.columns, function(col){
             delete col.id;
         });
-        var modelId = Ext.id(),
-            model = Ext.define(modelId, {
-                extend: 'Ext.data.Model',
-                idProperty: 'uuid',
-                fields: config.fields
-            });
+        var modelId = Ext.id();
+        Ext.define(modelId, {
+            extend: 'Ext.data.Model',
+            idProperty: 'uuid',
+            fields: config.fields
+        });
         config.sortInfo = config.sortInfo || {};
-    config = Ext.applyIf(config, {
-        autoExpandColumn: 'name',
-        bbar: {},
-        store: new ZC.BaseComponentStore({
-                model: modelId,
-                initialSortColumn: config.sortInfo.field || 'name',
-                initialSortDirection: config.sortInfo.direction || 'ASC',
-                directFn:config.directFn || Zenoss.remote.DeviceRouter.getComponents
-        }),
+
+        var store = new ZC.BaseComponentStore({
+            model: modelId,
+            initialSortColumn: config.sortInfo.field || 'name',
+            initialSortDirection: config.sortInfo.direction || 'ASC',
+            directFn: config.directFn || Zenoss.remote.DeviceRouter.getComponents,
+            buffered: Zenoss.settings.enableInfiniteGridForComponents
+        });
+
+        config = Ext.applyIf(config, {
+            autoExpandColumn: 'name',
+            store: store,
             columns: [{
                 id: 'component_severity',
                 dataIndex: 'severity',
@@ -646,13 +692,12 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         ZC.ComponentGridPanel.superclass.constructor.call(this, config);
         this.relayEvents(this.getSelectionModel(), ['rangeselect']);
         this.store.proxy.on('load',
-            function(proxy, o, options) {
+            function(proxy, o) {
                 this.lastHash = o.result.hash || this.lastHash;
             },
             this);
-        Zenoss.util.addLoadingMaskToGrid(this);
     },
-    applyOptions: function(options){
+    applyOptions: function(){
         // apply options to all future parameters, not just this operation.
         var params = this.getStore().getProxy().extraParams;
 
@@ -671,7 +716,7 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
         this.contextUid = uid;
         this.getStore().on('guaranteedrange', function(){
             var token = Ext.History.getToken();
-            if (token.split(Ext.History.DELIMITER).length!=3) {
+            if (token.split(Ext.History.DELIMITER).length!==3) {
                 this.getSelectionModel().selectRange(0, 0);
             }
         }, this, {single:true});
@@ -686,8 +731,10 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                 function gridSelect() {
                     var found = false, i=0;
                     store.each(function(r){
-                        if (r.get('uid') == uid) {
-                            selectionModel.select(r);
+                        if (r.get('uid') === uid) {
+                            if (!selectionModel.isSelected(r)) {
+                                selectionModel.select(r);
+                            }
                             view.focusRow(r.index);
                             found = true;
                             store.un('guaranteedrange', gridSelect, me);
@@ -716,9 +763,16 @@ Ext.define("Zenoss.component.ComponentGridPanel", {
                     Zenoss.remote.DeviceRouter.findComponentIndex(o, function(r){
                         // will return a null if not found
                         if (Ext.isNumeric(r.index)) {
-                            store.on('guaranteedrange', gridSelect, me);
-                            var scroller = me.verticalScroller;
-                            me.getView().scrollBy({ x: 0, y: scroller.rowHeight * r.index }, true);
+                            if (store.buffered){
+                                // infinite grids fire guaranteedrange event
+                                store.on('guaranteedrange', gridSelect, me);
+                                var scroller = me.verticalScroller;
+                                me.getView().scrollBy({ x: 0, y: scroller.rowHeight * r.index }, true);
+                            } else {
+                                // paginated grids fire load event
+                                store.loadPage(store.getPageFromRecordIndex(r.index));
+                                store.on('load', gridSelect, me);
+                            }
                         } else {
                             // We can't find the index, it might be an invalid UID so
                             // select the first item so the details section isn't blank.
@@ -748,15 +802,25 @@ Ext.define("Zenoss.component.BaseComponentStore", {
         var bufferSize = Zenoss.settings.componentGridBufferSize;
         // work around a bug in ExtJs 4.1.3. TODO: remove this after
         // we update the library.
-        if (bufferSize < 100) {
-            bufferSize = 100;
+        if (config.buffered) {
+            if (bufferSize < 100) {
+                bufferSize = 100;
+            }
         }
         Ext.applyIf(config, {
             pageSize: bufferSize,
             directFn: config.directFn
         });
         ZC.BaseComponentStore.superclass.constructor.call(this, config);
-        this.on('guaranteedrange', function(){this.loaded = true;}, this);
+        this.on('guaranteedrange', function(){
+            this.loaded = true;
+        }, this);
+        // paginated grid fires load instead of guaranteedrange
+        this.on('load', function(){
+            if(!this.loaded){
+                this.fireEvent('guaranteedrange', this);
+            }
+        }, this);
     }
 });
 
@@ -804,7 +868,9 @@ Ext.define("Zenoss.component.IpInterfacePanel", {
                 renderer: function(ipaddresses) {
                     var returnString = '';
                     Ext.each(ipaddresses, function(ipaddress, index) {
-                        if (index > 0) returnString += ', ';
+                        if (index > 0) {
+                            returnString += ', ';
+                        }
                         if (ipaddress && Ext.isObject(ipaddress) && ipaddress.netmask) {
                             var name = ipaddress.name + '/' + ipaddress.netmask;
                             returnString += Zenoss.render.link(ipaddress.uid, undefined, name);
@@ -1038,7 +1104,7 @@ Ext.define("Zenoss.component.IpServicePanel", {
                 dataIndex: 'ipaddresses',
                 header: _t('IPs'),
                 renderer: function(ips) {
-                  return Ext.isEmpty(ips) ? '' : ips.join(', ');
+                  return Ext.isEmpty(ips) ? '' : Ext.isArray(ips) ? ips.join(', ') : ips.toString();
                 }
             },{
                 id: 'description',
@@ -1205,7 +1271,7 @@ Ext.define("Zenoss.component.FileSystemPanel", {
                 dataIndex: 'capacityBytes',
                 header: _t('% Util'),
                 renderer: function(n) {
-                    if (n=='unknown' || n<0) {
+                    if (n==='unknown' || n<0) {
                         return _t('Unknown');
                     } else {
                         return n + '%';
@@ -1471,7 +1537,7 @@ Ext.define("Zenoss.component.TemperatureSensorPanel", {
                 dataIndex: 'temperature',
                 header: _t('Temperature'),
                 renderer: function(x) {
-                    if (x == null) {
+                    if (x === null) {
                         return "";
                     } else {
                         return x + " F";

@@ -97,7 +97,7 @@ def sendEvent( self, message="", device='', severity=Event.Error, event_key=None
     }
     if event_key:
         error_event['eventKey'] = event_key
-
+        
     # At this point, we don't know what we have
     try:
         if hasattr_path( self, "factory.datacollector.sendEvent" ):
@@ -356,6 +356,12 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         log.error( message )
         sendEvent( self, message=message, event_key=event_key )
 
+    def _handleLoginSuccess(self, message, event_key=None):
+        """
+        Handle SSH login success by clearing any failure events.
+        """
+        sendEvent(self, message=message, event_key=event_key, severity=Event.Clear)
+
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
@@ -392,7 +398,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         # TODO: Would be good to expand to support sending multiple keys.
         if self._key is not None and not self._sent_pk:
             self._sent_pk = True
-            return self._key.blob()
+            return self._key
 
     def getPrivateKey(self):
         """
@@ -401,11 +407,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed)
         @rtype: Twisted deferred object
         """
-        if self._key is None:
-            keyObject = None
-        else:
-            keyObject = self._key.keyObject
-        return defer.succeed(keyObject)
+        return defer.succeed(self._key)
 
     def auth_keyboard_interactive(self, *args, **kwargs):
         # Don't authenticate multiple times with same credentials
@@ -441,8 +443,10 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             self._handleFailure(msg, event_key="sshClientAuth")
             self.factory.clientFinished(LoginFailed(msg))
         else:
-            sendEvent(self, "Authentication succeeded for username %s" % self.user, severity=Event.Clear,
+            msg = "SSH Authentication succeeded for username %s" % self.user
+            sendEvent(self, msg, severity=Event.Clear,
                       event_key="sshClientAuth")
+            self._handleLoginSuccess(msg, event_key="sshClientAuth")
         return userauth.SSHUserAuthClient.serviceStopped(self, *args, **kwargs)
 
 class SshConnection(connection.SSHConnection):

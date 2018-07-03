@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -15,10 +15,12 @@ and builds the nessesary DEF and CDEF statements for it.
 """
 
 from Products.ZenModel import RRDDataSource
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_CHANGE_DEVICE
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
+from Products.ZenModel.Commandable import Commandable
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeStreamCommand
+from Products.ZenUtils.Utils import executeStreamCommand, executeSshCommand, escapeSpecChars
 from Products.ZenWidgets import messaging
 from copy import copy
 import cgi, time
@@ -38,7 +40,41 @@ def checkOid(oid):
     return oid
 
 
-class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
+class SnmpCommand(object):
+    '''
+    Builds the command for SNMP.i  v3 has additional arguments
+    while v1/v2 just use the string template.
+    '''
+    def __init__(self, snmpinfo):
+        self.snmpinfo = snmpinfo
+        self.command, self.display = self._getCommand()
+
+    def _getCommand(self):
+        command = snmptemplate % self.snmpinfo
+
+        if self.snmpinfo['zSnmpVer'] != 'v3':
+            return (command, command)
+
+        # v3 always requires the username
+        command += (" -u%(zSnmpSecurityName)s" % self.snmpinfo)
+        display = command
+
+        if self.snmpinfo['zSnmpPrivType'] and self.snmpinfo['zSnmpAuthType']:
+            display += (" -l authPriv -a %(zSnmpAuthType)s " % self.snmpinfo) + "-A ${zSnmpAuthPassword} " + \
+                ("-x %(zSnmpPrivType)s " % self.snmpinfo) + "-X ${zSnmpPrivPassword}"
+            command += (" -l authPriv -a %(zSnmpAuthType)s -A %(zSnmpAuthPassword)s "
+                "-x %(zSnmpPrivType)s -X %(zSnmpPrivPassword)s" % self.snmpinfo)
+        elif self.snmpinfo['zSnmpAuthType']:
+            display += (" -l authNoPriv -a %(zSnmpAuthType)s " % self.snmpinfo) + "-A ${zSnmpAuthPassword}"
+            command += (" -l authNoPriv -a %(zSnmpAuthType)s -A %(zSnmpAuthPassword)s" % self.snmpinfo)
+        else:
+            display += " -l noAuthNoPriv"
+            command += " -l noAuthNoPriv"
+
+        return (command, display)
+
+
+class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
 
     __pychecker__='no-override'
 
@@ -102,6 +138,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         return False
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:
@@ -162,22 +199,31 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         # Get the command to run
         command = None
         if self.sourcetype=='COMMAND':
+            # create self.command to compile a command for zminion
+            # it's only used by the commandable mixin
+            self.command = self.commandTemplate
+            zminionCommand = self.compile(self, device)
             # to prevent command injection, get these from self rather than the browser REQUEST
-            command = self.getCommand(device, self.get('commandTemplate'))           
+            command = self.getCommand(device, self.get('commandTemplate'))
             displayCommand = command
             if displayCommand and len(displayCommand.split()) > 1:
                 displayCommand = "%s [args omitted]" % displayCommand.split()[0]
         elif self.sourcetype=='SNMP':
             snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            if snmpinfo.get('zSnmpCommunity', None):
+                # escape dollar sign if any by $ as it's used in zope templating system
+                snmpinfo['zSnmpCommunity'] = escapeSpecChars(snmpinfo['zSnmpCommunity']).replace("$", "$$")
             # use the oid from the request or our existing one
             snmpinfo['oid'] = self.get('oid', self.getDescription())
-            command = snmptemplate % snmpinfo
-            displayCommand = command
+            command = SnmpCommand(snmpinfo)
+            displayCommand = command.display.replace("\\", "").replace("$$", "$")
+            # modify snmp command to be run with zminion
+            zminionCommand = self.compile(command, device)
         else:
             errorLog(
                 'Test Failed',
                 'Unable to test %s datasources' % self.sourcetype,
-                priority=messaging.WARNING  
+                priority=messaging.WARNING
             )
             return self.callZenScreen(REQUEST)
         if not command:
@@ -198,8 +244,20 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write("Executing command\n%s\n   against %s" % (displayCommand, device.id))
         write('')
         start = time.time()
+        remoteCollector = device.getPerformanceServer().id != 'localhost'
         try:
-            executeStreamCommand(command, write)
+            if self.usessh:
+                if remoteCollector:
+                    # if device is on remote collector modify command to be run via zenhub
+                    self.command = "/opt/zenoss/bin/zentestds run --device {} --cmd '{}'".format(
+                        device.manageIp, self.commandTemplate)
+                    zminionCommand = self.compile(self, device)
+                    # zminion executes call back to zenhub
+                    executeStreamCommand(zminionCommand, write)
+                else:
+                    executeSshCommand(device, command, write)
+            else:
+                executeStreamCommand(zminionCommand, write)
         except:
             import sys
             write('exception while executing command')
@@ -209,7 +267,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write('DONE in %s seconds' % long(time.time() - start))
         out.write(str(footer))
 
-    security.declareProtected('Change Device', 'manage_testDataSource')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
         ''' Test the datasource by executing the command and outputting the
         non-quiet results.

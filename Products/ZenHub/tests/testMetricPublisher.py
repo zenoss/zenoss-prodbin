@@ -64,7 +64,7 @@ class UtilsTestCase(unittest.TestCase):
             1e9, '1e9', u'1e9',
             -1e9, '-1e9', u'-1e9',
             1.1e9, '1.1e9', u'1.1e9',
-            -1.1e9, '-1.1e9', u'-1.1e9',
+            -1.1e9, '-1.1e9', u'-1.1e9'
             ]
 
         for value in float_inputs:
@@ -91,6 +91,9 @@ class UtilsTestCase(unittest.TestCase):
         for value in bad_inputs:
             self.assertEquals(sanitized_float(value), None)
          # make sure we can read exponential values if they have a capital E
+        self.assertEqual(sanitized_float("3.33333333333333E-5"), float("3.33333333333333E-5"))
+
+        # make sure we can read exponential values if they have a capital E
         self.assertEqual(sanitized_float("3.33333333333333E-5"), float("3.33333333333333E-5"))
 
 

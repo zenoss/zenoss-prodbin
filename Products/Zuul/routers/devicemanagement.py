@@ -14,6 +14,7 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products import Zuul
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils import Time
 
 class DeviceManagementRouter(DirectRouter): 
     """
@@ -41,6 +42,12 @@ class DeviceManagementRouter(DirectRouter):
         facade = self._getFacade()
         data = facade.deleteMaintWindow(uid, id)
         return DirectResponse.succeed(data=Zuul.marshal(data))           
+
+    def getTimeZone(self):
+        """
+        Returns local timezone.
+        """
+        return DirectResponse(data=Time.getLocalTimezone())
 
     @serviceConnectionError
     def getMaintWindows(self, uid, params=None):
@@ -83,7 +90,7 @@ class DeviceManagementRouter(DirectRouter):
         data = facade.getUserCommands(uid)
         return DirectResponse( data=Zuul.marshal(data) )       
 
-    @require('Manage Device')        
+    @require('Define Commands Edit')
     def addUserCommand(self, params):
         """
         add a new user command to devices
@@ -93,7 +100,7 @@ class DeviceManagementRouter(DirectRouter):
         #work in password and not just succeed()
         return DirectResponse.succeed()
         
-    @require('Manage Device')        
+    @require('Define Commands Edit')
     def deleteUserCommand(self, uid, id):
         """
         delete a user command
@@ -102,7 +109,7 @@ class DeviceManagementRouter(DirectRouter):
         data = facade.deleteUserCommand(uid, id)
         return DirectResponse.succeed(data=Zuul.marshal(data))         
 
-    @require('Manage Device')        
+    @require('Define Commands Edit')
     def updateUserCommand(self, params):
         """
         completes or updates an existing user command

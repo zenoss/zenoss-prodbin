@@ -12,6 +12,9 @@ __doc__ = """ZenPack
 ZenPacks base definitions
 """
 
+import logging
+log = logging.getLogger('zen.ZenPack')
+
 import datetime
 import glob
 import json
@@ -34,7 +37,7 @@ from Products.ZenUtils.Utils import importClass, zenPath, varPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
-from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree
+from Products.ZenUtils.controlplane import ControlPlaneClient, ServiceTree, ControlCenterError
 from Products.ZenUtils.controlplane.application import getConnectionSettings
 from Products.ZenModel import ExampleLicenses
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -47,6 +50,8 @@ from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 from Products.ZenMessaging.audit import audit
 
+import servicemigration
+servicemigration.require("1.0.0")
 
 class ZenPackException(Exception):
     pass
@@ -202,8 +207,11 @@ class ZenPack(ZenModelRM):
     prevZenPackName = ''
     prevZenPackVersion = None
 
-    # Control Plane service ID for container executing this installation
+    # Control Center service ID for container executing this installation
     currentServiceId = ""
+
+    # Whether or not to skip control center service mutation at install time
+    ignoreServiceInstall = False
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -253,17 +261,64 @@ class ZenPack(ZenModelRM):
           },
         )
 
-    packZProperties = [
-        ]
+    packZProperties = []
+    packZProperties_data = {}
 
     security = ClassSecurityInfo()
 
+    @classmethod
+    def getZProperties(cls):
+        """Return dict of zProperties added by this ZenPack.
+
+        packZProperties and packZProperties_data will be merged into the result
+        with packZProperties winning when they disagree on type or
+        defaultValue.
+
+        Example result:
+
+            {
+                'zMyZenPackProperty': {
+                    'type': 'string',
+                    'defaultValue': '',
+                    'category': 'Mine',
+                    'label': 'My Simple Property',
+                    'description': 'Set this to any value.'
+                }
+            }
+
+        """
+        pack_zproperties = {}
+        for p_id, p_value, p_type in cls.packZProperties:
+            pack_zproperties[p_id] = {
+                'type': p_type,
+                'defaultValue': p_value,
+                }
+
+        for p_id, p_data in cls.packZProperties_data.items():
+            if p_id not in pack_zproperties:
+                if 'type' not in p_data or 'defaultValue' not in p_data:
+                    log.error(
+                        "%s: type or defaultValue not set for %s property",
+                        cls.__module__,
+                        p_id)
+
+                    continue
+
+                pack_zproperties[p_id] = {
+                    'type': p_data['type'],
+                    'defaultValue': p_data['defaultValue'],
+                    }
+
+            for p_data_key, p_data_value in p_data.items():
+                pack_zproperties[p_id].setdefault(
+                    p_data_key, p_data_value)
+
+        return pack_zproperties
 
     def __init__(self, id, title=None, buildRelations=True):
         #self.dependencies = {'zenpacksupport':''}
         self.dependencies = {}
         ZenModelRM.__init__(self, id, title, buildRelations)
-
 
     def install(self, app):
         """
@@ -278,7 +333,8 @@ class ZenPack(ZenModelRM):
         previousVersion = self.prevZenPackVersion
         self.storeBackup()
         self.migrate(previousVersion)
-        self.installServices()
+        if not ZenPack.ignoreServiceInstall and previousVersion is None:
+            self.installServices()
 
     def storeBackup(self):
         """
@@ -331,6 +387,30 @@ class ZenPack(ZenModelRM):
         self.createZProperties(app)
         self.migrate()
 
+    def doServiceAction(self, tag, action):
+        """
+        Process all services matching tag from Control Center
+
+        :param tag: tag for which all services will be processed
+        :type tag: string
+        """
+        if not ZenPack.currentServiceId:
+            return
+
+        cpClient = ControlPlaneClient(**getConnectionSettings())
+        services = cpClient.queryServices("*")
+        serviceTree = ServiceTree(services)
+        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
+        for root in serviceRoots:
+            services = serviceTree.findMatchingServices(root, tag)
+            # Ensure that child services are processed before parents
+            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
+            for service in services:
+                if action == 'stop':
+                    cpClient.stopService(service.id)
+                elif action == 'delete':
+                    cpClient.deleteService(service.id)
+
     def remove(self, app, leaveObjects=False):
         """
         This prepares the ZenPack for removal but does not actually remove
@@ -343,14 +423,15 @@ class ZenPack(ZenModelRM):
         @param leaveObjects: remove zProperties and things?
         @type leaveObjects: boolean
         """
+        serviceTag = self.getServiceTag()
         if not leaveObjects:
-            self.stopDaemons()
+            self.doServiceAction(serviceTag, 'stop')
         for loader in self.loaders:
             loader.unload(self, app, leaveObjects)
         if not leaveObjects:
             self.removeZProperties(app)
             self.removeCatalogedObjects(app)
-        self.removeServices(self.getServiceTag())
+            self.doServiceAction(serviceTag, 'delete')
 
     def backup(self, backupDir, logger):
         """
@@ -450,16 +531,19 @@ class ZenPack(ZenModelRM):
 
     def createZProperties(self, app):
         """
-        Create zProperties in the ZenPack's self.packZProperties
+        Create zProperties in the ZenPack's self.getZProperties().
 
         @param app: ZenPack
         @type app: ZenPack object
         """
         # for brand new installs, define an instance for each of the zenpacks
         # zprops on dmd.Devices
-        for name, value, pType in self.packZProperties:
+        for name, data in self.getZProperties().items():
             if not app.zport.dmd.Devices.hasProperty(name):
-                app.zport.dmd.Devices._setProperty(name, value, pType)
+                app.zport.dmd.Devices._setProperty(
+                    name,
+                    data.get('defaultValue', ''),
+                    data.get('type', 'string'))
 
 
     def removeZProperties(self, app):
@@ -469,7 +553,7 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
-        for name, value, pType in self.packZProperties:
+        for name in self.getZProperties():
             if app.zport.dmd.Devices.hasProperty(name):
                 app.zport.dmd.Devices._delProperty(name)
 
@@ -498,6 +582,7 @@ class ZenPack(ZenModelRM):
         return GetCatalogedObjects(self.dmd, self.id) or []
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST, redirect=False):
         """
         Edit a ZenPack object
@@ -701,8 +786,9 @@ registerDirectory("skins", globals())
             exportDir = needDir(zenPath('export'))
             eggPath = self.eggPath()
             os.chdir(eggPath)
-            if os.path.isdir(os.path.join(eggPath, 'dist')):
-                os.system('rm -rf dist/*')
+            for tmp_dir in ['build', 'dist']:
+                if os.path.isdir(os.path.join(eggPath, tmp_dir)):
+                    os.system('rm -rf {}/*'.format(tmp_dir))
             p = subprocess.Popen('python setup.py bdist_egg',
                             stderr=sys.stderr,
                             shell=True,
@@ -1208,7 +1294,7 @@ registerDirectory("skins", globals())
 
     def installServices(self):
         """
-        Install ControlPlane services for this ZenPack
+        Install Control Center services for this ZenPack
         @return: None
         """
         if not ZenPack.currentServiceId:
@@ -1310,13 +1396,13 @@ registerDirectory("skins", globals())
 
     def installServicesFromFiles(self, serviceFileNames, serviceConfigs, tag):
         """
-        Install a set of control plane services
+        Install a set of control center services
 
         Each file is expected to contain a json encoded object with two fields:
          servicePath: a service path indicating where this service should be installed.
             See ServiceTree.matchServicePath for description of service path
          serviceDefinition: a service definition object which will be sent to
-            controlplane.  Service definition examples may be be seen by running
+            Control Center.  Service definition examples may be be seen by running
             $ serviced template list $TEMPLATE_ID
         Each service will be tagged with the given tag in order to enable discovery
         for ZenPack removal.  If a service definition has an ImageID field, but
@@ -1337,8 +1423,8 @@ registerDirectory("skins", globals())
         templateParams = self.templateParams()
 
         for fileName, configMap in zip(serviceFileNames, serviceConfigs):
-            with open(fileName, 'r') as fh:
-                service = json.loads(fh.read() % templateParams)
+            serviceDef = self._loadServiceDefinition(fileName)
+            service = json.loads(serviceDef % templateParams)
             definition = ZenPack.normalizeService(service['serviceDefinition'],
                                                   configMap, tag)
             definitions.append(json.dumps(definition))
@@ -1346,9 +1432,16 @@ registerDirectory("skins", globals())
         self.installServiceDefinitions(definitions, paths)
 
 
+    def _loadServiceDefinition(self, fileName):
+        content = ""
+        with open(fileName, 'r') as fh:
+            content = fh.read()
+        return content
+
+
     def installServiceDefinitions(self, serviceDefs, servicePaths):
         """
-        Install a service into ControlPlane
+        Install a service into Control Center
 
         Install a service (described by a service definition string) at a given
              location in the service tree.  Multiple service/location pairs can
@@ -1370,58 +1463,42 @@ registerDirectory("skins", globals())
         if isinstance(servicePaths, basestring):
             servicePaths = [servicePaths]
 
+        serviceDefs = [json.loads(sd) for sd in serviceDefs]
+        servicePaths = [p if p != "/hub/collector" else "/zenoss-application/zenoss-collection/hub/collector" for p in servicePaths]
+        existingPaths = {}
+
+        for sd, sp in zip(serviceDefs, servicePaths):
+            sd["Services"] = []
+            sp = "" if sp == "/" else sp
+            existingPaths[sp + "/=" + sd["Name"]] = sd
+            for tag in sd["Tags"]:
+                existingPaths[sp + "/" + tag] = sd
+
+        services = []
+        parentServicePaths = []
+        for sd, sp in zip(serviceDefs, servicePaths):
+            if sp in existingPaths:
+                existingPaths[sp]["Services"].append(sd)
+            else:
+                services.append(sd)
+                parentServicePaths.append(sp)
+
         cpClient = ControlPlaneClient(**getConnectionSettings())
         serviceTree = ServiceTree(cpClient.queryServices("*"))
+        ctx = servicemigration.ServiceContext()
 
-        # Determine depth in service tree of each service.
-        cwd = '/' + '/'.join(['x']*len(serviceTree.getPath(ZenPack.currentServiceId)))
-        def pathComponentCount(path):
-            components = posixpath.normpath(posixpath.join(cwd, path)).split('/')
-            return sum(bool(i) for i in components)
-        depth =  [pathComponentCount(i) for i in servicePaths]
-
-        # Sort services by number of components in absolute path, ensuring that
-        #  parent services are created before child services.
-        serviceTuples = zip(servicePaths, serviceDefs, depth)
-        serviceTuples.sort(key=lambda x:x[2])
-
-        lastDepth = serviceTuples[0][2] if serviceTuples else None
-        for path, serviceDef, depth in serviceTuples:
-            # Update service tree in case we are adding a child to a new service
-            if depth != lastDepth:
-                serviceTree = ServiceTree(cpClient.queryServices("*"))
-                lastDepth = depth
-
-            # ZEN-19575: change the path to reflect the new service definition
-            if path == "/hub/collector":
-                path = "/zenoss-application/zenoss-collection/hub/collector"
-            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId,
-                                                          path)
+        for service, parentServicePath in zip(services, parentServicePaths):
+            parentServices = serviceTree.matchServicePath(ZenPack.currentServiceId, parentServicePath)
             for parentService in parentServices:
-                cpClient.deployService(parentService.id, serviceDef)
+                ctx._ServiceContext__deployService(json.dumps(service), parentService.id)
 
-
-    def removeServices(self, tag):
-        """
-        Remove all services matching tag from control plane
-
-        :param tag: tag for which all services will be removed
-        :type tag: string
-        """
-        if not ZenPack.currentServiceId:
-            return
-
-        cpClient = ControlPlaneClient(**getConnectionSettings())
-        services = cpClient.queryServices("*")
-        serviceTree = ServiceTree(services)
-        serviceRoots = serviceTree.matchServicePath(ZenPack.currentServiceId, '/')
-        for root in serviceRoots:
-            services = serviceTree.findMatchingServices(root, tag)
-            # Ensure that child services are deleted before parents
-            services.sort(key=lambda x:len(serviceTree.getPath(x)), reverse=True)
-            for service in services:
-                cpClient.deleteService(service.id)
-
+        try:
+            ctx.commit()
+        except ControlCenterError as e:
+            if e.message == "service exists":
+                log.info("Service exists, not deploying.")
+            else:
+                raise e
 
     def getExampleLicenseNames(self):
         return sorted(ExampleLicenses.LICENSES.keys())

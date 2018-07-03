@@ -271,6 +271,11 @@ class IScheduledTask(IObservable):
            needed.
         """)
 
+    suppress_late = zope.interface.Attribute("""
+        Some tasks (e.g. config loaders) may not want to be counted as 'late'
+         to avoid muddying the meaning of our 'missedRuns' metrics on daemons.
+        """)
+
 #    childIds = zope.interface.Attribute("""
 #        Optional attribute: List of configIds of tasks that are associated with this task. When a task is
 #        removed any tasks with a configId in childIds will be removed as well.
@@ -306,6 +311,24 @@ class IScheduledTask(IObservable):
         Called after a task has been scheduled. The scheduler instance is passed
         so that the scheduled task can manipulate it's (or another
         task's) schedule.
+        """
+        pass
+
+
+class IPausingScheduledTask(IScheduledTask):
+    """
+    An IScheduledTask that needs to take action to pause and resume
+    """
+
+    def pause(self):
+        """
+        Called to pause a task.
+        """
+        pass
+
+    def resume(self):
+        """
+        Called to resume a task.
         """
         pass
 

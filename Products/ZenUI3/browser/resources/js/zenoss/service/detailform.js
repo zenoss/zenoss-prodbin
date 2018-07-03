@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -22,10 +22,10 @@ Ext.onReady( function() {
         form = Ext.getCmp('serviceForm');
 
         var isClass = (form.contextUid.indexOf('serviceclasses') > 0),
-            isRoot = form.contextUid == Ext.getCmp('navTree').getRootNode().data.uid;
+            isRoot = form.contextUid === Ext.getCmp('navTree').getRootNode().data.uid;
 
 
-        if (action.type == 'directload') {
+        if (action.type === 'directload') {
             form.isLoadInProgress = false;
             Ext.each(zsf.hiddenFieldIdsForOrganizer, function(i){
                     var o = Ext.getCmp(i);
@@ -41,7 +41,7 @@ Ext.onReady( function() {
                 });
             Ext.getCmp('nameTextField2').setDisabled(isRoot);
         }
-        else if (action.type == 'directsubmit') {
+        else if (action.type === 'directsubmit') {
 
             if (Ext.getCmp('monitoredStartModes')) {
                 Ext.getCmp('monitoredStartModes').refresh();

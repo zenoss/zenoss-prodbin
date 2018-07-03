@@ -36,6 +36,11 @@ class IComponentInfo(IInfo):
                                          u" for this component?", group="Overview",
                              order=1,
                              readonly=True)
+    deviceName = schema.TextLine(title=_t(u"Device"),
+                                 description=u"Parent Device Name/Title",
+                                 group="Overview",
+                                 order=2,
+                                 readonly=True)
     usesMonitorAttribute = Attribute("Should the user be able to set the monitor attribute")
     monitor = Attribute("Has monitoring been enabled on the component")
     monitored = Attribute(u"Is the component being monitored"
@@ -171,9 +176,9 @@ class IIpServiceInfo(IComponentInfo):
     port = schema.Int(title=_t(u"Port"), group="Overview")
     protocol = schema.TextLine(title=_t(u"Protocol"), group="Details")
     ipaddresses = schema.List(title=_t(u"IP Addresses"), group="Details")
-    manageIp = schema.Choice(title=_t(u"Management IP Address"),
-                             vocabulary="serviceIpAddresses",
-                             group="Overview")
+    manageIp = schema.TextLine(title=_t(u"Management IP Address"),
+                               group="Overview", alwaysEditable=True,
+                               xtype="ipaddressfield", vtype="ipaddress")
     discoveryAgent = schema.TextLine(title=_t(u"Discovery Agent"), group="Details")
     failSeverity = schema.Int(title=_t(u"Fail Severity"), xtype="severity",
                               group="Details", alwaysEditable=True)

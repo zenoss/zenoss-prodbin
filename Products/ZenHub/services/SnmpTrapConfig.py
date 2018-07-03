@@ -27,7 +27,7 @@ from Products.ZenHub.zodb import onUpdate, onDelete
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.MibBase import MibBase
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 SNMPV3_USER_ZPROPS = ["zSnmpEngineId",
                       "zSnmpSecurityName",            
@@ -102,7 +102,7 @@ class SnmpTrapConfig(CollectorConfigService):
         return user
 
     def remote_createAllUsers(self):
-        cat = ICatalogTool(self.dmd)
+        cat = IModelCatalogTool(self.dmd)
         brains = cat.search(("Products.ZenModel.Device.Device", "Products.ZenModel.DeviceClass.DeviceClass"))
         users = []
         for brain in brains:

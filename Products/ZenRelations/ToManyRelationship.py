@@ -36,7 +36,7 @@ def manage_addToManyRelationship(context, id, REQUEST=None):
     rel =  ToManyRelationship(id)
     context._setObject(rel.id, rel)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
     return rel.id
 
 
@@ -64,11 +64,12 @@ class ToManyRelationship(ToManyRelationshipBase):
         """ToManyRelationships use an array to store related objects"""
         self.id = id
         self._objects = PersistentList()
-        self._count = 0
+
 
     def __call__(self):
         """when we are called return our related object in our aq context"""
         return self.objectValuesAll()
+
 
     def hasobject(self, obj):
         "check to see if we have this object"
@@ -90,7 +91,6 @@ class ToManyRelationship(ToManyRelationshipBase):
         if obj in self._objects: raise RelationshipExistsError
         self._objects.append(aq_base(obj))
         self.__primary_parent__._p_changed = True
-        self.setCount()
 
 
     def _remove(self, obj=None, suppress_events=False):
@@ -105,7 +105,6 @@ class ToManyRelationship(ToManyRelationshipBase):
         else:
             self._objects = PersistentList()
         self.__primary_parent__._p_changed = True
-        self.setCount()
 
 
     def _remoteRemove(self, obj=None):
@@ -239,7 +238,6 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def convertToPersistentList(self):
         self._objects = PersistentList(self._objects)
-        self.setCount()
 
 
     def checkObjectRelation(self, obj, remoteName, parentObject, repair):

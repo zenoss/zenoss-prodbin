@@ -42,7 +42,7 @@ def manage_addOSProcess(context, newClassName, example, userCreated, REQUEST=Non
         p = context._getOb(id)
         if userCreated: p.setUserCreateFlag()
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+            REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
         return p
     else:
         msg = "Invalid example. Process Class '%s' would not capture it" % pc.name
@@ -89,8 +89,6 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
     _properties = OSComponent._properties + (
         {'id':'displayName', 'type':'string', 'mode':'w'},
-        {'id':'zAlertOnRestarts', 'type':'boolean', 'mode':'w'},
-        {'id':'zFailSeverity', 'type':'int', 'mode':'w'},
         {'id':'minProcessCount', 'type':'int', 'mode':'w'},
         {'id':'maxProcessCount', 'type':'int', 'mode':'w'},
         {'id':'includeRegex', 'type':'string', 'mode':'w'},
@@ -199,11 +197,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
 
         return float(value) if value else None
 
-    def titleOrId(self):
+    def getTitleOrId(self):
         if self.osProcessClass():
             return self.osProcessClass().titleOrId()
         return self.title() or self.id
-    
+
     def name(self):
         """
         Return a string that describes the process set
@@ -256,7 +254,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
         return self.osProcessClass()
 
 
-    security.declareProtected('Manage DMD', 'manage_editOSProcess')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_editOSProcess')
     def manage_editOSProcess(self, zMonitor=False, zAlertOnRestart=False,
                              zFailSeverity=3, msg=None,REQUEST=None):
         """
@@ -318,6 +316,7 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
             return self.osProcessClass().primaryAq().getZ("zSendEventWhenBlockedFlag")
         return self.sendEventWhenBlockedFlag
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'sendEventWhenBlocked')
     def sendEventWhenBlocked(self):
         return self._getSendEventWhenBlockedFlag()
 
@@ -355,14 +354,17 @@ class OSProcess(OSComponent, Commandable, ZenPackable, OSProcessMatcher):
                 if pclass.getZ("zSendEventWhenBlockedFlag") == self.sendEventWhenBlockedFlag:
                     self.sendEventWhenBlockedFlag = None
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'unlock')
     def unlock(self, REQUEST=None):
         Lockable.unlock(self, REQUEST=REQUEST)
         self._checkLockProperties()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromDeletion')
     def lockFromDeletion(self, sendEventWhenBlocked=None, REQUEST=None):
         Lockable.lockFromDeletion(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
         self._checkLockProperties()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'lockFromUpdates')
     def lockFromUpdates(self, sendEventWhenBlocked=None, REQUEST=None):
         Lockable.lockFromUpdates(self, sendEventWhenBlocked=sendEventWhenBlocked, REQUEST=REQUEST)
         self._checkLockProperties()

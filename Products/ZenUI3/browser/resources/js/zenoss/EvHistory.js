@@ -1,3 +1,4 @@
+/* globals _managed_objects: true */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2009, all rights reserved.
@@ -11,6 +12,31 @@
 Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
+
+    Zenoss.ui.EvHistory.Exp = function(type, format){
+        var grid = Ext.getCmp('events_grid'),
+            state = grid.getState(),
+            params = {
+                type: type,
+                isHistory: true,
+                options: {
+	                   fmt: format,
+	                   datefmt: Zenoss.USER_DATE_FORMAT,
+	                   timefmt: Zenoss.USER_TIME_FORMAT,
+	                   tz: Zenoss.USER_TIMEZONE
+               },
+ 		params: {
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        Ext.get('export_body').dom.value =
+        Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+
+    };
 
     // Get references to the panels
     var detail_panel = Ext.getCmp('detail_panel');
@@ -27,30 +53,6 @@ Ext.onReady(function(){
     detail_panel.collapsible = true;
 
 
-    /*
-     * Select all events with a given state.
-     * This requires a call to the back end, since we don't know anything about
-     * records that are outside the current buffer. So we let the server
-     * perform a query to determine ranges, then we select the ranges.
-     */
-    function selectByState(state) {
-        var params = {'state':state, 'history':true, 'asof':Zenoss.env.asof},
-            grid = Ext.getCmp('events_grid');
-        Ext.apply(params, getQueryParameters());
-        Zenoss.remote.EventsRouter.state_ranges(
-            params,
-            function(result) {
-                var sm = grid.getSelectionModel();
-                sm.clearSelections();
-                Ext.each(result, function(range){
-                    if (range.length==1)
-                        range[1] = grid.getStore().totalLength + 1;
-                   sm.selectRange(range[0]-1, range[1]-1, true);
-                });
-            }
-        );
-    }
-
     // Get the container surrounding master/detail, for adding the toolbar
     var container = Ext.getCmp('center_panel_container');
 
@@ -59,9 +61,9 @@ Ext.onReady(function(){
 
     function doLastUpdated() {
         var box = Ext.getCmp('lastupdated'),
-            dt = new Date(),
-            dtext = Ext.Date.format(dt, 'g:i:sA');
-        box.setText(_t('Last updated at ') + dtext);
+            dtext = Zenoss.date.renderWithTimeZone(new Date()/1000);
+            dtext += " (" + Zenoss.USER_TIMEZONE + ")";
+	box.setText(_t('Last updated at ') + dtext);
         }
 
         // Show filters by default on history console
@@ -102,49 +104,89 @@ Ext.onReady(function(){
                 }
             },{
                 text: _t('Export'),
-                id: 'export-button',
                 //iconCls: 'export',
-                menu: {
-                items: [{
-                    text: 'XML',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'xml',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
+                handler: function(){
+
+                var dialog = Ext.create('Zenoss.dialog.Form', {
+                    title: _t('Export events'),
+                    minWidth: 350,
+                    submitHandler: function(form) {
+                        var values = form.getValues();
+                        Zenoss.ui.EvHistory.Exp(values['ftype'], values['ffmt']);
+                    },
+                    form: {
+                        layout: 'anchor',
+                        defaults: {
+                            xtype: 'displayfield',
+                            padding: '0 0 10 0',
+                            margin: 0,
+                            anchor: '100%'
+                        },
+                        fieldDefaults: {
+                            labelAlign: 'left',
+                            labelWidth: 75,
+                            labelStyle: 'color:#aaccaa'
+                        },
+                        items: [{
+                            name: 'ftype',
+                            fieldLabel: 'File type',
+                            value: '',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                  fields:['id','name'],
+                                  data:[
+                                        {id:'xml', name:'XML'},
+                                        {id:'csv', name:'CSV'}
+                                  ]
+                            }),
+                            editable: false,
+                            disableKeyFilter: false,
+                            submitValue: true
+                        },{
+                            name: 'ffmt',
+                            fieldLabel: 'Date/Time format',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                       fields:['id','name'],
+                                       data:[
+                                            {id:'iso',  name:'ISO'},
+                                            {id:'unix', name:'Unix'},
+                                            {id:'user', name:'User settings'}
+                                       ]
+                            }),
+                            listeners: {'select': function (combo, record){
+                                if(record[0].data.id == "unix"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
+                                } else if(record[0].data.id == "iso"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
+                                } else if(record[0].data.id == "user"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
                                 }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
+                            }
+                        },
+                        editable: false,
+                        disableKeyFilter: false,
+                        submitValue: true
+                    },{
+                        name: 'example',
+                        id: 'fexample',
+                        fieldLabel:'Format example',
+                        value: '',
+                        hidden: true,
+                        submitValue: false
                     }
-                }, {
-                    text: 'CSV',
-                    handler: function(){
-                        var grid = Ext.getCmp('events_grid'),
-                            state = grid.getState(),
-                            params = {
-                                type: 'csv',
-                                isHistory: true,
-                                params: {
-                                    fields: Ext.Array.pluck(state.columns, 'id'),
-                                    sort: state.sort.property,
-                                    dir: state.sort.direction,
-                                    params: grid.getExportParameters()
-                                }
-                            };
-                        Ext.get('export_body').dom.value =
-                            Ext.encode(params);
-                        Ext.get('exportform').dom.submit();
-                    }
-                }]
+                   ]
                 }
+            });
+            dialog.down('form');
+            dialog.show();
+            }
             },{
                 /*
                  * CONFIGURE MENU
@@ -186,12 +228,12 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                                 link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
-                            message: Ext.String.format(_t('<div class="dialog-link">'
-                                + 'Drag this link to your bookmark bar '
-                                + '<br/>to return to this configuration later.'
-                                + '<br/><br/><a href="'
-                                + link
-                                + '">Resource Manager: Event Archive</a></div>')),
+                            message: Ext.String.format(_t('<div class="dialog-link">' +
+                                 'Drag this link to your bookmark bar ' +
+                                 '<br/>to return to this configuration later.' +
+                                 '<br/><br/><a href="' +
+                                 link +
+                                 '">Resource Manager: Event Archive</a></div>')),
                             title: _t('Save Configuration')
                             });
                         }
@@ -208,10 +250,10 @@ Ext.onReady(function(){
                         text: "Restore defaults",
                         handler: function(){
                             new Zenoss.dialog.SimpleMessageDialog({
-                                message: Ext.String.format(_t('Are you sure you want to restore '
-                                    + 'the default configuration? All'
-                                    + ' filters, column sizing, and column order '
-                                    + 'will be lost.')),
+                                message: Ext.String.format(_t('Are you sure you want to restore ' +
+                                     'the default configuration? All' +
+                                     ' filters, column sizing, and column order ' +
+                                     'will be lost.')),
                                 title: _t('Confirm Restore'),
                                 buttons: [{
                                     xtype: 'DialogButton',
@@ -249,7 +291,7 @@ Ext.onReady(function(){
             ]
         });
         return tbar;
-    }
+    };
 
     // Selection model
     var console_selection_model = new Zenoss.EventPanelSelectionModel({
@@ -261,9 +303,9 @@ Ext.onReady(function(){
         var tbar = createBar();
 
         var archive_store = Ext.create('Zenoss.events.Store', {directFn: Zenoss.remote.EventsRouter.queryArchive} );
-        if (!Zenoss.settings.enableInfiniteGridForEvents)
+        if (!Zenoss.settings.enableInfiniteGridForEvents) {
             archive_store.buffered = false;
-
+        }
         var grid = Ext.create('Zenoss.events.Grid', {
             region: 'center',
             tbar: tbar,
@@ -306,10 +348,11 @@ Ext.onReady(function(){
         // Hook up the "Last Updated" text
         var store = grid.getStore();
         //store.on('beforeprefetch', doLastUpdated);
-        if (store.buffered)
+        if (store.buffered) {
             store.on('guaranteedrange', doLastUpdated);
-        else
+        } else {
             store.on('load', doLastUpdated);
+        }
         doLastUpdated();
 
         // Detail pane should pop open when double-click on event
@@ -324,7 +367,7 @@ Ext.onReady(function(){
         hideEventDetail();
 
         return grid;
-    }
+    };
 
     /*
      * THE GRID ITSELF!
@@ -394,11 +437,13 @@ Ext.onReady(function(){
     });
 
     console_selection_model.on("select", function(){
-        if(detail_panel.collapsed == false){
+        if(detail_panel.collapsed === false){
             toggleEventDetailContent();
         }
         // if more than one is selected using the ctrl key, collapse the details:
-        if(this.getCount() > 1) detail_panel.collapse();
+        if(this.getCount() > 1) {
+            detail_panel.collapse();
+        }
     });
     // When multiple events are selected, detail pane should blank
     console_selection_model.on('rangeselect', function(){

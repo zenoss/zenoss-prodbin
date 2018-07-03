@@ -33,7 +33,8 @@ class EventService(HubService, ThresholdMixin):
     @translateError
     def remote_sendEvent(self, evt):
         try:
-            return self.zem.sendEvent(evt)
+            val =  self.zem.sendEvent(evt)
+            return val
         except Exception, ex:
             log.exception(ex)
 

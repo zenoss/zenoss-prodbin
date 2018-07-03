@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -28,6 +28,7 @@ Status_Nagios = "/Status/Nagios" # Deprecated, but included for consistency
 Status_OSProcess = "/Status/OSProcess"
 Status_Perf = "/Status/Perf"
 Status_Ping = "/Status/Ping"
+Status_Ping_Lag = "/Status/Ping/Lag"
 Status_RRD = "/Status/RRD"
 Status_Snmp = "/Status/Snmp"
 Status_Update = "/Status/Update"
@@ -36,7 +37,9 @@ Status_Wmi = "/Status/Wmi"
 Status_Wmi_Conn = "/Status/Wmi/Conn"
 Status_WinService = "/Status/WinService"
 Status_XmlRpc = "/Status/XmlRpc"
+Status_ZEP = "/Status/ZEP"
+Capacity = "/Capacity"
 Unknown = "/Unknown"
 
-Severities = 'Clear Debug Info Warning Error Critical'.split() 
+Severities = 'Clear Debug Info Warning Error Critical'.split()
 Clear, Debug, Info, Warning, Error, Critical = range(6)

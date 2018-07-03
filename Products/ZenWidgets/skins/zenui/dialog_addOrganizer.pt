@@ -5,12 +5,12 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="newPath"><br/><br/>
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url">
+        tal:attributes="value here/absolute_url_path">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form_and_check(
-        '${here/absolute_url}', 'proxyForm')"
+        '${here/absolute_url_path}', 'proxyForm')"
         name="manage_addOrganizer:method" />
 <input tal:attributes="id string:dialog_cancel;
         type string:button;

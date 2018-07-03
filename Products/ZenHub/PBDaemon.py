@@ -25,6 +25,9 @@ from urlparse import urlparse
 from hashlib import sha1
 from itertools import chain
 from functools import partial
+from metrology import Metrology
+from metrology.instruments import Gauge
+from metrology.registry import registry
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer, task
@@ -50,6 +53,7 @@ from Products.ZenHub.interfaces import (ICollectorEventFingerprintGenerator,
 from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, AggregateMetricWriter
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 
 
 #field size limits for events
@@ -377,6 +381,18 @@ class EventQueueManager(object):
         # TODO: Do we want to limit the size of the clear event dictionary?
         self.clear_events_count = {}
         self._initQueues()
+        self._eventsSent = Metrology.meter("collectordaemon.eventsSent")
+        self._discardedEvents = Metrology.meter("collectordaemon.discardedEvent")
+        self._eventTimer = Metrology.timer('collectordaemon.eventTimer')
+        metricNames = {x[0] for x in registry}
+        if 'collectordaemon.eventQueue' not in metricNames:
+            queue = self
+            class EventQueueGauge(Gauge):
+                @property
+                def value(self):
+                    return queue.event_queue_length
+            Metrology.gauge('collectordaemon.eventQueue', EventQueueGauge())
+
 
     def _initQueues(self):
         maxlen = self.options.maxqueuelen
@@ -457,9 +473,10 @@ class EventQueueManager(object):
         self.log.debug("Queued event (total of %d) %r", len(self.event_queue),
                        event)
         if discarded:
-            self.log.debug("Discarded event - queue overflow: %r", discarded)
+            self.log.warn("Discarded event - queue overflow: %r", discarded)
             self._removeDiscardedEventFromClearState(discarded)
             self.discarded_events += 1
+            self._discardedEvents.mark()
 
     def addEvent(self, event):
         self._addEvent(self.event_queue, event)
@@ -482,6 +499,7 @@ class EventQueueManager(object):
 
         perf_events = []
         events = []
+        sent = 0
         try:
             def chunk_events():
                 chunk_remaining = self.options.eventflushchunksize
@@ -510,19 +528,30 @@ class EventQueueManager(object):
                 self.log.debug(
                     "Sending %d events, %d perf events, %d heartbeats",
                     len(events), len(perf_events), len(heartbeat_events))
+                start = time.time()
                 yield event_sender_fn(heartbeat_events + perf_events + events)
+                duration = int((time.time() - start) * 1000)
+                self._eventTimer.update(duration)
+                sent += len(events) + len(perf_events) + len(heartbeat_events)
+                self._eventsSent.mark(len(events))
+                self._eventsSent.mark(len(perf_events))
+                self._eventsSent.mark(len(heartbeat_events))
                 heartbeat_events, perf_events, events = chunk_events()
 
+            defer.returnValue(sent)
         except Exception:
             # Restore performance events that failed to send
             perf_events.extend(prev_perf_event_queue)
             discarded_perf_events = self.perf_event_queue.extendleft(perf_events)
             self.discarded_events += len(discarded_perf_events)
+            self._discardedEvents.mark(len(discarded_perf_events))
 
             # Restore events that failed to send
             events.extend(prev_event_queue)
             discarded_events = self.event_queue.extendleft(events)
             self.discarded_events += len(discarded_events)
+            self._discardedEvents.mark(len(discarded_events))
+
 
             # Remove any clear state for events that were discarded
             for discarded in chain(discarded_perf_events, discarded_events):
@@ -545,6 +574,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatTimeout = 60*3
     _customexitcode = 0
     _pushEventsDeferred = None
+    _eventHighWaterMark = None
     _healthMonitorInterval = 30
 
     def __init__(self, noopts=0, keeproot=False, name=None):
@@ -577,14 +607,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.initialConnect = defer.Deferred()
         self.stopped = False
         self.counters = collections.Counter()
-        self.loadCounters()
         self._pingedZenhub = None
         self._connectionTimeout = None
         self._publisher = None
         self._internal_publisher = None
         self._metric_writer = None
         self._derivative_tracker = None
-
+        self._metrologyReporter = None
         # Add a shutdown trigger to send a stop event and flush the event queue
         reactor.addSystemEventTrigger('before', 'shutdown', self._stopPbDaemon)
 
@@ -643,6 +672,22 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         self.log.info("Attempting to connect to zenhub")
 
+    def getZenhubInstanceId(self):
+        """
+        Called after we connected to zenhub.
+        """
+
+        def callback(result):
+            self.log.info("Connected to the zenhub/%s instance", result)
+
+        def errback(result):
+            self.log.info("Unexpected error appeared while getting zenhub instance number %s", result)
+
+        d = self.perspective.callRemote('getHubInstanceId')
+        d.addCallback(callback)
+        d.addErrback(errback)
+        return d
+
     def gotPerspective(self, perspective):
         """
         This gets called every time we reconnect.
@@ -650,8 +695,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         @parameter perspective: Twisted perspective object
         @type perspective: Twisted perspective object
         """
-        self.log.info("Connected to ZenHub")
         self.perspective = perspective
+        self.getZenhubInstanceId()
         # Cancel the connection timeout timer as it's no longer needed.
         if self._connectionTimeout:
             try:
@@ -667,8 +712,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         pingInterval = self.options.zhPingInterval
-        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=True, pingInterval=pingInterval,
-                                              pingtimeout=pingInterval * 5)
+        factory = ReconnectingPBClientFactory(connectTimeout=60, pingPerspective=self.options.pingPerspective,
+                                              pingInterval=pingInterval, pingtimeout=pingInterval * 5)
         self.log.info("Connecting to %s:%d" % (self.options.hubhost, self.options.hubport))
         factory.connectTCP(self.options.hubhost, self.options.hubport)
         username = self.options.hubusername
@@ -677,7 +722,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.connecting = self.connecting
-        factory.startLogin(c)
+        factory.setCredentials(c)
 
         def timeout(d):
             if not d.called:
@@ -772,6 +817,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def run(self):
+        def stopReporter():
+            if self._metrologyReporter:
+                return self._metrologyReporter.stop()
+
+        # Order of the shutdown triggers matter. Want to stop reporter first, calling self.metricWriter() below
+        # registers shutdown triggers for the actual metric http and redis publishers.
+        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
+
         threshold_notifier = self._getThresholdNotifier()
         self.rrdStats.config(self.name,
                              self.options.monitor,
@@ -788,6 +841,20 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
 
+        def startStatsLoop():
+            self.log.debug("Starting Statistic posting")
+            loop = task.LoopingCall(self.postStatistics)
+            loop.start(self.options.writeStatistics, now=False)
+            daemonTags = {
+                'zenoss_daemon': self.name,
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            }
+            self._metrologyReporter = TwistedMetricReporter(self.options.writeStatistics, self.metricWriter(), daemonTags)
+            self._metrologyReporter.start()
+
+
+        reactor.callWhenRunning(startStatsLoop)
         d.addCallback(callback)
         d.addErrback(twisted.python.log.err)
         reactor.run()
@@ -824,11 +891,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 d.addBoth(lambda unused: self.pushEvents())
             else:
                 d = self.pushEvents()
-            d.addBoth(lambda unused: self.saveCounters())
             return d
 
         self.log.debug("No event sent as no EventService available.")
-        self.saveCounters()
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
@@ -840,6 +905,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         generatedEvent = self.generateEvent(event, **kw)
         self.eventQueueManager.addEvent(generatedEvent)
         self.counters['eventCount'] += 1
+
+        if self._eventHighWaterMark:
+            return self._eventHighWaterMark
+        elif self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueHighWaterMark:
+            return self.pushEvents()
+        else:
+            return defer.succeed(None)
 
     def generateEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
@@ -883,17 +955,37 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if not reactor.running:
             self.log.debug("Skipping event sending - reactor not running.")
             return
+
+        if self.eventQueueManager.event_queue_length >= self.options.maxqueuelen * self.options.queueHighWaterMark and not self._eventHighWaterMark:
+            self.log.debug("Queue length exceeded high water mark, %s ;creating high water mark deferred", self.eventQueueManager.event_queue_length)
+            self._eventHighWaterMark = defer.Deferred()
+
+        # are still connected to ZenHub?
+        evtSvc = self.services.get('EventService', None)
+        if not evtSvc:
+            self.log.error("No event service: %r", evtSvc)
+            yield task.deferLater(reactor, 0, lambda:None)
+            if self._eventHighWaterMark:
+                d, self._eventHighWaterMark = self._eventHighWaterMark, None
+                #not connected, release throttle and let things queue
+                d.callback("No Event Service")
+            defer.returnValue(None)
+
         if self._pushEventsDeferred:
             self.log.debug("Skipping event sending - previous call active.")
-            return
+            defer.returnValue("Push Pending")
+
+        sent = 0
         try:
+            #only set _pushEventsDeferred after we know we have an evtSvc/connectivity
             self._pushEventsDeferred = defer.Deferred()
 
-            # are still connected to ZenHub?
-            evtSvc = self.services.get('EventService', None)
-            if not evtSvc:
-                self.log.error("No event service: %r", evtSvc)
-                return
+            def repush(val):
+                if self.eventQueueManager.event_queue_length >= self.options.eventflushchunksize:
+                    self.pushEvents()
+                return val
+            # conditionally push more events after this pushEvents call finishes
+            self._pushEventsDeferred.addCallback(repush)
 
             discarded_events = self.eventQueueManager.discarded_events
             if discarded_events:
@@ -908,14 +1000,23 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
             send_events_fn = partial(evtSvc.callRemote, 'sendEvents')
             try:
-                yield self.eventQueueManager.sendEvents(send_events_fn)
+                sent = yield self.eventQueueManager.sendEvents(send_events_fn)
             except ConnectionLost as ex:
                 self.log.error('Error sending event: %s', ex)
+                #let the reactor have time to clean up any connection errors and make callbacks
+                yield task.deferLater(reactor, 0, lambda:None)
         except Exception as ex:
             self.log.exception(ex)
+            #let the reactor have time to clean up any connection errors and make callbacks
+            yield task.deferLater(reactor, 0, lambda:None)
         finally:
-            d, self._pushEventsDeferred = self._pushEventsDeferred, None
-            d.callback('sent')
+            if self._pushEventsDeferred:
+                d, self._pushEventsDeferred = self._pushEventsDeferred, None
+                d.callback('sent %s' % sent)
+            if  self._eventHighWaterMark and self.eventQueueManager.event_queue_length < self.options.maxqueuelen * self.options.queueHighWaterMark:
+                self.log.debug("Queue restored to below high water mark: %s", self.eventQueueManager.event_queue_length)
+                d, self._eventHighWaterMark = self._eventHighWaterMark, None
+                d.callback("Queue length below high water mark")
 
     def heartbeat(self):
         """if cycling, send a heartbeat, else, shutdown"""
@@ -927,26 +1028,21 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         # heartbeat is normally 3x cycle time
         self.niceDoggie(self.heartbeatTimeout / 3)
 
+    def postStatisticsImpl(self):
+        pass
+
+    def postStatistics(self):
         # save daemon counter stats
         for name, value in self.counters.items():
             self.log.info("Counter %s, value %d", name, value)
             self.rrdStats.counter(name, value)
 
         # persist counters values
-        self.saveCounters()
+        self.postStatisticsImpl()
 
-    def saveCounters(self):
-        atomicWrite(
-            zenPath('var/%s_counters.pickle' % self.name),
-            pickle.dumps(self.counters),
-            raiseException=False,
-        )
-
-    def loadCounters(self):
-        try:
-            self.counters = pickle.load(open(zenPath('var/%s_counters.pickle'% self.name)))
-        except Exception:
-            pass
+    def _pickleName(self):
+        instance_id = os.environ.get('CONTROLPLANE_INSTANCE_ID')
+        return 'var/%s_%s_counters.pickle' % (self.name, instance_id)
 
     def remote_getName(self):
         return self.name
@@ -985,7 +1081,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self._signalZenHubAnswering(False)
 
         def errback(error):
-            self.log.error('Error pinging ZenHub: %s (%s).' % (error, error.message))
+            self.log.error('Error pinging ZenHub: %s (%s).' % (error, getattr(error, 'message', '')))
             self._signalZenHubAnswering(False)
 
         try:
@@ -1094,9 +1190,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                help='Maximum number of events to queue')
 
+        self.parser.add_option('--queuehighwatermark',
+                               dest='queueHighWaterMark',
+                               default=0.75,
+                               type='float',
+                               help='The size, in percent, of the event queue when event pushback starts')
         self.parser.add_option('--zenhubpinginterval',
                                dest='zhPingInterval',
-                               default=30,
+                               default=120,
                                type='int',
                                help='How often to ping zenhub')
 
@@ -1127,4 +1228,15 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                default=publisher.defaultMaxOutstandingMetrics,
                                help='Max Number of metrics to allow in redis')
+        self.parser.add_option('--disable-ping-perspective',
+                               dest='pingPerspective',
+                               help="Enable or disable ping perspective",
+                               default=True,
+                               action='store_false')
+        self.parser.add_option('--writeStatistics',
+                               dest='writeStatistics',
+                               type='int',
+                               default=30,
+                               help='How often to write internal statistics value in seconds')
+
         ZenDaemon.buildOptions(self)

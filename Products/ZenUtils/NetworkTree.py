@@ -8,7 +8,9 @@
 ##############################################################################
 
 
+from zope.component import getUtility
 from Products.ZenModel.Link import ILink
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 
 # Validation for Device subtypes and IpNetwork subtypes.  Cannot import these 
@@ -39,8 +41,12 @@ def _fromNetworkToDevices(net, organizer):
         if dev is None:
             continue
         paths = map('/'.join, IIndexableWrapper(dev).path())
+        # ZEN-30132 add cse virtual root to path
+        paths = [getUtility(IVirtualRoot).ensure_virtual_root(path) for path in paths]
         for path in paths:
-            if path.startswith(organizer) or path.startswith('/zport/dmd/Devices/Network/Router'):
+            if path.startswith(organizer) or path.startswith(
+                    getUtility(IVirtualRoot).ensure_virtual_root('/zport/dmd/Devices/Network/Router')
+            ):
                 yield dev
                 break
 
@@ -94,8 +100,8 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
         return color
     for nodea, nodeb in g:
         if withIcons:
-            yield ((nodea.titleOrId(), nodea.getIconPath(), getColor(nodea)),
-                   (nodeb.titleOrId(), nodeb.getIconPath(), getColor(nodeb)))
+            yield ((nodea.titleOrId(), nodea.getIconPath(), getColor(nodea), nodea.getId()),
+                   (nodeb.titleOrId(), nodeb.getIconPath(), getColor(nodeb), nodeb.getId()))
         else:
             yield (nodea.titleOrId(), nodeb.titleOrId())
 

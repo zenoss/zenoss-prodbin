@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -65,6 +65,7 @@ class ZepFacade(ZuulFacade):
 
     DEFAULT_SORT_MAP = {
         'eventstate':    { 'field': EventSort.STATUS },
+        'eventstatetext':{ 'field': EventSort.STATUS },
         'severity':      { 'field': EventSort.SEVERITY },
         'firsttime':     { 'field': EventSort.FIRST_SEEN },
         'lasttime':      { 'field': EventSort.LAST_SEEN },
@@ -358,6 +359,7 @@ class ZepFacade(ZuulFacade):
         if filter is not None and isinstance(filter,dict):
             filter = from_dict(EventFilter, filter)
         if exclusion_filter is not None and isinstance(exclusion_filter, dict):
+            exclusion_filter['operator'] = 1 # Set operator to OR
             exclusion_filter = from_dict(EventFilter, exclusion_filter)
         if sort is not None:
             sort = tuple(self._getEventSort(s) for s in safeTuple(sort))
@@ -369,15 +371,14 @@ class ZepFacade(ZuulFacade):
             userSettings = self._dmd.ZenUsers._getOb(user.getId())
             hasGlobalRoles = not userSettings.hasNoGlobalRoles()
             if not hasGlobalRoles:
-                adminRoles = userSettings.getAllAdminRoles()
-                if adminRoles:
-                    # get ids for the objects they have permission to access
-                    # and add to filter
-                    ids = [IGlobalIdentifier(x.managedObject()).getGUID() for x in adminRoles]
+                # get guids for the objects user has permission to access
+                # and add to filter
+                guids = userSettings.getAllAdminGuids(returnChildrenForRootObj=True)
+                if guids:
                     if filter is None:
                         filter = EventFilter()
                     tf = filter.tag_filter.add()
-                    tf.tag_uuids.extend(ids)
+                    tf.tag_uuids.extend(guids)
                 else:
                     # no permission to see events, return 0
                     result =  {
@@ -588,6 +589,8 @@ class ZepFacade(ZuulFacade):
         @return: A dictionary of UUID -> { C{EventSeverity} -> { count, acknowledged_count } }
         """
         objects_severities = {}
+        tagUuids = list(tagUuids)
+        tagUuids.sort()
         number_of_uuids = len(tagUuids)
         batch_size = ZepFacade.SEVERITIES_BATCH_SIZE
 
@@ -603,8 +606,6 @@ class ZepFacade(ZuulFacade):
             end = (start + batch_size)
             if end > number_of_uuids:
                 end = number_of_uuids
-
-	    tagUuids = list(tagUuids)   # dirty hack :)
             uuids = tagUuids[start:end]
 
             eventTagSeverities = self._getEventTagSeverities(severity=severities, status=status, tags=uuids, eventClass=eventClass)
@@ -695,17 +696,26 @@ class ZepFacade(ZuulFacade):
             url = evclass.getPrimaryId()
         return msg, url
 
-    def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=()):
+    def _getEventTagSeverities(self, eventClass=(), severity=(), status=(), tags=(), deviceOnly=False):
         if not severity:
             severity = (SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING)
         if not status:
             status = (STATUS_NEW, STATUS_ACKNOWLEDGED)
-        eventFilter = self.createEventFilter(
-            severity=severity,
-            status=status,
-            event_class=eventClass,
-            tags=tags,
-            )
+        if deviceOnly:
+            eventFilter = self.createEventFilter(
+                severity=severity,
+                status=status,
+                event_class=eventClass,
+                tags=tags,
+                element_sub_identifier=[""],
+                )
+        else:
+            eventFilter = self.createEventFilter(
+                severity=severity,
+                status=status,
+                event_class=eventClass,
+                tags=tags,
+                )
 
         response, content = self.client.getEventTagSeverities(from_dict(EventFilter, eventFilter))
         return content.severities
@@ -723,7 +733,8 @@ class ZepFacade(ZuulFacade):
     def getDeviceIssues(self, eventClass=(),
                         severity=(SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL),
                         status=(STATUS_NEW,)):
-        tagSeverities = self._getEventTagSeverities(eventClass, severity, status)
+        tagSeverities = self._getEventTagSeverities(
+                eventClass=eventClass, severity=severity, status=status, deviceOnly=True)
         issues = []
         for eventTagSeverity in tagSeverities:
             device = self._guidManager.getObject(eventTagSeverity.tag_uuid)
@@ -855,7 +866,7 @@ class ZepFacade(ZuulFacade):
         """
         self.heartbeatClient.deleteHeartbeat(monitor, daemon)
 
-    def create(self, summary, severity, device, component=None, mandatory=True, 
+    def create(self, summary, severity, device, component=None, mandatory=True,
                **kwargs):
         """
         Create an event.

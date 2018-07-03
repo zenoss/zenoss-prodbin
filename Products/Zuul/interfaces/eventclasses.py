@@ -75,6 +75,25 @@ class IEventClassesFacade(IFacade):
         returns a transform for the event class context with all parent transforms
         """
 
+    def isTransformEnabled(uid):
+        """
+        Returns True if transform is enabled, False if disabled.
+
+        @uid The uid of effected event class
+        """
+
+    def setTransformEnabled(uid, enabled):
+        """
+        Enables or disables transform on the given event class.
+
+        When disabled transform is enabled again, bad_transform events are cleared.
+
+        @uid The uid of effected event class
+        @enabled {boolean} Set True to enable transform, False to disable
+        @returns True if transform is enabled, False if disabled
+        """
+
+
     def editEventClassDescription(uid, description):
         """
         edit the description of a given event class

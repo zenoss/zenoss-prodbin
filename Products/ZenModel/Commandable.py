@@ -23,10 +23,13 @@ from ZenossSecurity import *
 from UserCommand import UserCommand
 from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
+from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenWidgets import messaging
 from DateTime import DateTime
+from zope.component import getUtility
 import os
 import popen2
 import fcntl
@@ -46,6 +49,7 @@ class Commandable:
     security = ClassSecurityInfo()
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 'manage_addUserCommand')
+    @validate_csrf_token
     def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
         unused(desc, cmd)
@@ -66,8 +70,8 @@ class Commandable:
                     'User command %s has been created.' % newId
                 )
                 screenName = REQUEST.get("editScreenName", "")
-                return REQUEST.RESPONSE.redirect(uc.getPrimaryUrlPath() +
-                        '/%s' % screenName if screenName else '')
+                path = getUtility(IVirtualRoot).ensure_virtual_root(uc.getPrimaryUrlPath())
+                return REQUEST.RESPONSE.redirect(path + '/%s' % screenName if screenName else '')
             return self.callZenScreen(REQUEST, True)
         return uc
 
@@ -98,16 +102,6 @@ class Commandable:
         '''
         command = self.getUserCommand(commandId)
         if command:
-            password = REQUEST.form.get('password', '')
-            if not self.dmd.ZenUsers.authenticateCredentials(
-                self.dmd.ZenUsers.getUser().getId(), password):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Password Error',
-                    'Invalid or empty password.',
-                    priority=messaging.WARNING
-                )
-                return REQUEST.RESPONSE.redirect(command.absolute_url_path())
-            del REQUEST.form['password']
             command.manage_changeProperties(**REQUEST.form)
             audit('UI.Command.Edit', commandId, action=REQUEST.form.get('command',''))
         return self.redirectToUserCommands(REQUEST)
@@ -195,9 +189,8 @@ class Commandable:
         # make sure we are targeting the right collector
         if not command.startswith("dcsh") and hasattr(target, "getPerformanceServerName"):
             collector = target.getPerformanceServer()
-            # if there isn't a collector just run it locally
-            if collector and hasattr(collector, 'isLocalHost') and not collector.isLocalHost():
-                command = 'dcsh --collector=${device/getPerformanceServerName} -n "%s"' % (command.replace('\n', ' '))
+            if collector:
+                command = 'zminion --minion-name zminion_%s run -- "%s"' % (target.getPerformanceServerName(), command.replace('\n', ' '))
         exp = "string:"+ command
         compiled = talesCompile(exp)
         environ = target.getUserCommandEnvironment()
@@ -245,7 +238,8 @@ class Commandable:
         for this Commandable object.
         '''
         unused(commandId)
-        url = self.getUrlForUserCommands()
+        url = getUtility(IVirtualRoot).ensure_virtual_root(
+            self.getUrlForUserCommands())
         if url:
             return REQUEST.RESPONSE.redirect(url)
         return self.callZenScreen(REQUEST)

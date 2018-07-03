@@ -21,6 +21,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from itertools import count
 counter = count()
 
+
 class FakeAdaptee(object):
     def __init__(self):
         self._p_oid = counter.next()

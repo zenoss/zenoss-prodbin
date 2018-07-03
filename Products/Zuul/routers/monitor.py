@@ -37,7 +37,7 @@ class MonitorRouter(TreeRouter):
         @return:  Object representing the tree
         """
         facade = self._getFacade()
-        monitors = facade.queryPerformanceMonitors()
+        monitors = facade.query()
         nodes = map(ITreeNode, monitors)
         data = Zuul.marshal(nodes)
         return data
@@ -65,15 +65,26 @@ class MonitorRouter(TreeRouter):
         """
         facade = self._getFacade()
         try:
-            monitor = IInfo(facade.addMonitor(id, sourceId=sourceId, hubId=hubId, poolId=poolId))
+            monitor = IInfo(facade.addMonitor(
+                id, sourceId=sourceId, hubId=hubId, poolId=poolId
+            ))
         except ControlCenterError as e:
             log.error("Control Center error: %s", e.message)
             return DirectResponse.fail(e.message)
         return DirectResponse.succeed(data=Zuul.marshal(monitor))
 
     def getCollectors(self, query=None):
-        facade = Zuul.getFacade('monitors', self.context)
+        facade = self._getFacade()
         collectors = [IInfo(collector) for collector in facade.query()]
         return DirectResponse.succeed(data=Zuul.marshal(collectors))
-        
-                        
+
+    def getCollector(self, collectorString):
+        """
+        Get a collector by name
+        @type  collectorString: string
+        @param collectorString: name of collector to return
+        """
+        facade = Zuul.getFacade('monitors', self.context)
+        collector = IInfo(facade.get(collectorString))
+        return DirectResponse.succeed(data=Zuul.marshal(collector))
+

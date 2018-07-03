@@ -182,8 +182,7 @@ class ZenAvailability(ZenStatus):
     def _getDownTime(self, year, start=None, end=None):
         """check to see if we have year data for year and return it"""
         dt = -1
-        if year in self.yearlydata:
-            dt = self.yearlydata[year].getDownTime(start, end)
+        dt = self._getYearlyData(year).getDownTime(start, end)
         return dt
 
 

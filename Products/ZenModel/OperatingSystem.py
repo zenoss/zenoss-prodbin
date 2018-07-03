@@ -214,7 +214,7 @@ class OperatingSystem(Software):
                 'IP Interface %s was created.' % newId
             )
             REQUEST['RESPONSE'].redirect(
-                self.interfaces._getOb(newId).absolute_url())
+                self.interfaces._getOb(newId).absolute_url_path())
             self._p_changed = True
             return self.callZenScreen(REQUEST)
 
@@ -226,7 +226,7 @@ class OperatingSystem(Software):
                 'Interfaces Deleted',
                 'IP Interfaces %s was created.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def setComponentMonitored(self, context, componentNames=[],
@@ -264,7 +264,7 @@ class OperatingSystem(Software):
                 'Interfaces Unlocked',
                 'Interfaces %s were unlocked.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
         
     def lockIpInterfacesFromDeletion(self, componentNames=[],
@@ -278,7 +278,7 @@ class OperatingSystem(Software):
                 'Interfaces %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
         
     def lockIpInterfacesFromUpdates(self, componentNames=[], 
@@ -292,7 +292,7 @@ class OperatingSystem(Software):
                 'Interfaces %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def addWinService(self, newClassName, userCreated, REQUEST=None):
@@ -320,7 +320,7 @@ class OperatingSystem(Software):
                 'WinService Added',
                 'WinService %s was added.' % (newClassName)
             )
-            REQUEST['RESPONSE'].redirect(ws.absolute_url())
+            REQUEST['RESPONSE'].redirect(ws.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def deleteWinServices(self, componentNames=[], REQUEST=None):
@@ -331,7 +331,7 @@ class OperatingSystem(Software):
                 'WinServices Deleted',
                 'WinServices %s were deleted.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def unlockWinServices(self, componentNames=[], REQUEST=None):
@@ -342,7 +342,7 @@ class OperatingSystem(Software):
                 'WinServices Unlocked',
                 'WinServices %s were unlocked.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
         
     def lockWinServicesFromDeletion(self, componentNames=[], 
@@ -356,7 +356,7 @@ class OperatingSystem(Software):
                 'WinServices %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
         
     def lockWinServicesFromUpdates(self, componentNames=[], 
@@ -370,7 +370,7 @@ class OperatingSystem(Software):
                 'WinServices %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
     
     def getSubOSProcessClassesGen(self, REQUEST=None):
@@ -388,7 +388,7 @@ class OperatingSystem(Software):
                 'Process Created',
                 'OS process %s was created.' % newClassName
             )
-            REQUEST['RESPONSE'].redirect(osp.absolute_url())
+            REQUEST['RESPONSE'].redirect(osp.absolute_url_path())
 
     def deleteOSProcesses(self, componentNames=[], REQUEST=None):
         """Delete OSProcesses"""
@@ -398,7 +398,7 @@ class OperatingSystem(Software):
                 'Processes Deleted',
                 'OS processes %s were deleted.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def unlockOSProcesses(self, componentNames=[], REQUEST=None):
@@ -409,7 +409,7 @@ class OperatingSystem(Software):
                 'Processes Unlocked',
                 'OS Processes %s were unlocked.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockOSProcessesFromDeletion(self, componentNames=[], 
@@ -423,7 +423,7 @@ class OperatingSystem(Software):
                 'OS processes %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockOSProcessesFromUpdates(self, componentNames=[], 
@@ -437,7 +437,7 @@ class OperatingSystem(Software):
                 'OS processes %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def addIpService(self, newClassName, protocol, userCreated, REQUEST=None):
@@ -465,7 +465,7 @@ class OperatingSystem(Software):
                 'IP Service Added',
                 'IP Service %s was added.' % (newClassName)
             )
-            REQUEST['RESPONSE'].redirect(ips.absolute_url())
+            REQUEST['RESPONSE'].redirect(ips.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def deleteIpServices(self, componentNames=[], REQUEST=None):
@@ -476,7 +476,7 @@ class OperatingSystem(Software):
                 'IP Services Deleted',
                 'IP Services %s were deleted.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def unlockIpServices(self, componentNames=[], REQUEST=None):
@@ -487,7 +487,7 @@ class OperatingSystem(Software):
                 'IpServices Unlocked',
                 'IP Services %s were unlocked.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockIpServicesFromDeletion(self, componentNames=[], 
@@ -501,7 +501,7 @@ class OperatingSystem(Software):
                 'IP services %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockIpServicesFromUpdates(self, componentNames=[], 
@@ -515,7 +515,7 @@ class OperatingSystem(Software):
                 'IP services %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def addFileSystem(self, newId, userCreated, REQUEST=None):
@@ -530,7 +530,7 @@ class OperatingSystem(Software):
                 'Filesystem %s was added.' % newId
             )
             REQUEST['RESPONSE'].redirect(
-                self.filesystems._getOb(fsid).absolute_url())
+                self.filesystems._getOb(fsid).absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def deleteFileSystems(self, componentNames=[], REQUEST=None):
@@ -541,7 +541,7 @@ class OperatingSystem(Software):
                 'Filesystems Deleted',
                 'Filesystems %s were deleted.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def unlockFileSystems(self, componentNames=[], REQUEST=None):
@@ -552,7 +552,7 @@ class OperatingSystem(Software):
                 'Filesystems Unlocked',
                 'Filesystems %s were unlocked.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockFileSystemsFromDeletion(self, componentNames=[], 
@@ -566,7 +566,7 @@ class OperatingSystem(Software):
                 'Filesystems %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockFileSystemsFromUpdates(self, componentNames=[], 
@@ -580,7 +580,7 @@ class OperatingSystem(Software):
                 'Filesystems %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def addIpRouteEntry(self, dest, routemask, nexthopid, interface, 
@@ -601,7 +601,7 @@ class OperatingSystem(Software):
                 'Route Created',
                 'IP route entry was created.'
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def deleteIpRouteEntries(self, componentNames=[], REQUEST=None):
@@ -612,7 +612,7 @@ class OperatingSystem(Software):
                 'Routes Deleted',
                 'IP route entries %s were deleted.' % (', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def unlockIpRouteEntries(self, componentNames=[], REQUEST=None):
@@ -624,7 +624,7 @@ class OperatingSystem(Software):
                 'IP route entries %s were unlocked.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockIpRouteEntriesFromDeletion(self, componentNames=[], 
@@ -638,7 +638,7 @@ class OperatingSystem(Software):
                 'IP route entries %s were locked from deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
     def lockIpRouteEntriesFromUpdates(self, componentNames=[], 
@@ -652,7 +652,7 @@ class OperatingSystem(Software):
                 'IP route entries %s were locked from updates and deletion.' % (
                     ', '.join(componentNames))
             )
-            REQUEST['RESPONSE'].redirect(self.absolute_url())
+            REQUEST['RESPONSE'].redirect(self.absolute_url_path())
             return self.callZenScreen(REQUEST)
 
 InitializeClass(OperatingSystem)

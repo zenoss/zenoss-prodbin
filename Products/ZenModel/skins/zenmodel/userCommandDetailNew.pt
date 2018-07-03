@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post
@@ -53,13 +53,6 @@
         </td>
         <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/description"/>
-    </tr>
-    <tr class="odd">
-        <td class="tableheader">Confirm Your Password</td>
-        <td class="tablevalues">
-            <input style="border:1px solid #888" type="password" name="password"
-                autocomplete="off"/>
-        </td>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan=2>

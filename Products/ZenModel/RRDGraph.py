@@ -37,7 +37,7 @@ def manage_addRRDGraph(context, id, REQUEST = None):
     graph = RRDGraph(id)
     context._setObject(graph.id, graph)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
                                      
 
 addRRDGraph = DTMLFile('dtml/addRRDGraph',globals())

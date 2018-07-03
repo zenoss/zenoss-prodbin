@@ -1,11 +1,15 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
-    xmlns:browser="http://namespaces.zope.org/browser">
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:meta="http://namespaces.zope.org/meta">
 
     <adapter factory = ".global_catalog.IndexableWrapper"/>
     <adapter factory = ".global_catalog.ComponentWrapper"/>
     <adapter factory = ".global_catalog.DeviceWrapper"/>
+
+    <meta:provides feature="searchOrganizers" />
+    <adapter factory = ".global_catalog.DeviceOrganizerWrapper"/>
 
     <adapter
         provides=".interfaces.IIndexableWrapper"
@@ -44,6 +48,12 @@
         />
 
     <adapter
+        factory = ".paths.IpAddressPathReporter"
+        for = "Products.ZenModel.IpAddress.IpAddress"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
         factory = ".paths.ProcessPathReporter"
         for = "Products.ZenModel.OSProcess.OSProcess"
         provides = ".interfaces.IPathReporter"
@@ -72,6 +82,10 @@
         class="Products.ZenModel.OSProcess.OSProcess"/>
 
     <five:implements
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.IpAddress.IpAddress"/>
+
+    <five:implements
         interface=".interfaces.IDeviceOrganizer"
         class="Products.ZenModel.DeviceGroup.DeviceGroup"/>
 
@@ -91,8 +105,28 @@
     <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
 
+    <meta:provides feature="componentCatalogs" />
+
+    <subscriber handler=".component_catalog.onComponentIndexingEvent"
+        for="Products.ZenModel.DeviceComponent.DeviceComponent
+             .interfaces.IIndexingEvent"/>
+
+    <subscriber handler=".component_catalog.onComponentRemoved"
+        for="Products.ZenModel.DeviceComponent.DeviceComponent
+             OFS.interfaces.IObjectWillBeMovedEvent"/>
+
     <utility factory="Products.Zuul.catalog.global_catalog.GlobalCatalogFactory"
         provides="Products.Zuul.catalog.interfaces.IGlobalCatalogFactory"
+        />
+
+    <adapter provides=".interfaces.IModelCatalogTool"
+            for="*"
+            factory=".model_catalog_tool.ModelCatalogTool"
+        />
+
+    <utility component=".model_catalog.ModelCatalog"
+            provides=".interfaces.IModelCatalog"
+            name="model_catalog"
         />
 
 </configure>

@@ -44,9 +44,8 @@ Ext.define('Zenoss.inspector.InspectorProperty', {
             items: [
                 {
                     cls: 'inspector-property-label',
-                    ref: 'labelItem',
-                    xtype: 'label',
-                    text: config.label ? config.label + ':' : ''
+                    xtype: 'header',
+                    title: config.label ? config.label + ':' : ''
                 },
                 {
                     cls: 'inspector-property-value',
@@ -72,7 +71,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
     extend: 'Ext.Panel',
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
-            defaultType: 'devdetailitem',
+            defaultType: 'container',
             layout: 'anchor',
             bodyBorder: false,
             items: [],
@@ -86,15 +85,17 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 ref: 'headerItem',
                 items: [
                     {
-                        cls: 'header-icon',
+                        cls: 'header-icon-wrapper',
                         ref: 'iconItem',
-                        xtype: 'panel'
+                        xtype: 'container',
+                        layout: 'fit'
                     },
                     {
                         cls: 'header-title',
                         ref: 'titleItem',
-                        xtype: 'label',
-                        tpl: config.titleTpl
+                        xtype: 'container',
+                        tpl: config.titleTpl,
+                        layout: 'fit'
                     }
                 ]
             },
@@ -117,14 +118,14 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 'background-image', 'url(' + url + ')'
             );
         } else {
-            this.headerItem.iconItem.update(Ext.String.format('<img height="43px" src="{0}" />', url));
+            this.headerItem.iconItem.update(Ext.String.format('<img class="header-icon" src="{0}" alt="" />', url));
         }
     },
     /**
      * Overwrite to add any properties dynamically from the data. Must
      * return true if added any.
      */
-    addNewDataItems: function(data) {
+    addNewDataItems: function() {
         return false;
     },
     update: function(data) {
@@ -136,7 +137,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
         // update all the children that have templates
         var self = this;
         this.cascade(function(item) {
-            if (item != self && item.tpl) {
+            if (item !== self && item.tpl) {
                 item.data = data;
                 item.update(data);
             }
@@ -239,7 +240,8 @@ Ext.define('Zenoss.inspector.DeviceInspector', {
         });
         this.callParent(arguments);
 
-        this.addPropertyTpl(_t('Events'), '{[Zenoss.render.events(values.events, 4)]}');
+        var url = "{uid}/devicedetail?filter=default#deviceDetailNav:device_events";
+        this.addPropertyTpl(_t('Events'), '<div onclick="location.href=\''+url+'\';">{[Zenoss.render.events(values.events, 4)]}</div>');
         this.addPropertyTpl(_t('Device Status'), '{[Zenoss.render.pingStatus(values.status)]}');
         this.addProperty(_t('Production State'), 'productionState');
         this.addPropertyTpl(_t('Location'), '{[(values.location && values.location.name) || ""]}');

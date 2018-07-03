@@ -15,6 +15,8 @@ data objects.  It can be used as a global acquisition
 name space.
 """
 
+import cgi
+import httplib
 import re
 from persistent.list import PersistentList
 from zope.interface import implements
@@ -27,26 +29,35 @@ from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
+from Products.ZenUtils.virtual_root import IVirtualRoot
+from ZODB.transact import transact
 from Commandable import Commandable
-import socket
+from datetime import datetime
+from zope.component import getUtility
 import os
 import sys
 import string
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import zenPath, binPath
-from Products.ZenUtils.Utils import extractPostContent
+from Products.ZenUtils.Utils import zenPath, binPath, unpublished
 from Products.ZenUtils.jsonutils import json
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
-from Products.ZenEvents.Exceptions import *
+from Products.ZenEvents.Exceptions import (
+    MySQLConnectionError, pythonThresholdException, rpnThresholdException)
 
 from ZenModelRM import ZenModelRM
-from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
+from ZenossSecurity import (
+    ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW, ZEN_MANAGE_GLOBAL_SETTINGS,
+    ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_VIEW_USERS, ZEN_MANAGE_USERS,
+    ZEN_MANAGE_ZENPACKS, ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG,
+    ZEN_MANAGE_UI_SETTINGS,
+)
 from interfaces import IDataRoot
+from zExceptions import Unauthorized
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -54,7 +65,7 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
     context._setObject(id, dr)
 
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
@@ -80,9 +91,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
-    instanceIdentifier = 'Zenoss'
+    cz_prefix = getUtility(IVirtualRoot).get_prefix()
+    instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
-    smtpHost = 'localhost'
+    smtpHost = ''
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
     smtpUser = ''
@@ -96,8 +108,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
+    userTheme = "z-cse"
     pauseHubNotifications = False
     zendmdStartupCommands = []
+    pauseADMStart = datetime.min
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -124,8 +138,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
+        {'id':'userTheme', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
+        {'id':'pauseADMStart', 'type': 'datetime', 'mode':'w'},
         )
 
     _relations =  (
@@ -153,22 +169,22 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : 'editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : 'dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : 'ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS,)
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -178,17 +194,17 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG, )
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : 'userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
             )
           },
@@ -361,7 +377,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             convs.append(tup)
         return convs
 
-    security.declarePublic('filterObjectsRegex')
+    security.declarePrivate('filterObjectsRegex')
     def filterObjectsRegex(self, filter, objects,
                             filteratt='id', negatefilter=0):
         """filter a list of objects based on a regex"""
@@ -411,6 +427,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         elif isinstance(error_value, MySQLConnectionError) \
                 or isinstance(error_value, connectionFactory.exceptions.Error):
             return self.zenoss_mysql_error_message(error_value=error_value)
+        elif isinstance(error_value, Unauthorized):
+            self.REQUEST.response.status = httplib.UNAUTHORIZED
+            return
 
         from traceback import format_exception
         error_formatted = ''.join(format_exception(error_type, error_value, error_traceback))
@@ -436,7 +455,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     self.REQUEST.errorValue,
                     self.REQUEST.errorTrace,
                     self.REQUEST.errorUrl,
-                    self.About.getZenossRevision(),
                     self.About.getZenossVersionShort(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
@@ -448,7 +466,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                                 self.REQUEST.errorValue,
                                 self.REQUEST.errorTrace,
                                 self.REQUEST.errorUrl,
-                                self.About.getZenossRevision(),
                                 self.About.getZenossVersionShort(),
                                 True,
                                 self.REQUEST.contactName,
@@ -459,7 +476,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.errorEmailThankYou()
 
 
-    #security.declareProtected('View', 'writeExportRows')
+    @unpublished
     def writeExportRows(self, fieldsAndLabels, objects, out=None):
         '''Write out csv rows with the given objects and fields.
         If out is not None then call out.write() with the result and return None
@@ -510,7 +527,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 value = value.id
             elif callable(value):
                 value = value()
-            if value == None:
+            if value is None:
                 value = ''
             return str(value)
         for i, field in enumerate(fields):
@@ -541,7 +558,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
 
     def getDefaultEmailFrom(self):
-        return 'zenossuser_%s@%s' % (getSecurityManager().getUser().getId(), socket.getfqdn())
+        hostname = self.zenossHostname
+        hostname = hostname.replace("https://", "")
+        hostname = hostname.replace("http://", "")
+        return 'zenossuser_%s@%s' % (getSecurityManager().getUser().getId(), hostname)
 
 
     def getEmailFrom(self):
@@ -582,7 +602,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 return None
         if not obj: return None
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(obj.getPrimaryUrlPath())
+            path = getUtility(IVirtualRoot).ensure_virtual_root(obj.getPrimaryUrlPath())
+            REQUEST['RESPONSE'].redirect(path)
 
 
     def getXMLEdges(self, objid, depth=1, filter="/"):
@@ -590,7 +611,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             and edges using the obj with objid as a root
         """
         import urllib
-        objid = urllib.unquote(objid)
+        objid = cgi.escape(urllib.unquote(objid))
         try:
             devid = objid
             if not devid.endswith('*'): devid += '*'
@@ -606,15 +627,16 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return obj.getXMLEdges(int(depth), filter,
             start=(obj.id,obj.getPrimaryUrlPath()))
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
     def getBackupFilesInfo(self):
+        return self.getFilesInfo('backups')
+
+    def getFilesInfo(self, path):
         """
         Retrieve a list of dictionaries describing the files in
         $ZENHOME/backups.
         """
         import stat
-        import datetime
         import operator
 
         def FmtFileSize(size):
@@ -626,7 +648,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 fmt = '%s bytes' % size
             return fmt
 
-        backupsDir = zenPath('backups')
+        backupsDir = zenPath(path)
         fileInfo = []
         if os.path.isdir(backupsDir):
             for dirPath, dirNames, fileNames in os.walk(backupsDir):
@@ -639,13 +661,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         'size': info[stat.ST_SIZE],
                         'sizeFormatted': FmtFileSize(info[stat.ST_SIZE]),
                         'modDate': info[stat.ST_MTIME],
-                        'modDateFormatted': datetime.datetime.fromtimestamp(
+                        'modDateFormatted': datetime.fromtimestamp(
                                 info[stat.ST_MTIME]).strftime(
                                 '%c'),
                         })
         fileInfo.sort(key=operator.itemgetter('modDate'))
         return fileInfo
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_createBackup')
     def manage_createBackup(self, includeEvents=None, includeMysqlLogin=None,
@@ -752,7 +773,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-
     def getProductName(self):
         """
         Return a string that represents the Zenoss product that is installed.
@@ -762,14 +782,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return getattr(self, 'productName', 'core')
 
-
     def getProductHelpLink(self):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "/zport/dmd/localDocumentation"
-        # return "http://www.zenoss.com/resources/documentation"
-
+        return "https://help.zenoss.com/docs/collection-zone"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
@@ -856,7 +873,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         if prop == "emailFrom":
                             value = self.getEmailFrom()
                         elif prop == "smtpPort":
-                            notif_value = int(notif_value)
+                            try:
+                                notif_value = int(notif_value)
+                            except ValueError:
+                                # ZEN-26409: port is not convertible to an int,
+                                # so don't bother trying to make it equal value.
+                                pass
 
                         if notif_value != value:
                             notif_uses_system_props = False
@@ -873,6 +895,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Handle our authentication mechanism
         """
+
         if REQUEST:
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
@@ -894,5 +917,25 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def removeZendmdStartupCommand(self, command):
         self.zendmdStartupCommands = PersistentList([x for x in self.zendmdStartupCommands if x != command])
+
+    def getPauseADMLife(self):
+        """
+        Gets time in seconds since pauseADMStart
+        """
+        return (datetime.utcnow() - self.pauseADMStart).total_seconds()
+
+    @transact
+    def startPauseADM(self):
+        """
+        Sets pauseADMStart to the current time
+        """
+        self.pauseADMStart = datetime.utcnow()
+
+    @transact
+    def stopPauseADM(self):
+        """
+        Sets pauseADMStart to the min datetime
+        """
+        self.pauseADMStart = datetime.min
 
 InitializeClass(DataRoot)

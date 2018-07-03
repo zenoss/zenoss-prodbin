@@ -17,8 +17,12 @@ import cgi
 import logging
 from collections import defaultdict
 from Products import Zuul
+from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Jobber.exceptions import NoSuchJobException
+from zope.event import notify
+from ZODB.transact import transact
+from Products.ZenUtils.events import QuickstartWizardFinishedEvent
 
 log = logging.getLogger('zen.JobsRouter')
 
@@ -57,11 +61,21 @@ class JobsRouter(DirectRouter):
                 log.debug("Unable to abort job: %s No such job found.", id_)
 
     def deleteJobs(self, jobids):
+        # Make sure they have permission to delete.
+        if not Zuul.checkPermission('Manage DMD'):
+            return DirectResponse.fail("You don't have permission to execute this command", sticky=False)
+
+        deletedJobs = []
         for id_ in jobids:
             try:
                 self.api.deleteJob(id_)
             except NoSuchJobException:
                 log.debug("Unable to delete job: %s No such job found.", id_)
+            else:
+                deletedJobs.append(id_)
+        if deletedJobs:
+            audit('UI.Jobs.Delete', ids=deletedJobs)
+            return DirectResponse.succeed(deletedJobs=Zuul.marshal(deletedJobs))
 
     def getInfo(self, jobid):
         job = self.api.getInfo(jobid)
@@ -96,3 +110,8 @@ class JobsRouter(DirectRouter):
                 job['description'] = cgi.escape(job['description'])
         return DirectResponse(jobs=jobs, totals=totals)
 
+    def quickstartWizardFinished(self):
+        # a place to hook up anything that needs to happen
+        app = self.context.dmd.primaryAq().getParentNode().getParentNode()
+        transact(notify)(QuickstartWizardFinishedEvent(app))
+        return DirectResponse.succeed()

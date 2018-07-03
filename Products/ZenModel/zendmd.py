@@ -44,6 +44,9 @@ parser.add_option('--script',
 parser.add_option('--commit',
             dest="commit", default=False, action="store_true",
             help="Run commit() at end of script?")
+parser.add_option('--shell',
+            dest="shell", default=False, action="store_true",
+            help="Start a shell at end of script?")
 parser.add_option('-n', '--no-ipython',
             dest="use_ipython", default=True, action="store_false",
             help="Do not embed IPython shell if IPython is found")
@@ -97,12 +100,14 @@ _CUSTOMSTUFF = []
 def set_db_config(host=None, port=None):
     # Modify the database configuration manually
     from App.config import getConfiguration
-    serverconfig = getConfiguration().databases[1].config.storage.config
-    xhost, xport = serverconfig.server[0].address
-    if host: xhost = host
-    if port: xport = port
-    serverconfig.server[0].address = (xhost, xport)
-
+    for serverConfig in getConfiguration().databases:
+        adapterConfig= serverConfig.config.storage.config.adapter.config
+        xhost, xport = adapterConfig.host, adapterConfig.port
+        if host: 
+            xhost = host
+        if port: 
+            xport = port
+        adapterConfig.host, adapterConfig.port = xhost, xport
 
 def _search_super(obj, pattern, s, seen):
     vars_ = vars(obj)
@@ -175,7 +180,6 @@ def _customStuff():
     """
 
     import socket
-    from transaction import commit
     from pprint import pprint
     from Products.ZenUtils.Utils import setLogLevel
     from Products.Zuul import getFacade, listFacades
@@ -229,6 +233,11 @@ def _customStuff():
         cmds = sorted(filter(lambda x: not x.startswith("_"), _CUSTOMSTUFF))
         for cmd in cmds:
             print cmd
+
+    def commit():
+        audit.audit('Shell.Script.Commit')
+        from transaction import commit
+        commit()
 
     def grepdir(obj, regex=""):
         if regex:
@@ -560,6 +569,9 @@ if __name__=="__main__":
         set_db_config(opts.host, opts.port)
 
     vars_ = _customStuff()
+
+    audit.audit('Shell.Script.Run')
+
     # set the first positional argument as the --script arg
     for arg in sys.argv[1:]:
         if not arg.startswith("-") and os.path.exists(arg):
@@ -573,18 +585,23 @@ if __name__=="__main__":
         # copy globals() to temporary dict
         allVars = dict(globals().iteritems())
         allVars.update(vars_)
+        oldKeys = {k for k in allVars.keys()}
         execfile(opts.script, allVars)
-        if opts.commit:
-            from transaction import commit
-            commit()
+        if opts.shell:
+            newKeys = {k for k in allVars.keys()}.difference(oldKeys)
+            vars_.update({k: allVars[k] for k in newKeys})
         else:
-            try:
-                transaction.abort()
-            except:
-                pass
-        sys.exit(0)
+            if opts.commit:
+                audit.audit('Shell.Script.Commit')
+                from transaction import commit
+                commit()
+            else:
+                try:
+                    transaction.abort()
+                except:
+                    pass
+            sys.exit(0)
 
-    audit.audit('Shell.Script.Run')
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")

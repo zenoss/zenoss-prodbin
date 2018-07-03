@@ -31,7 +31,7 @@ def manage_addTriggerManager(context, REQUEST=None):
     tm = TriggerManager(TriggerManager.root)
     context._setObject(TriggerManager.root, tm)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 class TriggerManager(ZenModelRM):
     """Manage triggers."""
@@ -69,7 +69,7 @@ def manage_addTrigger(context, id, title = None, REQUEST = None):
     ns = Trigger(id, title)
     context._setObject(id, ns)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 class Trigger(ZenModelRM, AdministrativeRoleable):
     """

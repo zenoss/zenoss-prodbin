@@ -18,7 +18,7 @@ echo -e "    command completes and functions for each custom command that "
 echo -e "    requires a specific action from the host."
 echo -e
 echo -e "    Defined Commands:"
-echo -e "        testcommit    testdiscard"
+echo -e "        testid"
 echo -e
 echo -e
 
@@ -27,20 +27,10 @@ __DEFAULT__() {
         echo -e "command not defined: $1"
         exit 255
     fi
-    exit 1
-}
-
-testcommit() {
-    echo -e "signaling host to commit the container ..."
     exit 0
-}
-
-testdiscard() {
-    echo -e "signaling host to discard the container ..."
-    exit 1
 }
 
 testid() {
     id
-    exit 1
+    exit 0
 }

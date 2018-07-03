@@ -89,6 +89,9 @@ class FormBuilder(object):
         self.readOnly = readOnly
         if not fieldsets:
             fields = sorted(self.fields(fieldFilter).values(), key=ordergetter)
+            for field in fields:
+                if field['xtype'] == 'password' and field['value']:
+                    field['value'] = '*' * len(field['value'])
             form = map(self._item, fields)
             return {'items':[{'xtype':'fieldset', 'items':form}]}
         # group the fields

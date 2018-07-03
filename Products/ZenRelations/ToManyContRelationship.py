@@ -43,7 +43,7 @@ def manage_addToManyContRelationship(context, id, REQUEST=None):
     rel =  ToManyContRelationship(id)
     context._setObject(rel.id, rel)
     if REQUEST:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
     return rel.id
 
 
@@ -152,7 +152,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if v is not None: id=v
         self._objects[id] = aq_base(obj)
         obj = aq_base(obj).__of__(self)
-        self.setCount()
 
 
     def _remove(self, obj=None, suppress_events=False):
@@ -175,7 +174,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if not suppress_events:
             for robj in objs:
                 notify(ObjectRemovedEvent(robj, self, robj.getId()))
-        self.setCount()
 
 
     def _remoteRemove(self, obj=None):

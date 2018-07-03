@@ -11,8 +11,8 @@
     Ext.ns('Zenoss.events');
     Ext.ns('Zenoss.eventclasses');
 
-    Zenoss.events.getRowClass = function(record, index) {
-        var stateclass = record.get('eventState')=='New' ?
+    Zenoss.events.getRowClass = function(record) {
+        var stateclass = record.get('eventState')==='New' ?
             'unacknowledged':'acknowledged';
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
         var rowcolors = Ext.state.Manager.get('rowcolor') ? 'rowcolor rowcolor-' : '';
@@ -30,6 +30,16 @@
         var device;
         if (Zenoss.env.device_uid) {
             device = Zenoss.env.device_uid.split("/").reverse()[0];
+        }
+        var collectors = new Ext.data.ArrayStore({
+                        data: Zenoss.env.COLLECTORS,
+                        fields: ['name']
+                    })
+        var defaultValue;
+        if (Zenoss.env.COLLECTORS[0].indexOf('localhost') > -1){
+            defaultValue = "localhost";
+        } else {
+            defaultValue = null;
         }
         var addevent = Ext.create('Zenoss.dialog.BaseWindow', {
             title: _t('Create Event'),
@@ -107,6 +117,22 @@
                         resizable: true,
                         id: 'add_event_evclass_combo_list'
                     }
+                },{
+                    fieldLabel: _t('Collector'),
+                    name: 'monitor',
+                    xtype: 'combo',
+                    allowBlank: false,
+                    store: collectors,
+                    valueField: 'name',
+                    displayField: 'name',
+                    typeAhead: true,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    selectOnFocus: true,
+                    value: defaultValue,
+                    listConfig: {
+                        resizable: true
+                    }
                 }],
                 buttons: [{
                     text: _t('Submit'),
@@ -147,8 +173,8 @@
         Zenoss.events.launchMappingDialog = function(uid){
             var grid = null;
             var data = {};
-            data['whichPanel'] = 'default';
-            data['uid'] = "/zport/dmd/"+uid.split("| ")[1];
+            data.whichPanel = 'default';
+            data.uid = "/zport/dmd/"+uid.split("| ")[1];
             Zenoss.eventclasses.mappingDialog(grid, data);
         };
 
@@ -321,7 +347,9 @@
             tooltip: _t('Refresh events'),
             handler: function(btn) {
                 var grid = btn.grid || this.ownerCt.ownerCt;
-                if(grid.getComponent("event_panel")) grid = grid.getComponent("event_panel");
+                if(grid.getComponent("event_panel")) {
+                    grid = grid.getComponent("event_panel");
+                }
                 grid.refresh();
             }
         })
@@ -438,9 +466,42 @@
 
     Zenoss.events.showColumnConfigDialog = function(grid)
     {
-        dialog = Ext.create('Zenoss.events.ColumnConfigDialog', grid);
+        var dialog = Ext.create('Zenoss.events.ColumnConfigDialog', grid);
         dialog.show();
-    }
+    };
+
+    Zenoss.events.Exp = function(gridId, type, format){
+        var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+        if (context === "/zport/dmd/Events") {
+            context = location.pathname.replace('/viewEvents', '');
+        }
+        var grid = Ext.getCmp(gridId),
+            state = grid.getState(),
+            historyCombo = Ext.getCmp('history_combo'),
+            params = {
+                type: type,
+          options: {
+              fmt: format,
+              datefmt: Zenoss.USER_DATE_FORMAT,
+              timefmt: Zenoss.USER_TIME_FORMAT,
+              tz: Zenoss.USER_TIMEZONE 
+          },
+                isHistory: false,
+                params: {
+                    uid: context,
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        if (historyCombo && historyCombo.getValue() === 1) {
+            params.isHistory = true;
+        }
+        Ext.get('export_body').dom.value =
+            Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+    };
 
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
@@ -483,10 +544,10 @@
                 text: _t("Restore defaults"),
                 handler: function(){
                     new Zenoss.dialog.SimpleMessageDialog({
-                        message: Ext.String.format(_t('Are you sure you want to restore '
-                                                  + 'the default configuration? All'
-                                                  + ' filters, column sizing, and column order '
-                                                  + 'will be lost.')),
+                        message: Ext.String.format(_t('Are you sure you want to restore ' +
+                                                   'the default configuration? All' +
+                                                   ' filters, column sizing, and column order ' +
+                                                   'will be lost.')),
                         title: _t('Confirm Restore'),
                         buttons: [{
                             xtype: 'DialogButton',
@@ -503,7 +564,7 @@
                 }
             }];
 
-            if (!_global_permissions()['manage events'])
+            if (!_global_permissions()['manage events']) {
                 configureMenuItems.unshift({
                     id: 'excludenonactionables_checkitem',
                     xtype: 'menucheckitem',
@@ -524,6 +585,7 @@
                         grid.toggleNonActionables(checked);
                     }
                 });
+            }
 
             if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
                 configureMenuItems.splice(2, 0, {
@@ -532,12 +594,12 @@
                         var grid = Ext.getCmp(gridId),
                         link = grid.getPermalink();
                         new Zenoss.dialog.ErrorDialog({
-                            message: Ext.String.format(_t('<div class="dialog-link">'
-                                                      + 'Drag this link to your bookmark bar '
-                                                      + '<br/>to return to this configuration later.'
-                                                      + '<br/><br/><a href="'
-                                                      + link
-                                                      + '">Resource Manager: Events</a></div>')),
+                            message: Ext.String.format(_t('<div class="dialog-link">' +
+                                                       'Drag this link to your bookmark bar ' +
+                                                       '<br/>to return to this configuration later.' +
+                                                       '<br/><br/><a href="' +
+                                                       link +
+                                                       '">Resource Manager: Events</a></div>')),
                             title: _t('Save Configuration')
                         });
                     }
@@ -557,7 +619,6 @@
                         var grid = Ext.getCmp(gridId),
                         sm = grid.getSelectionModel(),
                         rows = sm.getSelection(),
-                        ranges = [],
                         pluck = Ext.Array.pluck,
                         uids = pluck(pluck(pluck(rows, 'data'), 'device'), 'uid'),
                         opts =  {
@@ -654,7 +715,7 @@
                     editable: false,
                     listeners: {
                         select: function(selection) {
-                            var archive = selection.value == 1,
+                            var archive = selection.value === 1,
                                 grid = Ext.getCmp(gridId),
                                 yesterday = new Date();
 
@@ -687,7 +748,7 @@
                     if (grid) {
                         grid.refresh();
                     }
-                    var dpanel = Ext.getCmp('dpanelcontainer')
+                    var dpanel = Ext.getCmp('dpanelcontainer');
                     if (dpanel && dpanel.isVisible()) {
                         dpanel.refresh();
                     }
@@ -727,10 +788,11 @@
                         store = grid.getStore(),
                         tbar = this,
                         view = grid.getView();
-                        if(store.buffered)
+                        if(store.buffered) {
                             store.on('guaranteedrange', this.doLastUpdated);
-                        else
+                        } else {
                             store.on('load', this.doLastUpdated);
+                        }
                         view.on('buffer', this.doLastUpdated);
 
                         view.on('filterchange', function(){
@@ -744,7 +806,7 @@
                         });
                         // set up the commands menu
                         var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                        if (context == "/zport/dmd/Events") {
+                        if (context === "/zport/dmd/Events") {
                             context = location.pathname.replace('/viewEvents', '');
                         }
                         this.setContext(context);
@@ -809,7 +871,7 @@
                         tooltip: _t('Add Log'),
                         permission: 'Manage Events',
                         itemId: 'addNote',
-                        handler: function(button) {
+                        handler: function() {
                             var grid = Ext.getCmp(gridId),
                                 sm = grid.getSelectionModel(),
                                 selected = sm.getSelection(),
@@ -873,7 +935,7 @@
                         tooltip: _t('Add an event'),
                         permission: 'Manage Events',
                         id: 'add_event_main_button',
-                        handler: function(button) {
+                        handler: function() {
                             showAddEventDialog(gridId);
                         }
                     }),
@@ -882,68 +944,92 @@
                     },
                     Zenoss.events.EventPanelToolbarSelectMenu,
                     {
-                        text: _t('Export'),
-                        id: 'export-button',
-                        //iconCls: 'export',
-                        menu: {
-                            items: [{
-                                text: 'XML',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context == "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
+                    text: _t('Export'),
+                    //iconCls: 'export',
+                    handler: function(){
 
-                                    var grid = Ext.getCmp(gridId),
-                                        state = grid.getState(),
-                                        historyCombo = Ext.getCmp('history_combo'),
-                                        params = {
-                                            type: 'xml',
-                                            isHistory: false,
-                                            params: {
-                                                uid: context,
-                                                fields: Ext.Array.pluck(state.columns, 'id'),
-                                                sort: state.sort.property,
-                                                dir: state.sort.direction,
-                                                params: grid.getExportParameters()
-                                            }
-                                        };
-                                    if (historyCombo && historyCombo.getValue() == 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
+                    var dialog = Ext.create('Zenoss.dialog.Form', {
+                    title: _t('Export events'),
+                    minWidth: 350,
+                    submitHandler: function(form) {
+                        var values = form.getValues();
+                        Zenoss.events.Exp(gridId, values['ftype'], values['ffmt']);
+                    },
+                    form: {
+                        layout: 'anchor',
+                        defaults: {
+                            xtype: 'displayfield',
+                            padding: '0 0 10 0',
+                            margin: 0,
+                            anchor: '100%'
+                        },
+                        fieldDefaults: {
+                            labelAlign: 'left',
+                            labelWidth: 75,
+                            labelStyle: 'color:#aaccaa'
+                        },
+                        items: [{
+                            name: 'ftype',
+                            fieldLabel: 'File type',
+                            value: '',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                  fields:['id','name'],
+                                  data:[
+                                        {id:'xml', name:'XML'},
+                                        {id:'csv', name:'CSV'}
+                                  ]
+                            }),
+                            editable: false,
+                            disableKeyFilter: false,
+                            submitValue: true
+                        },
+                        {
+                            name: 'ffmt',
+                            fieldLabel: 'Date/Time format',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                       fields:['id','name'],
+                                       data:[
+                                            {id:'iso',  name:'ISO'},
+                                            {id:'unix', name:'Unix'},
+                                            {id:'user', name:'User settings'}
+                                       ]
+                            }),
+                            listeners: {'select': function (combo, record){
+                                if(record[0].data.id == "unix"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
+                                } else if(record[0].data.id == "iso"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
+                                } else if(record[0].data.id == "user"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
                                 }
-                            }, {
-                                text: 'CSV',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context == "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
-                                    var grid = Ext.getCmp(gridId),
-                                    state = Ext.getCmp(gridId).getState(),
-                                    historyCombo = Ext.getCmp('history_combo'),
-                                    params = {
-                                        type: 'csv',
-                                        params: {
-                                            uid: context,
-                                            fields: Ext.Array.pluck(state.columns, 'id'),
-                                            sort: state.sort.property,
-                                            dir: state.sort.direction,
-                                            params: grid.getExportParameters()
-                                        }
-                                    };
-                                    if (historyCombo && historyCombo.getValue() == 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
-                                }
-                            }]
-                        }
+                            }
+                        },
+                        editable: false,
+                        disableKeyFilter: false,
+                        submitValue: true
+                    },
+                    {
+                        name: 'example',
+                        id: 'fexample',
+                        fieldLabel:'Format example',
+                        value: '',
+                        hidden: true,
+                        submitValue: false
+                    }
+                    ]
+                }
+            });
+            dialog.down('form');
+            dialog.show();
+                }
                     },
                     {
                         text: _t('Configure'),
@@ -963,6 +1049,7 @@
                         xtype: 'refreshmenu',
                         ref: 'refreshmenu',
                         id: 'refresh-button',
+                        refreshWhenHidden: true,
                         iconCls: 'refresh',
                         text: _t('Refresh'),
                         handler: function() {
@@ -976,8 +1063,9 @@
                         },
                         pollHandler: function(btn) {
                             var grid = Ext.getCmp(gridId);
-                            if (grid.refresh_in_progress == 0)
+                            if (grid.refresh_in_progress === 0) {
                                 this.handler(btn);
+                            }
                         }
                     }
                 ], tbarItems)
@@ -1051,19 +1139,19 @@
                 }
                 return this.grid;
             },
-            handleRowSelect: function(sm, record, index){
+            handleRowSelect: function(sm, record){
                 if (record) {
                     delete this.badIds[record.get("evid")];
                 }
             },
-            handleRowDeSelect: function(sm, record, index){
+            handleRowDeSelect: function(sm, record){
                 if (this.selectState && record) {
                     this.badIds[record.get("evid")] = 1;
                 }
             },
             onStoreLoad: function() {
                 var store = this.grid.getStore();
-                if (this.selectState == 'All') {
+                if (this.selectState === 'All') {
                     this.suspendEvents();
                     var items = Zenoss.util.filter(store.data.items, function(item){
                         return (! this.badIds[item.get('evid')]);
@@ -1087,7 +1175,7 @@
 
                 Ext.each(store.data.items, function(record){
                     if (record) {
-                        if (record.data.eventState == state) {
+                        if (record.data.eventState === state) {
                             me.select(record, true);
                         }
                     }
@@ -1151,13 +1239,13 @@
         extend: "Ext.data.reader.Json",
         alias: 'reader.events',
         useSimpleAccessors: true,
-        createAccessor : function(){
+        createAccessor : (function(){
             return function(expr) {
                 return function(obj){
                     return obj[expr];
                 };
             };
-        }()
+        }())
     });
 
 
@@ -1223,7 +1311,7 @@
             config.viewConfig = config.viewConfig || {};
             Ext.applyIf(config.viewConfig, {
                 getRowClass: Zenoss.events.getRowClass,
-		enableTextSelection: true
+        enableTextSelection: true
             });
 
             this.callParent(arguments);
@@ -1238,7 +1326,7 @@
             function nonInputHandler(func, scope){
 
                 return function(key, e) {
-                    if (e.target.tagName != "INPUT" && e.target.tagName != "TEXTAREA") {
+                    if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
                         Ext.bind(func, scope)(key, e);
                         e.preventDefault();
                     }
@@ -1252,7 +1340,7 @@
                     shift: false,
                     alt: false,
                     scope: this,
-                    fn: nonInputHandler(function(key, e) {
+                    fn: nonInputHandler(function() {
                         this.getSelectionModel().selectEventState('All');
                     }, this)
                 },{
@@ -1261,7 +1349,7 @@
                     shift: false,
                     alt: false,
                     scope:this,
-                    fn: nonInputHandler(function(key, e) {
+                    fn: nonInputHandler(function() {
                         this.getSelectionModel().clearSelections();
                         this.getSelectionModel().clearSelectState();
                     }, this)
@@ -1313,9 +1401,9 @@
             this.getSelectionModel().clearSelectState();
         },
         setGetFilterParameters: function() {
-            var params = Ext.Object.fromQueryString(location.search), 
+            var params = Ext.Object.fromQueryString(location.search),
                 cleared = false;
-            Ext.each(["severity", "eventState", "device", "component", "eventClass"], function(param) {
+            Ext.each(["severity", "eventState", "device", "component", "eventClass", "summary"], function(param) {
                 var v = params[param];
                 if (Ext.isDefined(v)) {
                     if (!cleared) {
@@ -1347,13 +1435,14 @@
                 // config colors.  Check and see if it's being used before
                 // trying to use it.
                 var rowcolorsCheckItem = Ext.getCmp('rowcolors_checkitem');
-                if (rowcolorsCheckItem)
+                if (rowcolorsCheckItem) {
                     rowcolorsCheckItem.setChecked(this.rowcolors);
+                }
 
                 var excludeNonActionablesCheckItem = Ext.getCmp('excludenonactionables_checkitem');
-                if (excludeNonActionablesCheckItem)
+                if (excludeNonActionablesCheckItem) {
                     excludeNonActionablesCheckItem.setChecked(this.excludeNonActionables);
-
+                }
                 this.setGetFilterParameters();
             }
         },
@@ -1381,9 +1470,11 @@
             evids = [],  // Event IDs selected
             sels = sm.getSelection();  // UI records selected
             if(Ext.isEmpty(sels)){ // if nothing is selected, check and see if there's an event_panel
-                if(Ext.get('event_panel')) sels = Ext.getCmp('event_panel').getSelectionModel().getSelection();
+                if(Ext.get('event_panel')) {
+                    sels = Ext.getCmp('event_panel').getSelectionModel().getSelection();
+                }
             }
-            var selectedAll = (sm.selectState == 'All');
+            var selectedAll = (sm.selectState === 'All');
             if (selectedAll) {
                 // If we are selecting all, we don't want to send back any evids.
                 // this will make the operation happen on the filter's result
@@ -1400,7 +1491,7 @@
                 return false;
             }
             // if we are a contextual event console ALWAYS send the uid
-            if (this.uid != '/zport/dmd'){
+            if (this.uid !== '/zport/dmd'){
                 uid = this.uid;
             }
             var params = {
@@ -1414,7 +1505,7 @@
         clearFilters: function(){
             this.filterRow.clearFilters();
         },
-        onFiltersChanged: function(grid, values) {
+        onFiltersChanged: function(grid) {
             // ZEN-4441: Clear selections whenever the filter changes.
             var sm = grid.getSelectionModel();
             sm.clearSelections();
@@ -1430,7 +1521,7 @@
             if (params === false) {
                 params = {
                     evids: [],
-                    excludeIds: []
+                    excludeIds: {}
                 };
                 Ext.apply(params, this.getUpdateParameters());
             }
@@ -1456,15 +1547,20 @@
             this.refresh();
         },
         restoreURLState: function() {
-            var qs = window.location.search.replace(/^\?/, ''),
-            state = Ext.urlDecode(qs).state;
-            if (state) {
+            var qs = window.location.search.replace(/^\?/, ''), state;
+            var decoded = Ext.urlDecode(qs);
+
+            if (decoded.state) {
                 try {
-                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(state)));
-                    this.applyState(state);
-                    this.filterRow.storeSearch();
+                    state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(decoded.state)));
                 } catch(e) { }
+            //in case parameters are not encoded
+            } else {
+                state = {"filters": decoded};
             }
+
+            Ext.state.Manager.set(this.stateId, state);
+            this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
@@ -1533,7 +1629,7 @@
             Zenoss.SimpleEventGridPanel.superclass.constructor.call(this, config);
             this.on('itemdblclick', this.onRowDblClick, this);
         }, // constructor
-        onRowDblClick: function(view, record, e) {
+        onRowDblClick: function(view, record) {
             var evid = record.get('evid'),
                 url = '/zport/dmd/Events/viewDetail?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
@@ -1614,17 +1710,17 @@
             });
             Zenoss.EventGridPanel.superclass.constructor.call(this, config);
         },
-        onRowDblClick: function(view, record, e) {
+        onRowDblClick: function(view, record) {
             var evid = record.get('evid'),
                 combo = Ext.getCmp('history_combo'),
-                history = (combo.getValue() == '1') ? 'History' : '',
+                history = (combo.getValue() === '1') ? 'History' : '',
                 url = '/zport/dmd/Events/view'+history+'Detail?evid='+evid;
             window.open(url, evid.replace(/-/g,'_'),
                         "status=1,width=600,height=500,resizable=1");
         },
         setContext: function(uid){
             if (uid) {
-                this.uid = uid
+                this.uid = uid;
             }
 
             var toolbar = this.getDockedItems('toolbar')[0];
@@ -1659,13 +1755,17 @@
                 this.refresh();
             }
         },
-        refresh: function(){
-            this.directFn({uid:this.uid, keys:['events']}, function(result){
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid != this.uid) {
-                    return;
-                }
-                this.updateRainbow(result.data.events);
-            }, this);
+        refresh: function() {
+            var uid = this.uid;
+            // we always need uid - so no uid no refresh;
+            if (uid) {
+                this.directFn({uid: uid, keys: ['events']}, function (result) {
+                    if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
+                        return;
+                    }
+                    this.updateRainbow(result.data.events);
+                }, this);
+            }
         },
         updateRainbow: function(severityCounts) {
             this.setText(Zenoss.render.events(severityCounts, this.count));
@@ -1686,9 +1786,9 @@
 
     var getColumnDefinitionById = function(col_id)
     {
-        var col_def = undefined;
+        var col_def;
         Ext.each(Zenoss.env.getColumnDefinitions(), function(col) {
-            if (col.id == col_id) {
+            if (col.id === col_id) {
                 col_def = col;
                 return false;
             }
@@ -1696,12 +1796,13 @@
         return col_def;
     };
 
-    var getDefaultColumnIdsToRender = function(state_id)
+    var getDefaultColumnIdsToRender = function()
     {
         var column_ids_to_render = [];
         Ext.each(Zenoss.env.COLUMN_DEFINITIONS, function(col) {
-            if( !col.hidden)
+            if( !col.hidden) {
                 column_ids_to_render.push(col.id);
+            }
         });
 
         return column_ids_to_render;
@@ -1718,7 +1819,7 @@
         {
             Ext.each(state.columns, function(col_state) {
                 var col_def = getColumnDefinitionById(col_state.id);
-                if ( (col_state.hidden == undefined && !col_def.hidden) || (col_state.hidden !== undefined && col_state.hidden == false) )
+                if ( (col_state.hidden === undefined && !col_def.hidden) || (col_state.hidden !== undefined && col_state.hidden === false) )
                 {
                     column_ids_to_render.push(col_state.id);
                 }
@@ -1735,12 +1836,12 @@
     var getColumnStateById = function(state_id, col_id)
     {
         var state = Ext.state.Manager.get(state_id);
-        var col_state = undefined;
+        var col_state;
 
         if (state !== undefined && state.columns !== undefined && state.columns.length > 0)
         {
             Ext.each(state.columns, function(c_state) {
-                if (c_state.id == col_id)
+                if (c_state.id === col_id)
                 {
                     col_state = c_state;
                     return false; // to exit the Ext.each
@@ -1763,13 +1864,14 @@
         var new_cols_state = [];
         Ext.each(col_ids, function(col_id) {
             var col_state = getColumnStateById(state_id, col_id);
-            if (col_state == undefined)
+            if (col_state === undefined)
             {
                 var col_def = getColumnDefinitionById(col_id);
                 col_state = {};
                 col_state.id = col_id;
-                if (col_def.hidden)
+                if (col_def.hidden) {
                     col_state.hidden = false;
+                }
             }
             new_cols_state.push(col_state);
         });

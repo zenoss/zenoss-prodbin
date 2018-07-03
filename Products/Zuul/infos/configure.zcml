@@ -43,9 +43,16 @@
              for="Products.ZenModel.ThresholdClass.ThresholdClass"
              provides="..interfaces.IThresholdInfo"/>
 
+
     <adapter factory=".template.MinMaxThresholdInfo"
              for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
              provides="..interfaces.IMinMaxThresholdInfo"/>
+
+    <utility provides="zope.schema.interfaces.IVocabularyFactory"
+             component=".template.rrdTemplateDataPointFactory"
+             name="rrdtemplatedatapoints"/>
+
+
 
     <adapter factory=".template.GraphInfo"
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
@@ -57,6 +64,12 @@
     <adapter factory=".metricserver.MetricServiceGraphDefinition"
              provides="..interfaces.IMetricServiceGraphDefinition"
              />
+    <adapter factory=".metricserver.MetricServiceGraphDefinitionMGR"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
+    <adapter factory=".metricserver.OSProcessMetricServiceGraphDefinition"
+             provides="..interfaces.IMetricServiceGraphDefinition"
+             />
     <adapter factory=".metricserver.MetricServiceGraphPoint"
              provides="..interfaces.IMetricServiceGraphPoint"
              />
@@ -64,6 +77,9 @@
              provides="..interfaces.IMetricServiceGraphPoint"
              />
     <adapter factory=".metricserver.CollectorDataPointGraphPoint"
+             provides="..interfaces.IMetricServiceGraphPoint"
+             />
+    <adapter factory=".metricserver.OSProcessDataPointGraphPoint"
              provides="..interfaces.IMetricServiceGraphPoint"
              />
     <adapter factory=".template.DataPointInfo"
@@ -273,7 +289,7 @@
     <adapter factory=".eventclasses.EventClassInfo"
              for="Products.ZenEvents.EventClassInst.EventClassInst"
              provides="..interfaces.IEventClassInfo"/>
-    
+
     <adapter factory=".user.UserInfo"
              for="Products.ZenModel.UserSettings.UserSettings"
              provides="..interfaces.IUserInfo"/>

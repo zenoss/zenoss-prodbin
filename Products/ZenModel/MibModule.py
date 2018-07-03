@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -12,14 +12,36 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from zope.interface import implements
+from zExceptions import BadRequest
 
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToOne, ToManyCont
 from Products.ZenWidgets import messaging
 
 from Products.ZenModel.interfaces import IIndexed
-from Products.ZenModel.ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+
+
+def createOID(dmd, container, new_node, logger=None):
+    for brain in dmd.mibSearch(oid=new_node.oid):
+        old_node = dmd.unrestrictedTraverse(brain.getPath(), None)
+        if old_node is None:
+            # Brain's path not found, so delete it.
+            dmd.mibSearch.uncatalog_object(brain.getPath())
+            continue
+        if logger and (old_node.moduleName != new_node.moduleName):
+            logger.warn(
+                "OID '%s' will be removed from organizer '%s' "
+                "and added to organizer '%s'.",
+                new_node.oid, old_node.moduleName, new_node.moduleName
+            )
+        old_node.getParentNode()._delObject(old_node.id)
+    try:
+        container._checkId(new_node.id)
+    except BadRequest:
+        container._delObject(new_node.id)
+    container._setObject(new_node.id, new_node)
+    return container._getOb(new_node.id)
 
 
 class MibModule(ZenModelRM, ZenPackable):
@@ -32,9 +54,9 @@ class MibModule(ZenModelRM, ZenPackable):
     description = ""
 
     _properties = (
-        {'id':'language', 'type':'string', 'mode':'w'},
-        {'id':'contact', 'type':'string', 'mode':'w'},
-        {'id':'description', 'type':'string', 'mode':'w'},
+        {'id': 'language',    'type': 'string', 'mode': 'w'},
+        {'id': 'contact',     'type': 'string', 'mode': 'w'},
+        {'id': 'description', 'type': 'string', 'mode': 'w'},
     )
 
     _relations = ZenPackable._relations + (
@@ -44,41 +66,36 @@ class MibModule(ZenModelRM, ZenPackable):
     )
 
     # Screen action bindings (and tab definitions)
-    factory_type_information = ( 
-        { 
-            'immediate_view' : 'viewMibModule',
-            'actions'        :
-            ( 
-                { 'id'            : 'overview'
-                , 'name'          : 'Overview'
-                , 'action'        : 'viewMibModule'
-                , 'permissions'   : ( Permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : 'editMibModule'
-                , 'permissions'   : ( Permissions.view, )
-                },
-            )
-         },
+    factory_type_information = ({
+        'immediate_view' : 'viewMibModule',
+        'actions'        :
+        (
+            { 'id'            : 'overview'
+            , 'name'          : 'Overview'
+            , 'action'        : 'viewMibModule'
+            , 'permissions'   : (Permissions.view,)
+            },
+            { 'id'            : 'edit'
+            , 'name'          : 'Edit'
+            , 'action'        : 'editMibModule'
+            , 'permissions'   : (Permissions.view,)
+            },
         )
+    },)
 
     security = ClassSecurityInfo()
 
-    def getModuleName(self): 
+    def getModuleName(self):
         return self.id
 
-    
     def nodeCount(self):
         return self.nodes.countObjects()
-
 
     def notificationCount(self):
         return self.notifications.countObjects()
 
-
     def deleteMibNodes(self, ids=[], REQUEST=None):
-        """Delete MibNodes 
+        """Delete MibNodes
         """
         for node in self.nodes():
             id = getattr(node, 'id', None)
@@ -91,11 +108,12 @@ class MibModule(ZenModelRM, ZenPackable):
             )
             return self.callZenScreen(REQUEST)
 
-
     def addMibNode(self, id, oid, nodetype, REQUEST=None):
         """Add a MibNode
         """
-        node = self.createMibNode(id, oid=oid, nodetype=nodetype)
+        node = self.createMibNode(
+            id, oid=oid, nodetype=nodetype, moduleName=self.id
+        )
         if REQUEST:
             if node:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -110,21 +128,14 @@ class MibModule(ZenModelRM, ZenPackable):
                 )
             return self.callZenScreen(REQUEST)
 
-
-    def createMibNode(self, id, **kwargs):
-        """Create a MibNotification 
+    def createMibNode(self, id, logger=None, **kwargs):
+        """Create a MibNotification
         """
         from MibNode import MibNode
-        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
-            return None
-        node = MibNode(id, **kwargs) 
-        self.nodes._setObject(node.id, node)
-        node = self.nodes._getOb(node.id)
-        return node 
-
+        return createOID(self.dmd, self.nodes, MibNode(id, **kwargs), logger)
 
     def deleteMibNotifications(self, ids=[], REQUEST=None):
-        """Delete MibNotifications 
+        """Delete MibNotifications
         """
         for notification in self.notifications():
             id = getattr(notification, 'id', None)
@@ -137,13 +148,14 @@ class MibModule(ZenModelRM, ZenPackable):
             )
             return self.callZenScreen(REQUEST)
 
-
     def addMibNotification(self, id, oid, nodetype, REQUEST=None):
-        """Add a MibNotification 
+        """Add a MibNotification
         """
-        notification = self.createMibNotification(id, oid=oid, nodetype=nodetype)
+        notification = self.createMibNotification(
+            id, oid=oid, nodetype=nodetype, moduleName=self.id
+        )
         if REQUEST:
-            if notification: 
+            if notification:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Trap added',
                     'Trap %s was created with oid %s.' % (id, oid)
@@ -156,17 +168,14 @@ class MibModule(ZenModelRM, ZenPackable):
                 )
             return self.callZenScreen(REQUEST)
 
-
-    def createMibNotification(self, id, **kwargs):
-        """Create a MibNotification 
+    def createMibNotification(self, id, logger=None, **kwargs):
+        """Create a MibNotification
         """
         from MibNotification import MibNotification
-        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
-            return None
-        node = MibNotification(id, **kwargs) 
-        self.notifications._setObject(node.id, node)
-        node = self.notifications._getOb(node.id)
-        return node
-    
+        return createOID(
+            self.dmd, self.notifications,
+            MibNotification(id, **kwargs), logger
+        )
+
 
 InitializeClass(MibModule)

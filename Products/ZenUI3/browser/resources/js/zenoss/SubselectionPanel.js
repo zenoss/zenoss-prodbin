@@ -10,68 +10,6 @@
 
 (function () {
 
-    Ext.define("Zenoss.SlidingCardLayout", {
-        extend:"Ext.layout.CardLayout",
-        alias:['layout.slide'],
-        sizeAllCards:true,
-        setActiveItem:function (index) {
-            var C = this.owner,
-                B = C.body,
-                card = C.getComponent(index),
-                active = this.activeItem,
-                activeIndex = Ext.Array.indexOf(C.items.items, active);
-            if (card != active) {
-                if (active) {
-                    if (card) {
-                        C.fireEvent('beforecardchange', C, card, index, active, activeIndex);
-                        if (!card.rendered) {
-                            this.renderItem(card, index, C.getLayoutTarget());
-                        }
-                        card.show();
-                        if (card.doLayout && (this.layoutOnCardChange ||
-                            !card.rendered)) {
-                            card.doLayout();
-                        }
-                        var _done = 0;
-
-                        function shiftsCallback() {
-                            _done++;
-                            if (_done == 2)
-                                C.fireEvent('cardchange', C, card, index, active,
-                                    activeIndex);
-                        }
-
-                        var x = B.getX(),
-                            w = B.getWidth(),
-                            s = [x - w, x + w],
-                            cfg = {
-                                duration:250,
-                                easing:'ease',
-                                opacity:0,
-                                callback:shiftsCallback
-                            };
-                        card.el.setY(B.getY());
-                        card.el.setX((activeIndex < index ? s[1] : s[0]));
-                        active.el.shift(Ext.applyIf({
-                            x:activeIndex < index ? s[0] : s[1]
-                        }, cfg));
-                        card.el.shift(Ext.applyIf({
-                            x:x,
-                            opacity:1
-                        }, cfg));
-                    }
-                }
-                this.activeItem = card;
-                this.initLayout();
-            }
-
-        }
-
-    });
-
-    Ext.layout.container['slide'] = Zenoss.SlidingCardLayout;
-
-
     Ext.define("Zenoss.HorizontalSlidePanel", {
         alias:['widget.horizontalslide'],
         extend:"Ext.Panel",
@@ -80,9 +18,9 @@
                 html:(config && config.text) ? config.text : ''
             });
             config = Ext.applyIf(config || {}, {
-                cls:'subselect',
-                layout:'slide',
-                activeItem:0
+                cls: 'subselect',
+                layout: 'card',
+                activeItem: 0
             });
             var items = [];
             Ext.each(config.items, function (item, index) {
@@ -96,7 +34,7 @@
                     cls:index ? 'toleft' : 'toright',
                     ui:'arrowslide',
                     handler:function () {
-                        this.layout.setActiveItem(index ? 0 : 1);
+                        this.setActiveItem(index ? 0 : 1);
 
                     },
                     scope:this
@@ -144,6 +82,37 @@
             this.addEvents('beforecardchange');
             this.addEvents('cardchange');
             Zenoss.HorizontalSlidePanel.superclass.initEvents.call(this);
+        },
+
+        // handler for "slide" animation on card change;
+        // we shouldn't override card layout "setActiveItem" method to not break anything when component change active card;
+        setActiveItem: function(item) {
+            var activeItem = this.layout.getActiveItem(),
+                newCard = this.layout.parseActiveItem(item),
+                newIndex = this.items.indexOf(newCard),
+                index = this.items.indexOf(activeItem);
+
+            if (newCard != activeItem) {
+                this.fireEvent('beforecardchange', this, newCard, newIndex, activeItem, index);
+                activeItem.el.stopAnimation();
+                activeItem.el.slideOut((newIndex > index ? 'l' : 'r'), {
+                    duration: 100,
+                    remove: false,
+                    callback: function () {
+                        var newActive = this.layout.oldSetActiveItem(item);
+                        newActive.el.stopAnimation();
+                        newActive.el.slideIn((newIndex > index ? 'r' : 'l'), {
+                            duration: 150,
+                            remove: false,
+                            callback: function () {
+                                this.fireEvent('cardchange', this, newActive, newIndex, activeItem, index);
+                            },
+                            scope: this
+                        });
+                    },
+                    scope: this
+                });
+            }
         }
     });
 
@@ -261,7 +230,7 @@
          */
         onAvailable:function (navId, callback, scope) {
             function onAdd(item) {
-                if (item.id == navId) {
+                if (item.id === navId) {
                     callback.call(scope || item, item);
                     this.all.un('navready', onAdd, scope);
                 }
@@ -417,7 +386,6 @@
                 rootVisible:false,
                 iconCls:'x-tree-noicon',
                 header: false,
-                hideHeaders: true,
                 root:{nodeType:'node'}
             });
             this.callParent([config]);
@@ -449,7 +417,7 @@
          * @cfg {function} onGetNavConfig abstract function; hook to provide more nav items
          * @param {string} uid; item to get nav items for
          */
-        onGetNavConfig:function (uid) {
+        onGetNavConfig:function () {
             return [];
         },
         /**
@@ -464,7 +432,7 @@
          * @param {DetailNavPanel}
             * @param {Object} config
          */
-        filterNav:function (detailNav, config) {
+        filterNav:function () {
             return true;
         },
         /**
@@ -529,17 +497,19 @@
             }
         },
         setContext:function (uid) {
+
             //called to load the nav tree
             this.loaded = false;
-            this.contextId = uid;
+            // ZEN-30062
+            this.contextId = Zenoss.render.link(false, uid);
             this.treepanel.setRootNode([]);
-            this.getNavConfig(uid);
+            this.getNavConfig(this.contextId);
             this.fireEvent('contextchange', this);
         },
         getSelectionModel:function () {
             return this.treepanel.getSelectionModel();
         },
-        getNavConfig:function (uid) {
+        getNavConfig: function(uid) {
             //Direct call to get nav configs from server
             var me = this;
             var myCallback = function (provider, response) {
@@ -597,7 +567,7 @@
                 token = Ext.History.getToken(),
                 firstToken = me.id + Ext.History.DELIMITER + root.firstChild.id;
             if (!sel) {
-                if (!token || (token && token == firstToken)) {
+                if (!token || (token && token === firstToken)) {
                     me.getSelectionModel().select(root.firstChild);
                 }
             }
@@ -636,6 +606,12 @@
                     this.setHeight((height * nodes.length) + 35);
                 }
             }, this);
+            // ZEN-29341 set default selected element to keep focus
+            // after device tree refresh
+            var selectionModel = this.treepanel.getSelectionModel();
+            if (!selectionModel.getLastSelected()) {
+                selectionModel.select(0);
+            };
             this.doLayout();
 
 
@@ -655,12 +631,12 @@
         forceSelection:true,
         typeAhead:false,
         triggerAction:'all',
-        filterNav:function (config) {
+        filterNav:function () {
             return true;
         },
         menuIds:['More', 'Manage', 'Edit', 'Actions', 'Add', 'TopLevel'],
         onSelectionChange:Ext.emptyFn,
-        onGetNavConfig:function (uid) {
+        onGetNavConfig:function () {
             return [];
         },
         constructor:function (config) {
@@ -704,14 +680,13 @@
             this.selectByItem(record);
         },
         selectByItem:function (item) {
-            var lastItem = this.lastSelItem;
             this.lastSelItem = item || this.store.getAt(0);
             this.select(this.lastSelItem);
             this.fireEvent('select', this, [this.lastSelItem]);
         },
         setContext:function (uid) {
             // make sure the context actually changed.
-            if (uid == this.contextUid) {
+            if (uid === this.contextUid) {
                 return;
             }
             this.contextUid = uid;
@@ -748,7 +723,7 @@
                     panelMap[cfg.id] = cfg;
                     // when switching component types we need to make sure
                     // that they share a common menu item
-                    if (lastSelItem && cfg.id == lastSelItem.getId()) {
+                    if (lastSelItem && cfg.id === lastSelItem.getId()) {
                         hasItem = true;
                     }
                 });

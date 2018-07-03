@@ -57,7 +57,7 @@
 	        tal:attributes="value python: here.scGetSortedTableState(tableName,
 	 		'batchSize') or ''">
 	    <input class=tableheader type="submit" name="submit" value="ok" img="_"
-	        tal:attributes="src python:here.absolute_url()+'/transimg.gif'"/>
+	        tal:attributes="src python:here.absolute_url_path()+'/transimg.gif'"/>
 	</tal:block>
 </form>
 

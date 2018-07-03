@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 """
 Operations for MIBs.
@@ -15,6 +14,7 @@ Available at:  /zport/dmd/mib_router
 """
 
 import logging
+import re
 from Products.ZenUtils.Ext import DirectResponse
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.decorators import require
@@ -86,9 +86,6 @@ class MibRouter(TreeRouter):
         """
         # GAH!  JS passes back a keyword of 'type'
         nodeType = type
-        if nodeType not in ['organizer', 'MIB']:
-            return DirectResponse.fail('Not creating "%s"' % nodeType)
-
         try:
             if nodeType == 'organizer':
                 uid = contextUid + '/' + id
@@ -96,15 +93,22 @@ class MibRouter(TreeRouter):
                 self.context.dmd.Mibs.manage_addOrganizer(maoUid)
                 self.context.dmd.restrictedTraverse(uid)
                 audit('UI.Organizer.Add', uid)
-            else:
+            elif nodeType == 'MIB':
                 container = self.context.dmd.restrictedTraverse(contextUid)
                 container.manage_addMibModule(id)
                 audit('UI.Mib.Add', contextUid + '/' + id)
-
+            else:
+                return DirectResponse.fail(
+                    'Invalid node type "%s"' % nodeType
+                )
             return DirectResponse.succeed(tree=self.getTree())
-        except Exception, e:
-            return DirectResponse.exception(e)
+        except Exception as ex:
+            log.exception(ex)
+            return DirectResponse.exception(
+                ex, message="Failed to create '{}'".format(id)
+            )
 
+    @require('Manage DMD')
     def addMIB(self, package, organizer='/'):
         """
         Add a new MIB by URL or local file.
@@ -119,12 +123,14 @@ class MibRouter(TreeRouter):
         """
         facade = self._getFacade()
         jobrecord = facade.addMibPackage(package, organizer)
-        if jobrecord:
-            audit('UI.Mib.AddFromPackage', mibpackage=package, organizer=organizer)
-            return DirectResponse.succeed(new_jobs=Zuul.marshal([jobrecord], 
-                                  keys=('uuid', 'description', 'started')))
-        else:
-            return DirectResponse.fail("Failed to add MIB package %s" % package)
+        if not jobrecord:
+            return DirectResponse.fail(
+                "Failed to add MIB package %s" % package
+            )
+        audit('UI.Mib.AddFromPackage', mibpackage=package, organizer=organizer)
+        return DirectResponse.succeed(new_jobs=Zuul.marshal(
+            [jobrecord], keys=('uuid', 'description', 'started')
+        ))
 
     @require('Manage DMD')
     def deleteNode(self, uid):
@@ -185,11 +191,11 @@ class MibRouter(TreeRouter):
             - form: (dictionary) Object representing an edit form for a MIB's
                     properties
         """
-        facade = self._getFacade()
-        info = facade.getInfo(uid)
+        info = self.api.getInfo(uid)
         form = IFormBuilder(info).render(fieldsets=useFieldSets)
-        return DirectResponse(success=True, data=Zuul.marshal(info), form=form)
+        return DirectResponse.succeed(data=Zuul.marshal(info), form=form)
 
+    @require('Manage DMD')
     def setInfo(self, **data):
         """
         Set attributes on a MIB.
@@ -209,41 +215,79 @@ class MibRouter(TreeRouter):
         audit('UI.Mib.Edit', uid, data_=data)
         return DirectResponse.succeed(data=Zuul.marshal(info))
 
+    def _validateOid(self, oid):
+        """
+        Check for illegal characters in OID
+        """
+        oidRegex = re.compile('^[.0-9]+$')
+        matched = oidRegex.match(oid)
+        return bool(matched)
+
+    @require('Manage DMD')
     def addOidMapping(self, uid, id, oid, nodetype='node'):
+        if not self._validateOid(oid):
+            msg = "Invalid OID value %s" % oid
+            return DirectResponse.fail(msg)
         self.api.addOidMapping(uid, id, oid, nodetype)
         audit('UI.Mib.AddOidMapping', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
     def addTrap(self, uid, id, oid, nodetype='notification'):
+        if not self._validateOid(oid):
+            msg = "Invalid OID value %s" % oid
+            return DirectResponse.fail(msg)
         self.api.addTrap(uid, id, oid, nodetype)
         audit('UI.Mib.AddTrap', uid, id=id, oid=oid, nodetype=nodetype)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
     def deleteOidMapping(self, uid):
         if uid.find('/nodes/') == -1:
-            return DirectResponse.fail('"%s" does not appear to refer to an OID Mapping' % uid)
+            return DirectResponse.fail(
+                '"%s" does not appear to refer to an OID Mapping' % uid
+            )
         mibUid, mappingId = uid.split('/nodes/')
         self.api.deleteOidMapping(mibUid, mappingId)
         audit('UI.Mib.DeleteOidMapping', mibUid, mapping=mappingId)
         return DirectResponse.succeed()
 
+    @require('Manage DMD')
     def deleteTrap(self, uid):
         if uid.find('/notifications/') == -1:
-            return DirectResponse.fail('"%s" does not appear to refer to a trap' % uid)
+            return DirectResponse.fail(
+                '"%s" does not appear to refer to a trap' % uid
+            )
         mibUid, trapId = uid.split('/notifications/')
         self.api.deleteTrap(mibUid, trapId)
         audit('UI.Mib.DeleteTrap', mibUid, trap=trapId)
         return DirectResponse.succeed()
 
-    def getOidMappings(self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
-        count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
-                start=start, limit=limit, relation='nodes')
-        return {'count': count, 'data': Zuul.marshal(nodes)}
+    def getOidMappings(
+            self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
+        count, nodes = self.api.getMibNodes(
+            uid=uid, dir=dir, sort=sort, start=start,
+            limit=limit, relation='nodes'
+        )
+        return DirectResponse.succeed(count=count, data=Zuul.marshal(nodes))
 
-    def getTraps(self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
-        count, nodes = self.api.getMibNodes(uid=uid, dir=dir, sort=sort,
-                start=start, limit=limit, relation='notifications')
-        return {'count': count, 'data': Zuul.marshal(nodes)}
+    def getTraps(
+            self, uid, dir='ASC', sort='name', start=0, page=None, limit=256):
+        count, nodes = self.api.getMibNodes(
+            uid=uid, dir=dir, sort=sort, start=start,
+            limit=limit, relation='notifications'
+        )
+        return DirectResponse.succeed(count=count, data=Zuul.marshal(nodes))
+
+    def getOid(self, oid):
+        try:
+            node = next(iter(self.api.getOidList(oid)), None)
+        except Exception as ex:
+            log.warn("Error while looking up OID '%s': %s", oid, ex)
+            node = None
+        if node is None:
+            return DirectResponse.fail()
+        return DirectResponse.succeed(info=Zuul.marshal(IInfo(node)))
 
     def getMibNodeTree(self, id=None):
         """

@@ -17,14 +17,14 @@
 
 <tal:block metal:fill-slot="script_layout">
 
+<script language="javascript" type="text/javascript" tal:content='string:
+    Zenoss.env.SERVICED_VERSION = "${view/cc_version}";
+'></script>
 
 <script
     tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/daemons/app.js')"
 >
 </script>
-
-
-
 
 </tal:block>
 </tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->

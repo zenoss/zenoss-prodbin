@@ -1,22 +1,23 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 from itertools import imap, chain
 
-from pprint import pformat
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.interfaces import IMibInfo, IMibOrganizerNode, IMibNode
-from Products.Zuul.interfaces import ICatalogTool, IMibOrganizerInfo, IMibNodeInfo, IMibNotificationInfo
+from Products.Zuul.interfaces import (
+    IMibOrganizerInfo, IMibNodeInfo, IMibNotificationInfo
+)
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.MibModule import MibModule
 from Products.ZenModel.MibBase import MibBase
@@ -29,7 +30,7 @@ class MibOrganizerNode(TreeNode):
     @property
     def text(self):
         text = super(MibOrganizerNode, self).text
-        count = ICatalogTool(self._object).count((MibModule,), self.uid)
+        count = IModelCatalogTool(self._object).count((MibModule,), self.uid)
         return {'text': text, 'count': count}
 
     @property
@@ -49,7 +50,8 @@ class MibOrganizerNode(TreeNode):
     @property
     def qtip(self):
         return self._object.description
-    
+
+
 class MibNode(TreeNode):
     """
     Nodes or traps are just subclasses of MibBase
@@ -125,6 +127,7 @@ class FakeTopLevelNodeInfo(TreeNode):
 class MibInfoBase(InfoBase):
     pass
 
+
 class MibNodeInfo(MibInfoBase):
     implements(IMibNodeInfo)
 
@@ -138,6 +141,7 @@ class MibNodeInfo(MibInfoBase):
     status = ProxyProperty('status')
     description = ProxyProperty('description')
 
+
 class MibNotificationInfo(MibInfoBase):
     implements(IMibNotificationInfo)
 
@@ -150,10 +154,11 @@ class MibNotificationInfo(MibInfoBase):
 
     @property
     def objects(self):
-        return pformat(self._object.objects)
+        return list(self._object.objects)
 
     status = ProxyProperty('status')
     description = ProxyProperty('description')
+
 
 class MibInfo(MibInfoBase):
     implements(IMibInfo)
@@ -169,7 +174,8 @@ class MibInfo(MibInfoBase):
     language = ProxyProperty('language')
     contact = ProxyProperty('contact')
     description = ProxyProperty('description')
-    
+
+
 class MibOrganizerInfo(MibInfoBase):
     implements(IMibOrganizerInfo)
     adapts(MibOrganizer)

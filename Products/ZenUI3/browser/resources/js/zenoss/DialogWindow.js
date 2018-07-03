@@ -54,7 +54,7 @@ Ext.define("Zenoss.dialog.BaseWindow", {
             // make sure we are not focused on text areas
             if (document.activeElement) {
                 el = document.activeElement;
-                if (el.type == "textarea" || el.type == 'button') {
+                if (el.type === "textarea" || el.type === 'button') {
                     return;
                 }
             }
@@ -265,7 +265,9 @@ Ext.define("Zenoss.FormDialog", {
     extend: "Zenoss.dialog.BaseWindow",
     constructor: function(config) {
         var me = this;
-        config = config || {};
+
+        config = Ext.clone(config) || {};
+
         config.formListeners = config.formListeners || {};
         Ext.applyIf(config.formListeners, {
             validitychange: function(form, isValid) {
@@ -432,6 +434,88 @@ Ext.define("Zenoss.SmartFormDialog", {
 });
 
 
+/**
+ * @class Zenoss.dialog.Form
+ * @extends Zenoss.dialog.BaseDialog
+ * A modal dialog window with Zenoss styling and a form layout.  This window
+ * meant to be instantiated once and then thrown away after use.
+ *
+ * Users provide a configuration 
+ *
+ * @constructor
+ */
+Ext.define("Zenoss.dialog.Form", {
+    extend: "Zenoss.dialog.BaseDialog",
+    alias: "widget.formdialog",
+    message: '',
+    submitHandler: null,
+    constructor: function(config) {
+        var dialog = this,
+            dialogConfig = Ext.clone(config),
+            formConfig = Ext.clone((dialogConfig.form || {}));
+        Ext.destroyMembers(dialogConfig, 'form');
+
+        formConfig.defaults = formConfig.defaults || {};
+        Ext.applyIf(formConfig.defaults, {
+            xtype: 'textfield'
+        });
+        formConfig.fieldDefaults = formConfig.fieldDefaults || {};
+        Ext.applyIf(formConfig.fieldDefaults, {
+            labelAlign: 'top'
+        });
+        formConfig.listeners = formConfig.listeners || {};
+        Ext.applyIf(formConfig.listeners, {
+            validitychange: function(form, isValid) {
+                var btn = dialog.query("button[ref='buttonSubmit']")[0];
+                btn.setDisabled(!isValid);
+            }
+        });
+        Ext.applyIf(formConfig, {
+            xtype: "form",
+            paramsAsHash: true,
+            ref: 'editForm'
+        });
+
+        Ext.applyIf(dialogConfig, {
+            layout: 'fit',
+            items: [formConfig],
+            dockedItems: [{
+                xtype: 'toolbar',
+                dock: 'bottom',
+                ui: 'footer',
+                margin: '15 0 0 0',
+                layout: {
+                    pack: 'start'
+                },
+                items: [{
+                    xtype: 'DialogButton',
+                    ref: 'buttonSubmit',
+                    text: _t('Submit'),
+                    type: 'submit',
+                    formBind: true,
+                    disabled: true,
+                    handler: function() {
+                        var dialog = this.up("formdialog"),
+                            form = dialog.down("form");
+                        if (dialog.submitHandler) {
+                            dialog.submitHandler(form);
+                        }
+                    }
+                 }, {
+                    xtype: 'DialogButton',
+                    ref: 'buttonCancel',
+                    text: _t('Cancel')
+                 }]
+            }],
+            modal: true,
+            closeAction: 'destroy',
+            plain: true,
+            padding: 10
+        });
+        this.callParent([dialogConfig]);
+    }
+});
+
 
 /**
  * @class Zenoss.dialog.ErrorDialog
@@ -580,7 +664,7 @@ Ext.define("Zenoss.dialog.DialogFormPanel", {
                 read: function(xhr) {
                     var success = true;
                     //TODO scan result for exceptions/errors
-                    if (xhr.status != 200) {
+                    if (xhr.status !== 200) {
                         success = false;
                     }
                     return {

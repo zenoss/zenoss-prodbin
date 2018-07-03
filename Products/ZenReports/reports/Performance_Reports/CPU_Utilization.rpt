@@ -21,7 +21,9 @@
         not tm.getReqTableState(tableName, 'adapt')));
     objects python:here.ReportServer.plugin('cpu', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
-    exportFields python:['deviceName', 'laLoadInt5', 'cpuPercent'];
+    exportFields python:[('deviceName', 'Device'),
+                         ('laLoadInt5', 'Load Avg'),
+                         ('cpuPercent', '% Util')];
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='cpuPercent', sortedSence='desc');
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">

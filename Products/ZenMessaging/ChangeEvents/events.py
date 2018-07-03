@@ -11,7 +11,8 @@
 from zope.interface import implements
 from Products.ZenMessaging.ChangeEvents.interfaces import \
     IObjectAddedToOrganizerEvent, IObjectRemovedFromOrganizerEvent, \
-    IDeviceClassMoveEvent, IMessagePrePublishingEvent
+    IDeviceClassMoveEvent, IMessagePrePublishingEvent, \
+    IMessagePostPublishingEvent
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 import logging
@@ -60,6 +61,19 @@ class MessagePrePublishingEvent(object):
     Rabbit.
     """
     implements(IMessagePrePublishingEvent)
-    def __init__(self, msgs):
+
+    def __init__(self, msgs, maintWindowChanges):
         self.msgs = msgs
+        # list of guids changed because of maintWindow (prodState only)
+        self.maintWindowChanges = maintWindowChanges
+
+class MessagePostPublishingEvent(object):
+    """
+    Fired after transaction completion.
+    """
+    implements(IMessagePostPublishingEvent)
+
+    def __init__(self, msgs, maintWindowChanges):
+        self.msgs = msgs
+        self.maintWindowChanges = maintWindowChanges
 

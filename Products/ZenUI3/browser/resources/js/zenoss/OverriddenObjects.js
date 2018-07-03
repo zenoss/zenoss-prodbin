@@ -26,7 +26,7 @@
         var record = combo.findRecord(combo.valueField || combo.displayField, v);
         var index = combo.store.indexOf(record);
         // disable the edit box if the index is -1
-        if(index == -1){
+        if(index === -1){
             Ext.getCmp('overriddenobjbase_grid1').disableButtons(true);
         }else{
             Ext.getCmp('overriddenobjbase_grid1').disableButtons(false);
@@ -41,75 +41,98 @@
                 Ext.getCmp('overriddenobjbase_grid1').getStore().loadData(response.data);
             }
         });
-    }
+    };
     var loadOverriddenGrid = function(uid){
         var combo = Ext.getCmp('propsCombo'), relName = 'devices';
         // switch this based on where the grid is located or embeded
 
         var refreshit = function(data){
             Ext.getCmp('overriddenobjover_grid2').getStore().loadData(data);
-        }
+        };
 
         /* If it finds /dmd/Events in the UID, then this is being used on the
          * Events Classes page and needs to get its overridden objects from
          * a different router method. Otherwise, we use the default devices method
          */
-        if(uid.indexOf('/dmd/Events') != -1) {
+        if(uid.indexOf('/dmd/Events') !== -1) {
             relName = 'instances';
         }
         // default method for devices:
         Zenoss.remote.DeviceRouter.getOverriddenObjectsList({uid:uid, propname:combo.value, relName: relName}, function(response){
-            if (response.success) refreshit(response.data);
+            if (response.success) {
+                refreshit(response.data);
+            }
         });
 
-    }
+    };
     var onComboChange = function(uid){
-        if(checkComboIndex() == -1) return;
+        if(checkComboIndex() === -1) {
+            return;
+        }
         loadOverriddenGrid(uid);
         loadBaseGrid(uid);
-    }
+    };
 
     function showEditCustPropertyDialog(data, grid){
-        var path = data.devicelink;
-        var pathMsg = '<div style="padding-top:10px;">';
-        pathMsg += _t(" Object Path:");
-        pathMsg += '<div style="color:#aaa;padding-top:3px;">';
-        pathMsg += '<div class="x-grid-cell-inner" style="color:#fff;background:#111;margin:2px 7px 2px 0;padding:5px;"> '+path+' </div>';
-        pathMsg += '</div></div>';
-
-        var lbltemplate = '<div style="margin:5px 0 15px 0;"><b>{0}</b> <span style="display:inline-block;padding-left:5px;color:#aaccaa">{1}</span></div>'
-        var items = [
-                {
-                    xtype: 'label',
-                    width: 500,
-                    height: 50,
-                    html: Ext.String.format(lbltemplate, _t("Name:"), Ext.getCmp('propsCombo').getValue())
-                },{
-                    xtype: 'label',
-                    width: 500,
-                    height: 50,
-                    html: Ext.String.format(lbltemplate, _t("Type:"),data.proptype)
-                },{
-                    xtype: 'label',
-                    width: 300,
-                    height: 90,
-                    html: pathMsg
-                }
-            ];
-
-        pkg = {
-            'items': items,
-            'uid': path,
-            'type': data.proptype,
-            'value': data.props,
-            'name': Ext.getCmp('propsCombo').getValue(),
-            'grid': grid,
-            'dialogId': 'editOverriddenDialog',
-            'minHeight': 200,
-            'width': 500,
-            'options': 0
+        var s = Ext.data.StoreManager.lookup('propertyTypeFields'),
+            fieldConfig = (data.proptype) ? s.getById(data.proptype).data.field : null;
+        if (fieldConfig == null) {
+            return;
         }
-        Zenoss.zproperties.showEditPropertyDialog(pkg);
+        var dialog = Ext.create('Zenoss.dialog.Form', {
+                title: _t('Edit Configuration Property'),
+                minWidth: 480,
+                submitHandler: function(form) {
+                    var values = form.getValues();
+                    Zenoss.remote.PropertiesRouter.setZenProperty(values, function(response){
+                        if (response.success) {
+                            grid.refresh();
+                        }
+                    });
+                },
+                form: {
+                    layout: 'anchor',
+                    defaults: {
+                        xtype: 'displayfield',
+                        padding: '0 0 10 0',
+                        margin: 0,
+                        anchor: '100%'
+                    },
+                    fieldDefaults: {
+                        labelAlign: 'left',
+                        labelWidth: 50,
+                        labelStyle: 'color:#aaccaa'
+                    },
+                    items: [{
+                        name: 'zProperty',
+                        fieldLabel: 'Name',
+                        submitValue: true
+                    }, {
+                        name: 'uid',
+                        fieldLabel: 'Path',
+                        renderer: Zenoss.render.PropertyPath,
+                        submitValue: true
+                    }, {
+                        name: 'type',
+                        fieldLabel: 'Type',
+                    },
+                    Ext.applyIf(Ext.clone(fieldConfig), {
+                        name: 'value',
+                        fieldLabel: 'Value',
+                    })]
+                }
+            }),
+            record = { data: {
+                zProperty: grid.up('overriddenobjects').down('combo').getValue(),
+                uid: (function() {
+                    var needPrefix = (data.devicelink.search(/^\/zport\/dmd/) === -1);
+                    return (needPrefix) ? '/zport/dmd' + data.devicelink : data.devicelink;
+                })(),
+                type: data.proptype,
+                value: data.props
+            }};
+        dialog.down('form').loadRecord(record);
+        dialog.show();
     }
 
 
@@ -136,7 +159,7 @@
                     tooltip: _t('Edit selected Configuration Property value'),
                     disabled: Zenoss.Security.doesNotHavePermission('zProperties Edit'),
                     ref: 'customizeButton',
-                        handler: function(button) {
+                        handler: function() {
                             var grid1 = Ext.getCmp('overriddenobjbase_grid1');
                             var grid2 = Ext.getCmp('overriddenobjover_grid2');
                             var data, grid, selected;
@@ -158,8 +181,7 @@
                             data = selected[0].data;
                             showEditCustPropertyDialog(data, grid);
                         }
-                    },
-                    {
+                    },{
                     xtype: 'combo',
                     width:350,
                     fieldLabel: 'Configuration Properties',
@@ -196,9 +218,6 @@
                         flex: 1,
                         sortable: true,
                         filter: false
-                    },{
-                        dataIndex: 'proptype',
-                        hidden:true
                     }]
             });
             this.callParent(arguments);
@@ -213,7 +232,7 @@
             Zenoss.remote.DeviceRouter.getOverriddenZprops({uid:uid}, function(response){
                 if (response.success) {
                     setComboFromData(response, combo);
-                    combo.on('change', function(e){
+                    combo.on('change', function(){
                         onComboChange(uid);
                     });
                 }
@@ -229,16 +248,17 @@
             var uid = Ext.getCmp('overriddenobjbase_grid1').uid;
             loadBaseGrid(uid);
         },
-        onSelectRow: function(grid, rowIndex, e){
+        onSelectRow: function(){
             var otherGrid = Ext.getCmp('overriddenobjover_grid2');
             otherGrid.getSelectionModel().deselectAll();
         },
-        onRowDblClick: function(grid, rowIndex, e) {
-            var data,
-                selected = this.getSelectionModel().getSelection();
-            if(!selected)return;
-            data = selected[0].data;
-            showEditCustPropertyDialog(data, this);
+        onRowDblClick: function() {
+            var selected = this.getSelectionModel().getSelection(),
+                data = (selected) ? selected[0].data : null,
+                disabled = this.up('overriddenobjects').down('button').isDisabled();
+            if (!disabled && data != null) {
+                showEditCustPropertyDialog(data, this);
+            }
         },
         disableButtons: function(bool) {
             var btns = this.query("button");
@@ -267,6 +287,8 @@
                           {property : 'devicelink', direction: 'ASC'}
                       ],
                       fields: [
+                          {name: 'objtype'},
+                          {name: 'name'},
                           {name: 'devicelink'},
                           {name: 'props'},
                           {name: 'proptype'}
@@ -277,17 +299,18 @@
                         dataIndex: 'devicelink',
                         width: 340,
                         sortable: true,
-                        renderer: function(e){
-                            return Zenoss.render.DeviceClass(e.substring(8));
+                        renderer: function(val, meta, record) {
+                            if (record.get('objtype') == 'devices') {
+                                return Zenoss.render.Device(val, record.get('name'));
+                            } else {
+                                return Zenoss.render.DeviceClass(val.substring(8));
+                            }
                         }
                     },{
                         dataIndex: 'props',
                         header: _t('Value'),
                         flex: 1,
                         sortable: true
-                    },{
-                        dataIndex: 'proptype',
-                        hidden:true
                     }]
             });
             this.callParent(arguments);
@@ -303,16 +326,17 @@
             var uid = Ext.getCmp('overriddenobjbase_grid1').uid;
             loadOverriddenGrid(uid);
         },
-        onSelectRow: function(trid, rowIndex, e){
+        onSelectRow: function(){
             var otherGrid = Ext.getCmp('overriddenobjbase_grid1');
             otherGrid.getSelectionModel().deselectAll();
         },
-        onRowDblClick: function(grid, rowIndex, e) {
-            var data,
-                selected = this.getSelectionModel().getSelection();
-            if(!selected)return;
-            data = selected[0].data;
-            showEditCustPropertyDialog(data, this);
+        onRowDblClick: function() {
+            var selected = this.getSelectionModel().getSelection(),
+                data = (selected) ? selected[0].data : null,
+                disabled = this.up('overriddenobjects').down('button').isDisabled();
+            if (!disabled && data != null) {
+                showEditCustPropertyDialog(data, this);
+            }
         }
     });
 
@@ -350,6 +374,17 @@
             Ext.getCmp(this.grid1Id).setContext(uid);
             Ext.getCmp(this.grid2Id).setContext(uid);
         }
+    });
+
+    /*
+    * ZEN-30134
+    * Override default cursor style for columns resizing in grid
+    * Do that because default cursor is "col-resize" and it's almost invisible on dark theme;
+    * http://docs.sencha.com/extjs/4.1.3/source/HeaderResizer.html#Ext-grid-plugin-HeaderResizer
+    */
+    Ext.grid.plugin.HeaderResizer.override({
+        wResizeCursor: 'ew-resize',
+        eResizeCursor: 'ew-resize'
     });
 
 })();

@@ -14,28 +14,34 @@ import sys
 import re
 from functools import wraps
 from urllib import unquote
+import subprocess
 from subprocess import Popen, PIPE
 from xml.dom.minidom import parse
 import shutil
 import traceback
 import logging
 import commands
-log = logging.getLogger("zen.ZenossInfo")
 
 from Globals import InitializeClass
 from OFS.SimpleItem import SimpleItem
 from AccessControl import ClassSecurityInfo
 
-from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenCallHome.transport.methods.versioncheck import version_check
-from Products.ZenUtils import Time
 from Products.ZenUtils.mysql import MySQLdb
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
-from Products.ZenUtils.Version import *
+from Products.ZenUtils.Version import (Version, VersionNotSupported,
+                                       getVersionTupleFromString)
 from Products.ZenUtils.Utils import zenPath, binPath, isZenBinFile
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGE_DMD, ZEN_MANAGE_GLOBAL_SETTINGS, ZEN_MANAGE_USERS,
+    ZEN_VIEW_USERS, ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
+)
+
+log = logging.getLogger("zen.ZenossInfo")
 
 
 def versionmeta(name, href, optional=False):
@@ -68,7 +74,7 @@ def manage_addZenossInfo(context, id='About', REQUEST=None):
     about = ZenossInfo(id)
     context._setObject(id, about)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url_path() + '/manage_main')
 
 
 class ZenossInfo(ZenModelItem, SimpleItem):
@@ -90,42 +96,42 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../dmd/editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dmd/dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : '../dmd/ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../dmd/ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS, )
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../dmd/editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : 'zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG,)
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../dmd/userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
            )
           },
@@ -141,13 +147,39 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     @versionmeta("Zenoss", "http://www.zenoss.com")
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
-        return Version.parse("Zenoss %s %s" %
-                    (VERSION, self.getZenossRevision()))
+        return Version.parse("Zenoss %s" % VERSION)
     security.declarePublic('getZenossVersion')
+
+    @versionmeta("Zenoss", "http://www.zenoss.com")
+    def getZenossVersionAndBuild(self):
+        from Products.ZenModel.ZVersion import VERSION, BUILD_NUMBER
+        return Version.parse("Zenoss %s %s" % (VERSION, BUILD_NUMBER))
+    security.declarePublic('getZenossVersionAndBuild')
 
     def getZenossVersionShort(self):
         return self.getZenossVersion().short()
     security.declarePublic('getZenossVersionShort')
+
+    @versionmeta("Control Center", "http://controlcenter.io/")
+    def getControlCenterVersion(self):
+        """
+        This is intended to run from within a container.
+        """
+        version = Version('ControlCenter')
+        if os.path.exists('/serviced/serviced'):
+            try:
+                # Note the port given below is not used when getting the version, but overrides the
+                # SERVICED_UI_PORT env variable that can cause it to fail cli parameter validation.
+                output = subprocess.check_output(['/serviced/serviced', '--uiport', ':1', 'version'])
+                for line in output.split('\n'):
+                    splitLine = line.split()
+                    if splitLine[0] == 'Version:':
+                        version = Version.parse('ControlCenter {}'.format(splitLine[1]))
+                        break
+            except subprocess.CalledProcessError as e:
+                pass
+
+        return version
 
     @versionmeta("OS", "http://www.tldp.org")
     def getOSVersion(self):
@@ -254,21 +286,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
 
-    def getZenossRevision(self):
-        """
-        Determine the Zenoss version number
-
-        @return: version number or ''
-        @rtype: string
-        """
-        try:
-            products = zenPath("Products")
-            cmd = "svn info '%s' 2>/dev/null | awk '/Revision/ {print $2}'" % products
-            fd = os.popen(cmd)
-            return fd.readlines()[0].strip()
-        except:
-            return ''
-
     @versionmeta("NetSnmp", "http://net-snmp.sourceforge.net", optional=True)
     def getNetSnmpVersion(self):
         from pynetsnmp.netsnmp import lib
@@ -308,7 +325,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         software.
         """
         versionfuncs = [
-                self.getZenossVersion,
+                self.getZenossVersionAndBuild,
                 self.getOSVersion,
                 self.getZopeVersion,
                 self.getPythonVersion,
@@ -319,6 +336,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 self.getNetSnmpVersion,
                 self.getPyNetSnmpVersion,
                 self.getWmiVersion,
+                self.getControlCenterVersion
             ]
         versions = []
         for func in versionfuncs:

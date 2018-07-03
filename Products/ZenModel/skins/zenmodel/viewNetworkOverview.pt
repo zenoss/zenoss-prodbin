@@ -193,7 +193,7 @@ tal:define="tabletitle string:Network;">
                 type="checkbox" name="ipaddresses:list" 
                 tal:attributes="value ip/getId"/>
         <a href="_" 
-        tal:attributes="href ip/absolute_url"
+        tal:attributes="href ip/absolute_url_path"
         tal:content="ip/getIpAddress">1.1.1.1/24</a>
     </td>
     <td class="tablevalues" tal:content="ip/ptrName"/>

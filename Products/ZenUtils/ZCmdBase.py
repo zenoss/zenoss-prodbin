@@ -97,6 +97,7 @@ class ZCmdBase(ZenDaemon):
         self.poollock = Lock()
         self.getDataRoot()
         self.login()
+
         setDescriptors(self.dmd)
 
     def zodbConnect(self):

@@ -210,7 +210,7 @@ class AliasPlugin(object):
         return None
 
     def _createRecord(self, device, component=None,
-            columnDatapointsMap={}, summary={}):
+            columnDatapointsMap={}, summary={}, templateArgs=None):
         """
         Creates a record for the given row context
         (that is, the device and/or component)
@@ -223,6 +223,8 @@ class AliasPlugin(object):
                                     the context will be used.
         @param summary: a dict of report parameters like start date,
                         end date, and rrd summary function
+        @param templateArgs the template tags from the ui
+
         @rtype L{Utils.Record}
         """
         def localGetValue(device, component, extra):
@@ -234,9 +236,10 @@ class AliasPlugin(object):
         for column, aliasDatapointPairs in columnDatapointsMap.iteritems():
             columnName = column.getColumnName()
             extra = dict(
-                    aliasDatapointPairs=aliasDatapointPairs,
-                    summary=summary
-                )
+                aliasDatapointPairs=aliasDatapointPairs,
+                summary=summary,
+                templateArgs=templateArgs
+            )
             value = localGetValue(device, component, extra)
             columnValueMap[columnName] = value
 
@@ -272,10 +275,6 @@ class AliasPlugin(object):
                 lambda x: getAliasName(x) is not None, columns
             )
 
-        # Second, map the alias names to their columns
-        aliasColumnMap = \
-                dict(zip(map(getAliasName, aliasColumns), aliasColumns))
-
         columnDatapointsMap = {}
 
         # Map columns to empty list to ensure that there are placeholders
@@ -285,22 +284,18 @@ class AliasPlugin(object):
 
         # Fourth, match up the columns with the corresponding alias/datapoint
         # pairs
-        aliasDatapointPairs = \
-                getDataPointsByAliases(dmd, aliasColumnMap.keys())
-        for alias, datapoint in aliasDatapointPairs:
-            # If the alias-datapoint pair is missing the alias, then
-            # the column's aliasName was really the datapoint name.
-            column = aliasColumnMap[alias.id if alias else datapoint.id]
-            columnDatapointsMap[column].append((alias, datapoint))
+        for column in aliasColumns:
+            columnDatapointsMap[column] = list(getDataPointsByAliases(dmd, [column.getAliasName()]))
 
         return columnDatapointsMap
 
-    def run(self, dmd, args):
+    def run(self, dmd, args, templateArgs=None):
         """
         Generate the report using the columns and aliases
 
         @param dmd the dmd context to access the context objects
         @param args the report args from the ui
+        @param templateArgs the template tags from the ui
 
         @rtype a list of L{Utils.Record}s
         """
@@ -325,7 +320,7 @@ class AliasPlugin(object):
             if i % 100 == 0: transaction.abort()
             if componentPath is None:
                 record = self._createRecord(
-                        device, None, columnDatapointsMap, summary)
+                    device, None, columnDatapointsMap, summary, templateArgs)
                 report.append(record)
             else:
                 components = self._getComponents(device, componentPath)
@@ -333,6 +328,7 @@ class AliasPlugin(object):
                     i+=1
                     if i % 100 == 0: transaction.abort()
                     record = self._createRecord(
-                            device, component, columnDatapointsMap, summary)
+                        device, component, columnDatapointsMap, summary,
+                        templateArgs)
                     report.append(record)
         return report

@@ -14,7 +14,7 @@
      **/
     function isIpRangeOrNetwork(val) {
         var pieces = val.split("."), i, block;
-        if (pieces.length != 4) {
+        if (pieces.length !== 4) {
             return false;
         }
 
@@ -40,7 +40,7 @@
          * by splitting the input.
          * returns true if any token in the input is valid.
          **/
-        ipRange: function(val, field) {
+        ipRange: function(val) {
             var values, i;
             values = val.split(",");
             values = values.concat(val.split("\n"));
@@ -87,7 +87,7 @@
                           case "STARTED":
                             return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif", status);
                           case "PENDING":
-                            return Ext.String.format("<img src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
+                            return Ext.String.format("<img class='x-grid-icon-pending' src='{0}' alt='{1}' />", "/++resource++zenui/img/ext4/icon/circle_arrows_still.png", status);
                           case "ABORTED":
                             return "<span class=\"tree-severity-icon-small-warning\" style=\"padding-left:18px;padding-top:2px;\">Aborted</span>";
                           case "SUCCESS":
@@ -112,7 +112,7 @@
                         addErrorToolTip(metadata, record);
                         var values = [], key;
                         for (key in props) {
-                            if (key.indexOf('Password') == -1) {
+                            if (key.indexOf('Password') === -1) {
                                 values.push(props[key]);
                             }
                         }
@@ -121,7 +121,7 @@
                 }, {
                     dataIndex: 'collector',
                     header: _t('Collector'),
-                    hidden: Zenoss.env.COLLECTORS.length == 1 ? true:  false
+                    hidden: Zenoss.env.COLLECTORS.length === 1 ? true:  false
                 },{
                     dataIndex: 'duration',
                     header: _t('Duration'),
@@ -159,7 +159,9 @@
                         router.deleteJobs({
                             jobids: [record.get('uuid')]
                         }, function(response) {
-                            store.remove(record);
+                            if (response.success) {
+                                store.remove(record);
+                            }
                         });
                     },
                     text: _t('Remove'),
@@ -185,12 +187,10 @@
         alias: 'widget.wizardautodiscoveryview',
         stepTitle: _t('Network Discovery'),
         stepId: 'discover-network',
-        stepHeight: 630,
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                layout: 'border',
-                width: 600,
+                layout: "vbox",
                 items:[{
                     region: 'north',
                     height: 30,
@@ -200,32 +200,34 @@
                     xtype: 'form',
                     region: 'center',
                     layout: 'hbox',
+                    width: "100%",
+                    defaults: {
+                        height: 175,
+                        flex: 1,
+                        cls: "wizardColumn",
+                        overflowY: "auto"
+                    },
+                    defaultType: "fieldset",
                     items: [{
-                        width: 200,
-                        xtype: 'fieldset',
-                        height: 225,
-                        style: {
-                            borderRight: '1px solid #CACACA !important'
-                        },
                         title: _t('Networks/Range'),
+                        defaults: {
+                            width: "100%"
+                        },
                         items:[{
                             xtype: 'textarea',
                             name: 'ip_ranges',
                             vtype: 'ipRange',
-                            labelWidth: 175,
                             fieldLabel: _t("Enter one or more networks (such " + "as 10.0.0.0/24) or " + "IP ranges " + "(such as 10.0.0.1-50)"),
                             tabIndex: 2,
                             labelAlign: 'top',
                             id: 'wizard_ip_ranges',
                             allowBlank: false,
-                            width: 175
                         }, {
                             xtype: 'combo',
-                            width: 100,
                             // only show if we have multiple collectors
-                            hidden: Zenoss.env.COLLECTORS.length == 1,
+                            hidden: Zenoss.env.COLLECTORS.length === 1,
                             // if visible give it a good tabindex
-                            tabIndex: (Zenoss.env.COLLECTORS.length == 1) ? 100: 2,
+                            tabIndex: (Zenoss.env.COLLECTORS.length === 1) ? 100: 2,
                             labelAlign: 'top',
                             fieldLabel: 'Collector',
                             queryMode: 'local',
@@ -250,19 +252,10 @@
                             text: _t('Discover')
                         }]
                     }, {
-                        xtype: 'fieldset',
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
-                        width: 200,
-                        height: 225,
                         title: _t('SNMP'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '90%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textarea',
@@ -270,24 +263,14 @@
                             inputAttrTpl: Ext.String.format(" data-qtip='{0}' ", _t("Zenoss will try each of these community strings in turn when connecting to the device.")),
                             tabIndex: 2,
                             allowBlank: false,
-                            labelWidth: 120,
                             fieldLabel: _t('Community Strings'),
                             name: 'zSnmpCommunities'
                         }]
                     },{
-                        xtype: 'fieldset',
-                        style: {
-                            borderRight: '1px solid #CACACA !important',
-                            paddingLeft: "15px"
-                        },
-                        width: 200,
-                        height: 225,
                         title: _t('SSH Authentication'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '90%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textfield',
@@ -302,18 +285,14 @@
                             name: 'zCommandPassword'
                         }]
                     },{
-                        xtype: 'fieldset',
                         style: {
-                            paddingLeft: "15px"
+                            border: "none !important",
+                            paddingRight: 0
                         },
-                        width: 250,
-                        height: 225,
                         title: _t('Windows Authentication'),
-                        layout: 'anchor',
                         defaults: {
-                            anchor: '80%',
+                            width: "100%",
                             labelAlign: 'top',
-                            padding: "0px 0px 5px 0px"
                         },
                         items: [{
                             xtype: 'textfield',
@@ -332,18 +311,15 @@
                 }, {
                     region: 'south',
                     xtype: 'fieldset',
+                    width: "100%",
                     title: _t('Discoveries'),
-                    height: 240,
                     items: [{
                         xtype: 'discoverygrid',
-                        height: 180,
+                        height: 150,
                         autoScroll: true,
-                        emptyText: _t('Add network  discoveries using the above form'),
-                        // the width is so that the right edge of the
-                        // grid lines up with the Authentication form
-                        width: 860
+                        emptyText: _t('Add network discoveries using the above form'),
+                        emptyCls: "empty-grid-text"
                     }]
-
                 }]
             });
             this.callParent([config]);

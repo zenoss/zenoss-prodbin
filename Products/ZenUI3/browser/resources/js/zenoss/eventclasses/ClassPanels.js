@@ -63,7 +63,7 @@ Ext.onReady(function(){
                         /**
                          * Updates the graph order when the user drags and drops them
                          **/
-                        drop: function(node, data, overModel, dropPosition, eOpts) {
+                        drop: function() {
                             var records = me.store.getRange();
                             var uids = Ext.pluck(Ext.pluck(records, 'data'), 'uid');
                             Zenoss.remote.EventClassesRouter.resequence({'uids':uids}, function(response){
@@ -73,7 +73,7 @@ Ext.onReady(function(){
                                     me.getSelectionModel().deselectAll();
                                     for (var i = 0; records.length > i; i++){
                                         records[i].set("sequence", i);
-                                        if(records[i].get("uid") == Ext.getCmp('mappingDialog').contextUid){
+                                        if(records[i].get("uid") === Ext.getCmp('mappingDialog').contextUid){
                                             Ext.getCmp('sequence_text_id').setText('Sequence: '+i);
                                         }
                                     }
@@ -98,8 +98,8 @@ Ext.onReady(function(){
                         header: _t('ID'),
                         id: 'map_seq_id',
                         dataIndex: 'id',
-                        renderer: function(value, metaData, record, row, col, store, gridView){
-                            if(record.get("uid") == Ext.getCmp('mappingDialog').contextUid){
+                        renderer: function(value, metaData, record){
+                            if(record.get("uid") === Ext.getCmp('mappingDialog').contextUid){
                                 return '<b>* '+value+'</b>';
                             }
                             return value;
@@ -139,13 +139,14 @@ Ext.onReady(function(){
 
 // ----------------------------------------------------------------- DIALOGS
     Zenoss.eventclasses.mappingDialog = function(grid, data) {
-        if(typeof(data) == "undefined")data = "";
-        var addhandler, uid, config, dialog, newEntry;
-        var labelmargin = '5px 5px 0 0';
-        newEntry = (data == "");
+        if(!Ext.isDefined(data)) {
+            data = "";
+        }
+        var addhandler, config, dialog, newEntry;
+        newEntry = (data === "");
         var xtraData = {};
         addhandler = function() {
-            var c = dialog.getForm().getForm().getValues(), value;
+            var c = dialog.getForm().getForm().getValues();
             var save_xform = Ext.getCmp('xform_mapping_panel').getLastInChainValue() !== false ? Ext.getCmp('xform_mapping_panel').getLastInChainValue() : xtraData.transform;
             var params = {
                 evclass:                Zenoss.env.contextUid,
@@ -160,7 +161,7 @@ Ext.onReady(function(){
                 resolution:             Ext.getCmp('resolution_panel').getValue(),
                 transform:              save_xform
             };
-            var isTrans = (save_xform != "");
+            var isTrans = (save_xform !== "");
             if(newEntry){
                 Zenoss.remote.EventClassesRouter.addNewInstance({'params':params}, function(response){
                     if (response.success) {
@@ -183,7 +184,7 @@ Ext.onReady(function(){
                     }
                 });
             }
-        }
+        };
 
         // form config
         config = {
@@ -195,10 +196,14 @@ Ext.onReady(function(){
             title: _t("Add New Event Class Mapping"),
             listeners: {
                 'hide': function(){
-                    if (grid) grid.refresh();
+                    if (grid) {
+                        grid.refresh();
+                    }
                 },
                 'close':function(){
-                    if (grid) grid.refresh();
+                    if (grid) {
+                        grid.refresh();
+                    }
                 },
                 'afterrender': function(e){
                     if(!newEntry){
@@ -214,7 +219,7 @@ Ext.onReady(function(){
                                 var fields = e.getForm().getForm().getFields();
                                 Ext.getCmp('sequence_text_id').setText('Sequence: '+xtraData.sequence);
                                 fields.findBy(
-                                    function(record, id){
+                                    function(record){
                                         switch(record.getName()){
                                             case "name"             : record.setValue(xtraData.id);  break;
                                             case "instanceName"     : record.setValue(xtraData.id);  break;
@@ -222,12 +227,16 @@ Ext.onReady(function(){
                                             case "rule_panel"       :
                                                 record.setValue(xtraData.rule);
                                                 // collapse or expand this panel depending on "" content
-                                                if(xtraData.rule != "") record.ownerCt.toggleCollapse();
+                                                if(xtraData.rule !== "") {
+                                                    record.ownerCt.toggleCollapse();
+                                                }
                                                 break;
                                             case "regex_panel"      :
                                                 record.setValue(xtraData.regex);
                                                 // collapse or expand this panel depending on "" content
-                                                if(xtraData.regex != "") record.ownerCt.toggleCollapse();
+                                                if(xtraData.regex !== "") {
+                                                    record.ownerCt.toggleCollapse();
+                                                }
                                                 break;
                                             case "example_panel"    : record.setValue(xtraData.example); break;
                                             //case "transform_panel"  : record.setValue(xtraData.transform); break;
@@ -254,7 +263,7 @@ Ext.onReady(function(){
                     id: 'blackTabs',
                     listeners: {
                         'afterrender': function(p){
-                            if(data['whichPanel'] == 'sequence'){
+                            if(data.whichPanel === 'sequence'){
                                 p.setActiveTab(3);
                             }
                         }
@@ -288,8 +297,8 @@ Ext.onReady(function(){
                                             name: 'eventclasskey',
                                             margin: '0 40px 0 0',
                                             fieldLabel: _t('Event Class Key'),
-                                            regex: Zenoss.env.textMasks.allowedNameTextDash,
-                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                                            regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                                            regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                                             width:320
                                         }
                                     ]
@@ -323,9 +332,9 @@ Ext.onReady(function(){
                                             }],
                                             collapsed: true,
                                             listeners:{
-                                                expand: function(r){
+                                                expand: function(){
                                                     var regex_panel = Ext.getCmp('regex_panel');
-                                                    if(regex_panel.getValue() != ""){
+                                                    if(regex_panel.getValue() !== ""){
                                                         Ext.getCmp('rule_panel').collapse();
                                                         new Zenoss.dialog.SimpleMessageDialog({
                                                             title: _t('Regex panel is not empty'),
@@ -362,9 +371,9 @@ Ext.onReady(function(){
                                             margin: '0 20 20 0',
                                             collapsed: true,
                                             listeners:{
-                                                expand: function(r){
+                                                expand: function(){
                                                     var rule_panel = Ext.getCmp('rule_panel');
-                                                    if(rule_panel.getValue() != ""){
+                                                    if(rule_panel.getValue() !== ""){
                                                         Ext.getCmp('regex_panel').collapse();
                                                         new Zenoss.dialog.SimpleMessageDialog({
                                                             title: _t('Rule panel is not empty'),
@@ -490,12 +499,13 @@ Ext.onReady(function(){
                 id: 'classes_mapping_grid',
                 stateful: false,
                 multiSelect: true,
-                tbar:[
+                dockedItems:[
                     {
                         xtype: 'largetoolbar',
                         id: 'mapping_toolbar',
                         itemId: 'mapping_toolbar',
-                        height:30,
+                        dock: 'top',
+                        height: 45,
                         disabled: true,
                         items: [
                             {
@@ -503,7 +513,7 @@ Ext.onReady(function(){
                                 iconCls: 'add',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Add new Event Class Mapping Instance'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("classesgrid_id");
                                     Zenoss.eventclasses.mappingDialog(grid);
                                 }
@@ -512,7 +522,7 @@ Ext.onReady(function(){
                                 iconCls: 'delete',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Delete selected items'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("classesgrid_id"),
                                         data = [],
                                         selected = grid.getSelectionModel().getSelection();
@@ -548,7 +558,7 @@ Ext.onReady(function(){
                                 xtype: 'button',
                                 iconCls: 'customize',
                                 tooltip: _t('View and/or Edit selected Event Class Mapping Instance'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("classesgrid_id"),
                                         data,
                                         selected = grid.getSelectionModel().getSelection();
@@ -558,7 +568,7 @@ Ext.onReady(function(){
                                     }
                                     // single selection
                                     data = selected[0].data;
-                                    data['whichPanel'] = 'default';
+                                    data.whichPanel = 'default';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
                                 }
                             },{
@@ -566,14 +576,14 @@ Ext.onReady(function(){
                                 iconCls: 'set',
                                 hidden: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                                 tooltip: _t('Use a drag-drop grid to resequence the weights of Instance Maps'),
-                                handler: function(button) {
+                                handler: function() {
                                     var grid = Ext.getCmp("classesgrid_id");
                                     var data, selected = grid.getSelectionModel().getSelection();
                                     if (!selected[0]) {
                                         return;
                                     }
                                     data = selected[0].data;
-                                    data['whichPanel'] = 'sequence';
+                                    data.whichPanel = 'sequence';
                                     Zenoss.eventclasses.mappingDialog(grid, data);
                                 }
                             }, {
@@ -596,7 +606,7 @@ Ext.onReady(function(){
                 store: Ext.create('Zenoss.classesgrid.Store', {}),
                 listeners: {
                     afterrender: function(e){
-                        e.getStore().on('load', function(f){
+                        e.getStore().on('load', function(){
                             Ext.getCmp('mapping_toolbar').setDisabled(false);
                         });
                     },
@@ -618,7 +628,7 @@ Ext.onReady(function(){
                         dataIndex: 'hasTransform',
                         width:45,
                         sortable: true,
-                        renderer: function(value, metaData, record, row, col, store, gridView){
+                        renderer: function(value){
                             var cls = (Ext.isIE) ? 'ie_xforms_grid': 'xforms_grid';
                             if(value){
                                 return '<span class="'+cls+'"><img src="/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png" />&nbsp;</span>';
@@ -633,10 +643,6 @@ Ext.onReady(function(){
                         flex: 1,
                         sortable: true,
                         filter: true
-                    },{
-                        id: 'uid_id',
-                        dataIndex: 'uid',
-                        hidden: true
                     },{
                         header: _t("EventClass Key"),
                         id: 'key_id',
@@ -661,14 +667,14 @@ Ext.onReady(function(){
             // load the grid's store
             this.callParent(arguments);
         },
-        onRowDblClick: function(grid, rowIndex, e) {
+        onRowDblClick: function() {
             var data,
                 selected = this.getSelectionModel().getSelection();
             if (!selected) {
                 return;
             }
             data = selected[0].data;
-            data['whichPanel'] = 'default';
+            data.whichPanel = 'default';
             Zenoss.eventclasses.mappingDialog(this, data);
         }
     });
@@ -691,12 +697,12 @@ Ext.onReady(function(){
             });
             this.callParent(arguments);
         },
-        onCodeeditorfieldRender: function(abstractcomponent, options) {
+        onCodeeditorfieldRender: function(abstractcomponent) {
             var me = this;
             var element = document.getElementById(abstractcomponent.getInputId());
             this.editor = CodeMirror.fromTextArea(element, {'lineNumbers':true});
-            this.editor.on('cursorActivity', function(ce){
-                if (me.getValue() != me.originalValue){
+            this.editor.on('cursorActivity', function(){
+                if (me.getValue() !== me.originalValue){
                     me.ownerCt.getDockedItems()[0].addCls('edited_feedback');
                 }else{
                     me.ownerCt.getDockedItems()[0].removeCls('edited_feedback');
@@ -735,7 +741,6 @@ Ext.onReady(function(){
         },
         collapsible: true,
         titleCollapse: true,
-        resizable: true,
         resizable: {
             handles: 's',
             pinned: true
@@ -772,7 +777,6 @@ Ext.onReady(function(){
     Ext.define('Zenoss.eventclass.XformMasterPanel', {
         extend: 'Ext.panel.Panel',
         alias: 'widget.xformmasterpanel',
-        overflowY: 'scroll',
         initComponent: function() {
             this.callParent(arguments);
         },
@@ -786,6 +790,7 @@ Ext.onReady(function(){
         },
         setContext: function(uid){
             var me = this;
+
             Zenoss.remote.EventClassesRouter.getTransformTree({'uid':uid}, function(response){
                 if(response.success){
                     var data = response.data;
@@ -797,6 +802,7 @@ Ext.onReady(function(){
                             text: 'Inherited Transforms: (All Transforms are multi-line Python code)'
                         });
                     }
+
                     for(var i=0; data.length-1 > i; i++){
                         // add the inheritance chain:
                         me.add({
@@ -815,6 +821,54 @@ Ext.onReady(function(){
                         xtype: 'label',
                         cls: 'transform-headers',
                         text: 'Current Transform:'
+                    });
+                    me.add({
+                        xtype: 'panel',
+                        region:'left',
+                        hidden: true,
+                        margin: '0 0 5 5',
+                        layout: {
+                            type: 'hbox',
+                            align: 'middle',
+                            pack: 'left'
+                        },
+                        listeners : {
+                            beforerender: function(el) {
+                                if(Zenoss.Security.doesNotHavePermission('Manage DMD') === false) {
+                                    Zenoss.remote.EventClassesRouter.isTransformEnabled({'uid':uid}, function(response){
+                                        if(response.success){
+                                            if(response.data === false){
+                                                el.setVisible(true);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        items: [{
+                            xtype: 'label',
+                            text: 'Transformation is currently disabled due to several failed tries to apply it.'
+                        },{
+                            xtype: 'button',
+                            text: 'Re-activate transform',
+                            margin: '0 0 0 5',
+                            handler : function(el) {
+                                if(!el.disabled){
+                                    Zenoss.remote.EventClassesRouter.setTransformEnabled({'uid':uid, 'enabled': true}, function(response){
+                                         if(response.success){
+                                             if(response.data === true){
+                                                 Zenoss.message.info(_t('State changed. Transform is now enabled.'));
+                                                 var panel = el.findParentByType('panel');
+                                                 panel.setVisible(false)
+                                             }
+                                             else{
+                                                 Zenoss.message.info(_t('State not changed. Transform is still disabled. Try again.'));
+                                             }
+                                         }
+                                    });
+                                }
+                            }
+                        }]
                     });
                     // add the current context transform
                     me.add({
@@ -837,7 +891,6 @@ Ext.onReady(function(){
         alias: 'widget.xformeditorpanel',
         collapsible: true,
         titleCollapse: true,
-        resizable: true,
         uid: null,
         resizable: {
             handles: 's',
@@ -859,7 +912,7 @@ Ext.onReady(function(){
                             if(response.success){
                                 Zenoss.message.info(_t('One Transform compiled and saved'));
                                 me.items.items[0].setValue(value);
-                                var isTrans = (value != "");
+                                var isTrans = (value !== "");
                                 Ext.getCmp('classes').setTransIcon(isTrans);
                             }
                         });
@@ -885,7 +938,7 @@ Ext.onReady(function(){
                         var items = this.ownerCt.ownerCt.ownerCt.items.items;
                         for (var i=0; items.length > i; i++){
                             // swollow when something doesn't have ability to 'expand'
-                            try{ items[i].expand(); }catch(e){};
+                            try{ items[i].expand(); }catch(e){}
                         }
                     }
                 }],

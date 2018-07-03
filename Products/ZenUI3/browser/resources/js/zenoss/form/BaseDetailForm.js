@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -15,9 +15,6 @@ var ZF = Ext.ns('Zenoss.form');
 Ext.form.TextArea.prototype.grow = true;
 Ext.form.TextArea.prototype.growMin = 20;
 
-function isField(c) {
-    return !!c.setValue && !!c.getValue && !!c.markInvalid && !!c.clearInvalid;
-}
 
 ZF.createDirectSubmitFunction = function(router) {
 
@@ -167,7 +164,7 @@ Ext.define("Zenoss.form.BaseDetailForm", {
     getFieldNames: function() {
         var keys = [];
         for (var k in this.getForm().getValues(false, false)) {
-            if (Ext.Array.indexOf(keys, k)==-1) {
+            if (Ext.Array.indexOf(keys, k)===-1) {
                 keys.push(k);
             }
         }

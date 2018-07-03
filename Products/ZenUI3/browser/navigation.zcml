@@ -82,7 +82,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.Common"
+            permission="zenoss.View"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -93,7 +93,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.View"
+            permission="zenoss.Common"
             layer="..navigation.interfaces.IZenossNav"
             />
 
@@ -185,8 +185,6 @@
             layer="..navigation.interfaces.IZenossNav"
             />
 
-
-
     <browser:viewlet
         name="Reports"
         url="/zport/dmd/reports"
@@ -218,6 +216,7 @@
             permission="zenoss.ManageDMD"
             layer="..navigation.interfaces.IZenossNav"
             />
+
         <browser:viewlet
             name="Control Center"
             url="/zport/dmd/daemons"
@@ -225,7 +224,7 @@
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zenoss.ManageDMD"
+            permission="zenoss.ManageControlCenter"
             layer="..navigation.interfaces.IZenossNav"
             subviews="/zport/dmd/collectorTemplate"
             />
@@ -266,7 +265,8 @@
                       /zport/dmd/userInterfaceConfig
                       /zport/dmd/zepConfig
                       /zport/dmd/manageLDAPConfig
-                      /zport/About"
+                      /zport/About
+                      /zport/dmd/support"
             weight="0"
             parentItem="Advanced"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"

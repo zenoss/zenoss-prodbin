@@ -44,8 +44,7 @@ class TestFileSystem(ZenModelBaseTest):
         #self.assert_(self.fs.name() == 'fs')
         self.assert_(self.fs.hostname() == 'testdev')
         self.assert_(self.fs.getParentDeviceName() == 'testdev')
-        #self.assert_(self.fs.getParentDeviceUrl() == 'zport/dmd/Devices/devices/testdev')
-        self.assert_(self.fs.getParentDeviceUrl() == 'http://nohost/zport/dmd/Devices/devices/testdev')
+        self.assert_(self.fs.getParentDeviceUrl() == self.dev.absolute_url_path())
 
 def test_suite():
     from unittest import TestSuite, makeSuite

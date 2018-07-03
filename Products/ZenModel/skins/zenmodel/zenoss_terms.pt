@@ -56,7 +56,7 @@ The Zenoss Core monitoring platform is made available pursuant to version 2 of t
 </div>
 
 <div id="acceptance" tal:define="
-    dest string:${here/absolute_url}/termsCheck;
+    dest string:${here/absolute_url_path}/termsCheck;
     came_from request/came_from | string:">
     <a class="button"
         tal:attributes="href string:${dest}?came_from=${came_from}&terms=Accept">Accept</a> 

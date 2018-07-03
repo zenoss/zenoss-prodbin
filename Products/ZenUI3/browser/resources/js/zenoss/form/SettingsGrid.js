@@ -1,10 +1,10 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
@@ -27,7 +27,7 @@
                 if (!Ext.isDefined(prop.value)) {
                     prop.value = prop.defaultValue;
                 }
-                if (prop.xtype == "checkbox") {
+                if (prop.xtype === "checkbox") {
                     prop.checked = prop.value;
                 }
                 prop.ref = prop.id;

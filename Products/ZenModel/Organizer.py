@@ -20,7 +20,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import getDisplayType, getDisplayName
+from Products.ZenUtils.Utils import getDisplayType, getDisplayName, unpublished
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
@@ -56,6 +56,7 @@ class Organizer(ZenModelRM, EventView):
         ZenModelRM.__init__(self, id)
         self.description = description
 
+    @unpublished
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Override urlLink to return a link with the full path of the organizer.
@@ -186,8 +187,14 @@ class Organizer(ZenModelRM, EventView):
             if newPath.startswith("/"):
                 org = self.createOrganizer(newPath)
             else:
+                # Strip out invalid characters from the newPath
+                name = newPath
+                newPath = self.prepId(newPath)
                 org = factory(newPath)
                 self._setObject(org.id, org)
+                # Set the display name to the original string
+                org = self._getOb(newPath)
+                org.setTitle(name)
         except ZentinelException, e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
@@ -354,7 +361,8 @@ class Organizer(ZenModelRM, EventView):
         >>> dmd.Events.Status.getOrganizer('/Events/Status/Snmp')
         <EventClass at /zport/dmd/Events/Status/Snmp>
         """
-        if path.startswith("/"): path = path[1:]
+        # call prepId for each segment.
+        path = '/'.join(self.prepId(s) for s in path.lstrip('/').split('/'))
         return self.getDmdRoot(self.dmdRootName).unrestrictedTraverse(path)
 
 

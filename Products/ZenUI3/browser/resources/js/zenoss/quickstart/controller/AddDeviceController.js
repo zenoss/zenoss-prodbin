@@ -39,12 +39,15 @@
                         this.setDeviceTypes(val.category);
                     }
                 },
-                'combo[itemId="deviceType"]': {
-                    change: function(combo, val) {
+                'grid[itemId="deviceType"]': {
+                    select: function(select, record, index){
+                        var val = record.get("value");
                         if (!val) {
-                            this.getCredentials(combo.getStore().getAt(0).get('value'));
+                            // select the first item
+                            this.getCredentials(select.getStore().getAt(0).get('value'));
+                        } else {
+                            this.getCredentials(val);
                         }
-                        this.getCredentials(val);
                     }
                 },
                 'fieldset[itemId="credentials"]': {
@@ -57,7 +60,7 @@
                     }
                 },
                 'deviceaddgrid': {
-                    afterrender: function(grid) {
+                    afterrender: function() {
                         this.startGridRefresh();
                     }
                 }
@@ -67,7 +70,7 @@
         setCategories: function() {
             // hack to get the empty text to show up
             Ext.Function.defer( function() {
-                if (this.getGrid().getStore().data.length == 0) {
+                if (this.getGrid().getStore().data.length === 0) {
                     this.getGrid().getStore().load();
                 }
             }, 500, this);
@@ -95,16 +98,16 @@
             }, this);
         },
         setDeviceTypes: function(uid) {
-            var combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                store = combo.getStore();
+            var grid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                store = grid.getStore();
 
-            // reload the combo store and select the first one when done loading
+            // reload the grid store and select the first one when done loading
             store.load({
                 params: {
                     uid: uid
                 },
                 callback: function() {
-                    combo.setValue(store.getAt(0));
+                    grid.selModel.doSelect(store.getAt(0));
                 }
             });
         },
@@ -115,7 +118,7 @@
             var results = [], i, pieces = hosts.split("\n"), piece, key;
             for (i=0;i<pieces.length;i++) {
                 piece = pieces[i];
-                if (piece.indexOf(",") != -1) {
+                if (piece.indexOf(",") !== -1) {
                     for (key in piece.split(",")){
                         results.push(piece.split(",")[key].trim());
                     }
@@ -126,13 +129,11 @@
             return Ext.Array.unique(results);
         },
         getCredentials: function(uid) {
-            // make sure it is a valid full uid incase the start typing
-            if (!uid || !uid.startswith('/zport/dmd')) {
-                return;
+            if (uid) {
+                Zenoss.remote.DeviceRouter.getConnectionInfo({
+                    uid: uid
+                }, this.addCredentials, this);
             }
-            Zenoss.remote.DeviceRouter.getConnectionInfo({
-                uid: uid
-            }, this.addCredentials, this);
         },
         _getCredentialFields: function(connectionInfo){
             var hostField = {
@@ -140,14 +141,14 @@
                 name: 'hosts',
                 allowBlank: false,
                 fieldLabel:  _t('Enter multiple similar devices, separated by a comma, using either hostname or IP Address'),
-                width: 300
+                width: "100%"
             } ,collectorField = {
                 xtype: 'combo',
-                width: 300,
+                width: "100%",
                 // only show if we have multiple collectors
-                hidden: Zenoss.env.COLLECTORS.length == 1,
+                hidden: Zenoss.env.COLLECTORS.length === 1,
                 // if visible give it a good tabindex
-                tabIndex: (Zenoss.env.COLLECTORS.length == 1) ? 100: 2,
+                tabIndex: (Zenoss.env.COLLECTORS.length === 1) ? 100: 2,
                 labelAlign: 'top',
                 fieldLabel: 'Collector',
                 queryMode: 'local',
@@ -165,28 +166,28 @@
                 triggerAction: 'all'
             }, fields = [hostField], i;
 
+            var isSnmp = Ext.Array.some(connectionInfo, function(item) {
+                return item.category === 'SNMP';
+            });
             // convert the zproperty information into a field
             for (i=0; i < connectionInfo.length; i++ ) {
-                var item =  Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
-                property = connectionInfo[i],
-                id=property.id;
+                var item = Zenoss.zproperties.createZPropertyField(connectionInfo[i]),
+                    property = connectionInfo[i],
+                    id = property.id;
+
                 item.name = id;
                 item.fieldLabel = property.label;
+                item.width = "100%";
+
                 if (!property.label) {
                     item.fieldLabel = Zenoss.zproperties.inferZPropertyLabel(id);
                 }
-                if (item.type != "password") {
+                if (item.type !== "password") {
                     item.value = property.value || property.valueAsString;
-                }
-                // if it seems like credentials make it required
-                if (item.name.toLowerCase().indexOf('username') != -1 ||
-                    item.name.toLowerCase().indexOf('password') != -1 ||
-                    item.name.toLowerCase().indexOf('community') != -1) {
-                    item.allowBlank = false;
                 }
 
                 if (property.description) {
-                    item.inputAttrTpl = property.description;
+                    item.inputAttrTpl = " data-qtip='" + property.description + "' ";
                 }
 
                 fields.push(item);
@@ -196,7 +197,6 @@
             fields.push({
                 xtype: 'button',
                 formBind: true,
-                anchor: '25%',
                 disabled: true,
                 text: _t('Add'),
                 handler: Ext.bind(this.onClickAddButton, this)
@@ -221,22 +221,18 @@
          * This method gathers what we need from a device
          * submits it and adds a job record.
          **/
-        onClickAddButton: function(btn) {
+        onClickAddButton: function() {
             var values = this.getForm().getForm().getFieldValues(),
                 hosts = values.hosts,
-                deviceClass = values.deviceclass,
-                collector = values.collector, i,
-                zProperties = {},
-                combo = this.getForm().query('combo[itemId="deviceType"]')[0],
-                grid = this.getGrid();
+                collector = values.collector,
+                zProperties = this.getZProperties(values),
+                typeGrid = this.getForm().query('grid[itemId="deviceType"]')[0],
+                grid = this.getGrid(),
+                deviceClass = typeGrid.selModel.getSelection()[0].get("value");
+
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            for (key in values) {
-                if (key.startswith('z')) {
-                    zProperties[key] = values[key];
-                }
-            }
-            var displayDeviceClass = combo.getStore().getAt(combo.getStore().findExact('value', deviceClass)).get('shortdescription');
+            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass, 0, false, true, true).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
                 if (Ext.isEmpty(host)) {
@@ -247,16 +243,23 @@
                     deviceClass: deviceClass.replace('/zport/dmd/Devices', ''),
                     zProperties: zProperties,
                     collector: collector,
-                    model: true
+                    model: true,
+                    displayDeviceClass: displayDeviceClass,
+                    pendingDelete: true // so we don't update while we are still adding the job
                 };
                 var record = Ext.create('Zenoss.quickstart.Wizard.model.AddDeviceJobRecord', params);
                 grid.getStore().add(record);
-                record.set('deviceName', host);
-                record.set('displayDeviceClass', displayDeviceClass);
-                // so we don't update while we are still adding the job
-                record.set('pendingDelete', true);
                 this._AddJob(record);
             }, this);
+        },
+        getZProperties: function(values) {
+            var zProperties = {};
+            for (var key in values) {
+                if (key.startswith('z')) {
+                    zProperties[key] = values[key];
+                }
+            }
+            return zProperties;
         },
         startGridRefresh: function() {
             this.refreshTask = Ext.util.TaskManager.newTask({
@@ -300,17 +303,19 @@
             Zenoss.remote.JobsRouter.deleteJobs({
                 jobids: [record.get('uuid')]
             }, function(response) {
-                if (record.get('status') !== "PENDING") {
-                    Zenoss.remote.DeviceRouter.removeDevices({
-                        uids: [record.get('deviceUid')],
-                        action: 'delete',
-                        hashcheck: 1
-                    }, function() {
+                if (response.success) {
+                    if (record.get('status') !== "PENDING") {
+                        Zenoss.remote.DeviceRouter.removeDevices({
+                            uids: [record.get('deviceUid')],
+                            action: 'delete',
+                            hashcheck: 1
+                        }, function() {
+                            this._AddJob(record);
+                        },
+                        this);
+                    } else {
                         this._AddJob(record);
-                    },
-                    this);
-                } else {
-                    this._AddJob(record);
+                    }
                 }
             }, this);
         },
@@ -334,8 +339,8 @@
                         record.set('status', 'PENDING');
                         record.set('pendingDelete', false);
                         // update the uid incase they rename the host
-                        record.set("deviceUid", "/zport/dmd/Devices" +record.get('deviceClass') + "/devices/" + record.get('deviceName'));
-
+                        var deviceName = Zenoss.util.ipv6wrap(record.get('deviceName'));
+                        record.set("deviceUid", "/zport/dmd/Devices" + record.get('deviceClass') + "/devices/" + deviceName);
                     } else {
                         me.getGrid().getStore().remove(record);
                     }

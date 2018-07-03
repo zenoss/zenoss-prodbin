@@ -24,6 +24,7 @@ from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.PingDataSource import PingDataSource
 from Products.ZenModel.ConfigurationError import ConfigurationError
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.Utils import importClass
 from Products.ZenWidgets import messaging
 from RRDDataPoint import SEPARATOR
@@ -87,7 +88,7 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
     tt = RRDTemplate(id)
     context._setObject(tt.id, tt)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
@@ -466,7 +467,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         from Products.ZenModel.ValueChangeThreshold import ValueChangeThreshold
         thresholdClasses = [MinMaxThreshold, ValueChangeThreshold]
         for zp in self.dmd.ZenPackManager.packs():
-            thresholdClasses += zp.getThresholdClasses()
+            try:
+                thresholdClasses += zp.getThresholdClasses()
+            except Exception, e:
+                log.exception("Unable to fetch thresholds from zenpack %s, please try reinstalling the zenpack. Error %s", zp, e)
         return map(lambda x: (x, x.__name__), thresholdClasses)
 
 
@@ -498,16 +502,23 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         obj = self.deviceClass()
         if obj is None:
-            # this template is in a Device
             obj = aq_parent(self)
             path = list(obj.getPrimaryPath())
             # remove the "devices" relationship
-            path.pop(-2)
+            path.pop(path.index('devices'))
+            if isinstance(obj, DeviceComponent):
+                # remove the component relationship
+                comp_rel = obj.getParentNode().id
+                path.pop(path.index(comp_rel))
+            else:
+                # this template is in a Device
+                path = path[:-1]
+                path.append(obj.titleOrId())
         else:
             # this template is in a DeviceClass.rrdTemplates relationship
-            path = list(obj.getPrimaryPath())
-        parts = path[4:-1]
-        parts.append(obj.titleOrId())
+            path = list(obj.getPrimaryPath())[:-1]
+            path.append(obj.titleOrId())
+        parts = path[4:]
         return separator + separator.join(parts)
 
 

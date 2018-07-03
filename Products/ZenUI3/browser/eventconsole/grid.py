@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -120,7 +120,8 @@ def column_config(request=None, archive=False):
             msg = _(col['header'])
             col['header'] = zope.i18n.translate(msg, context=request)
         col['id'] = field.replace('.', '_')
-        col['dataIndex'] = field
+        if 'dataIndex' not in col:
+            col['dataIndex'] = field
         col['filterKey'] = field
         if isinstance(col['filter'], basestring):
             col['filter'] = {'xtype':col['filter']}

@@ -1,22 +1,17 @@
 /*****************************************************************************
- * 
+ *
  * Copyright (C) Zenoss, Inc. 2010, all rights reserved.
- * 
+ *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
- * 
+ *
  ****************************************************************************/
 
 
 /* package level */
 (function() {
-    var ZF = Ext.ns('Zenoss.form'),
-        router = Zenoss.remote.DeviceRouter,
-        OrganizerDropDown,
-        SystemDropDown,
-        LocationDropDown,
-        DeviceClassDropDown,
-        GroupDropDown;
+    Ext.ns('Zenoss.form');
+    var router = Zenoss.remote.DeviceRouter;
 
     Ext.define("Zenoss.form.OrganizerDropDown", {
         extend:"Ext.form.ComboBox",

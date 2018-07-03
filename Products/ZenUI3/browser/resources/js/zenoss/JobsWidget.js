@@ -15,7 +15,10 @@ Ext.ns('Zenoss');
 var REMOTE = Zenoss.remote.JobsRouter;
 
 function lengthOrZero(o) {
-    return o==null ? 0 : o;
+    if (o) {
+        return o;
+    }
+    return 0;
 }
 
 function isObjectEmpty(o) {
@@ -98,9 +101,9 @@ Ext.define("Zenoss.JobsWidget", {
                 style: 'background:transparent;padding:0;border:0',
                 items: [{
                     xtype: 'container',
+                    cls: 'x-container-jobs-grid',
                     width: 425,
                     style: {
-                        border: '1px solid #444',
                         '-webkit-border-radius': 5,
                         '-moz-border-radius': 5,
                         '-ms-border-radius': 5,
@@ -182,7 +185,7 @@ Ext.define("Zenoss.JobsWidget", {
         });
         this.lastchecked = 0;
         this.callParent([config]);
-        this.on('beforerender', this.on_render, this, {single:true});        
+        this.on('beforerender', this.on_render, this, {single:true});
         this.pollTask = new Ext.util.DelayedTask(this.poll, this);
     },
     initComponent: function() {
@@ -264,7 +267,11 @@ Ext.define("Zenoss.JobsWidget", {
             text = _t("0 Jobs");
             cl = 'circle_arrows_still';
         } else {
-            running > 1 ? jobText = " Jobs" : jobText = " Job";
+            if (running > 1 ) {
+                jobText = " Jobs";
+            }else {
+                jobText = " Job";
+            }
             text = running + jobText + " ("+pending+" Pending)";
             cl = 'circle_arrows_ani';
         }

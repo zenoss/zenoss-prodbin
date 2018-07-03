@@ -30,8 +30,7 @@ from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits, \
-                                     ipunwrap, getHostByName
-from Products.ZenModel.interfaces import IIndexed
+                                     ipunwrap, getHostByName, ipAndMaskFromIpMask
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.PluginIndexes.FieldIndex.FieldIndex import FieldIndex
 # base classes for device
@@ -64,7 +63,7 @@ from ZenossSecurity import (
   ZEN_DELETE_DEVICE, ZEN_ADMIN_DEVICE, ZEN_MANAGE_DMD,
   ZEN_EDIT_LOCAL_TEMPLATES, ZEN_CHANGE_DEVICE_PRODSTATE,
 )
-from Products.ZenUtils.Utils import edgesToXML
+from Products.ZenUtils.Utils import edgesToXML, unpublished
 from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
@@ -75,6 +74,8 @@ from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.indexable import DeviceIndexable
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.ZenUtils.IpUtil import numbip
 from Products.ZenMessaging.audit import audit
 from Products.ZenModel.interfaces import IExpandedLinkProvider
@@ -83,6 +84,9 @@ from Products.ZenUtils.Search import (
     makeCaseInsensitiveKeywordIndex,
     makeMultiPathIndex
 )
+from Products.Jobber.facade import FacadeMethodJob
+
+DEFAULT_PRODSTATE = 1000
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -95,7 +99,7 @@ def getNetworkRoot(context, performanceMonitor):
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-            rackSlot="", productionState=1000, comments="",
+            rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
@@ -115,6 +119,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     device = deviceClass.createInstance(deviceName, performanceMonitor, manageIp)
+    device.setPerformanceMonitor(performanceMonitor)
     device.setManageIp(manageIp)
     device.manage_editDevice(
                 tag, serialNumber,
@@ -186,7 +191,7 @@ def manage_addDevice(context, id, REQUEST=None):
         # TODO: test this audits correctly. How is this called?
         #uid = context._getOb(serv.id).getPrimaryId()
         audit('UI.Device.Add', serv, deviceClass=context)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 addDevice = DTMLFile('dtml/addDevice',globals())
 
@@ -194,24 +199,22 @@ addDevice = DTMLFile('dtml/addDevice',globals())
 class NoNetMask(Exception): pass
 
 class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
-             AdministrativeRoleable, ZenMenuable):
+             AdministrativeRoleable, ZenMenuable, DeviceIndexable):
     """
     Device is a base class that represents the idea of a single computer system
     that is made up of software running on hardware. It currently must be IP
     enabled but maybe this will change.
     """
 
-    implements(IEventView, IIndexed, IGloballyIdentifiable)
+    implements(IEventView, IGloballyIdentifiable)
 
     event_key = portal_type = meta_type = 'Device'
 
-    default_catalog = "deviceSearch" #device ZCatalog
+    default_catalog = "deviceSearch"
 
     relationshipManagerPathRestriction = '/Devices'
     title = ""
     manageIp = ""
-    productionState = 1000
-    preMWProductionState = productionState
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
@@ -223,7 +226,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     sysedgeLicenseMode = ""
     priority = 3
     macaddresses = None
-
+    renameInProgress = False
+    # ZEN-28849: set a default production state for devices
+    privateattr_productionState = DEFAULT_PRODSTATE
+    _preMWProductionState = DEFAULT_PRODSTATE
 
     # Flag indicating whether device is in process of creation
     _temp_device = False
@@ -257,6 +263,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand',
             'commandable')),
+        ("ipaddress", ToOne(ToOne, "Products.ZenModel.IpAddress", "manageDevice")),
         # unused:
         ('monitors', ToMany(ToMany, 'Products.ZenModel.StatusMonitorConf',
             'devices')),
@@ -295,8 +302,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security = ClassSecurityInfo()
 
+    security.declarePrivate("propertyItems")
+
     def __init__(self, id, buildRelations=True):
         ManagedEntity.__init__(self, id, buildRelations=buildRelations)
+        self.resetProductionState()
         osObj = OperatingSystem()
         self._setObject(osObj.id, osObj)
         hw = DeviceHW()
@@ -306,6 +316,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self._snmpLastCollection = 0
         self._lastChange = 0
         self._create_componentSearch()
+
+    # Resets the production state to the default value
+    def resetProductionState(self):
+        super(Device, self).resetProductionState()
+        self._setProductionState(DEFAULT_PRODSTATE)
+        self.setPreMWProductionState(DEFAULT_PRODSTATE)
 
     def isTempDevice(self):
         flag = getattr(self, '_temp_device', None)
@@ -446,6 +462,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             ManagedEntity._setPropValue(self, id, value)
 
 
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'applyDataMap')
     def applyDataMap(self, datamap, relname="", compname="", modname="", parentId=""):
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
@@ -494,9 +511,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Return list of monitored DeviceComponents on this device.
         Wrapper method for getDeviceComponents
         """
-        return self.getDeviceComponents(monitored=True,
+        components = self.getDeviceComponents(monitored=True,
                                         collector=collector, type=type)
-
+        return filter(lambda x: x.getProductionState() >= x.zProdStateThreshold, components)
 
     security.declareProtected(ZEN_VIEW, 'getReportableComponents')
     def getReportableComponents(self, collector=None, type=None):
@@ -510,7 +527,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: list
         """
         return self.getMonitoredComponents(collector=collector, type=type);
-    
+
     def _createComponentSearchPathIndex(self):
         indexName = 'getAllPaths'
         if indexName not in self.componentSearch.indexes():
@@ -542,9 +559,34 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         for c in self.getDeviceComponentsNoIndexGen():
             c.index_object()
         # see ZEN-4087 double index the first component when creating this catalog
-        # otherwise it will not appear in the list of components. 
+        # otherwise it will not appear in the list of components.
         if len(self.componentSearch):
             self.componentSearch()[0].getObject().index_object()
+
+    def getDeviceComponents_from_model_catalog(self, monitored=None, collector=None, type=None):
+        """
+        Return list of all DeviceComponents on this device extracted from model catalog. not used for now
+
+        @type monitored: boolean
+        @type collector: string
+        @type type: string
+        @permission: ZEN_VIEW
+        @rtype: list
+        """
+        query = {"objectImplements": "Products.ZenModel.DeviceComponent.DeviceComponent"}
+        if collector is not None:
+            query['collectors'] = collector
+        if monitored is not None:
+            query['monitored'] = monitored
+        if type is not None:
+            query['meta_type'] = type
+
+        cat = IModelCatalogTool(self)
+        search_results = cat.search(query=query)
+        results = []
+        if search_results.total > 0:
+            results = [ brain.getObject() for brain in search_results.results ]
+        return results
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
@@ -668,6 +710,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.os.getProductKey()
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setOSProductKey')
     def setOSProductKey(self, prodKey, manufacturer=None):
         """
         Set the productKey of the device OS.
@@ -684,18 +727,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.hw.tag
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWTag')
     def setHWTag(self, assettag):
         """
         Set the asset tag of the device hardware.
         """
         self.hw.tag = assettag
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWProductKey')
     def setHWProductKey(self, prodKey, manufacturer=None):
         """
         Set the productKey of the device hardware.
         """
         self.hw.setProductKey(prodKey, manufacturer)
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setHWSerialNumber')
     def setHWSerialNumber(self, number):
         """
         Set the hardware serial number.
@@ -893,7 +939,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def _isDuplicateIp(self, ip):
         ipMatch = self.getNetworkRoot().findIp(ip)
         if ipMatch:
-            dev = ipMatch.device()
+            dev = ipMatch.manageDevice()
             if dev and self.id != dev.id:
                 return True
         return False
@@ -943,10 +989,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
             else:
                 self.manageIp = ip
-                self.index_object(idxs=('getDeviceIp',), noips=True)
-                notify(IndexingEvent(self, ('ipAddress',), True))
+                notify(IndexingEvent(self, ('decimal_ipAddress', 'text_ipAddress'), True))
                 log.info("%s's IP address has been set to %s.",
                          self.id, ip)
+                #Create a new IpAddress object from manageIp under the Network
+                ipWithoutNetmask, netmask = ipAndMaskFromIpMask(ip)
+                ipobj = self.getNetworkRoot().createIp(ipWithoutNetmask, netmask)
+                self.ipaddress.addRelation(ipobj)
+                notify(IndexingEvent(ipobj))
                 if REQUEST:
                     audit('UI.Device.ResetIP', self, ip=ip)
 
@@ -1055,7 +1105,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                 % (hwManufacturer, hwProductName))
                 self.hw.setProduct(hwProductName, hwManufacturer)
         else:
-            self.hw.productClass.removeRelation()
+            self.hw.removeProductClass()
 
         if osManufacturer and osProductName:
             # updateDevice uses the sentinel value "_no_change" to indicate
@@ -1065,7 +1115,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                 % (osManufacturer, osProductName))
                 self.os.setProduct(osProductName, osManufacturer, isOS=True)
         else:
-            self.os.productClass.removeRelation()
+            self.os.removeProductClass()
 
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'updateDevice')
@@ -1136,7 +1186,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if 'productionState' in kwargs:
             # Always set production state, but don't log it if it didn't change.
-            if kwargs['productionState'] != self.productionState:
+            if kwargs['productionState'] != self.getProductionState():
                 prodStateName = self.dmd.convertProdState(int(kwargs['productionState']))
                 log.info("setting productionState to %s" % prodStateName)
             self.setProdState(kwargs["productionState"])
@@ -1174,14 +1224,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.setPerformanceMonitor(kwargs["performanceMonitor"])
 
         self.setLastChange()
-        self.index_object()
         notify(IndexingEvent(self))
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_editDevice')
     def manage_editDevice(self,
                 tag="", serialNumber="",
-                zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-                rackSlot="", productionState=1000, comments="",
+                zSnmpCommunity=None, zSnmpPort=161, zSnmpVer=None,
+                rackSlot="", productionState=DEFAULT_PRODSTATE, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
@@ -1223,12 +1272,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'setTitle')
     def setTitle(self, newTitle):
         """
         Changes the title to newTitle and reindexes the object
         """
         super(Device, self).setTitle(newTitle)
-        self.index_object()
         notify(IndexingEvent(self, ('name',), True))
 
     def monitorDevice(self):
@@ -1237,7 +1286,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         @rtype: boolean
         """
-        return self.productionState >= self.zProdStateThreshold
+        return (self.getProductionState() >= self.zProdStateThreshold
+                and not self.renameInProgress)
 
 
     def snmpMonitorDevice(self):
@@ -1303,9 +1353,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         # Set production state on all components that inherit from this device
         ret = super(Device, self).setProdState(state, maintWindowChange, REQUEST)
-        for component in self.getDeviceComponents():
-            if isinstance(component, ManagedEntity) and self.productionState == component.productionState:
-                notify(IndexingEvent(component.primaryAq(), ('productionState',), True))
+        self._p_changed = True
         if REQUEST:
             audit('UI.Device.Edit', self, productionState=state,
                   maintenanceWindowChange=maintWindowChange)
@@ -1461,13 +1509,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
             self.addRelation("location", locobj)
         self.setAdminLocalRoles()
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
         if REQUEST:
             action = 'SetLocation' if locationPath else 'RemoveFromLocation'
             audit(['UI.Device', action], self, location=locationPath)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """
         DEPRECATED
@@ -1507,7 +1555,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
         self.setLastChange()
-        self.index_object()
         notify(IndexingEvent(self))
 
         if REQUEST:
@@ -1529,7 +1576,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Groups").createOrganizer
         self._setRelations("groups", objGetter, groupPaths)
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
 
 
@@ -1562,7 +1608,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Systems").createOrganizer
         self._setRelations("systems", objGetter, systemPaths)
-        self.index_object()
         notify(IndexingEvent(self, 'path', False))
 
 
@@ -1721,6 +1766,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if DateTime() > lastcoll + hours: return 1
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'applyProductContext')
     def applyProductContext(self):
         """
         Apply zProperties inherited from Product Contexts.
@@ -1811,20 +1857,22 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             audit('UI.Device.Delete', self, deleteStatus=deleteStatus,
                   deleteHistory=deleteHistory, deletePerf=deletePerf)
         self.getDmdRoot("Monitors").deletePreviousCollectorForDevice(self.getId())
+        self.dmd.getDmdRoot("ZenLinkManager").remove_device_from_cache(self.getId())
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
-            REQUEST['RESPONSE'].redirect(parent.absolute_url() +
+            REQUEST['RESPONSE'].redirect(parent.absolute_url_path() +
                                             "/deviceOrganizerStatus"
                                             '?message=Device deleted')
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')
-    def renameDevice(self, newId=None, REQUEST=None):
+    def renameDevice(self, newId=None, REQUEST=None, retainGraphData=False):
         """
         Rename device from the DMD.  Disallow assignment of
         an id that already exists in the system.
+        Block renaming for this Device if a rename is already in progress.
 
         @permission: ZEN_ADMIN_DEVICE
         @param newId: new name
@@ -1832,9 +1880,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
         """
+
         parent = self.getPrimaryParent()
         path = self.absolute_url_path()
         oldId = self.getId()
+        newPath = "/".join(self.getPrimaryPath()).replace(oldId, newId)
+
+        if self.renameInProgress:
+            log.warn("Rename already in progress for device {}.".format(self.id))
+            raise Exception("Rename already in progress for device {}.".format(self.id))
+
         if newId is None:
             return path
 
@@ -1846,10 +1901,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if newId == '' or newId == oldId:
             return path
 
-        device = self.dmd.Devices.findDeviceByIdExact( newId )
+        device = self.dmd.Devices.findDeviceByIdExact(newId)
         if device:
             message = 'Device already exists with id %s' % newId
-            raise DeviceExistsError( message, device )
+            raise DeviceExistsError(message, device)
 
         if REQUEST:
             audit('UI.Device.ChangeId', self, id=newId)
@@ -1862,39 +1917,47 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 self.title = newId
             parent.manage_renameObject(oldId, newId)
             self.setLastChange()
-            return self.absolute_url_path()
 
+            # Replace the old id in performance data with the new id.
+            # See ZEN-27329.
+            if retainGraphData:
+                self.renameInProgress = True
+                self.reassociatePerfDataAfterRename(oldId, newId)
+
+            return self.absolute_url_path()
         except CopyError:
             raise Exception("Device rename failed.")
 
+    def reassociatePerfDataAfterRename(self, oldId, newId):
+        """
+        Replace a dev id in metric names and tag values with the new id after
+        renaming the device.
+        """
+        self.dmd.JobManager.addJob(
+            FacadeMethodJob,
+            description=('Reassociating performance data for device {} with '
+                'new ID {}'.format(oldId, newId)),
+            kwargs=dict(
+                facadefqdn='Products.Zuul.facades.metricfacade.MetricFacade',
+                method='renameDevice',
+                oldId=oldId,
+                newId=newId
+            )
+        )
+
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'index_object')
     def index_object(self, idxs=None, noips=False):
         """
-        Override so ips get indexed on move.
+        Override so ips get indexed on move.  DEPRECATED
         """
-        super(Device, self).index_object(idxs)
-        if noips: return
-        for iface in self.os.interfaces():
-            for ip in iface.ipaddresses():
-                ip.index_object()
+        pass
 
-
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'unindex_object')
     def unindex_object(self):
         """
-        Override so ips get unindexed as well.
+        Override so ips get unindexed as well.  DEPRECATED
         """
-        self.unindex_ips()
-        super(Device, self).unindex_object()
-
-
-    def unindex_ips(self):
-        """
-        IpAddresses aren't contained underneath Device, so manage_beforeDelete
-        won't propagate. Thus we must remove those links explicitly.
-        """
-        cat = self.dmd.ZenLinkManager._getCatalog(layer=3)
-        brains = cat(deviceId=self.id)
-        for brain in brains:
-            brain.getObject().unindex_links()
+        pass
 
     def getUserCommandTargets(self):
         """
@@ -2057,11 +2120,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         templates = filter(lambda t: isinstance(self, t.getTargetPythonClass()), templates)
         return sorted(templates, key=lambda x: x.id.lower())
 
-    def getSnmpV3EngineId(self): 
-        return self.getProperty('zSnmpEngineId') 
- 
-    def setSnmpV3EngineId(self, value): 
-        self.setZenProperty('zSnmpEngineId', value) 
+    def getSnmpV3EngineId(self):
+        return self.getProperty('zSnmpEngineId')
+
+    def setSnmpV3EngineId(self, value):
+        self.setZenProperty('zSnmpEngineId', value)
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
     def getLinks(self, OSI_layer='3'):
@@ -2090,6 +2153,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return edgesToXML(edges, start)
 
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
+    @unpublished
     def getPrettyLink(self, target=None, altHref=""):
         """
         Gets a link to this device, plus an icon
@@ -2182,18 +2246,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Return the status number for this device of class statClass.
         """
-        
-        # If this device is not monitored or has never been modeled, we do not
-        # report on its status
-        if not self._snmpLastCollection or not self.monitorDevice():
+        if not self.monitorDevice():
             return None
-        
+
         from Products.ZenEvents.ZenEventClasses import Status_Ping
         if statusclass == Status_Ping:
+            return self._getPingStatus(statusclass)
+
+        return super(Device, self).getStatus(statusclass, **kwargs)
+
+    def _getPingStatus(self, statusclass):
+        if not self.zPingMonitorIgnore and self.getManageIp():
             from Products.Zuul import getFacade
             from Products.ZenEvents.events2.proxy import EventProxy
             from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-                SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
+                STATUS_SUPPRESSED, SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
             # Override normal behavior - we only care if the manage IP is down
 
             # need to add the ipinterface component id to search since we may be
@@ -2209,14 +2276,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             zep = getFacade('zep', self)
             event_filter = zep.createEventFilter(tags=[self.getUUID()],
                                                  severity=[SEVERITY_WARNING,SEVERITY_ERROR,SEVERITY_CRITICAL],
-                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED],
+                                                 status=[STATUS_NEW,STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED],
                                                  element_sub_identifier=element_sub_identifier,
                                                  event_class=filter(None, [statusclass]),
                                                  details={EventProxy.DEVICE_IP_ADDRESS_DETAIL_KEY: self.getManageIp()})
             result = zep.getEventSummaries(0, filter=event_filter, limit=0)
             return int(result['total'])
-
-        return super(Device, self).getStatus(statusclass, **kwargs)
+        else:
+            return None
 
     def ipAddressAsInt(self):
         ip = self.getManageIp()

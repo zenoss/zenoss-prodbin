@@ -26,7 +26,7 @@ def manage_addGraphReportElement(context, id, REQUEST = None):
     context._setObject(element.id, element)
     if REQUEST is not None:
         audit('UI.Report.AddElement', context, element.id)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 class GraphReportElement(ZenModelRM):

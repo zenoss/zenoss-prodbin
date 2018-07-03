@@ -16,6 +16,9 @@
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
         },{
+            "text": "date.js",
+            "path": "resources/js/zenoss/"
+        },{
             "text": "BaseGrid.js",
             "path": "resources/js/zenoss/"
         }, {
@@ -154,6 +157,9 @@
             "text": "ComponentPanel.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "EventAction.js",
+            "path": "resources/js/zenoss/form/"
+        },{
             "text": "Severity.js",
             "path": "resources/js/zenoss/form/"
         },{
@@ -200,9 +206,9 @@
             "path": "resources/js/zenoss/"
         },{
             "text": "SettingsGrid.js",
-            "path": "resources/js/zenoss/form/"  
+            "path": "resources/js/zenoss/form/"
         },{
-            "text": "organizerdropdown.js", 
+            "text": "organizerdropdown.js",
             "path": "resources/js/zenoss/form/"
         },{
             "text": "modelerPluginPanel.js",
@@ -234,15 +240,15 @@
         },{
             "text": "CustomPropertyPanel.js",
             "path": "resources/js/zenoss/form/"
-        },{        
+        },{
             "text": "JobsWidget.js",
-            "path": "resources/js/zenoss/" 
-        },{        
+            "path": "resources/js/zenoss/"
+        },{
             "text": "Administration.js",
-            "path": "resources/js/zenoss/devicemanagement/"  
-        },{        
+            "path": "resources/js/zenoss/devicemanagement/"
+        },{
             "text": "OverriddenObjects.js",
-            "path": "resources/js/zenoss/"  
+            "path": "resources/js/zenoss/"
         },{
             "text": "PageStatistics.js",
             "path": "resources/js/zenoss/"
@@ -252,6 +258,9 @@
         },{
             "text": "ManufacturersPanels.js",
             "path": "resources/js/zenoss/manufacturers/"
+        },{
+            "text": "joblogdialog.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

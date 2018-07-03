@@ -16,9 +16,9 @@ from Products.ZenWidgets.messaging import IMessageSender
 from Products.Jobber.jobs import SubprocessJob
 from Products.ZenUtils.Utils import binPath
 from Products.Zuul import getFacade
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import ITreeFacade, INetworkFacade
-from Products.Zuul.interfaces import IInfo, ICatalogTool
+from Products.Zuul.interfaces import IInfo, ITreeFacade, INetworkFacade
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
@@ -123,7 +123,7 @@ class NetworkFacade(TreeFacade):
     def getIpAddresses(self, limit=0, start=0, sort='ipAddressAsInt', dir='DESC',
               params=None, uid=None, criteria=()):
         infos = []
-        cat = ICatalogTool(self._getObject(uid))
+        cat = IModelCatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
 
         brains = cat.search("Products.ZenModel.IpAddress.IpAddress",

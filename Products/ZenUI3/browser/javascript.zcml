@@ -65,20 +65,19 @@
 
 <browser:viewlet
         name="timezone-support"
-        weight="4"
+        weight="3"
         manager=".interfaces.IJavaScriptSrcManager"
         permission="zope2.Public"
         class=".javascript.JavaScriptSrcBundleViewlet"
         paths="/++resource++zenui/js/timezone/moment.min.js
-               /++resource++zenui/js/timezone/moment-timezone.js
-               /++resource++zenui/js/timezone/jstz.js
-               /++resource++zenui/js/timezone/moment-timezone-data.js"
+               /++resource++zenui/js/timezone/moment-timezone-with-data.min.js
+               /++resource++zenui/js/timezone/jstz.js"
         />
 
 
 <browser:viewlet
         name="js-all"
-        path="extdirect.js"
+        path="/zport/dmd/extdirect.js"
         weight="4"
         manager=".interfaces.IJavaScriptSrcManager"
         class=".javascript.ExtDirectViewlet"
@@ -95,12 +94,13 @@
 
 <browser:viewlet
         name="i18njs"
-        paths="i18n.js"
+        paths="/zport/dmd/i18n.js"
         weight="6"
         manager=".interfaces.IJavaScriptSrcManager"
         class=".javascript.JavaScriptSrcBundleViewlet"
         permission="zope2.Public"
         />
+
 <browser:viewlet
     name="xtracelibraries"
     weight="1"

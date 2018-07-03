@@ -26,9 +26,9 @@ from Lockable import Lockable
 from EventView import EventView
 from Products.ZenUtils.Utils import getAllConfmonObjects
 from Products.Zuul.catalog.interfaces import IPathReporter
+from Products.Zuul.catalog.indexable import ComponentIndexable
 
-
-class DeviceComponent(Lockable):
+class DeviceComponent(Lockable, ComponentIndexable):
     """
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
@@ -71,7 +71,7 @@ class DeviceComponent(Lockable):
         """
         url = ""
         dev = self.device()
-        if dev: url = dev.absolute_url()
+        if dev: url = dev.absolute_url_path()
         return url
 
     security.declareProtected(ZEN_VIEW, 'name')
@@ -224,7 +224,7 @@ class DeviceComponent(Lockable):
         """
         url = None
         if REQUEST is not None:
-            url = self.device().absolute_url()
+            url = self.device().absolute_url_path()
         self.getPrimaryParent()._delObject(self.id)
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)

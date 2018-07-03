@@ -17,6 +17,7 @@ log = logging.getLogger("zen.MetricMixin")
 
 from Acquisition import aq_chain
 from Products.ZenUtils import Map
+from Products.ZenUtils.metrics import SEPARATOR_CHAR
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.Zuul import getFacade
@@ -107,6 +108,12 @@ class MetricMixin(object):
                 graphs.append((g, self))
         return graphs
 
+    def getGraphObject(self, graphId):
+        return next((g for t in self.getRRDTemplates()
+                                for g in t.getGraphDefs()
+                                    if g.id == graphId),
+                         None)
+
     def getDefaultGraphDefs(self, drange=None):
         """Backwards compatible layer for zenpacks. """
         log.warn('As of zenoss 5.x and above getDefaultGraphDefs is not supported, use getGraphObjects instead.')
@@ -174,26 +181,49 @@ class MetricMixin(object):
         """
         return json.dumps(self.getMetricMetadata(), sort_keys=True)
 
-    def getResourceKey(self):
+    def getResourceKey(self, d=None):
         """
         Formerly RRDView.GetRRDPath, this value is still used as the key for the
         device or component in OpenTSDB.
         """
-        d = self.device()
+        if d is None:
+            d = self.device()
         if not d:
             return "Devices/" + self.id
         skip = len(d.getPrimaryPath()) - 1
         return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
-    def getMetricMetadata(self):
-        return {
+    def getMetricNameContext(self):
+        """
+        Used in conjuction with the 'contextMetric' property. If 'contexMetric' is True,
+        this method will be called to get additional context for the metricname.
+        """
+        return self.id
+
+    def contextMetric(self):
+        """
+        If true the metric name prefix will contain value returned by 'getMetricNameContext'
+        """
+        return False
+    
+    def getMetricMetadata(self, dev=None):
+        if dev is None:
+            dev = self.device()
+            
+        mdata = {
                 'type': 'METRIC_DATA',
-                'contextKey': self.getResourceKey(),
-                'deviceId': self.device().id,
+                'contextKey': self.getResourceKey(dev),
+                'deviceId': dev.id,
                 'contextId': self.id,
-                'deviceUUID': self.device().getUUID(),
+                'deviceUUID': dev.getUUID(),
                 'contextUUID': self.getUUID()
                 }
+
+        if self.contextMetric():
+            metricContext = self.getMetricNameContext()
+            mdata['metricPrefix'] = '%s%s%s' % (dev.id, SEPARATOR_CHAR , metricContext)
+
+        return mdata
 
     def getRRDContextData(self, context):
         return context
@@ -264,11 +294,20 @@ class MetricMixin(object):
     def getUUID(self):
         return IGlobalIdentifier(self).getGUID()
 
+    def fetchMetrics(self, dpnames, cf, resolution, start, end="now",
+                     returnSet="ALL"):
+       """
+       Query the server for metrics and return the response.
+       """
+       facade = getFacade('metric', self.dmd)
+       return facade.queryServer(self, dpnames, cf=cf, start=start, end=end,
+                                 downsample=resolution, returnSet=returnSet)
+
     def fetchRRDValues(self, dpnames, cf, resolution, start, end="now"):
         """
         Compat method for RRD. This returns a list of metrics.
         The output looks something like this
-        >>> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
+        $> pprint(obj.fetchRRDValues('dsname_dpname', 'AVERAGE', 300, 'end-1d', 'now'))
            ((1417452900, 1417539600, 300),
             ('ds0',),
           [(83.69137058,),
@@ -300,27 +339,30 @@ class MetricMixin(object):
 
         # parse start and end into unix timestamps
         start, end = self._rrdAtTimeToUnix(start, end)
-        for dpname in dpnames:
-            response = facade.queryServer(self, dpnames, cf=cf, start=start, end=end, downsample=resolution, returnSet="ALL")
-            values = response.get('results', [])
-            firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
-            secondRow = ('ds0',)
+        response = self.fetchMetrics(dpnames, cf=cf, resolution=resolution, start=start, end=end)
+
+        values = response.get('results', [])
+        firstRow = (response.get('startTimeActual'), response.get('endTimeActual'), resolution)
+        secondRow = ('ds0',)
+
+        for value in values:
             thirdRow = []
-            if values:
-                thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, values)
+            if value:
+                thirdRow = self._createRRDFetchResults(response.get('startTimeActual'), response.get('endTimeActual'), resolution, value)
             results.append((firstRow, secondRow, thirdRow))
+
         return results
 
     def fetchRRDValue(self, dpname, cf, resolution, start, end="now"):
         """
-        Calls fetcdh RRDValue but returns the first result.
+        Calls fetch RRDValue but returns the first result.
         """
-        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
+        r = self.fetchRRDValues([dpname, ], cf, resolution, start, end=end)
         if r:
             return r[0]
         return None
 
-    def _createRRDFetchResults(self, start, end, resolution, values):
+    def _createRRDFetchResults(self, start, end, resolution, value):
         """
         Given a set of metrics returned from the metric server and the start, end and resolution
         this method returns a metric for each "step" or a None if one can't be found.
@@ -332,15 +374,16 @@ class MetricMixin(object):
         # create a list of None's for the return value
         buckets = [(None,) for x in range(size)]
         currentTime = start
-        if not values:
+        if not value:
             return buckets
 
         # we are making the assumption we are only working with one datapoint
         # also that the return set is sorted sequentially
         try:
-            values = values[0]['datapoints']
+            values = value['datapoints']
         except KeyError:
-            raise Exception("Unable to find datapoints from metric query results %s" % values)
+            log.error("Unable to find datapoints from metric query results %s", value)
+            return buckets
 
         for idx, _ in enumerate(buckets):
             if len(values) == 0 or currentTime > end:
@@ -379,7 +422,7 @@ class MetricMixin(object):
                 newEnd = end
             else:
                 newEnd = self._parseTime(end, time.time())
-        if "end-" in start:
+        if isinstance(start, basestring) and  "end-" in start:
             fromTime = newEnd
         else:
             fromTime = time.time()

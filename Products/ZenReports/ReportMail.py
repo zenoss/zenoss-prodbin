@@ -11,7 +11,7 @@ import sys
 import os
 import urllib2
 from HTMLParser import HTMLParser
-from urlparse import urlparse, urlunparse
+from urlparse import urlparse, urlunparse, parse_qs, urlsplit, urlunsplit
 from email.MIMEMultipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 import Globals
@@ -127,11 +127,25 @@ class ReportMail(ZenScriptBase):
         return gValidReportFileTypes[0].lower() # create a pdf
 
     def mangleUrl(self, url):
+        # remove path if exists
         if url.find('/zport/dmd/reports#reporttree:') != -1 :
             urlSplit = url.split('/zport/dmd/reports#reporttree:')
             url = urlSplit[0] + urlSplit[1].replace('.', '/')
-        if url.find('adapt=false') == -1 :
-            url += '?adapt=false' if url.find('?') == -1 else '&adapt=false'
+        parsed = urlsplit(url)
+        q_params = parse_qs(parsed.query)
+        # remove a cache buster query param
+        q_params.pop('_dc', None)
+        q_params['adapt'] = 'false'
+        url = urlunsplit(
+            (
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                '&'.join([ '='.join(entry) for entry in q_params.items() ]),
+                parsed.fragment
+            )
+        )
+
         return url
 
     def buildOptions(self):

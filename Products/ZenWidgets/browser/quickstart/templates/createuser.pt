@@ -23,6 +23,8 @@ user creation from the server.                                  -->
     <input type="hidden" id="login_password" name="__ac_password"/>
 </form>
 
+<script type="text/javascript" tal:content="string: var createuser_local_csrfToken='${context/csrf_token/token}';"></script>
+
 </tal:block>
 
 <tal:block metal:fill-slot="buttons">
@@ -46,7 +48,7 @@ user creation from the server.                                  -->
         });
 
         var doSubmit = function() {
-            userform.getForm().submit({url:'qs-createuser'})
+            userform.getForm().submit({url:'qs-createuser', params: {csrf_token: createuser_local_csrfToken}})
         }
 
         var userform = new Ext.FormPanel({

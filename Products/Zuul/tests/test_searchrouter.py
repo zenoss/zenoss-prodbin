@@ -122,6 +122,15 @@ class TestSearchRouter(BaseTestCase):
                             [ _createJSONInfo(y, False) for y in range(1,8)]},
                            varResults )
 
+    def testSanitizeQuery(self):
+        cases = (('test', 'test'),
+                 ('**zen**java**', 'zen*java'),
+                 (' * * ***test***    * * test check  ', 'test check'))
+        router = SearchRouter(self.dmd)
+        for query, expected in cases:
+            result = router._sanitizeQuery(query)
+            self.assertEquals(result, expected)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

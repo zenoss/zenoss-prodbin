@@ -77,6 +77,7 @@ class DataPointGraphPointInfo(ColorGraphPointInfo):
     rpn = ProxyProperty('rpn')
     dpName = ProxyProperty('dpName')
     cFunc = ProxyProperty('cFunc')
+    skipCalc = ProxyProperty('skipCalc')
 
 
 class DefGraphPointInfo(GraphPointInfo):

@@ -13,7 +13,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 from Products.ZenModel.BaseReport import BaseReport
-from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from GraphReportElement import GraphReportElement
 from Products.ZenUtils.Utils import getObjByPath, getDisplayType
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
@@ -29,7 +29,7 @@ def manage_addGraphReport(context, id, REQUEST = None):
     context._setObject(gr.id, gr)
     if REQUEST is not None:
         audit('UI.Report.Add', gr.id, reportType=getDisplayType(gr), organizer=context)
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()+'/manage_main')
 
 
 class GraphReport(BaseReport):
@@ -121,7 +121,10 @@ class GraphReport(BaseReport):
         componentPaths = componentPaths or ('')
         for devId in deviceIds:
             dev = self.dmd.Devices.findDevice(devId)
-            for cPath in componentPaths:
+            # NOTE: There is no much sense to use component, which missed on
+            #       device, so we filred components to use only related to
+            #       device ones.
+            for cPath in filter(lambda path: dev.id in path, componentPaths) or ['']:
                 try:
                     thing = getObjByPath(dev, cPath)
                 except KeyError:

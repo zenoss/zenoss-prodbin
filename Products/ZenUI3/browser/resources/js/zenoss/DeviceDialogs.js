@@ -21,7 +21,9 @@
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, {
-                height: 175,
+                height: 410,
+                width: 500,
+                padding: '20 40 20 18',
                 title: _t('Reidentify Device'),
                 submitHandler: Ext.bind(this.renameDevice, this),
                 items: [{
@@ -29,19 +31,53 @@
                     name: 'uid',
                     value: config.uid
                 },{
-                    xtype: 'label',
-                    text: _t('Change the ID of this device.')
-                },{
                     xtype: 'displayfield',
-                    value:  _t('WARNING: All graph data for this device will be lost!'),
-                    style: {
-                        fontWeight: "bold"
-                    }
-                },{
+                    padding: '0 0 14 0',
+                    value: _t(config.uid.split("/devices/")[1]),
+                    labelAlign: 'left',
+                    fieldLabel: _t('Current ID:')
+                }, {
                     xtype: 'idfield',
+                    padding: '0 0 14 0',
                     name: 'newId',
+                    labelAlign: 'left',
                     fieldLabel: _t('New ID'),
                     allowBlank: false
+                }, {
+                    padding: '20 48 20 0',
+                    xtype: 'displayfield',
+                    fieldCls: 'x-form-display-field-jumbo',
+                    value: _t('Caution: Existing performance data stored for this device will be lost unless that data is reassociated with the new device ID.')
+                }, {
+                    xtype: 'fieldcontainer',
+                    margin: '0 30 14 20',
+                    defaultType: 'radiofield',
+                    layout: 'vbox',
+                    align: 'left',
+                    items: [
+                        {
+                            boxLabel: 'Reassociate existing performance data with new device ID',
+                            name: 'retainGraphData',
+                            inputValue: true,
+                            checked: true,
+                        }, {
+                            xtype: 'displayfield',
+                            margin: '0 0 20 16',
+                            width: '350px',
+                            fieldCls: 'x-form-display-field-note',
+                            value: _t('Note: This process could take some time, during which no metrics will be collected or graphed for this device.')
+                        }, {
+                            boxLabel: 'Delete existing performance data and start fresh with new device ID',
+                            name: 'retainGraphData',
+                            inputValue: false,
+                        }, {
+                            xtype: 'displayfield',
+                            fieldCls: 'x-form-display-field-note',
+                            margin: '0 0 20 16',
+                            width: '350px',
+                            value: _t('Note: Collection of new performance data will begin immediately.')
+                        }
+                    ]
                 }]
             });
             this.callParent([config]);

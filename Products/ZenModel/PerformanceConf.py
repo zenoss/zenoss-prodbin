@@ -13,6 +13,7 @@ The configuration object for Performance servers
 """
 
 import logging
+import re
 
 from ipaddr import IPAddress
 
@@ -64,7 +65,7 @@ def manage_addPerformanceConf(context, id, title=None, REQUEST=None,):
     # Use the factory to create the monitor.
     component.createObject(PerformanceConf.meta_type, context, id)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path() + '/manage_main')
 
 addPerformanceConf = DTMLFile('dtml/addPerformanceConf', globals())
 
@@ -204,6 +205,20 @@ class PerformanceConf(Monitor, StatusColor):
         if brains:
             return brains[0].getObject()
 
+    def findDeviceByIdExact(self, deviceName):
+        """
+        Look up device in catalog and return it.  devicename
+        must match device id exactly
+
+        @param deviceName: Name of a device
+        @type deviceName: string
+        @return: device corresponding to the name, or None
+        @rtype: device object
+        """
+        dev = self.dmd.Devices.findDeviceByIdExact(deviceName)
+        if dev:
+            return dev
+
     def getNetworkRoot(self, version=None):
         """
         Get the root of the Network object in the DMD
@@ -228,7 +243,7 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             dev = dev.primaryAq()
             if not dev.pastSnmpMaxFailures() and dev.monitorDevice():
-                devlist.append(dev.getPrimaryUrlPath(full=True))
+                devlist.append(dev.getPrimaryUrlPath())
         return devlist
 
     security.declareProtected('View', 'performanceDataSources')
@@ -458,9 +473,10 @@ class PerformanceConf(Monitor, StatusColor):
 
     def _getZenDiscCommand(
             self, deviceName, devicePath,
-            performanceMonitor, productionState, REQUEST=None):
+            performanceMonitor, productionState, REQUEST=None, max_seconds=None):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
+        deviceName = self._escapeParentheses(deviceName)
         zendiscOptions = [
             'run', '--now', '-d', deviceName,
             '--monitor', performanceMonitor,
@@ -497,7 +513,8 @@ class PerformanceConf(Monitor, StatusColor):
 
     def collectDevice(
             self, device=None, setlog=True, REQUEST=None,
-            generateEvents=False, background=False, write=None):
+            generateEvents=False, background=False, write=None,
+            collectPlugins=''):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -510,10 +527,14 @@ class PerformanceConf(Monitor, StatusColor):
         @type REQUEST: Zope REQUEST object
         @param generateEvents: unused
         @type generateEvents: string
+        @param collectPlugins: (optional) Modeler plugins to use.
+                               Takes a regular expression (default: '')
+        @type  collectPlugins: string
         """
         xmlrpc = isXmlRpc(REQUEST)
         result = self._executeZenModelerCommand(device.id, self.id, background,
-                                                REQUEST, write)
+                                                REQUEST, write,
+                                                collectPlugins=collectPlugins)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
@@ -522,20 +543,23 @@ class PerformanceConf(Monitor, StatusColor):
             return 0
 
     def _executeZenModelerCommand(
-            self, deviceName, performanceMonitor="localhost", background=False, REQUEST=None, write=None):
+            self, deviceName, performanceMonitor="localhost", background=False,
+            REQUEST=None, write=None, collectPlugins=''):
         """
         Execute zenmodeler and return result
-
         @param deviceName: The name of the device
         @type deviceName: string
         @param performanceMonitor: Name of the collector
         @type performanceMonitor: string
         @param REQUEST: Zope REQUEST object
         @type REQUEST: Zope REQUEST object
+        @param collectPlugins: (optional) Modeler plugins to use.
+                               Takes a regular expression (default: '')
+        @type  collectPlugins: string
         @return: results of command
         @rtype: string
         """
-        args = [deviceName, performanceMonitor]
+        args = [deviceName, performanceMonitor, collectPlugins]
         if background:
             zenmodelerCmd = self._getZenModelerCommand(*args)
             log.info('queued job: %s', " ".join(zenmodelerCmd))
@@ -551,11 +575,13 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
     def _getZenModelerCommand(
-            self, deviceName, performanceMonitor, REQUEST=None):
+            self, deviceName, performanceMonitor,  collectPlugins='', REQUEST=None):
         zm = binPath('zenmodeler')
         cmd = [zm]
+        deviceName = self._escapeParentheses(deviceName)
         options = [
-            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor
+            'run', '--now', '-d', deviceName, '--monitor', performanceMonitor,
+            '--collect={}'.format(collectPlugins)
         ]
         cmd.extend(options)
         log.info('local zenmodelerCmd is "%s"' % ' '.join(cmd))
@@ -564,6 +590,13 @@ class PerformanceConf(Monitor, StatusColor):
     def _executeCommand(self, remoteCommand, REQUEST=None, write=None):
         result = executeCommand(remoteCommand, REQUEST, write)
         return result
+
+    def _escapeParentheses(self, string):
+        """
+        Escape unascaped parentheses.
+        """
+        compiled = re.compile(r'(?<!\\)(?P<char>[()])')
+        return compiled.sub(r'\\\g<char>', string)
 
 
 class RenderURLUtilContext(object):

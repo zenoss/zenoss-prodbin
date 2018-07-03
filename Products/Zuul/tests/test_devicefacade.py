@@ -9,16 +9,16 @@
 
 
 import unittest
-import zope.component
-from Products.Zuul.catalog.interfaces import IIndexingEvent
 from zope.interface.verify import verifyClass
 from zope.event import notify
 from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import IDeviceInfo
+from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.device import DeviceInfo
 from Products.ZenModel.Location import manage_addLocation
 from Products.Zuul.catalog.events import IndexingEvent
+from Products.Zuul.utils import unbrain
 
 
 class DeviceFacadeTest(ZuulFacadeTestCase):
@@ -41,7 +41,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         organizer = self.facade.addOrganizer("/zport/dmd/Groups", 'testOrganizer')
         organizer_path = organizer.uid
 
-        catalog = self.dmd.zport.global_catalog
+        catalog = IModelCatalogTool(self.dmd)
 
         # Add some devices to it (use createInstance to create a device)
         devices = self.dmd.Devices
@@ -51,15 +51,15 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
 
         # test we have added the device
         self.assertEqual(len(organizer.getDevices()), 1, "make sure we saved our device")
-        deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
-        self.assertTrue(len(deviceBrains) > 1, " At this point we should have the organizer and the device")
+        deviceBrains = catalog.search(paths='/'.join(organizer.getPhysicalPath()))
+        self.assertTrue(deviceBrains.total > 1, " At this point we should have the organizer and the device")
 
         # Delete the Organizer
         self.facade.deleteNode(organizer_path)
 
         # Get the devices directly from the path
-        deviceBrains = catalog(path='/'.join(organizer.getPhysicalPath()))
-        self.assertEqual(len(deviceBrains), 0, " we should not have any devices at this point")
+        deviceBrains = catalog.search(paths='/'.join(organizer.getPhysicalPath()))
+        self.assertEqual(deviceBrains.total, 0, " we should not have any devices at this point")
 
     def test_removeDeviceFromSingleGroup(self):
         red = self.facade.addOrganizer("/zport/dmd/Groups", 'Red')
@@ -80,7 +80,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         test_device.setGroups(groupNames)
 
         groups = test_device.groups()
-        
+
         # verify all our groups are there before removing one
         self.assertTrue(red_org in groups)
         self.assertTrue(orange_org in groups)
@@ -143,31 +143,98 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(location="test1"))
         self.assertEquals(1, results.total)
 
-    def test_setProductionState(self):
-        notified = []
-        @zope.component.adapter(IIndexingEvent)
-        def _indexed(event):
-            self.assertEqual(event.idxs, ('productionState',))
-            self.assertEqual(event.update_metadata, True)
-            notified.append(event)
+    def test_deviceSearchAndSortByProdState(self):
+        devMaintenance = self.dmd.Devices.createInstance('devMaintenance')
+        devMaintenance.setPerformanceMonitor('localhost')
+        devMaintenance.setProdState(400)
 
+        devProduction = self.dmd.Devices.createInstance('devProduction')
+        devProduction.setPerformanceMonitor('localhost')
+        devProduction.setProdState(1000)
+
+        # Search by prod state
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[400]))
+        self.assertEquals(1, results.total)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 400)
+
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", params=dict(productionState=[1000]))
+        self.assertEquals(1, results.total)
+        self.assertEquals(iter(results).next().getObject().getProductionState(), 1000)
+
+        # Sort by prod state
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState')
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
+
+        # Sort by prod state, descending order
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', dir='DESC')
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 1000)
+        self.assertEquals(resultIter.next().getObject().getProductionState(), 400)
+
+        # This test specifically verifies the fix for ZEN-26901 sorting by a non-indexed
+        # field while filtering on productionState caused a ProdStateNotSetError.
+
+        # sort by status (non-indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='status', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+        device = resultIter.next()
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+
+        # sort by name (indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='name', params=dict(productionState=[400, 1000]))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+
+        # This test specifically verifies the fix for ZEN-26901 sorting productionState
+        # while filtering on an indexed field caused a ProdStateNotSetError.
+
+        # sort by productionState with name (indexed) filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort="productionState", params=dict(name="dev"))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 400)
+        self.assertEquals(device.getObject().getDeviceName(), 'devMaintenance')
+        device = resultIter.next()
+        self.assertEquals(device.getObject().getProductionState(), 1000)
+        self.assertEquals(device.getObject().getDeviceName(), 'devProduction')
+
+        # sort by productionState with collector (non-indexed) filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='productionState', params=dict(collector="local"))
+        resultIter = iter(results)
+        self.assertEquals(2, results.total)
+        device = unbrain(resultIter.next())
+        self.assertEquals(device.getProductionState(), 400)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+        device = unbrain(resultIter.next())
+        self.assertEquals(device.getProductionState(), 1000)
+        self.assertEquals(device.getPerformanceServer().id, 'localhost')
+
+    def test_setProductionState(self):
         dev = self.dmd.Devices.createInstance('dev')
         dev2 = self.dmd.Devices.createInstance('dev2')
 
-        self.assertEqual(dev.productionState, 1000)
-        self.assertEqual(dev2.productionState, 1000)
-
-        zope.component.provideHandler(_indexed)
+        self.assertEqual(dev.getProductionState(), 1000)
+        self.assertEqual(dev2.getProductionState(), 1000)
 
         self.facade.setProductionState((dev.getPrimaryUrlPath(),
                                         dev2.getPrimaryUrlPath()), 500)
 
-        self.assertEqual(dev.productionState, 500)
-        self.assertEqual(dev2.productionState, 500)
-
-        self.assertEqual(len(notified), 2)
-
-        zope.component.getGlobalSiteManager().unregisterHandler(_indexed)
+        self.assertEqual(dev.getProductionState(), 500)
+        self.assertEqual(dev2.getProductionState(), 500)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(DeviceFacadeTest),))

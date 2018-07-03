@@ -12,7 +12,7 @@ import Migrate
 
 import Globals
 
-from Products.ZenModel.LinkManager import _create_layer2_catalog
+#from Products.ZenModel.LinkManager import _create_layer2_catalog
 
 import logging
 log = logging.getLogger("zen.migrate")
@@ -24,12 +24,12 @@ class Layer2Catalog(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
     def cutover(self, dmd):  
-
+        """
         # Add the catalog
         try:
             getattr(dmd.ZenLinkManager, 'layer2_catalog')
         except AttributeError:
-            _create_layer2_catalog(dmd.ZenLinkManager)
+            #_create_layer2_catalog(dmd.ZenLinkManager)
 
         # Reindex the interfaces
         print "Indexing interfaces. This may take a while."
@@ -42,6 +42,8 @@ class Layer2Catalog(Migrate.Step):
         for i, iface in enumerate(dmd.Devices.getSubComponents("IpInterface")):
             iface.index_object()
             _update(i)
+        """
+        pass
 
 
 Layer2Catalog()

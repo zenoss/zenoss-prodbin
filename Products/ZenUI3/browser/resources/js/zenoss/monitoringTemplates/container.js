@@ -168,12 +168,13 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
         }, this);
     },
     setContext: function(uid, callback, scope) {
-        this.uid = uid;
-        if ( uid.match('^/zport/dmd/Devices') ) {
+        // ZEN-30062
+        this.uid = Zenoss.render.link(false, uid);
+        if ( this.uid.match('^/zport/dmd/Devices') ) {
             this.show();
             var root = this.getRootNode();
             if (root) {
-                root.data.uid = uid;
+                root.data.uid = this.uid;
                 this.getStore().load({
                     callback: callback,
                     scope: scope
@@ -353,7 +354,7 @@ Ext.define("Zenoss.BindTemplatesDialog", {
                 ui: 'dialog-dark',
                 text: _t('Save'),
                 handler: function(){
-                    var records, data, templateIds;
+                    var templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         templateIds = Ext.getCmp(itemId).getValue();
                         REMOTE.setBoundTemplates({
@@ -468,7 +469,6 @@ Ext.define("Zenoss.OverrideTemplatesDialog", {
                 disabled: true,
                 text: _t('Submit'),
                 handler: function(){
-                    var records, data, templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         var templateUid = me.comboBox.getValue();
                         Zenoss.remote.TemplateRouter.copyTemplate({
@@ -544,7 +544,6 @@ Ext.define("Zenoss.removeLocalTemplateDialog", {
                 disabled: true,
                 text: _t('Submit'),
                 handler: function(){
-                    var records, data, templateIds;
                     if (Zenoss.Security.hasPermission('Manage DMD')) {
                         var templateUid = me.comboBox.getValue();
                         REMOTE.removeLocalTemplate({

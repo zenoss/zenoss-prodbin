@@ -1,8 +1,8 @@
 function DirectedAcyclicGraph() {
-    
+
     var layout_count = 0;
     var animate = true;
-    
+
     /*
      * Main rendering function
      */
@@ -14,15 +14,16 @@ function DirectedAcyclicGraph() {
 
             // Size the chart
             svg.attr("width", width.call(this, data));
-            svg.attr("height", height.call(this, data));            
-            
+            svg.attr("height", height.call(this, data));
+
             // Get the edges and nodes from the data.  Can have user-defined accessors
             var edges = getedges.call(this, data);
             var nodes = getnodes.call(this, data);
-            
+
             // Get the existing nodes and edges, and recalculate the node size
             var existing_edges = svg.select(".graph").selectAll(".edge").data(edges, edgeid);
             var existing_nodes = svg.select(".graph").selectAll(".node").data(nodes, nodeid);
+            var clickable_edges = svg.select(".graph").selectAll(".largeEdge").data(edges, edgeid);
 
             // Capture the "preexisting" nodes before adding enter nodes to existing nodes
             existing_nodes.classed("pre-existing", true);
@@ -30,19 +31,22 @@ function DirectedAcyclicGraph() {
 
             var removed_edges = existing_edges.exit();
             var removed_nodes = existing_nodes.exit();
-            
+            var removed_large_edges = clickable_edges.exit();
+
             var new_edges = existing_edges.enter().insert("path", ":first-child").attr("class", "edge entering");
             var new_nodes = existing_nodes.enter().append("g").attr("class", "node entering");
-            
+            var new_large_edges = existing_edges.enter().insert("path", ":first-child").attr("class", "largeEdge entering");
+
             // Draw new nodes
             new_nodes.each(drawnode);
             existing_nodes.each(sizenode);
             if (animate) {
                 removed_edges.classed("visible", false).transition().duration(500).remove();
             } else {
-                removed_edges.classed("visible", false).remove();                
+                removed_edges.classed("visible", false).remove();
+                removed_large_edges.remove();
             }
-            
+
             // Do the layout
             layout.call(svg.select(".graph").node(), nodes, edges);
             existing_nodes.classed("pre-existing", false);
@@ -55,19 +59,23 @@ function DirectedAcyclicGraph() {
                 svg.select(".graph").selectAll(".edge.visible").transition().duration(800).attrTween("d", graph.edgeTween);//attr("d", graph.splineGenerator);
                 existing_nodes.transition().duration(800).attr("transform", graph.nodeTranslate);
             } else {
-                svg.select(".graph").selectAll(".edge.visible").attr("d", graph.splineGenerator);      
-                existing_nodes.attr("transform", graph.nodeTranslate);         
+                svg.select(".graph").selectAll(".edge.visible").attr("d", graph.splineGenerator);
+                svg.select(".graph").selectAll(".largeEdge.visible").attr("d", graph.splineGenerator);
+                existing_nodes.attr("transform", graph.nodeTranslate);
             }
-            
+
             new_nodes.each(newnodetransition);
             new_edges.attr("d", graph.splineGenerator).classed("visible", true);
+            new_large_edges.attr("d", graph.splineGenerator).classed("visible", true);
+
             existing_nodes.classed("visible", true);
             window.setTimeout(function() {
                 new_edges.classed("entering", false);
+                new_large_edges.classed("entering", false);
                 new_nodes.classed("entering", false);
             }, 2000);
         });
-        
+
     }
 
 
@@ -80,6 +88,15 @@ function DirectedAcyclicGraph() {
     var nodeid = function(d) { return d.id; }
     var getnodes = function(d) { return d.getVisibleNodes(); }
     var getedges = function(d) { return d.getVisibleLinks(); }
+    var d3interpolate = function(d) {
+        return "basis";
+    };
+    var nodewidth = function(d) {
+        return 60;
+    }
+    var nodeheight = function(d) {
+        return 45;
+    };
     var bbox = function(d) {
         return d3.select(this).select("rect").node().getBBox();
     }
@@ -98,9 +115,10 @@ function DirectedAcyclicGraph() {
     var updatenode = function(d){
         drawnode(d);
     }
+
     var sizenode = function(d) {
         // Because of SVG weirdness, call sizenode as necessary to ensure a node's size is correct
-        var node_bbox = {"height": 60, "width": 85};
+        var node_bbox = {"height": nodeheight.call(this, d), "width": nodewidth.call(this, d)};
         var rect = d3.select(this).select('rect');
         var policyMarker = d3.select(this).select('.policy rect');
         var policyMarkerText = d3.select(this).select('.policy text');
@@ -135,12 +153,22 @@ function DirectedAcyclicGraph() {
         if (animate) {
             d3.select(this).classed("visible", false).transition().duration(200).remove();
         } else {
-            d3.select(this).classed("visible", false).remove();            
+            d3.select(this).classed("visible", false).remove();
         }
     }
     var newnodetransition = function(d) {
         d3.select(this).classed("visible", true).attr("transform", graph.nodeTranslate);
     }
+    var customlayout = function(nodes_d, edges_d) {
+        d3.select(this).selectAll(".edge").each(function(d) {
+            var p = d.dagre.points;
+            p.push(dagre.util.intersectRect(d.target.dagre, p.length > 0 ? p[p.length - 1] : d.source.dagre));
+            p.splice(0, 0, dagre.util.intersectRect(d.source.dagre, p[0]));
+            p.splice(1, 0, {x: p[0].x, y: p[0].y+15});
+            p[0].y -= 0.5; p[p.length-1].y += 0.5;
+        });
+    };
+
     var layout = function(nodes_d, edges_d) {
         // Dagre requires the width, height, and bbox of each node to be attached to that node's data
         var start = new Date().getTime();
@@ -160,18 +188,15 @@ function DirectedAcyclicGraph() {
         console.log("layout:bbox", (new Date().getTime() - start));
 
         // Call dagre layout.  Store layout data such that calls to x(), y() and points() will return them
+
         start = new Date().getTime();
-        dagre.layout().nodeSep(50).edgeSep(30).rankSep(50).nodes(nodes_d).edges(edges_d).run();
+        dagre.layout().nodeSep(15).edgeSep(30).rankSep(120).nodes(nodes_d).edges(edges_d).run();
+        customlayout(nodes_d, edges_d);
+
         console.log("layout:dagre", (new Date().getTime() - start));
 
         // Also we want to make sure that the control points for all the edges overlap the nodes nicely
-        d3.select(this).selectAll(".edge").each(function(d) {
-            var p = d.dagre.points;
-            p.push(dagre.util.intersectRect(d.target.dagre, p.length > 0 ? p[p.length - 1] : d.source.dagre));
-            p.splice(0, 0, dagre.util.intersectRect(d.source.dagre, p[0]));
-            p.splice(1, 0, {x: p[0].x, y: p[0].y+15});
-            p[0].y -= 0.5; p[p.length-1].y += 0.5;
-        });
+
 
         // Try to put the graph as close to previous position as possible
         var count = 0, x = 0, y = 0;
@@ -213,7 +238,7 @@ function DirectedAcyclicGraph() {
     graph.splineGenerator = function(d) {
         return d3.svg.line().x(function(d) { return d.x })
                             .y(function(d) { return d.y})
-                            .interpolate("basis")(edgepos.call(this, d));
+                            .interpolate(d3interpolate.call(this, d))(edgepos.call(this, d));
     }
 
     graph.edgeTween = function(d) {
@@ -224,22 +249,22 @@ function DirectedAcyclicGraph() {
             var p1 = dst[Math.min(dst.length-1, i)];
             return d3.interpolate([p0.x, p0.y], [p1.x, p1.y]);
         });
-        var line = d3.svg.line().interpolate("basis");
+        var line = d3.svg.line().interpolate(d3interpolate.call(this));
         return function(t) {
             return line(points.map(function(p) { return p(t); }));
         };
     }
-    
+
     graph.nodeTranslate = function(d) {
         var pos = nodepos.call(this, d);
         return "translate(" + pos.x + "," + pos.y + ")";
     }
-    
+
     function random(min, max) {
         return function() { return min + (Math.random() * (max-min)); }
     }
-    
-    
+
+
     /*
      * Getters and setters for settable variables and function
      */
@@ -261,6 +286,10 @@ function DirectedAcyclicGraph() {
     graph.edgepos = function(_) { if (!arguments.length) return edgepos; edgepos = _; return graph; }
     graph.animate = function(_) { if (!arguments.length) return animate; animate = _; return graph; }
     graph.getedges = function(_) { if (!arguments.length) return getedges; getedges = _; return graph;}
+    graph.d3interpolation = function(_) { if (!arguments.length) return d3interpolate; d3interpolate = _; return graph;}
+    graph.nodewidth = function(_) { if (!arguments.length) return nodewidth; nodewidth = _; return graph;}
+    graph.nodeheight = function(_) { if (!arguments.length) return nodeheight; nodeheight = _; return graph;}
+    graph.customlayout = function(_) { if (!arguments.length) return customlayout; customlayout = _; return graph;}
 
     return graph;
 }

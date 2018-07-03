@@ -1,3 +1,4 @@
+/* global Daemons */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
@@ -21,7 +22,7 @@
 
     /**
      * @class Daemons.controller.DaemonsListController
-     * This is the controller for the list of control plane services and collector deamons.
+     * This is the controller for the list of control plane services and collector daemons.
      * @extends Ext.app.Controller
      */
     Ext.define('Daemons.controller.DaemonsListController', {
@@ -47,32 +48,32 @@
             this.control(Ext.apply(Daemons.ListControllerActions || {}, {
                 // start
                 'daemonslist button[ref="start"]': {
-                    click: this.startSelectedDeamons
+                    click: this.startSelectedDaemons
                 },
                 // stop
                 'daemonslist button[ref="stop"]': {
-                    click: this.stopSelectedDeamons
+                    click: this.stopSelectedDaemons
                 },
                 // restart
                 'daemonslist button[ref="restart"]': {
-                    click: this.restartSelectedDeamons
+                    click: this.restartSelectedDaemons
                 },
                 // Column Actions
                 // restart
                 'daemonslist actioncolumn[ref="restartcolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         this.updateRefreshIcon([record]);
-                        this.updateSelectedDeamons([record], 'restart', 'state', Daemons.states.RESTARTING);
+                        this.updateSelectedDaemons([record], 'restart', 'state', Daemons.states.RESTARTING);
                     }, this)
                 },
                 // start/stop
                 'daemonslist actioncolumn[ref="statuscolumn"]': {
                     click: Ext.bind(function(grid, cell, colIdx, rowIdx, event, record) {
                         // find out if we need to stop or start the record
-                        if (record.get('state') == 'up') {
-                            this.updateSelectedDeamons([record], 'stop', 'state', Daemons.states.STOPPED);
+                        if (record.get('state') === 'up') {
+                            this.updateSelectedDaemons([record], 'stop', 'state', Daemons.states.STOPPED);
                         } else {
-                            this.updateSelectedDeamons([record], 'start', 'state', Daemons.states.RUNNING);
+                            this.updateSelectedDaemons([record], 'start', 'state', Daemons.states.RUNNING);
                         }
                     }, this)
                 },
@@ -85,8 +86,7 @@
                 // update the details information
                 'daemonslist': {
                     select: this.setupDetails,
-                    load: function(store, records) {
-                        this.getTreegrid().expandAll();
+                    load: function() {
                         this.deepLinkFromHistory();
                     }
                 },
@@ -108,7 +108,7 @@
                 value = input.getValue(),
                 reg;
             store.clearFilter(true);
-            if (value.length == 0) {
+            if (value.length === 0) {
                 return;
             }
 
@@ -131,9 +131,8 @@
         /**
          * Performs the "action" on every selected daemon.
          **/
-        updateSelectedDeamons: function(selectedRows, action, field, value) {
-            var grid = this.getTreegrid(),
-                record,
+        updateSelectedDaemons: function(selectedRows, action, field, value) {
+            var record,
                 recordsToUpdate = [],
                 uids = [],
                 i=0;
@@ -184,34 +183,32 @@
         /**
          * Starts every daemon that is selected
          **/
-        startSelectedDeamons: function() {
-            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+        startSelectedDaemons: function() {
+            this.updateSelectedDaemons(this.getTreegrid().getSelectionModel().getSelection(),
                                        'start', 'state', Daemons.states.RUNNING);
         },
         /**
          * Stops every daemon that is selected
          **/
-        stopSelectedDeamons: function() {
-            this.updateSelectedDeamons(this.getTreegrid().getSelectionModel().getSelection(),
+        stopSelectedDaemons: function() {
+            this.updateSelectedDaemons(this.getTreegrid().getSelectionModel().getSelection(),
                                        'stop', 'state', Daemons.states.STOPPED);
         },
         /**
          * restarts every daemon that is selected
          **/
-        restartSelectedDeamons: function() {
+        restartSelectedDaemons: function() {
             var selected = this.getTreegrid().getSelectionModel().getSelection();
             this.updateRefreshIcon(selected);
-            this.updateSelectedDeamons(selected, 'restart', 'state', Daemons.states.RUNNING);
+            this.updateSelectedDaemons(selected, 'restart', 'state', Daemons.states.RUNNING);
         },
 
         /**
-         * Let the user know that the deamon is restarting.
+         * Let the user know that the daemon is restarting.
          **/
         updateRefreshIcon: function(selectedRows) {
-            var store = this.getTreegrid().getStore(),
-                view = this.getTreegrid().getView(),
-                i, index, el,
-                images = this.getTreegrid().getView().getEl().query('.restarticon');
+            var view = this.getTreegrid().getView(),
+                i, el;
             for (i=0;i<selectedRows.length;i++) {
                 el = view.getNode(selectedRows[i]).getElementsByClassName('restarticon')[0];
                 el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif';
@@ -228,7 +225,7 @@
          * restarting.
          **/
         pollForChanges: function() {
-            if (Ext.Object.getKeys(this.restartingDaemons).length == 0) {
+            if (Ext.Object.getKeys(this.restartingDaemons).length === 0) {
                 return;
             }
             if (!this.restartingTask) {
@@ -237,17 +234,18 @@
             this.restartingTask.delay(1000);
         },
         doCheckForRestarting: function() {
-            for (var daemon in this.restartingDaemons ) {
-                function callback(response) {
-                    var id = response.data.id;
-                    var record = this.restartingDaemons[id];
-                    if (!response.data.isRestarting && record.el) {
-                        record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
-                        delete this.restartingDaemons[id];
-                    }
-
-                    record.row.set('state', response.data.state);
+            function callback(response) {
+                var id = response.data.id;
+                var record = this.restartingDaemons[id];
+                if (!response.data.isRestarting && record.el) {
+                    record.el.src = '/++resource++zenui/img/ext4/icon/circle_arrows_still.png';
+                    delete this.restartingDaemons[id];
                 }
+
+                record.row.set('state', response.data.state);
+            }
+
+            for (var daemon in this.restartingDaemons ) {
                 // check the server to see if we are still restarting
                 router.getInfo({
                     id: this.restartingDaemons[daemon].row.get('id')
@@ -273,9 +271,27 @@
         onRefresh: function() {
             var store = this.getTreegrid().getStore(),
                 method = store.getProxy().directFn,
+                expandedIds = [],
+                rootNode = store.getRootNode(),
+                rootId = rootNode.get("id"),
                 nodes = {};
+            expandedIds.push(rootId);
+            var getExpandedChildren = function(n) {
+                var i, currentNode;
+                if (!n.hasChildNodes()) {
+                    return;
+                }
+                for (i=0; i<n.childNodes.length; i++) {
+                    currentNode = n.childNodes[i];
+                    if (currentNode.isExpanded()) {
+                        expandedIds.push(currentNode.get('id'));
+                        getExpandedChildren(currentNode);
+                    }
+                }
+            };
+            getExpandedChildren(rootNode);
             method({
-                id: store.getRootNode().get("id")
+                id: expandedIds
             }, function(result){
                 // this was an invalid resposne
                 if (Ext.isDefined(result.success) && result.success === false) {
@@ -300,14 +316,14 @@
                         }
                     }
                 };
-                getChildren(result, store.getRootNode().get('id'));
+                getChildren(result['children'], rootId);
                 var nodeHash = store.tree.nodeHash, i, key, toRemove = [];
 
                 // iterate through all the nodes in the store and make sure they
                 // exits in the "nodes" struct
                 for (key in nodeHash) {
                     if (nodeHash.hasOwnProperty(key) && !Ext.isDefined(nodes[key])) {
-                        if (store.getNodeById(key).get('id') != "root") {
+                        if (store.getNodeById(key).get('id') !== rootId) {
                             toRemove.push(store.getNodeById(key));
                         }
                     }
@@ -316,7 +332,12 @@
                 // remove all the nodes that were previously in the list but were not in the latest
                 // refresh request
                 for (i=0;i<toRemove.length;i++) {
+                    var parentNode = toRemove[i].parentNode;
                     toRemove[i].remove();
+                    // loaded=false to force reload node from router on next expansion
+                    if (!parentNode.hasChildNodes()) {
+                        parentNode.set({loaded: false});
+                    }
                 }
             });
         },
@@ -351,10 +372,10 @@
                 );
             }
         },
-        assignDevicesToCollector: function(node, data, treeNode, dropPosition){
+        assignDevicesToCollector: function(node, data, treeNode){
             var records = data.records, me = this;
             // can only assign to collectors
-            if (treeNode.get('type') == 'collector') {
+            if (treeNode.get('type') === 'collector') {
                 var win = Ext.create('Daemons.dialog.AssignCollectors', {
                     numRecords: records.length,
                     collectorId: treeNode.get('name'),

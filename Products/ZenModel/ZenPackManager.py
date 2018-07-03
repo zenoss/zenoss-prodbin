@@ -16,13 +16,19 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
-from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import binPath
+from Products.ZenUtils.csrf import validate_csrf_token
+from Products.ZenUtils.Utils import binPath, varPath
 from Products.ZenWidgets import messaging
 import os
 import tempfile
 import logging
+
+from ZenossSecurity import (
+    ZEN_MANAGE_DMD, ZEN_MANAGE_GLOBAL_SETTINGS, ZEN_MANAGE_GLOBAL_COMMANDS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
+)
 
 log = logging.getLogger('zen.ZenPackManager')
 
@@ -36,7 +42,7 @@ def manage_addZenPackManager(context, newId='', REQUEST=None):
     context._setObject(newId, zpm)
     zpm = context._getOb(newId)
     if REQUEST is not None:
-        REQUEST.RESPONSE.redirect(context.absolute_url() + '/manage_main')
+        REQUEST.RESPONSE.redirect(context.absolute_url_path() + '/manage_main')
 
 
 class ZenPackManager(ZenModelRM):
@@ -60,42 +66,42 @@ class ZenPackManager(ZenModelRM):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : '../ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : 'viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS,)
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
                 , 'action'        : '../editPortletPerms'
                 , 'permissions'   : ( "Manage DMD", )
-                },                
+                },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG, )
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
             )
          },
@@ -105,6 +111,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addZenPack')
+    @validate_csrf_token
     def manage_addZenPack(self, packId, REQUEST=None, devDir=''):
         """
         Create a new zenpack on the filesystem with the given info.
@@ -135,6 +142,9 @@ class ZenPackManager(ZenModelRM):
             from ZenPack import ZenPackException
             raise ZenPackException(msgOrId)
 
+        if devDir == "":
+            devDir = varPath("ZenPackSource")
+
         # Create it
         zpDir = ZenPackCmd.CreateZenPack(packId, devDir=devDir)
 
@@ -154,6 +164,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeZenPacks')
+    @validate_csrf_token
     def manage_removeZenPacks(self, ids=(), REQUEST=None):
         """
         Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
@@ -224,6 +235,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
+    @validate_csrf_token
     def manage_installZenPack(self, zenpack=None, REQUEST=None):
         """
         Installs the given zenpack.  Zenpack is a file upload from the browser.

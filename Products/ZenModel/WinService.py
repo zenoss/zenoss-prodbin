@@ -37,7 +37,7 @@ def manage_addWinService(context, id, description, userCreated=None,
     s.caption = description
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
+        REQUEST['RESPONSE'].redirect(context.absolute_url_path()
                                   +'/manage_main')
     return s
 
@@ -109,15 +109,6 @@ class WinService(Service):
         if self.monitoredStartModes:
             return self.monitoredStartModes
         return self.serviceclass().monitoredStartModes
-
-
-    def monitored(self):
-        """Should this Windows Service be monitored
-        """
-        startMode = getattr(self, "startMode", None)
-        #don't monitor Disabled services
-        if startMode and startMode == "Disabled": return False
-        return Service.monitored(self)
 
 
     def getStatus(self, statClass=None):

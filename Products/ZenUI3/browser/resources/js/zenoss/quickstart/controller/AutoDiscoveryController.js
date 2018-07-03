@@ -34,7 +34,7 @@
         init: function() {
             this.control({
                 'wizardautodiscoveryview': {
-                    show: function(view) {
+                    show: function() {
                         // focus on the ip ranges when the user
                         // first sees this wizard step
                         Ext.getCmp('wizard_ip_ranges').focus();
@@ -59,7 +59,7 @@
                         Ext.getCmp('wizard_ip_ranges').focus();
                         // hack to get the empty text to show up
                         Ext.Function.defer( function() {
-                            if (this.getDiscoveryGrid().getStore().data.length == 0) {
+                            if (this.getDiscoveryGrid().getStore().data.length === 0) {
                                 this.getDiscoveryGrid().getStore().load();
                             }
                         }, 500, this);
@@ -87,13 +87,13 @@
             ranges = Ext.Array.unique(ranges);
             // try to grab the zproperties from the input names so
             // we don't have to duplicate it here
-            for (key in values) {
+            for (var key in values) {
                 if (key.startswith('z')) {
                     zProperties[key] = values[key];
                 }
             }
             if ('zSnmpCommunities' in zProperties) {
-                zProperties['zSnmpCommunities'] = zProperties['zSnmpCommunities'].split("\n");
+                zProperties['zSnmpCommunities'] = Ext.htmlEncode(zProperties['zSnmpCommunities']).split("\n");
             }
             params = {
                 networks: ranges,

@@ -136,7 +136,7 @@ for a ZenPack.
              name, self.context().id, self._locator.getLineNumber() ))
 
         if name == 'object':
-            if attrs.get('class') == 'Device':
+            if attrs.get('class') == 'Device' and not attrs.get('move', False):
                 devId = attrs['id'].split('/')[-1]
                 dev = self.dmd.Devices.findDeviceByIdOrIp(devId)
                 if dev:
@@ -191,6 +191,29 @@ for a ZenPack.
         else:
             self.log.warning( "Ignoring an unknown XML element type: %s" % name )
 
+    def _ensureUniqueOID(self, node):
+        # Removes MibNode/MibNotification objects that have the same 'oid'
+        # value as the given 'node' object but are contained by a different
+        # MibModule object.
+        for brain in self.dmd.Mibs.mibSearch(oid=node.oid):
+            try:
+                indexed_node = brain.getObject()
+                # Equal moduleName values means that index_node and node
+                # are (probably) the same object.
+                if indexed_node.moduleName == node.moduleName:
+                    continue
+            except KeyError as ex:
+                self.log.warn(
+                    "Invalid catalog entry; path '%s': %s", brain.getPath(), ex
+                )
+            else:
+                self.log.debug(
+                    "OID '%s' will be removed from organizer '%s' "
+                    "and added to organizer '%s'.",
+                    node.oid, indexed_node.moduleName, node.moduleName
+                )
+                indexed_node.getParentNode()._delObject(indexed_node.id)
+
     def endElement(self, name):
         """
         Function called when the parser finds the starting element
@@ -208,15 +231,23 @@ for a ZenPack.
 
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
+            if obj.getNodeName() in ('MibNode', 'MibNotification'):
+                self._ensureUniqueOID(obj)
+
             notify(IndexingEvent(obj))
             if hasattr(aq_base(obj), 'index_object'):
-               obj.index_object()
+                obj.index_object()
             if self.rootpath == obj.getPrimaryId():
                 self.log.info('Calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()
                 self.rootpath = ''
-            if (not noIncrementalCommit and
-                not self.objectnumber % self.options.chunk_size):
+
+            # Not committing, or no objects to commit.
+            if noIncrementalCommit or not self.uncommittedObjects:
+                return
+
+            # Commit only after "chunk_size" objects need committed.
+            if self.uncommittedObjects >= self.options.chunk_size:
                 self.log.debug("Committing a batch of %s objects" %
                                self.options.chunk_size)
                 self.commit()
@@ -312,6 +343,7 @@ for a ZenPack.
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
+            self.uncommittedObjects += 1
             self.log.debug('Added object %s to database'
                             % obj.getPrimaryId())
         else:
@@ -466,6 +498,7 @@ for a ZenPack.
         self.objstack = [self.app]
         self.links = []
         self.objectnumber = 0
+        self.uncommittedObjects = 0
         self.charvalue = ''
         if xmlfile and isinstance(xmlfile, basestring):
             self.infile = open(xmlfile)
@@ -501,6 +534,7 @@ for a ZenPack.
         trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
+        self.uncommittedObjects = 0
         if hasattr(self, 'connection'):
             # It's safe to call syncdb()
             self.syncdb()

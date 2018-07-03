@@ -109,10 +109,10 @@ class SnmpClient(BaseClient):
                 yield self.findSnmpCommunity()
                 snmp_config = driver.next()
                 if not snmp_config:
-                    log.warn(
+                    log.error(
                         'Failed to rediscover the SNMP connection info for %s',
                         self.device.manageIp)
-                    return
+                    raise
                 if snmp_config.version:
                     self.connInfo.zSnmpVer = snmp_config.version
                 if snmp_config.port:
@@ -122,13 +122,13 @@ class SnmpClient(BaseClient):
                 self.connInfo.changed = True
                 self.initSnmpProxy()
             else:
-                return
+                raise
         except Snmpv3Error:
-            log.info("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
-            return
+            log.error("Cannot connect to SNMP agent: {0}".format(self.connInfo.summary()))
+            raise
         except Exception:
             log.exception("Unable to talk: " + self.connInfo.summary())
-            return
+            raise
 
         changed = True
         # FIXME: cleanup --force option #2660
@@ -202,10 +202,11 @@ class SnmpClient(BaseClient):
                                               maxRepetitions=maxRepetitions,
                                               limit=sys.maxint)
                     self._tabledata[pname][tmap] = driver.next()
-            except Exception, ex:
-                if not isinstance( ex, error.TimeoutError ):
-                    log.exception("device %s plugin %s unexpected error",
-                                  self.hostname, pname)
+            except error.TimeoutError:
+                log.error("%s %s SNMP timeout", self.device.id, pname)
+            except Exception:
+                log.exception("device %s plugin %s unexpected error",
+                              self.hostname, pname)
 
 
     def getResults(self):
@@ -232,18 +233,23 @@ class SnmpClient(BaseClient):
         if isinstance(result, failure.Failure):
             from twisted.internet import error
             if isinstance(result.value, error.TimeoutError):
-                log.warning("Device %s timed out: are "
+                log.error("Device %s timed out: are "
                             "your SNMP settings correct?", self.hostname)
                 summary = "SNMP agent down - no response received"
                 log.info("Sending event: %s", summary)
-                self._sendStatusEvent(summary, eventKey='agent_down')
             elif isinstance(result.value, Snmpv3Error):
-                log.warning("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                log.error("Connection to device {0.hostname} failed: {1.value.message}".format(self, result))
+                summary = "SNMP v3 specific error during SNMP collection"
             else:
                 log.exception("Device %s had an error: %s",self.hostname,result)
+                summary = "Exception during SNMP collection"
+            self._sendStatusEvent(summary, eventKey='agent_down')
         else:
             self._sendStatusEvent('SNMP agent up', eventKey='agent_down', severity=Event.Clear)
-        self.proxy.close()
+        try:
+            self.proxy.close()
+        except AttributeError:
+            log.info("Caught AttributeError closing SNMP connection.")
         """tell the datacollector that we are all done"""
         if self.datacollector:
             self.datacollector.clientFinished(self)
@@ -252,4 +258,3 @@ class SnmpClient(BaseClient):
 
     def stop(self):
         self.proxy.close()
-

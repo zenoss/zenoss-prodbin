@@ -133,3 +133,9 @@ def getYear():
     """
     return datetime.now().strftime('%Y')
 
+def getLocalTimezone():
+    """
+    Return a string representing local time zone.
+    """
+    return time.strftime("%Z")
+    

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -27,6 +27,8 @@ from Products.ZenUtils.Utils import zenPath
 
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.AccountLocker.AccountLocker import setup as account_locker_setup
+from Products.ZenUtils.Auth0.Auth0 import setup as auth0_setup
 from Products.PluggableAuthService import plugins
 
 class zenbuild(CmdBase):
@@ -55,7 +57,7 @@ class zenbuild(CmdBase):
         self.parser.add_option('-t','--evtport', dest="evtport",
                 type='int', default=3306,
                 help="port used to connect to the events database")
-        self.parser.add_option('--smtphost', dest="smtphost", default="localhost",
+        self.parser.add_option('--smtphost', dest="smtphost", default="",
                 help="smtp host")
         self.parser.add_option('--smtpport', dest="smtpport", default=25,
                 type='int', help="smtp port")
@@ -132,7 +134,7 @@ class zenbuild(CmdBase):
             from Products.PythonScripts.PythonScript import manage_addPythonScript
             manage_addPythonScript(self.app, 'index_html')
             newIndexHtml = self.app._getOb('index_html')
-            text = 'container.REQUEST.RESPONSE.redirect("/zport/dmd/")\n'
+            text = 'container.REQUEST.RESPONSE.redirect(container.zport.virtualRoot() + "/zport/dmd/")\n'
             newIndexHtml.ZPythonScript_edit('', text)
 
             # build standard_error_message
@@ -150,6 +152,8 @@ class zenbuild(CmdBase):
             # Convert the acl_users folder at the root to a PAS folder and update
             # the login form to use the Zenoss login form
             Security.replaceACLWithPAS(self.app, deleteBackup=True)
+            auth0_setup(self.app)
+            account_locker_setup(self.app)
 
             # Add groupManager to zport.acl
             acl = site.acl_users

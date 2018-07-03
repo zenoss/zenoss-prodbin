@@ -1,3 +1,4 @@
+/* jshint boss:true */
 (function() {
 
     var directStoreWorkaroundListeners = {
@@ -248,7 +249,7 @@
                                     scope: this
                                 }
                             }, field));
-                            if (typeof oldvalue != 'undefined' && this.predicate.xtype == oldxtype) {
+                            if (typeof oldvalue !== 'undefined' && this.predicate.xtype === oldxtype) {
                                 this.predicate.setValue(oldvalue);
                             }
                             this.doComponentLayout();
@@ -305,6 +306,8 @@
             return clause_code;
         },
         setValue: function(expression) {
+            var matchOperator = false;
+
             // If the clause is for a custom zenpack detail, we need to remove
             // the hasattr condition
             if (expression.startsWith("hasattr")) {
@@ -322,13 +325,27 @@
                             cleansub = subject.replace(
                                 new RegExp("^"+this.getBuilder().prefix), '');
 
-                        this.subject.setValue(cleansub);
+                        try {
+                            this.subject.setValue(cleansub);
+                        } catch(e) {
+                            Zenoss.message.warning("Invalid rule '"+ expression +"'. could not find subject '"+ cleansub +"'");
+                            return;
+                        }
+
                         this.comparison.setValue(cmp);
                         this.predicate.setValue(Ext.decode(value));
+                        matchOperator = true;
+
                         break;
                     }
                 }
             }
+            // loop's over but we didn't find a comparison operator
+            // that matched :(
+            if(!matchOperator){
+                Zenoss.message.warning("Invalid rule '"+ expression +"'. Could not match comparison operator");
+            }
+
         },
         getBuilder: function() {
             if (!this.builder) {
@@ -354,7 +371,7 @@
                      item.buttonDelete;
 
         // Disable the delete button if only one at this level
-        if (items.length==1) {
+        if (items.length===1) {
             delbtn.disable();
         } else if (items.length > 1){
             delbtn.enable();
@@ -362,6 +379,7 @@
 
         // Disable the nested button if it would mean more than 4 deep
         var i = 0, btn;
+
         while (item = item.findParentByType('nestedrule')) {
             i++;
             if (i>=4) {
@@ -371,6 +389,7 @@
                 break;
             }
         }
+
     };
 
     Ext.define("Zenoss.form.rule.NestedRule", {
@@ -407,9 +426,9 @@
                             scope: this
                         }
                     },{
-                        xtype: 'label',  
+                        xtype: 'label',
                         html: _t('of the following rules:'),
-                        style: 'margin-left: 7px; font-size: 12px; color: #444'
+                        style: 'margin-left: 7px; font-size: 12px'
                     }]
                 },{
                     ref: 'clauses',
@@ -470,7 +489,7 @@
             while (c) {
                 //token.push(c);
                 // Don't deal with contents of string literals
-                if (c=='"'||c=='\'') {
+                if (c==='"'||c==='\'') {
                     q = c;
                     token.push(c);
                     for (;;) {
@@ -487,19 +506,19 @@
                             token.push(expression.charAt(i));
                         }
                     }
-                } else if (c=="("||c==")"){
+                } else if (c==="("||c===")"){
                     if (p===0) {
                         savetoken();
                     }
                     token.push(c);
-                    if (c=='(') {
+                    if (c==='(') {
                         var prev = expression.charAt(i-1);
-                        if (i>0 && prev!=' ' && prev!='(') {
+                        if (i>0 && prev!==' ' && prev!=='(') {
                             funcflag = true;
                         } else {
                             p++;
                         }
-                    } else if (c==')') {
+                    } else if (c===')') {
                         if (funcflag) {
                             funcflag = false;
                         } else {
@@ -546,7 +565,7 @@
 
 
 
-    Ext.define("Zenoss.form.rule.RuleBuilder", { 
+    Ext.define("Zenoss.form.rule.RuleBuilder", {
         alias:['widget.rulebuilder'],
         extend:"Ext.form.FieldContainer",
         constructor: function(config) {
@@ -618,8 +637,8 @@
                     triggerAction: 'all',
                     editable: true,
                     autoLoad: false
-                })
-                this.callParent([config])
+                });
+                this.callParent([config]);
             },
 
             setValue: function() {
@@ -636,7 +655,7 @@
                 return this.callParent(arguments);
             }
         }
-    )
+    );
 
 
     ZF.STRINGCOMPARISONS = [

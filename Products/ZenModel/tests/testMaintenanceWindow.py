@@ -35,23 +35,6 @@ stateNames = {
 
 class TestMaintenanceWindows(ZenModelBaseTest):
 
-    def testProductionStateIndexing(self):
-        mwid = 'testwindow1'
-        devid = 'unittestdevice1'
-        grpid = 'unittestGroup'
-        grp = self.dmd.Groups.createOrganizer(grpid)
-        dev = self.dmd.Devices.createInstance(devid)
-        dev.setGroups(grp.id)
-        grp.manage_addMaintenanceWindow(mwid)
-        mw = grp.maintenanceWindows._getOb(mwid)
-        mw.enabled = True
-        mw.begin()
-        self.assert_(dev.productionState==mw.startProductionState)
-        prodstate = dev.getProdState()
-        catalog = self.dmd.Devices.deviceSearch
-        results = [x.id for x in catalog(getProdState=prodstate)]
-        self.assert_(dev.id in results)
-
     def testMaintenanceWindows(self):
         m = MaintenanceWindow('tester')
         m.dmd = self.dmd
@@ -90,6 +73,21 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         c = mktime( (2006, 2, 22, 10, 45, 12, 0, 0, 0) )
         m.set(t, P, m.NTHWDAY, 'Wednesday', 'Last')
         self.assert_(m.next(t+1) == c)
+
+        c = mktime( (2006, 3, 13, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2006, 3, 6, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Monday', '2nd')
+        self.assert_(m.next(n) == c)
+
+        c = mktime( (2006, 3, 29, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2006, 3, 6, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Wednesday', 'Last')
+        self.assert_(m.next(n) == c)
+
+        c = mktime( (2007, 1, 8, 10, 45, 12, 0, 0, 0) )
+        n = mktime( (2007, 1, 2, 10, 45, 12, 0, 0, 0) )
+        m.set(t, P, m.NTHWDAY, 'Monday', '2nd')
+        self.assert_(m.next(n) == c)
 
 
         # DST
@@ -136,7 +134,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t + 1) == c)
 
         m.set(t, P, m.MONTHLY)
-        c = mktime( (2006, 3, 29, 9, 45, 12, 6, 36, 0) )
+        c = mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
         self.assert_(m.next(t + 1) == c)
 
         m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)
@@ -163,6 +161,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
                                          startDate='01/29/2006',
                                          startHours='10',
                                          startMinutes='45',
+                                         startDateTime='1138531500',
                                          durationDays='1',
                                          durationHours='1',
                                          durationMinutes='1',
@@ -185,7 +184,9 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         Window defintions are a list of lists of the form
              [startTimeIndex, duration, startState]
         """
-        class multiWindow: pass
+        class multiWindow:
+            pass
+
         multiWin = multiWindow()
 
         # Create the test device
@@ -196,7 +197,7 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         multiWin.dev = self.dmd.Devices.createInstance(multiWin.devid)
         multiWin.dev.setGroups(multiWin.grp.id)
 
-        multiWin.startDate = '01/29/2006'
+        multiWin.startDateTime = '1138531500'
         startDate_time = [ 2006, 1, 31, 10, 00, 12, 0, 0, 0 ]
         multiWin.tn = range(1,maxWindows)
         multiWin.time_tn = []
@@ -222,9 +223,8 @@ class TestMaintenanceWindows(ZenModelBaseTest):
             r = None
             mw = multiWin.mwObjs[index]
 
-            startTime = multiWin.tn[startTimeIndex]
             mw.manage_editMaintenanceWindow(
-                startDate=multiWin.startDate, startHours=str(startTime),
+                startDateTime=multiWin.startDateTime,
                 durationHours=str(duration),
                 startProductionState=startState,
                 REQUEST=r)
@@ -241,19 +241,19 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
         mws.mwObjs[0].end()
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[3])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
         mws.mwObjs[1].end()
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testNestedWindows(self):
@@ -265,22 +265,22 @@ class TestMaintenanceWindows(ZenModelBaseTest):
            [1, 2, state_Test],
         ]
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin nested window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == min(mws.mwObjs[0].startProductionState,
+        self.assert_(mws.dev.getProductionState() == min(mws.mwObjs[0].startProductionState,
                                                     mws.mwObjs[1].startProductionState))
         mws.mwObjs[1].end()
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
         # End of nested window
 
         # Now end last maintenance window
         mws.mwObjs[0].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testOverlappingWindows(self):
@@ -293,22 +293,22 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin nested window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == min(mws.mwObjs[0].startProductionState,
+        self.assert_(mws.dev.getProductionState() == min(mws.mwObjs[0].startProductionState,
                                                     mws.mwObjs[1].startProductionState))
         # End first window
         mws.mwObjs[0].end()
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now end last maintenance window
         mws.mwObjs[1].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testSameWindowEndTime(self):
@@ -324,21 +324,21 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now end all maintenance windows
         mws.mwObjs[1].end()
         mws.mwObjs[0].end()
 
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def testDeleteRunningWindow(self):
@@ -352,26 +352,26 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         ]
 
         mws = self.setupWindows(windowDefs)
-        dev_orig_state = mws.dev.productionState
+        dev_orig_state = mws.dev.getProductionState()
 
         # Begin first window
         mws.mwObjs[0].begin(now=mws.time_tn[0])
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         # Begin second window
         mws.mwObjs[1].begin(now=mws.time_tn[1])
-        self.assert_(mws.dev.productionState == mws.mwObjs[1].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[1].startProductionState)
 
         # Now delete all maintenance windows
         #r = FakeRequest()
         r = None
         mws.grp.manage_deleteMaintenanceWindow(mws.mwIds[1], REQUEST=r)
-        self.assert_(mws.dev.productionState == mws.mwObjs[0].startProductionState)
+        self.assert_(mws.dev.getProductionState() == mws.mwObjs[0].startProductionState)
 
         #r = FakeRequest()
         r = None
         mws.grp.manage_deleteMaintenanceWindow(mws.mwIds[0], REQUEST=r)
-        self.assert_(mws.dev.productionState == dev_orig_state)
+        self.assert_(mws.dev.getProductionState() == dev_orig_state)
 
 
     def ftestWindowStateChangeLoad(self):

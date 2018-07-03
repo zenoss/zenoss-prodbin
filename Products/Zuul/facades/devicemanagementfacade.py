@@ -8,6 +8,7 @@
 ##############################################################################
 
 import logging
+import re
 log = logging.getLogger('zen.DeviceManagementFacade')
 
 from zope.interface import implements
@@ -23,10 +24,24 @@ class DeviceManagementFacade(ZuulFacade):
         """
         adds a new Maintenance Window
         """
+        newMw = None
         obj = self._getObject(params['uid'])
-                        
-        id = params['name'].strip()    
-        obj.manage_addMaintenanceWindow(id)         
+
+        id = params['name'].strip()
+        if not id:
+            raise Exception('Missing Maintenance Window name.')
+        if re.compile(r'[^a-zA-Z0-9-_,.$\(\) ]').findall(id):
+            raise Exception('`name` contains bad characters. '
+                'Use only a-z, A-Z, 0-9, (, ), $, _, dash, dot '
+                'and whitespace.')
+        obj.manage_addMaintenanceWindow(id)
+        maintenanceWindows = (IInfo(s) for s in obj.maintenanceWindows())
+        try:
+            newMw = (x for x in maintenanceWindows if x.id == id).next()
+        except StopIteration:
+            pass
+        if newMw:
+            newMw.updateWindow(params)
             
     def deleteMaintWindow(self, uid, id):
         """
@@ -76,10 +91,6 @@ class DeviceManagementFacade(ZuulFacade):
         add a new user command id
         """
         obj = self._getObject(params['uid'])
-
-        if not obj.ZenUsers.authenticateCredentials(obj.ZenUsers.getUser().getId(), params['password']):
-            raise Exception('Add new command failed. Incorrect or missing password.')
-            
         obj.manage_addUserCommand(newId=params['name'], cmd=params['command'], desc=params['description'])
         
     def deleteUserCommand(self, uid, id):

@@ -1,3 +1,4 @@
+/* global Graph:true, MinimapZoom:true,  DirectedAcyclicGraph:true, DirectedAcyclicGraphMinimap:true, getEntirePathLinks */
 /*****************************************************************************
  *
  * Copyright (C) Zenoss, Inc. 2014, all rights reserved.
@@ -76,14 +77,7 @@
          * @cfg {integer} nodewidth
          * specify how wide, in pixels, you want each node to be.
          */
-        nodewidth: function(d) {
-            return 60;
-        },
-        /**
-         * @cfg {integer} height
-         * specify how tall, in pixels, you want each node to be.
-         */
-        nodewidth: function(d){
+        nodewidth: function() {
             return 60;
         },
         /**
@@ -126,7 +120,7 @@
                 return;
             }
 
-            var graph = new Graph(), record = this.record;
+            var graph = new Graph();
 
             graph.edges = {};
             graph.getEdgeAttrs = function(d) {
@@ -198,8 +192,6 @@
             this.draw();
         },
         draw: function() {
-
-            var begin = (new Date()).getTime();
             var start = (new Date()).getTime();
             this.graphSVG.datum(this.graph).call(this.DAG);    // Draw a DAG at the graph attach
             start = (new Date()).getTime();
@@ -222,7 +214,7 @@
                 graphSVG.classed("hovering", true);
                 edgeRep.style("opacity", ".2");
                 highlightPath(d);
-            }).on("mouseout", function(d){
+            }).on("mouseout", function(){
                 graphSVG.classed("hovering", false);
                 edges.classed("hovered", false).classed("immediate", false);
                 nodes.classed("hovered", false).classed("immediate", false);
@@ -230,16 +222,22 @@
             });
 
             edges.on("click", function(d){
-                if (d3.event.defaultPrevented) return;
+                if (d3.event.defaultPrevented) {
+                    return;
+                }
                 me.fireEvent('edgeclicked', me.graph.edges[d.id]);
             });
             largeEdges.on("click", function(d){
-                if (d3.event.defaultPrevented) return;
+                if (d3.event.defaultPrevented) {
+                    return;
+                }
                 me.fireEvent('edgeclicked', me.graph.edges[d.id]);
             });
 
             nodes.on("click", function(d){
-                if (d3.event.defaultPrevented) return;
+                if (d3.event.defaultPrevented) {
+                    return;
+                }
                 me.fireEvent('nodeclicked', d);
             });
 
@@ -279,8 +277,9 @@
                 .attr("y", -t[1]/scale)
                 .attr("width", this.body.dom.offsetWidth/scale)
                 .attr("height", this.body.dom.offsetHeight/scale);
-            if (!this.lightweight)
+            if (!this.lightweight) {
                 this.graphSVG.selectAll(".node text").attr("opacity", 3*scale-0.3);
+            }
         },
         resetViewport: function() {
             var dom = this.body.dom;
@@ -288,7 +287,7 @@
             var scale = Math.min(dom.offsetWidth/bbox.width, dom.offsetHeight/bbox.height);
             var extent = this.zoom.scaleExtent();
             scale = Math.max(extent[0], Math.min(scale, extent[1]));
-            scale = .95;
+            scale = 0.95;
             var w = dom.offsetWidth/scale;
             var h = dom.offsetHeight/scale;
             var tx = ((w - bbox.width)/4 - bbox.x + 25)*scale;
@@ -305,13 +304,13 @@
         splineGenerator: function(d) {
             this.renderEdgeRepresentation(d);
             if (d.dagre.interpolate === false) {
-                return d3.svg.line().x(function(d) { return d.x })
-                    .y(function(d) { return d.y})
+                return d3.svg.line().x(function(d) { return d.x; })
+                    .y(function(d) { return d.y;})
                 (d.dagre.points);
             } else {
                 // render the line
-                return d3.svg.line().x(function(d) { return d.x })
-                    .y(function(d) { return d.y})
+                return d3.svg.line().x(function(d) { return d.x; })
+                    .y(function(d) { return d.y;})
                     .interpolate(d.dagre.type || this.d3interpolation)(d.dagre.points);
             }
         },
@@ -323,14 +322,15 @@
             var rootSVG = d3.select(dom).append("svg").attr("class", "graph-viewport").attr("width", "100%").attr("height", "100%");
             var graphSVG = rootSVG.append("svg").attr("width", "100%").attr("height", "100%").attr("class", "graph-attach");
             this.graphSVG = graphSVG;
-            var DAG = DirectedAcyclicGraph().animate(!this.lightweight).getedges(function (d) {
+            var DAG = new DirectedAcyclicGraph().animate(!this.lightweight).getedges(function (d) {
                 var edges = [];
                 d.getVisibleLinks().forEach(function (e) {
-                    if (! e.source.hidingDescendants)
+                    if (! e.source.hidingDescendants) {
                         edges.push(e);
+                    }
                 });
                 return edges;
-            }).d3interpolation(function(graph) {
+            }).d3interpolation(function() {
                 return me.d3interpolation;
             }).nodewidth(this.nodewidth).nodeheight(this.nodeheight).edgepos(function(d){
                 return d.dagre.points;
@@ -347,9 +347,9 @@
             // setup local variables
             this.DAG = DAG;
             var minimapSVG = rootSVG.append("svg").attr("class", "minimap-attach");
-            var DAGMinimap = DirectedAcyclicGraphMinimap(DAG).width("19.5%").height("19.5%").x("80%").y("78%");
+            var DAGMinimap = new DirectedAcyclicGraphMinimap(DAG).width("19.5%").height("19.5%").x("80%").y("78%");
 
-            var zoom = MinimapZoom().scaleExtent([0.05, 2.0]).on("zoom", Ext.bind(this.refreshViewport, this));
+            var zoom = new MinimapZoom().scaleExtent([0.05, 2.0]).on("zoom", Ext.bind(this.refreshViewport, this));
             zoom.call(this, rootSVG, minimapSVG);
             this.zoom = zoom;
             this.minimapSVG = minimapSVG;
@@ -371,7 +371,7 @@
 
 
                 var prior_pos = d.dagre;
-                if (prior_pos!=null) {
+                if (prior_pos!==null) {
                     d3.select(this).attr("transform", graph.nodeTranslate);
                 }
             });

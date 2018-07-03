@@ -10,9 +10,7 @@
 
 (function(){
     var router = Zenoss.remote.PropertiesRouter,
-        ModelerPluginForm,
-        ZPROP_NAME = 'zCollectorPlugins',
-        ModelerPluginPanel;
+        ZPROP_NAME = 'zCollectorPlugins';
     Ext.define("Zenoss.form.ModelerPluginForm", {
         extend:"Ext.form.FormPanel",
         alias: "widget:modelerpluginform",
@@ -42,7 +40,7 @@
                     height: 65,
                     autoScroll: true,
                     ref: 'doc',
-                    toolTip: 'Select a single plugin to see the docs',
+                    tooltip: 'Select a single plugin to see the docs',
                     fieldLabel: _t('Plugin Documentation')
                 }],
                 buttonAlign: 'left',
@@ -139,11 +137,11 @@
                 deleteBtn = this.getButton("deleteBtn");
 
             // can't delete the root
-            if (path == '/') {
+            if (path === '/') {
                 deleteBtn.hide();
                 return;
             }
-            if (localPath == path) {
+            if (localPath === path) {
                 deleteBtn.show();
             }else{
                 deleteBtn.hide();

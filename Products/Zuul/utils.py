@@ -20,6 +20,8 @@ from Products.ZCatalog.interfaces import ICatalogBrain
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
 from OFS.PropertyManager import PropertyManager
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -39,6 +41,8 @@ def resolve_context(context, default=None, dmd=None):
         dmd = None
     if dmd:
         if isinstance(context, basestring):
+            # Strip the virtual root from the context
+            context = getUtility(IVirtualRoot).strip_virtual_root(context)
             # Should be a path to the object we want
             if context.startswith('/') and not context.startswith('/zport/dmd'):
                 context = context[1:]
@@ -247,6 +251,30 @@ def allowedRolesAndGroups(context):
 
     return roles
 
+def mutateRPN(prefix, knownDatapointNames, rpn):
+    """Return a RPN string
+
+    Given a prefix, a list of known datapoints, and an RPN, replace the tokens that are references to other
+    datapoints with a prefixed datapoint string.
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp1,/,100,*")
+    test dp1,/,100,*
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp4,/,100,*")
+    dp4,/,100,*
+
+    >>> _mutateRPN("test", ["test dp1", "test dp2", "test dp3"], "dp2,+,dp1,/,dp4,-,100,*")
+    test dp2,+,test dp1,/,dp4,-,100,*
+    """
+    newRPN = []
+    tokens = rpn.split(',')
+    for token in tokens:
+        testToken = "%s %s" % (prefix, token)
+        if testToken in knownDatapointNames:
+            newRPN.append(testToken)
+        else:
+            newRPN.append(token)
+    return ",".join(newRPN)
 
 class UncataloguedObjectException(Exception):
     """
@@ -308,11 +336,12 @@ class PathIndexCache(object):
                         relnames = (relnames,)
                     for relname in relnames:
                         path = path.replace('/'+relname, '')
-                self._brains[rid] = brain
-                for depth in xrange(path.count('/')+1):
-                    comp = idx.setdefault(path, IOBTree())
-                    comp.setdefault(depth, []).append(rid)
-                    path = path.rsplit('/', 1)[0]
+                if rid: # TODO review this I just did it to avoid exception
+                    self._brains[rid] = brain
+                    for depth in xrange(path.count('/')+1):
+                        comp = idx.setdefault(path, IOBTree())
+                        comp.setdefault(depth, []).append(rid)
+                        path = path.rsplit('/', 1)[0]
 
     def search(self, path, depth=1):
         path = path.split('/', 3)[-1]
@@ -343,9 +372,9 @@ class PathIndexCache(object):
 
     @classmethod
     def test(self, dmd):
-        from Products.Zuul.interfaces import ICatalogTool
-        results = ICatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
-        instances = ICatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
+        from Products.Zuul.catalog.interfaces import IModelCatalogTool
+        results = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.DeviceOrganizer.DeviceOrganizer')
+        instances = IModelCatalogTool(dmd.Devices).search('Products.ZenModel.Device.Device')
         tree = PathIndexCache(results, instances, 'devices')
         print tree
 

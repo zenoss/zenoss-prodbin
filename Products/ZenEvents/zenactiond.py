@@ -9,6 +9,8 @@
 
 
 import Globals
+import os
+
 from traceback import format_exc
 from twisted.internet import reactor, defer
 
@@ -20,8 +22,11 @@ from Products.ZenCollector.utils.maintenance import MaintenanceCycle, maintenanc
 from Products.ZenCollector.utils.workers import ProcessWorkers, workersBuildOptions, exec_worker
 
 from Products.ZenEvents.Schedule import Schedule
+from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.metricwriter import MetricWriter
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import getDefaultZopeUrl
+from Products.ZenHub.metricpublisher import publisher
 
 from Products.ZenModel.actions import ActionMissingException, TargetableAction, ActionExecutionException
 from Products.ZenModel.interfaces import IAction
@@ -36,6 +41,8 @@ from zope.interface import implements
 
 from Products.ZenEvents.interfaces import ISignalProcessorTask
 
+from metrology import Metrology
+
 
 import logging
 log = logging.getLogger("zen.zenactiond")
@@ -49,6 +56,8 @@ class ProcessSignalTask(object):
 
     def __init__(self, notificationDao):
         self.notificationDao = notificationDao
+        self.signal_timer = Metrology.timer('zenactiond.signals')
+        self.notification_timer = Metrology.timer('zenactiond.notifications')
 
         # set by the constructor of queueConsumer
         self.queueConsumer = None
@@ -80,7 +89,8 @@ class ProcessSignalTask(object):
             return
         try:
             signal = hydrateQueueMessage(message, self.schema)
-            self.processSignal(signal)
+            with self.signal_timer:
+                self.processSignal(signal)
             log.debug('Done processing signal.')
         except SchemaException:
             log.error("Unable to hydrate protobuf %s. " % message.content.body)
@@ -117,7 +127,8 @@ class ProcessSignalTask(object):
                 action.setupAction(notification.dmd)
                 if isinstance(action, TargetableAction):
                     target = ','.join(action.getTargets(notification, signal))
-                action.execute(notification, signal)
+                with self.notification_timer:
+                    action.execute(notification, signal)
             except ActionMissingException, e:
                 log.error('Error finding action: {action}'.format(action = notification.action))
                 audit_msg =  "%s Action:%s Status:%s Target:%s Info:%s" % (
@@ -172,7 +183,7 @@ class ZenActionD(ZCmdBase):
                                        "zenactiond worker")
         self._heartbeatSender = QueueHeartbeatSender('localhost',
                                                  'zenactiond',
-                                                 self.options.maintenancecycle *3)
+                                                 self.options.heartbeatTimeout)
 
         self._maintenanceCycle = MaintenanceCycle(self.options.maintenancecycle,
                                                   self._heartbeatSender)
@@ -208,6 +219,9 @@ class ZenActionD(ZCmdBase):
         self.parser.add_option('--maintenance-window-cycletime',
             dest='maintenceWindowCycletime', default=60, type="int",
             help="How often to check to see if there are any maintenance windows to execute")
+        self.parser.add_option('--maintenance-window-batch-size',
+            dest='maintenceWindowBatchSize', default=200, type="int",
+            help="How many devices update per one transaction on maintenance windows execution")
 
         self.parser.add_option("--workerid", dest='workerid', type='int', default=None,
                                help="ID of the worker instance.")
@@ -221,6 +235,21 @@ class ZenActionD(ZCmdBase):
 
         dao = NotificationDao(self.dmd)
         task = ISignalProcessorTask(dao)
+        metric_destination = os.environ.get("CONTROLPLANE_CONSUMER_URL", "")
+        if metric_destination == "":
+            metric_destination = "http://localhost:22350/api/metrics/store"
+        username = os.environ.get("CONTROLPLANE_CONSUMER_USERNAME", "")
+        password = os.environ.get("CONTROLPLANE_CONSUMER_PASSWORD", "")
+        pub = publisher.HttpPostPublisher(username, password, metric_destination)
+
+        log.debug("Creating async MetricReporter")
+        daemonTags = {
+            'zenoss_daemon': 'zenactiond',
+            'internal': True
+        }
+        self.metricreporter = TwistedMetricReporter(prefix='zenoss.', metricWriter=MetricWriter(pub), tags=daemonTags)
+        self.metricreporter.start()
+        reactor.addSystemEventTrigger('before', 'shutdown', self.metricreporter.stop)
 
         if self.options.workerid == 0 and (self.options.daemon or self.options.cycle):
             self._callHomeCycler.start()

@@ -82,14 +82,14 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
                         xtype: 'button',
                         text: 'Add',
                         ref: 'add_button',
-                        handler: function(btn, event) {
+                        handler: function() {
                             me.addValueFromCombo();
                         }
                     },{
                         xtype: 'button',
-                        ref: 'delete_button', 
+                        ref: 'delete_button',
                         iconCls: 'delete',
-                        handler: function(btn, event) {
+                        handler: function() {
                             var row = me.getSelectionModel().getSelected();
                             me.getStore().remove(row);
                             me.getView().refresh();
@@ -109,7 +109,7 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
                 header: _t('Trigger'),
                 dataIndex: 'uuid',
                 flex: 1,
-                renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                renderer: function(value) {
                     var toolbar = me.getDockedItems('toolbar')[0];
                     var comboStore = toolbar.data_combo.store;
                     var idx = comboStore.find('uuid', value);
@@ -131,17 +131,15 @@ Ext.define("Zenoss.trigger.TriggerSubscriptions", {
     addValueFromCombo: function() {
         var combo = this.getDockedItems('toolbar')[0].data_combo,
             val = combo.getValue(),
-            rowIdx = combo.store.find('uuid', val),
-            row = combo.store.getAt(rowIdx),
             existingIndex = this.getStore().findExact('uuid', val);
 
-        if (!Ext.isEmpty(val) && existingIndex == -1) {
+        if (!Ext.isEmpty(val) && existingIndex === -1) {
 
             var record =  Ext.create('Zenoss.triggers.TriggersModel', {uuid:val});
             this.getStore().add(record);
             combo.setValue('');
         }
-        else if (existingIndex != -1) {
+        else if (existingIndex !== -1) {
             Zenoss.message.error(_t('Duplicate items not permitted here.'));
         }
     },
