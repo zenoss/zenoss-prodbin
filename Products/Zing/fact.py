@@ -10,6 +10,8 @@
 from .shortid import shortid
 
 from json import JSONEncoder
+from itertools import chain
+import copy
 import time
 import logging
 
@@ -23,6 +25,9 @@ class FactKeys(object):
     NAME_KEY = "name"
     MEM_CAPACITY_KEY = "mem_capacity"
     LOCATION_KEY = "location"
+    DEVICE_CLASS_KEY = "device_class"
+    GROUPS_KEY = "groups"
+    SYSTEMS_KEY = "systems"
 
 
 class Fact(object):
@@ -40,27 +45,55 @@ class Fact(object):
         return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
 
 
-def device_organizers_fact(device):
-    fact = Fact()
+"""
+Given a device generate facts containing all the organizers (device class, systems,
+groups, locations) the device and its components belong to
+@param device: device for which its organizers facts are requested
+@param include_components: whether to include organizers facts for the device's components
+@return: generator with the organizers facts for the device and its components(if required)
+"""
+def organizer_facts_for_device(device, include_components=True):
+    device_fact = Fact()
     try:
-        fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
+        device_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
     except Exception:
         pass
     if hasattr(device, "meta_type"):
-        fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
-    fact.metadata[FactKeys.PLUGIN_KEY] = 'zen_organizers'
-    data = {}
+        device_fact.metadata[FactKeys.META_TYPE_KEY] = device.meta_type
+    device_fact.metadata[FactKeys.PLUGIN_KEY] = 'zen_organizers'
     if hasattr(device, "getDeviceClassName"):
-        data["device_class"] = device.getDeviceClassName()
+        device_fact.data[FactKeys.DEVICE_CLASS_KEY] = device.getDeviceClassName()
     if hasattr(device, "getLocationName") and device.getLocationName():
-        data["location"] = device.getLocationName()
+        device_fact.data[FactKeys.LOCATION_KEY] = device.getLocationName()
     if hasattr(device, "getSystemNames") and device.getSystemNames():
-        data["systems"] = device.getSystemNames()
+        device_fact.data[FactKeys.SYSTEMS_KEY] = device.getSystemNames()
     if hasattr(device, "getDeviceGroupNames") and device.getDeviceGroupNames():
-        data["groups"] = device.getDeviceGroupNames()
-    fact.data = data
-    return fact
+        device_fact.data[FactKeys.GROUPS_KEY] = device.getDeviceGroupNames()
+    if device_fact.is_valid:
+        yield device_fact
+        if include_components:
+            for comp_brain in device.componentSearch(query={}):
+                if not comp_brain.getUUID:
+                    continue
+                comp_fact = copy.deepcopy(device_fact)
+                comp_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = comp_brain.getUUID
+                comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_brain.meta_type
+                comp_fact.id = shortid()
+                if comp_fact.is_valid:
+                    yield comp_fact
 
+"""
+@param devices_uuids: uuids of the devices for which we want to generate organizer facts
+@return: generator with organizers facts for all devices and their components (if required)
+"""
+def organizer_facts_for_devices(devices, include_components=True):
+    gen_list = []
+    for device in devices:
+        if not device:
+            continue
+        fgen = organizer_facts_for_device(device, include_components)
+        gen_list.append(fgen)
+    return chain(*gen_list)
 
 class _FactEncoder(JSONEncoder):
 

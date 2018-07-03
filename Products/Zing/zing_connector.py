@@ -31,7 +31,7 @@ DEFAULT_ENDPOINT = "/api/model/ingest"
 PING_PORT = "9000"
 PING_ENDPOINT = "/ping"
 DEFAULT_TIMEOUT = 5
-
+DEFAULT_BATCH_SIZE = 500
 
 class ZingConnectorConfig(object):
     def __init__(self, host=None, endpoint=None, timeout=None):
@@ -100,18 +100,71 @@ class ZingConnectorClient(object):
                 failed += 1
                 log.warn("Error sending fact: {}".format(serialized))
         log.warn("{} out of {} facts were not processed.".format(failed, len(facts)))
+        return failed==0
 
-    def send_facts(self, facts):
-        if not self.ping():
-            log.error("Error sending {} facts. Can't reach zing-connector".format(len(facts)))
+    def log_zing_connector_not_reachable(self, custom_msg=""):
+        msg = "zing-connector is not available"
+        if custom_msg:
+            msg = "{}. {}".format(custom_msg, msg)
+        log.error(msg)
+
+    """
+    @param facts: list of facts to send to zing connector
+    @param ping: boolean indicating if it should ping zing-connector before sending the facts
+    @return: boolean indicating if all facts were successfully sent
+    """
+    def send_facts(self, facts, ping=True):
+        if ping and not self.ping():
+            self.log_zing_connector_not_reachable()
             return False
         resp_code = self._send_facts(facts)
         if resp_code != 200:
             log.error("Error sending datamaps: zing-connector returned an unexpected response code ({})".format(resp_code))
             if resp_code == 500:
                 log.info("Sending facts one by one to minimize data loss")
-                self._send_one_by_one(facts)
+                return self._send_one_by_one(facts)
         return resp_code == 200
+
+    """
+    @param facts: list of facts to send to zing connector
+    @param batch_size: doh
+    """
+    def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
+        # TODO make this debug
+        log.info("Sending {} facts to zing-connector in batches of {}.".format(len(facts), batch_size))
+        success = True
+        if not self.ping():
+            self.log_zing_connector_not_reachable()
+            return False
+        while facts:
+            batch = facts[:batch_size]
+            del facts[:batch_size]
+            success = success and self.zing_connector.send_facts(batch, ping=False)
+        return success == True
+
+    """
+    @param fact_gen: generator of facts to send to zing connector
+    @param batch_size: doh
+    """
+    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
+        count = 0
+        if not self.ping():
+            self.log_zing_connector_not_reachable()
+            return False
+        success = True
+        batch = []
+        for f in fact_gen:
+            count += 1
+            batch.append(f)
+            if len(batch)%batch_size==0:
+                success = success and self.send_facts(batch, ping=False)
+                batch = []
+        if batch:
+            success = success and self.send_facts(batch, ping=False)
+        if count > 0:
+            # FIXME set this to debug
+            log.info("send_fact_generator_in_batches sent {} facts".format(count))
+        return success == True
 
     def ping(self):
         resp_code = -1
@@ -158,6 +211,12 @@ class ZingConnectorProxy(object):
 
     def send_facts(self, facts):
         return self.client.send_facts(facts)
+
+    def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
+        return self.client.send_facts_in_batches(facts, batch_size)
+
+    def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
+        return self.client.send_fact_generator_in_batches(fact_gen, batch_size)
 
     def ping(self):
         return self.client.ping()
