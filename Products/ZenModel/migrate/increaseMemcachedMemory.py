@@ -15,11 +15,12 @@ import logging
 import Migrate
 import re
 import servicemigration as sm
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 log = logging.getLogger("zen.migrate")
 
 
 class IncreaseMemcachedMemory(Migrate.Step):
-    version = Migrate.Version(200, 2, 0)
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
         try:
@@ -31,7 +32,10 @@ class IncreaseMemcachedMemory(Migrate.Step):
         memcached_services = filter(lambda cf: cf.name == 'memcached', ctx.services)
 
         for service in memcached_services:
-            service.ramCommitment = u'3G'
+            # override ramCommitment only if it has the prior default value.
+            # We don't want to change any settings the customer may have set.
+            if service.ramCommitment == u'1G':
+                service.ramCommitment = u'3G'
 
         ctx.commit()
 
