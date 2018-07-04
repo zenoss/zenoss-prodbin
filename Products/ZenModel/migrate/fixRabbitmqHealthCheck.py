@@ -11,9 +11,8 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 import Migrate
-from Products.ZenModel.ZMigrateVersion import (
-    SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-)
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
 import servicemigration as sm
 sm.require("1.1.11")
 
