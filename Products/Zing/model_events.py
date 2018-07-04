@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-import copy
 import time
 import traceback
 
@@ -74,7 +73,7 @@ class PostCommitModelEventProcessor(object):
             yield device
 
     """
-    @return: generator of facts
+    @return: a list of fact generators
     """
     def _process(self, event):
         fact_generators = []
@@ -88,17 +87,19 @@ class PostCommitModelEventProcessor(object):
                 if uuid:
                     need_organizers_fact.add(uuid)
         if need_organizers_fact:
+            log.debug("need to send organizers fact for {} devices".format(len(need_organizers_fact)))
             devices_gen = self._get_devices(need_organizers_fact)
             org_facts_gen = organizer_facts_for_devices(devices_gen, include_components=True)
             fact_generators.append(org_facts_gen)
-        return chain(*fact_generators)
+        return fact_generators
 
     def process(self, event):
         ts = time.time()
-        facts = self._process(event)
-        self._publish_facts(facts)
-        # FIXME set this to debug
-        log.info("processing post commit model change event took {} seconds".format(time.time() - ts))
+        fact_generators = self._process(event)
+        if fact_generators:
+            self._publish_facts(chain(*fact_generators))
+            # FIXME set this to debug
+            log.info("processing post commit model change event took {} seconds".format(time.time() - ts))
 
 
 @adapter(IMessagePostPublishingEvent)

@@ -44,15 +44,10 @@ class Fact(object):
     def is_valid(self):
         return self.metadata.get(FactKeys.CONTEXT_UUID_KEY) is not None
 
-
 """
-Given a device generate facts containing all the organizers (device class, systems,
-groups, locations) the device and its components belong to
-@param device: device for which its organizers facts are requested
-@param include_components: whether to include organizers facts for the device's components
-@return: generator with the organizers facts for the device and its components(if required)
+Given a device, generates its organizers fact
 """
-def organizer_facts_for_device(device, include_components=True):
+def organizer_fact_from_device(device):
     device_fact = Fact()
     try:
         device_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = device.getUUID()
@@ -69,18 +64,40 @@ def organizer_facts_for_device(device, include_components=True):
         device_fact.data[FactKeys.SYSTEMS_KEY] = device.getSystemNames()
     if hasattr(device, "getDeviceGroupNames") and device.getDeviceGroupNames():
         device_fact.data[FactKeys.GROUPS_KEY] = device.getDeviceGroupNames()
+    return device_fact
+
+
+"""
+Given a device component, generates its organizers fact
+@param device_fact: organizers fact for device
+"""
+def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type):
+    comp_fact = copy.deepcopy(device_fact)
+    comp_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = comp_uuid
+    comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_meta_type
+    comp_fact.id = shortid()
+    return comp_fact
+
+
+"""
+Given a device generate facts containing all the organizers (device class, systems,
+groups, locations) the device and its components belong to
+@param device: device for which its organizers facts are requested
+@param include_components: whether to include organizers facts for the device's components
+@return: generator with the organizers facts for the device and its components(if required)
+"""
+def organizer_facts_for_device(device, include_components=True):
+    device_fact = organizer_fact_from_device(device)
     if device_fact.is_valid:
         yield device_fact
         if include_components:
             for comp_brain in device.componentSearch(query={}):
                 if not comp_brain.getUUID:
                     continue
-                comp_fact = copy.deepcopy(device_fact)
-                comp_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = comp_brain.getUUID
-                comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_brain.meta_type
-                comp_fact.id = shortid()
+                comp_fact = organizer_fact_from_device_component(device_fact, comp_brain.getUUID, comp_brain.meta_type)
                 if comp_fact.is_valid:
                     yield comp_fact
+
 
 """
 @param devices_uuids: uuids of the devices for which we want to generate organizer facts
@@ -94,6 +111,7 @@ def organizer_facts_for_devices(devices, include_components=True):
         fgen = organizer_facts_for_device(device, include_components)
         gen_list.append(fgen)
     return chain(*gen_list)
+
 
 class _FactEncoder(JSONEncoder):
 

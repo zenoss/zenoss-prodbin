@@ -9,10 +9,12 @@
 
 import logging
 import transaction
+import traceback
 from itertools import chain
+from collections import defaultdict
 
 from .interfaces import IZingConnectorProxy, IZingDatamapHandler
-from .fact import Fact, FactKeys, organizer_facts_for_devices
+from .fact import Fact, FactKeys, organizer_fact_from_device, organizer_fact_from_device_component
 
 from zope.interface import implements
 from zope.component.factory import Factory
@@ -105,6 +107,23 @@ class ZingDatamapHandler(object):
         zing_state = self._get_zing_tx_state()
         zing_state.contexts[objmap] = ObjectMapContext(ctx)
 
+    """
+    Given a dict of device:facts from datamap, it returns a generator that includes
+    all the received facts plus the organizers fact for each of the received facts
+    """
+    def _generate_facts(self, facts_per_device):
+        for device, facts in facts_per_device.iteritems():
+            device_organizers_fact = organizer_fact_from_device(device)
+            for fact in facts:
+                yield fact
+                comp_uuid = fact.metadata.get(FactKeys.CONTEXT_UUID_KEY, "")
+                comp_meta = fact.metadata.get(FactKeys.META_TYPE_KEY, "")
+                comp_fact = organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
+                if comp_fact.is_valid():
+                    yield comp_fact
+            if device_organizers_fact.is_valid():
+                yield device_organizers_fact
+
     def process_datamaps(self, tx_success, zing_state):
         """
         This is called on the AfterCommitHook
@@ -117,19 +136,15 @@ class ZingDatamapHandler(object):
             if not self.zing_connector.ping():
                 log.error("Datamaps not forwarded to Zing: zing-connector cant be reached")
                 return
-            facts = []
+            facts_per_device = defaultdict(list)
             for device, datamap in zing_state.datamaps:
                 dm_facts = self.facts_from_datamap(device, datamap, zing_state.contexts)
                 if dm_facts:
-                    facts.extend(dm_facts)
-            gen_list = [ (f for f in facts) ]
-            # for each processed device and its components, generate a zen_organizers fact
-            devices = ( self.context.unrestrictedTraverse(device_uid, None) for device_uid in zing_state.processed_devices )
-            # FIXME for devices with incremental modeling, this is sending the organizers fact for the device
-            # over and over. Also, we are not sending organizers fact for components
-            gen_list.append(organizer_facts_for_devices(devices, include_components=False))
-            self.zing_connector.send_fact_generator_in_batches(fact_gen=chain(*gen_list))
+                    facts_per_device[device].extend(dm_facts)
+            fact_generator = self._generate_facts(facts_per_device)
+            self.zing_connector.send_fact_generator_in_batches(fact_gen=fact_generator)
         except Exception as ex:
+            log.exception(traceback.format_exc())
             log.warn("Exception sending datamaps to zing-connector. {}".format(ex))
 
     def fact_from_device(self, device):

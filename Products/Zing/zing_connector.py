@@ -10,6 +10,7 @@
 
 import logging
 import requests
+import time
 import urlparse
 
 from zope.component.factory import Factory
@@ -147,6 +148,7 @@ class ZingConnectorClient(object):
     @param batch_size: doh
     """
     def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
+        ts = time.time()
         count = 0
         if not self.ping():
             self.log_zing_connector_not_reachable()
@@ -163,7 +165,8 @@ class ZingConnectorClient(object):
             success = success and self.send_facts(batch, ping=False)
         if count > 0:
             # FIXME set this to debug
-            log.info("send_fact_generator_in_batches sent {} facts".format(count))
+            elapsed = time.time() - ts
+            log.info("send_fact_generator_in_batches sent {} facts in {} seconds".format(count, elapsed))
         return success == True
 
     def ping(self):
