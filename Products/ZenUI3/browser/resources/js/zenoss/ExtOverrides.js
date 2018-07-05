@@ -1098,4 +1098,14 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    /*
+    * Change background color to transparent for legend box in ExtJs charts.
+    */
+    Ext.chart.Legend.override({
+        constructor: function() {
+            this.callParent(arguments);
+            this.boxFill = 'transparent';
+        }
+    });
+
 }());
