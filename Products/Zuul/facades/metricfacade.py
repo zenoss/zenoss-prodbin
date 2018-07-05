@@ -772,9 +772,16 @@ class MetricFacade(ZuulFacade):
                         log.info(jsonLine['content'])
                         joblog.info(jsonLine['content'])
                 elif jsonLine['type'] == 'error':
-                    log.error(jsonLine['content'])
-                    joblog.error(jsonLine['content'])
-                    nFails += 1
+                    # ZEN-29646 openTSDB API considers renaming of something what doesn't exist
+                    # as an error with status code 400, handle this as it is not an error for 
+                    # us in this particular case. 
+                    if "does not exist" not in jsonLine['content']:
+                        log.error(jsonLine['content'])
+                        joblog.error(jsonLine['content'])
+                        nFails += 1
+                    else:
+                        log.info("No metrics found for %s", oldId)
+                        joblog.info("No metrics found for %s", oldId)
                 else:
                     log.error(
                         'Unknown log msg type received from central query: '
