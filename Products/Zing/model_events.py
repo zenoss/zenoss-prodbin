@@ -53,9 +53,13 @@ class PostCommitModelEventProcessor(object):
         success = self._zing_connector_client.send_fact_generator_in_batches(fact_gen)
         if success:
             elapsed = time.time() - ts
-            log.info("sending facts to zing-connector took {} seconds".format(elapsed))
+            log.debug("sending facts to zing-connector took {} seconds".format(elapsed))
         return success == True
 
+    """
+    Returns boolen indicating if the received model event was triggered
+    because a device was moved to a new organizer
+    """
     def _device_organizers_changed(self, model_event):
         return model_event.type in ORGANIZER_FACT_MODEL_EVENT_TYPES and \
                model_event.model_type == MODELCONSTANTS.DEVICE
@@ -98,8 +102,7 @@ class PostCommitModelEventProcessor(object):
         fact_generators = self._process(event)
         if fact_generators:
             self._publish_facts(chain(*fact_generators))
-            # FIXME set this to debug
-            log.info("processing post commit model change event took {} seconds".format(time.time() - ts))
+            log.debug("processing post commit model change event took {} seconds".format(time.time() - ts))
 
 
 @adapter(IMessagePostPublishingEvent)

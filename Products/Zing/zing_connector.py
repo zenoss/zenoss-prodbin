@@ -32,7 +32,7 @@ DEFAULT_ENDPOINT = "/api/model/ingest"
 PING_PORT = "9000"
 PING_ENDPOINT = "/ping"
 DEFAULT_TIMEOUT = 5
-DEFAULT_BATCH_SIZE = 500
+DEFAULT_BATCH_SIZE = 1000
 
 class ZingConnectorConfig(object):
     def __init__(self, host=None, endpoint=None, timeout=None):
@@ -131,8 +131,7 @@ class ZingConnectorClient(object):
     @param batch_size: doh
     """
     def send_facts_in_batches(self, facts, batch_size=DEFAULT_BATCH_SIZE):
-        # TODO make this debug
-        log.info("Sending {} facts to zing-connector in batches of {}.".format(len(facts), batch_size))
+        log.debug("Sending {} facts to zing-connector in batches of {}.".format(len(facts), batch_size))
         success = True
         if not self.ping():
             self.log_zing_connector_not_reachable()
@@ -148,6 +147,7 @@ class ZingConnectorClient(object):
     @param batch_size: doh
     """
     def send_fact_generator_in_batches(self, fact_gen, batch_size=DEFAULT_BATCH_SIZE):
+        log.debug("Sending facts to zing-connector in batches of {}".format(batch_size))
         ts = time.time()
         count = 0
         if not self.ping():
@@ -164,8 +164,8 @@ class ZingConnectorClient(object):
         if batch:
             success = success and self.send_facts(batch, ping=False)
         if count > 0:
-            # FIXME set this to debug
             elapsed = time.time() - ts
+            # FIXME set this to debug
             log.info("send_fact_generator_in_batches sent {} facts in {} seconds".format(count, elapsed))
         return success == True
 
