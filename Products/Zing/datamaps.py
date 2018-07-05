@@ -9,9 +9,12 @@
 
 import logging
 import transaction
+import traceback
+from itertools import chain
+from collections import defaultdict
 
 from .interfaces import IZingConnectorProxy, IZingDatamapHandler
-from .fact import Fact, FactKeys
+from .fact import Fact, FactKeys, organizer_fact_from_device, organizer_fact_from_device_component
 
 from zope.interface import implements
 from zope.component.factory import Factory
@@ -19,10 +22,11 @@ from zope.component.factory import Factory
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 
 logging.basicConfig()
-log = logging.getLogger("zen.zing")
+log = logging.getLogger("zen.zing.datamaps")
 
 
 TX_DATA_FIELD_NAME = "zing_datamaps_state"
+
 
 class ObjectMapContext(object):
     def __init__(self, obj):
@@ -30,7 +34,6 @@ class ObjectMapContext(object):
         self.meta_type = None
         self.name = None
         self.mem_capacity = None
-        self.location = None
         self.is_device = False
         self._extract_relevant_fields(obj)
 
@@ -55,13 +58,6 @@ class ObjectMapContext(object):
                 self.mem_capacity = obj.hw.totalMemory
             except Exception:
                 pass
-            try:
-                loc = obj.location()
-            except Exception:
-                pass
-            else:
-                if loc is not None:
-                    self.location = loc.titleOrId()
 
 
 class ZingDatamapsTxState(object):
@@ -73,7 +69,8 @@ class ZingDatamapsTxState(object):
     def __init__(self):
         self.datamaps = []
         self.contexts = {}
-        self.devices_fact = {} # dummy fact per processed device
+        # for each processed device, we store its path to be able to generate additional facts
+        self.processed_devices = set()
 
 
 class ZingDatamapHandler(object):
@@ -102,15 +99,30 @@ class ZingDatamapHandler(object):
         """ adds the datamap to the ZingDatamapsTxState in the current tx"""
         zing_state = self._get_zing_tx_state()
         zing_state.datamaps.append( (device, datamap) )
-        # Create a dummy fact for the device to make sure Zing has one for each device
-        device_uid = device.getPrimaryId()
-        if device_uid not in zing_state.devices_fact:
-            zing_state.devices_fact[device_uid] = self.fact_from_device(device)
+        # store the device path so we can create additional facts later
+        zing_state.processed_devices.add(device.getPrimaryId())
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingDatamapsTxState in the current tx """
         zing_state = self._get_zing_tx_state()
         zing_state.contexts[objmap] = ObjectMapContext(ctx)
+
+    """
+    Given a dict of device:facts from datamap, it returns a generator that includes
+    all the received facts plus the organizers fact for each of the received facts
+    """
+    def _generate_facts(self, facts_per_device):
+        for device, facts in facts_per_device.iteritems():
+            device_organizers_fact = organizer_fact_from_device(device)
+            for fact in facts:
+                yield fact
+                comp_uuid = fact.metadata.get(FactKeys.CONTEXT_UUID_KEY, "")
+                comp_meta = fact.metadata.get(FactKeys.META_TYPE_KEY, "")
+                comp_fact = organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
+                if comp_fact.is_valid():
+                    yield comp_fact
+            if device_organizers_fact.is_valid():
+                yield device_organizers_fact
 
     def process_datamaps(self, tx_success, zing_state):
         """
@@ -124,25 +136,16 @@ class ZingDatamapHandler(object):
             if not self.zing_connector.ping():
                 log.error("Datamaps not forwarded to Zing: zing-connector cant be reached")
                 return
-            facts = []
+            facts_per_device = defaultdict(list)
             for device, datamap in zing_state.datamaps:
                 dm_facts = self.facts_from_datamap(device, datamap, zing_state.contexts)
                 if dm_facts:
-                    facts.extend(dm_facts)
-            # add dummy facts for the processed devices
-            device_facts = zing_state.devices_fact.values()
-            if device_facts:
-                facts.extend(device_facts)
-            self._send_facts_in_batches(facts)
+                    facts_per_device[device].extend(dm_facts)
+            fact_generator = self._generate_facts(facts_per_device)
+            self.zing_connector.send_fact_generator_in_batches(fact_gen=fact_generator)
         except Exception as ex:
+            log.exception(traceback.format_exc())
             log.warn("Exception sending datamaps to zing-connector. {}".format(ex))
-
-    def _send_facts_in_batches(self, facts, batch_size=500):
-        log.info("Sending {} facts to zing-connector.".format(len(facts)))
-        while facts:
-            batch = facts[:batch_size]
-            del facts[:batch_size]
-            self.zing_connector.send_facts(batch)
 
     def fact_from_device(self, device):
         f = Fact()
@@ -215,7 +218,5 @@ class ZingDatamapHandler(object):
         if om_context.is_device:
             if om_context.mem_capacity is not None:
                 fact.data[FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
-            if FactKeys.LOCATION_KEY not in fact.data and om_context.location is not None:
-                fact.data[FactKeys.LOCATION_KEY] = om_context.location
 
 DATAMAP_HANDLER_FACTORY = Factory(ZingDatamapHandler)
