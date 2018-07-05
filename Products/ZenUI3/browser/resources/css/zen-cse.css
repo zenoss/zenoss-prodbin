@@ -1235,7 +1235,9 @@ BYE BYE BORDERS
         }
 
     /* device class header */
-    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header-text-default {
+        font-size: 14px;
+    }
     .z-cse .x-panel-header .x-form-display-field
     { font-size: 14px; line-height: 20px; margin-top: 8px; text-indent: 8px; }
     .z-cse #device_grid table.eventrainbow {
