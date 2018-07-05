@@ -30,14 +30,17 @@ class IncreaseMemcachedMemory(Migrate.Step):
             return
 
         memcached_services = filter(lambda cf: cf.name == 'memcached', ctx.services)
+        commited = False
 
         for service in memcached_services:
             # override ramCommitment only if it has the prior default value.
             # We don't want to change any settings the customer may have set.
             if service.ramCommitment == u'1G':
                 service.ramCommitment = u'3G'
+                commited = True
 
-        ctx.commit()
+        if commited:
+            ctx.commit()
 
 
 IncreaseMemcachedMemory()
