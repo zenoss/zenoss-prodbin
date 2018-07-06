@@ -80,8 +80,8 @@ class EventsExporter(BrowserView):
 
         return header
 
-    def _query(self, archive, uid=None, fields=None, sort=None, dir=None,
-               evids=None, excludeIds=None, params=None):
+    def _query(self, archive, uid=None, fields=None, exportVisible=True, sort=None,
+        dir=None, evids=None, excludeIds=None, params=None):
         jsonParams = params
         if isinstance(jsonParams, dict):
             jsonParams = json.dumps(jsonParams)
@@ -107,7 +107,7 @@ class EventsExporter(BrowserView):
 
             del event['log']
             if not header:
-                header = self._get_event_fields(event, fields)
+                header = fields if exportVisible else self._get_event_fields(event, fields)
 
             yield header, event
 
