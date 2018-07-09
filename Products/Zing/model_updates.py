@@ -47,22 +47,24 @@ class ZingObjectUpdateHandler(object):
         return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def _update_object(self, obj, idxs=None):
-        if self.is_object_relevant(obj) and isinstance(obj, Device) and idxs:
-            # set this to debug
+        if self.is_object_relevant(obj) and isinstance(obj, Device):
             tx_state = self._get_zing_tx_state()
             uuid = obj.getUUID()
-            log.debug("buffering object update for {}".format(uuid))
-            if "path" in idxs:
-                device_fact = ZFact.organizer_fact_from_device(obj)
-                tx_state.need_organizers_fact[uuid] = device_fact
-                # we also need to generate organizers facts for all the device components
-                for comp_brain in obj.componentSearch(query={}):
-                    if not comp_brain.getUUID:
-                        continue
-                    comp_fact = ZFact.organizer_fact_from_device_component(device_fact, comp_brain.getUUID, comp_brain.meta_type)
-                    tx_state.need_organizers_fact[comp_brain.getUUID] = comp_fact
-            if "name" in idxs or "productionState" in idxs:
-                tx_state.need_device_info_fact[uuid] = ZFact.device_info_fact(obj)
+            tx_state.need_deletion_fact.pop(uuid, None)
+            if idxs:
+                # set this to debug
+                log.debug("buffering object update for {}".format(uuid))
+                if "path" in idxs:
+                    device_fact = ZFact.organizer_fact_from_device(obj)
+                    tx_state.need_organizers_fact[uuid] = device_fact
+                    # we also need to generate organizers facts for all the device components
+                    for comp_brain in obj.componentSearch(query={}):
+                        if not comp_brain.getUUID:
+                            continue
+                        comp_fact = ZFact.organizer_fact_from_device_component(device_fact, comp_brain.getUUID, comp_brain.meta_type)
+                        tx_state.need_organizers_fact[comp_brain.getUUID] = comp_fact
+                if "name" in idxs or "productionState" in idxs:
+                    tx_state.need_device_info_fact[uuid] = ZFact.device_info_fact(obj)
 
     def _delete_object(self, obj):
         if self.is_object_relevant(obj):
