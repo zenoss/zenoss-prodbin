@@ -124,7 +124,8 @@ class ZProxyMetricGatherer(MetricGatherer):
         for id_, zope in zopes.iteritems():
             try:
                 s = requests.Session()
-                result = s.get(self.ZPROXY_STATS_URL % zope)
+                # ZEN-29775 add a tomeout to zope instance call
+                result = s.get(self.ZPROXY_STATS_URL % zope, timeout=10)
                 if result.status_code == 200:
                     data = result.json()
                     now = time.time()
