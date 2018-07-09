@@ -8,19 +8,16 @@
 ##############################################################################
 
 import logging
-import transaction
-import traceback
+
 from collections import defaultdict
-
-from Products.Zing import fact as ZFact
-
-from Products.Zing.interfaces import IZingDatamapHandler
-from Products.Zing.tx_state import ZingTxStateManager
-
 from zope.interface import implements
 from zope.component.factory import Factory
 
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+from Products.Zing import fact as ZFact
+from Products.Zing.interfaces import IZingDatamapHandler
+from Products.Zing.tx_state import ZingTxStateManager
+
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
@@ -96,22 +93,16 @@ class ZingDatamapHandler(object):
                     if comp_fact.is_valid():
                         generated_organizer_facts.add(comp_uuid)
                         yield comp_fact
-                else:
-                    log.info("PACOOO SAVED ONE UPDATE")
             dev_uuid = device.getUUID()
             # send organizers fact for the device
             if dev_uuid not in zing_tx_state.already_generated_organizer_facts and device_organizers_fact.is_valid():
                 zing_tx_state.already_generated_organizer_facts.add(dev_uuid)
                 yield device_organizers_fact
-            else:
-                log.info("PACOOO SAVED ONE ORGANIZERS FACT UPDATE")
             # send device info fact
             dev_info_fact = ZFact.device_info_fact(device)
             if dev_uuid not in zing_tx_state.already_generated_device_info_facts and dev_info_fact.is_valid():
                 zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
                 yield dev_info_fact
-            else:
-                log.info("PACOOO SAVED ONE DEVICE INFO UPDATE")
 
     def generate_facts(self, zing_tx_state):
         """

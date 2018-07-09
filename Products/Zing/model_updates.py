@@ -7,39 +7,31 @@
 #
 ##############################################################################
 
-import time
+
 import traceback
-import transaction
-
-from .tx_state import ZingTxStateManager
-
-from zope.component import adapter
-from zope.interface import implements
 
 from itertools import chain
 from logging import getLogger
 
 from zope.component.factory import Factory
+from zope.interface import implements
 
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceComponent import DeviceComponent
-
-from Products.Zing.interfaces import IZingConnectorProxy
-from Products.ZenUtils.guid.interfaces import IGUIDManager
+from Products.Zing import fact as ZFact
 from Products.Zing.interfaces import IZingObjectUpdateHandler
+from Products.Zing.tx_state import ZingTxStateManager
 
-from Products.Zing import fact
 
-log = getLogger("zen.zing.events")
+log = getLogger("zen.zing.model_updates")
 
 
 class ZingObjectUpdateHandler(object):
     implements(IZingObjectUpdateHandler)
 
     def __init__(self, context):
-        self.context = context
+        self.context = context.getDmd()
         self.zing_tx_state_manager = ZingTxStateManager()
-        self.guid_manager = IGUIDManager(self.context)
 
     def is_object_relevant(self, obj):
         # devices and components with an uuid are relevant
@@ -57,29 +49,31 @@ class ZingObjectUpdateHandler(object):
     def _update_object(self, obj, idxs=None):
         if self.is_object_relevant(obj) and isinstance(obj, Device) and idxs:
             # set this to debug
-            log.info("buffering object update")
             tx_state = self._get_zing_tx_state()
             uuid = obj.getUUID()
+            log.debug("buffering object update for {}".format(uuid))
             if "path" in idxs:
-                tx_state.need_organizers_fact.add(uuid)
+                device_fact = ZFact.organizer_fact_from_device(obj)
+                tx_state.need_organizers_fact[uuid] = device_fact
                 # we also need to generate organizers facts for all the device components
+                for comp_brain in obj.componentSearch(query={}):
+                    if not comp_brain.getUUID:
+                        continue
+                    comp_fact = ZFact.organizer_fact_from_device_component(device_fact, comp_brain.getUUID, comp_brain.meta_type)
+                    tx_state.need_organizers_fact[comp_brain.getUUID] = comp_fact
             if "name" in idxs or "productionState" in idxs:
-                tx_state.need_device_info_fact.add(uuid)
-            tx_state.need_deletion_fact.discard(uuid)
+                tx_state.need_device_info_fact[uuid] = ZFact.device_info_fact(obj)
 
     def _delete_object(self, obj):
         if self.is_object_relevant(obj):
-            # set this to debug
-            log.info("buffering object deletion")
             uuid = obj.getUUID()
+            log.debug("buffering object deletion for {}".format(uuid))
             tx_state = self._get_zing_tx_state()
-            tx_state.need_deletion_fact.add(uuid)
-            tx_state.need_organizers_fact.discard(uuid)
-            tx_state.need_device_info_fact.discard(uuid)
+            tx_state.need_deletion_fact[uuid] = ZFact.deletion_fact(uuid)
 
     def update_object(self, obj, idxs=None):
         """
-        ModelCatalog calls this method when it determines that an object has been updated
+        ModelCatalog calls this method when an object needs to be updated
         """
         try:
             self._update_object(obj, idxs)
@@ -89,7 +83,7 @@ class ZingObjectUpdateHandler(object):
 
     def delete_object(self, obj):
         """
-        ModelCatalog calls this method when it determines that an object has been deleted
+        ModelCatalog calls this method when an object needs to be deleted
         """
         try:
             self._delete_object(obj)
@@ -97,54 +91,39 @@ class ZingObjectUpdateHandler(object):
             log.exception(traceback.format_exc())
             log.error("Exception buffering object deletion for Zing. {}".format(ex))
 
-    def _generate_device_info_facts(self, uuids, tx_state):
-        for uuid in uuids:
-            if uuid in tx_state.already_generated_device_info_facts:
+    def _generate_facts(self, uuid_to_fact, already_generated=None):
+        """
+        :param uuid_to_fact: dict uuid: Fact
+        :param already_generated: uuids for which we have already generated a fact
+        :return: Fact generator
+        """
+        for uuid, fact in uuid_to_fact.iteritems():
+            if already_generated and uuid in already_generated:
                 continue
-            obj = self.guid_manager.getObject(uuid)
-            if obj:
-                f = fact.device_info_fact(obj)
-                if f.is_valid():
-                    tx_state.already_generated_device_info_facts.add(uuid)
-                    yield f
-
-    def _generate_deletion_facts(self, uuids, tx_state):
-        for uuid in uuids:
-            f = fact.deletion_fact(uuid)
-            if f.is_valid():
-                yield f
-
-    def _generate_organizers_facts(self, uuids, tx_state):
-        for uuid in uuids: # all the uuids are devices ( see self.update_object )
-            device = self.guid_manager.getObject(uuid)
-            if device:
-                device_fact = fact.organizer_fact_from_device(device)
-                if uuid not in tx_state.already_generated_organizer_facts and device_fact.is_valid():
-                    yield device_fact
-                # send an organizers fact for each component
-                for comp_brain in device.componentSearch(query={}):
-                    if not comp_brain.getUUID or \
-                       comp_brain.getUUID in tx_state.already_generated_organizer_facts:
-                        continue
-                    comp_fact = fact.organizer_fact_from_device_component(device_fact, comp_brain.getUUID, comp_brain.meta_type)
-                    if comp_fact.is_valid():
-                        tx_state.already_generated_organizer_facts.add(comp_brain.getUUID)
-                        yield comp_fact
+            if fact.is_valid():
+                if already_generated:
+                    already_generated.add(uuid)
+                yield fact
 
     def generate_facts(self, tx_state):
         """
         @return: Fact generator
         """
-        # TODO set this to debug
-        log.info("Processing {} device info facts".format(tx_state.need_device_info_fact))
-        log.info("Processing {} organizers facts".format(tx_state.need_organizers_fact))
-        log.info("Processing {} deletion facts".format(tx_state.need_deletion_fact))
-        dev_info_uuids = tx_state.need_device_info_fact - tx_state.already_generated_device_info_facts
-        orgs_uuids = tx_state.need_organizers_fact - tx_state.already_generated_organizer_facts
         fact_generators = []
-        fact_generators.append(self._generate_device_info_facts(dev_info_uuids, tx_state))
-        fact_generators.append(self._generate_organizers_facts(orgs_uuids, tx_state))
-        fact_generators.append(self._generate_deletion_facts(tx_state.need_deletion_fact, tx_state))
+        if tx_state.need_device_info_fact:
+            # TODO set this to debug
+            log.info("Processing {} device info updates".format(len(tx_state.need_device_info_fact)))
+            fact_generators.append(self._generate_facts(tx_state.need_device_info_fact,
+                                   tx_state.already_generated_device_info_facts))
+        if tx_state.need_organizers_fact:
+            # TODO set this to debug
+            log.info("Processing {} organizers updates".format(len(tx_state.need_organizers_fact)))
+            fact_generators.append(self._generate_facts(tx_state.need_organizers_fact,
+                                   tx_state.already_generated_organizer_facts))
+        if tx_state.need_deletion_fact:
+            # TODO set this to debug
+            log.info("Processing {} deletion updates".format(len(tx_state.need_deletion_fact)))
+            fact_generators.append(self._generate_facts(tx_state.need_deletion_fact))
         return chain(*fact_generators)
 
 

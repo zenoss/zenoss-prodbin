@@ -17,7 +17,7 @@
             name="ZingDatamapHandler"
     />
 
-    <utility component=".model_events.OBJECT_UPDATE_HANDLER_FACTORY"
+    <utility component=".model_updates.OBJECT_UPDATE_HANDLER_FACTORY"
             name="ZingObjectUpdateHandler"
     />
 

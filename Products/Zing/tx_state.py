@@ -13,7 +13,6 @@ import traceback
 from itertools import chain
 
 from zope.component import createObject
-from zope.interface import implements
 
 from .interfaces import IZingConnectorProxy
 
@@ -41,9 +40,9 @@ class ZingTxState(object):
 
         # updated by model_catalog IndexingEvent machinerie (ZingObjectUpdateHandler)
         #
-        self.need_organizers_fact = set()  # contextUUIDs that need an organizers fact
-        self.need_device_info_fact = set() # contextUUIDs that need a device info fact
-        self.need_deletion_fact = set()    # contextUUIDs that need a deletion fact
+        self.need_organizers_fact = {}  # contextUUIDs:Fact that need an organizers fact
+        self.need_device_info_fact = {} # contextUUIDs:Fact that need a device info fact
+        self.need_deletion_fact = {}    # contextUUIDs:Fact that need a deletion fact
 
     def is_there_datamap_updates(self):
         return len(self.datamaps) > 0
