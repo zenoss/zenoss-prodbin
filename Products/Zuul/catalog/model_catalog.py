@@ -178,7 +178,7 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception indexing object")
-        # keep Zing up to date
+        # keep Zing up to date. This call wont raise any exceptions
         self._zing_handler.update_object(obj, idxs)
 
     def uncatalog_object(self, obj):
@@ -188,7 +188,7 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception unindexing object")
-        # keep Zing up to date
+        # keep Zing up to date. This call wont raise any exceptions
         self._zing_handler.delete_object(obj)
 
     def get_brain_from_object(self, obj, context, fields=None):
