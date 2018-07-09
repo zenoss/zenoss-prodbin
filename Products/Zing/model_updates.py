@@ -43,6 +43,7 @@ class ZingObjectUpdateHandler(object):
 
     def is_object_relevant(self, obj):
         # devices and components with an uuid are relevant
+        uuid = None
         try:
             uuid = obj.getUUID()
         except Exception:
