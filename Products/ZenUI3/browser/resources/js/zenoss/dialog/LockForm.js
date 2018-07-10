@@ -45,7 +45,8 @@
                         name: 'sendEvent',
                         ref: '../sendEventWhenBlocked',
                         boxLabel: _t('Send an event when an action is blocked'),
-                        checked: config.sendEventChecked
+                        checked: config.sendEventChecked,
+                        disabled: config.sendEventDisabled || true
                     }]
                 }]
 
@@ -64,7 +65,9 @@
           **/
         setCheckboxes: function() {
             var updatesChecked = this.updates.getValue(),
-                    deletionChecked = this.deletion.getValue();
+                deletionChecked = this.deletion.getValue(),
+                isDeletionDisabled = this.deletion.disabled;
+
             // rule 1. sendEvents
             if (updatesChecked || deletionChecked) {
                 this.sendEventWhenBlocked.enable();
@@ -77,8 +80,9 @@
             if (updatesChecked) {
                 this.deletion.setValue(true);
                 this.deletion.disable();
-            } else {
+            } else if (deletionChecked && isDeletionDisabled) {
                 this.deletion.enable();
+                this.deletion.setValue(false);
             }
 
         }

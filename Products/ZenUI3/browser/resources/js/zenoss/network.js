@@ -50,8 +50,9 @@ treeConfigs.addAll([{
 
 var getRootId = function(fn) {
     var config;
+    var parentContext = Zenoss.render.link(undefined, Zenoss.env.PARENT_CONTEXT);
     treeConfigs.each(function(item) {
-        if (Zenoss.env.PARENT_CONTEXT.indexOf(item.root.uid) === 0) {
+        if (parentContext.indexOf(item.root.uid) === 0) {
             config = item;
             return false; //stops iteration
         }
