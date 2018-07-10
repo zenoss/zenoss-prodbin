@@ -8,8 +8,6 @@
 ##############################################################################
 
 
-import traceback
-
 from itertools import chain
 from logging import getLogger
 
@@ -79,9 +77,8 @@ class ZingObjectUpdateHandler(object):
         """
         try:
             self._update_object(obj, idxs)
-        except Exception as ex:
-            log.exception(traceback.format_exc())
-            log.error("Exception buffering object update for Zing. {}".format(ex))
+        except Exception:
+            log.exception("Exception buffering object update for Zing")
 
     def delete_object(self, obj):
         """
@@ -89,9 +86,8 @@ class ZingObjectUpdateHandler(object):
         """
         try:
             self._delete_object(obj)
-        except Exception as ex:
-            log.exception(traceback.format_exc())
-            log.error("Exception buffering object deletion for Zing. {}".format(ex))
+        except Exception:
+            log.exception("Exception buffering object deletion for Zing")
 
     def _generate_facts(self, uuid_to_fact, already_generated=None):
         """

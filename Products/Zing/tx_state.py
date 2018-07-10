@@ -9,7 +9,6 @@
 
 import logging
 import transaction
-import traceback
 from itertools import chain
 
 from zope.component import createObject
@@ -96,8 +95,7 @@ class ZingTxStateManager(object):
             fact_generators = self._generate_facts(context, zing_connector, zing_tx_state)
             if fact_generators:
                 zing_connector.send_fact_generator_in_batches(fact_gen=chain(*fact_generators))
-        except Exception as ex:
-            log.exception(traceback.format_exc())
-            log.error("Exception processing facts for zing-connector. {}".format(ex))
+        except Exception:
+            log.exception("Exception processing facts for zing-connector")
 
 
