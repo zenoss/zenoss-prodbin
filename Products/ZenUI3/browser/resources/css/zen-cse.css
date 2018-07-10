@@ -1408,7 +1408,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
     .z-cse #breadCrumbPane a
-    { color: #00b5c1; text-decoration: none; }
+    { color: #004080; text-decoration: none; font-weight: bold; }
 
     /* masthead search */
     .z-cse #searchbox-container .searchfield-black .x-form-field,
