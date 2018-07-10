@@ -14,6 +14,13 @@ import copy
 import time
 import logging
 
+IMPACT_INSTALLED = True
+try:
+    from ZenPacks.zenoss.Impact.zing.factGenerator import impactRelationshipFact
+except ImportError:
+    IMPACT_INSTALLED = False
+
+
 logging.basicConfig()
 log = logging.getLogger("zen.zing")
 
@@ -113,6 +120,13 @@ def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type)
     comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_meta_type
     comp_fact.id = shortid()
     return comp_fact
+
+
+def impact_relationships_fact(uuid):
+    if IMPACT_INSTALLED:
+        return impactRelationshipFact(uuid)
+    else:
+        return None
 
 
 class _FactEncoder(JSONEncoder):

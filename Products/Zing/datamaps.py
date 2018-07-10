@@ -76,33 +76,57 @@ class ZingDatamapHandler(object):
         zing_state = self._get_zing_tx_state()
         zing_state.datamaps_contexts[objmap] = ObjectMapContext(ctx)
 
-    """
-    Given a dict of device:facts from datamap, it returns a generator that includes
-    all the received facts plus the organizers fact for each of the received facts
-    """
     def _generate_facts(self, facts_per_device, zing_tx_state):
-        generated_organizer_facts = zing_tx_state.already_generated_organizer_facts
+        """
+        Given a dict of device:facts from datamap, it returns a generator that includes
+        all the received facts plus some additional facts (organizers fact, device info fact
+        and impact relationship fact)
+        """
         for device, facts in facts_per_device.iteritems():
             device_organizers_fact = ZFact.organizer_fact_from_device(device)
             for f in facts:
+                # return datamap fact
                 yield f
+                # organizers and impact relationships facts for the component
                 comp_uuid = f.metadata.get(ZFact.FactKeys.CONTEXT_UUID_KEY, "")
-                if comp_uuid not in generated_organizer_facts:
-                    comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
-                    comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
-                    if comp_fact.is_valid():
-                        generated_organizer_facts.add(comp_uuid)
-                        yield comp_fact
+                if comp_uuid:
+                    # organizers fact for the component
+                    if comp_uuid not in zing_tx_state.already_generated_organizer_facts:
+                        comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
+                        comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
+                        if comp_fact.is_valid():
+                            zing_tx_state.already_generated_organizer_facts.add(comp_uuid)
+                            yield comp_fact
+                    # impact relationship fact for the component
+                    if comp_uuid not in zing_tx_state.already_generated_impact_facts:
+                        impact_fact = ZFact.impact_relationships_fact(comp_uuid)
+                        if impact_fact is None: # this component doesnt have impact relationships
+                            zing_tx_state.already_generated_impact_facts.add(comp_uuid)
+                        elif impact_fact.is_valid():
+                            zing_tx_state.already_generated_impact_facts.add(comp_uuid)
+                            yield impact_fact
+            # generate facts for the device
             dev_uuid = device.getUUID()
-            # send organizers fact for the device
-            if dev_uuid not in zing_tx_state.already_generated_organizer_facts and device_organizers_fact.is_valid():
-                zing_tx_state.already_generated_organizer_facts.add(dev_uuid)
-                yield device_organizers_fact
-            # send device info fact
-            dev_info_fact = ZFact.device_info_fact(device)
-            if dev_uuid not in zing_tx_state.already_generated_device_info_facts and dev_info_fact.is_valid():
-                zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
-                yield dev_info_fact
+            if dev_uuid:
+                # send organizers fact
+                if dev_uuid not in zing_tx_state.already_generated_organizer_facts and device_organizers_fact.is_valid():
+                    zing_tx_state.already_generated_organizer_facts.add(dev_uuid)
+                    yield device_organizers_fact
+                # send device info fact
+                if dev_uuid not in zing_tx_state.already_generated_device_info_facts:
+                    dev_info_fact = ZFact.device_info_fact(device)
+                    if dev_info_fact.is_valid():
+                        zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
+                        yield dev_info_fact
+                # send impact relationships fact
+                if dev_uuid not in zing_tx_state.already_generated_impact_facts:
+                    dev_impact_fact = ZFact.impact_relationships_fact(dev_uuid)
+                    if dev_impact_fact is None: # device doesnt have impact relationships
+                        zing_tx_state.already_generated_impact_facts.add(dev_uuid)
+                    elif dev_impact_fact.is_valid():
+                        zing_tx_state.already_generated_impact_facts.add(dev_uuid)
+                        yield dev_impact_fact
+
 
     def generate_facts(self, zing_tx_state):
         """
