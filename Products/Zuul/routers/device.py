@@ -14,7 +14,6 @@ Operations for Device Organizers and Devices.
 Available at:  /zport/dmd/device_router
 """
 import logging
-import traceback
 from cgi import escape
 from collections import OrderedDict
 from itertools import islice
@@ -949,8 +948,10 @@ class DeviceRouter(TreeRouter):
                 return DirectResponse.succeed('Changed collector to %s for %s devices.' %
                                       (collector, len(uids)))
         except Exception, e:
-            log.debug(traceback.format_exc())
-            log.error(e)
+            if log.isEnabledFor(logging.DEBUG):
+                log.exception(e)
+            else:
+                log.error(e)
             return DirectResponse.exception(e, 'Failed to change the collector.')
 
     def setComponentsMonitored(self, uids, hashcheck, monitor=False, uid=None,
