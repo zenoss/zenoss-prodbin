@@ -8,21 +8,20 @@
 ##############################################################################
 
 import logging
-import transaction
 
-from .interfaces import IZingConnectorProxy, IZingDatamapHandler
-from .fact import Fact, FactKeys
-
+from collections import defaultdict
 from zope.interface import implements
 from zope.component.factory import Factory
 
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+from Products.Zing import fact as ZFact
+from Products.Zing.interfaces import IZingDatamapHandler
+from Products.Zing.tx_state import ZingTxStateManager
+
 
 logging.basicConfig()
-log = logging.getLogger("zen.zing")
+log = logging.getLogger("zen.zing.datamaps")
 
-
-TX_DATA_FIELD_NAME = "zing_datamaps_state"
 
 class ObjectMapContext(object):
     def __init__(self, obj):
@@ -30,7 +29,6 @@ class ObjectMapContext(object):
         self.meta_type = None
         self.name = None
         self.mem_capacity = None
-        self.location = None
         self.is_device = False
         self._extract_relevant_fields(obj)
 
@@ -55,25 +53,6 @@ class ObjectMapContext(object):
                 self.mem_capacity = obj.hw.totalMemory
             except Exception:
                 pass
-            try:
-                loc = obj.location()
-            except Exception:
-                pass
-            else:
-                if loc is not None:
-                    self.location = loc.titleOrId()
-
-
-class ZingDatamapsTxState(object):
-    """
-    All datamaps processed within a transaction are buffered in this data structure
-    in the transaction object. Once the tx successfully commits, datamaps will be
-    serialized and sent to zing-connector
-    """
-    def __init__(self):
-        self.datamaps = []
-        self.contexts = {}
-        self.devices_fact = {} # dummy fact per processed device
 
 
 class ZingDatamapHandler(object):
@@ -81,80 +60,73 @@ class ZingDatamapHandler(object):
 
     def __init__(self, context):
         self.context = context
-        self.zing_connector = IZingConnectorProxy(context)
+        self.zing_tx_state_manager = ZingTxStateManager()
 
     def _get_zing_tx_state(self):
-        """
-        Get the ZingDatamapsTxState object for the current transaction.
-        If it doesnt exists, create it.
-        """
-        zing_tx_state = None
-        current_tx = transaction.get()
-        zing_tx_state = getattr(current_tx, TX_DATA_FIELD_NAME, None)
-        if not zing_tx_state:
-            zing_tx_state = ZingDatamapsTxState()
-            setattr(current_tx, TX_DATA_FIELD_NAME, zing_tx_state)
-            current_tx.addAfterCommitHook(self.process_datamaps, args=(zing_tx_state,))
-            log.debug("ZingDatamapHandler AfterCommitHook added. State added to current transaction.")
-        return zing_tx_state
+        """ """
+        return self.zing_tx_state_manager.get_zing_tx_state(self.context)
 
     def add_datamap(self, device, datamap):
         """ adds the datamap to the ZingDatamapsTxState in the current tx"""
         zing_state = self._get_zing_tx_state()
         zing_state.datamaps.append( (device, datamap) )
-        # Create a dummy fact for the device to make sure Zing has one for each device
-        device_uid = device.getPrimaryId()
-        if device_uid not in zing_state.devices_fact:
-            zing_state.devices_fact[device_uid] = self.fact_from_device(device)
 
     def add_context(self, objmap, ctx):
         """ adds the context to the ZingDatamapsTxState in the current tx """
         zing_state = self._get_zing_tx_state()
-        zing_state.contexts[objmap] = ObjectMapContext(ctx)
+        zing_state.datamaps_contexts[objmap] = ObjectMapContext(ctx)
 
-    def process_datamaps(self, tx_success, zing_state):
-        """
-        This is called on the AfterCommitHook
-        Send the datamaps to zing-connector if the tx succeeded
-        """
-        if not tx_success:
-            return
-        try:
-            log.debug("Sending {} datamaps to zing-connector.".format(len(zing_state.datamaps)))
-            if not self.zing_connector.ping():
-                log.error("Datamaps not forwarded to Zing: zing-connector cant be reached")
-                return
-            facts = []
-            for device, datamap in zing_state.datamaps:
-                dm_facts = self.facts_from_datamap(device, datamap, zing_state.contexts)
-                if dm_facts:
-                    facts.extend(dm_facts)
-            # add dummy facts for the processed devices
-            device_facts = zing_state.devices_fact.values()
-            if device_facts:
-                facts.extend(device_facts)
-            self._send_facts_in_batches(facts)
-        except Exception as ex:
-            log.warn("Exception sending datamaps to zing-connector. {}".format(ex))
+    """
+    Given a dict of device:facts from datamap, it returns a generator that includes
+    all the received facts plus the organizers fact for each of the received facts
+    """
+    def _generate_facts(self, facts_per_device, zing_tx_state):
+        generated_organizer_facts = zing_tx_state.already_generated_organizer_facts
+        for device, facts in facts_per_device.iteritems():
+            device_organizers_fact = ZFact.organizer_fact_from_device(device)
+            for f in facts:
+                yield f
+                comp_uuid = f.metadata.get(ZFact.FactKeys.CONTEXT_UUID_KEY, "")
+                if comp_uuid not in generated_organizer_facts:
+                    comp_meta = f.metadata.get(ZFact.FactKeys.META_TYPE_KEY, "")
+                    comp_fact = ZFact.organizer_fact_from_device_component(device_organizers_fact, comp_uuid, comp_meta)
+                    if comp_fact.is_valid():
+                        generated_organizer_facts.add(comp_uuid)
+                        yield comp_fact
+            dev_uuid = device.getUUID()
+            # send organizers fact for the device
+            if dev_uuid not in zing_tx_state.already_generated_organizer_facts and device_organizers_fact.is_valid():
+                zing_tx_state.already_generated_organizer_facts.add(dev_uuid)
+                yield device_organizers_fact
+            # send device info fact
+            dev_info_fact = ZFact.device_info_fact(device)
+            if dev_uuid not in zing_tx_state.already_generated_device_info_facts and dev_info_fact.is_valid():
+                zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
+                yield dev_info_fact
 
-    def _send_facts_in_batches(self, facts, batch_size=500):
-        log.info("Sending {} facts to zing-connector.".format(len(facts)))
-        while facts:
-            batch = facts[:batch_size]
-            del facts[:batch_size]
-            self.zing_connector.send_facts(batch)
+    def generate_facts(self, zing_tx_state):
+        """
+        @return: Fact generator
+        """
+        log.debug("Processing {} datamaps to send to zing-connector.".format(len(zing_tx_state.datamaps)))
+        facts_per_device = defaultdict(list)
+        for device, datamap in zing_tx_state.datamaps:
+            dm_facts = self.facts_from_datamap(device, datamap, zing_tx_state.datamaps_contexts)
+            if dm_facts:
+                facts_per_device[device].extend(dm_facts)
+        return self._generate_facts(facts_per_device, zing_tx_state)
 
     def fact_from_device(self, device):
-        f = Fact()
+        f = ZFact.Fact()
         ctx = ObjectMapContext(device)
-        f.metadata[FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
-        f.metadata[FactKeys.META_TYPE_KEY] = ctx.meta_type
-        f.metadata[FactKeys.PLUGIN_KEY] = ctx.meta_type
-        f.data[FactKeys.NAME_KEY] = ctx.name
+        f.metadata[ZFact.FactKeys.CONTEXT_UUID_KEY] = ctx.uuid
+        f.metadata[ZFact.FactKeys.META_TYPE_KEY] = ctx.meta_type
+        f.metadata[ZFact.FactKeys.PLUGIN_KEY] = ctx.meta_type
+        f.data[ZFact.FactKeys.NAME_KEY] = ctx.name
         return f
 
     def fact_from_object_map(self, om, parent_device=None, relationship=None, context=None, dm_plugin=None):
-        f = Fact()
+        f = ZFact.Fact()
         d = om.__dict__.copy()
         if "_attrs" in d:
             del d["_attrs"]
@@ -173,7 +145,7 @@ class ZingDatamapHandler(object):
             f.metadata["relationship"] = relationship
         plugin_name = getattr(om, PLUGIN_NAME_ATTR, None) or dm_plugin
         if plugin_name:
-            f.metadata[FactKeys.PLUGIN_KEY] = plugin_name
+            f.metadata[ZFact.FactKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
         om_context = (context or {}).get(om)
@@ -181,10 +153,10 @@ class ZingDatamapHandler(object):
             self.apply_extra_fields(om_context, f)
 
         # FIXME temp solution until we are sure all zenpacks send the plugin
-        if not f.metadata.get(FactKeys.PLUGIN_KEY):
+        if not f.metadata.get(ZFact.FactKeys.PLUGIN_KEY):
             log.warn("Found fact without plugin information: {}".format(f.metadata))
-            if f.metadata.get(FactKeys.META_TYPE_KEY):
-                f.metadata[FactKeys.PLUGIN_KEY] = f.metadata[FactKeys.META_TYPE_KEY]
+            if f.metadata.get(ZFact.FactKeys.META_TYPE_KEY):
+                f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
         return f
 
     def facts_from_datamap(self, device, dm, context):
@@ -201,21 +173,19 @@ class ZingDatamapHandler(object):
                 facts.append(f)
         return facts
 
-    def apply_extra_fields(self, om_context, fact):
+    def apply_extra_fields(self, om_context, f):
         """
         A simple (temporary) hook to add extra information to a fact that isn't
         found in the datamap that triggered this serialization. This needs a proper
         event subscriber framework to be maintainable, so this will only work so
         long as the number of fields is pretty small.
         """
-        fact.metadata[FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
-        fact.metadata[FactKeys.META_TYPE_KEY] = om_context.meta_type
-        fact.data[FactKeys.NAME_KEY] = om_context.name
+        f.metadata[ZFact.FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
+        f.metadata[ZFact.FactKeys.META_TYPE_KEY] = om_context.meta_type
+        f.data[ZFact.FactKeys.NAME_KEY] = om_context.name
 
         if om_context.is_device:
             if om_context.mem_capacity is not None:
-                fact.data[FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
-            if FactKeys.LOCATION_KEY not in fact.data and om_context.location is not None:
-                fact.data[FactKeys.LOCATION_KEY] = om_context.location
+                f.data[ZFact.FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
 
 DATAMAP_HANDLER_FACTORY = Factory(ZingDatamapHandler)
