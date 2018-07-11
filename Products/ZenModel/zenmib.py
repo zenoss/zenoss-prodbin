@@ -54,6 +54,7 @@ import logging
 import os
 import sys
 import tempfile
+import transaction
 
 import Globals
 
@@ -110,12 +111,16 @@ class MIBFileProcessor(BaseProcessor):
         self._savepath = \
             options.pythoncodedir if options.keeppythoncode else None
         self._mibdepsdir = options.mibdepsdir
-        self._mibdir = options.mibsdir
+        self._mibsdir = options.mibsdir
         self._mibfiles = mibfiles
 
     def run(self):
         mibfiles = self._getMIBFiles()
         paths = [zenPath("share", "mibs"), self._mibdepsdir]
+
+        # Add the directories of the MIB-files-to-load to the set of
+        # paths to search for MIB file dependencies.
+        paths.extend(_unique(os.path.dirname(mf.filename) for mf in mibfiles))
 
         loaderArgs = (self._moduleMgr, self._organizer)
 
@@ -204,6 +209,11 @@ class ZenMib(ZCmdBase):
                 )
 
             processor.run()
+
+            if not self.options.nocommit:
+                transaction.commit()
+            else:
+                self.log.warn("Changes not saved (--nocommit was specified)")
         except Exception as ex:
             _logException(self.log, "Failure: %s", ex)
 
@@ -260,7 +270,7 @@ class ZenMib(ZCmdBase):
         self.parser.add_option(
             '--keeppythoncode', dest='keeppythoncode',
             action='store_true', default=False,
-            help="Don't commit the MIB to the DMD after loading"
+            help="Save the generated Python code"
         )
         self.parser.add_option(
             '--pythoncodedir', dest='pythoncodedir',

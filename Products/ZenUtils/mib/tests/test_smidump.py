@@ -181,7 +181,7 @@ class TestSMIDumpTool(TestCase):
         self.mock_popen = self.patch_popen.start()
         self.mock_process = mock.Mock(spec=smidump.Popen)
         self.mock_popen.return_value = self.mock_process
-        self.mock_process.communicate = mock.Mock(return_value=([""], [""]))
+        self.mock_process.communicate = mock.Mock(return_value=("", ""))
         self.mock_process.poll = mock.Mock(return_value=0)
 
     def tearDown(self):
@@ -280,7 +280,7 @@ class TestSMIDumpTool(TestCase):
 
     def test_cmd_error(self):
         self.mock_process.communicate = mock.Mock(
-            return_value=([""], ["boom"])
+            return_value=("", "boom")
         )
         self.mock_process.poll = mock.Mock(return_value=128)
 

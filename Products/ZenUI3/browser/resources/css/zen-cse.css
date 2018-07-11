@@ -126,10 +126,10 @@ darker input fields:           #505050
 .z-cse .x-panel-dd-spacer  /* dashboard portlet drop target */
 { background-image: none !important; background-color: rgba(255,255,255,0.4) !important; }
 
-/* CodeMirror.css */
-.z-cse .CodeMirror,
-.z-cse .CodeMirror-gutters
-{ background-image: none; background-color: transparent; }
+/* CodeMirror edited panel header text color */
+.z-cse .edited_feedback .x-panel-header-text {
+    color: orange !important;
+}
 .z-cse #configs-body > .x-panel
 { background-image: none !important; background-color: transparent !important; }
 
@@ -390,10 +390,10 @@ BYE BYE BORDERS
 
     /*ZEN-30098*/
     .z-cse .x-surface path {
-        stroke: #999;
+        stroke: #4b4b4c;
     }
     .z-cse .x-surface text {
-        fill: #ccc;
+        fill: #4b4b4c;
     }
 
     /* filter coloring */
@@ -1211,6 +1211,7 @@ BYE BYE BORDERS
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
         text-decoration: none !important;
+        font-weight: bold;
     }
 
     .z-cse .search-result .excerpt {
@@ -1235,7 +1236,9 @@ BYE BYE BORDERS
         }
 
     /* device class header */
-    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header-text-default {
+        font-size: 14px;
+    }
     .z-cse .x-panel-header .x-form-display-field
     { font-size: 14px; line-height: 20px; margin-top: 8px; text-indent: 8px; }
     .z-cse #device_grid table.eventrainbow {
@@ -1374,7 +1377,6 @@ BYE BYE BORDERS
     .z-cse #dialog_content select,
     .z-cse #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
     .z-cse #newTabsPane ul li a:hover,
-    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
     .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #4b4b4c; }
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -1407,7 +1409,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
     .z-cse #breadCrumbPane a
-    { color: #00b5c1; text-decoration: none; }
+    { color: #004080; text-decoration: none; }
 
     /* masthead search */
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -1820,6 +1822,11 @@ BYE BYE BORDERS
     /* events | classes tree disappearing icon bug */
     .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .sanstransform {
         background-image: url('++resource++zenui/img/xtheme-zenoss/icon/no-transform.png') !important;
+        display: inline-block;
+        margin: -2px 2px 0 -2px;
+    }
+    .z-cse #master_panel .x-panel-hierarchy .x-grid-row-over .hastransform {
+        background-image: url('/++resource++zenui/img/xtheme-zenoss/icon/is-transform.png') !important;
         display: inline-block;
         margin: -2px 2px 0 -2px;
     }
@@ -2333,7 +2340,7 @@ BYE BYE BORDERS
 
     /*ZEN-30098*/
     .z-cse.z-cse-dark .x-surface text {
-        fill: #999;
+        fill: #ccc;
     }
     .z-cse.z-cse-dark .x-surface path {
         stroke: #ccc;
@@ -2550,7 +2557,10 @@ BYE BYE BORDERS
         background-color: #4e4e4e;
     }
     .z-cse.z-cse-dark .codemirror-field {
-        background: #212121;
+        background: #fafafa;
+    }
+    .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
+        color: #777777;
     }
 
     /* dark theme chart text */
@@ -2920,4 +2930,9 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .inspector span.status-up,
     .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
         color: #5a5a5a;
+    }
+
+    /* CodeMirror edited panel header text color */
+    .z-cse.z-cse-dark .edited_feedback .x-panel-header-text {
+        color: yellow !important;
     }

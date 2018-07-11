@@ -181,8 +181,7 @@
                             data = selected[0].data;
                             showEditCustPropertyDialog(data, grid);
                         }
-                    },
-                    {
+                    },{
                     xtype: 'combo',
                     width:350,
                     fieldLabel: 'Configuration Properties',
@@ -219,9 +218,6 @@
                         flex: 1,
                         sortable: true,
                         filter: false
-                    },{
-                        dataIndex: 'proptype',
-                        hidden:true
                     }]
             });
             this.callParent(arguments);
@@ -315,9 +311,6 @@
                         header: _t('Value'),
                         flex: 1,
                         sortable: true
-                    },{
-                        dataIndex: 'proptype',
-                        hidden:true
                     }]
             });
             this.callParent(arguments);
