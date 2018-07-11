@@ -30,7 +30,6 @@ def addGlobalFeatures(_context, configuration='/opt/zenoss/etc/global.conf'):
         include the file parameter if a string 'zcml-' is defined in /opt/zenoss/etc/global.conf
     """
     # inject into zcml context the global features specified in global.conf
-    import pdb; pdb.set_trace()
     conf = globalConfToDict()
     for key, value in conf.iteritems():
         if key[:_flen] == _FEATURE_PREFIX:
