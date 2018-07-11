@@ -1211,6 +1211,7 @@ BYE BYE BORDERS
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
         text-decoration: none !important;
+        font-weight: bold;
     }
 
     .z-cse .search-result .excerpt {
@@ -1408,7 +1409,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
     .z-cse #breadCrumbPane a
-    { color: #004080; text-decoration: none; font-weight: bold; }
+    { color: #004080; text-decoration: none; }
 
     /* masthead search */
     .z-cse #searchbox-container .searchfield-black .x-form-field,
