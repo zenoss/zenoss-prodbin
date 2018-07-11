@@ -11,9 +11,10 @@ import logging
 import transaction
 from itertools import chain
 
-from zope.component import createObject
+from zope.component import createObject, getUtility
+from zope.component.interfaces import ComponentLookupError
 
-from .interfaces import IZingConnectorProxy
+from .interfaces import IZingConnectorProxy, IImpactRelationshipsFactProvider
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing.transaction")
@@ -43,11 +44,23 @@ class ZingTxState(object):
         self.already_generated_device_info_facts = set()
         self.already_generated_impact_facts = set()
 
+        self.impact_installed = False
+        try:
+            getUtility(IImpactRelationshipsFactProvider)
+            self.impact_installed = True
+        except ComponentLookupError:
+            pass
+
     def is_there_datamap_updates(self):
         return len(self.datamaps) > 0
 
     def is_there_object_updates(self):
         return len(self.need_organizers_fact) > 0 or len(self.need_device_info_fact) >0 or len(self.need_deletion_fact) > 0
+
+
+def get_zing_tx_state():
+    current_tx = transaction.get()
+    return getattr(current_tx, ZingTxStateManager.TX_DATA_FIELD_NAME, None)
 
 
 class ZingTxStateManager(object):
