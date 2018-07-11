@@ -40,3 +40,7 @@ class IZingConnectorProxy(IZingConnectorClient):
 
 class IZingDatamapHandler(Interface):
     """ Marker Interface to register an utility to process datamaps """
+
+
+class IZingObjectUpdateHandler(Interface):
+    """ Marker Interface to register an utility to process object updates """
