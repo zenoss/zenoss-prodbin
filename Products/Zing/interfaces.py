@@ -61,11 +61,3 @@ class IImpactRelationshipsFactProvider(Interface):
         Return an impact relationship fact for the passed uuid, if the object
         does not belong in the impact graph it returns None
         """
-
-
-class IImpactRelationshipsFactProviderBLABLA(Interface):
-    """ interface implemented by impact """
-
-
-
-
