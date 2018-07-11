@@ -14,15 +14,13 @@ import copy
 import time
 import logging
 
-IMPACT_INSTALLED = True
-try:
-    from ZenPacks.zenoss.Impact.zing.factGenerator import impactRelationshipFact
-except ImportError:
-    IMPACT_INSTALLED = False
+from zope.component.interfaces import ComponentLookupError
+from zope.component import getUtility
 
+from .interfaces import IImpactRelationshipsFactProvider
 
 logging.basicConfig()
-log = logging.getLogger("zen.zing")
+log = logging.getLogger("zen.zing.fact")
 
 ORGANIZERS_FACT_PLUGIN = 'zen_organizers'
 DEVICE_INFO_FACT_PLUGIN = 'zen_device_info'
@@ -123,11 +121,33 @@ def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type)
 
 
 def impact_relationships_fact(uuid):
-    if IMPACT_INSTALLED:
-        return impactRelationshipFact(uuid)
+    try:
+        fact_provider = getUtility(IImpactRelationshipsFactProvider)
+    except ComponentLookupError:
+        pass
     else:
-        return None
+        return fact_provider.impact_relationships_fact(uuid)
+    return None
 
+def impact_relationships_fact_if_needed(tx_state, uuid, mark_as_generated=True):
+    """
+    Generates an impact relationships fact for the received uuid if it has not already
+    been generated
+    :return a valid impact realtionship fact or None if the object does not belong to
+    impact graph, if the generated fact is not valid, or if the fact has already been generated
+    """
+    impact_fact = None
+    if tx_state.impact_installed and uuid not in tx_state.already_generated_impact_facts:
+        fact = impact_relationships_fact(uuid)
+        mark = False
+        if fact is None:
+            mark = True # this object doesnt belong to impact graph
+        elif fact.is_valid():
+            mark = True
+            impact_fact = fact
+        if mark_as_generated and mark:
+            tx_state.already_generated_impact_facts.add(uuid)
+    return impact_fact
 
 class _FactEncoder(JSONEncoder):
 

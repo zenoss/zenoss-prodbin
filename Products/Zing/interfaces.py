@@ -38,9 +38,34 @@ class IZingConnectorProxy(IZingConnectorClient):
     """ Marker Interface to register an utility for the zing connector proxy """
 
 
-class IZingDatamapHandler(Interface):
+class IZingFactGenerator(Interface):
+    """ """
+    def generate_facts(self, zing_tx_state):
+        """
+        Build a generator of facts from the information available in
+        zing_tx_state (ZingTxState)
+        """
+
+class IZingDatamapHandler(IZingFactGenerator):
     """ Marker Interface to register an utility to process datamaps """
 
 
-class IZingObjectUpdateHandler(Interface):
+class IZingObjectUpdateHandler(IZingFactGenerator):
     """ Marker Interface to register an utility to process object updates """
+
+
+class IImpactRelationshipsFactProvider(Interface):
+    """  """
+    def impact_relationships_fact(uuid):
+        """
+        Return an impact relationship fact for the passed uuid, if the object
+        does not belong in the impact graph it returns None
+        """
+
+
+class IImpactRelationshipsFactProviderBLABLA(Interface):
+    """ interface implemented by impact """
+
+
+
+

@@ -98,13 +98,9 @@ class ZingDatamapHandler(object):
                             zing_tx_state.already_generated_organizer_facts.add(comp_uuid)
                             yield comp_fact
                     # impact relationship fact for the component
-                    if comp_uuid not in zing_tx_state.already_generated_impact_facts:
-                        impact_fact = ZFact.impact_relationships_fact(comp_uuid)
-                        if impact_fact is None: # this component doesnt have impact relationships
-                            zing_tx_state.already_generated_impact_facts.add(comp_uuid)
-                        elif impact_fact.is_valid():
-                            zing_tx_state.already_generated_impact_facts.add(comp_uuid)
-                            yield impact_fact
+                    comp_impact_fact = ZFact.impact_relationships_fact_if_needed(zing_tx_state, comp_uuid)
+                    if comp_impact_fact:
+                        yield comp_impact_fact
             # generate facts for the device
             dev_uuid = device.getUUID()
             if dev_uuid:
@@ -119,14 +115,9 @@ class ZingDatamapHandler(object):
                         zing_tx_state.already_generated_device_info_facts.add(dev_uuid)
                         yield dev_info_fact
                 # send impact relationships fact
-                if dev_uuid not in zing_tx_state.already_generated_impact_facts:
-                    dev_impact_fact = ZFact.impact_relationships_fact(dev_uuid)
-                    if dev_impact_fact is None: # device doesnt have impact relationships
-                        zing_tx_state.already_generated_impact_facts.add(dev_uuid)
-                    elif dev_impact_fact.is_valid():
-                        zing_tx_state.already_generated_impact_facts.add(dev_uuid)
-                        yield dev_impact_fact
-
+                dev_impact_fact = ZFact.impact_relationships_fact_if_needed(zing_tx_state, dev_uuid)
+                if dev_impact_fact:
+                    yield dev_impact_fact
 
     def generate_facts(self, zing_tx_state):
         """
