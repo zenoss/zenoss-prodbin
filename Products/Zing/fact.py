@@ -137,7 +137,7 @@ def impact_relationships_fact_if_needed(tx_state, uuid, mark_as_generated=True):
     impact graph, if the generated fact is not valid, or if the fact has already been generated
     """
     impact_fact = None
-    if tx_state.impact_installed and uuid not in tx_state.already_generated_impact_facts:
+    if tx_state and tx_state.impact_installed and uuid not in tx_state.already_generated_impact_facts:
         fact = impact_relationships_fact(uuid)
         mark = False
         if fact is None:
