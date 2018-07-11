@@ -31,7 +31,7 @@ from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
-from zenoss.modelindex.constants import NULL_SEARCH_LIMIT
+from zenoss.modelindex.constants import NULL_SEARCH_LIMIT, DEFAULT_SEARCH_LIMIT
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
@@ -323,7 +323,7 @@ class ModelCatalogDataManager(object):
     def __init__(self, solr_servers, context):
         config = getGlobalConfiguration()
         self.model_index = zope.component.createObject('ModelIndex', solr_servers)
-        self.model_index.searcher.default_row_count = config.get('solr-search-limit', 10000)
+        self.model_index.searcher.default_row_count = config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT)
         self.context = context
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread
