@@ -51,12 +51,12 @@
                 bodyStyle: 'padding: 10px',
                 listeners: {
                     validitychange: function(form, isValid) {
-                        me.query('button')[0].setDisabled(!isValid);
+                        this.savebtn.setDisabled(!isValid);
                     },
                     afterrender: function(form){
                         this.getForm().checkValidity();
                     },
-                    scope: this
+                    scope: me
                 },
                 isDirty: function(){
                     return true;
@@ -66,33 +66,31 @@
                     ref: '../savebtn',
                     formBind: true,
                     handler: function(btn){
-                        var values = {};
-                        Ext.each(itemsConfig, function(prop){
-                            values[prop.id] = me[prop.id].getValue();
-                        });
-                        config.saveFn({values: values}, function(response){
-                            if (response.success){
-                                var message = _t("Configuration updated");
-                                Zenoss.message.info(message);
-                            }
-                        });
-                    }
+                        if (this.isValid()) {
+                            var me = this;
+                            config.saveFn({values: me.getValues()}, function (response) {
+                                if (response.success) {
+                                    var message = _t("Configuration updated");
+                                    Zenoss.message.info(message);
+                                    // reset original values of fields on after successful update;
+                                    me.getForm().getFields().each(function(field) {
+                                        field.resetOriginalValue();
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    scope: me
                 },{
                     text: _t('Cancel'),
                     ref: '../cancelbtn',
                     handler: function(btn) {
-                        var form = btn.refOwner;
-                        form.setInfo(form.lastValues);
-                    }
+                        // simply reset form fields to original values;
+                        this.getForm().reset();
+                    },
+                    scope: me
                 }],
                 items: itemsConfig,
-                setInfo: function(data) {
-                    var me = this;
-                    Ext.each(data, function(prop){
-                        me[prop.id].setValue(prop.value);
-                    });
-                },
-
                 autoHeight: true,
                 viewConfig : {
                     forceFit: true

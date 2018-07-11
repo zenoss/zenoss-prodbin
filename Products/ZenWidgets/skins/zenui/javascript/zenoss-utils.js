@@ -1047,7 +1047,7 @@ Dialog.Box.prototype = {
         var f = formname?document.forms[formname]:(this.form?this.form:$MK('proxy_form'));
         setStyle(this.box, {'z-index':'-1'});
         this.box = removeElement(this.box);
-        if (action != '') f.action = action;
+        if (action != '') f.action = Zenoss.render.link(false, action);
         f.appendChild(this.box);
         return true;
     },
