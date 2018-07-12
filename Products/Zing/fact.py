@@ -38,7 +38,7 @@ class FactKeys(object):
     GROUPS_KEY = "groups"
     SYSTEMS_KEY = "systems"
     PROD_STATE_KEY = "prod_state"
-    DELETED_KEY = "deleted"
+    DELETED_KEY = "_zen_deleted_entity"
 
 
 class Fact(object):
