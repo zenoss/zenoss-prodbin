@@ -11,9 +11,10 @@ import logging
 import transaction
 from itertools import chain
 
-from zope.component import createObject
+from zope.component import createObject, getUtility
+from zope.component.interfaces import ComponentLookupError
 
-from .interfaces import IZingConnectorProxy
+from .interfaces import IZingConnectorProxy, IImpactRelationshipsFactProvider
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing.transaction")
@@ -30,12 +31,6 @@ class ZingTxState(object):
         #
         self.datamaps = []
         self.datamaps_contexts = {}
-        # contextUUIDs for which zenhub has already generated zen_organizers facts
-        # so the object updates handler does not generated them again
-        self.already_generated_organizer_facts = set()
-        # contextUUIDs for which zenhub has already generated zen_device_info facts
-        # so the object updates handler does not generated them again
-        self.already_generated_device_info_facts = set()
 
         # updated by model_catalog IndexingEvent machinerie (ZingObjectUpdateHandler)
         #
@@ -43,11 +38,29 @@ class ZingTxState(object):
         self.need_device_info_fact = {} # contextUUIDs:Fact that need a device info fact
         self.need_deletion_fact = {}    # contextUUIDs:Fact that need a deletion fact
 
+        # sets containing the uuids for which we have already sent a type of fact
+        # to avoid sending the same fact more than once
+        self.already_generated_organizer_facts = set()
+        self.already_generated_device_info_facts = set()
+        self.already_generated_impact_facts = set()
+
+        self.impact_installed = False
+        try:
+            getUtility(IImpactRelationshipsFactProvider)
+            self.impact_installed = True
+        except ComponentLookupError:
+            pass
+
     def is_there_datamap_updates(self):
         return len(self.datamaps) > 0
 
     def is_there_object_updates(self):
         return len(self.need_organizers_fact) > 0 or len(self.need_device_info_fact) >0 or len(self.need_deletion_fact) > 0
+
+
+def get_zing_tx_state():
+    current_tx = transaction.get()
+    return getattr(current_tx, ZingTxStateManager.TX_DATA_FIELD_NAME, None)
 
 
 class ZingTxStateManager(object):
