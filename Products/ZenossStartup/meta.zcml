@@ -1,0 +1,9 @@
+<configure xmlns="http://namespaces.zope.org/meta">
+  <directives namespace="http://namespaces.zope.org/zenoss">
+    <directive
+        name="addGlobalFeatures"
+        schema=".metaglobal.IAddGlobalFeatures"
+        handler=".metaglobal.addGlobalFeatures"
+        />
+  </directives>
+</configure>

@@ -1,0 +1,9 @@
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    xmlns:zenoss="http://namespaces.zope.org/zenoss">
+
+    <include file="meta.zcml"/>
+    <zenoss:addGlobalFeatures configuration="/opt/zenoss/etc/global.conf" />
+
+</configure>
