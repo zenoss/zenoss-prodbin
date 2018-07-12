@@ -422,7 +422,7 @@ function testDataSource() {
         uids: testDevice,
         title: _t('Test Data Source'),
         data: values,
-        target: values.uid + '/test_datasource'
+        target: Zenoss.render.link(null, values.uid) + '/test_datasource'
     });
 
     win.show();
