@@ -86,7 +86,8 @@ class ZingDatamapHandler(object):
             device_organizers_fact = ZFact.organizer_fact_from_device(device)
             for f in facts:
                 # return datamap fact
-                yield f
+                if f.is_valid():
+                    yield f
                 # organizers and impact relationships facts for the component
                 comp_uuid = f.metadata.get(ZFact.FactKeys.CONTEXT_UUID_KEY, "")
                 if comp_uuid:
