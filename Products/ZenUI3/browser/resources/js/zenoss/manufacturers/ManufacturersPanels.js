@@ -437,10 +437,6 @@ Ext.onReady(function () {
                         flex: 1,
                         sortable: true
                     }, {
-                        id: 'uid_id',
-                        dataIndex: 'uid',
-                        hidden: true
-                    }, {
                         header: _t("Type"),
                         id: 'type_id',
                         dataIndex: 'type',
