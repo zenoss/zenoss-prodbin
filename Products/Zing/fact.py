@@ -75,7 +75,6 @@ def deletion_fact(obj_uuid):
     f = Fact()
     f.metadata[FactKeys.CONTEXT_UUID_KEY] = obj_uuid
     f.metadata[FactKeys.PLUGIN_KEY] = DELETION_FACT_PLUGIN
-    f.data[FactKeys.DELETED_KEY] = True
     return f
 
 
