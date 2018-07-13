@@ -14,6 +14,7 @@ from zope.event import notify
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from zenoss.protocols.exceptions import NoRouteException
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
+from Products.Zing.tx_state import get_zing_tx_state
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
@@ -277,7 +278,8 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
-                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges)
+                zing_tx_state = get_zing_tx_state()
+                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges, zing_tx_state)
                 with _getPrepublishingTimer():
                     notify(MessagePrePublishingEvent(msgs, maintWindowChanges=publisher._maintWindowChanges))
                 if msgs:

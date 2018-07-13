@@ -97,12 +97,6 @@
         }
     };
 
-    var selModel = new Zenoss.TreeSelectionModel({
-        listeners: {
-            beforeselect: zs.treeBeforeSelectHandler,
-            selectionchange: zs.treeSelectionChangeHandler
-        }
-    });
 
     Ext.define("Zenoss.Service.Nav.ServiceTreePanel", {
         extend:"Zenoss.HierarchyTreePanel",
@@ -117,8 +111,12 @@
                 searchField: false,
                 directFn: Zenoss.remote.ServiceRouter.getOrganizerTree,
                 router: Zenoss.remote.ServiceRouter,
-                selModel: selModel,
-                selectRootOnLoad: true,
+                selModel: new Zenoss.TreeSelectionModel({
+                    listeners: {
+                        beforeselect: zs.treeBeforeSelectHandler,
+                        selectionchange: zs.treeSelectionChangeHandler
+                    }
+                }),
                 viewConfig: {
                     loadMask: true,
                     plugins: {
