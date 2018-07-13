@@ -25,7 +25,9 @@ def addGlobalFeatures(_context):
     for key, value in conf.iteritems():
         if key[:_flen] == _FEATURE_PREFIX:
             feature = key[_flen:]
+
             if not feature or not isinstance(value, basestring) or ( value.lower() != "feature" and value.lower() != "yes" ):
+
                 continue
             # add the feature to the existing global zcml context
             _context.provideFeature(unicode(feature))
