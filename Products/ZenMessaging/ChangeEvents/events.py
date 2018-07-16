@@ -73,7 +73,8 @@ class MessagePostPublishingEvent(object):
     """
     implements(IMessagePostPublishingEvent)
 
-    def __init__(self, msgs, maintWindowChanges):
+    def __init__(self, msgs, maintWindowChanges, zing_tx_state=None):
         self.msgs = msgs
         self.maintWindowChanges = maintWindowChanges
+        self.zing_tx_state = zing_tx_state
 
