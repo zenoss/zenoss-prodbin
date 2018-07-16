@@ -1341,7 +1341,6 @@ class GroupSettings(UserSettings):
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
         """
-        print "got users: {0}".format(userids)
         if isinstance(userids, basestring):
             userids = [userids]
         for userid in userids:
@@ -1352,10 +1351,7 @@ class GroupSettings(UserSettings):
                 self._getG().addGroup(self.id)
             user = self.ZenUsers.getUser(userid)
             if not user:
-                print "adding new, very special user {}".format(userid)
-                new_user = self.manage_addUser(userid)
-                if not new_user:
-                    print "failed to add user '{}' for some raisin".format(userid)
+                self.manage_addUser(userid)
             self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)
