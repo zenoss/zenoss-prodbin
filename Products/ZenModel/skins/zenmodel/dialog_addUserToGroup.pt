@@ -1,24 +1,41 @@
-<h2 id="add_users_to_group_header">Add Users To Group</h2>
+<h2 id="add_users_to_a_group_header">Add Users To Group</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p>
-Users
-<br>
-<input type="hidden" name="csrf_token"
-        tal:attributes="value context/csrf_token/token">
-<select id="add_users_to_group_combo2" class="tableheader" name="userids" multiple
-    tal:define="users here/getAllUserSettings">
-    <option tal:repeat="user users"
-        tal:content="user/id">user</option>
-</select>
+    Select one or more existing users to add to this group
+    <br/><br/>
+    <input type="hidden" name="csrf_token" tal:attributes="value context/csrf_token/token">
+    <select id="add_users_to_group_combo" class="tableheader" style="width: 100%; height: 200px;" name="userids" multiple
+        tal:define="users here/getAllUserSettings">
+        <option tal:repeat="user users" tal:content="user/id">user</option>
+    </select>
+</p><br><br>
+
+<p>
+    Create a new user to add to this group<br>
+    <input type="text" id="add_new_user_to_group">
+    <input type="submit" value="Add New User" onclick="
+        var newUserNameEl = document.getElementById('add_new_user_to_group');
+        var newUserName = newUserNameEl.value;
+        if(newUserName){
+            var newUserOption = document.createElement('option');
+            newUserOption.innerHTML = newUserName;
+            newUserOption.selected = true;
+            document.getElementById('add_users_to_group_combo').appendChild(newUserOption);
+            newUserNameEl.value = '';
+        }
+    ">
+</p>
+
 <div id="dialog_buttons">
-<input tal:attributes="id string:dialog_submit;
-        type string:submit;
-        value string:OK;
-        onclick string:return $$('dialog').submit_form('${here/absolute_url_path}')"
-        name="manage_addUsersToGroups:method" />
-<input tal:attributes="id string:dialog_cancel;
-                        type string:button;
-                        value string:Cancel;
-                        onclick string:$$('dialog').hide()" />
+    <input tal:attributes="id string:dialog_submit;
+            type string:submit;
+            value string:OK;
+            onclick string:return $$('dialog').submit_form(
+                                                    '${here/absolute_url_path}')"
+                            name="manage_addUsersToGroups:method" />
+    <input tal:attributes="id string:dialog_cancel;
+                            type string:button;
+                            value string:Cancel;
+                            onclick string:$$('dialog').hide()" />
 </div>
