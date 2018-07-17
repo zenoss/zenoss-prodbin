@@ -768,10 +768,6 @@ BYE BYE BORDERS
     }
     /* <ZEN-29844>*/
 
-    /* infrastructure device icons */
-    .z-cse #devdetailbar .devdetail-icon {
-        filter: grayscale(100%);
-    }
 
     /*
     ================
