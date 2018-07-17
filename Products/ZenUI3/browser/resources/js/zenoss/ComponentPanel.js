@@ -220,6 +220,7 @@ Zenoss.nav.register({
             var uid = combo.contextUid,
                 editPanel = Ext.getCmp('edit_panel');
             if (!editPanel) {
+                // create a static container that will handle forms;
                 editPanel = target.add({
                     xtype: 'container',
                     id: 'edit_panel',
@@ -229,6 +230,7 @@ Zenoss.nav.register({
             target.layout.setActiveItem('edit_panel');
             editPanel.setLoading(true);
             Zenoss.form.getGeneratedForm(uid, function(config){
+                // remove previous form and add new one;
                 editPanel.removeAll(true);
                 editPanel.add(Ext.apply({autoScroll: true}, config));
                 editPanel.setLoading(false);
