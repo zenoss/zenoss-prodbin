@@ -217,16 +217,22 @@ Zenoss.nav.register({
         id: 'Edit',
         text: _t('Details'),
         action: function(node, target, combo) {
-            var uid = combo.contextUid;
-            if (!Ext.get('edit_panel')) {
-                Zenoss.form.getGeneratedForm(uid, function(config){
-                    target.add(Ext.apply({id:'edit_panel'}, config));
-                    target.layout.setActiveItem('edit_panel');
+            var uid = combo.contextUid,
+                editPanel = Ext.getCmp('edit_panel');
+            if (!editPanel) {
+                editPanel = target.add({
+                    xtype: 'container',
+                    id: 'edit_panel',
+                    layout: 'fit'
                 });
-            } else {
-                target.layout.setActiveItem('edit_panel');
-                target.layout.activeItem.setContext(uid);
             }
+            target.layout.setActiveItem('edit_panel');
+            editPanel.setLoading(true);
+            Zenoss.form.getGeneratedForm(uid, function(config){
+                editPanel.removeAll(true);
+                editPanel.add(Ext.apply({autoScroll: true}, config));
+                editPanel.setLoading(false);
+            });
         }
     },{
         nodeType: 'subselect',
