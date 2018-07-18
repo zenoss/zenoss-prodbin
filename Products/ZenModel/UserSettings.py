@@ -1349,6 +1349,9 @@ class GroupSettings(UserSettings):
             group_ids = self._getG().listGroupIds()
             if self.id not in group_ids:
                 self._getG().addGroup(self.id)
+            user = self.ZenUsers.getUser(userid)
+            if not user:
+                self.manage_addUser(userid)
             self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)
