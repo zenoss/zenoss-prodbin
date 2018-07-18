@@ -264,16 +264,18 @@
 
             this.toolbar.insert(0, [
                 {
-                    xtype: 'tbtext',
-                    text: _t('Component')
-                },
-                {
                     xtype: 'combo',
                     queryMode: 'local',
+                    fieldLabel: _t('Component'),
                     displayField: 'name',
                     valueField: 'value',
                     ref: '../component',
-                    width: 100,
+                    labelWidth: 80,
+                    width: 200,
+                    listConfig: {
+                        minWidth: 115
+                    },
+                    matchFieldWidth: false,
                     listeners: {
                         scope: this,
                         select: this.onSelectComponentType
@@ -283,12 +285,16 @@
                     disabled: true,
                     queryMode: 'local',
                     labelAlign: 'left',
-                    labelWidth: 40,
+                    labelWidth: 45,
                     ref: '../graphTypes',
                     fieldLabel: _t('Graph'),
                     displayField: 'name',
                     valueField: 'name',
-                    width: 140,
+                    matchFieldWidth: false,
+                    width: 200,
+                    listConfig: {
+                        minWidth: 150
+                    },
                     listeners: {
                         scope: this,
                         select: this.onSelectGraph
@@ -297,10 +303,10 @@
                 {
                     xtype: 'checkbox',
                     baseCls: 'zencheckbox_allonsame',
-                    fieldLabel: _t('All on same graph'),
+                    boxLabel: _t('All on same graph'),
+                    boxLabelAlign: 'before',
                     labelAlign: 'right',
-                    width: 130,
-                    labelSeparator: '',
+                    margin: '0 10 0 20',
                     ref: '../allOnSame',
                     listeners: {
                         change: this.updateGraphs,

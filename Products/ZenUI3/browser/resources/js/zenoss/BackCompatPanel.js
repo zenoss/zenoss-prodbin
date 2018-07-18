@@ -193,7 +193,7 @@ Ext.define("Zenoss.BackCompatPanel", {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        var url = uid;
+        var url = Zenoss.render.link(null, uid);
         if (Ext.isDefined(this.viewName) && this.viewName !== null) {
             url = uid + '/' + this.viewName;
         }
