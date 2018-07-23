@@ -9,8 +9,10 @@
 
 
 import Globals
+from zope.component import getUtility
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 class ZenPacker(object):
     security = ClassSecurityInfo()
@@ -49,6 +51,8 @@ class ZenPacker(object):
 
     def findObject(self, id):
         "Ugly hack for inconsistent object structure accross Organizers"
+        # remove cz# prefix if there is one in the object id
+        id = getUtility(IVirtualRoot).strip_virtual_root(id)
         result = []
         try:
             result.append(self._getOb(id))
