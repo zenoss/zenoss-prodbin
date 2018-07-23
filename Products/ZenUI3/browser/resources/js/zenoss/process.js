@@ -1143,6 +1143,7 @@ Ext.define("Zenoss.TestRegexDialog", {
                                         fieldLabel: 'File',
                                         xtype: 'filefield',
                                         id: 'files',
+                                        name: 'file',
                                         flex: 1,
                                         ui: 'dialog-dark'
                                     },
