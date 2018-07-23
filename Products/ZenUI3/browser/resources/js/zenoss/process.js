@@ -864,7 +864,7 @@ Ext.define("Zenoss.SequenceGrid2", {
 });
 
 function readBlob() {
-    var files = document.getElementById("files").files;
+    var files = document.querySelector("#files input[type=file]").files;
     if (!files.length) {
       alert("Please select a file!");
       return;
@@ -1132,25 +1132,36 @@ Ext.define("Zenoss.TestRegexDialog", {
                                     autoWidth: true
                                 }
                             ]},
-                            {layout: {
-                                type: 'hbox',
-                                pack: 'start',
-                                align: 'stretch'
-                            },
-                            items: [
-                                    {fieldLabel: 'File', html: '<input type="file" id="files" name="file" />', ui: 'dialog-dark', flex:1},
+                            {
+                                layout: {
+                                    type: 'hbox',
+                                    pack: 'start',
+                                    align: 'stretch'
+                                },
+                                items: [
+                                    {
+                                        fieldLabel: 'File',
+                                        xtype: 'filefield',
+                                        id: 'files',
+                                        flex: 1,
+                                        ui: 'dialog-dark'
+                                    },
                                     {
                                         xtype: 'button',
                                         ui: 'dialog-dark',
                                         autoWidth: true,
                                         text: _t('Add'),
+                                        margins: {
+                                            left: 5
+                                        },
                                         listeners: {
                                             click: function() {
                                                 readBlob();
                                             }
                                         }
                                     }
-                            ]},
+                                ]
+                            },
                             {title: 'Input'},
                             {xtype: 'textareafield', grow: 'true', name: 'input1', id: 'input1',
                                 value: demoInput1,
