@@ -21,7 +21,8 @@ report_panel = Ext.create('Ext.panel.Panel', {
     items: [{
         xtype: 'backcompat',
         ref: 'backcompat',
-        id: 'report_backcompat'
+        id: 'report_backcompat',
+        iframeCustomCss: 'z-cse-reports'
     }, {
         xtype: 'panel',
         ref: 'graph_reports',

@@ -2255,6 +2255,53 @@ BYE BYE BORDERS
       visibility: hidden;
     }
 
+    /*<ZEN-30423> white theme styles for reports start*/
+    .z-cse.z-cse-reports th.tabletitle div.tabletitlecontainer {
+        background-color: #d2d2d2 !important;
+        vertical-align: middle;
+    }
+    .z-cse.z-cse-reports a.tableheaderselected,
+    .z-cse.z-cse-reports a.tableheader {
+        display: block;
+    }
+    .z-cse.z-cse-reports th.tableheaderselected,
+    .z-cse.z-cse-reports th.tableheader {
+        background-image: url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png) !important;
+        background-color: #ccc !important;
+        height: 23px;
+        line-height: 23px;
+        font-size: 12px;
+    }
+    .z-cse.z-cse-reports .odd a.tablevalues,
+    .z-cse.z-cse-reports .odd td.tablevalues {
+        background-color: #ccc !important;
+    }
+    .z-cse.z-cse-reports table.innerzentable td.tablevalues {
+        border-bottom: 1px solid #ededed !important;
+        border-right: 1px solid #ededed !important;
+    }
+    .z-cse.z-cse-reports input.navcontrol,
+    .z-cse.z-cse-reports input[type="submit"] {
+        background-color: rgb(244, 244, 244);
+        border-radius: 3px;
+        padding: 3px;
+        cursor: pointer;
+        cursor: hand;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+    }
+    .z-cse.z-cse-reports input.navcontrol:hover,
+    .z-cse.z-cse-reports input[type="submit"]:hover {
+        background-color: #b6cbe4 !important;
+    }
+    .z-cse.z-cse-reports select,
+    .z-cse.z-cse-reports input[type="text"] {
+        border: 1px solid #d6d6d6;
+        background-color: #f4f4f4;
+    }
+    /*<ZEN-30423> white theme styles for reports end*/
+
 /*
         =====================================================================================
         DARK THEME
@@ -2943,3 +2990,44 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .edited_feedback .x-panel-header-text {
         color: yellow !important;
     }
+
+    /*<ZEN-30423> dark theme styles for reports start*/
+    .z-cse.z-cse-dark.z-cse-reports th.tabletitle div.tabletitlecontainer {
+        background-color: #404040 !important;
+        vertical-align: middle;
+    }
+    .z-cse.z-cse-dark.z-cse-reports th.tableheaderselected,
+    .z-cse.z-cse-dark.z-cse-reports th.tableheader {
+        background-image: none !important;
+        background-color: #808080 !important;
+        border-left: 1px solid #888888;
+        height: 23px;
+        line-height: 23px;
+        font-size: 12px;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .odd a.tablevalues,
+    .z-cse.z-cse-dark.z-cse-reports .odd td.tablevalues {
+        background-color: #ccc !important;
+    }
+    .z-cse.z-cse-dark.z-cse-reports table.innerzentable td.tablevalues {
+        border-bottom: 1px solid #444444 !important;
+        border-right: 1px solid #444444 !important;
+    }
+    .z-cse.z-cse-dark.z-cse-reports input.navcontrol,
+    .z-cse.z-cse-dark.z-cse-reports input[type="submit"] {
+        background-color: #b2afaf;
+        color: black;
+        border-radius: 3px;
+        padding: 3px;
+        cursor: pointer;
+        cursor: hand;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+    }
+    .z-cse.z-cse-dark.z-cse-reports select,
+    .z-cse.z-cse-dark.z-cse-reports input[type="text"] {
+        border: 0;
+        background-color: #505050;
+    }
+    /*<ZEN-30423> dark theme styles for reports end*/
