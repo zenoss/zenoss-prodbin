@@ -123,8 +123,5 @@ ZEN_MANAGE_LDAP_SETTINGS='Manage LDAP Settings'
 # Licensing ZenPack settings
 ZEN_VIEW_LICENSING='View Licensing'
 
-# SupportBundle ZenPack settings
-ZEN_MANAGE_SUPPORT_BUNDLES='Manage Support Bundles'
-
 # Impact ZenPack settings
 ZEN_MANAGE_IMPACT_SETTINGS='Manage Impact Settings'

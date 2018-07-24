@@ -150,6 +150,7 @@ class ModelCatalogClient(object):
     def __init__(self, solr_url, context):
         self.context = context
         self._data_manager = zope.component.createObject('ModelCatalogDataManager', solr_url, context)
+        self._zing_handler = zope.component.createObject("ZingObjectUpdateHandler", self.context)
 
     @property
     def model_index(self):
@@ -177,6 +178,8 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception indexing object")
+        # keep Zing up to date. This call wont raise any exceptions
+        self._zing_handler.update_object(obj, idxs)
 
     def uncatalog_object(self, obj):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -185,6 +188,8 @@ class ModelCatalogClient(object):
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
                 self._data_manager.raise_model_catalog_error("Exception unindexing object")
+        # keep Zing up to date. This call wont raise any exceptions
+        self._zing_handler.delete_object(obj)
 
     def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """

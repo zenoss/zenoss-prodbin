@@ -126,10 +126,10 @@ darker input fields:           #505050
 .z-cse .x-panel-dd-spacer  /* dashboard portlet drop target */
 { background-image: none !important; background-color: rgba(255,255,255,0.4) !important; }
 
-/* CodeMirror.css */
-.z-cse .CodeMirror,
-.z-cse .CodeMirror-gutters
-{ background-image: none; background-color: transparent; }
+/* CodeMirror edited panel header text color */
+.z-cse .edited_feedback .x-panel-header-text {
+    color: orange !important;
+}
 .z-cse #configs-body > .x-panel
 { background-image: none !important; background-color: transparent !important; }
 
@@ -212,9 +212,14 @@ darker input fields:           #505050
 }
 .z-cse .x-window,
 .z-cse .x-message-box .x-window-body {
-    background-color: rgba(238, 238, 238, 0.85);
+    background-color: #eeeeee; /*ZEN-30458*/
 }
 /*<ZEN-29844>*/
+
+.z-cse .x-window-header .x-tool-close { /*ZEN-30458*/
+    background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png");
+    background-size: contain;
+}
 
 /* backcompat.css */
 .z-cse .z-bc .zentable-modified .tabletitle-center,
@@ -348,7 +353,6 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -368,6 +372,10 @@ BYE BYE BORDERS
     .z-cse #serviceForm-body input[type=text],
     .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
+        background-color: #f4f4f4;
+    }
 
     /* no backgrounds on checkboxes */
     .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
@@ -763,10 +771,6 @@ BYE BYE BORDERS
     }
     /* <ZEN-29844>*/
 
-    /* infrastructure device icons */
-    .z-cse #devdetailbar .devdetail-icon {
-        filter: grayscale(100%);
-    }
 
     /*
     ================
@@ -1211,6 +1215,7 @@ BYE BYE BORDERS
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
         text-decoration: none !important;
+        font-weight: bold;
     }
 
     .z-cse .search-result .excerpt {
@@ -1235,7 +1240,9 @@ BYE BYE BORDERS
         }
 
     /* device class header */
-    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header-text-default {
+        font-size: 14px;
+    }
     .z-cse .x-panel-header .x-form-display-field
     { font-size: 14px; line-height: 20px; margin-top: 8px; text-indent: 8px; }
     .z-cse #device_grid table.eventrainbow {
@@ -1374,7 +1381,6 @@ BYE BYE BORDERS
     .z-cse #dialog_content select,
     .z-cse #masterDetailNav .x-grid-row-over .x-grid-cell-inner,
     .z-cse #newTabsPane ul li a:hover,
-    .z-cse #productsgrid_id .x-grid-row-over .x-grid-cell-inner,
     .z-cse #trigger-master_panel .x-grid-row-over .x-grid-cell-inner
     { color: #4b4b4c; }
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -1407,7 +1413,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
     .z-cse #breadCrumbPane a
-    { color: #00b5c1; text-decoration: none; }
+    { color: #004080; text-decoration: none; }
 
     /* masthead search */
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -2297,7 +2303,10 @@ BYE BYE BORDERS
     /* floating windows dark theme inheritance */
     .z-cse.z-cse-dark .x-window {
         border-width: 1px;
-        background-color: rgba(0, 0, 0, 0.85);
+        background-color: #454545; /*ZEN-30458*/
+    }
+    .z-cse.z-cse-dark .x-window-header .x-tool-close { /*ZEN-30458*/
+        background-image: url("/++resource++zenui/img/ext4/window/close-button.png");
     }
     .z-cse.z-cse-dark .x-window-header {
         border-width: 1px 1px 0 1px;
@@ -2555,7 +2564,10 @@ BYE BYE BORDERS
         background-color: #4e4e4e;
     }
     .z-cse.z-cse-dark .codemirror-field {
-        background: #212121;
+        background: #fafafa;
+    }
+    .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
+        color: #777777;
     }
 
     /* dark theme chart text */
@@ -2845,7 +2857,7 @@ BYE BYE BORDERS
         stroke: rgba(255,255,255,0.15);
     }
     .z-cse.z-cse-dark .europagraph text {
-        fill: rgba(255,255,255,0.4);
+        fill: rgba(255,255,255,0.75); /*ZEN-30458*/
     }
 
     /* open events & past events portlets */
@@ -2925,4 +2937,9 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .inspector span.status-up,
     .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
         color: #5a5a5a;
+    }
+
+    /* CodeMirror edited panel header text color */
+    .z-cse.z-cse-dark .edited_feedback .x-panel-header-text {
+        color: yellow !important;
     }

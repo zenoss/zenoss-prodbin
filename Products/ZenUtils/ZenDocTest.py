@@ -57,6 +57,8 @@ def load_unittest_site(force=False):
     _zcml.load_string("""
         <configure xmlns="http://namespaces.zope.org/meta">
             <provides feature="unittests"/>
+            <include package="Products.Five" file="meta.zcml" />
+            <include package="Products.Zing"/>
         </configure>
     """)
     # Now load_site as usual, except keep the existing context
