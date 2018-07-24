@@ -108,7 +108,7 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url === 'about:blank' || url === '') {
+        if (url === 'about:blank' || !url) {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
@@ -193,10 +193,11 @@ Ext.define("Zenoss.BackCompatPanel", {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        var url = Zenoss.render.link(null, uid);
+        var url = uid;
         if (Ext.isDefined(this.viewName) && this.viewName !== null) {
             url = uid + '/' + this.viewName;
         }
+        url = Zenoss.render.link(null, url);
         // make sure we are rendered before we set our source
         if (this.rendered) {
             this.setSrc(url);
