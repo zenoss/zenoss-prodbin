@@ -2255,6 +2255,14 @@ BYE BYE BORDERS
       visibility: hidden;
     }
 
+    .z-cse:not(.z-cse-dark) div.streaming-line.odd {
+        color: #4b6f9b;
+    }
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.even {
+        color: #4b4b4c;
+    }
+
 /*
         =====================================================================================
         DARK THEME
