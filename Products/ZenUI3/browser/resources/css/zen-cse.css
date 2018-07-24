@@ -353,7 +353,6 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -373,6 +372,10 @@ BYE BYE BORDERS
     .z-cse #serviceForm-body input[type=text],
     .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
+        background-color: #f4f4f4;
+    }
 
     /* no backgrounds on checkboxes */
     .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
