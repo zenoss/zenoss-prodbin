@@ -212,9 +212,14 @@ darker input fields:           #505050
 }
 .z-cse .x-window,
 .z-cse .x-message-box .x-window-body {
-    background-color: rgba(238, 238, 238, 0.85);
+    background-color: #eeeeee; /*ZEN-30458*/
 }
 /*<ZEN-29844>*/
+
+.z-cse .x-window-header .x-tool-close { /*ZEN-30458*/
+    background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png");
+    background-size: contain;
+}
 
 /* backcompat.css */
 .z-cse .z-bc .zentable-modified .tabletitle-center,
@@ -348,7 +353,6 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -368,6 +372,10 @@ BYE BYE BORDERS
     .z-cse #serviceForm-body input[type=text],
     .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
+        background-color: #f4f4f4;
+    }
 
     /* no backgrounds on checkboxes */
     .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
@@ -763,10 +771,6 @@ BYE BYE BORDERS
     }
     /* <ZEN-29844>*/
 
-    /* infrastructure device icons */
-    .z-cse #devdetailbar .devdetail-icon {
-        filter: grayscale(100%);
-    }
 
     /*
     ================
@@ -2251,6 +2255,14 @@ BYE BYE BORDERS
       visibility: hidden;
     }
 
+    .z-cse:not(.z-cse-dark) div.streaming-line.odd {
+        color: #4b6f9b;
+    }
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.even {
+        color: #4b4b4c;
+    }
+
 /*
         =====================================================================================
         DARK THEME
@@ -2299,7 +2311,10 @@ BYE BYE BORDERS
     /* floating windows dark theme inheritance */
     .z-cse.z-cse-dark .x-window {
         border-width: 1px;
-        background-color: rgba(0, 0, 0, 0.85);
+        background-color: #454545; /*ZEN-30458*/
+    }
+    .z-cse.z-cse-dark .x-window-header .x-tool-close { /*ZEN-30458*/
+        background-image: url("/++resource++zenui/img/ext4/window/close-button.png");
     }
     .z-cse.z-cse-dark .x-window-header {
         border-width: 1px 1px 0 1px;
@@ -2850,7 +2865,7 @@ BYE BYE BORDERS
         stroke: rgba(255,255,255,0.15);
     }
     .z-cse.z-cse-dark .europagraph text {
-        fill: rgba(255,255,255,0.4);
+        fill: rgba(255,255,255,0.75); /*ZEN-30458*/
     }
 
     /* open events & past events portlets */
