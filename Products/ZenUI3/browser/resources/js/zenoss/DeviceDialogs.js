@@ -85,8 +85,7 @@
         renameDevice: function(values) {
             router.renameDevice(values, function(response){
                 if (response.success) {
-                    var uid = response.uid;
-                    window.location = uid;
+                    window.location = Zenoss.render.link(false, response.uid);
                 }
             });
         }
