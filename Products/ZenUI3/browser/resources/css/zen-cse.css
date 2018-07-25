@@ -2257,7 +2257,7 @@ BYE BYE BORDERS
 
     /*<ZEN-30423> white theme styles for reports start*/
     .z-cse.z-cse-reports th.tabletitle div.tabletitlecontainer {
-        background-color: #d2d2d2 !important;
+        background-color: transparent !important;
         vertical-align: middle;
     }
     .z-cse.z-cse-reports a.tableheaderselected,
@@ -2266,8 +2266,7 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-reports th.tableheaderselected,
     .z-cse.z-cse-reports th.tableheader {
-        background-image: url(/++resource++zenui/img/xtheme-zenoss/grid/grid3-hrow.png) !important;
-        background-color: #ccc !important;
+        background-color: #bbb !important;
         height: 23px;
         line-height: 23px;
         font-size: 12px;
@@ -2988,12 +2987,12 @@ BYE BYE BORDERS
 
     /* CodeMirror edited panel header text color */
     .z-cse.z-cse-dark .edited_feedback .x-panel-header-text {
-        color: yellow !important;
+        color: #cdf856 !important;
     }
 
     /*<ZEN-30423> dark theme styles for reports start*/
     .z-cse.z-cse-dark.z-cse-reports th.tabletitle div.tabletitlecontainer {
-        background-color: #404040 !important;
+        background-color: transparent !important;
         vertical-align: middle;
     }
     .z-cse.z-cse-dark.z-cse-reports th.tableheaderselected,
