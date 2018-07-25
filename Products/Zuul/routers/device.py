@@ -1584,7 +1584,7 @@ class DeviceRouter(TreeRouter):
             primaryId = foundDevice.getPrimaryId()
             return DirectResponse.fail(
                 deviceUid=primaryId,
-                msg="Device %s already exists. <a href'%s'>Go to the device</a>" % (deviceName, primaryId)
+                msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId)
             )
 
         if isinstance(systemPaths, basestring):
