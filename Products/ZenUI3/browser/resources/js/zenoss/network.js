@@ -148,7 +148,7 @@ function treeselectionchange(sm, newnodes) {
         return;
     }
     var newnode = newnodes[0];
-    var uid = newnode.data.uid;
+    var uid = Zenoss.render.link(false, newnode.data.uid);
 
     Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 
