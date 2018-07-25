@@ -360,7 +360,6 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -380,6 +379,10 @@ BYE BYE BORDERS
     .z-cse #serviceForm-body input[type=text],
     .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
+        background-color: #f4f4f4;
+    }
 
     /* no backgrounds on checkboxes */
     .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
@@ -2257,6 +2260,14 @@ BYE BYE BORDERS
     /* ZEN-30304: hide empty flash player that produce swfobject.js for its internal need */
     .z-cse body > object[type="application/x-shockwave-flash"]:not([data]) {
       visibility: hidden;
+    }
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.odd {
+        color: #4b6f9b;
+    }
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.even {
+        color: #4b4b4c;
     }
 
 /*

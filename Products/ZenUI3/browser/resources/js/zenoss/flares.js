@@ -171,6 +171,8 @@
          */
         _formatFlare: function(message, type, args) {
             args = Array.prototype.slice.call(args, 1);
+            // in case if message has some encoded html returned from server;
+            message = Ext.htmlDecode(message);
             var flare = new Zenoss.flares.Flare(message, args, {
                 iconCls: type,
                 animateTarget: Zenoss.flares.Manager.container.el
