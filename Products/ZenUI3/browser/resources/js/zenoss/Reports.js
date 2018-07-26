@@ -81,27 +81,35 @@ function addToZenPack(e) {
 
 function initializeTreeDrop(tree) {
 
-    tree.getView().on('beforedrop', function(element, event, target) {
-        if (Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION)) {
-            return false;
-        }
-        // should always only be one selection
-        var uid = event.records[0].get("uid"),
-            targetUid = target.get("uid");
-        if (target.get("leaf") || uid === targetUid) {
-            return false;
-        }
-
-        Zenoss.remote.ReportRouter.moveNode({
-            uid: uid,
-            target: targetUid
-        }, function(response){
-            if(response.success){
-               tree.refresh();
+    tree.getView().on({
+        beforedrop: function(element, dragData, target) {
+            if (Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION)) {
+                return false;
             }
-        });
-        return true;
+            // should always only be one selection
+            var uid = dragData.records[0].get("uid"),
+                targetUid = target.get("uid");
+            if (target.get("leaf") || uid === targetUid) {
+                return false;
+            }
+            return true;
+        },
+        // we should do the action on successful UI drop;
+        drop: function(element, dragData, target) {
+            var uid = dragData.records[0].get("uid"),
+                targetUid = target.get("uid");
 
+            Zenoss.remote.ReportRouter.moveNode({
+                uid: uid,
+                target: targetUid
+            }, function(response){
+                if(response.success){
+                   tree.refresh(function() {
+                       tree.selectNodeAfterAction(targetUid);
+                   });
+                }
+            });
+        }
     });
 };
 
@@ -118,6 +126,22 @@ Ext.define('Zenoss.ReportTreePanel', {
     // Do not automatically select the first filtered result since running
     // a report is so expensive.
     postFilter: Ext.emptFn,
+    //helper functiona to select node after add/remove/move
+    selectNodeAfterAction: function(nodeUid) {
+        var rootNode = this.getRootNode(),
+            //get fresh target node because store was reloaded and old target node was destroyed;
+            node = rootNode.findChild('uid', nodeUid, true);
+        //check if we have this node loaded, if so expand and select it;
+        if (node) {
+            node.expand(false);
+            this.getSelectionModel().select(node);
+        } else {
+            // otherwise listen store "expand" event and repeat this action.
+            this.store.on('expand', function () {
+                this.selectNodeAfterAction(nodeUid);
+            }, this, {single: true});
+        }
+    },
     addNode: function (nodeType, id) {
         var selNode = this.getSelectionModel().getSelectedNode(),
             tree = this,
@@ -140,7 +164,10 @@ Ext.define('Zenoss.ReportTreePanel', {
                     tree.editReport(newNode);
                 } else {
                     // refresh only we not navigating to edit url;
-                    tree.refresh();
+                    tree.refresh(function() {
+                        // select parent node on after refresh;
+                        tree.selectNodeAfterAction(parentNode.data.uid);
+                    });
                 }
             }
         });
@@ -192,7 +219,10 @@ Ext.define('Zenoss.ReportTreePanel', {
                 parentNode.removeChild(node);
                 node.destroy();
                 this.addHistoryToken(this.getView(), parentNode);
-                this.refresh();
+                this.refresh(function() {
+                    // select parent node on after refresh;
+                    this.selectNodeAfterAction(parentNode.data.uid);
+                }, this);
             }
         }
         this.router.deleteNode(params, Ext.Function.bind(callback, this));
