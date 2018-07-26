@@ -203,18 +203,25 @@ darker input fields:           #505050
     .z-cse .x-panel-header-default {
         background-color: #f3f3f3;
     }
-/* <ZEN-29844> floating windows light theme inheritance */
+/* <ZEN-29844>,<ZEN-30467> floating windows light theme inheritance */
 .z-cse .x-window,
 .z-cse .x-window-header {
     background-image: none;
-    background: #dddddd;
+    background: #cccccc;
     border-width: 0px;
 }
 .z-cse .x-window,
 .z-cse .x-message-box .x-window-body {
-    background-color: #eeeeee; /*ZEN-30458*/
+    background-color: #dddddd; /*<ZEN-30458>,<ZEN-30467>*/
 }
 /*<ZEN-29844>*/
+
+.z-cse .streaming-container {/*<ZEN-30467>*/
+    color: #444444;
+}
+.z-cse .streaming-line.odd {/*<ZEN-30467>*/
+    color: #008e8e;
+}
 
 .z-cse .x-window-header .x-tool-close { /*ZEN-30458*/
     background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png");
@@ -2622,6 +2629,13 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
         color: #777777;
+    }
+
+    .z-cse.z-cse-dark .streaming-container {/*<ZEN-30467>*/
+        color: #eee;
+    }
+    .z-cse.z-cse-dark .streaming-line.odd {/*<ZEN-30467>*/
+        color: #acc;
     }
 
     /* dark theme chart text */
