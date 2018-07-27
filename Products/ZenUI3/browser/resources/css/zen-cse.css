@@ -2263,6 +2263,13 @@ BYE BYE BORDERS
         color: #4b4b4c;
     }
 
+    .z-cse .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #111111;
+    }
+    .z-cse.z-cse-dark .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #e8e8e8;
+    }
+
 /*
         =====================================================================================
         DARK THEME
