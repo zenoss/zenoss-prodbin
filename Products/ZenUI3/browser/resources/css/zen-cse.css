@@ -2604,6 +2604,9 @@ BYE BYE BORDERS
         color: #06e0ee !important;
     }
 
+    .z-cse.z-cse-dark .rowcolor-warning-unacknowledged a.z-entity
+    { color: #004080; }
+
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
     .z-cse.z-cse-dark .detail-form-panel .x-form-field,
