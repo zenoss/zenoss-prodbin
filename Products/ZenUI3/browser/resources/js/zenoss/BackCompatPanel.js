@@ -170,7 +170,8 @@ Ext.define("Zenoss.BackCompatPanel", {
     contextUid: null,
     constructor: function(config) {
         Ext.apply(config || {}, {
-            testEarlyReadiness: true
+            testEarlyReadiness: true,
+            iframeCustomCss: 'z-cse-reports'
         });
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         this.addEvents('frameloadfinished');
