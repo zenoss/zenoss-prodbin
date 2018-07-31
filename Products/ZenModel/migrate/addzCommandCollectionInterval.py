@@ -18,7 +18,7 @@ migrate existing datasources which we have in core to use it.
 
 
 class AddzCommandCollectionInterval(Migrate.Step):
-    version = Migrate.Version(300, 0, 0)
+    version = Migrate.Version(300, 0, 1)
 
     
     def cutover(self, dmd):

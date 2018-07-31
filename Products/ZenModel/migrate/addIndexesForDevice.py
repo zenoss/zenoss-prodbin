@@ -22,7 +22,7 @@ class AddIndexesForDevice(Migrate.Step):
     to pull data directly from SOLR without touching ZODB.
     """
 
-    version = Migrate.Version(300, 0, 0)
+    version = Migrate.Version(300, 0, 1)
 
     def cutover(self, dmd):
 

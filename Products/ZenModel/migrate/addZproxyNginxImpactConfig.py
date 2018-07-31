@@ -23,7 +23,7 @@ org_statement='pagespeed Disallow \"*/static/*\";\n\n'
 new_statement='pagespeed  Disallow \"*/static/*\";\n        pagespeed  Disallow \"*/impact_graph*\";\n        pagespeed  Allow    \"*/impact_graph*.js\";\n\n'
 
 class AddZproxyNginxImpactConfig(Migrate.Step):
-    version = Migrate.Version(300, 0, 0)
+    version = Migrate.Version(300, 0, 1)
 
     config_file = "/opt/zenoss/zproxy/conf/zproxy-nginx.conf"
     save_file = "/opt/zenoss/var/ext/zproxy-nginx.conf.orig"
