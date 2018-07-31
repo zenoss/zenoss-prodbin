@@ -14,7 +14,6 @@ import Migrate
 import servicemigration as sm
 sm.require("1.1.10")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class UpdateRateOptionsForMetricShipper(Migrate.Step):
@@ -22,7 +21,7 @@ class UpdateRateOptionsForMetricShipper(Migrate.Step):
     Update/Add rateOptions for counters.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 0)
 
     def cutover(self, dmd):
 

@@ -29,6 +29,7 @@ else
         echo "INFO: Bypassing normal processing while in upgrade mode." 1>&2
     else
         . $ZENHOME/bin/zenfunctions
+	[[ $CMD == "--restore" ]] && export RESTORE_ZENPACKS=1
         exec $PYTHON $ZENHOME/Products/ZenUtils/zenpack.py "$CMD" $*
     fi
 fi
