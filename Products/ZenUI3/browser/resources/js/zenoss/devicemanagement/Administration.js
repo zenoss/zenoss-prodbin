@@ -205,7 +205,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     margin: labelmargin
                                 },{
                                     xtype: 'checkbox',
-                                    name: 'enabled'
+                                    name: 'enabled',
+                                    checked: newEntry && true
                                 }
                             ]
                         }
@@ -405,7 +406,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 },
                                 listeners: {
                                     'afterrender': function(combo){
-                                        combo.setValue(combo.store.getAt(0));
+                                        if (newEntry) {
+                                            combo.setValue(combo.store.getAt(3));
+                                        }
                                     }
                                 },
                                 store: Ext.create('Ext.data.Store', {
