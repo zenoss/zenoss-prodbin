@@ -248,11 +248,6 @@
       />
 
   <permission
-      id="zenoss.ManageSupportBundles"
-      title="Manage Support Bundles"
-      />
-
-  <permission
       id="zenoss.ManageImpactSettings"
       title="Manage Impact Settings"
       />

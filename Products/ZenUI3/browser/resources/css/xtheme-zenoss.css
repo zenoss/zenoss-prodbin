@@ -3389,7 +3389,7 @@ textarea.x-form-field {
 
 .x-form-invalid-field, textarea.x-form-invalid-field {
   background-color: white;
-  background-image: url('../img/xtheme-zenoss/grid/invalid_line.gif');
+  background-image: url('../img/xtheme-zenoss/grid/invalid_line.gif') !important;
   background-repeat: repeat-x;
   background-position: bottom;
   border-color: #cc3300; }

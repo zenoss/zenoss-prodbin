@@ -1179,8 +1179,8 @@
         },
         baseParams: {},
         setContext: function(uid) {
-            this.contextUid = uid;
-            this.baseParams.uid = uid;
+            this.contextUid = Zenoss.render.link(false, uid);
+            this.baseParams.uid = this.contextUid;
             // if we havne't rendered yet wait until we have rendered
             if (!this.getEl()) {
                 this.on('afterrender', this.load, this, {single: true});

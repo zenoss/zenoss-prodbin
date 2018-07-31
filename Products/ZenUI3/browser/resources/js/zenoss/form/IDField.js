@@ -34,7 +34,7 @@ Ext.define("Zenoss.form.IDField", {
     * and on response revalidate field;
     */
     validator: function(value) {
-        var context = this.context || Zenoss.env.PARENT_CONTEXT,
+        var context = Zenoss.render.link(undefined, this.context || Zenoss.env.PARENT_CONTEXT),
             me = this,
             errorText = me._serverInvalidText || me.validationErrorText;
 

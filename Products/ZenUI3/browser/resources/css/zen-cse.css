@@ -126,10 +126,10 @@ darker input fields:           #505050
 .z-cse .x-panel-dd-spacer  /* dashboard portlet drop target */
 { background-image: none !important; background-color: rgba(255,255,255,0.4) !important; }
 
-/* CodeMirror.css */
-.z-cse .CodeMirror,
-.z-cse .CodeMirror-gutters
-{ background-image: none; background-color: transparent; }
+/* CodeMirror edited panel header text color */
+.z-cse .edited_feedback .x-panel-header-text {
+    color: orange !important;
+}
 .z-cse #configs-body > .x-panel
 { background-image: none !important; background-color: transparent !important; }
 
@@ -203,18 +203,30 @@ darker input fields:           #505050
     .z-cse .x-panel-header-default {
         background-color: #f3f3f3;
     }
-/* <ZEN-29844> floating windows light theme inheritance */
+/* <ZEN-29844>,<ZEN-30467> floating windows light theme inheritance */
 .z-cse .x-window,
 .z-cse .x-window-header {
     background-image: none;
-    background: #dddddd;
+    background: #cccccc;
     border-width: 0px;
 }
 .z-cse .x-window,
 .z-cse .x-message-box .x-window-body {
-    background-color: rgba(238, 238, 238, 0.85);
+    background-color: #dddddd; /*<ZEN-30458>,<ZEN-30467>*/
 }
 /*<ZEN-29844>*/
+
+.z-cse .streaming-container {/*<ZEN-30467>*/
+    color: #444444;
+}
+.z-cse .streaming-line.odd {/*<ZEN-30467>*/
+    color: #008e8e;
+}
+
+.z-cse .x-window-header .x-tool-close { /*ZEN-30458*/
+    background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png");
+    background-size: contain;
+}
 
 /* backcompat.css */
 .z-cse .z-bc .zentable-modified .tabletitle-center,
@@ -348,7 +360,6 @@ BYE BYE BORDERS
     .z-cse #app-portal > .x-toolbar .x-form-item-body,
     .z-cse #center_panel-body .x-box-inner[id^=collectorform] input[type=text],
     .z-cse #class_center_panel > .x-toolbar .x-form-item,
-    .z-cse #contentPaneContainer input[type=button],/*ZEN-30221*/
     .z-cse #contentPaneContainer select,
     .z-cse #contentPaneContainer select[name=numColumns],
     .z-cse #contentPaneContainer table td input[name=batchSize],
@@ -368,6 +379,10 @@ BYE BYE BORDERS
     .z-cse #serviceForm-body input[type=text],
     .z-cse #serviceForm-body textarea
     { background-image: none; background-color: #f4f4f4; border: 0; }
+
+    .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
+        background-color: #f4f4f4;
+    }
 
     /* no backgrounds on checkboxes */
     .z-cse .graphpanel .x-toolbar table.x-form-item.checkbox_now
@@ -763,10 +778,6 @@ BYE BYE BORDERS
     }
     /* <ZEN-29844>*/
 
-    /* infrastructure device icons */
-    .z-cse #devdetailbar .devdetail-icon {
-        filter: grayscale(100%);
-    }
 
     /*
     ================
@@ -1211,6 +1222,7 @@ BYE BYE BORDERS
     /* underlines on hyperlinks */
     .z-cse a.z-entity {
         text-decoration: none !important;
+        font-weight: bold;
     }
 
     .z-cse .search-result .excerpt {
@@ -1235,7 +1247,9 @@ BYE BYE BORDERS
         }
 
     /* device class header */
-    .z-cse .x-panel-header-text-default,
+    .z-cse .x-panel-header-text-default {
+        font-size: 14px;
+    }
     .z-cse .x-panel-header .x-form-display-field
     { font-size: 14px; line-height: 20px; margin-top: 8px; text-indent: 8px; }
     .z-cse #device_grid table.eventrainbow {
@@ -1406,7 +1420,7 @@ BYE BYE BORDERS
     .z-cse .x-menu a:hover,
     .z-cse .x-menu a:visited,
     .z-cse #breadCrumbPane a
-    { color: #00b5c1; text-decoration: none; }
+    { color: #004080; text-decoration: none; }
 
     /* masthead search */
     .z-cse #searchbox-container .searchfield-black .x-form-field,
@@ -2248,6 +2262,60 @@ BYE BYE BORDERS
       visibility: hidden;
     }
 
+    /*<ZEN-30423> white theme styles for reports start*/
+    .z-cse.z-cse-reports th.tabletitle div.tabletitlecontainer {
+        background-color: transparent !important;
+        vertical-align: middle;
+    }
+    .z-cse.z-cse-reports a.tableheaderselected,
+    .z-cse.z-cse-reports a.tableheader {
+        display: block;
+    }
+    .z-cse.z-cse-reports th.tableheaderselected,
+    .z-cse.z-cse-reports th.tableheader {
+        background-color: #bbb !important;
+        height: 23px;
+        line-height: 23px;
+        font-size: 12px;
+    }
+    .z-cse.z-cse-reports .odd a.tablevalues,
+    .z-cse.z-cse-reports .odd td.tablevalues {
+        background-color: #ccc !important;
+    }
+    .z-cse.z-cse-reports table.innerzentable td.tablevalues {
+        border-bottom: 1px solid #ededed !important;
+        border-right: 1px solid #ededed !important;
+    }
+    .z-cse.z-cse-reports input.navcontrol,
+    .z-cse.z-cse-reports input[type="submit"] {
+        background-color: rgb(244, 244, 244);
+        border-radius: 3px;
+        padding: 3px;
+        cursor: pointer;
+        cursor: hand;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+    }
+    .z-cse.z-cse-reports input.navcontrol:hover,
+    .z-cse.z-cse-reports input[type="submit"]:hover {
+        background-color: #b6cbe4 !important;
+    }
+    .z-cse.z-cse-reports select,
+    .z-cse.z-cse-reports input[type="text"] {
+        border: 1px solid #d6d6d6;
+        background-color: #f4f4f4;
+    }
+    /*<ZEN-30423> white theme styles for reports end*/
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.odd {
+        color: #4b6f9b;
+    }
+
+    .z-cse:not(.z-cse-dark) div.streaming-line.even {
+        color: #4b4b4c;
+    }
+
 /*
         =====================================================================================
         DARK THEME
@@ -2296,7 +2364,10 @@ BYE BYE BORDERS
     /* floating windows dark theme inheritance */
     .z-cse.z-cse-dark .x-window {
         border-width: 1px;
-        background-color: rgba(0, 0, 0, 0.85);
+        background-color: #454545; /*ZEN-30458*/
+    }
+    .z-cse.z-cse-dark .x-window-header .x-tool-close { /*ZEN-30458*/
+        background-image: url("/++resource++zenui/img/ext4/window/close-button.png");
     }
     .z-cse.z-cse-dark .x-window-header {
         border-width: 1px 1px 0 1px;
@@ -2558,6 +2629,13 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark .x-window-body .x-panel-body pre {
         color: #777777;
+    }
+
+    .z-cse.z-cse-dark .streaming-container {/*<ZEN-30467>*/
+        color: #eee;
+    }
+    .z-cse.z-cse-dark .streaming-line.odd {/*<ZEN-30467>*/
+        color: #acc;
     }
 
     /* dark theme chart text */
@@ -2847,7 +2925,7 @@ BYE BYE BORDERS
         stroke: rgba(255,255,255,0.15);
     }
     .z-cse.z-cse-dark .europagraph text {
-        fill: rgba(255,255,255,0.4);
+        fill: rgba(255,255,255,0.75); /*ZEN-30458*/
     }
 
     /* open events & past events portlets */
@@ -2928,3 +3006,49 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .inspector .inspector-body .inspector-property .inspector-property-value div {
         color: #5a5a5a;
     }
+
+    /* CodeMirror edited panel header text color */
+    .z-cse.z-cse-dark .edited_feedback .x-panel-header-text {
+        color: #cdf856 !important;
+    }
+
+    /*<ZEN-30423> dark theme styles for reports start*/
+    .z-cse.z-cse-dark.z-cse-reports th.tabletitle div.tabletitlecontainer {
+        background-color: transparent !important;
+        vertical-align: middle;
+    }
+    .z-cse.z-cse-dark.z-cse-reports th.tableheaderselected,
+    .z-cse.z-cse-dark.z-cse-reports th.tableheader {
+        background-image: none !important;
+        background-color: #808080 !important;
+        border-left: 1px solid #888888;
+        height: 23px;
+        line-height: 23px;
+        font-size: 12px;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .odd a.tablevalues,
+    .z-cse.z-cse-dark.z-cse-reports .odd td.tablevalues {
+        background-color: #ccc !important;
+    }
+    .z-cse.z-cse-dark.z-cse-reports table.innerzentable td.tablevalues {
+        border-bottom: 1px solid #444444 !important;
+        border-right: 1px solid #444444 !important;
+    }
+    .z-cse.z-cse-dark.z-cse-reports input.navcontrol,
+    .z-cse.z-cse-dark.z-cse-reports input[type="submit"] {
+        background-color: #b2afaf;
+        color: black;
+        border-radius: 3px;
+        padding: 3px;
+        cursor: pointer;
+        cursor: hand;
+        white-space: nowrap;
+        vertical-align: middle;
+        background-repeat: no-repeat;
+    }
+    .z-cse.z-cse-dark.z-cse-reports select,
+    .z-cse.z-cse-dark.z-cse-reports input[type="text"] {
+        border: 0;
+        background-color: #505050;
+    }
+    /*<ZEN-30423> dark theme styles for reports end*/
