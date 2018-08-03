@@ -407,8 +407,7 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 listeners: {
                                     'afterrender': function(combo){
                                         if (newEntry) {
-                                            var maintenanceRecord = combo.store.findRecord('name', 'Maintenance');
-                                            combo.setValue(maintenanceRecord);
+                                            combo.setValue(combo.store.findRecord('name', 'Maintenance'));
                                         }
                                     }
                                 },
