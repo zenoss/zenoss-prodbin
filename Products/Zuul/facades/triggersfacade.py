@@ -49,6 +49,7 @@ from Products.Zuul import marshal
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.decorators import require
+from Products.Zuul.form.schema import Password
 
 log = logging.getLogger('zen.TriggersFacade')
 
@@ -539,10 +540,7 @@ class TriggersFacade(ZuulFacade):
         )
 
     def updateNotification(self, **data):
-        datacopy = deepcopy(data)
-        if 'password' in datacopy:
-            datacopy['password'] = '*' * len(data['password'])
-        log.debug(datacopy)
+        log.debug(data)
 
         uid = data['uid']
 
@@ -554,11 +552,6 @@ class TriggersFacade(ZuulFacade):
 
         if not note:
             raise Exception('Could not find notification to update: %s' % uid)
-        orig_password_masked = ''
-        if 'password' in note.content and note.content['password'] is not None:
-            orig_password_masked = '*' * len(note.content['password'])
-        if 'password' in data and data['password'] == orig_password_masked:
-            del data['password']
 
         # don't update any properties unless the current user has the correct
         # permission.
@@ -568,6 +561,23 @@ class TriggersFacade(ZuulFacade):
         ):
             # update the action content data
             action = getUtility(IAction, note.action)
+
+            passwordFields = set()
+            for iface in providedBy(action.getInfo(note)):
+                f = getFields(iface)
+                if f:
+                    for key, value in f.iteritems():
+                        if isinstance(value, Password):
+                            passwordFields.add(key)
+            for fieldName in passwordFields:
+                if fieldName in data:
+                    currValue = note.content.get(fieldName)
+                    # match Products/Zuul/form/builder.py
+                    maskedValue = '*' * len(currValue) if currValue else None
+                    # if the value is all *, change to real password as it didn't change
+                    if data[fieldName] == maskedValue:
+                        data[fieldName] = currValue
+
             action.updateContent(note.content, data)
 
         if self.notificationPermissions.userCanManageNotification(
