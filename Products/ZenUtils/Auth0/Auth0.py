@@ -24,6 +24,7 @@ from Products.ZenUtils.virtual_root import IVirtualRoot
 import base64
 import jwt
 import logging
+import re
 import time
 
 log = logging.getLogger('Auth0')
@@ -32,6 +33,8 @@ TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 PLUGIN_VERSION = 3
+
+rbac_pattern = re.compile("^(CZ[0-9]+):(.+)")
 
 _AUTH0_CONFIG = {
     'audience': None,
@@ -115,6 +118,42 @@ class Auth0(BasePlugin):
             request.response.expireCookie(Auth0.zc_token_key)
 
     @staticmethod
+    def getRoleAssignments(roles=None):
+        """
+        This looks for RBAC style roles in the role list ("CZ0:CZAdmin", and uses those if they exist.  If they
+        don't exist, return the roles as-is (they may contain older style roles, ie, "CZAdmin" for Zenoss-com
+        connections).
+
+        :param roles:an array of roles (strings), [ "CZ0:ZenManager", "CZ0:ZenUser", .. ]
+        :return: an array of roles (strings)
+        """
+        if not roles:
+            return []
+
+        # The cz_prefix for this CZ is going to be "CZ#", ie: "CZ0", "CZ1", ..
+        cz_prefix = getUtility(IVirtualRoot).get_prefix().strip("/").upper()
+
+        # RBAC style roles are in the form: "CZ#:ZenManager". If our user has any RBAC style role mappings, we need to
+        # return only RBAC assigned roles.  This covers the case where we were assigned CZ1:ZenManager and not assigned
+        # any roles for CZ0.  We shouldn't return the older gsuite group mappings for this user in this case.
+        matches = [rbac_pattern.match(role) for role in roles]
+
+        # filter non-matches (None) without evaluating the regex a second time.
+        matches = [match for match in matches if match]
+
+        # If there are any RBAC roles assigned, use only the RBAC roles for this CZ.
+        if matches:
+            # match.group(2) = "ZenManager", match.group(1) = "CZ0"
+            return [match.group(2) for match in matches if match.group(1) == cz_prefix]
+
+        # No RBAC style roles are assigned to this user. Return the raw list of roles, which may contain RM roles. This
+        # will only be a list of RM roles for role mapping that were specifically mapped to the gsuite groups (only
+        # the zenoss-com connection will have this).  At some point the old style mappings will be removed from Auth0
+        # entirely and this list won't contain any RM roles at all -- so returning them won't have any effect at that
+        # point.
+        return roles
+
+    @staticmethod
     def storeToken(token, request, conf):
         """ Save the important parts of the token in session storage.
             Returns the corresponding SessionInfo object.  If we can't
@@ -168,7 +207,7 @@ class Auth0(BasePlugin):
             else:
                 sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
             sessionInfo.expiration = payload['exp']
-            sessionInfo.roles = payload.get('https://zenoss.com/roles', [])
+            sessionInfo.roles = getRoleAssignments(payload.get('https://zenoss.com/roles', []))
             return sessionInfo
         except Exception as ex:
             log.debug('Error storing jwt token: {}'.format(ex.message))
