@@ -82,7 +82,7 @@ Ext.define("Zenoss.CommandWindow", {
                 items: {
                     xtype: 'checkbox',
                     checked: true,
-                    boxLabel: '<span style="color:white">Autoscroll</span>',
+                    boxLabel: _t('Autoscroll'),
                     handler: Ext.bind(function(c){
                         if (c.checked) {
                             this.startScrolling();
@@ -95,8 +95,10 @@ Ext.define("Zenoss.CommandWindow", {
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
         this.task = new Ext.util.DelayedTask(this.scrollToBottom, this);
-        this.on('afterrender', this.startScrolling, this);
-        this.on('afterrender', this.resizeOnRender, this);
+        this.on('afterrender', function(){
+            this.startScrolling();
+            this.resizeOnRender();
+        }, this);
         this.on('afterlayout', function(){this.center();}, this, {single:true});
         this.on('close', this.stopScrolling, this);
             this.on('close', function() {

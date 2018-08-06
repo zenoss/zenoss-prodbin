@@ -108,7 +108,7 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url === 'about:blank' || url === '') {
+        if (url === 'about:blank' || !url) {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
@@ -131,6 +131,11 @@ Ext.define("Zenoss.IFramePanel", {
             cssClone,
             iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
             cseClasses = [];
+
+        // add custom style to iframe <html> if it's defined;
+        if (this.iframeCustomCss) {
+            cseClasses.push(this.iframeCustomCss);
+        }
 
         Ext.each(html.classList, function(key, item) {
             if (typeof key === 'string' && key.startsWith('z-cse')) {
