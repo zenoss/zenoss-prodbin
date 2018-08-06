@@ -1,6 +1,8 @@
 <tal:block tal:define="
     tableName string:availability;
     tm here/ZenTableManager;
+    tableState python:tm.getTableState(tableName, sortedHeader='deviceName',
+                                           sortedSence='desc');
     zem python:here.dmd.ZenEventManager;
     sts python:tm.setReqTableState;
     startDate python:sts(tableName, 'startDate', 
@@ -8,8 +10,9 @@
     endDate python:sts(tableName, 'endDate', 
     zem.defaultAvailabilityEnd());
     eventClass python:sts(tableName, 'eventClass', '/Perf');
-
-
+    generate python:tm.setTableState(tableName, 'generate',
+        (tm.getReqTableState(tableName, 'generate') and
+        not tm.getReqTableState(tableName, 'adapt')));
     objects python:here.ReportServer.plugin('threshold', here.REQUEST);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
     tableName string: thresholdsummaryreport;
@@ -64,7 +67,7 @@
       </td>
     </tr><tr>
       <td colspan='6'>
-        <input class="tablevalues" type="Submit" value="Generate"/>
+        <input class="tablevalues" type="Submit" value="Generate" name="generate" />
       </td>
     </tr>
 </table>

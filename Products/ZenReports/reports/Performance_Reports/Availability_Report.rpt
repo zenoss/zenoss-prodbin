@@ -4,26 +4,28 @@
     tableState python:tm.getTableState(tableName,  
                                        sortedSence='asc',
                                        sortedHeader='availability');
+    sts python:here.ZenTableManager.setReqTableState;
     zem python:here.dmd.ZenEventManager;
-    sts python:tm.setReqTableState;
+    startDate python:sts(tableName, 'startDate',
+                         zem.defaultAvailabilityStart());
+    endDate python:sts(tableName, 'endDate',
+                         zem.defaultAvailabilityEnd());
     device python:sts(tableName, 'device', '');
     DeviceClass python:sts(tableName, 'DeviceClass', '');
     System python:sts(tableName, 'System', '');
     DeviceGroup python:sts(tableName, 'DeviceGroup', '');
     Location python:sts(tableName, 'Location', '');
-
     component python:sts(tableName, 'component', '');
     severity python:sts(tableName, 'severity', '4');
     eventClass python:sts(tableName, 'eventClass', '/Status/Ping');
-    startDate python:sts(tableName, 'startDate', 
-                         zem.defaultAvailabilityStart());
-    endDate python:sts(tableName, 'endDate', 
-                         zem.defaultAvailabilityEnd());
+    generate python:tm.setTableState(tableName, 'generate',
+        (tm.getReqTableState(tableName, 'generate') and
+        not tm.getReqTableState(tableName, 'adapt')));
     objects python:zem.getAvailability(tableState);
-    batch python:tm.getBatch(tableName,objects);
     exportFields python:[('title', 'Device'),
                          ('systems', 'Systems'),
                          ('floatStr', 'Availability')];
+    batch python:tm.getBatch(tableName,objects);
     ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
@@ -138,7 +140,7 @@
        <td class="tablevalues" colspan="2" />
     </tr><tr>
        <td class="tablevalues" colspan="4">
-         <input class="tablevalues" type="Submit" value="Generate"/>
+         <input class="tablevalues" type="Submit" value="Generate" name="generate"/>
        </td> 
     </tr>
 </table>
