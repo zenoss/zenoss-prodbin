@@ -34,7 +34,7 @@ PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 PLUGIN_VERSION = 3
 
-rbac_pattern = re.compile("^(CZ[0-9]+):(.+)")
+rbac_pattern = re.compile("^(internal:)?(CZ[0-9]+):(.+)")
 
 _AUTH0_CONFIG = {
     'audience': None,
@@ -143,8 +143,9 @@ class Auth0(BasePlugin):
 
         # If there are any RBAC roles assigned, use only the RBAC roles for this CZ.
         if matches:
-            # match.group(2) = "ZenManager", match.group(1) = "CZ0"
-            return [match.group(2) for match in matches if match.group(1) == cz_prefix]
+            # for an RBAC role: "CZ0:ZenManager", match.group(3) = "ZenManager", match.group(2) = "CZ0"
+            # if this has the optional beginning "internal:CZ0:ZenManager", match(1) is "internal:" and unused.
+            return [match.group(3) for match in matches if match.group(2) == cz_prefix]
 
         # No RBAC style roles are assigned to this user. Return the raw list of roles, which may contain RM roles. This
         # will only be a list of RM roles for role mapping that were specifically mapped to the gsuite groups (only
@@ -207,7 +208,7 @@ class Auth0(BasePlugin):
             else:
                 sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
             sessionInfo.expiration = payload['exp']
-            sessionInfo.roles = getRoleAssignments(payload.get('https://zenoss.com/roles', []))
+            sessionInfo.roles = Auth0.getRoleAssignments(payload.get('https://zenoss.com/roles', []))
             return sessionInfo
         except Exception as ex:
             log.debug('Error storing jwt token: {}'.format(ex.message))
