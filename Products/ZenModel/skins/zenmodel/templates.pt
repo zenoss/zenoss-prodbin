@@ -113,6 +113,10 @@
             });
 
         }
+
+        if (window.frameElement) {
+            window.Zenoss = window.parent.Zenoss;
+        }
         </script>
     </head>
     <body class="yui-skin-sam">
