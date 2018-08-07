@@ -540,15 +540,11 @@ BYE BYE BORDERS
         background-size: 15px;
         background-position: right -2px;
         display: inline-block;
-        margin-top: 1px;
-        width: 50px;
     }
     .z-cse span.status-down {
         background-size: 15px;
         background-position: right -26.5px;
         display: inline-block;
-        margin-top: 1px;
-        width: 50px;
     }
     .z-cse span.status-up-large {
         background-position: right 6px;
