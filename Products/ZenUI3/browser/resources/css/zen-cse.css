@@ -2312,6 +2312,13 @@ BYE BYE BORDERS
         color: #4b4b4c;
     }
 
+    .z-cse .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #111111;
+    }
+    .z-cse.z-cse-dark .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #e8e8e8;
+    }
+
 /*
         =====================================================================================
         DARK THEME
@@ -2652,6 +2659,9 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark a.z-entity:hover {
         color: #06e0ee !important;
     }
+
+    .z-cse.z-cse-dark .rowcolor-warning-unacknowledged a.z-entity
+    { color: #004080; }
 
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
