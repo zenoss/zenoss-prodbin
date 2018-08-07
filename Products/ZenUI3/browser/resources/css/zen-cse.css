@@ -2259,6 +2259,13 @@ BYE BYE BORDERS
     }
 
     /*<ZEN-30423> white theme styles for reports start*/
+    .z-cse.z-cse-reports body {
+        color: #333;
+    }
+    .z-cse.z-cse-reports .navbar-default {
+        background-color: transparent;
+        background-image: none !important;
+    }
     .z-cse.z-cse-reports th.tabletitle div.tabletitlecontainer {
         background-color: transparent !important;
         vertical-align: middle;
@@ -3019,6 +3026,20 @@ BYE BYE BORDERS
     }
 
     /*<ZEN-30423> dark theme styles for reports start*/
+    .z-cse.z-cse-dark.z-cse-reports body {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .navbar-brand {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .nav>li>a:focus,
+    .z-cse.z-cse-dark.z-cse-reports .nav>li>a:hover {
+        background-color: #616161;
+        border-color: #444;
+    }
+    .z-cse.z-cse-dark.z-cse-reports dropdown-menu {
+         background-color: #333;
+    }
     .z-cse.z-cse-dark.z-cse-reports th.tabletitle div.tabletitlecontainer {
         background-color: transparent !important;
         vertical-align: middle;
