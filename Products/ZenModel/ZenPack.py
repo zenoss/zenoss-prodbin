@@ -49,6 +49,8 @@ from ZenossSecurity import ZEN_MANAGE_DMD
 from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 from Products.ZenMessaging.audit import audit
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 import servicemigration
 servicemigration.require("1.0.0")
@@ -840,7 +842,7 @@ registerDirectory("skins", globals())
 
         if REQUEST:
             dlLink = '- <a target="_blank" href="%s/manage_download">' \
-                     'Download Zenpack</a>' % self.absolute_url_path()
+                     'Download Zenpack</a>' % getUtility(IVirtualRoot).ensure_virtual_root(self.absolute_url_path())
             messaging.IMessageSender(self).sendToBrowser(
                 'ZenPack Exported',
                 'ZenPack exported to $ZENHOME/export/%s %s' %
