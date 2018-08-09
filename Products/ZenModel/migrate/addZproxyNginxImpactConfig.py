@@ -15,7 +15,6 @@ import logging
 import re
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import Migrate
 import servicemigration as sm
 sm.require("1.1.5")
@@ -24,7 +23,7 @@ org_statement='pagespeed Disallow \"*/static/*\";\n\n'
 new_statement='pagespeed  Disallow \"*/static/*\";\n        pagespeed  Disallow \"*/impact_graph*\";\n        pagespeed  Allow    \"*/impact_graph*.js\";\n\n'
 
 class AddZproxyNginxImpactConfig(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 1)
 
     config_file = "/opt/zenoss/zproxy/conf/zproxy-nginx.conf"
     save_file = "/opt/zenoss/var/ext/zproxy-nginx.conf.orig"

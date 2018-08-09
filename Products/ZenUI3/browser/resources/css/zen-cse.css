@@ -540,15 +540,11 @@ BYE BYE BORDERS
         background-size: 15px;
         background-position: right -2px;
         display: inline-block;
-        margin-top: 1px;
-        width: 50px;
     }
     .z-cse span.status-down {
         background-size: 15px;
         background-position: right -26.5px;
         display: inline-block;
-        margin-top: 1px;
-        width: 50px;
     }
     .z-cse span.status-up-large {
         background-position: right 6px;
@@ -2263,6 +2259,13 @@ BYE BYE BORDERS
     }
 
     /*<ZEN-30423> white theme styles for reports start*/
+    .z-cse.z-cse-reports body {
+        color: #333;
+    }
+    .z-cse.z-cse-reports .navbar-default {
+        background-color: transparent;
+        background-image: none !important;
+    }
     .z-cse.z-cse-reports th.tabletitle div.tabletitlecontainer {
         background-color: transparent !important;
         vertical-align: middle;
@@ -2314,6 +2317,13 @@ BYE BYE BORDERS
 
     .z-cse:not(.z-cse-dark) div.streaming-line.even {
         color: #4b4b4c;
+    }
+
+    .z-cse .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #111111;
+    }
+    .z-cse.z-cse-dark .x-grid .x-grid-row.rowcolor .x-grid-cell-inner {
+        color: #e8e8e8;
     }
 
 /*
@@ -2656,6 +2666,9 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark a.z-entity:hover {
         color: #06e0ee !important;
     }
+
+    .z-cse.z-cse-dark .rowcolor-warning-unacknowledged a.z-entity
+    { color: #004080; }
 
     /* brighter text for input fields */
     .z-cse.z-cse-dark .x-form-field,
@@ -3013,6 +3026,20 @@ BYE BYE BORDERS
     }
 
     /*<ZEN-30423> dark theme styles for reports start*/
+    .z-cse.z-cse-dark.z-cse-reports body {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .navbar-brand {
+        color: #ccc;
+    }
+    .z-cse.z-cse-dark.z-cse-reports .nav>li>a:focus,
+    .z-cse.z-cse-dark.z-cse-reports .nav>li>a:hover {
+        background-color: #616161;
+        border-color: #444;
+    }
+    .z-cse.z-cse-dark.z-cse-reports dropdown-menu {
+         background-color: #333;
+    }
     .z-cse.z-cse-dark.z-cse-reports th.tabletitle div.tabletitlecontainer {
         background-color: transparent !important;
         vertical-align: middle;

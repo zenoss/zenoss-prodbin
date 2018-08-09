@@ -19,11 +19,10 @@ from Products.ZenModel.IpAddress import IpAddress
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import ipAndMaskFromIpMask
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class addDeviceIpAddrRelation(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 1)
 
     def cutover(self, dmd):
 
