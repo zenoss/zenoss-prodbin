@@ -38,15 +38,21 @@ Ext.define("Zenoss.form.LinkField", {
             });
             value = items.join('<br/>');
         } else {
-            var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
-            var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a>)/);
-            if (linkMatch && nameMatch) {
-                var link = linkMatch[1];
-                var name = nameMatch[1];
-                value = Zenoss.render.link(null, link, name);
+            var div = Ext.get(document.createElement('div'));
+            div.setHTML(value);
+            var a = div.query('a'),
+                items = [];
+            if (a.length) {
+                Ext.Array.each(a, function(item, idx, count) {
+                    var link = Ext.fly(item).getAttribute('href'),
+                        name = Ext.fly(item).getHTML();
+                    items.push(Zenoss.render.link(null, link, name));
+                }, this);
+                value = items.join('<br/>');
             } else {
                 value = Zenoss.render.link(value);
             }
+            div.destroy();
         }
         this.callParent([value]);
         this.rawValue = origValue;
