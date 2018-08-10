@@ -20,7 +20,7 @@ class AddOpentsdbHbaseConnectionHealthCheck (Migrate.Step):
     """add new healthchecks to Opentsdb reader and writer for hbase connectivity
     """
 
-    version = Migrate.Version(300, 0, 1)
+    version = Migrate.Version(300, 0, 0)
 
     def cutover(self, dmd):
         try:
