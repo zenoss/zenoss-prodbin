@@ -78,8 +78,7 @@
                     autoScroll:true,
 
                     defaults: {
-                        xtype: 'textfield',
-                        anchor: '85%'
+                        xtype: 'textfield'
                     },
                     listeners: {
                         /**
