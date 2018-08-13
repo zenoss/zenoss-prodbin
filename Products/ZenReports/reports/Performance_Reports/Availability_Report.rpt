@@ -1,7 +1,7 @@
 <tal:block tal:define="
     tableName string:availabilitytable;
     tm here/ZenTableManager;
-    tableState python:tm.getTableState(tableName,  
+    tableState python:tm.getTableState(tableName,
                                        sortedSence='asc',
                                        sortedHeader='availability');
     sts python:here.ZenTableManager.setReqTableState;
@@ -140,13 +140,17 @@
        <td class="tablevalues" colspan="2" />
     </tr><tr>
        <td class="tablevalues" colspan="4">
-         <input class="tablevalues" type="Submit" value="Generate" name="generate"/>
+         <input class="navcontrol" type="Submit" value="Generate" name="generate" id="generate"/>
        </td> 
     </tr>
 </table>
 </form>
 
 <script type="text/javascript">
+    document.querySelector('#generate').onclick = function() {
+        var generateMask = new Ext.LoadMask(Ext.getBody(), {msg:"Generating report..."});
+        generateMask.show();
+    };
     addDateRange('startDate', 'endDate');
 </script>
 
