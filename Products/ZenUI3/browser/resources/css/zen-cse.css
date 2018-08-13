@@ -1952,7 +1952,7 @@ BYE BYE BORDERS
             min-width: 160px;
         }
         .z-cse #contentPaneContainer select {
-            height: 28px;
+            min-height: 28px;
             min-width: 160px;
         }
         .z-cse #contentPaneContainer select.wide-select,
