@@ -30,6 +30,7 @@ class IgnorableClassesFilterTest(TestCase):
         self.icf = IgnorableClassesFilter()
 
     def test_init(self):
+        IInvalidationFilter.providedBy(self.icf)
         # current version fails because weight attribute is not defined
         # icf.weight = 1
         # verifyObject(IInvalidationFilter, icf)
@@ -69,6 +70,7 @@ class BaseOrganizerFilterTest(TestCase):
         )
 
     def test_init(self):
+        IInvalidationFilter.providedBy(self.bof)
         verifyObject(IInvalidationFilter, self.bof)
         self.assertEqual(self.bof.weight, 10)
         self.assertEqual(self.bof._types, self.types)
@@ -200,6 +202,8 @@ class DeviceClassInvalidationFilterTest(TestCase):
         self.dcif = DeviceClassInvalidationFilter()
 
     def test_init(self):
+        IInvalidationFilter.providedBy(self.dcif)
+        verifyObject(IInvalidationFilter, self.dcif)
         self.assertEqual(self.dcif._types, (DeviceClass, ))
 
     def test_getRoot(self):
@@ -232,6 +236,9 @@ class OSProcessOrganizerFilterTest(TestCase):
 
     def test_init(self):
         ospof = OSProcessOrganizerFilter()
+
+        IInvalidationFilter.providedBy(ospof)
+        verifyObject(IInvalidationFilter, ospof)
         self.assertEqual(ospof._types, (OSProcessOrganizer, ))
 
     def test_getRoot(self):
@@ -247,6 +254,9 @@ class OSProcessClassFilterTest(TestCase):
         self.ospcf = OSProcessClassFilter()
 
     def test_init(self):
+        IInvalidationFilter.providedBy(self.ospcf)
+        verifyObject(IInvalidationFilter, self.ospcf)
+
         self.assertEqual(self.ospcf._types, (OSProcessClass, ))
 
     def test_getRoot(self):
