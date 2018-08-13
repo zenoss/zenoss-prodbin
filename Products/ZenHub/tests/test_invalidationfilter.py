@@ -31,8 +31,8 @@ class IgnorableClassesFilterTest(TestCase):
 
     def test_init(self):
         # current version fails because weight attribute is not defined
-        #icf.weight = 1
-        #verifyObject(IInvalidationFilter, icf)
+        # icf.weight = 1
+        # verifyObject(IInvalidationFilter, icf)
         self.assertTrue(hasattr(self.icf, 'CLASSES_TO_IGNORE'))
 
     def test_initialize(self):
@@ -222,7 +222,6 @@ class DeviceClassInvalidationFilterTest(TestCase):
         self.dcif.generateChecksum(organizer, md5_checksum)
 
         # We cannot validate the output of the current version, refactor needed
-        #self.assertEqual(md5_checksum.hexdigest(), 'something')
         rrdTemplate.exportXml.was_called_once()
         super_generateChecksum.assert_called_with(
             self.dcif, organizer, md5_checksum
