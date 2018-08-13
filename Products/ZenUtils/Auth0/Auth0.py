@@ -89,6 +89,7 @@ class Auth0(BasePlugin):
     """
 
     zc_token_key = 'accessToken'
+    zc_token_exp_key = 'accessTokenExpiration'
 
     meta_type = 'Auth0 plugin'
     session_key = 'auth0'
@@ -120,12 +121,12 @@ class Auth0(BasePlugin):
     @staticmethod
     def getRoleAssignments(roles=None):
         """
-        This looks for RBAC style roles in the role list ("CZ0:CZAdmin", and uses those if they exist.  If they
+        This looks for RBAC style roles in the role list ("CZ0:CZAdmin"), and uses those if they exist.  If they
         don't exist, return the roles as-is (they may contain older style roles, ie, "CZAdmin" for Zenoss-com
         connections).
 
-        :param roles:an array of roles (strings), [ "CZ0:ZenManager", "CZ0:ZenUser", .. ]
-        :return: an array of roles (strings)
+        :param roles:an array of roles, possibly in RBAC format (strings), [ "CZ0:ZenManager", "CZ0:ZenUser", .. ]
+        :return: an array of roles (strings), [ "ZenManager", "ZenUser", .. ]
         """
         if not roles:
             return []
@@ -229,6 +230,7 @@ class Auth0(BasePlugin):
         # Clear session variables and redirect to the ZC logout.
         request.SESSION.clear()
         response.expireCookie(Auth0.zc_token_key)
+        response.expireCookie(Auth0.zc_token_exp_key)
         conf = getAuth0Conf()
         if conf:
             log.info('Redirecting user to Auth0 logout: %s' % conf)
@@ -254,6 +256,15 @@ class Auth0(BasePlugin):
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             sessionInfo = Auth0.storeToken(token, request, conf)
+
+        # ZING-821: We need to verify that the session data we've cached matches the
+        # token expiration.  If the expiration cookie is set, make sure it matches
+        # our cache - otherwise we need to parse the access token again.
+        token_expiration = request.cookies.get(Auth0.zc_token_exp_key, None)
+        if token_expiration:
+            if not sessionInfo.expiration == token_expiration:
+                log.info('Token expiration does not match stored expiration. Parsing token again.')
+                sessionInfo = Auth0.storeToken(token, request, conf)
 
         if not sessionInfo or not sessionInfo.userid:
             log.debug('No userid found in sessionInfo - not directing to Auth0 login')
