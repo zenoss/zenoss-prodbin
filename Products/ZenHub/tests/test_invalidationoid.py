@@ -10,6 +10,7 @@ from Products.ZenHub.invalidationoid import (
     DeviceOidTransform,
 )
 
+from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
 
 
@@ -20,7 +21,10 @@ class DefaultOidTransformTest(TestCase):
         self.default_oid_transform = DefaultOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
+        # Provides the interface
         IInvalidationOid.providedBy(self.default_oid_transform)
+        # Implements the interface it according to spec
+        verifyObject(IInvalidationOid, self.default_oid_transform)
 
     def test_adapts_PrimaryPathObjectManager(self):
         self.assertEqual(
@@ -43,7 +47,10 @@ class DeviceOidTransformTest(TestCase):
         self.device_oid_transform = DeviceOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
+        # Provides the interface
         IInvalidationOid.providedBy(self.device_oid_transform)
+        # Implements the interface it according to spec
+        verifyObject(IInvalidationOid, self.device_oid_transform)
 
     def test_init(self):
         self.assertEqual(self.device_oid_transform._obj, self.obj)
