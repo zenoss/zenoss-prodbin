@@ -99,6 +99,7 @@ darker input fields:           #505050
 .z-cse #blackTabs #xform_mapping_panel,
 .z-cse #breadCrumbPane,
 .z-cse #contentPaneContainer .filterbox,
+.z-cse #contentPane,
 .z-cse #controls_panel ~ p.message
 { background-image: none; background-color: transparent; }
 .z-cse div[id^=HierarchyTreePanelSearch],
