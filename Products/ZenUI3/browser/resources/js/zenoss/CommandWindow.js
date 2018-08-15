@@ -79,7 +79,15 @@ Ext.define("Zenoss.CommandWindow", {
             fbar: {
                 buttonAlign: 'left',
                 id:'window_footer_toolbar',
-                items: {
+                items: [
+                    {
+                        xtype: 'button',
+                        text: _t('Copy to clipboard'),
+                        handler: Ext.bind(function(c){
+                            this.copyToClipboard();
+                            }, this)
+                    }, '-',
+                    {
                     xtype: 'checkbox',
                     checked: true,
                     boxLabel: _t('Autoscroll'),
@@ -88,9 +96,9 @@ Ext.define("Zenoss.CommandWindow", {
                             this.startScrolling();
                         } else {
                             this.stopScrolling();
-                        }
-                    }, this)
-                }
+                        }}, this)
+                    },
+                ]
             }
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
@@ -136,6 +144,21 @@ Ext.define("Zenoss.CommandWindow", {
         if (Ext.get('window_footer_toolbar')) {
             Ext.get('window_footer_toolbar').focus();
             this.task.delay(250);
+        }
+    },
+    copyToClipboard: function() {
+        var body = this.getCommandPanel().getBody().innerText;
+        var textArea = document.createElement("textarea");
+        textArea.value = body;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+        } catch(err) {
+            console.error("Failed to copy text to clipboard", err);
+        } finally {
+            document.body.removeChild(textArea);
         }
     },
     closeAndRedirect: function() {

@@ -1231,7 +1231,8 @@ Ext.getCmp('footer_bar').add([{
 },'-', {
         xtype: 'ContextConfigureMenu',
         id: 'testing_configure_menu',
-        text: _t('Test'),
+        text: _t('Modeling'),
+        iconCls: '',
         listeners: {
         render: function(){
             this.setContext(UID);
