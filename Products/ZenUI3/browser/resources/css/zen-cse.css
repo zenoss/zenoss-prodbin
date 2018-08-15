@@ -2292,8 +2292,10 @@ BYE BYE BORDERS
         border-right: 1px solid #ededed !important;
     }
     .z-cse.z-cse-reports input.navcontrol,
-    .z-cse.z-cse-reports input[type="submit"] {
-        background-color: rgb(244, 244, 244);
+    .z-cse.z-cse-reports input[type="submit"],
+    .z-cse.z-cse-reports input[type="button"] {
+        background-color: rgb(244, 244, 244) !important;
+        color: black !important;
         border-radius: 3px;
         padding: 3px;
         cursor: pointer;
@@ -2307,9 +2309,13 @@ BYE BYE BORDERS
         background-color: #b6cbe4 !important;
     }
     .z-cse.z-cse-reports select,
+    .z-cse.z-cse-reports input.tablevalues,
     .z-cse.z-cse-reports input[type="text"] {
         border: 1px solid #d6d6d6;
         background-color: #f4f4f4;
+        color: #444;
+        height: 22px;
+        padding-left: 2px;
     }
     /*<ZEN-30423> white theme styles for reports end*/
 
@@ -3058,16 +3064,17 @@ BYE BYE BORDERS
     }
     .z-cse.z-cse-dark.z-cse-reports .odd a.tablevalues,
     .z-cse.z-cse-dark.z-cse-reports .odd td.tablevalues {
-        background-color: #ccc !important;
+        background-color: #444 !important;
     }
     .z-cse.z-cse-dark.z-cse-reports table.innerzentable td.tablevalues {
         border-bottom: 1px solid #444444 !important;
         border-right: 1px solid #444444 !important;
     }
     .z-cse.z-cse-dark.z-cse-reports input.navcontrol,
-    .z-cse.z-cse-dark.z-cse-reports input[type="submit"] {
-        background-color: #b2afaf;
-        color: black;
+    .z-cse.z-cse-dark.z-cse-reports input[type="submit"],
+    .z-cse.z-cse-dark.z-cse-reports input[type="button"] {
+        background-color: #b2afaf !important;
+        color: black !important;
         border-radius: 3px;
         padding: 3px;
         cursor: pointer;
@@ -3077,8 +3084,12 @@ BYE BYE BORDERS
         background-repeat: no-repeat;
     }
     .z-cse.z-cse-dark.z-cse-reports select,
+    .z-cse.z-cse-dark.z-cse-reports input.tablevalues,
     .z-cse.z-cse-dark.z-cse-reports input[type="text"] {
         border: 0;
         background-color: #505050;
+        color: #fafafa;
+        height: 22px;
+        padding-left: 2px;
     }
     /*<ZEN-30423> dark theme styles for reports end*/
