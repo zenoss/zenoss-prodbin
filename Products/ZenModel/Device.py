@@ -1803,7 +1803,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
     def collectDevice(self, setlog=True, REQUEST=None, generateEvents=False,
-                      background=False, write=None):
+                      background=False, write=None, debug=False):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -1823,7 +1823,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return
 
         perfConf.collectDevice(self, setlog, REQUEST, generateEvents,
-                               background, write)
+                               background, write, collectPlugins='',
+                               debug=debug)
 
         if REQUEST:
             audit('UI.Device.Remodel', self)
