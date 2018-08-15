@@ -13,8 +13,11 @@ from Products.Zuul import getFacade
 from Products.ZenReports.AliasPlugin import AliasPlugin
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 
+import logging
+log = logging.getLogger("zen.reports")
 
-class statuses(AliasPlugin):
+
+class pingstatusreport(AliasPlugin):
     """
     Gets a list of devices based on if they have snmp status issues
     """
@@ -47,6 +50,6 @@ class statuses(AliasPlugin):
                 yield dev
 
     def run(self, dmd, args):
-        eventClass = args['eventclass']
+        eventClass = dict(eventclass='/Status/Ping')
         results = self._getEvents(dmd, eventClass)
         return self._getDevices(dmd, results)

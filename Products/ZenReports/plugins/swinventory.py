@@ -13,6 +13,9 @@ from Products.ZenReports import Utils
 class swinventory:
     def run(self, dmd, args):
         report = []
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return report
         recordCount = 0
         for m in dmd.Manufacturers.objectValues():
             if m.id == 'Unknown' or m.meta_type != 'Manufacturer': continue

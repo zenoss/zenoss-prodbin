@@ -48,4 +48,7 @@ class monitoredcomponents(AliasPlugin):
                 yield Utils.Record(**row)
 
     def run(self, dmd, args):
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return []
         return self.getSubComponents(dmd)
