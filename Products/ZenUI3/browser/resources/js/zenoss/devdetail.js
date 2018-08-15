@@ -953,6 +953,23 @@ function modelDevice() {
     win.show();
 }
 
+function modelDeviceDebug() {
+        var win = new Zenoss.CommandWindow({
+            uids: [UID],
+            target: 'run_model_debug',
+            listeners: {
+                close: function(){
+                    Ext.defer(function() {
+                        window.top.location.reload();
+                    }, 1000);
+                }
+            },
+            title: _t('Model Debug')
+        });
+        win.show();
+}
+
+
 function resumeCollection() {
     Zenoss.remote.DeviceRouter.resumeCollection(UID, function(data) {
         Ext.defer(function() {
@@ -1212,13 +1229,28 @@ Ext.getCmp('footer_bar').add([{
     },
     menu: {}
 },'-', {
-
-    xtype: 'button',
-    text: _t('Model Device'),
-    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-    handler: modelDevice
-
-}]);
+        xtype: 'ContextConfigureMenu',
+        id: 'testing_configure_menu',
+        text: _t('Test'),
+        listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    },
+    menuItems: [
+        {
+            xtype: 'menuitem',
+            text: _t('Model Device'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDevice
+        }, {
+            xtype: 'menuitem',
+            text: _t('Model Debug'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDeviceDebug
+        }
+    ]}
+]);
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');

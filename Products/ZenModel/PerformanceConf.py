@@ -514,7 +514,7 @@ class PerformanceConf(Monitor, StatusColor):
     def collectDevice(
             self, device=None, setlog=True, REQUEST=None,
             generateEvents=False, background=False, write=None,
-            collectPlugins=''):
+            collectPlugins='', debug=False):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -534,7 +534,7 @@ class PerformanceConf(Monitor, StatusColor):
         xmlrpc = isXmlRpc(REQUEST)
         result = self._executeZenModelerCommand(device.id, self.id, background,
                                                 REQUEST, write,
-                                                collectPlugins=collectPlugins)
+                                                collectPlugins=collectPlugins, debug=debug)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
@@ -544,7 +544,7 @@ class PerformanceConf(Monitor, StatusColor):
 
     def _executeZenModelerCommand(
             self, deviceName, performanceMonitor="localhost", background=False,
-            REQUEST=None, write=None, collectPlugins=''):
+            REQUEST=None, write=None, collectPlugins='', debug=False):
         """
         Execute zenmodeler and return result
         @param deviceName: The name of the device
@@ -571,6 +571,8 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             args.append(REQUEST)
             zenmodelerCmd = self._getZenModelerCommand(*args)
+            if debug:
+                zenmodelerCmd.append('-v10')
             result = self._executeCommand(zenmodelerCmd, REQUEST, write)
         return result
 
