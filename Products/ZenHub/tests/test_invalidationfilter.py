@@ -62,11 +62,10 @@ class BaseOrganizerFilterTest(TestCase):
         # manually spec ZenPropertyManager
         self.organizer = Mock(
             name='Products.ZenRelations.ZenPropertyManager',
-            spec=[
+            spec_set=[
                 'zenPropertyIds', 'getProperty', 'zenPropIsPassword',
                 'zenPropertyString'
-            ],
-            set_spec=True
+            ]
         )
 
     def test_init(self):
@@ -89,7 +88,8 @@ class BaseOrganizerFilterTest(TestCase):
         self.assertEqual(root, context.dmd.primaryAq())
 
     @patch(
-        '{invalidationfilter}.IModelCatalogTool'.format(**PATH), autospec=True
+        '{invalidationfilter}.IModelCatalogTool'.format(**PATH),
+        autospec=True, spec_set=True
     )
     def test_initialize(self, IModelCatalogTool):
         # Create a Mock object that provides the ICatalogBrain interface
@@ -109,7 +109,7 @@ class BaseOrganizerFilterTest(TestCase):
         )
 
     def test_getZorCProperties(self):
-        zprop = Mock(name='zenPropertyId', set_spec=True)
+        zprop = Mock(name='zenPropertyId', spec_set=[])
         self.organizer.zenPropertyIds.return_value = [zprop, zprop]
 
         # getZorCProperties returns a generator
@@ -136,7 +136,7 @@ class BaseOrganizerFilterTest(TestCase):
 
     def test_generateChecksum(self):
         getZorCProperties = create_autospec(self.bof.getZorCProperties)
-        zprop = Mock(name='zenPropertyId', set_spec=True)
+        zprop = Mock(name='zenPropertyId', spec_set=[])
         getZorCProperties.return_value = [(zprop, 'property_string')]
         self.bof.getZorCProperties = getZorCProperties
         md5_checksum = md5()
@@ -150,7 +150,7 @@ class BaseOrganizerFilterTest(TestCase):
 
     def test_organizerChecksum(self):
         getZorCProperties = create_autospec(self.bof.getZorCProperties)
-        zprop = Mock(name='zenPropertyId', set_spec=True)
+        zprop = Mock(name='zenPropertyId', spec_set=[])
         getZorCProperties.return_value = [(zprop, 'property_string')]
         self.bof.getZorCProperties = getZorCProperties
 
@@ -169,7 +169,7 @@ class BaseOrganizerFilterTest(TestCase):
         organizerChecksum = create_autospec(self.bof.organizerChecksum)
         self.bof.organizerChecksum = organizerChecksum
         self.bof._types = (Mock,)
-        obj = Mock(name='object', spec=['getPrimaryPath'], set_spec=True)
+        obj = Mock(name='object', spec_set=['getPrimaryPath'])
         obj.getPrimaryPath.return_value = ['dmd', 'brain']
         organizer_path = '/'.join(obj.getPrimaryPath())
         self.bof.checksum_map = {organizer_path: 'existing_checksum'}
@@ -186,7 +186,7 @@ class BaseOrganizerFilterTest(TestCase):
         current_checksum = 'checksum'
         organizerChecksum.return_value = current_checksum
         self.bof._types = (Mock,)
-        obj = Mock(name='object', spec=['getPrimaryPath'], set_spec=True)
+        obj = Mock(name='object', spec_set=['getPrimaryPath'])
         obj.getPrimaryPath.return_value = ['dmd', 'brain']
         organizer_path = '/'.join(obj.getPrimaryPath())
         self.bof.checksum_map = {organizer_path: existing_checksum}
@@ -211,13 +211,15 @@ class DeviceClassInvalidationFilterTest(TestCase):
         root = self.dcif.getRoot(context)
         self.assertEqual(root, context.dmd.Devices.primaryAq())
 
-    @patch('{invalidationfilter}.BaseOrganizerFilter.generateChecksum'.format(**PATH), autospec=True)
+    @patch(
+        '{invalidationfilter}.BaseOrganizerFilter.generateChecksum'.format(**PATH),
+        autospec=True, spec_set=True
+    )
     def test_generateChecksum(self, super_generateChecksum):
         md5_checksum = md5()
         organizer = Mock(
             name='Products.ZenRelations.ZenPropertyManager',
-            spec=['rrdTemplates'],
-            set_spec=True
+            spec_set=['rrdTemplates']
         )
         rrdTemplate = Mock(name='rrdTemplate')
         rrdTemplate.exportXml.return_value = 'some exemel'
@@ -264,12 +266,14 @@ class OSProcessClassFilterTest(TestCase):
         root = self.ospcf.getRoot(context)
         self.assertEqual(root, context.dmd.Processes.primaryAq())
 
-    @patch('{invalidationfilter}.BaseOrganizerFilter.generateChecksum'.format(**PATH), autospec=True)
+    @patch(
+        '{invalidationfilter}.BaseOrganizerFilter.generateChecksum'.format(**PATH),
+        autospec=True, spec_set=True
+    )
     def test_generateChecksum(self, super_generateChecksum):
         organizer = Mock(
             name='Products.ZenRelations.ZenPropertyManager',
-            spec=['property_id'],
-            set_spec=True
+            spec_set=['property_id', '_properties'],
         )
         prop = {'id': 'property_id'}
         organizer._properties = [prop]

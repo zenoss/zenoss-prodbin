@@ -49,11 +49,11 @@ class TestHubService(TestCase):
 
     @patch(
         '{HubService}.pb.Referenceable.remoteMessageReceived'.format(**PATH),
-        autospec=True
+        autospec=True, spec_set=True
     )
     @patch(
         '{HubService}.time.time'.format(**PATH),
-        autospec=True
+        autospec=True, spec_set=True
     )
     def test_remoteMessageReceived(self, time, remoteMessageReceived):
         Broker = Mock(name='pb.Broker')
@@ -135,7 +135,7 @@ class TestHubService(TestCase):
         self.hub_service.sendEvents(events)
         self.hub_service.sendEvent.assert_has_calls([call(x) for x in events])
 
-    @patch('Products.ZenEvents.Event.Event', autospec=True)
+    @patch('Products.ZenEvents.Event.Event', autospec=True, spec_set=True)
     def test_sendEvent(self, Event):
         # This should accept an Products.ZenEvents.Event.Event object, but
         # currently only accepts a dict, which is converted to an Event later

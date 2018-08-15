@@ -17,7 +17,7 @@ from zope.component import adaptedBy
 class DefaultOidTransformTest(TestCase):
 
     def setUp(self):
-        self.obj = Mock(PrimaryPathObjectManager, autospec=True, set_spec=True)
+        self.obj = Mock(spec_set=PrimaryPathObjectManager)
         self.default_oid_transform = DefaultOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
@@ -43,7 +43,7 @@ class DefaultOidTransformTest(TestCase):
 class DeviceOidTransformTest(TestCase):
 
     def setUp(self):
-        self.obj = Mock(PrimaryPathObjectManager, autospec=True, set_spec=True)
+        self.obj = Mock(spec_set=PrimaryPathObjectManager)
         self.device_oid_transform = DeviceOidTransform(self.obj)
 
     def test_implements_IInvalidationOid(self):
@@ -65,10 +65,8 @@ class DeviceOidTransformTest(TestCase):
     def test_transformOid_returns_device_oid(self):
         '''returns obj.device()._p_oid if obj.device exists
         '''
-        obj = Mock(
-            name='PrimaryPathObjectManager', spec=['device'], set_spec=True
-        )
-        device = Mock(name='device', spec=['_p_oid'], set_spec=True)
+        obj = Mock(name='PrimaryPathObjectManager', spec_set=['device'])
+        device = Mock(name='device', spec_set=['_p_oid'])
         obj.device.return_value = device
 
         device_oid_transform = DeviceOidTransform(obj)

@@ -30,9 +30,9 @@ Complicated Mocks indicate it reaches too deeply into external objects
 
 class invalidationsTest(TestCase):
 
-    @patch('Products.ZenHub.invalidations.getGlobalSiteManager', spec_set=True)
-    @patch('Products.ZenHub.invalidations.providedBy', spec_set=True)
-    @patch('Products.ZenHub.invalidations.giveTimeToReactor', spec_set=True)
+    @patch('Products.ZenHub.invalidations.getGlobalSiteManager', autospec=True)
+    @patch('Products.ZenHub.invalidations.providedBy', autospec=True)
+    @patch('Products.ZenHub.invalidations.giveTimeToReactor', autospec=True)
     def test_betterObjectEventNotify(
         self, giveTimeToReactor, providedBy, getGlobalSiteManager
     ):
@@ -83,13 +83,12 @@ class invalidationsTest(TestCase):
         self.assertEqual(ret, None)
 
     @patch(
-        'Products.ZenHub.invalidations.betterObjectEventNotify', spec_set=True
+        'Products.ZenHub.invalidations.betterObjectEventNotify', autospec=True
     )
     def test_handle_oid_deletion(self, betterObjectEventNotify):
         # Replace test object with a valid type
         obj = MagicMock(
             PrimaryPathObjectManager, name='primary_path_object_manager',
-            autospec=True, set_spec=True
         )
         self.dmd._p_jar = {self.oid: obj}
         self.assertEqual(obj, self.dmd._p_jar[self.oid])
@@ -118,13 +117,12 @@ class invalidationsTest(TestCase):
         self.assertIsInstance(ret, DeletionEvent)
 
     @patch(
-        'Products.ZenHub.invalidations.betterObjectEventNotify', spec_set=True
+        'Products.ZenHub.invalidations.betterObjectEventNotify', autospec=True
     )
     def test_handle_oid_update(self, betterObjectEventNotify):
         # Replace test object with a valid type
         obj = MagicMock(
             PrimaryPathObjectManager, name='primary_path_object_manager',
-            autospec=True, set_spec=True
         )
         self.dmd._p_jar = {self.oid: obj}
 
@@ -154,10 +152,10 @@ class InvalidationProcessorTest(TestCase):
 
     def setUp(self):
         self.patch_reactor = patch(
-            'Products.ZenHub.invalidations.reactor', spec_set=True
+            'Products.ZenHub.invalidations.reactor', autospec=True
         )
         self.patch_getGlobalSiteManager = patch(
-            'Products.ZenHub.invalidations.getGlobalSiteManager', spec_set=True
+            'Products.ZenHub.invalidations.getGlobalSiteManager', autospec=True
         )
         self.getGlobalSiteManager = self.patch_getGlobalSiteManager.start()
         self.reactor = self.patch_reactor.start()
@@ -165,7 +163,7 @@ class InvalidationProcessorTest(TestCase):
         self.ip = InvalidationProcessor()
         self.ip._hub = Mock(name='zenhub', spec_set=['dmd'])
         self.ip._hub_ready = Mock(name='_hub_ready_deferred')
-        self.ip._invalidation_queue = Mock(IITreeSet, autospec=True)
+        self.ip._invalidation_queue = Mock(spec_set=IITreeSet)
 
     def tearDown(self):
         self.patch_getGlobalSiteManager.stop()
@@ -197,7 +195,7 @@ class InvalidationProcessorTest(TestCase):
 
         IHubCreatedEventMock = create_interface_mock(IHubCreatedEvent)
         event = IHubCreatedEventMock()
-        self.ip._hub_ready = Mock(defer.Deferred, autospec=True)
+        self.ip._hub_ready = Mock(spec_set=defer.Deferred)
 
         self.ip.onHubCreated(event)
 
@@ -231,6 +229,8 @@ class InvalidationProcessorTest(TestCase):
 
     @patch('Products.ZenHub.invalidations.handle_oid', autospec=True)
     def test_dispatch(self, handle_oid):
+        handle_oid.fail = 'derp'
+
         dmd = self.ip._hub.dmd
         oid = 'oid'
         ioid = 'ioid'
