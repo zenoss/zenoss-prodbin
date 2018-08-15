@@ -50,6 +50,9 @@ class snmpstatusreport(AliasPlugin):
                 yield dev
 
     def run(self, dmd, args):
-        eventClass = dict(eventclass='/Status/Snmp')
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return []
+        eventClass = '/Status/Snmp'
         results = self._getEvents(dmd, eventClass)
         return self._getDevices(dmd, results)

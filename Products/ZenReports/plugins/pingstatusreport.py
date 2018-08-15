@@ -50,6 +50,9 @@ class pingstatusreport(AliasPlugin):
                 yield dev
 
     def run(self, dmd, args):
-        eventClass = dict(eventclass='/Status/Ping')
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return []
+        eventClass = '/Status/Ping'
         results = self._getEvents(dmd, eventClass)
         return self._getDevices(dmd, results)
