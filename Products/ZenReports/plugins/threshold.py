@@ -30,6 +30,9 @@ def dateAsFloat(args, key, default):
 class threshold(object):
 
     def run(self, dmd, args):
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return []
         now = time.time()
         zep = getFacade("zep", dmd)
 
