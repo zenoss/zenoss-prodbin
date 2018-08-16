@@ -1207,7 +1207,7 @@ Ext.getCmp('footer_bar').add([{
             handler: modelDevice
         }, {
             xtype: 'menuitem',
-            text: _t('Model Debug'),
+            text: _t('Model Device (Debug)'),
             hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
             handler: modelDeviceDebug
         }
