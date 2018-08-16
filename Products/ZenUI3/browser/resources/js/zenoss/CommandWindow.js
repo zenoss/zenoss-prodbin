@@ -148,17 +148,20 @@ Ext.define("Zenoss.CommandWindow", {
     },
     copyToClipboard: function() {
         var body = this.getCommandPanel().getBody().innerText;
-        var textArea = document.createElement("textarea");
-        textArea.value = body;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+        // maybe a better Ext-y way to do this, but the below works well.
+        var tempText = document.createElement("textarea");
+        tempText.value = body;
+        document.body.appendChild(tempText);
+        tempText.focus();
+        tempText.select();
         try {
-            document.execCommand('copy');
+            if (document.execCommand('copy')) {
+               Zenoss.flares.Manager.success('Copied command output to clipboard');
+            }
         } catch(err) {
-            console.error("Failed to copy text to clipboard", err);
+            console.error("Failed to copy command output to clipboard", err);
         } finally {
-            document.body.removeChild(textArea);
+            document.body.removeChild(tempText);
         }
     },
     closeAndRedirect: function() {

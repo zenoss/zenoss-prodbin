@@ -937,10 +937,14 @@ function addComponentHandler(item) {
     });
 }
 
-function modelDevice() {
+function modelDevice(debugging) {
+    var target = 'run_model';
+    if (debugging == true) {
+        target = 'run_model_debug';
+    }
     var win = new Zenoss.CommandWindow({
         uids: [UID],
-        target: 'run_model',
+        target: target,
         listeners: {
             close: function(){
                 Ext.defer(function() {
@@ -954,19 +958,7 @@ function modelDevice() {
 }
 
 function modelDeviceDebug() {
-        var win = new Zenoss.CommandWindow({
-            uids: [UID],
-            target: 'run_model_debug',
-            listeners: {
-                close: function(){
-                    Ext.defer(function() {
-                        window.top.location.reload();
-                    }, 1000);
-                }
-            },
-            title: _t('Model Debug')
-        });
-        win.show();
+        modelDevice(true);
 }
 
 
