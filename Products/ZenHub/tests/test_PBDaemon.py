@@ -26,50 +26,51 @@ PATH = {'src': 'Products.ZenHub.PBDaemon'}
 
 
 class RemoteExceptionsTest(TestCase):
-        '''These excpetions can probably be moved into their own moduel
+    '''These excpetions can probably be moved into their own moduel
         '''
 
-        def test_raise_RemoteException(self):
-            with self.assertRaises(RemoteException):
-                raise RemoteException('message', 'traceback')
+    def test_raise_RemoteException(self):
+        with self.assertRaises(RemoteException):
+            raise RemoteException('message', 'traceback')
 
-        def test_RemoteException_is_pb_is_copyable(self):
-            self.assertTrue(issubclass(RemoteException, pb.Copyable))
-            self.assertTrue(issubclass(RemoteException, pb.RemoteCopy))
+    def test_RemoteException_is_pb_is_copyable(self):
+        self.assertTrue(issubclass(RemoteException, pb.Copyable))
+        self.assertTrue(issubclass(RemoteException, pb.RemoteCopy))
 
-        def test_raise_RemoteConflictError(self):
-            with self.assertRaises(RemoteConflictError):
-                raise RemoteConflictError('message', 'traceback')
+    def test_raise_RemoteConflictError(self):
+        with self.assertRaises(RemoteConflictError):
+            raise RemoteConflictError('message', 'traceback')
 
-        def test_RemoteConflictError_is_pb_is_copyable(self):
-            self.assertTrue(issubclass(RemoteConflictError, pb.Copyable))
-            self.assertTrue(issubclass(RemoteConflictError, pb.RemoteCopy))
+    def test_RemoteConflictError_is_pb_is_copyable(self):
+        self.assertTrue(issubclass(RemoteConflictError, pb.Copyable))
+        self.assertTrue(issubclass(RemoteConflictError, pb.RemoteCopy))
 
-        def test_raise_RemoteBadMonitor(self):
-            with self.assertRaises(RemoteBadMonitor):
-                raise RemoteBadMonitor('message', 'traceback')
+    def test_raise_RemoteBadMonitor(self):
+        with self.assertRaises(RemoteBadMonitor):
+            raise RemoteBadMonitor('message', 'traceback')
 
-        def test_RemoteBadMonitor_is_pb_is_copyable(self):
-            self.assertTrue(issubclass(RemoteBadMonitor, pb.Copyable))
-            self.assertTrue(issubclass(RemoteBadMonitor, pb.RemoteCopy))
+    def test_RemoteBadMonitor_is_pb_is_copyable(self):
+        self.assertTrue(issubclass(RemoteBadMonitor, pb.Copyable))
+        self.assertTrue(issubclass(RemoteBadMonitor, pb.RemoteCopy))
 
-        def test_translateError_transforms_ConflictError(self):
-            traceback = Mock(spec_set=['_p_oid'])
+    def test_translateError_transforms_ConflictError(self):
+        traceback = Mock(spec_set=['_p_oid'])
 
-            @translateError
-            def raise_conflict_error():
-                raise ConflictError('message', traceback)
+        @translateError
+        def raise_conflict_error():
+            raise ConflictError('message', traceback)
 
-            with self.assertRaises(RemoteConflictError):
-                raise_conflict_error()
+        with self.assertRaises(RemoteConflictError):
+            raise_conflict_error()
 
-        def test_translateError_transforms_Exception(self):
-            @translateError
-            def raise_error():
-                raise Exception('message', 'traceback')
+    def test_translateError_transforms_Exception(self):
 
-            with self.assertRaises(RemoteException):
-                raise_error()
+        @translateError
+        def raise_error():
+            raise Exception('message', 'traceback')
+
+        with self.assertRaises(RemoteException):
+            raise_error()
 
 
 class DefaultFingerprintGeneratorTest(TestCase):
@@ -79,15 +80,13 @@ class DefaultFingerprintGeneratorTest(TestCase):
 
         # the class Implements the Interface
         self.assertTrue(
-            ICollectorEventFingerprintGenerator.implementedBy(
-                DefaultFingerprintGenerator
-            )
+            ICollectorEventFingerprintGenerator.
+            implementedBy(DefaultFingerprintGenerator)
         )
         # the object provides the interface
         self.assertTrue(
-            ICollectorEventFingerprintGenerator.providedBy(
-                fingerprint_generator
-            )
+            ICollectorEventFingerprintGenerator.
+            providedBy(fingerprint_generator)
         )
         # Verify the object implments the interface properly
         verifyObject(
@@ -282,6 +281,7 @@ class DeDupingEventQueueTest(TestCase):
 
     def setUp(self):
         self.ddeq = DeDupingEventQueue(maxlen=10)
+        self.event_a, self.event_b = {'name': 'event_a'}, {'name': 'event_b'}
 
     @patch('{src}._load_utilities'.format(**PATH))
     def test_init(self, _load_utilities):
@@ -296,14 +296,13 @@ class DeDupingEventQueueTest(TestCase):
 
     def test_event_fingerprint(self):
         self.ddeq.fingerprinters = []
-        event = {'id': 'event_a'}
 
-        ret = self.ddeq._event_fingerprint(event)
-        expected = DefaultFingerprintGenerator().generate(event)
+        ret = self.ddeq._event_fingerprint(self.event_a)
+        expected = DefaultFingerprintGenerator().generate(self.event_a)
         self.assertEqual(ret, expected)
 
         # Identical events generate the same fingerprint
-        event_2 = {'id': 'event_a'}
+        event_2 = self.event_a.copy()
         ret = self.ddeq._event_fingerprint(event_2)
         self.assertEqual(ret, expected)
 
@@ -321,14 +320,13 @@ class DeDupingEventQueueTest(TestCase):
         fp3.generate.side_effect = lambda x: 1 / 0
 
         self.ddeq.fingerprinters = [fp1, fp2, fp3]
-        event = {'id': 'event_a'}
 
-        ret = self.ddeq._event_fingerprint(event)
+        ret = self.ddeq._event_fingerprint(self.event_a)
 
-        fp1.generate.assert_called_with(event)
-        fp2.generate.assert_called_with(event)
+        fp1.generate.assert_called_with(self.event_a)
+        fp2.generate.assert_called_with(self.event_a)
         fp3.generate.assert_not_called()
-        self.assertEqual(ret, str(event))
+        self.assertEqual(ret, str(self.event_a))
 
     def test_first_time(self):
         '''given 2 events, retrun the earliest timestamp of the two
@@ -346,5 +344,175 @@ class DeDupingEventQueueTest(TestCase):
         ret = self.ddeq._first_time(event1, event2)
         self.assertEqual(ret, 2)
 
-    def test_append(self):
-        pass
+    @patch('{src}.time'.format(**PATH))
+    def test_append_timestamp(self, time):
+        '''Make sure every processed event specifies the time it was queued.
+        '''
+        self.ddeq.append(self.event_a)
+        event = self.ddeq.popleft()
+
+        self.assertEqual(event['rcvtime'], time.time.return_value)
+
+    @patch('{src}.time'.format(**PATH))
+    def test_append_deduplication(self, time):
+        '''The same event cannot be added to the queue twice
+        appending a duplicate event replaces the original
+        '''
+        event1 = {'data': 'some data'}
+        event2 = {'data': 'some data'}
+        self.assertEqual(event1, event2)
+
+        self.ddeq.append(event1)
+        self.ddeq.append(event2)
+
+        self.assertEqual(len(self.ddeq), 1)
+
+        ret = self.ddeq.popleft()
+        # The new event replaces the old one
+        self.assertIs(ret, event2)
+        self.assertEqual(event2['count'], 2)
+
+    @patch('{src}.time'.format(**PATH))
+    def test_append_deduplicates_and_counts_events(self, time):
+        time.time.side_effect = (t for t in range(100))
+        self.ddeq.append({'name': 'event_a'})
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 0, 'name': 'event_a'}]
+        )
+        self.ddeq.append({'name': 'event_a'})
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 1, 'firstTime': 0, 'count': 2, 'name': 'event_a'}]
+        )
+        self.ddeq.append({'name': 'event_a'})
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 2, 'firstTime': 0, 'count': 3, 'name': 'event_a'}]
+        )
+        self.ddeq.append({'name': 'event_a'})
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 3, 'firstTime': 0, 'count': 4, 'name': 'event_a'}]
+        )
+
+    def test_append_pops_and_returns_leftmost_if_full(self):
+        self.ddeq.maxlen = 1
+
+        self.ddeq.append(self.event_a)
+        ret = self.ddeq.append(self.event_b)
+
+        # NOTE: events are stored in a dict, key=fingerprint
+        self.assertIn(
+            self.ddeq._event_fingerprint(self.event_b), self.ddeq.queue
+        )
+        self.assertNotIn(
+            self.ddeq._event_fingerprint(self.event_a), self.ddeq.queue
+        )
+        self.assertEqual(ret, self.event_a)
+
+    def test_popleft(self):
+        self.ddeq.append(self.event_a)
+        self.ddeq.append(self.event_b)
+
+        ret = self.ddeq.popleft()
+
+        self.assertEqual(ret, self.event_a)
+
+    def test_popleft_raises_IndexError(self):
+        '''Raises IndexError instead of KeyError, for api compatability
+        '''
+        with self.assertRaises(IndexError):
+            self.ddeq.popleft()
+
+    @patch('{src}.time'.format(**PATH))
+    def test_extendleft(self, time):
+        '''WARNING: extendleft does NOT add timestamps, as .append does
+        is this behavior is intentional?
+        '''
+        event_c = {'name': 'event_c'}
+        self.ddeq.append(event_c)
+        self.assertEqual(list(self.ddeq), [event_c])
+        events = [self.event_a, self.event_b]
+
+        ret = self.ddeq.extendleft(events)
+
+        self.assertEqual(ret, [])
+        self.assertEqual(
+            list(self.ddeq),
+            [self.event_a, self.event_b, event_c]
+        )
+        '''
+        # to validate all events get timestamps
+        self.assertEqual(
+            list(self.ddeq),
+            [{'name': 'event_a', 'rcvtime': time.time.return_value},
+             {'name': 'event_b', 'rcvtime': time.time.return_value},
+             {'name': 'event_c', 'rcvtime': time.time.return_value},
+            ]
+        )
+        '''
+
+    @patch('{src}.time'.format(**PATH))
+    def test_extendleft_counts_events_BUG(self, time):
+        time.time.side_effect = (t for t in range(100))
+        self.ddeq.extendleft([{'name': 'event_a'}, {'name': 'event_b'}])
+        self.assertEqual(
+            list(self.ddeq),
+            # This should work
+            #[{'rcvtime': 0, 'name': 'event_a'}]
+            # current behavior
+            [{'name': 'event_a'}, {'name': 'event_b'}]
+        )
+        # rcvtime is required, but is not set by extendleft
+        with self.assertRaises(KeyError):
+            self.ddeq.extendleft([{'name': 'event_a'}, {'name': 'event_b'}])
+        '''
+        Test Breaks Here due to missing rcvtime
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 1, 'firstTime': 0, 'count': 2, 'name': 'event_a'},
+             {'rcvtime': 1, 'firstTime': 0, 'count': 2, 'name': 'event_b'}]
+        )
+        self.ddeq.extendleft([{'name': 'event_a'}, {'name': 'event_b'}])
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 2, 'firstTime': 0, 'count': 3, 'name': 'event_a'},
+             {'rcvtime': 2, 'firstTime': 0, 'count': 3, 'name': 'event_b'}]
+        )
+        self.ddeq.extendleft([{'name': 'event_a'}, {'name': 'event_b'}])
+        self.assertEqual(
+            list(self.ddeq),
+            [{'rcvtime': 3, 'firstTime': 0, 'count': 4, 'name': 'event_a'},
+             {'rcvtime': 3, 'firstTime': 0, 'count': 4, 'name': 'event_b'}]
+        )
+        '''
+
+    def test_extendleft_returns_events_if_empty(self):
+        ret = self.ddeq.extendleft([])
+        self.assertEqual(ret, [])
+
+    def test_extendleft_returns_extra_events_if_nearly_full(self):
+        self.ddeq.maxlen = 3
+        self.ddeq.extendleft([self.event_a, self.event_b])
+        event_c, event_d = {'name': 'event_c'}, {'name': 'event_d'}
+        events = [event_c, event_d]
+
+        ret = self.ddeq.extendleft(events)
+
+        self.assertEqual(
+            list(self.ddeq),
+            [event_d, self.event_a, self.event_b]
+        )
+        self.assertEqual(ret, [event_c])
+
+    def test___len__(self):
+        ret = len(self.ddeq)
+        self.assertEqual(ret, 0)
+        self.ddeq.extendleft([self.event_a, self.event_b])
+        self.assertEqual(len(self.ddeq), 2)
+
+    def test___iter__(self):
+        self.ddeq.extendleft([self.event_a, self.event_b])
+        ret = [event for event in self.ddeq]
+        self.assertEqual(ret, [self.event_a, self.event_b])
