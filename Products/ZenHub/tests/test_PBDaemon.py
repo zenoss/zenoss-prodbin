@@ -25,13 +25,7 @@ from Products.ZenHub.PBDaemon import (
 PATH = {'src': 'Products.ZenHub.PBDaemon'}
 
 
-class Test(TestCase):
-
-    def test_(self):
-        raise NotImplementedError('tests not fully implemented')
-
-
-class TestRemoteExceptions(TestCase):
+class RemoteExceptionsTest(TestCase):
         '''These excpetions can probably be moved into their own moduel
         '''
 

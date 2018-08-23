@@ -8,6 +8,8 @@ from Products.ZenHub.notify import (
     BATCH_NOTIFIER,
 )
 
+PATH = {'notify': 'Products.ZenHub.notify'}
+
 
 class NotifyItemTest(TestCase):
 
@@ -97,7 +99,8 @@ class BatchNotifierTest(TestCase):
         self.assertEqual(item.subdevices, device_class.getSubDevicesGen())
 
     @patch(
-        'Products.ZenHub.notify.defer.Deferred', name='Deferred', autospec=True
+        '{notify}.defer.Deferred'.format(**PATH), name='Deferred',
+        autospec=True
     )
     def test_create_deferred(self, Deferred):
         '''returns a deferred
@@ -109,7 +112,7 @@ class BatchNotifierTest(TestCase):
         ret.addCallback.assert_called_with(self.bn._callback)
         ret.addErrback.assert_called_with(self.bn._errback)
 
-    @patch('Products.ZenHub.notify.reactor', name='reactor', autospec=True)
+    @patch('{notify}.reactor'.format(**PATH), name='reactor', autospec=True)
     def test_call_later(self, reactor):
         d = Mock(defer.Deferred())
         self.bn._call_later(d)
@@ -226,7 +229,7 @@ class BatchNotifierTest(TestCase):
         '''
         pass
 
-    @patch('Products.ZenHub.notify.defer.DeferredList', autospec=True)
+    @patch('{notify}.defer.DeferredList'.format(**PATH), autospec=True)
     def test_stop(self, DeferredList):
         self.bn._queue.append(self.item)
         ret = self.bn.stop()
@@ -237,14 +240,14 @@ class BatchNotifierTest(TestCase):
             [item.d for item in self.bn._queue]
         )
 
-    @patch('Products.ZenHub.notify.defer.Deferred', autospec=True)
+    @patch('{notify}.defer.Deferred'.format(**PATH), autospec=True)
     def test_whenEmpty(self, Deferred):
         ret = self.bn.whenEmpty()
 
         Deferred.return_value.callback.assert_called_with(None)
         self.assertEqual(ret, Deferred.return_value)
 
-    @patch('Products.ZenHub.notify.defer.Deferred', autospec=True)
+    @patch('{notify}.defer.Deferred'.format(**PATH), autospec=True)
     def test_whenEmpty_is_not_empty(self, Deferred):
         self.bn._queue.append(self.item)
         ret = self.bn.whenEmpty()
