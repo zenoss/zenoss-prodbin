@@ -30,7 +30,7 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.Zuul.catalog.global_catalog import GlobalCatalog
 from Products.Zuul.catalog.model_catalog import get_solr_config
 from Products.Zuul.utils import dottedname
-from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
+from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME, INITIAL_CURSOR_MARK
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 
@@ -306,9 +306,9 @@ class SoftReindex(ReindexProcess):
 
 
 def get_uids(index_client, root="", types=()):
-    start = 0
     need_results = True
     query = [Eq("tx_state", 0)]
+    next_cursor = INITIAL_CURSOR_MARK
     if root:
         root = root.rstrip('/')
         query.append(Or(Eq("uid", "{}".format(root)), MatchGlob("uid", "{}/*".format(root))))
@@ -322,14 +322,14 @@ def get_uids(index_client, root="", types=()):
     while need_results:
         search_results = index_client.search(SearchParams(
             query=And(*query),
-            start=start,
+            next_cursor=next_cursor,
             limit=MODEL_INDEX_BATCH_SIZE,
-            order_by="uid",
             fields=["uid"]))
-        start += MODEL_INDEX_BATCH_SIZE
+
         for result in search_results.results:
             yield result.uid
-        need_results = start < search_results.total_count
+        need_results = next_cursor != search_results.results.next_cursor
+        next_cursor = search_results.results.next_cursor
 
 
 def collection_exists(collection_name=ZENOSS_MODEL_COLLECTION_NAME):

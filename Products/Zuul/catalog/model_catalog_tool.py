@@ -189,7 +189,7 @@ class ModelCatalogTool(object):
         search_query = And(*partial_queries)
         return (search_query, not_indexed_user_filters)
 
-    def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False,
+    def search_model_catalog(self, query, start=0, next_cursor=None, limit=None, order_by=None, reverse=False,
                              fields=None, commit_dirty=False, facets_for_field=None):
         """
         @returns: SearchResults
@@ -197,7 +197,7 @@ class ModelCatalogTool(object):
         catalog_results = []
         brains = []
         count = 0
-        search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
+        search_params = SearchParams(query, start=start, limit=limit, next_cursor=next_cursor, order_by=order_by, reverse=reverse, fields=fields)
         if facets_for_field:
             search_params.facet_field=facets_for_field
         catalog_results = self.model_catalog_client.search(search_params, self.context, commit_dirty=commit_dirty)
@@ -270,7 +270,7 @@ class ModelCatalogTool(object):
         return sorted((unbrain(brain) for brain in queryResults),
                       key=getValue, reverse=reverse, cmp=natural_compare)
 
-    def search(self, types=(), start=0, limit=None, orderby='name',
+    def search(self, types=(), start=0, next_cursor=None, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None,
                fields=None, commit_dirty=False, facets_for_field=None):
@@ -293,7 +293,7 @@ class ModelCatalogTool(object):
         queryStart = start if areBrains else 0
         queryLimit = limit if areBrains else None
 
-        catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
+        catalog_results = self.search_model_catalog(query, start=queryStart, next_cursor=next_cursor, limit=queryLimit,
                                                     order_by=queryOrderby, reverse=reverse,
                                                     fields=fields, commit_dirty=commit_dirty, facets_for_field=facets_for_field)
         if len(not_indexed_user_filters) > 0:
@@ -319,7 +319,7 @@ class ModelCatalogTool(object):
             else:
                 stop = start + limit
             results = islice(sorted_results, start, stop)
-        search_results = SearchResults(results, totalCount, str(hash_), areBrains)
+        search_results = SearchResults(results, totalCount, str(hash_), areBrains, next_cursor=catalog_results.next_cursor)
         if catalog_results.facets:
             search_results.facets = catalog_results.facets
         return search_results

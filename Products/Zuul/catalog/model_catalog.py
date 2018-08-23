@@ -54,12 +54,13 @@ MANDATORY_FIELDS = set([ TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD
 
 class SearchResults(object):
 
-    def __init__(self, results, total, hash_, areBrains=True):
+    def __init__(self, results, total, hash_, areBrains=True, next_cursor=None):
         self.results = results
         self.total = total
         self.hash_ = hash_
         self.areBrains = areBrains
         self.facets = None
+        self.next_cursor = next_cursor
 
     def __hash__(self):
         return self.hash_
@@ -457,6 +458,7 @@ class ModelCatalogDataManager(object):
 
         brains = iter(self._parse_catalog_results(catalog_results, context))
         count = catalog_results.total_count
+        next_cursor = catalog_results.next_cursor
 
         # if we have mid-transaction commits, we need to extract
         # all brains from the generator to return the real count
@@ -479,7 +481,7 @@ class ModelCatalogDataManager(object):
             search_params.start = original_start
             search_params.limit = original_limit
         
-        results = SearchResults(brains, total=count, hash_=str(count))
+        results = SearchResults(brains, total=count, next_cursor=next_cursor, hash_=str(count))
         if catalog_results.facets:
             results.facets = catalog_results.facets
         return results
