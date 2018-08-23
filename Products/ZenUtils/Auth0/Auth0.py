@@ -20,6 +20,7 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
 from zope.component import getUtility
 from Products.ZenUtils.virtual_root import IVirtualRoot
+import memcache
 
 import base64
 import jwt
@@ -33,6 +34,7 @@ TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 PLUGIN_VERSION = 3
+MEMCACHED_IMPORT = ('localhost', '11211')
 
 rbac_pattern = re.compile("^(internal:)?(CZ[0-9]+):(.+)")
 
@@ -73,9 +75,18 @@ def manage_delAuth0(context, id):
 
 
 class SessionInfo(object):
+    ATTRIBUTES = ['userid', 'expiration', 'refreshToken', 'roles']
+
     def __init__(self):
-        for i in ['userid', 'expiration', 'refreshToken', 'roles']:
+        for i in SessionInfo.ATTRIBUTES:
             setattr(self, i, '')
+
+    def __str__(self):
+        output = ''
+        for i in SessionInfo.ATTRIBUTES:
+            output += '{}:{}, '.format(i, getattr(self, i))
+        return output.strip(', ')
+
 
 class Auth0(BasePlugin):
     """Auth0 is a PluggableAuthService MultiPlugin which satisfies interfaces:
@@ -261,7 +272,10 @@ class Auth0(BasePlugin):
         # token expiration.  If the expiration cookie is set, make sure it matches
         # our cache - otherwise we need to parse the access token again.
         token_expiration = request.cookies.get(Auth0.zc_token_exp_key, None)
-        if token_expiration:
+        if sessionInfo and token_expiration:
+            # ZING stores the expiration *1000 instead of the expiration value (why??), so we
+            # have to adjust to compare to our cached session expiration from the token.
+            token_expiration = int(token_expiration) / 1000
             if not sessionInfo.expiration == token_expiration:
                 log.info('Token expiration does not match stored expiration. Parsing token again.')
                 sessionInfo = Auth0.storeToken(token, request, conf)
@@ -315,6 +329,26 @@ class Auth0(BasePlugin):
                 sessionInfo = self.storeToken(token, request, conf)
                 if sessionInfo:
                     return True
+
+        # ZING-805: Unauthorized access to a page results in an infinite loop as Zope issues a challenge (which
+        # redirects to ZING), then ZING says you're already logged in and sends you back. This uses memcache (so
+        # each zope gets the same data) to store the token expiration for each user, to detect a redirect loop
+        # between RM<->ZING. If a redirect loop is detected, the user is sent to the ZING home page.  Note that
+        # sessionInfo doesn't persist the auth_expiration property when modified outside of the initial storage,
+        # and a local dictionary isn't available to all zopes.
+        if sessionInfo:
+            mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
+            EXPIRATION_KEY = 'auth0_{}_expiration_key'.format(sessionInfo.userid)
+            auth_exp = mc.get(EXPIRATION_KEY)
+            if auth_exp == sessionInfo.expiration:
+                log.warn('Unauthorized access (user {}): {}'.format(sessionInfo.userid, request.PATH_INFO))
+                # This is a redirect loop. send them to the Zing UI
+                mc.delete(EXPIRATION_KEY)
+                request['RESPONSE'].redirect('/', lock=1)
+                return True
+            # store the token expiration and send them to the login.  If zing sends them back without
+            # logging them in again (the same expiration), then that's a redirect loop.
+            mc.set(EXPIRATION_KEY, sessionInfo.expiration)
 
         currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
         redirect = base64.urlsafe_b64encode(currentLocation)
