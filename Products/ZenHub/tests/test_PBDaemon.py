@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, patch
+from mock import Mock, patch, create_autospec
 
 from zope.interface.verify import verifyObject
 
@@ -20,6 +20,10 @@ from Products.ZenHub.PBDaemon import (
     collections,
     DequeEventQueue,
     DeDupingEventQueue,
+    EventQueueManager,
+    TRANSFORM_DROP,
+    TRANSFORM_STOP,
+    Clear,
 )
 
 PATH = {'src': 'Products.ZenHub.PBDaemon'}
@@ -516,3 +520,236 @@ class DeDupingEventQueueTest(TestCase):
         self.ddeq.extendleft([self.event_a, self.event_b])
         ret = [event for event in self.ddeq]
         self.assertEqual(ret, [self.event_a, self.event_b])
+
+
+class EventQueueManagerTest(TestCase):
+
+    def setUp(self):
+        options = Mock(
+            name='options',
+            spec_set=[
+                'maxqueuelen', 'deduplicate_events', 'allowduplicateclears',
+                'duplicateclearinterval',
+            ]
+        )
+        options.deduplicate_events = True
+        log = Mock(name='logger.log', spec_set=['debug', 'warn'])
+
+        self.eqm = EventQueueManager(options, log)
+        self.eqm._initQueues()
+
+    def test_initQueues(self):
+        options = Mock(
+            name='options',
+            spec_set=['maxqueuelen', 'deduplicate_events']
+        )
+        options.deduplicate_events = True
+        log = Mock(name='logger.log', spec_set=[])
+
+        eqm = EventQueueManager(options, log)
+        eqm._initQueues()
+
+        self.assertIsInstance(eqm.event_queue, DeDupingEventQueue)
+        self.assertEqual(eqm.event_queue.maxlen, options.maxqueuelen)
+        self.assertIsInstance(eqm.perf_event_queue, DeDupingEventQueue)
+        self.assertEqual(eqm.perf_event_queue.maxlen, options.maxqueuelen)
+        self.assertIsInstance(eqm.heartbeat_event_queue, collections.deque)
+        self.assertEqual(eqm.heartbeat_event_queue.maxlen, 1)
+
+    def test_transformEvent(self):
+        '''a transformer mutates and returns an event
+        '''
+        def transform(event):
+            event['transformed'] = True
+            return event
+
+        transformer = Mock(name='transformer', spec_set=['transform'])
+        transformer.transform.side_effect = transform
+        self.eqm.transformers = [transformer]
+
+        event = {}
+        ret = self.eqm._transformEvent(event)
+
+        self.assertEqual(ret, event)
+        self.assertEqual(event, {'transformed': True})
+
+    def test_transformEvent_drop(self):
+        '''if a transformer returns TRANSFORM_DROP
+        stop running the event through transformer, and return None
+        '''
+        def transform_drop(event):
+            return TRANSFORM_DROP
+
+        def transform_bomb(event):
+            0 / 0
+
+        transformer = Mock(name='transformer', spec_set=['transform'])
+        transformer.transform.side_effect = transform_drop
+        transformer_2 = Mock(name='transformer', spec_set=['transform'])
+        transformer_2.transform.side_effect = transform_bomb
+
+        self.eqm.transformers = [transformer, transformer_2]
+
+        event = {}
+        ret = self.eqm._transformEvent(event)
+        self.assertEqual(ret, None)
+
+    def test_transformEvent_stop(self):
+        '''if a transformer returns TRANSFORM_STOP
+        stop running the event through transformers, and return the event
+        '''
+        def transform_drop(event):
+            return TRANSFORM_STOP
+
+        def transform_bomb(event):
+            0 / 0
+
+        transformer = Mock(name='transformer', spec_set=['transform'])
+        transformer.transform.side_effect = transform_drop
+        transformer_2 = Mock(name='transformer', spec_set=['transform'])
+        transformer_2.transform.side_effect = transform_bomb
+
+        self.eqm.transformers = [transformer, transformer_2]
+
+        event = {}
+        ret = self.eqm._transformEvent(event)
+        self.assertIs(ret, event)
+
+    def test_clearFingerprint(self):
+        event = {k: k + '_v' for k in self.eqm.CLEAR_FINGERPRINT_FIELDS}
+
+        ret = self.eqm._clearFingerprint(event)
+
+        self.assertEqual(
+            ret, ('device_v', 'component_v', 'eventKey_v', 'eventClass_v')
+        )
+
+    def test__removeDiscardedEventFromClearState(self):
+        '''if the event's fingerprint is in clear_events_count
+        decrement its value
+        '''
+        self.eqm.options.allowduplicateclears = False
+        self.eqm.options.duplicateclearinterval = 0
+
+        discarded = {'severity': Clear}
+        clear_fingerprint = self.eqm._clearFingerprint(discarded)
+        self.eqm.clear_events_count[clear_fingerprint] = 3
+
+        self.eqm._removeDiscardedEventFromClearState(discarded)
+
+        self.assertEqual(self.eqm.clear_events_count[clear_fingerprint], 2)
+
+    def test__addEvent(self):
+        '''remove the event from clear_events_count
+        and append it to the queue
+        '''
+        self.eqm.options.allowduplicateclears = False
+
+        queue = Mock(name='queue', spec_set=['append'])
+        event = {}
+        clear_fingerprint = self.eqm._clearFingerprint(event)
+        self.eqm.clear_events_count = {clear_fingerprint: 3}
+
+        self.eqm._addEvent(queue, event)
+
+        self.assertNotIn(clear_fingerprint, self.eqm.clear_events_count)
+        queue.append.assert_called_with(event)
+
+    def test__addEvent_status_clear(self):
+        self.eqm.options.allowduplicateclears = False
+        self.eqm.options.duplicateclearinterval = 0
+
+        queue = Mock(name='queue', spec_set=['append'])
+        event = {'severity': Clear}
+        clear_fingerprint = self.eqm._clearFingerprint(event)
+
+        self.eqm._addEvent(queue, event)
+
+        self.assertEqual(self.eqm.clear_events_count[clear_fingerprint], 1)
+        queue.append.assert_called_with(event)
+
+    def test__addEvent_drop_duplicate_clear_events(self):
+        self.eqm.options.allowduplicateclears = False
+        clear_count = 1
+
+        queue = Mock(name='queue', spec_set=['append'])
+        event = {'severity': Clear}
+        clear_fingerprint = self.eqm._clearFingerprint(event)
+        self.eqm.clear_events_count = {clear_fingerprint: clear_count}
+
+        self.eqm._addEvent(queue, event)
+
+        # non-clear events are not added to the clear_events_count dict
+        self.assertNotIn(self.eqm.clear_events_count, clear_fingerprint)
+
+        queue.append.assert_not_called()
+
+    def test__addEvent_drop_duplicate_clear_events_interval(self):
+        self.eqm.options.allowduplicateclears = False
+        clear_count = 3
+        self.eqm.options.duplicateclearinterval = clear_count
+
+        queue = Mock(name='queue', spec_set=['append'])
+        event = {'severity': Clear}
+        clear_fingerprint = self.eqm._clearFingerprint(event)
+        self.eqm.clear_events_count = {clear_fingerprint: clear_count}
+
+        self.eqm._addEvent(queue, event)
+
+        # non-clear events are not added to the clear_events_count dict
+        self.assertNotIn(self.eqm.clear_events_count, clear_fingerprint)
+        queue.append.assert_not_called()
+
+    def test__addEvent_counts_discarded_events(self):
+        queue = Mock(name='queue', spec_set=['append'])
+        event = {}
+        discarded_event = {'name': 'event'}
+        queue.append.return_value = discarded_event
+
+        self.eqm._removeDiscardedEventFromClearState = create_autospec(
+            self.eqm._removeDiscardedEventFromClearState,
+        )
+        self.eqm._discardedEvents.mark = create_autospec(
+            self.eqm._discardedEvents.mark
+        )
+
+        self.eqm._addEvent(queue, event)
+
+        self.eqm._removeDiscardedEventFromClearState.assert_called_with(
+            discarded_event
+        )
+        self.eqm._discardedEvents.mark.assert_called_with()
+        self.assertEqual(self.eqm.discarded_events, 1)
+
+    def test_addEvent(self):
+        self.eqm._addEvent = create_autospec(self.eqm._addEvent)
+        event = {}
+        self.eqm.addEvent(event)
+
+        self.eqm._addEvent.assert_called_with(self.eqm.event_queue, event)
+
+    def test_addPerformanceEvent(self):
+        self.eqm._addEvent = create_autospec(self.eqm._addEvent)
+        event = {}
+        self.eqm.addPerformanceEvent(event)
+
+        self.eqm._addEvent.assert_called_with(self.eqm.perf_event_queue, event)
+
+    def test_addHeartbeatEvent(self):
+        self.eqm.heartbeat_event_queue = Mock(
+            spec_set=self.eqm.heartbeat_event_queue
+        )
+        heartbeat_event = {}
+        self.eqm.addHeartbeatEvent(heartbeat_event)
+
+        self.eqm.heartbeat_event_queue.append.assert_called_with(
+            heartbeat_event
+        )
+
+    def test_sendEvents(self):
+        self.eqm.eventflushchunksize = 3
+        event_sender_fn = Mock(name='event_sender_fn')
+
+        ret = self.eqm.sendEvents(event_sender_fn)
+
+        self.assertEqual(ret, 'something')
