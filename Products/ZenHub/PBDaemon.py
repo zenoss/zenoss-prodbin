@@ -871,8 +871,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self._metrologyReporter = TwistedMetricReporter(self.options.writeStatistics, self.metricWriter(), daemonTags)
             self._metrologyReporter.start()
 
-
-        reactor.callWhenRunning(startStatsLoop)
+        if self.options.cycle:
+            reactor.callWhenRunning(startStatsLoop)
         d.addCallback(callback)
         d.addErrback(twisted.python.log.err)
         reactor.run()
