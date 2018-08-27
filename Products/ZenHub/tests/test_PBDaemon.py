@@ -25,6 +25,7 @@ from Products.ZenHub.PBDaemon import (
     TRANSFORM_STOP,
     Clear,
     defer,
+    PBDaemon,
 )
 
 PATH = {'src': 'Products.ZenHub.PBDaemon'}
@@ -837,3 +838,229 @@ class EventQueueManagerTest(TestCase):
         self.eqm._removeDiscardedEventFromClearState.assert_called_with(
             events[0]
         )
+
+
+class PBDaemonClassTest(TestCase):
+    '''PBDaemon's __init__ modifies the class attribute heartbeatEvent
+    so we have to test it separately
+    '''
+
+    def test_class_attributes(self):
+        self.assertEqual(PBDaemon.name, 'pbdaemon')
+        self.assertEqual(PBDaemon.initialServices, ['EventService'])
+        self.assertEqual(PBDaemon.heartbeatEvent, {'eventClass': '/Heartbeat'})
+        self.assertEqual(PBDaemon.heartbeatTimeout, 60 * 3)
+        self.assertEqual(PBDaemon._customexitcode, 0)
+        self.assertEqual(PBDaemon._pushEventsDeferred, None)
+        self.assertEqual(PBDaemon._eventHighWaterMark, None)
+        self.assertEqual(PBDaemon._healthMonitorInterval, 30)
+
+
+class PBDaemonTest(TestCase):
+
+    def setUp(self):
+        # Patch external dependencies
+        # current version touches the reactor directly
+        self.reactor_patcher = patch(
+            '{src}.reactor'.format(**PATH), autospec=True
+        )
+        self.reactor = self.reactor_patcher.start()
+
+        self.name = 'pb_daemon_name'
+        self.pbd = PBDaemon(name=self.name)
+
+    def tearDown(self):
+        self.reactor_patcher.stop()
+
+    @patch('{src}.task.LoopingCall'.format(**PATH),
+           name='task.LoopingCall', autospec=True)
+    @patch('{src}.stopEvent'.format(**PATH),
+           name='stopEvent', autospec=True)
+    @patch('{src}.startEvent'.format(**PATH),
+           name='startEvent', autospec=True)
+    @patch('{src}.DaemonStats'.format(**PATH),
+           name='DaemonStats', autospec=True)
+    @patch('{src}.EventQueueManager'.format(**PATH),
+           name='EventQueueManager', autospec=True)
+    @patch('{src}.ZenDaemon.__init__'.format(**PATH),
+           name='ZenDaemon.__init__', autospec=True)
+    def test___init__(
+        self,
+        ZenDaemon_init,
+        EventQueueManager,
+        DaemonStats,
+        startEvent,
+        stopEvent,
+        LoopingCall
+    ):
+        noopts = 0,
+        keeproot = False
+        # attributes set by parent class
+        options = Mock(name='options', spec_set=['monitor'])
+        log = Mock(name='log', spec_set=['debug'])
+        PBDaemon.options = options
+        PBDaemon.log = log
+
+        pbd = PBDaemon(noopts=noopts, keeproot=keeproot, name=self.name)
+
+        # runs parent class init
+        # this should really be using super(
+        ZenDaemon_init.assert_called_with(pbd, noopts, keeproot)
+
+        self.assertEqual(pbd.name, self.name)
+        self.assertEqual(pbd.mname, self.name)
+
+        EventQueueManager.assert_called_with(options, log)
+
+        # Check lots of attributes, should verify that they are needed
+        self.assertEqual(pbd._thresholds, None)
+        self.assertEqual(pbd._threshold_notifier, None)
+        self.assertEqual(pbd.rrdStats, DaemonStats.return_value)
+        self.assertEqual(pbd.lastStats, 0)
+        self.assertEqual(pbd.perspective, None)
+        self.assertEqual(pbd.services, {})
+        self.assertEqual(pbd.eventQueueManager, EventQueueManager.return_value)
+        self.assertEqual(pbd.startEvent, startEvent.copy())
+        self.assertEqual(pbd.stopEvent, stopEvent.copy())
+
+        # appends name and device to start, stop, and heartbeat events
+        details = {'component': self.name, 'device': options.monitor}
+        pbd.startEvent.update.assert_called_with(details)
+        pbd.stopEvent.update.assert_called_with(details)
+        self.assertEqual(
+            pbd.heartbeatEvent,
+            {
+                'device': options.monitor,
+                'eventClass': '/Heartbeat',
+                'component': 'pb_daemon_name'
+            }
+        )
+
+        # more attributes
+        self.assertIsInstance(pbd.initialConnect, defer.Deferred)
+        self.assertEqual(pbd.stopped, False)
+        self.assertIsInstance(pbd.counters, collections.Counter)
+        self.assertEqual(pbd._pingedZenhub, None)
+        self.assertEqual(pbd._connectionTimeout, None)
+        self.assertEqual(pbd._publisher, None)  # should be a property
+        self.assertEqual(pbd._internal_publisher, None)
+        self.assertEqual(pbd._metric_writer, None)
+        self.assertEqual(pbd._derivative_tracker, None)
+        self.assertEqual(pbd._metrologyReporter, None)
+
+        # Add a shutdown trigger to send a stop event and flush the event queue
+        self.reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', pbd._stopPbDaemon
+        )
+
+        # Set up a looping call to support the health check.
+        self.assertEqual(pbd.healthMonitor, LoopingCall.return_value)
+        LoopingCall.assert_called_with(pbd._checkZenHub)
+        pbd.healthMonitor.start.assert_called_with(pbd._healthMonitorInterval)
+
+    @patch('{src}.ZenDaemon.__init__'.format(**PATH), side_effect=IOError)
+    def test__init__exit_on_ZenDaemon_IOError(self, ZenDaemon):
+        # self.log is set by a parent class
+        PBDaemon.log = Mock(name='log')
+        with self.assertRaises(SystemExit):
+            PBDaemon()
+
+    # this should be a property
+    @patch('{src}.publisher'.format(**PATH), autospec=True)
+    def test_publisher(self, publisher):
+        pbd = PBDaemon(name=self.name)
+        host = 'localhost'
+        port = 9999
+        pbd.options.redisUrl = 'http://{}:{}'.format(host, port)
+
+        ret = pbd.publisher()
+
+        self.assertEqual(ret, publisher.RedisListPublisher.return_value)
+        publisher.RedisListPublisher.assert_called_with(
+            host, port, pbd.options.metricBufferSize,
+            channel=pbd.options.metricsChannel,
+            maxOutstandingMetrics=pbd.options.maxOutstandingMetrics
+        )
+
+    @patch('{src}.publisher'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    def test_internalPublisher(self, os, publisher):
+        # All the methods with this pattern need to be converted to properties
+        self.assertEqual(self.pbd._internal_publisher, None)
+        url = Mock(name='url', spec_set=[])
+        username = 'username'
+        password = 'password'
+        os.environ = {
+            'CONTROLPLANE_CONSUMER_URL': url,
+            'CONTROLPLANE_CONSUMER_USERNAME': username,
+            'CONTROLPLANE_CONSUMER_PASSWORD': password,
+        }
+
+        ret = self.pbd.internalPublisher()
+
+        self.assertEqual(ret, publisher.HttpPostPublisher.return_value)
+        publisher.HttpPostPublisher.assert_called_with(username, password, url)
+
+        self.assertEqual(self.pbd._internal_publisher, ret)
+
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
+    def test_metricWriter_legacy(self, MetricWriter, os):
+        self.assertEqual(self.pbd._metric_writer, None)
+
+        self.pbd.publisher = create_autospec(self.pbd.publisher)
+        self.pbd.internalPublisher = create_autospec(
+            self.pbd.internalPublisher
+        )
+        os.environ = {'CONTROLPLANE': '0'}
+
+        ret = self.pbd.metricWriter()
+
+        MetricWriter.assert_called_with(self.pbd.publisher())
+        self.assertEqual(ret, MetricWriter.return_value)
+        self.assertEqual(self.pbd._metric_writer, ret)
+
+    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
+    def test_metricWriter_controlplane(
+        self, MetricWriter, os, FilteredMetricWriter, AggregateMetricWriter
+    ):
+        self.assertEqual(self.pbd._metric_writer, None)
+
+        self.pbd.publisher = create_autospec(
+            self.pbd.publisher, name='publisher'
+        )
+        self.pbd.internalPublisher = create_autospec(
+            self.pbd.internalPublisher, name='internalPublisher'
+        )
+        os.environ = {'CONTROLPLANE': '1'}
+
+        ret = self.pbd.metricWriter()
+
+        MetricWriter.assert_called_with(self.pbd.publisher())
+        AggregateMetricWriter.assert_called_with([
+            MetricWriter.return_value,
+            FilteredMetricWriter.return_value
+        ])
+        self.assertEqual(ret, AggregateMetricWriter.return_value)
+        self.assertEqual(self.pbd._metric_writer, ret)
+
+    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
+    def test_derivativeTracker(self, DerivativeTracker):
+        self.assertEqual(self.pbd._derivative_tracker, None)
+
+        ret = self.pbd.derivativeTracker()
+
+        self.assertEqual(ret, DerivativeTracker.return_value)
+        self.assertEqual(self.pbd._derivative_tracker, ret)
+
+    def test_connecting(self):
+        # logs a message, noop
+        self.pbd.connecting()
+
+    def test_getZenhubInstanceId(self):
+        # returns a deferred, replace with inlineCallbacks
+        ret = self.pbd.getZenhubInstanceId()
+        self.assertEqual(ret, 'something')
