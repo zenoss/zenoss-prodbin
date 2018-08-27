@@ -23,6 +23,8 @@ from urllib import unquote
 from cgi import escape
 import zope.component
 import zope.interface
+from datetime import datetime
+import pytz
 
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
@@ -495,6 +497,13 @@ class ZenModelBase(object):
         """
         return self.getObjByPath(path)
 
+    def _convert(self, fmt):
+        d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
+             'HH': '%H', 'hh': '%I', 'mm': '%M',
+             'ss': '%S', 'a': '%p'}
+        pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
+        return pattern.sub(lambda x: d[x.group()], fmt)
+
     def convertToUsersTimeZone(self, timestamp):
         """
         This is an instance method so that it is available to
@@ -502,12 +511,15 @@ class ZenModelBase(object):
         """
         user = self.zport.dmd.ZenUsers.getUserSettings()
         if user.timezone:
-            return convertTimestampToTimeZone(timestamp, user.timezone)
+            utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(timestamp)))
+            tz = pytz.timezone(user.timezone)
+            tval = tz.normalize(utc_dt.astimezone(tz))
+            return tval.strftime(self._convert(user.dateFormat+" "+user.timeFormat))
         return isoDateTime(timestamp)
-    
-    def getCurrentUserNowString(self):        
+
+    def getCurrentUserNowString(self):
         return self.convertToUsersTimeZone(time.time())
-    
+
     def getNowString(self):
         """
         Return the current time as a string in the format '2007/09/27 14:09:53'.
