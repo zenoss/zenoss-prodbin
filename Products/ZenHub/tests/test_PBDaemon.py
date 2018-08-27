@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, patch, create_autospec
+from mock import Mock, patch, create_autospec, call
 
 from zope.interface.verify import verifyObject
 
@@ -24,6 +24,7 @@ from Products.ZenHub.PBDaemon import (
     TRANSFORM_DROP,
     TRANSFORM_STOP,
     Clear,
+    defer,
 )
 
 PATH = {'src': 'Products.ZenHub.PBDaemon'}
@@ -529,7 +530,7 @@ class EventQueueManagerTest(TestCase):
             name='options',
             spec_set=[
                 'maxqueuelen', 'deduplicate_events', 'allowduplicateclears',
-                'duplicateclearinterval',
+                'duplicateclearinterval', 'eventflushchunksize'
             ]
         )
         options.deduplicate_events = True
@@ -747,9 +748,92 @@ class EventQueueManagerTest(TestCase):
         )
 
     def test_sendEvents(self):
-        self.eqm.eventflushchunksize = 3
+        '''chunks events from EventManager's queues
+        yields them to the event_sender_fn
+        and returns a deffered with a result of events sent count
+        '''
+        self.eqm.options.eventflushchunksize = 3
+        self.eqm.options.maxqueuelen = 5
+        self.eqm._initQueues()
+        heartbeat_events = [{'heartbeat': i} for i in range(2)]
+        perf_events = [{'perf_event': i} for i in range(2)]
+        events = [{'event': i} for i in range(2)]
+
+        self.eqm.heartbeat_event_queue.extendleft(heartbeat_events)
+        # heartbeat_event_queue set to static maxlen=1
+        self.assertEqual(len(self.eqm.heartbeat_event_queue), 1)
+        self.eqm.perf_event_queue.extendleft(perf_events)
+        self.eqm.event_queue.extendleft(events)
+
         event_sender_fn = Mock(name='event_sender_fn')
 
         ret = self.eqm.sendEvents(event_sender_fn)
 
-        self.assertEqual(ret, 'something')
+        # Priority: heartbeat, perf, event
+        event_sender_fn.assert_has_calls([
+            call([heartbeat_events[1], perf_events[0], perf_events[1]]),
+            call([events[0], events[1]]),
+        ])
+        self.assertIsInstance(ret, defer.Deferred)
+        self.assertEqual(ret.result, 5)
+
+    def test_sendEvents_exception_handling(self):
+        '''In case of exception, places events back in the queue,
+        and remove clear state for any discarded events
+        '''
+        self.eqm.options.eventflushchunksize = 3
+        self.eqm.options.maxqueuelen = 5
+        self.eqm._initQueues()
+        heartbeat_events = [{'heartbeat': i} for i in range(2)]
+        perf_events = [{'perf_event': i} for i in range(2)]
+        events = [{'event': i} for i in range(2)]
+
+        self.eqm.heartbeat_event_queue.extendleft(heartbeat_events)
+        self.eqm.perf_event_queue.extendleft(perf_events)
+        self.eqm.event_queue.extendleft(events)
+
+        def event_sender_fn(args):
+            raise Exception('event_sender_fn failed')
+
+        ret = self.eqm.sendEvents(event_sender_fn)
+        # validate Exception was raised
+        self.assertEqual(ret.result.check(Exception), Exception)
+        # quash the unhandled error in defferd exception
+        ret.addErrback(Mock())
+
+        # Heartbeat events get dropped
+        self.assertNotIn(heartbeat_events[1], self.eqm.heartbeat_event_queue)
+        # events and perf_events are returned to the queues
+        self.assertIn(perf_events[0], self.eqm.perf_event_queue)
+        self.assertIn(events[0], self.eqm.event_queue)
+
+    def test_sendEvents_exception_removes_clear_state_for_discarded(self):
+        self.eqm.options.eventflushchunksize = 3
+        self.eqm.options.maxqueuelen = 2
+        self.eqm._initQueues()
+        events = [{'event': i} for i in range(2)]
+
+        self.eqm.event_queue.extendleft(events)
+
+        def send(args):
+            self.eqm.event_queue.append({'new_event': 0})
+            raise Exception('event_sender_fn failed')
+
+        event_sender_fn = Mock(name='event_sender_fn', side_effect=send)
+
+        self.eqm._removeDiscardedEventFromClearState = create_autospec(
+            self.eqm._removeDiscardedEventFromClearState,
+            name='_removeDiscardedEventFromClearState'
+        )
+
+        ret = self.eqm.sendEvents(event_sender_fn)
+        # validate Exception was raised
+        self.assertEqual(ret.result.check(Exception), Exception)
+        # quash the unhandled error in differd exception
+        ret.addErrback(Mock())
+
+        event_sender_fn.assert_called_with([events[0], events[1]])
+
+        self.eqm._removeDiscardedEventFromClearState.assert_called_with(
+            events[0]
+        )
