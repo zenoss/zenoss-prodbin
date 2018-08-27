@@ -40,7 +40,7 @@ from Products.ZenUtils.Utils import getObjByPath, unpublished
 from Products.ZenUtils.csrf import get_csrf_token
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
-from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime
+from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime, convertJsTimeFormatToPy
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
@@ -497,13 +497,6 @@ class ZenModelBase(object):
         """
         return self.getObjByPath(path)
 
-    def _convert(self, fmt):
-        d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
-             'HH': '%H', 'hh': '%I', 'mm': '%M',
-             'ss': '%S', 'a': '%p'}
-        pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
-        return pattern.sub(lambda x: d[x.group()], fmt)
-
     def convertToUsersTimeZone(self, timestamp):
         """
         This is an instance method so that it is available to
@@ -514,7 +507,7 @@ class ZenModelBase(object):
             utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(timestamp)))
             tz = pytz.timezone(user.timezone)
             tval = tz.normalize(utc_dt.astimezone(tz))
-            return tval.strftime(self._convert(user.dateFormat+" "+user.timeFormat))
+            return tval.strftime(convertJsTimeFormatToPy(user.dateFormat+" "+user.timeFormat))
         return isoDateTime(timestamp)
 
     def getCurrentUserNowString(self):
