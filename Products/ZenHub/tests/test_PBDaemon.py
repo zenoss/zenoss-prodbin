@@ -1061,6 +1061,254 @@ class PBDaemonTest(TestCase):
         self.pbd.connecting()
 
     def test_getZenhubInstanceId(self):
-        # returns a deferred, replace with inlineCallbacks
+        # returns a deferred, should be replaced with inlineCallbacks
+        perspective = Mock(name='perspective', spec_set=['callRemote'])
+        self.pbd.perspective = perspective
+
         ret = self.pbd.getZenhubInstanceId()
-        self.assertEqual(ret, 'something')
+
+        self.assertEqual(ret, perspective.callRemote.return_value)
+        perspective.callRemote.assert_called_with('getHubInstanceId')
+
+    def test_gotPerspective(self):
+        perspective = Mock(name='perspective', spec_set=['callRemote'])
+        _connectionTimeout = Mock(
+            spec_set=self.pbd._connectionTimeout, name='_connectionTimeout'
+        )
+        self.pbd._connectionTimeout = _connectionTimeout
+        getInitialServices = Mock(name='getInitialServices', spec_set=[])
+        self.pbd.getInitialServices = getInitialServices
+        initialConnect = Mock(name='initialConnect', spec_set=[])
+        self.pbd.initialConnect = initialConnect
+
+        self.pbd.gotPerspective(perspective)
+
+        # sets the perspective attribute
+        self.assertEqual(self.pbd.perspective, perspective)
+        #  if _connectionTimeoutcall is set call _connectionTimeout.cancel()
+        _connectionTimeout.cancel.assert_called_with()
+        self.assertEqual(self.pbd._connectionTimeout, None)
+        # if initialConnect is set, it is set to None,
+        # and executed after getInitialServices as a deferred
+        getInitialServices.assert_called_with()
+        d2 = getInitialServices.return_value
+        self.assertEqual(self.pbd.initialConnect, None)
+        d2.chainDeferred.assert_called_with(initialConnect)
+
+    @patch(
+        '{src}.credentials'.format(**PATH), name='credentials', autospec=True
+    )
+    @patch(
+        '{src}.ReconnectingPBClientFactory'.format(**PATH),
+        name='ReconnectingPBClientFactory', autospec=True
+    )
+    def test_connect(self, ReconnectingPBClientFactory, credentials):
+        factory = ReconnectingPBClientFactory.return_value
+        options = self.pbd.options
+        connectTimeout = Mock(self.pbd.connectTimeout, name='connectTimeout')
+        self.pbd.connectTimeout = connectTimeout
+
+        ret = self.pbd.connect()
+
+        # ensure the connection factory is setup properly
+        factory.connectTCP.assert_called_with(
+            options.hubhost, options.hubport
+        )
+        self.assertEqual(factory.gotPerspective, self.pbd.gotPerspective)
+        self.assertEqual(factory.connecting, self.pbd.connecting)
+        credentials.UsernamePassword.assert_called_with(
+            options.hubusername, options.hubpassword
+        )
+        factory.setCredentials.assert_called_with(
+            credentials.UsernamePassword.return_value
+        )
+
+        # connectionTimeout is set
+        self.assertEqual(
+            self.pbd._connectionTimeout, self.reactor.callLater.return_value
+        )
+
+        # returns pbd.initialconnect, not sure where the factory goes
+        self.assertEqual(ret, self.pbd.initialConnect)
+
+        # test timeout method passed to reactor.callLater
+        # unpack the args to get the timeout function
+        args, kwargs = self.reactor.callLater.call_args
+        timeout = args[1]
+        d = Mock(defer.Deferred, name='initialConnect.result')
+        d.called = False
+        timeout(d)
+        connectTimeout.assert_called_with()
+
+    def test_connectTimeout(self):
+        '''logs a message and passes,
+        not to be confused with _connectionTimeout, which is set to a deferred
+        '''
+        self.pbd.connectTimeout()
+
+    def test_eventService(self):
+        # alias for getServiceNow
+        self.pbd.getServiceNow = create_autospec(self.pbd.getServiceNow)
+        self.pbd.eventService()
+        self.pbd.getServiceNow.assert_called_with('EventService')
+
+    def test_getServiceNow(self):
+        svc_name = 'svc_name'
+        self.pbd.services[svc_name] = 'some service'
+        ret = self.pbd.getServiceNow(svc_name)
+        self.assertEqual(ret, self.pbd.services[svc_name])
+
+    @patch('{src}.FakeRemote'.format(**PATH), autospec=True)
+    def test_getServiceNow_FakeRemote_on_missing_service(self, FakeRemote):
+        ret = self.pbd.getServiceNow('svc_name')
+        self.assertEqual(ret, FakeRemote.return_value)
+
+    def test_getService_known_service(self):
+        self.pbd.services['known_service'] = 'service'
+        ret = self.pbd.getService('known_service')
+
+        self.assertIsInstance(ret, defer.Deferred)
+        self.assertEqual(ret.result, self.pbd.services['known_service'])
+
+    def test_getService(self):
+        '''this is going to be ugly to test,
+        and badly needs to be rewritten as an inlineCallback
+        '''
+        perspective = Mock(name='perspective', spec_set=['callRemote'])
+        serviceListeningInterface = Mock(
+            name='serviceListeningInterface', spec_set=[]
+        )
+        self.pbd.perspective = perspective
+        service_name = 'service_name'
+
+        ret = self.pbd.getService(service_name, serviceListeningInterface)
+
+        perspective.callRemote.assert_called_with(
+            'getService', service_name, self.pbd.options.monitor,
+            serviceListeningInterface, self.pbd.options.__dict__
+        )
+        self.assertEqual(ret, perspective.callRemote.return_value)
+
+        # Pull the callbacks out of ret, to make sure they work as intended
+        args, kwargs = ret.addCallback.call_args
+        callback = args[0]
+        # callback adds the service to pbd.services
+        ret_callback = callback(ret.result, service_name)
+        self.assertEqual(self.pbd.services[service_name], ret.result)
+        # the service (result) has notifyOnDisconnect called with removeService
+        args, kwargs = ret_callback.notifyOnDisconnect.call_args
+        removeService = args[0]
+        # removeService
+        removeService(service_name)
+        self.assertNotIn(service_name, self.pbd.services)
+
+    @patch('{src}.defer'.format(**PATH), autospec=True)
+    def test_getInitialServices(self, defer):
+        '''execute getService(svc_name) for every service in initialServices
+        in parallel deferreds
+        '''
+        getService = create_autospec(self.pbd.getService, name='getService')
+        self.pbd.getService = getService
+        ret = self.pbd.getInitialServices()
+
+        defer.DeferredList.assert_called_with(
+            [self.pbd.getService.return_value
+             for svc in self.pbd.initialServices],
+            fireOnOneErrback=True,
+            consumeErrors=True
+        )
+        getService.assert_has_calls(
+            [call(svc) for svc in self.pbd.initialServices]
+        )
+
+        self.assertEqual(ret, defer.DeferredList.return_value)
+
+    def test_connected(self):
+        # does nothing
+        self.pbd.connected()
+
+    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
+    def test__getThresholdNotifier(self, ThresholdNotifier):
+        # refactor to be a property
+        self.assertEqual(self.pbd._threshold_notifier, None)
+        ret = self.pbd._getThresholdNotifier()
+
+        ThresholdNotifier.assert_called_with(
+            self.pbd.sendEvent, self.pbd.getThresholds()
+        )
+        self.assertEqual(ret, ThresholdNotifier.return_value)
+        self.assertEqual(self.pbd._threshold_notifier, ret)
+
+    @patch('{src}.Thresholds'.format(**PATH), autospec=True)
+    def test_getThresholds(self, Thresholds):
+        # refactor to be a property
+        self.assertEqual(self.pbd._thresholds, None)
+
+        ret = self.pbd.getThresholds()
+
+        Thresholds.assert_called_with()
+        self.assertEqual(ret, Thresholds.return_value)
+        self.assertEqual(self.pbd._thresholds, ret)
+
+    @patch('{src}.sys'.format(**PATH), autospec=True)
+    @patch('{src}.task'.format(**PATH), autospec=True)
+    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
+    def test_run(self, TwistedMetricReporter, task, sys):
+        '''Starts up all of the internal loops,
+        does not return until reactor.run() completes (reactor is shutdown)
+        '''
+        self.pbd.rrdStats = Mock(spec_set=self.pbd.rrdStats)
+        self.pbd.connect = create_autospec(self.pbd.connect)
+        self.pbd._customexitcode = 99
+
+        self.pbd.run()
+
+        # adds startStatsLoop to reactor.callWhenRunning
+        args, kwargs = self.reactor.callWhenRunning.call_args
+        startStatsLoop = args[0]
+        ret = startStatsLoop()
+        task.LoopingCall.assert_called_with(self.pbd.postStatistics)
+        loop = task.LoopingCall.return_value
+        loop.start.assert_called_with(
+            self.pbd.options.writeStatistics, now=False
+        )
+        daemonTags = {
+            'zenoss_daemon': self.pbd.name,
+            'zenoss_monitor': self.pbd.options.monitor,
+            'internal': True
+        }
+        TwistedMetricReporter.assert_called_with(
+            self.pbd.options.writeStatistics,
+            self.pbd.metricWriter(),
+            daemonTags
+        )
+        self.assertEqual(
+            self.pbd._metrologyReporter, TwistedMetricReporter.return_value
+        )
+        self.pbd._metrologyReporter.start.assert_called_with()
+
+        # adds stopReporter (defined internally) to reactor before shutdown
+        args, kwargs = self.reactor.addSystemEventTrigger.call_args
+        stopReporter = args[2]
+        self.assertEqual(args[0], 'before')
+        self.assertEqual(args[1], 'shutdown')
+        ret = stopReporter()
+        self.assertEqual(ret, self.pbd._metrologyReporter.stop.return_value)
+        self.pbd._metrologyReporter.stop.assert_called_with()
+
+        self.pbd.rrdStats.config.assert_called_with(
+            self.pbd.name,
+            self.pbd.options.monitor,
+            self.pbd.metricWriter(),
+            self.pbd._getThresholdNotifier(),
+            self.pbd.derivativeTracker()
+        )
+
+        # returns a deferred, that has a callback added to it
+        # but we have no access to it from outside the function
+        self.pbd.connect.assert_called_with()
+
+        self.reactor.run.assert_called_with()
+        # only calls sys.exit if a custom exitcode is set, should probably
+        # exit even if exitcode = 0
+        sys.exit.assert_called_with(self.pbd._customexitcode)
