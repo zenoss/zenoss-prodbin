@@ -22,7 +22,11 @@
                         tblcolspan string:5">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
-
+    <tr>
+       <td class="tablevalues" style="padding:10px;">
+         <input class="navcontrol" type="Submit" value="Generate" name="generate" id="generate" />
+       </td>
+    </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'hostname','Device')"/>
@@ -56,6 +60,12 @@
 
 </tal:block>
 </tal:block>
+<script>
+    document.querySelector('#generate').onclick = function() {
+        var generateMask = new Ext.LoadMask(Ext.getBody(), {msg:"Generating report..."});
+        generateMask.show();
+    };
+</script>
 </form>
 
 </tal:block>

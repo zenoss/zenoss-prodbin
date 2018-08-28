@@ -1,5 +1,5 @@
 <tal:block tal:define="
-	objects  python:here.getDmdRoot('Devices').getSubDevices();
+    objects python:here.ReportServer.plugin('alldevicereport', here.REQUEST);
 	tableName string: alldevicereport;
 	batch python:here.ZenTableManager.getBatch(tableName,objects);">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
@@ -15,7 +15,17 @@
 								tblcolspan string:6">
 		<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 		<tal:block metal:fill-slot="zentablecontents">
-		
+    <tr>
+       <td class="tablevalues" style="padding:10px;">
+         <input class="navcontrol" type="Submit" value="Generate" name="generate" id="generate" />
+       </td>
+    </tr>
+<script>
+    document.querySelector('#generate').onclick = function() {
+        var generateMask = new Ext.LoadMask(Ext.getBody(), {msg:"Generating report..."});
+        generateMask.show();
+    };
+</script>
 	    <span metal:use-macro="here/deviceListMacro/macros/devListReportBody" 
 	            tal:omit-tag="" />  
 
