@@ -90,6 +90,10 @@ class ITInfrastructure(BrowserView):
                json.dumps(locTree))
         return js
 
+class AddDevices(BrowserView):
+
+    __call__ = ZopeTwoPageTemplateFile("templates/addDevices.pt")
+
 
 class DeviceDetails(BrowserView):
 

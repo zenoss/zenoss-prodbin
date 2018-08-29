@@ -249,6 +249,13 @@
     />
 
 <browser:page
+    class=".pages.AddDevices"
+    name="addDevices"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="users"
     for="*"
