@@ -845,6 +845,7 @@ class PBDaemonClassTest(TestCase):
     so we have to test it separately
     '''
 
+    # WARNING: this test fails when running all ZenHub tests together, needs investigation
     def test_class_attributes(self):
         self.assertEqual(PBDaemon.name, 'pbdaemon')
         self.assertEqual(PBDaemon.initialServices, ['EventService'])
@@ -854,6 +855,7 @@ class PBDaemonClassTest(TestCase):
         self.assertEqual(PBDaemon._pushEventsDeferred, None)
         self.assertEqual(PBDaemon._eventHighWaterMark, None)
         self.assertEqual(PBDaemon._healthMonitorInterval, 30)
+
 
 
 class PBDaemonTest(TestCase):
@@ -868,6 +870,10 @@ class PBDaemonTest(TestCase):
 
         self.name = 'pb_daemon_name'
         self.pbd = PBDaemon(name=self.name)
+
+        self.pbd.eventQueueManager = Mock(
+            EventQueueManager, name='eventQueueManager'
+        )
 
     def tearDown(self):
         self.reactor_patcher.stop()
@@ -1312,3 +1318,266 @@ class PBDaemonTest(TestCase):
         # only calls sys.exit if a custom exitcode is set, should probably
         # exit even if exitcode = 0
         sys.exit.assert_called_with(self.pbd._customexitcode)
+
+    def test_setExitCode(self):
+        exitcode = Mock()
+        self.pbd.setExitCode(exitcode)
+        self.assertEqual(self.pbd._customexitcode, exitcode)
+
+    def test_stop(self):
+        # stops the reactor and handles ReactorNotRunning
+        self.reactor.running = True
+        self.pbd.stop()
+        self.reactor.stop.assert_called_with()
+
+    def test__stopPbDaemon(self):
+        # set stopped=True, and send a stopEvent
+        self.assertFalse(self.pbd.stopped)
+        self.pbd.services['EventService'] = True
+        self.pbd.options.cycle = True
+        self.pbd.sendEvent = Mock(self.pbd.sendEvent, name='sendEvent')
+        self.pbd.pushEvents = Mock(self.pbd.pushEvents, name='pushEvents')
+
+        ret = self.pbd._stopPbDaemon()
+
+        self.assertTrue(self.pbd.stopped)
+
+        # send a stopEvent if it has an EventService
+        self.pbd.sendEvent.assert_called_with(self.pbd.stopEvent)
+        self.assertEqual(ret, self.pbd.pushEvents.return_value)
+
+    def test__stopPbDaemon_pushEventsDeferred(self):
+        # if _pushEventsDeferred is set, append a new pushEvents deffered to it
+        self.pbd._pushEventsDeferred = Mock(
+            defer.Deferred, name='_pushEventsDeferred'
+        )
+        self.assertFalse(self.pbd.stopped)
+        self.pbd.services['EventService'] = True
+        self.pbd.options.cycle = True
+        self.pbd.sendEvent = Mock(self.pbd.sendEvent, name='sendEvent')
+        self.pbd.pushEvents = Mock(self.pbd.pushEvents, name='pushEvents')
+
+        ret = self.pbd._stopPbDaemon()
+
+        self.assertTrue(self.pbd.stopped)
+
+        # send a stopEvent if it has an EventService
+        self.pbd.sendEvent.assert_called_with(self.pbd.stopEvent)
+        self.assertEqual(ret, self.pbd._pushEventsDeferred)
+        # unable to test pushEvents added as callback
+        # blocked by maybe unneccesary lambda
+
+    def test_sendEvents(self):
+        # simply maps events to sendEvent
+        self.pbd.sendEvent = Mock(self.pbd.sendEvent, name='sendEvent')
+        events = [{'name': 'evt_a'}, {'name': 'evt_b'}]
+
+        self.pbd.sendEvents(events)
+
+        self.pbd.sendEvent.assert_has_calls(
+            [call(event) for event in events]
+        )
+
+    @patch('{src}.defer'.format(**PATH), autospec=True)
+    def test_sendEvent(t, defer):
+        # appends events to the in-memory outbound queue
+        event = {'name': 'event'}
+        generated_event = t.pbd.generateEvent(event, newkey='newkey')
+        t.pbd.eventQueueManager.event_queue_length = 0
+        t.assertEqual(t.pbd.counters['eventCount'], 0)
+        t.pbd._eventHighWaterMark = False
+
+        ret = t.pbd.sendEvent(event, newkey='newkey')
+
+        t.pbd.eventQueueManager.addEvent.assert_called_with(generated_event)
+        t.assertEqual(t.pbd.counters['eventCount'], 1)
+        defer.succeed.assert_called_with(None)
+        t.assertEqual(ret, defer.succeed.return_value)
+
+    def test_generateEvent(t):
+        # returns a dict with keyword args, and other values added
+        event = {'name': 'event'}
+
+        ret = t.pbd.generateEvent(event, newkey='newkey')
+
+        t.assertEqual(
+            ret,
+            {
+                'name': 'event',
+                'newkey': 'newkey',
+                'agent': t.pbd.name,
+                'monitor': t.pbd.options.monitor,
+                'manager': t.pbd.fqdn
+            }
+        )
+
+    def test_generateEvent_reactor_not_running(t):
+        # returns nothing if reactor is not running
+        t.reactor.running = False
+        ret = t.pbd.generateEvent({'name': 'event'})
+        t.assertEqual(ret, None)
+
+    def test_pushEventsLoop(t):
+        '''currently an old-style convoluted looping deferred
+        this needs to be refactored to run in a task.loopingCall
+        '''
+        t.pbd.pushEvents = create_autospec(t.pbd.pushEvents, name='pushEvents')
+
+        ret = t.pbd.pushEventsLoop()
+
+        t.reactor.callLater.assert_called_with(
+            t.pbd.options.eventflushseconds, t.pbd.pushEventsLoop
+        )
+        t.pbd.pushEvents.assert_called_with()
+
+        t.assertEqual(ret.result, None)
+
+    @patch('{src}.partial'.format(**PATH), autospec=True)
+    @patch('{src}.defer'.format(**PATH), autospec=True)
+    def test_pushEvents(t, defer, partial):
+        '''Does excessive pre-checking, and book keeping before sending
+        sending the Event Service remote procedure 'sendEvents'
+        to the eventQueueManager.sendEvents function
+
+        All of this event management work needs to be refactored into its own
+        EventManager Class
+        '''
+        t.pbd.eventQueueManager.discarded_events = None
+        t.reactor.running = True
+        t.assertEqual(t.pbd._eventHighWaterMark, None)
+        t.assertEqual(t.pbd._pushEventsDeferred, None)
+        evtSvc = Mock(name='event_service', spec_set=['callRemote'])
+        t.pbd.services['EventService'] = evtSvc
+
+        t.pbd.pushEvents()
+
+        partial.assert_called_with(evtSvc.callRemote, 'sendEvents')
+        send_events_fn = partial.return_value
+        t.pbd.eventQueueManager.sendEvents.assert_called_with(send_events_fn)
+
+    def test_pushEvents_reactor_not_running(t):
+        # do nothing if the reactor is not running
+        t.reactor.running = False
+        t.pbd.log = Mock(t.pbd.log, name='log')
+        t.pbd.pushEvents()
+        # really ugly way of checking we entered this block
+        t.pbd.log.debug.assert_called_with(
+            "Skipping event sending - reactor not running."
+        )
+
+    def test_heartbeat(t):
+        t.pbd.options.cycle = True
+        t.pbd.niceDoggie = create_autospec(t.pbd.niceDoggie, name='niceDoggie')
+
+        t.pbd.heartbeat()
+
+        heartbeat_event = t.pbd.generateEvent(
+            t.pbd.heartbeatEvent, timeout=t.pbd.heartbeatTimeout
+        )
+        t.pbd.eventQueueManager.addHeartbeatEvent.assert_called_with(
+            heartbeat_event
+        )
+        t.pbd.niceDoggie.assert_called_with(t.pbd.heartbeatTimeout / 3)
+
+    def test_postStatisticsImpl(t):
+        # does nothing, maybe implemented by subclasses
+        t.pbd.postStatisticsImpl()
+
+    def test_postStatistics(t):
+        # sets rrdStats, then calls postStatisticsImpl
+        t.pbd.rrdStats = Mock(name='rrdStats', spec_set=['counter'])
+        ctrs = {'c1': 3, 'c2': 5}
+        for k, v in ctrs.items():
+            t.pbd.counters[k] = v
+
+        t.pbd.postStatistics()
+
+        t.pbd.rrdStats.counter.assert_has_calls(
+            [call(k, v) for k, v in ctrs.items()]
+        )
+
+    @patch('{src}.os'.format(**PATH))
+    def test__pickleName(t, os):
+        # refactor as a property
+        ret = t.pbd._pickleName()
+        os.environ.get.assert_called_with('CONTROLPLANE_INSTANCE_ID')
+        t.assertEqual(
+            ret,
+            'var/{}_{}_counters.pickle'.format(
+                t.pbd.name, os.environ.get.return_value
+            )
+        )
+
+    def test_remote_getName(t):
+        ret = t.pbd.remote_getName()
+        t.assertEqual(ret, t.pbd.name)
+
+    def test_remote_shutdown(t):
+        t.pbd.stop = create_autospec(t.pbd.stop, name='stop')
+        t.pbd.sigTerm = create_autospec(t.pbd.sigTerm, name='sigTerm')
+
+        t.pbd.remote_shutdown('unused arg is ignored')
+
+        t.pbd.stop.assert_called_with()
+        t.pbd.sigTerm.assert_called_with()
+
+    def test_remote_setPropertyItems(t):
+        # does nothing
+        t.pbd.remote_setPropertyItems('items arg is ignored')
+
+    def test_remote_updateThresholdClasses(t):
+        '''attempts to call importClass for all class names in classes arg
+        currently imports the importClasses within the method its self,
+        making patching and testing impossible
+
+        used exclusively by Products.DataCollector.zenmodeler.ZenModeler
+        '''
+        pass
+        #ret = t.pbd.remote_updateThresholdClasses(['class_a', 'class_b'])
+        #t.assertEqual(ret, 'something')
+
+    def test__checkZenHub(t):
+        t.pbd._signalZenHubAnswering = create_autospec(
+            t.pbd._signalZenHubAnswering, name='_signalZenHubAnswering'
+        )
+        perspective = Mock(name='perspective', spec_set=['callRemote'])
+        t.pbd.perspective = perspective
+
+        ret = t.pbd._checkZenHub()
+
+        perspective.callRemote.assert_called_with('ping')
+        t.assertEqual(ret, t.pbd.perspective.callRemote.return_value)
+        # Get the internally defined callback to test it
+        args, kwargs = ret.addCallback.call_args
+        callback = args[0]
+        # if perspective.callRemote('ping') returns 'pong'
+        callback(result='pong')
+        t.pbd._signalZenHubAnswering.assert_called_with(True)
+        # any other result calls _signalZenHubAnswering(False)
+        callback(result=None)
+        t.pbd._signalZenHubAnswering.assert_called_with(False)
+
+    def test__checkZenHub_without_perspective(t):
+        t.pbd.perspective = False
+        t.pbd._signalZenHubAnswering = create_autospec(
+            t.pbd._signalZenHubAnswering, name='_signalZenHubAnswering'
+        )
+
+        t.pbd._checkZenHub()
+
+        t.pbd._signalZenHubAnswering.assert_called_with(False)
+
+    def test__checkZenHub_exception(t):
+        perspective = Mock(name='perspective', spec_set=['callRemote'])
+        perspective.callRemote.side_effect = Exception
+        t.pbd.perspective = perspective
+
+        t.pbd._signalZenHubAnswering = create_autospec(
+            t.pbd._signalZenHubAnswering, name='_signalZenHubAnswering'
+        )
+
+        t.pbd._checkZenHub()
+
+        t.pbd._signalZenHubAnswering.assert_called_with(False)
+
+    #def test__signalZenHubAnswering(t):
