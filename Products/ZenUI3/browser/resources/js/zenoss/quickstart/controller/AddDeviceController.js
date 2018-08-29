@@ -29,7 +29,7 @@
         init: function() {
             this.control({
                 'wizardadddeviceview': {
-                    show: function() {
+                    beforerender: function() {
                         this.setCategories();
                         this.setResubmitHandler();
                     }
