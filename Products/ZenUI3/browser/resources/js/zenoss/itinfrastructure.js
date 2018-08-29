@@ -896,7 +896,7 @@ Ext.onReady(function () {
             permissionContext: '/zport/dmd/Devices',
             handler: function () {
                 var loc = window.location.pathname;
-                window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#add-device', loc);
+                window.location = Ext.String.format('/zport/dmd/addDevices?came_from={0}', loc);
             }
         }),
         addDeviceDiscovery: new Zenoss.Action({
