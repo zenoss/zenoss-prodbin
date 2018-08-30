@@ -71,6 +71,7 @@
                             xtype: 'button',
                             itemId: 'doneButton',
                             scale: 'large',
+                            cls: 'wizard-done-button',
                             disabledCls: "disabled",
                             text: _t('Done'),
                             handler: function () {

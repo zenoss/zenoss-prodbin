@@ -2360,6 +2360,10 @@ BYE BYE BORDERS
         padding: 40px;
     }
 
+    .z-cse .wizard-done-button {
+        min-width: 80px;
+    }
+
 /*
         =====================================================================================
         DARK THEME
