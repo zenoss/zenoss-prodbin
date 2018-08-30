@@ -90,9 +90,6 @@
 
             window.globalApp = this;
         },
-        formValidityChange: function(isValid) {
-            this.doneButton.setDisabled(!isValid);
-        },
         doneButtonPressed: function() {
             var link = Zenoss.render.link(undefined, this.params.came_from || '/zport/dmd/Dashboard');
 
