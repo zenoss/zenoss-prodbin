@@ -94,6 +94,10 @@ class AddDevices(BrowserView):
 
     __call__ = ZopeTwoPageTemplateFile("templates/addDevices.pt")
 
+class DiscoverNetwork(BrowserView):
+
+    __call__ = ZopeTwoPageTemplateFile("templates/discoverNetwork.pt")
+
 
 class DeviceDetails(BrowserView):
 

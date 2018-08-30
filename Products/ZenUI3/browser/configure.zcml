@@ -256,6 +256,13 @@
     />
 
 <browser:page
+    class=".pages.DiscoverNetwork"
+    name="discoverNetwork"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="users"
     for="*"

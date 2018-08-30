@@ -907,7 +907,7 @@ Ext.onReady(function () {
             permissionContext: '/zport/dmd/Devices',
             handler: function () {
                 var loc = window.location.pathname;
-                window.location = Ext.String.format('/zport/dmd/quickstart?came_from={0}#discover-network', loc);
+                window.location = Ext.String.format('/zport/dmd/discoverNetwork?came_from={0}', loc);
             }
         })
     });
