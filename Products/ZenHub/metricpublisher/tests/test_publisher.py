@@ -77,6 +77,10 @@ class BasePublisherTestCase(unittest.TestCase):
         self.assertIsInstance(result, defer.Deferred)
         self.assertEqual(len(self.pub._mq), len(METRIC_BUILDED))
 
+    def test_putLater(self):
+        self.pub._put = create_autospec(self.pub._put)
+        
+
 
 class HttpPostPublisherTestCase(unittest.TestCase):
     def testPut(self):
