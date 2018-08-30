@@ -18,7 +18,7 @@
     <script>
         Ext.ns('Zenoss.quickstart.Wizard.pageOptions');
         Zenoss.quickstart.Wizard.pageOptions.title = 'Network Discovery';
-        Zenoss.quickstart.Wizard.pageOptions.componentType = 'wizardautodiscoveryview'
+        Zenoss.quickstart.Wizard.pageOptions.componentType = 'wizardautodiscoveryview';
     </script>
 
     <script
