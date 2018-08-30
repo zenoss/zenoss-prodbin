@@ -12,12 +12,12 @@
 
 <tal:block metal:use-macro="context/page_macros/base-new">
 
-<tal:block metal:fill-slot="title">Discover Network</tal:block>
+<tal:block metal:fill-slot="title">Network Discovery</tal:block>
 
 <tal:block metal:fill-slot="script_layout">
     <script>
         Ext.ns('Zenoss.quickstart.Wizard.pageOptions');
-        Zenoss.quickstart.Wizard.pageOptions.title = 'Discover Network';
+        Zenoss.quickstart.Wizard.pageOptions.title = 'Network Discovery';
         Zenoss.quickstart.Wizard.pageOptions.componentType = 'wizardautodiscoveryview'
     </script>
 

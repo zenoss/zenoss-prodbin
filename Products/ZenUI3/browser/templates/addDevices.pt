@@ -17,7 +17,7 @@
 <tal:block metal:fill-slot="script_layout">
     <script>
         Ext.ns('Zenoss.quickstart.Wizard.pageOptions');
-        Zenoss.quickstart.Wizard.pageOptions.title = 'Add devices';
+        Zenoss.quickstart.Wizard.pageOptions.title = 'Add Devices';
         Zenoss.quickstart.Wizard.pageOptions.componentType = 'wizardadddeviceview'
     </script>
 
