@@ -1588,4 +1588,72 @@ class PBDaemonTest(TestCase):
 
         t.pbd._signalZenHubAnswering.assert_called_with(False)
 
-    #def test__signalZenHubAnswering(t):
+    @patch('{src}.zenPath'.format(**PATH), name='zenPath', autospec=True)
+    @patch(
+        '{src}.atomicWrite'.format(**PATH), name='atomicWrite', autospec=True
+    )
+    def test__signalZenHubAnswering_True(t, atomicWrite, zenPath):
+        '''creates an empty file named zenhub_connected, if zenhub is answering
+        removes it if zenhub is not answering
+        '''
+        filename = 'zenhub_connected'
+        t.pbd._signalZenHubAnswering(True)
+        zenPath.assert_called_with('var', filename)
+        atomicWrite(filename, '')
+
+    @patch('{src}.os'.format(**PATH), name='os', autospec=True)
+    @patch('{src}.zenPath'.format(**PATH), name='zenPath', autospec=True)
+    def test__signalZenHubAnswering_False(t, zenPath, os):
+        '''creates an empty file named zenhub_connected, if zenhub is answering
+        removes it if zenhub is not answering
+        '''
+        filename = 'zenhub_connected'
+        t.pbd._signalZenHubAnswering(False)
+        zenPath.assert_called_with('var', filename)
+        os.remove.assert_called_with(zenPath.return_value)
+
+    @patch('{src}.publisher'.format(**PATH), autospec=True)
+    def test_buildOptions(t, publisher):
+        '''After initialization, the InvalidationWorker instance should have
+        options parsed from its buildOptions method
+        assertions based on default options
+        '''
+        # rebuild pbd with patched publisher
+        t.pbd = PBDaemon()
+        from Products.ZenHub.PBDaemon import (
+            DEFAULT_HUB_HOST, DEFAULT_HUB_PORT,
+            DEFAULT_HUB_USERNAME, DEFAULT_HUB_PASSWORD,
+            DEFAULT_HUB_MONITOR
+        )
+        t.assertEqual(t.pbd.options.hubhost, DEFAULT_HUB_HOST)  # No default
+        t.assertEqual(t.pbd.options.hubport, DEFAULT_HUB_PORT)
+        t.assertEqual(t.pbd.options.hubusername, DEFAULT_HUB_USERNAME)
+        t.assertEqual(t.pbd.options.hubpassword, DEFAULT_HUB_PASSWORD)
+        t.assertEqual(t.pbd.options.monitor, DEFAULT_HUB_MONITOR)
+        t.assertEqual(t.pbd.options.hubtimeout, 30)
+        t.assertEqual(t.pbd.options.allowduplicateclears, False)
+        t.assertEqual(t.pbd.options.duplicateclearinterval, 0)
+        t.assertEqual(t.pbd.options.eventflushseconds, 5)
+        t.assertEqual(t.pbd.options.eventflushseconds, 5.0)
+        t.assertEqual(t.pbd.options.eventflushchunksize, 50)
+        t.assertEqual(t.pbd.options.maxqueuelen, 5000)
+        t.assertEqual(t.pbd.options.queueHighWaterMark, 0.75)
+        t.assertEqual(t.pbd.options.zhPingInterval, 120)
+        t.assertEqual(t.pbd.options.deduplicate_events, True)
+        t.assertEqual(
+            t.pbd.options.redisUrl,
+            'redis://localhost:{default}/0'.format(
+                default=publisher.defaultRedisPort)
+        )
+        t.assertEqual(
+            t.pbd.options.metricBufferSize, publisher.defaultMetricBufferSize
+        )
+        t.assertEqual(
+            t.pbd.options.metricsChannel, publisher.defaultMetricsChannel
+        )
+        t.assertEqual(
+            t.pbd.options.maxOutstandingMetrics,
+            publisher.defaultMaxOutstandingMetrics
+        )
+        t.assertEqual(t.pbd.options.pingPerspective, True)
+        t.assertEqual(t.pbd.options.writeStatistics, 30)
