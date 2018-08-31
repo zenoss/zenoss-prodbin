@@ -54,9 +54,6 @@
                 }]
             });
 
-            // set shortcuts for wizard controls
-            this.doneButton = Ext.getCmp('wizard_card_panel').query('button[itemId="doneButton"]')[0];
-
             // save any GET parameters
             this.params = Ext.Object.fromQueryString(window.location.search);
 
