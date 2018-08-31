@@ -17,6 +17,8 @@
         appFolder: "/++resource++zenui/js/zenoss/quickstart",
         controllers: ["AutoDiscoveryController", "AddDeviceController"],
         launch: function() {
+            var me = this;
+
             Zenoss.quickstart.Wizard.events.fireEvent('beforeapplaunch', this);
 
             Ext.create('Ext.Panel', {
@@ -47,7 +49,7 @@
                             disabledCls: "disabled",
                             text: _t('Done'),
                             handler: function () {
-                                window.globalApp.doneButtonPressed();
+                                me.doneButtonPressed();
                             }
                         }]
                     }]
@@ -56,8 +58,6 @@
 
             // save any GET parameters
             this.params = Ext.Object.fromQueryString(window.location.search);
-
-            window.globalApp = this;
         },
         doneButtonPressed: function() {
             var link = Zenoss.render.link(undefined, this.params.came_from || '/zport/dmd/Dashboard');

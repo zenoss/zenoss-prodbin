@@ -423,7 +423,7 @@
 
     // globally namespaced function so it can be called from a column handler
     Zenoss.quickstart.Wizard.editZProperties = function(recordId) {
-        var controller = window.globalApp.getController("AddDeviceController");
+        var controller = Zenoss.quickstart.Wizard.getApplication().getController('AddDeviceController');
         controller.fetchConnectionInfoForDialog(recordId);
     };
 
