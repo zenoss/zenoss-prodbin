@@ -1,7 +1,7 @@
 from unittest import TestCase
 from mock import Mock, patch
 
-from zope.interface.verify import verifyObject, DoesNotImplement
+from zope.interface.verify import verifyObject
 
 from Products.ZenHub.WorkerSelection import (
     InOrderSelection,
@@ -25,10 +25,11 @@ class InOrderSelectionTest(TestCase):
     def test_getCandidateWorkerIds(t):
         # returns a generator with the indices of the selected workers
         in_order_selection = InOrderSelection()
-        worker_a = Mock(name='worker_a', spec_set=['busy'], busy=False)
-        worker_b = Mock(name='worker_b', spec_set=['busy'], busy=True)
-        worker_c = Mock(name='worker_c', spec_set=['busy'], busy=False)
-        workers = [worker_a, worker_b, worker_c]
+        workers = [
+            Mock(name='worker_0', spec_set=['busy'], busy=False),
+            Mock(name='worker_1', spec_set=['busy'], busy=True),
+            Mock(name='worker_2', spec_set=['busy'], busy=False),
+        ]
 
         ret = in_order_selection.getCandidateWorkerIds(workers, 'options')
 
@@ -91,36 +92,35 @@ class WorkerSelectorTest(TestCase):
             spec_set=InOrderSelection, name='InOrderSelection'
         )
         t.options = Mock(name='options', spec_set=[])
+        t.get_utilities_patcher = patch(
+            '{src}.getUtilitiesFor'.format(**PATH),
+            autospec=True,
+            return_value=[
+                ('', t.default_selector), ('InOrderSelection', t.selector)
+            ]
+        )
+        t.getUtilitiesFor = t.get_utilities_patcher.start()
+        t.ws = WorkerSelector(t.options)
 
-    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
-    def test__init__(t, getUtilitiesFor):
-        getUtilitiesFor.return_value = [
-            ('', t.default_selector), ('InOrderSelection', t.selector)
-        ]
+    def tearDown(t):
+        t.get_utilities_patcher.stop()
 
-        ws = WorkerSelector(t.options)
-
-        getUtilitiesFor.assert_called_with(IWorkerSelectionAlgorithm)
+    def test__init__(t):
+        t.getUtilitiesFor.assert_called_with(IWorkerSelectionAlgorithm)
         t.assertEqual(
-            ws.selectors,
+            t.ws.selectors,
             {'': t.default_selector, 'InOrderSelection': t.selector}
         )
-        t.assertEqual(ws.defaultSelector, t.default_selector)
+        t.assertEqual(t.ws.defaultSelector, t.default_selector)
 
-    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
-    def test_getCandidateWorkerIds(t, getUtilitiesFor):
-        getUtilitiesFor.return_value = [
-            ('', t.default_selector), ('InOrderSelection', t.selector)
-        ]
-        options = Mock(name='options', spec_set=[])
-        ws = WorkerSelector(options)
+    def test_getCandidateWorkerIds(t):
         workerlist = []
 
-        ret = ws.getCandidateWorkerIds(
+        ret = t.ws.getCandidateWorkerIds(
             'InOrderSelection', workerlist=workerlist
         )
 
         t.selector.getCandidateWorkerIds.assert_called_with(
-            workerlist, options
+            workerlist, t.options
         )
         t.assertEqual(ret, t.selector.getCandidateWorkerIds.return_value)
