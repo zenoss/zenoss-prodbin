@@ -829,9 +829,14 @@ class EventQueueManagerTest(TestCase):
 class PBDaemonClassTest(TestCase):
     '''PBDaemon's __init__ modifies the class attribute heartbeatEvent
     so we have to test it separately
+
+    WARNING: this test fails when running all ZenHub tests together
+    Caused by lines: 605, 606
+        for evt in self.startEvent, self.stopEvent, self.heartbeatEvent:
+            evt.update(details)
+    which changes the class attribute when __init__ is run the first time
     '''
 
-    # WARNING: this test fails when running all ZenHub tests together, needs investigation
     def test_class_attributes(t):
         from Products.ZenHub.PBDaemon import PBDaemon
         t.assertEqual(PBDaemon.name, 'pbdaemon')
