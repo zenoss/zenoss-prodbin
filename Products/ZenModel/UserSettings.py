@@ -721,10 +721,15 @@ class UserSettings(ZenModelRM):
         if currentUser == thisUser:
             return True
 
-        # CZAdmins and ZEN_MANAGERs can edit any users' settings except for Managers.
-        if (currentUser.has_role(CZ_ADMIN_ROLE) or \
-            currentUser.has_role(ZEN_MANAGER_ROLE) and \
-            not thisUser.has_role(MANAGER_ROLE)):                
+        # CZAdmins can edit any users' settings except for Managers.
+        if (currentUser.has_role(CZ_ADMIN_ROLE) and not
+                thisUser.has_role(MANAGER_ROLE)):
+            return True
+
+        # ZEN_MANAGERs can edit users' settings except for Managers and CZAdmins
+        if (currentUser.has_role(ZEN_MANAGER_ROLE) and not
+            (thisUser.has_role(MANAGER_ROLE) or
+            thisUser.has_role(CZ_ADMIN_ROLE))):
             return True
 
         return False
