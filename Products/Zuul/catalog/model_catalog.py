@@ -71,6 +71,16 @@ class SearchResults(object):
         return self.total
 
 
+class CursorSearchResults(object):
+
+    def __init__(self, results, total):
+        self.results = results
+        self.total = total
+
+    def __iter__(self):
+        return iter(self.results)
+
+
 class ModelCatalogBrain(Implicit):
     implements(ICatalogBrain)
 
@@ -163,6 +173,9 @@ class ModelCatalogClient(object):
 
     def get_object_indexes(self, obj, idxs=None):
         return self._data_manager.get_indexes(obj, idxs)
+
+    def cursor_search(self, search_params, context):
+        return self._data_manager.cursor_search(search_params, context)
 
     def search(self, search_params, context, commit_dirty=False):
         return self._data_manager.search(search_params, context, commit_dirty)
@@ -432,6 +445,24 @@ class ModelCatalogDataManager(object):
             fields = [ fields ]
         brain_fields = set(fields) if fields else set()
         return list(brain_fields | MANDATORY_FIELDS)
+
+    def cursor_search(self, search_params, context):
+        try:
+            search_params.fields = self._get_fields_to_return(search_params.fields)
+            catalog_results = self.model_index.cursor_search(search_params)
+        except SearchException as e:
+            log.error("EXCEPTION: {0}".format(e.message))
+            self.raise_model_catalog_error("Exception performing search")
+        else:
+            results = []
+            total = 0
+            for result in catalog_results:
+                total = result.total_count
+                brains = iter(self._parse_catalog_results(result, context))
+                for brain in brains:
+                    results.append(brain)
+
+            return CursorSearchResults(results, total)
 
     def _do_search(self, search_params, context):
         """
