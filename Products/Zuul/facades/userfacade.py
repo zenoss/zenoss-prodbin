@@ -47,7 +47,3 @@ class UserFacade(ZuulFacade):
         user = self._root.getUserSettings(propertiedUser.getId())
         user.email = email
         return IInfo(user)
-
-    def markWizardAsFinished(self):
-        # Don't run the quickstart next time
-        self._dmd._rq = True

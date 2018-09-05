@@ -189,32 +189,6 @@ class ZentinelPortal(PortalObjectBase):
         return """<input id="loginButton" type="submit" name="submitbutton"
                 class="submitbutton" value=""/>"""
 
-    def getExtraLoginFormContents(self):
-        """
-        On first run, log us in as admin automatically.
-
-        This is done via a proxy form with hidden fields, so that the browser
-        doesn't ask to save the password (which will be changed on the next
-        screen).
-        """
-        if not self.dmd._rq:
-            return """
-            <form id="_proxy_form">
-            <input type="hidden" name="__ac_name"/>
-            <input type="hidden" name="__ac_password"/>
-            <input type="hidden" name="came_from" value="/zport/dmd/quickstart"/>
-            </form>
-            <script>
-            var origform=document.forms[0];
-            var newform = document.getElementById('_proxy_form');
-            newform.__ac_name.value = 'admin';
-            newform.__ac_password.value = 'zenoss';
-            newform.action = origform.action;
-            newform.method = origform.method;
-            newform.submit()
-            </script>
-            """
-
     def ruok(self):
         """
         check if zport is ok by answering a question only the
