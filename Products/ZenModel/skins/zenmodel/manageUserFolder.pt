@@ -64,7 +64,7 @@ function ConfirmPagerTest() {
                tal:condition="python:user.isManager() and user.iseditable()"
                tal:attributes="value user/getId" />
             <a tal:attributes="href user/getPrimaryUrlPath"
-               tal:condition="user/iseditable"
+               tal:condition="python:user.isCustomerAdmin() and user.iseditable()"
                tal:content="user/getId">edahl</a>
             <span tal:condition="not: user/iseditable"
                   tal:content="user/getId"/>
