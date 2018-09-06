@@ -539,10 +539,9 @@ Ext.apply(Zenoss.render, {
         if (!msg || msg === "None" ) {
             msg = record.data.summary;
         }
-        msg = Zenoss.render.conditionalEscaping(msg);
-        msg = "<pre style='white-space:normal;'>" + msg + "</pre>";
-        msg = msg.replace(/\"/g, '&quot;');
-        metadata.tdAttr = 'data-qtip="' + Zenoss.render.conditionalEscaping(msg) + '" data-qwidth="500"';
+
+        msg = "<pre style='white-space:normal;'>" + Ext.htmlEncode(msg) + "</pre>";
+        metadata.tdAttr = 'data-qtip="' + Ext.htmlEncode(msg) + '" data-qwidth="500"';
 
         data = Zenoss.render.conditionalEscaping(data);
         return data;
