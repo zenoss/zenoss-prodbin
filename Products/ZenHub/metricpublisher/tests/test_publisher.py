@@ -8,7 +8,7 @@
 ##############################################################################
 
 from unittest import TestCase, TestSuite, makeSuite
-from mock import Mock, MagicMock, create_autospec, patch, call
+from mock import Mock, MagicMock, create_autospec, patch
 from zope.interface.verify import verifyObject
 
 import ujson as json
@@ -16,43 +16,50 @@ import ujson as json
 from Products.ZenHub.metricpublisher.publisher import (
     os,
     sys,
+    defer,
+    deque,
     RedisListPublisher,
     HttpPostPublisher,
     BasePublisher,
     StringProducer,
     ResponseReceiver,
     IBodyProducer,
-    deque,
-    bufferHighWater,
-    defer,
-    reactor,
-    getPool,
-    INITIAL_REDIS_BATCH,
     RedisClientFactory,
     Headers,
-    Agent,
     CookieJar,
     CookieAgent,
     UNAUTHORIZED,
-    basic_auth_string_content,
+    INITIAL_REDIS_BATCH,
     defaultPublishFrequency,
-    defaultMetricBufferSize)
+    defaultMetricBufferSize,
+    basic_auth_string_content
+)
 
 
-METRIC_BUILDED = ['{"timestamp":1535460634.26479,"metric":"eventQueueLength","value":0.0,"tags":{"instance":"0","daemon":"zenpython","monitor":"localhost","metricType":"GAUGE","tenantId":"b0e4t72hrole5z1xv88djc1hb"}}']
+METRIC_BUILDED = [
+    '{"timestamp":1535460634.26479,"metric":"eventQueueLength",\
+    "value":0.0,"tags":{\
+        "instance":"0","daemon":"zenpython","monitor":"localhost",\
+        "metricType":"GAUGE","tenantId":"b0e4t72hrole5z1xv88djc1hb"\
+        }\
+    }'
+]
 METRIC = 'testMetricName'
 BUFFER_LEN = 10
 PUBLISHER_FREQ = 10
 SCHEDULED = True
 
+
 class PublishError(Exception):
     def __init__(self):
         super(PublishError, self).__init__("Some error in publishing")
+
 
 class BasePublisherTest(TestCase):
 
     def setUp(self):
         self.pub = BasePublisher(BUFFER_LEN, PUBLISHER_FREQ)
+        self.metric = {'metric': 'm', 'value': 1.0, 'timestamp': 1, 'tags': {}}
 
     def test_init(self):
         metric_queue = deque(maxlen=BUFFER_LEN)
@@ -61,20 +68,21 @@ class BasePublisherTest(TestCase):
         self.assertEqual(publisher._buflen, BUFFER_LEN)
         self.assertEqual(publisher._pubfreq, PUBLISHER_FREQ)
         self.assertEqual(publisher._pubtask, None)
+        self.assertEqual(publisher._mq, metric_queue)
         self.assertEqual(publisher._tagsToFilter, tagsToFilter)
 
     def test_build_metric(self):
         self.assertEqual(
-                {'metric':'m', 'value':1.0, 'timestamp':1, 'tags':{}},
-                self.pub.build_metric( 'm', 1.0, 1, {}))
+            self.metric,
+            self.pub.build_metric('m', 1.0, 1, {}))
         self.assertEqual(
-                {'metric':'m', 'value':1.0, 'timestamp':1, 'tags':{}},
-                self.pub.build_metric( 'm', "1.0", 1, {}))
+            self.metric,
+            self.pub.build_metric('m', "1.0", 1, {})
+        )
 
     def test_publish_failed(self):
         pub_error = PublishError()
         self.pub._publish_failed(pub_error, METRIC_BUILDED)
-        #TODO figured out with maxlen, what  is that and why we need it
         self.assertEqual(len(self.pub._mq), len(METRIC_BUILDED))
 
     def test_reschedule_pubtask(self):
@@ -95,14 +103,16 @@ class BasePublisherTest(TestCase):
             self.pub._put(scheduled=False)
 
     def test_put(self):
-        self.pub.build_metric = create_autospec(self.pub.build_metric, return_value=METRIC_BUILDED)
+        self.pub.build_metric = create_autospec(
+            self.pub.build_metric, return_value=METRIC_BUILDED
+        )
         result = self.pub.put(METRIC, value=1, timestamp=123.4, tags={})
         self.assertIsInstance(result, defer.Deferred)
         self.assertEqual(len(self.pub._mq), len(METRIC_BUILDED))
 
     def test_putLater(self):
         self.pub._put = create_autospec(self.pub._put)
-        self.pub._putLater(scheduled=True) 
+        self.pub._putLater(scheduled=True)
         self.pub._put.assert_called_once_with(scheduled=True)
 
 
@@ -110,57 +120,66 @@ class RedisPublisherTest(TestCase):
 
     def setUp(self):
         self.pub = RedisListPublisher()
+        self.metric = json.dumps({
+            "metric": "m", "value": 3.3,
+            "timestamp": 1, "tags": {}
+        })
 
-    @patch('Products.ZenHub.metricpublisher.publisher.reactor', autospec=True, spec_set=True)
+    @patch(
+        'Products.ZenHub.metricpublisher.publisher.reactor',
+        autospec=True, spec_set=True
+    )
     def test_init(self, reactor):
         redis_host = '10.111.23.23'
         redis_port = 6379
         redis_channel = 'default'
         redis_max_metrics = 150000
         pub = RedisListPublisher(
-              host=redis_host,
-              port=redis_port,
-              buflen=BUFFER_LEN,
-              pubfreq=PUBLISHER_FREQ,
-              channel=redis_channel,
-              maxOutstandingMetrics=redis_max_metrics
-              )
+            host=redis_host,
+            port=redis_port,
+            buflen=BUFFER_LEN,
+            pubfreq=PUBLISHER_FREQ,
+            channel=redis_channel,
+            maxOutstandingMetrics=redis_max_metrics
+        )
         self.assertEqual(pub._batch_size, INITIAL_REDIS_BATCH)
         self.assertEqual(pub._host, redis_host)
         self.assertEqual(pub._port, redis_port)
         self.assertEqual(pub._channel, redis_channel)
         self.assertEqual(pub._maxOutstandingMetrics, redis_max_metrics)
         self.assertIsInstance(pub._redis, RedisClientFactory)
-        #flashing should be false in the begining
+        # flashing should be false in the begining
         self.assertFalse(pub._flushing)
-        reactor.connectTCP.assert_called_with(redis_host, pub._port, pub._redis)
+        reactor.connectTCP.assert_called_with(
+            redis_host, pub._port, pub._redis
+        )
 
     def test_build_metric(self):
         metric = self.pub.build_metric(
-            metric="metric",
+            metric="m",
             value=3.3,
             timestamp=1,
             tags={}
         )
-        self.assertEqual(
-            json.dumps({"metric":"metric", "value":3.3,
-                        "timestamp":1,"tags":{}}),
-            metric)
+        self.assertEqual(metric, self.metric)
         self.assertIsInstance(metric, str)
 
-    @patch('Products.ZenHub.metricpublisher.publisher.reactor', autospec=True, spec_set=True)
+    @patch(
+        'Products.ZenHub.metricpublisher.publisher.reactor',
+        autospec=True, spec_set=True
+    )
     def test_metrics_published(self, reactor):
         # params llen and metricCount are probably the same
-        #this should double the `_batch_size` in next publish iteration
+        # this should double the `_batch_size` in next publish iteration
         self.pub._metrics_published(
-            llen=INITIAL_REDIS_BATCH, 
+            llen=INITIAL_REDIS_BATCH,
             metricCount=INITIAL_REDIS_BATCH,
             remaining=0)
         double_size = INITIAL_REDIS_BATCH * 2
         self.assertEqual(self.pub._batch_size, double_size)
         self.pub._batch_size = defaultMetricBufferSize
         self.pub._metrics_published(
-            llen=INITIAL_REDIS_BATCH, 
+            llen=INITIAL_REDIS_BATCH,
             metricCount=defaultMetricBufferSize * 2,
             remaining=10)
         reactor.callLater.assert_called_with(0, self.pub._putLater, False)
@@ -170,68 +189,80 @@ class RedisPublisherTest(TestCase):
         self.assertEqual(self.pub._batch_size, INITIAL_REDIS_BATCH)
 
     def test_put_default(self):
-        self.pub.put( 'm', '0', 1, {})
-        self.pub.put( 'm', 0, 1, {})
-        self.assertEqual( 2, len(self.pub._mq))
-        self.assertEqual(
-                json.dumps({"metric":"m","value":0.0,"timestamp":1,"tags":{}}),
-                self.pub._mq.pop())
-        self.assertEqual(
-                json.dumps({"metric":"m","value":0.0,"timestamp":1,"tags":{}}),
-                self.pub._mq.pop())
-     
+        self.pub.put('m', '3.3', 1, {})
+        self.pub.put('m', 3.3, 1, {})
+        # we put two metrics inside
+        self.assertEqual(2, len(self.pub._mq))
+        self.assertEqual(self.metric, self.pub._mq.pop())
+        self.assertEqual(self.metric, self.pub._mq.pop())
+
     def test_put(self):
         self.pub._reschedule_pubtask = create_autospec(
-            self.pub._reschedule_pubtask, spec_set=True)
+            self.pub._reschedule_pubtask, spec_set=True
+        )
         self.pub._metrics_published = create_autospec(
-            self.pub._metrics_published, spec_set=True)
+            self.pub._metrics_published, spec_set=True
+        )
         self.pub._connection = create_autospec(self.pub._connection)
         self.pub._connection.state = 'connected'
         self.pub._redis.client = create_autospec(
-            self.pub._redis.client)
-        #self.pub._redis.client.execute = create_autospec(
-        #    self.pub._redis.client.execute, return_value=(1, 1))
+            self.pub._redis.client
+        )
         self.pub._redis.client.execute.return_value = (1, 1)
-        self.pub.put( 'm', '0', 1, {})
+        self.pub.put('m', '0', 1, {})
         result = self.pub._put(scheduled=SCHEDULED, reschedule=True)
         self.assertIsInstance(result, defer.Deferred)
         self.assertEqual(len(self.pub._mq), 0)
-        self.pub._reschedule_pubtask.assert_called_once_with(scheduled=SCHEDULED)
+        self.pub._reschedule_pubtask.assert_called_once_with(
+            scheduled=SCHEDULED
+        )
         self.pub._metrics_published.assert_called_once_with(1, 1, 0)
 
     def test_put_fail(self):
         # check the put when there is Exception in writing to Redis
         self.pub._publish_failed = create_autospec(
-            self.pub._publish_failed, spec_set=True) 
+            self.pub._publish_failed, spec_set=True
+        )
         self.pub._connection = create_autospec(self.pub._connection)
         self.pub._connection.state = 'connected'
-        self.pub._redis.client = create_autospec(self.pub._redis.client, spec_set=True)
+        self.pub._redis.client = create_autospec(
+            self.pub._redis.client, spec_set=True
+        )
         exception_instace = Exception('Boom')
         self.pub._redis.client.execute.side_effect = exception_instace
-        self.pub.put( 'm', '0', 1, {})
+        self.pub.put('m', '0', 1, {})
         # it will fall into Exception when unpacking client.execute()
         # so the state of the publisher should be restored
         self.pub._put(scheduled=SCHEDULED, reschedule=True)
         self.assertEqual(self.pub._batch_size, INITIAL_REDIS_BATCH)
-        self.pub._publish_failed.assert_called_once_with(exception_instace, metrics=['{"timestamp":1,"metric":"m","value":0.0,"tags":{}}'])
+        self.pub._publish_failed.assert_called_once_with(
+            exception_instace,
+            metrics=['{"timestamp":1,"metric":"m","value":0.0,"tags":{}}']
+        )
 
-    @patch('Products.ZenHub.metricpublisher.publisher.defer.Deferred', autospec=True)
+    @patch(
+        'Products.ZenHub.metricpublisher.publisher.defer.Deferred',
+        autospec=True
+    )
     def test_shutdown(self, Deferred):
         self.pub._connection = create_autospec(self.pub._connection)
         self.pub._connection.state = 'connected'
-        return_val=defer.Deferred
+        return_val = defer.Deferred
         self.pub._put = create_autospec(
-            self.pub._put, spec_set=True, return_value=return_val)
-        self.pub.put( 'm', '0', 1, {})
+            self.pub._put, spec_set=True, return_value=return_val
+        )
+        self.pub.put('m', '0', 1, {})
         result = self.pub._shutdown()
         # run _shutdown once more we wont have any metrics in _mq
         # so diconnect will be called
         self.pub._mq.pop()
-        self.pub._shutdown() 
+        self.pub._shutdown()
         self.assertEqual(result, return_val)
-        self.pub._put.assert_called_once_with(scheduled=False, reschedule=False)
+        self.pub._put.assert_called_once_with(
+            scheduled=False, reschedule=False
+        )
         self.pub._connection.disconnect.assert_called_once_with()
-       
+
 
 class HttpPostPublisherTest(TestCase):
     def setUp(self):
@@ -241,10 +272,11 @@ class HttpPostPublisherTest(TestCase):
         if sys.argv[0]:
             self._agent_suffix = os.path.basename(sys.argv[0].rstrip(".py"))
         else:
-             self._agent_suffix = "python"
+            self._agent_suffix = "python"
         self.pub = HttpPostPublisher(username=self.username,
                                      password=self.password,
                                      url=self.url)
+
     def test_init(self):
         self.assertEqual(self.pub._buflen, defaultMetricBufferSize)
         self.assertEqual(self.pub._pubfreq, defaultPublishFrequency)
@@ -255,28 +287,30 @@ class HttpPostPublisherTest(TestCase):
         self.assertEqual(self.pub._authenticated, False)
         self.assertIsInstance(self.pub._cookieJar, CookieJar)
         self.assertIsInstance(self.pub._agent, CookieAgent)
-        self.assertEqual(self.pub._agent_suffix, self._agent_suffix) 
+        self.assertEqual(self.pub._agent_suffix, self._agent_suffix)
 
     def test_metrics_published_fail(self):
         response = Mock(
-            name = 'Resonse',
+            name='Resonse',
             spec_set=['code'],
             code=UNAUTHORIZED
         )
-        self.pub._cookieJar = create_autospec(self.pub._cookieJar, spec_set=True)
+        self.pub._cookieJar = create_autospec(
+            self.pub._cookieJar, spec_set=True
+        )
         self.pub._authenticated = True
         with self.assertRaises(IOError):
             self.pub._metrics_published(response, llen=10, remaining=10)
         self.assertEqual(self.pub._authenticated, False)
         self.pub._cookieJar.clear.assert_called_with()
-    
+
     @patch(
         'Products.ZenHub.metricpublisher.publisher.ResponseReceiver',
-         autospec=True, spec_set=True
+        autospec=True, spec_set=True
     )
     def test_metrics_published(self, ResponseReceiver):
         response = Mock(
-            name = 'Response',
+            name='Response',
             spec_set=['code', 'deliverBody'],
             code=200
         )
@@ -294,23 +328,27 @@ class HttpPostPublisherTest(TestCase):
 
     @patch(
         'Products.ZenHub.metricpublisher.publisher.StringProducer',
-         autospec=True, spec_set=True
+        autospec=True, spec_set=True
     )
     def test_make_request(self, StringProducer):
         d = create_autospec(defer.Deferred, spec_set=True)
         self.pub._agent.request = create_autospec(
             self.pub._agent.request, return_value=d
         )
-        metrics = [{"metric":"m", "value":1.0, "timestamp":1, "tags":{}}]
+        metrics = [{"metric": "m", "value": 1.0, "timestamp": 1, "tags": {}}]
         headers = Headers({
-            'User-Agent': ['Zenoss Metric Publisher: %s' % self.pub._agent_suffix],
+            'User-Agent': ['Zenoss Metric Publisher: {}'.format(
+                self.pub._agent_suffix)],
             'Content-Type': ['application/json']})
-        headers.addRawHeader('Authorization',
-                             basic_auth_string_content(self.pub._username, self.pub._password))
+        headers.addRawHeader('Authorization', basic_auth_string_content(
+            self.pub._username, self.pub._password
+        ))
         body_writer = StringProducer(json.dumps({"metrics": metrics}))
-        self.pub.put( 'm', '1.0', 1, {})
+        self.pub.put('m', '1.0', 1, {})
         self.pub._make_request()
-        self.pub._agent.request.assert_called_with('POST', self.pub._url, headers, body_writer)
+        self.pub._agent.request.assert_called_with(
+            'POST', self.pub._url, headers, body_writer
+        )
         d.addCallbacks.assert_any_call(
             self.pub._metrics_published,
             errback=self.pub._publish_failed,
@@ -322,7 +360,7 @@ class HttpPostPublisherTest(TestCase):
             errback=self.pub._publish_failed,
             errbackArgs=[metrics]
         )
-         
+
     @patch(
         'Products.ZenHub.metricpublisher.publisher.defer',
         autospec=True, spec_set=True
@@ -341,12 +379,13 @@ class HttpPostPublisherTest(TestCase):
         self.pub._put(scheduled=SCHEDULED)
         self.pub._make_request.assert_called_with()
 
+
 class StringProducerTest(TestCase):
 
     def setUp(self):
         self.body_data = ''
         self.str_producer = StringProducer(postBody=self.body_data)
-    
+
     def test_init(self):
         self.assertTrue(
             IBodyProducer.implementedBy(StringProducer)
@@ -367,6 +406,7 @@ class StringProducerTest(TestCase):
         result = self.str_producer.startProducing(consumer=consumer)
         consumer.write.asser_called_with(self.str_producer._post_body)
         self.assertEqual(result, defer.succeed.return_value)
+
 
 class ResponseReceiverTest(TestCase):
 
