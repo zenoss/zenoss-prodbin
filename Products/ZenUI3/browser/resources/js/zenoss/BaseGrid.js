@@ -333,9 +333,6 @@
                 if (!col.isHidden() &&
                     Ext.isDefined(state[col.filterKey]) &&
                     !Ext.isEmpty(state[col.filterKey])) {
-                    if (col.filter.xtype == "daterange") {
-                        state[col.filterKey] = state[col.filterKey].replace("T", " ");
-                    }
                     col.filterField.setValue(state[col.filterKey]);
                 }
             });
@@ -456,17 +453,9 @@
             timeParams.forEach(function (paramKey) {
                 if (values[paramKey]) {
                     var timeParam = values[paramKey];
-                    // The param is a Date range, so convert each date to UTC
+                    // The param is a Date object, so convert each date to UTC
                     // and re-build Date range string
-                    if (timeParam.indexOf(" TO ") != -1) {
-                        var dateValues = timeParam.split(" TO ");
-                        values[paramKey] = dateValues.map(function (rangeValue) {
-                            return moment.tz(rangeValue, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE).format("x")
-                        }).join(" TO ");
-                    }
-                    else {
-                        values[paramKey] = moment.tz(timeParam, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE).format("x")
-                    }
+                    values[paramKey] = moment(timeParam).format("x");
                 }
             });
             if (!store.proxy.extraParams) {

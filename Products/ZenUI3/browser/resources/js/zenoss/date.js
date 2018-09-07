@@ -51,37 +51,6 @@ Zenoss.date.renderDateColumn = function(format) {
 };
 
 
-/**
- * @class Zenoss.DateRange
- * @extends Ext.form.field.Date
- * A DateRange
- */
-Ext.define("Zenoss.DateRange", {
-    extend: "Ext.form.field.Date",
-    alias: ['widget.DateRange'],
-    xtype: "daterange",
-    formatDate: function (date) {
-            return Ext.isDate(date) ? moment(date).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : date;
-    },
-    getErrors: function(value) {
-        var errors = new Array();
-        if (value == "") {
-            return errors;
-        }
-        //Look first for invalid characters, fail fast
-        if (/[^0-9/TOampm :-]/.test(value)) {
-            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
-            return errors;
-        }
-        if (value.indexOf("TO") === -1) {
-            if (!moment(value, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT).isValid()) {
-	        errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
-            }
-        }
-        return errors;
-    }
-});
-
 /* For UserInterfaceSettings */
 
 Zenoss.date.dateFormats = {
@@ -369,6 +338,104 @@ Ext.define('Zenoss.grid.column.DateTime', {
     renderer: function(value, metadata, record) {
         metadata.tdAttr = 'data-qtip="' + Zenoss.date.Moment.tzstring + '"';
         return Zenoss.render.date(value, this.momentFormat);
+    }
+});
+
+
+/**
+ * @class Zenoss.DateRange
+ * @extends Ext.form.field.Date
+ * A DateRange
+ */
+Ext.define("Zenoss.DateRange", {
+    extend: "Ext.form.field.Date",
+    alias: ['widget.DateRange'],
+    xtype: "daterange",
+    trigger1Cls : 'x-form-date-trigger',
+    trigger2Cls : 'x-form-arrow-trigger',
+    // use default user date & time format in displayfield;
+    format: Zenoss.date.Moment.fromMomentFormat(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT),
+
+    onTrigger2Click: function() {
+        if (!this.timePicker) {
+            this.timePicker = Ext.create('Ext.picker.Time', {
+                floating: true,
+                autoScroll: true,
+                format: Zenoss.date.Moment.fromMomentFormat(Zenoss.USER_TIME_FORMAT),
+                height: 250,
+                listeners: {
+                    select: function (t, record) {
+                        if (record) {
+                            var timeDate = record.get('date'),
+                                // use today if date isn't selected
+                                date = this.getValue() || new Date(),
+                                minutes = timeDate.getHours() * 60 + timeDate.getMinutes();
+                            this.setValue(Ext.Date.add(Ext.Date.clearTime(date, true), Ext.Date.MINUTE, minutes));
+                            this.timePicker.hide();
+                        }
+                    },
+                    scope: this,
+                    // hide time picker on blur
+                    blur: {
+                        fn: function(e, el) {
+                            var me = Ext.get(el),
+                                relTgr = e.relatedTarget;
+                            if (!me.contains(relTgr) && el !== relTgr) {
+                                this.timePicker.hide();
+                            } else {
+                                // return focus to timepicker el if we are clicking somewhere in it.
+                                // do that because timepicker isn't Ext focusable component.
+                                this.timePicker.el.focus();
+                            }
+                        },
+                        scope: this,
+                        // fire this with 100ms delay to allow select/change events fire when we click on some item;
+                        buffer: 100,
+                        element: 'el'
+                    }
+                }
+            });
+        }
+        // hide datepicker;
+        this.collapse();
+
+        if (this.timePicker.isVisible()) {
+            this.timePicker.hide();
+        } else {
+            this.timePicker.showBy(this);
+            this.timePicker.setWidth(this.getWidth());
+            // put focus into timepicker el with 50ms delay to avoid blur on mouse press/release;
+            Ext.defer(function() {
+                this.timePicker.el.focus();
+            }, 50, this);
+        }
+    },
+    // override setValue fn to add time on value change;
+    setValue: function(value) {
+        if (Ext.isDate(value)) {
+            var timeDateRec = this.timePicker && this.timePicker.getSelectionModel().getSelection()[0],
+                date = timeDateRec && timeDateRec.get('date'),
+                minutes = date ? date.getHours() * 60 + date.getMinutes() : 0;
+            value = Ext.Date.add(Ext.Date.clearTime(value, true), Ext.Date.MINUTE, minutes);
+        }
+        this.callParent(arguments);
+    },
+    getErrors: function(value) {
+        var errors = new Array();
+        if (value == "") {
+            return errors;
+        }
+        //Look first for invalid characters, fail fast
+        if (/[^0-9/TOampm :-]/.test(value)) {
+            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
+            return errors;
+        }
+        if (value.indexOf("TO") === -1) {
+            if (!moment(value, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT).isValid()) {
+	        errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
+            }
+        }
+        return errors;
     }
 });
 
