@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, patch, create_autospec
+from mock import Mock, patch, create_autospec, call
 
 from zope.interface.verify import verifyObject
 
@@ -10,18 +10,16 @@ from Products.ZenHub.zenhub import (
     HubAvitar,
     RemoteBadMonitor,
     pb,
-    ServiceAddedEvent,
-    IServiceAddedEvent,
-    HubWillBeCreatedEvent,
-    IHubWillBeCreatedEvent,
-    HubCreatedEvent,
-    IHubCreatedEvent,
-    ParserReadyForOptionsEvent,
-    IParserReadyForOptionsEvent,
+    ServiceAddedEvent, IServiceAddedEvent,
+    HubWillBeCreatedEvent, IHubWillBeCreatedEvent,
+    HubCreatedEvent, IHubCreatedEvent,
+    ParserReadyForOptionsEvent, IParserReadyForOptionsEvent,
     _ZenHubWorklist,
     publisher,
     redisPublisher,
     metricWriter,
+    ZenHub,
+    CONNECT_TIMEOUT, OPTION_STATE,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -370,7 +368,238 @@ class ZenHubModuleTest(TestCase):
         t.assertEqual(ret, AggregateMetricWriter.return_value)
 
 
+class ZenHubInitTest(TestCase):
+    '''The init test is seperate from the others due to the complexity
+    of the __init__ method
+    '''
+
+    @patch('{src}.signal'.format(**PATH), spec=True)
+    @patch('{src}.App_Start'.format(**PATH), spec=True)
+    @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
+    @patch('{src}.pb'.format(**PATH), spec=True)
+    @patch('{src}.zenPath'.format(**PATH), spec=True)
+    @patch('{src}.server'.format(**PATH), spec=True)
+    @patch('{src}.AuthXmlRpcService'.format(**PATH), spec=True)
+    @patch('{src}.reactor'.format(**PATH), spec=True)
+    @patch('{src}.ipv6_available'.format(**PATH), spec=True)
+    @patch('{src}.portal'.format(**PATH), spec=True)
+    @patch('{src}.HubRealm'.format(**PATH), spec=True)
+    @patch('{src}.loadPlugins'.format(**PATH), spec=True)
+    @patch('{src}.WorkerSelector'.format(**PATH), spec=True)
+    @patch('{src}.ContinuousProfiler'.format(**PATH), spec=True)
+    @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), spec=True)
+    @patch('{src}.notify'.format(**PATH), spec=True)
+    @patch('{src}.load_config'.format(**PATH), spec=True)
+    @patch('{src}._ZenHubWorklist'.format(**PATH), spec=True)
+    @patch('{src}.ZCmdBase.__init__'.format(**PATH), spec=True)
+    def test___init__(
+        t,
+        CmdBase___init__,
+        _ZenHubWorklist,
+        load_config,
+        notify,
+        HubWillBeCreatedEvent,
+        ContinuousProfiler,
+        WorkerSelector,
+        loadPlugins,
+        HubRealm,
+        portal,
+        ipv6_available,
+        reactor,
+        AuthXmlRpcService,
+        server,
+        zenPath,
+        pb,
+        HubCreatedEvent,
+        App_Start,
+        signal,
+    ):
+
+        # Mock out attributes set the parent class
+        # Because these changes are made on the class, they must be reversable
+        zenhub_patchers = [
+            patch.object(ZenHub, 'dmd', create=True),
+            patch.object(ZenHub, 'log', create=True),
+            patch.object(ZenHub, 'options', create=True),
+            patch.object(ZenHub, 'loadChecker', autospec=True),
+            patch.object(ZenHub, 'getRRDStats', autospec=True),
+            patch.object(ZenHub, '_getConf', autospec=True),
+            patch.object(ZenHub, '_createWorkerConf', autospec=True),
+            patch.object(ZenHub, 'createWorker', autospec=True),
+            patch.object(ZenHub, 'setKeepAlive', autospec=True),
+            patch.object(ZenHub, 'sendEvent', autospec=True),
+        ]
+
+        for patcher in zenhub_patchers:
+            patcher.start()
+
+        ZenHub.options.workers = 10
+        ZenHub._getConf.return_value.id = 'config_id'
+        ipv6_available.return_value = False
+
+        zh = ZenHub()
+        t.assertIsInstance(zh, ZenHub)
+
+        t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
+        # Skip Metrology validation for now due to complexity
+        HubWillBeCreatedEvent.assert_called_with(zh)
+        notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
+        # Performance Profiling
+        ContinuousProfiler.assert_called_with('zenhub', log=zh.log)
+        zh.profiler.start.assert_called_with()
+        # Worklist, used to delegate jobs to workers
+        # TODO: move worker management into its own manager class
+        WorkerSelector.assert_called_with(zh.options)
+        t.assertEqual(zh.workerselector, WorkerSelector.return_value)
+        # check this, was it supposed to be set on workerselector?
+        t.assertEqual(zh.workList.log, zh.log)
+        t.assertLess(zh.options.workersReservedForEvents, zh.options.workers)
+        # Event Handler shortcut
+        t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
+        loadPlugins.assert_called_with(zh.dmd)
+        # PB, and XMLRPC communication config.
+        # TODO: move this into its own manager class
+        HubRealm.assert_called_with(zh)
+        zh.setKeepAlive.assert_called_with(
+            zh, reactor.listenTCP.return_value.socket
+        )
+
+        pb.PBServerFactory.assert_called_with(portal.Portal.return_value)
+        AuthXmlRpcService.assert_called_with(
+            zh.dmd, zh.loadChecker.return_value
+        )
+        server.Site.assert_called_with(AuthXmlRpcService.return_value)
+        reactor.listenTCP.assert_has_calls([
+            call(
+                zh.options.pbport,
+                pb.PBServerFactory.return_value,
+                interface=''
+            ),
+            call(
+                zh.options.xmlrpcport,
+                server.Site.return_value,
+                interface=''
+            )
+        ])
+        # Messageing config, including work and invalidations
+        # skip for now due to internal import
+        #load_config_override.assert_called_with(
+        #    'twistedpublisher.zcml',
+        #    Products.ZenMessaging.queuemessaging
+        #)
+        HubCreatedEvent.assert_called_with(zh)
+        notify.assert_called_with(HubCreatedEvent.return_value)
+        zh.sendEvent.assert_called_with(
+            zh, eventClass=App_Start, summary='zenhub started',
+            severity=0
+        )
+
+        # Additional worker management, separated from the rest
+        zenPath.assert_called_with('var', 'zenhub', 'config_id_worker.conf')
+        t.assertEqual(zh.workerconfig, zenPath.return_value)
+        zh._createWorkerConf.assert_called_with(zh)
+        zh.createWorker.assert_has_calls(
+            [call(zh, i) for i in range(zh.options.workers)]
+        )
+        # Convert this to a LoopingCall
+        reactor.callLater.assert_called_with(2, zh.giveWorkToWorkers, True)
+        signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
+
+        for patcher in zenhub_patchers:
+            patcher.stop()
+
+
 class ZenHubTest(TestCase):
 
-    def test___init__(t):
-        pass
+    def setUp(t):
+        # Patch out the ZenHub __init__ method, due to excessive side-effects
+        t.init_patcher = patch.object(
+            ZenHub, '__init__', autospec=True, return_value=None
+        )
+        t.init_patcher.start()
+
+        t.zh = ZenHub()
+        # Set attributes that should be created by __init__
+        t.zh.log = Mock(name='log', spec_set=['debug'])
+        t.zh.shutdown = False
+
+    def tearDown(t):
+        t.init_patcher.stop()
+
+    def test_setKeepAlive(t):
+        '''ConnectionHandler function
+        '''
+        socket = Mock(
+            name='socket',
+            spec_set=[
+                'SOL_SOCKET', 'SO_KEEPALIVE', 'SOL_TCP',
+                'TCP_KEEPIDLE', 'TCP_KEEPINTVL', 'TCP_KEEPCNT'
+            ]
+        )
+        sock = Mock(name='sock', spec_set=['setsockopt', 'getsockname'])
+        t.zh.setKeepAlive(sock)
+        # Super Hacky patch to deal with internal import
+        with patch.dict('sys.modules', socket=socket):
+            t.zh.setKeepAlive(sock)
+        # validate side effects: sock opts set as expected
+        interval = max(CONNECT_TIMEOUT / 4, 10)
+        sock.setsockopt.assert_has_calls([
+            call(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE),
+            call(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT),
+            call(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval),
+            call(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
+        ])
+
+    @patch('{src}.signal'.format(**PATH), autospec=True)
+    @patch('{src}.time'.format(**PATH), autospec=True)
+    def test_sighandler_USR2(t, time, signal):
+        '''when signal USR2 is recieved, broadcast it to all worker processes
+        '''
+        zh = Mock(ZenHub, name='ZenHub')
+        zh.log = Mock(name='log')
+        zh.SIGUSR_TIMEOUT = 1
+        # should use the workerProcess class as spec, but its currently burried
+        worker_proc = Mock(
+            name='worker_1', spec_set=['spawn_time', 'signalProcess'],
+            spawn_time=3
+        )
+        time.time.return_value = 5
+        zh.workerprocessmap = {'w1': worker_proc}
+
+        ZenHub.sighandler_USR2(zh, signum='unused', frame='unused')
+
+        worker_proc.signalProcess.assert_called_with(signal.SIGUSR2)
+
+    @patch('{src}.super'.format(**PATH))
+    @patch('{src}.signal'.format(**PATH), autospec=True)
+    @patch('{src}.time'.format(**PATH), autospec=True)
+    def test_sighandler_USR1(t, time, signal, super):
+        '''when signal USR1 is recieved, broadcast it to all worker processes
+        '''
+        zh = Mock(ZenHub, name='ZenHub')
+        zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
+        zh.options = Mock(name='options', profiling=True)
+        worker_proc = Mock(name='worker_1', spec_set=['signalProcess'])
+        zh.workerprocessmap = {'w1': worker_proc}
+        signum = Mock(name='signum', spec_set=[])
+        frame = Mock(name='frame', spec_set=[])
+
+        ZenHub.sighandler_USR1(zh, signum=signum, frame=frame)
+
+        zh.profiler.dump_stats.assert_called_with()
+        super.assert_called_with(ZenHub, zh)
+        super.return_value.sighandler_USR1.assert_called_with(
+            signum, frame
+        )
+        worker_proc.signalProcess.assert_called_with(signal.SIGUSR1)
+
+    def test_stop(t):
+        t.assertFalse(t.zh.shutdown)
+        t.zh.stop()
+        t.assertTrue(t.zh.shutdown)
+
+    @patch('{src}.IHubConfProvider'.format(**PATH), autospec=True)
+    def test__getConf(t, IHubConfProvider):
+        ret = t.zh._getConf()
+        confProvider = IHubConfProvider.return_value
+        t.assertEqual(ret, confProvider.getHubConf.return_value)
