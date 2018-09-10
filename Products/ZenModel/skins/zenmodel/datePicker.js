@@ -51,17 +51,49 @@ var dateFormat = defaultDateFormat;
 var dateRangesList = new Array();
 
 function addDateRange(startDateFieldName, endDateFieldName, startDateField, endDateField) {
-    var range = {
+    var startField = startDateField?startDateField:document.getElementsByName(startDateFieldName).item(0),
+        endField = endDateField?endDateField:document.getElementsByName(endDateFieldName).item(0),
+        range = {
         'startDate': {
             'name': startDateFieldName,
-            'obj': startDateField?startDateField:document.getElementsByName(startDateFieldName).item(0)
+            'obj': startField
         },
         'endDate': {
             'name': endDateFieldName,
-            'obj': endDateField?endDateField:document.getElementsByName(endDateFieldName).item(0)
+            'obj': endField
         }
     }
+
+    // use user date format;
+    userDateFormat(startField);
+    userDateFormat(endField);
+    var el = startField;
+    while(el && el.nodeName.toLowerCase() !== 'form') {
+        el = el.parentNode;
+    }
+    if (el) {
+        // before form submit we should convert date formats to server friendly formats
+        el.onsubmit = function() {
+            startField.value = getDateString(startField.dateValue);
+            endField.value = getDateString(endField.dateValue);
+            return true;
+        };
+    }
+
     dateRangesList.push(range);
+}
+
+function userDateFormat(el) {
+    var parentWin = window.parent;
+    if (parentWin) {
+        var dateFormat = parentWin.Zenoss.USER_DATE_FORMAT,
+            val = el.value,
+            date = getFieldDate(val);
+
+        el.value = parentWin.Zenoss.render.date(date, dateFormat);
+        // store date object in field to use it later;
+        el.dateValue = date;
+    }
 }
 
 function isValidDate(dateFieldName, dateString) {
@@ -71,9 +103,9 @@ function isValidDate(dateFieldName, dateString) {
         var dateRange = dateRangesList[i];
 
         if (dateFieldName == dateRange['startDate']['name']) {
-            return dateObj <= getFieldDate(dateRange['endDate']['obj'].value);
+            return dateObj <= dateRange['endDate']['obj'].dateValue;
         }else if (dateFieldName == dateRange['endDate']['name']) {
-            return dateObj >= getFieldDate(dateRange['startDate']['obj'].value);
+            return dateObj >= dateRange['startDate']['obj'].dateValue;
         }
     }
 
@@ -116,7 +148,8 @@ function displayDatePicker(dateFieldName, displayBelowThisObject, dtFormat, dtSe
 
 function drawDatePicker(targetDateField, x, y)
 {
-  var dt = getFieldDate(targetDateField.value );
+  // var dt = getFieldDate(targetDateField.value );
+  var dt = targetDateField.dateValue;
 
   if (!document.getElementById(datePickerDivID)) {
 	var newNode = document.createElement("div");
@@ -345,6 +378,7 @@ function updateDateField(dateFieldName, dateString)
   var targetDateField = document.getElementsByName (dateFieldName).item(0);
   if (dateString && isValidDate(dateFieldName, dateString)) {
       targetDateField.value = dateString;
+      userDateFormat(targetDateField);
   } else if (dateString) {
     return;
   }
