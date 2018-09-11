@@ -88,29 +88,50 @@ class ModuleManager(object):
 
         moduleName = module.get("moduleName")
         attributes = module.get(moduleName, {})
-        mibmod = self._getMibModule(moduleName, organizer)
+        isNew, mibmod = self._getMibModule(moduleName, organizer)
 
         for attr, value in _getModuleAttributes(attributes):
             setattr(mibmod, attr, value)
 
+        nodecount = 0
         for name, values in module.get("nodes", {}).iteritems():
             self._addItem(
                 mibmod.createMibNode, name, values, moduleName
             )
+            nodecount += 1
 
+        trapcount = 0
         for name, values in module.get("notifications", {}).iteritems():
             self._addItem(
                 mibmod.createMibNotification, name, values, moduleName
+            )
+            trapcount += 1
+
+        if isNew:
+            log.info(
+                "Created %s with %s nodes and %s notifications",
+                '/'.join(mibmod.getPrimaryPath()), nodecount, trapcount
+            )
+        else:
+            log.info(
+                "Updated %s nodes and %s notifications on %s",
+                nodecount, trapcount, '/'.join(mibmod.getPrimaryPath())
             )
 
     def _getMibModule(self, name, default_organizer):
         current_organizer = self._registry.get(name)
         if current_organizer:
-            return self._dmd.unrestrictedTraverse(
-                current_organizer.path + "/mibs/" + name
+            return (
+                False,
+                self._dmd.unrestrictedTraverse(
+                    current_organizer.path + "/mibs/" + name
+                )
             )
-        return self._dmd.Mibs.createMibModule(
-            name, default_organizer.relative_path
+        return (
+            True,
+            self._dmd.Mibs.createMibModule(
+                name, default_organizer.relative_path
+            )
         )
 
     def _addItem(self, function, name, values, moduleName):

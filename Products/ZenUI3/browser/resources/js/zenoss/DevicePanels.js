@@ -35,6 +35,7 @@ var deviceColumns = [
         hidden: true,
         header: _t('System Name')
     },{
+        tdCls: 'x-grid-cell-ipAddress',
         width: 100,
         dataIndex: 'ipAddress',
         header: _t('IP Address'),
@@ -42,6 +43,7 @@ var deviceColumns = [
             return record.data.ipAddressString;
         }
     },{
+        tdCls: 'x-grid-cell-deviceClass',
         dataIndex: 'uid',
         header: _t('Device Class'),
         width: 120,
@@ -116,6 +118,7 @@ var deviceColumns = [
         header: _t('OS Model'),
         renderer: objectRenderer
     },{
+        tdCls: 'x-grid-cell-collector',
         dataIndex: 'collector',
         width: 100,
         hidden: true,
@@ -133,6 +136,7 @@ var deviceColumns = [
             return Zenoss.env.PRIORITIES_MAP[value];
         }
     },{
+        tdCls: 'x-grid-cell-systems',
         dataIndex: 'systems',
         width: 100,
         hidden: true,
@@ -148,6 +152,7 @@ var deviceColumns = [
             return links.join(" | ");
         }
     },{
+        tdCls: 'x-grid-cell-groups',
         dataIndex: 'groups',
         width: 100,
         hidden: true,
@@ -164,6 +169,7 @@ var deviceColumns = [
 
         }
     },{
+        tdCls: 'x-grid-cell-location',
         dataIndex: 'location',
         width: 100,
         hidden: true,

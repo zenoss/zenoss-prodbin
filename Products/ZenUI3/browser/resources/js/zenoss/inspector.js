@@ -236,11 +236,11 @@ Ext.define('Zenoss.inspector.DeviceInspector', {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             keys: ['ipAddress', 'device', 'deviceClass'],
             cls: 'inspector',
-            titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
+            titleTpl: '<div class="name"><a href="{[Zenoss.render.link(undefined, values.uid)]}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
         this.callParent(arguments);
 
-        var url = "{uid}/devicedetail?filter=default#deviceDetailNav:device_events";
+        var url = "{[Zenoss.render.link(undefined, values.uid)]}/devicedetail?filter=default#deviceDetailNav:device_events";
         this.addPropertyTpl(_t('Events'), '<div onclick="location.href=\''+url+'\';">{[Zenoss.render.events(values.events, 4)]}</div>');
         this.addPropertyTpl(_t('Device Status'), '{[Zenoss.render.pingStatus(values.status)]}');
         this.addProperty(_t('Production State'), 'productionState');
@@ -257,7 +257,7 @@ Ext.define('Zenoss.inspector.ComponentInspector', {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             keys: ['ipAddress', 'device'],
             cls: 'inspector',
-            titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.name]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
+            titleTpl: '<div class="name"><a href="{[Zenoss.render.link(undefined, values.uid)]}" target="_top">{name}</a></div><div class="info"><a href="{[Zenoss.render.link(undefined, values.device.uid)]}" target="_top">{[values.device.name]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
 
         config.items = [(

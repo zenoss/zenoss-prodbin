@@ -1,6 +1,7 @@
 import logging
 import re
 
+from collections import OrderedDict
 from itertools import chain
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -27,7 +28,12 @@ class SMIConfigFile(object):
 
         @param path {sequence} The paths to put into the config file.
         """
-        self._path = ':'.join(path)
+        paths = list(OrderedDict.fromkeys(path))
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.debug(
+                "MIB file dependency search path(s): %s", ', '.join(paths)
+            )
+        self._path = ':'.join(paths)
         self._file = NamedTemporaryFile()
         self._makeConfig()
 
@@ -226,10 +232,11 @@ class SMIDumpTool(object):
         rc = process.poll()
 
         if rc != 0:
-            raise RuntimeError("smidump failed:\n" + ''.join(error))
+            raise RuntimeError("smidump failed:\n" + error.strip())
 
         if log.getEffectiveLevel() <= logging.DEBUG:
-            for line in error:
-                log.warn(line.strip())
+            for line in (ln.strip() for ln in error.split("\n")):
+                if line:
+                    log.warn("[smidump] %s", line)
 
-        return SMIDump(''.join(output))
+        return SMIDump(output)

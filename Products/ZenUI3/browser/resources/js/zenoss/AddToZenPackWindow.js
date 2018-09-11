@@ -75,7 +75,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     xtype: 'DialogButton',
                     disabled: true,
                     handler: function (t) {
-                        var form = t.up(),
+                        var form = t.up('form'),
                             chosenzenpack = form.down('#zpcombobox').getValue(), i, targets = [], callback;
                         if (!Ext.isArray(me.target)) {
                             targets.push(me.target);

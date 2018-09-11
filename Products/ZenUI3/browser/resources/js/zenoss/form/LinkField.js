@@ -29,24 +29,30 @@ Ext.define("Zenoss.form.LinkField", {
         var origValue = value;
         if (Ext.isEmpty(value)) {
             value = _t('None');
+        } else if (Ext.isObject(value)) {
+            value = Zenoss.render.link(null, value.uid, value.name);
+        } else if (Ext.isArray(value)) {
+            var items = [];
+            Ext.each(value, function(v){
+                items.push(Zenoss.render.link(v));
+            });
+            value = items.join('<br/>');
         } else {
-            var linkMatch = value.match(/(?:<a href=")(.+)(?:">)/);
-            var nameMatch = value.match(/(?:<a href=.*">)(.+)(?:<\/a>)/);
-            if (Ext.isArray(value)){
-                var items = [];
-                Ext.each(value, function(v){
-                    items.push(Zenoss.render.link(v));
-                });
+            var div = Ext.get(document.createElement('div'));
+            div.setHTML(value);
+            var a = div.query('a'),
+                items = [];
+            if (a.length) {
+                Ext.Array.each(a, function(item, idx, count) {
+                    var link = Ext.fly(item).getAttribute('href'),
+                        name = Ext.fly(item).getHTML();
+                    items.push(Zenoss.render.link(null, link, name));
+                }, this);
                 value = items.join('<br/>');
             } else {
-                if (linkMatch && nameMatch) {
-                    var link = linkMatch[1];
-                    var name = nameMatch[1];
-                    value = Zenoss.render.link(null, link, name);
-                } else {
-                    value = Zenoss.render.link(value);
-                }
+                value = Zenoss.render.link(value);
             }
+            div.destroy();
         }
         this.callParent([value]);
         this.rawValue = origValue;

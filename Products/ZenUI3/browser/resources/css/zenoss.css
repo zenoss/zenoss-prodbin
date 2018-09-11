@@ -10,7 +10,7 @@ em {
 
 
 a:link, a:visited {
-  color: #6386AE;
+  color: #0655af;
   font-family: helvetica,arial,sans-serif;
 }
 
@@ -1749,6 +1749,10 @@ a.z-entity:hover{
 }
 
 /* customize graph appearance */
+.backcompact-europagraph {
+    border: none !important;
+    box-shadow: none !important;
+}
 div.europagraph {
     border: 1px solid #eee;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
