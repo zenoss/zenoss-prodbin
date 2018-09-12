@@ -52,6 +52,25 @@ TX_STATE_FIELD = "tx_state"
 
 MANDATORY_FIELDS = set([ TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD ])
 
+
+class IterResults(object):
+
+    def __init__(self, results, parse_method, context):
+        self.results = results
+        self.parse_method = parse_method
+        self.context = context
+
+    def __iter__(self):
+        # Must use next(self) to initialize the generator in the 'next' method
+        return next(self)
+
+    def next(self):
+        for results in self.results:
+            brains = self.parse_method(results, self.context)
+            for brain in brains:
+                yield brain
+
+
 class SearchResults(object):
 
     def __init__(self, results, total, hash_, areBrains=True):
@@ -73,9 +92,8 @@ class SearchResults(object):
 
 class CursorSearchResults(object):
 
-    def __init__(self, results, total):
+    def __init__(self, results):
         self.results = results
-        self.total = total
 
     def __iter__(self):
         return iter(self.results)
@@ -454,15 +472,8 @@ class ModelCatalogDataManager(object):
             log.error("EXCEPTION: {0}".format(e.message))
             self.raise_model_catalog_error("Exception performing search")
         else:
-            results = []
-            total = 0
-            for result in catalog_results:
-                total = result.total_count
-                brains = iter(self._parse_catalog_results(result, context))
-                for brain in brains:
-                    results.append(brain)
-
-            return CursorSearchResults(results, total)
+            results = IterResults(catalog_results, self._parse_catalog_results, context)
+            return CursorSearchResults(results)
 
     def _do_search(self, search_params, context):
         """
