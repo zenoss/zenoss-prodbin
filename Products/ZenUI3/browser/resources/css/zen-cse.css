@@ -257,6 +257,7 @@ BYE BYE BORDERS
 ================
 */
 .z-cse button,
+.z-cse textarea,
 .z-cse div.zenportlet input,
 .z-cse div.zenportlet div.portlet-body,
 .z-cse div.zenportlet div.portlet-header,
@@ -344,6 +345,7 @@ BYE BYE BORDERS
     .z-cse input.tablevalues,
     .z-cse select,
     .z-cse table.x-form-item input[type=text],
+    .z-cse textarea,
     .z-cse textarea.x-form-field,
     .z-cse .tablevalues.select,
     .z-cse .user-prefs-cell .tableheader,
@@ -2522,6 +2524,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark input.tablevalues,
     .z-cse.z-cse-dark table.x-form-item input[type=text],
     .z-cse.z-cse-dark table.x-form-item input[type=password],
+    .z-cse.z-cse-dark textarea,
     .z-cse.z-cse-dark textarea.x-form-field,
     .z-cse.z-cse-dark .q-start input[type=password],
     .z-cse.z-cse-dark .x-form-arrow-trigger,
@@ -2610,6 +2613,7 @@ BYE BYE BORDERS
     /* dark theme text */
     .z-cse.z-cse-dark div.zenportlet div.portlet-settings a.portlet-settings-control,
     .z-cse.z-cse-dark select,
+    .z-cse.z-cse-dark textarea,
     .z-cse.z-cse-dark span.status-down,
     .z-cse.z-cse-dark span.status-up,
     .z-cse.z-cse-dark span.status-down-large,
