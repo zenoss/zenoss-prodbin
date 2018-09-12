@@ -487,12 +487,19 @@
             if (graphPanel && Ext.isNumber(graphPanel.drange)) {
                 drange = graphPanel.drange;
             }
+            // ZEN-30758
+            var width = window.innerWidth
+                        || document.documentElement.clientWidth
+                        || document.body.clientWidth,
+                height = window.innerHeight
+                        || document.documentElement.clientHeight
+                        || document.body.clientHeight;
 
             config.graphId = Ext.id();
             config.autoscale = true;
             config.hasMenu = false;
             config.xtype = 'europagraph';
-            config.height = window.outerHeight * 0.75;
+            config.height = height * 0.8;
             config.autoScroll = true;
             delete config.html;
 
@@ -500,7 +507,7 @@
                 cls: 'white-background-panel',
                 layout: 'fit',
                 // ZEN-30103
-                width: (window.outerWidth-40),
+                width: (width-40),
                 resizable: false,
                 items: [config]
             });
