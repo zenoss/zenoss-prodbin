@@ -133,10 +133,10 @@
 
       <tr>
         <td class="tablevalues" colspan="6">
-          <input class="tablevalues" type="Submit" value="Generate" name="generate" />
+          <input class="navcontrol" type="Submit" value="Generate" name="generate" id="generate" />
         </td> 
       </tr>
-    
+
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
@@ -145,6 +145,10 @@
     </form>
 
     <script type="text/javascript">
+        document.querySelector('#generate').onclick = function() {
+            var generateMask = new Ext.LoadMask(Ext.getBody(), {msg:"Generating report..."});
+            generateMask.show();
+        };
         addDateRange('startDate', 'endDate');
     </script>
 </tal:block>
