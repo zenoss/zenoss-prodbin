@@ -101,11 +101,3 @@ class UsersRouter(DirectRouter):
         newUser = facade.addUser(id, password, email, roles)
         audit('UI.Users.Add', id, email=email, roles=roles)
         return DirectResponse.succeed(data=Zuul.marshal(newUser))
-
-    @require('Manage DMD')
-    def markWizardAsFinished(self):        
-        facade = self._getFacade()
-        facade.markWizardAsFinished()
-        audit('UI.Wizard.Complete')
-        return DirectResponse.succeed()
-        
