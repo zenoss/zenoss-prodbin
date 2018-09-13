@@ -2351,6 +2351,21 @@ BYE BYE BORDERS
         color: #e8e8e8;
     }
 
+    .z-cse .wizard-title {
+        font-size: 22px;
+    }
+
+    .z-cse .wizard-container {
+        width: 1000px;
+        margin-right: auto;
+        margin-left: auto;
+        padding: 40px;
+    }
+
+    .z-cse .wizard-done-button {
+        min-width: 80px;
+    }
+
 /*
         =====================================================================================
         DARK THEME

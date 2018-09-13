@@ -154,7 +154,6 @@
                 </div>
             </div>
         </form>
-        <tal:block tal:content="structure here/getExtraLoginFormContents"/>
 
         <script>
             document.addEventListener('DOMContentLoaded', function onDOMContentLoaded() {
