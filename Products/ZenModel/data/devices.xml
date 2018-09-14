@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2018-08-29 20:35:55.996123
+    Zenoss RelationshipManager export completed on 2018-09-14 14:16:30.246550
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.0.3]" export_date="2018-08-29 20:35:55.996123" zenoss_server="785ed791976c" >
+<objects version="[Zenoss, version 7.0.4]" export_date="2018-09-14 14:16:30.246550" zenoss_server="11204d39d325" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 []
