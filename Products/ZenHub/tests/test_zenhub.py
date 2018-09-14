@@ -1,7 +1,9 @@
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, call
+from mock import Mock, patch, create_autospec, call, MagicMock
 
 from zope.interface.verify import verifyObject
+
+from mock_interface import create_interface_mock
 
 # Breaks test isolation ImportError: No module named Globals
 from Products.ZenHub.zenhub import (
@@ -20,6 +22,11 @@ from Products.ZenHub.zenhub import (
     metricWriter,
     ZenHub,
     CONNECT_TIMEOUT, OPTION_STATE,
+    IInvalidationFilter,
+    POSKeyError,
+    PrimaryPathObjectManager,
+    DeviceComponent,
+    FILTER_INCLUDE, FILTER_EXCLUDE,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -520,11 +527,16 @@ class ZenHubTest(TestCase):
 
         t.zh = ZenHub()
         # Set attributes that should be created by __init__
-        t.zh.log = Mock(name='log', spec_set=['debug'])
+        t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception'])
         t.zh.shutdown = False
+
+        # Patch external modules
+        t.time_patcher = patch('{src}.time'.format(**PATH), autospec=True)
+        t.time = t.time_patcher.start()
 
     def tearDown(t):
         t.init_patcher.stop()
+        t.time_patcher.stop()
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
@@ -537,7 +549,6 @@ class ZenHubTest(TestCase):
             ]
         )
         sock = Mock(name='sock', spec_set=['setsockopt', 'getsockname'])
-        t.zh.setKeepAlive(sock)
         # Super Hacky patch to deal with internal import
         with patch.dict('sys.modules', socket=socket):
             t.zh.setKeepAlive(sock)
@@ -551,43 +562,43 @@ class ZenHubTest(TestCase):
         ])
 
     @patch('{src}.signal'.format(**PATH), autospec=True)
-    @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_sighandler_USR2(t, time, signal):
-        '''when signal USR2 is recieved, broadcast it to all worker processes
+    def test_sighandler_USR2(t, signal):
+        '''Daemon function
+        when signal USR2 is recieved, broadcast it to all worker processes
         '''
-        zh = Mock(ZenHub, name='ZenHub')
-        zh.log = Mock(name='log')
-        zh.SIGUSR_TIMEOUT = 1
+        _workerStats = create_autospec(t.zh._workerStats, name='_workerStats')
+        t.zh._workerStats = _workerStats
+        t.zh.SIGUSR_TIMEOUT = 1
         # should use the workerProcess class as spec, but its currently burried
         worker_proc = Mock(
             name='worker_1', spec_set=['spawn_time', 'signalProcess'],
             spawn_time=3
         )
-        time.time.return_value = 5
-        zh.workerprocessmap = {'w1': worker_proc}
+        t.time.time.return_value = 5
+        t.zh.workerprocessmap = {'w1': worker_proc}
 
-        ZenHub.sighandler_USR2(zh, signum='unused', frame='unused')
+        ZenHub.sighandler_USR2(t.zh, signum='unused', frame='unused')
 
+        t.zh._workerStats.assert_called_with()
         worker_proc.signalProcess.assert_called_with(signal.SIGUSR2)
 
     @patch('{src}.super'.format(**PATH))
     @patch('{src}.signal'.format(**PATH), autospec=True)
-    @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_sighandler_USR1(t, time, signal, super):
-        '''when signal USR1 is recieved, broadcast it to all worker processes
+    def test_sighandler_USR1(t, signal, super):
+        '''Daemon function
+        when signal USR1 is recieved, broadcast it to all worker processes
         '''
-        zh = Mock(ZenHub, name='ZenHub')
-        zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
-        zh.options = Mock(name='options', profiling=True)
+        t.zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
+        t.zh.options = Mock(name='options', profiling=True)
         worker_proc = Mock(name='worker_1', spec_set=['signalProcess'])
-        zh.workerprocessmap = {'w1': worker_proc}
+        t.zh.workerprocessmap = {'w1': worker_proc}
         signum = Mock(name='signum', spec_set=[])
         frame = Mock(name='frame', spec_set=[])
 
-        ZenHub.sighandler_USR1(zh, signum=signum, frame=frame)
+        ZenHub.sighandler_USR1(t.zh, signum=signum, frame=frame)
 
-        zh.profiler.dump_stats.assert_called_with()
-        super.assert_called_with(ZenHub, zh)
+        t.zh.profiler.dump_stats.assert_called_with()
+        super.assert_called_with(ZenHub, t.zh)
         super.return_value.sighandler_USR1.assert_called_with(
             signum, frame
         )
@@ -603,3 +614,217 @@ class ZenHubTest(TestCase):
         ret = t.zh._getConf()
         confProvider = IHubConfProvider.return_value
         t.assertEqual(ret, confProvider.getHubConf.return_value)
+
+    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
+    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
+    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
+    def test_getRRDStats(t, DaemonStats, ThresholdNotifier, DerivativeTracker):
+        '''Metric reporting function
+        '''
+        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
+        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
+
+        # patch to deal with internal import
+        BuiltInDS_module = MagicMock(
+            name='Products.ZenModel.BuiltInDS',
+            spec_set=['BuiltInDS'],
+        )
+        BuiltInDS = MagicMock(name='BuiltInDS', spec_set=['sourcetype'])
+        BuiltInDS_module.BuiltInDS = BuiltInDS
+        modules = {'Products.ZenModel.BuiltInDS': BuiltInDS_module}
+
+        with patch.dict('sys.modules', modules):
+            ret = t.zh.getRRDStats()
+
+        rrdStats = DaemonStats.return_value
+        perfConf = t.zh._getConf.return_value
+        thresholds = perfConf.getThresholdInstances.return_value
+        threshold_notifier = ThresholdNotifier.return_value
+        derivative_tracker = DerivativeTracker.return_value
+
+        perfConf.getThresholdInstances.assert_called_with(BuiltInDS.sourcetype)
+        ThresholdNotifier.assert_called_with(t.zh.zem.sendEvent, thresholds)
+
+        rrdStats.config.assert_called_with(
+            'zenhub',
+            perfConf.id,
+            t.zh._metric_writer,
+            threshold_notifier,
+            derivative_tracker
+        )
+
+        t.assertEqual(ret, DaemonStats.return_value)
+
+    @patch('{src}.reactor'.format(**PATH), autospec=True)
+    def test_processQueue(t, reactor):
+        '''Configuration Invalidation Processing function
+        synchronize with the database, and execute doProcessQueue
+        recursive reactor.callLater should be replaced with loopingCall
+        '''
+        async_syncdb = create_autospec(t.zh.async_syncdb, name='async_syncdb')
+        t.zh.async_syncdb = async_syncdb
+        t.zh.doProcessQueue = create_autospec(
+            t.zh.doProcessQueue, name='doProcessQueue'
+        )
+        options = Mock(name='options', spec_set=['invalidation_poll_interval'])
+        t.zh.options = options
+        t.zh.totalEvents = 0
+        t.zh.totalTime = 0
+        timestamps = [10, 20]
+        t.time.time.side_effect = timestamps
+
+        t.zh.processQueue()
+
+        t.zh.async_syncdb.assert_called_with()
+        t.zh.doProcessQueue.assert_called_with()
+
+        reactor.callLater.assert_called_with(
+            options.invalidation_poll_interval, t.zh.processQueue
+        )
+        t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
+        t.assertEqual(t.zh.totalEvents, 1)
+
+    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
+    def test__initialize_invalidation_filters(t, getUtilitiesFor):
+        '''Configuration Invalidation Processing function
+        '''
+        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
+        filters = [MockIInvalidationFilter() for i in range(3)]
+        # weighted in reverse order
+        for i, filter in enumerate(filters):
+            filter.weight = 10 - i
+        getUtilitiesFor.return_value = [
+            ('f%s' % i, f) for i, f in enumerate(filters)
+        ]
+        t.zh.dmd = Mock(name='dmd', spec_set=[])
+
+        t.zh._initialize_invalidation_filters()
+
+        for filter in filters:
+            filter.initialize.assert_called_with(t.zh.dmd)
+
+        # check sorted by weight
+        filters.reverse()
+        t.assertEqual(t.zh._invalidation_filters, filters)
+
+    def test__filter_oids(t):
+        '''Configuration Invalidation Processing function
+        yields a generator with the OID if the object has been deleted
+        runs changed devices through invalidation_filters
+        which may exclude them,
+        and runs any included devices through _transformOid
+        '''
+
+        dmd = Mock(
+            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
+        )
+        app = dmd.getPhysicalRoot.return_value
+        t.zh.dmd = dmd
+
+        device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
+        device_obj = Mock(name='device_obj', spec_set=[])
+        device.__of__.return_value.primaryAq.return_value = device_obj
+        component = MagicMock(DeviceComponent, __of__=Mock())
+        component_obj = Mock(name='component_obj', spec_set=[])
+        component.__of__.return_value.primaryAq.return_value = component_obj
+        excluded = Mock(DeviceComponent, __of__=Mock())
+        excluded_obj = Mock(name='excluded_obj', spec_set=[])
+        excluded.__of__.return_value.primaryAq.return_value = excluded_obj
+
+        app._p_jar = {
+            111: device,
+            222: component,
+            # BUG: any object filtered overwrites other oids
+            # but without a filtered object, no oids are returned
+            333: excluded,
+        }
+        oids = app._p_jar.keys()
+
+        def include(obj):
+            if obj in [device_obj, component_obj]:
+                return FILTER_EXCLUDE  # not filter, will be returned
+            if obj == excluded_obj:
+                return FILTER_INCLUDE  # filters, will be ignored
+
+        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
+        filter = MockIInvalidationFilter()
+        filter.include = include
+        t.zh._invalidation_filters = [filter]
+
+        t.zh._transformOid = create_autospec(
+            t.zh._transformOid, name='_transformOid',
+            # BUG: return value from transformOid overwrites other oids
+            return_value=[444],
+        )
+
+        ret = t.zh._filter_oids(oids)
+        out = [o for o in ret]  # unwind the generator
+
+        # WARNING: included/excluded logic may be reversed
+        # possible bug, _tranformOid is only called on EXCLUDED oids.
+        # BUG
+        t.zh._transformOid.assert_has_calls([call(333, excluded_obj)])
+
+        # BUG: f _transformOid wipes out all other oids
+        #t.assertEqual(out, [111, 222])
+        t.assertEqual(out, [444])
+
+    def test__filter_oids_deleted(t):
+        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
+        t.zh.dmd = dmd
+        app = dmd.getPhysicalRoot.return_value = MagicMock(name='root')
+        app._p_jar.__getitem__.side_effect = POSKeyError()
+
+        ret = t.zh._filter_oids([111])
+        out = [o for o in ret]  # unwind the generator
+        t.assertEqual(out, [111])
+
+    def test__filter_oids_deleted_primaryaq(t):
+        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
+        t.zh.dmd = dmd
+        deleted = MagicMock(DeviceComponent, __of__=Mock())
+        deleted.__of__.return_value.primaryAq.side_effect = KeyError
+        with t.assertRaises(KeyError):
+            deleted.__of__().primaryAq()
+
+        app = dmd.getPhysicalRoot.return_value
+        app._p_jar = {111: deleted}
+
+        ret = t.zh._filter_oids([111])
+        out = [o for o in ret]
+        t.assertEqual(out, [111])
+
+
+    def _filter_oids(self, oids):
+        app = self.dmd.getPhysicalRoot()
+        i = 0
+        for oid in oids:
+            i += 1
+            try:
+                obj = app._p_jar[oid]
+            except POSKeyError:
+                # State is gone from the database. Send it along.
+                yield oid
+            else:
+                if isinstance(
+                    obj,
+                    (PrimaryPathObjectManager, DeviceComponent)
+                ):
+                    try:
+                        obj = obj.__of__(self.dmd).primaryAq()
+                    except (AttributeError, KeyError):
+                        # It's a delete. This should go through.
+                        yield oid
+                    else:
+                        included = True
+                        for fltr in self._invalidation_filters:
+                            result = fltr.include(obj)
+                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
+                                included = (result == FILTER_INCLUDE)
+                                break
+                        if included:
+                            oids = self._transformOid(oid, obj)
+                            if oids:
+                                for oid in oids:
+                                    yield oid
