@@ -22,11 +22,10 @@ from Products.ZenModel.ZenossSecurity import (
     OWNER_ROLE,
     ZEN_EDIT_USER
 )
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class UpdateEditUserPermission(Migrate.Step):
     
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 4, 1)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:

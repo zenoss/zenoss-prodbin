@@ -10,7 +10,6 @@ __doc__ = """
 Disable basic auth through the GLB in CSE
 """
 import logging
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import Migrate
 import servicemigration as sm
 
@@ -33,7 +32,7 @@ if ($auth_flags = 11) {
 """
 
 class AddBlockBasicAuth(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 4, 1)
 
     def _getConfigs(self, ctx, name):
         original_conf = next(

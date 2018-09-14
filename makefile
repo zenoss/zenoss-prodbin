@@ -9,7 +9,7 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # for more information about setting these values.
 # See zenoss-version.mk for more information about make targets that use these values.
 SCHEMA_MAJOR ?= 300
-SCHEMA_MINOR ?= 0 
+SCHEMA_MINOR ?= 4
 SCHEMA_REVISION ?= 1
 
 DIST_ROOT := dist
