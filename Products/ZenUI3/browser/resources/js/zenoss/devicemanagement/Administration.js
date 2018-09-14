@@ -941,6 +941,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                     timeZone = response.data;
                 }
             });
+            this.callParent(arguments);
         }
     });
 
