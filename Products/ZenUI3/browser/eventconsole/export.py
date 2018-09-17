@@ -203,7 +203,11 @@ class EventsExporter(BrowserView):
                 evt.update(details)
                 del evt[DETAILS_KEY]
 
-            for key, value in evt.iteritems():
+            exportVisible = params.get('exportVisible', True)
+            evtItems = {k: v for k, v in evt.iteritems()
+                if k in fields and exportVisible} if exportVisible else evt
+
+            for key, value in evtItems.iteritems():
                 if value is not None:
                     if key in ("lastTime", "firstTime", "stateChange"):
                         value = self._timeformat(value, options)
