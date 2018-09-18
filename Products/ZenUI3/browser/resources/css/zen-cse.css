@@ -408,7 +408,7 @@ BYE BYE BORDERS
     }
 
     /*ZEN-30098*/
-    .z-cse .x-surface path {
+    .z-cse .x-surface path[stroke="#444"] {
         stroke: #4b4b4c;
     }
     .z-cse .x-surface text {
@@ -2461,7 +2461,7 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-surface text {
         fill: #ccc;
     }
-    .z-cse.z-cse-dark .x-surface path {
+    .z-cse.z-cse-dark .x-surface path[stroke="#444"] {
         stroke: #ccc;
     }
 
