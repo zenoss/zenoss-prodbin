@@ -1553,14 +1553,16 @@
             if (decoded.state) {
                 try {
                     state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(decoded.state)));
+                    Ext.state.Manager.set(this.stateId, state);
+                    this.fireEvent('recreateGrid', this);
                 } catch(e) { }
             //in case parameters are not encoded
             } else {
-                state = {"filters": decoded};
+                var filters = { filters: decoded };
+                this.clearFilters();
+                this.applyState(filters);
+                this.filterRow.storeSearch();
             }
-
-            Ext.state.Manager.set(this.stateId, state);
-            this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
