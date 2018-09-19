@@ -37,10 +37,11 @@
             node,
             dataPoints,
             params,
-            callback;
+            callback,
+            dataSourceGrid = Zenoss.getCmp(dataSourcesId, grid);
         uid = grid.getTemplateUid();
-        if (Ext.getCmp(dataSourcesId)) {
-            node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
+        if (dataSourceGrid) {
+            node = dataSourceGrid.getSelectionModel().getSelectedNode();
         }
         if ( node && node.isLeaf() ) {
             dataPoints = [node.data.uid];
@@ -278,7 +279,7 @@
 
             config = config || {};
             Ext.applyIf(config, {
-                id: Zenoss.templates.thresholdsId,
+                itemId: Zenoss.templates.thresholdsId,
                 selModel:   new Zenoss.SingleRowSelectionModel ({
                     listeners : {
                         /**
@@ -301,25 +302,27 @@
                 tbar: tbarItems.concat([{
                     xtype: 'button',
                     iconCls: 'add',
-                    id: 'thresholdAddButton',
+                    itemId: 'thresholdAddButton',
                     ref: '../addButton',
                     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     handler: function(btn) {
-                        var templateUid = Ext.getCmp('dataSourceTreeGrid').uid;
+                        // var templateUid = this.up().up().down('#dataSourceTreeGrid').uid;
+                        var templateUid = Zenoss.getCmp(dataSourcesId, this);
                         if (!templateUid) {
                             new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a threshold.')});
                             return;
                         }
                         showAddThresholdDialog(btn.refOwner);
                     },
+                    scope: me,
                     listeners: {
-                        render: function() {
-                            Zenoss.registerTooltipFor('thresholdAddButton');
+                        render: function(t) {
+                            Zenoss.registerTooltipFor('thresholdAddButton', t);
                         }
                     }
                 }, {
                     ref: '../deleteButton',
-                    id: 'thresholdDeleteButton',
+                    itemId: 'thresholdDeleteButton',
                     xtype: 'button',
                     iconCls: 'delete',
                     disabled: true,
@@ -354,13 +357,13 @@
                         }
                     },
                     listeners: {
-                        render: function() {
-                            Zenoss.registerTooltipFor('thresholdDeleteButton');
+                        render: function(t) {
+                            Zenoss.registerTooltipFor('thresholdDeleteButton', t);
                         }
                     }
 
                 }, {
-                    id: 'thresholdEditButton',
+                    itemId: 'thresholdEditButton',
                     ref: '../editButton',
                     xtype: 'button',
                     iconCls: 'customize',
@@ -369,8 +372,8 @@
                         thresholdEdit(button.refOwner);
                     },
                     listeners: {
-                        render: function() {
-                            Zenoss.registerTooltipFor('thresholdEditButton');
+                        render: function(t) {
+                            Zenoss.registerTooltipFor('thresholdEditButton', t);
                         }
                     }
                 }]),
@@ -394,7 +397,7 @@
                 this, arguments);
         },
         getTemplateUid: function() {
-            var tree = Ext.getCmp(treeId),
+            var tree = Zenoss.getCmp(treeId, this), //Ext.getCmp(treeId),
                 node = tree.getSelectionModel().getSelectedNode();
             if (node) {
                 return node.data.uid;
