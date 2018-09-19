@@ -591,5 +591,11 @@
     factory=".backcompat.CustomReport"
     />
 
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewGraphReport.pt"
+    name="viewGraphReport"
+    for="*"
+    permission="zenoss.View"
+    />
 
 </configure>
