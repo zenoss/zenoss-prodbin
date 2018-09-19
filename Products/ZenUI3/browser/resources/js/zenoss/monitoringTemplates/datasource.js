@@ -241,7 +241,6 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
     },
     onSelectionChange: function(t, records) {
         var disable = !records.length && !Zenoss.Security.hasPermission('Manage DMD');
-        console.log('1111111', t,records,disable);
         this.deleteButton.setDisabled(disable);
         this.customizeButton.setDisabled(disable);
     },
