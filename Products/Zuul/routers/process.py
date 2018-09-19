@@ -125,6 +125,16 @@ class ProcessRouter(TreeRouter):
                     m = "replacement : %s" % (e,)
                     return DirectResponse.fail(msg=m)
 
+        minProcessCount = data.get('minProcessCount')
+        maxProcessCount = data.get('maxProcessCount')
+
+        if minProcessCount and maxProcessCount:
+            minProcessCount = int(minProcessCount)
+            maxProcessCount = int(maxProcessCount)
+
+            if minProcessCount > maxProcessCount:
+                return DirectResponse.fail(msg="The value of minimum process count threshold can't be greater than the maximum value")
+
         process = facade.getInfo(processUid)
         audit('UI.Process.Edit', processUid, data_=data, skipFields_=('uid'))
         return DirectResponse.succeed(data=Zuul.unmarshal(data, process))

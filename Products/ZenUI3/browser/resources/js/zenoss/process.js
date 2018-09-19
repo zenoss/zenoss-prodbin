@@ -437,7 +437,12 @@ var minCountThreshold = {
     id: 'minProcessCount',
     fieldLabel: _t("Minimum"),
     name: 'minProcessCount',
-    allowBlank: true
+    allowBlank: true,
+    listeners: {
+        change: function (field, value) {
+            Ext.getCmp('maxProcessCount').setMinValue(value);
+        }
+    }
 };
 
 var maxCountThreshold = {
@@ -445,7 +450,12 @@ var maxCountThreshold = {
     id: 'maxProcessCount',
     fieldLabel: _t("Maximum"),
     name: 'maxProcessCount',
-    allowBlank: true
+    allowBlank: true,
+    listeners: {
+        change: function (field, value) {
+            Ext.getCmp('minProcessCount').setMaxValue(value);
+        }
+    }
 };
 
 var zMonitor = {
