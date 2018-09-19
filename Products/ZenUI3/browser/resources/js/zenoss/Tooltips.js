@@ -32,7 +32,6 @@ Zenoss.ToolTip = Ext.extend(Ext.ToolTip, {
    },
    onMouseEnter: function() {
        var component = Ext.getCmp(this.target.id);
-
        // if the target has a visible menu,
        // allow the tooltip to autohide so that
        // it does not get in the way
@@ -44,17 +43,18 @@ Zenoss.ToolTip = Ext.extend(Ext.ToolTip, {
    }
 });
 
-Zenoss.registerTooltip = function(config) {
+Zenoss.registerTooltip = function(config, cmp) {
     var target = config.target,
-        initialConfig = Ext.apply({}, config),
-        cmp = Ext.getCmp(target);
+        initialConfig = Ext.apply({}, config);
+    cmp = Ext.getCmp(target) || cmp;
     if (Ext.isDefined(cmp)) {
         cmp.on('destroy', function(){
             Zenoss.TIPS[target] = initialConfig;
         });
     }
 
-    if (Ext.get(target)) {
+    if (cmp) {
+        config.target = cmp.el;
         var tip = new Zenoss.ToolTip(config);
         Zenoss.TIPS[target] = tip;
     } else {
@@ -71,11 +71,11 @@ Zenoss.registerTooltip = function(config) {
  * If a tooltip is already registered, don't reregister it.
  *
  */
-Zenoss.registerTooltipFor = function(target) {
+Zenoss.registerTooltipFor = function(target, cmp) {
     var t;
     if (Ext.isDefined(t = Zenoss.TIPS[target])) {
         if (!(t instanceof Ext.ToolTip)) {
-            Zenoss.registerTooltip(t);
+            Zenoss.registerTooltip(t, cmp);
         }
     }
 }; // Zenoss.registerTooltipFor
