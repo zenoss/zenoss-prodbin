@@ -159,8 +159,7 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # portal, cvthost, evtuser, evtpass, evtdb,
         #    smtphost, smtpport, pagecommand
         builder = DmdBuilder(self.app.zport, 'localhost', 'zenoss', 'zenoss',
-                            'events', 3306, 'localhost', '25',
-                             '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
+                            'events', 3306, 'localhost', '25', '')
         builder.build()
         self.dmd = builder.dmd
         self.dmd.ZenUsers.manage_addUser('tester', roles=('Manager',))

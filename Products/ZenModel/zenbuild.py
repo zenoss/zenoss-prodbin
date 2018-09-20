@@ -61,7 +61,7 @@ class zenbuild(CmdBase):
         self.parser.add_option('--smtpport', dest="smtpport", default=25,
                 type='int', help="smtp port")
 
-        self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
+        self.parser.add_option('--pagecommand', dest="pagecommand", default="",
                 help="page command")
         # amqp stuff
         self.parser.add_option('--amqphost', dest="amqphost", default="localhost",
