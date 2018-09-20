@@ -82,13 +82,7 @@ Ext.onReady(function(){
                         }
                     }
                 },
-                columns: [
-                    {
-                        id: 'uid_seq_id',
-                        dataIndex: 'uid',
-                        hidden: true
-
-                    },{
+                columns: [{
                         header: _t('Seq'),
                         id: 'seq_seq_id',
                         dataIndex: 'sequence',
@@ -104,28 +98,24 @@ Ext.onReady(function(){
                             }
                             return value;
                         },
-                        flex: 1,
-                        sortable: false
+                        flex: 1
                     },{
                         header: _t("Event Class"),
                         id: 'class_seq_id',
                         dataIndex: 'eventClass',
-                        width: 200,
-                        sortable: false
+                        width: 200
                     },{
                         header: _t("EventClass Key"),
                         id: 'key_seq_id',
                         dataIndex: 'eventClassKey',
-                        flex: 1,
-                        sortable: false
+                        flex: 1
                     },{
                         header: _t("Evaluation"),
                         id: 'eval_seq_id',
                         dataIndex: 'eval',
                         flex: 1,
                         sortable: false
-                    }
-                    ]
+                    }]
             });
             this.callParent(arguments);
         },
@@ -499,12 +489,13 @@ Ext.onReady(function(){
                 id: 'classes_mapping_grid',
                 stateful: false,
                 multiSelect: true,
-                tbar:[
+                dockedItems:[
                     {
                         xtype: 'largetoolbar',
                         id: 'mapping_toolbar',
                         itemId: 'mapping_toolbar',
-                        height:30,
+                        dock: 'top',
+                        height: 45,
                         disabled: true,
                         items: [
                             {
@@ -643,10 +634,6 @@ Ext.onReady(function(){
                         sortable: true,
                         filter: true
                     },{
-                        id: 'uid_id',
-                        dataIndex: 'uid',
-                        hidden: true
-                    },{
                         header: _t("EventClass Key"),
                         id: 'key_id',
                         dataIndex: 'eventClassKey',
@@ -780,7 +767,6 @@ Ext.onReady(function(){
     Ext.define('Zenoss.eventclass.XformMasterPanel', {
         extend: 'Ext.panel.Panel',
         alias: 'widget.xformmasterpanel',
-        overflowY: 'scroll',
         initComponent: function() {
             this.callParent(arguments);
         },
