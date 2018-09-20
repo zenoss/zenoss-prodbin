@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, patch, create_autospec, call, MagicMock
+from mock import Mock, patch, create_autospec, call, MagicMock, sentinel
 
 from zope.interface.verify import verifyObject
 
@@ -27,6 +27,10 @@ from Products.ZenHub.zenhub import (
     PrimaryPathObjectManager,
     DeviceComponent,
     FILTER_INCLUDE, FILTER_EXCLUDE,
+    IInvalidationProcessor,
+    collections,
+    defer,
+    LastCallReturnValue,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -42,8 +46,8 @@ class AuthXmlRpcServiceTest(TestCase):
 
     @patch('{src}.XmlRpcService.__init__'.format(**PATH), autospec=True)
     def test___init__(t, XmlRpcService__init__):
-        dmd = Mock(name='dmd', spec_set=[])
-        checker = Mock(name='checker', spec_set=[])
+        dmd = sentinel.dmd
+        checker = sentinel.checker
 
         axrs = AuthXmlRpcService(dmd, checker)
 
@@ -56,7 +60,7 @@ class AuthXmlRpcServiceTest(TestCase):
         '''
         render = create_autospec(XmlRpcService.render, name='render')
         XmlRpcService.render = render
-        request = Mock(name='request', spec_set=[])
+        request = sentinel.request
 
         ret = t.axrs.doRender('unused arg', request)
 
@@ -65,7 +69,7 @@ class AuthXmlRpcServiceTest(TestCase):
 
     @patch('{src}.xmlrpc'.format(**PATH), name='xmlrpc', autospec=True)
     def test_unauthorized(t, xmlrpc):
-        request = Mock(name='request', spec_set=[])
+        request = sentinel.request
         t.axrs._cbRender = create_autospec(t.axrs._cbRender)
 
         t.axrs.unauthorized(request)
@@ -125,8 +129,8 @@ class HubAvitarTest(TestCase):
     def test_perspective_getService(t):
         service_name = 'serviceName'
         instance = 'collector_instance_name'
-        listener = Mock(name='listener', spec_set=[])
-        options = Mock(name='options', spec_set=[])
+        listener = sentinel.listener
+        options = sentinel.options
         service = t.hub.getService.return_value
 
         ret = t.avitar.perspective_getService(
@@ -179,7 +183,7 @@ class ServiceAddedEventTest(TestCase):
 
 class HubWillBeCreatedEventTest(TestCase):
     def test__init__(t):
-        hub = Mock(name='zenhub_instance', spec_set=[])
+        hub = sentinel.zenhub_instance
         event = HubWillBeCreatedEvent(hub)
         # the class Implements the Interface
         t.assertTrue(
@@ -195,7 +199,7 @@ class HubWillBeCreatedEventTest(TestCase):
 
 class HubCreatedEventTest(TestCase):
     def test__init__(t):
-        hub = Mock(name='zenhub_instance', spec_set=[])
+        hub = sentinel.zenhub_instance
         event = HubCreatedEvent(hub)
         # the class Implements the Interface
         t.assertTrue(
@@ -211,7 +215,7 @@ class HubCreatedEventTest(TestCase):
 
 class ParserReadyForOptionsEventTest(TestCase):
     def test__init__(t):
-        parser = Mock(name='parser', spec_set=[])
+        parser = sentinel.parser
         event = ParserReadyForOptionsEvent(parser)
         # the class Implements the Interface
         t.assertTrue(
@@ -524,19 +528,20 @@ class ZenHubTest(TestCase):
             ZenHub, '__init__', autospec=True, return_value=None
         )
         t.init_patcher.start()
+        t.addCleanup(t.init_patcher.stop)
+        t.time_patcher = patch('{src}.time'.format(**PATH), autospec=True)
+        t.time = t.time_patcher.start()
+        t.addCleanup(t.time_patcher.stop)
+        t.reactor_patcher = patch(
+            '{src}.reactor'.format(**PATH), autospec=True
+        )
+        t.reactor = t.reactor_patcher.start()
+        t.addCleanup(t.reactor_patcher.stop)
 
         t.zh = ZenHub()
         # Set attributes that should be created by __init__
-        t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception'])
+        t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception', 'warning'])
         t.zh.shutdown = False
-
-        # Patch external modules
-        t.time_patcher = patch('{src}.time'.format(**PATH), autospec=True)
-        t.time = t.time_patcher.start()
-
-    def tearDown(t):
-        t.init_patcher.stop()
-        t.time_patcher.stop()
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
@@ -592,8 +597,8 @@ class ZenHubTest(TestCase):
         t.zh.options = Mock(name='options', profiling=True)
         worker_proc = Mock(name='worker_1', spec_set=['signalProcess'])
         t.zh.workerprocessmap = {'w1': worker_proc}
-        signum = Mock(name='signum', spec_set=[])
-        frame = Mock(name='frame', spec_set=[])
+        signum = sentinel.signum
+        frame = sentinel.frame
 
         ZenHub.sighandler_USR1(t.zh, signum=signum, frame=frame)
 
@@ -656,8 +661,7 @@ class ZenHubTest(TestCase):
 
         t.assertEqual(ret, DaemonStats.return_value)
 
-    @patch('{src}.reactor'.format(**PATH), autospec=True)
-    def test_processQueue(t, reactor):
+    def test_processQueue(t):
         '''Configuration Invalidation Processing function
         synchronize with the database, and execute doProcessQueue
         recursive reactor.callLater should be replaced with loopingCall
@@ -679,7 +683,7 @@ class ZenHubTest(TestCase):
         t.zh.async_syncdb.assert_called_with()
         t.zh.doProcessQueue.assert_called_with()
 
-        reactor.callLater.assert_called_with(
+        t.reactor.callLater.assert_called_with(
             options.invalidation_poll_interval, t.zh.processQueue
         )
         t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
@@ -697,7 +701,7 @@ class ZenHubTest(TestCase):
         getUtilitiesFor.return_value = [
             ('f%s' % i, f) for i, f in enumerate(filters)
         ]
-        t.zh.dmd = Mock(name='dmd', spec_set=[])
+        t.zh.dmd = sentinel.dmd
 
         t.zh._initialize_invalidation_filters()
 
@@ -723,13 +727,13 @@ class ZenHubTest(TestCase):
         t.zh.dmd = dmd
 
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
-        device_obj = Mock(name='device_obj', spec_set=[])
+        device_obj = sentinel.device_obj
         device.__of__.return_value.primaryAq.return_value = device_obj
         component = MagicMock(DeviceComponent, __of__=Mock())
-        component_obj = Mock(name='component_obj', spec_set=[])
+        component_obj = sentinel.component_obj
         component.__of__.return_value.primaryAq.return_value = component_obj
         excluded = Mock(DeviceComponent, __of__=Mock())
-        excluded_obj = Mock(name='excluded_obj', spec_set=[])
+        excluded_obj = sentinel.excluded_obj
         excluded.__of__.return_value.primaryAq.return_value = excluded_obj
 
         app._p_jar = {
@@ -795,36 +799,387 @@ class ZenHubTest(TestCase):
         out = [o for o in ret]
         t.assertEqual(out, [111])
 
+    @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
+    @patch('{src}.subscribers'.format(**PATH), autospec=True)
+    def test__transformOid(t, subscribers, IInvalidationOid):
+        '''Configuration Invalidation Processing function
+        given an oid: object pair
+        gets a list of transforms for the object
+        executes the transforms given the oid
+        returns a set of oids returned by the transforms
+        '''
+        adapter_a = Mock(
+            name='adapter_a', spec_set=['transformOid'],
+            transformOid=lambda x: x + '0'
+        )
+        subscribers.return_value = [adapter_a]
+        adapter_b = Mock(
+            name='adapter_b', spec_set=['transformOid'],
+            transformOid=lambda x: [x + '1', x + '2']
+        )
+        IInvalidationOid.return_value = adapter_b
+        oid = 'oid'
+        obj = sentinel.object
 
-    def _filter_oids(self, oids):
-        app = self.dmd.getPhysicalRoot()
-        i = 0
-        for oid in oids:
-            i += 1
-            try:
-                obj = app._p_jar[oid]
-            except POSKeyError:
-                # State is gone from the database. Send it along.
-                yield oid
-            else:
-                if isinstance(
-                    obj,
-                    (PrimaryPathObjectManager, DeviceComponent)
-                ):
-                    try:
-                        obj = obj.__of__(self.dmd).primaryAq()
-                    except (AttributeError, KeyError):
-                        # It's a delete. This should go through.
-                        yield oid
-                    else:
-                        included = True
-                        for fltr in self._invalidation_filters:
-                            result = fltr.include(obj)
-                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
-                                included = (result == FILTER_INCLUDE)
-                                break
-                        if included:
-                            oids = self._transformOid(oid, obj)
-                            if oids:
-                                for oid in oids:
-                                    yield oid
+        ret = t.zh._transformOid(oid, obj)
+
+        t.assertEqual(ret, {'oid0', 'oid1', 'oid2'})
+
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    def test_doProcessQueue(t, getUtility):
+        '''Configuration Invalidation Processing function
+        pulls in a dict of invalidations, and the IInvalidationProcessor
+        and processes them, then sends an event
+        refactor to use inline callbacks
+        '''
+        # storage is ZODB access inherited from a parent class
+        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
+        t.zh._filter_oids = create_autospec(t.zh._filter_oids)
+
+        t.zh.doProcessQueue()
+
+        getUtility.assert_called_with(IInvalidationProcessor)
+        getUtility.return_value.processQueue.assert_called_with(
+            tuple(set(t.zh._filter_oids.return_value))
+        )
+
+    @patch('{src}.Event'.format(**PATH), autospec=True)
+    def test_sendEvent(t, Event):
+        '''Event Management.  send events to the EventManager
+        '''
+        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+        event = {'device': 'x', 'component': 'y', 'summary': 'msg'}
+
+        t.zh.sendEvent(**event)
+
+        Event.assert_called_with(**event)
+        t.zh.zem.sendEvent.assert_called_with(Event.return_value)
+
+    @patch('{src}.Event'.format(**PATH), autospec=True)
+    def test_sendEvent_defaults(t, Event):
+        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+        t.zh.options = Mock(name='options', spec_set=['monitor'])
+
+        t.zh.sendEvent(eventClass='class', summary='something', severity=0)
+
+        Event.assert_called_with(
+            device=t.zh.options.monitor,
+            component=t.zh.name,
+            eventClass='class',
+            summary='something',
+            severity=0,
+        )
+        t.zh.zem.sendEvent.assert_called_with(Event.return_value)
+
+    # AttributeError: Mock object has no attribute '_loadCrendentials'
+    @patch('{src}.checkers'.format(**PATH), spec=True)
+    def test_loadChecker(t, checkers):
+        t.zh.options = Mock(name='options', spec_set=['passwordfile'])
+        checker = checkers.FilePasswordDB.return_value
+        loaded = checker._loadCredentials.return_value
+        loaded.next.return_value = ('usr', 'pas')
+
+        ret = t.zh.loadChecker()
+
+        checkers.FilePasswordDB.assert_called_with(t.zh.options.passwordfile)
+        t.assertEqual(ret, checkers.FilePasswordDB.return_value)
+        t.assertEqual(t.zh.workerUsername, 'usr')
+        t.assertEqual(t.zh.workerPassword, 'pas')
+
+    def test_getService(t):
+        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
+        name = 'module.name'
+        instance = 'collector_instance'
+        service = sentinel.service
+        t.zh.dmd.Monitors.Performance._getOb.return_value = True
+        t.zh.services = {(name, instance): service}
+
+        ret = t.zh.getService(name, instance)
+
+        t.assertEqual(ret, service)
+
+    def test_getService_raises_RemoteBadMonitor(t):
+        '''raises RemoteBadMonitor on invalid instance argument
+        '''
+        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
+        t.zh.dmd.Monitors.Performance._getOb.return_value = False
+
+        with t.assertRaises(RemoteBadMonitor):
+            t.zh.getService('name', 'instance')
+
+    def test_getService_cache_miss(t):
+        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
+        t.zh.options = Mock(name='options', spec_set=['workers'])
+        t.zh.options.workers = False
+        name = 'module.name'
+        instance = 'collector_instance'
+        service = sentinel.service
+        t.zh.dmd.Monitors.Performance._getOb.return_value = True
+        t.zh.services = {}
+
+        # patch the internal import
+        # from Products.ZenUtils.Utils import importClass
+        Utils = MagicMock(
+            name='Products.ZenUtils.Utils', spec_set=['importClass']
+        )
+        from Products.ZenUtils.Utils import importClass
+        Utils.importClass = create_autospec(importClass, name='importClass')
+        Utils.importClass.return_value.return_value = service
+        modules = {'Products.ZenUtils.Utils': Utils}
+        with patch.dict('sys.modules', modules):
+            ret = t.zh.getService(name, instance)
+
+        t.assertEqual(ret, service)
+
+    @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
+    def test_getService_forwarded_to_WorkerInterceptor(t, WorkerInterceptor):
+        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
+        t.zh.options = Mock(name='options', spec_set=['workers'])
+        name = 'module.name'
+        instance = 'collector_instance'
+        service = sentinel.service
+        interceptor_service = sentinel.interceptor_service
+        t.zh.dmd.Monitors.Performance._getOb.return_value = True
+        t.zh.services = {}
+        WorkerInterceptor.return_value = interceptor_service
+
+        # patch the internal import
+        # from Products.ZenUtils.Utils import importClass
+        Utils = MagicMock(
+            name='Products.ZenUtils.Utils', spec_set=['importClass']
+        )
+        from Products.ZenUtils.Utils import importClass
+        Utils.importClass = create_autospec(importClass, name='importClass')
+        Utils.importClass.return_value.return_value = service
+        modules = {'Products.ZenUtils.Utils': Utils}
+        with patch.dict('sys.modules', modules):
+            ret = t.zh.getService(name, instance)
+
+        WorkerInterceptor.assert_called_with(t.zh, service)
+        t.assertEqual(ret, interceptor_service)
+        t.assertEqual(t.zh.services[name, instance], interceptor_service)
+
+    @patch('{src}.defer'.format(**PATH), autospec=True)
+    @patch('{src}.HubWorklistItem'.format(**PATH), autospec=True)
+    def test_deferToWorker(t, HubWorklistItem, defer):
+        '''Worker Management Function
+        should be refactored to use inlineCallbacks
+        '''
+        t.zh.getService = create_autospec(t.zh.getService)
+        service = t.zh.getService.return_value.service
+        t.zh.workList = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
+        args = (sentinel.arg0, sentinel.arg1)
+
+        ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
+
+        HubWorklistItem.assert_called_with(
+            service.getMethodPriority.return_value,
+            t.time.time.return_value,
+            defer.Deferred.return_value,
+            'svcName', 'instance', 'method',
+            ('svcName', 'instance', 'method', args),
+        )
+        t.reactor.callLater.assert_called_with(0, t.zh.giveWorkToWorkers)
+        t.assertEqual(ret, defer.Deferred.return_value)
+
+    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
+    def test_updateStatusAtStart(t, WorkerStats):
+        '''Metric reporting function'''
+        # these should be set by __init__, not specified here
+        t.zh.workTracker = {}
+        t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        wId = sentinel.worker_id
+        job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
+
+        t.zh.updateStatusAtStart(wId, job)
+
+        t.assertEqual(
+            t.zh.executionTimer, {job.method: [1, 0.0, 0.0, t.time.time()]}
+        )
+        WorkerStats.assert_called_with(
+            'Busy',
+            "%s:%s.%s" % (job.instance, job.servicename, job.method),
+            t.time.time(),
+            0
+        )
+        t.assertEqual(t.zh.workTracker[wId], WorkerStats.return_value)
+
+    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
+    def test_updateStatusAtFinish(t, WorkerStats):
+        '''Metric reporting function
+        '''
+        # this should be set by __init__, not specified here
+        t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        wId = sentinel.worker_id
+        t0, t1 = 100, 300
+        stats = Mock(
+            name='stats', spec_set=['lastupdate', 'description'], lastupdate=t0
+        )
+        t.time.time.return_value = t1
+        t.zh.workTracker = {wId: stats}
+        job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
+
+        t.zh.updateStatusAtFinish(wId, job)
+
+        t.assertEqual(
+            t.zh.executionTimer, {job.method: [0, 0.0, t1 - t0, t1]},
+        )
+        WorkerStats.assert_called_with('Idle', stats.description, t1, 0)
+        t.assertEqual(t.zh.workTracker[wId], WorkerStats.return_value)
+
+    def test_finished(t):
+        '''Worker Management Function
+        '''
+        t.zh.updateStatusAtFinish = create_autospec(t.zh.updateStatusAtFinish)
+        job = Mock(
+            name='job', spec_set=['deferred'],
+            deferred=Mock(defer.Deferred, name='deferred', autospec=True)
+        )
+        result = Mock(name='result', spec_set=['returnvalue'])
+        finishedWorker = sentinel.zenhub_worker
+        wId = sentinel.worker_id
+
+        ret = t.zh.finished(job, result, finishedWorker, wId)
+
+        job.deferred.callback.assert_called_with(result)
+        # WARNING: may be called with error from pickle.loads, or ''.join
+        # this should be
+        # t.zh.updateStatusAtFinish.assert_called_with(wId, job, None)
+        # Hack to test called_with manually
+        args, kwargs = t.zh.updateStatusAtFinish.call_args
+        t.assertEqual(args[0], wId)
+        t.assertEqual(args[1], job)
+        t.assertIsInstance(args[2], TypeError)
+
+        t.assertIsInstance(ret, defer.Deferred)
+        t.assertEqual(ret.result, result)
+        t.assertFalse(finishedWorker.busy)
+        t.reactor.callLater.assert_called_with(0.1, t.zh.giveWorkToWorkers)
+
+    def test_finished_handles_LastCallReturnValue(t):
+        '''Worker Management Function
+        refactor as a LoopingCall instead of using reactor.callLater
+        '''
+        t.zh.updateStatusAtFinish = create_autospec(t.zh.updateStatusAtFinish)
+        job = Mock(
+            name='job', spec_set=['deferred'],
+            deferred=Mock(defer.Deferred, name='deferred', autospec=True)
+        )
+        result = Mock(
+            LastCallReturnValue, name='result', spec_set=['returnvalue']
+        )
+
+        finishedWorker = sentinel.zenhub_worker
+        wId = sentinel.worker_id
+        t.zh.workers = [wId, 'other worker']
+
+        ret = t.zh.finished(job, result, finishedWorker, wId)
+
+        t.assertNotIn(t.zh.workers, t.zh.workers)
+        t.assertEqual(ret.result, result)
+
+    def test_giveWorkToWorkers(t):
+        '''Worker Management Function
+        '''
+        t.zh.dmd = Mock(name='dmd', spec_set=['getPauseADMLife'])
+        t.zh.dmd.getPauseADMLife.return_value = 1
+        t.zh.options = Mock(
+            name='options', spec_set=['modeling_pause_timeout']
+        )
+        t.zh.options.modeling_pause_timeout = 0
+        job = Mock(name='job', spec_set=['method', 'args'])
+        job.args = [sentinel.arg0, sentinel.arg1]
+        # should be set in __init__
+        t.zh.workList = _ZenHubWorklist()
+        t.zh.workList.append(job)
+        worker = Mock(
+            name='worker', spec_set=['busy', 'callRemote'], busy=False
+        )
+        worker.callRemote.reutnr_value = sentinel.result
+        t.zh.workers = [worker]
+        t.zh.workerselector = Mock(
+            name='WorkerSelector', spec_set=['getCandidateWorkerIds']
+        )
+        t.zh.workerselector.getCandidateWorkerIds.return_value = [0]
+        t.zh.counters = {'workerItems': 0}
+        t.zh.updateStatusAtStart = create_autospec(t.zh.updateStatusAtStart)
+        t.zh.finished = Mock() #create_autospec(t.zh.finished)
+
+        t.zh.giveWorkToWorkers()
+
+        t.zh.workerselector.getCandidateWorkerIds.assert_called_with(
+            job.method, [worker]
+        )
+        worker.callRemote.assert_called_with('execute', *job.args)
+        t.zh.finished.assert_called_with(
+            job, worker.callRemote.return_value, worker, 0
+        )
+
+    def test__workerStats(t):
+        '''Worker Status Logging
+        sends status details for a worker to log output
+        not testing log output formatting at this time
+        '''
+        pass
+
+    @patch('{src}.os'.format(**PATH))
+    def test__createWorkerConf(t, os):
+        t.zh.workerconfig = '/path/to/config'
+        t.zh.options = Mock(name='options')
+        t.zh.workerUsername = sentinel.worker_username
+        t.zh.workerPassword = sentinel.worker_password
+        os.path.exists.return_value = False
+
+        from mock import mock_open
+        file_handler = mock_open()
+        with patch('{src}.open'.format(**PATH), file_handler):
+            t.zh._createWorkerConf()
+
+        handle = file_handler()
+        os.makedirs.assert_called_with(os.path.dirname.return_value)
+        handle.write.assert_has_calls([
+            call("hubport %s\n" % t.zh.options.pbport),
+            call("username %s\n" % t.zh.workerUsername),
+            call("password %s\n" % t.zh.workerPassword),
+            call("logseverity %s\n" % t.zh.options.logseverity),
+            call("zodb-cachesize %s\n" % t.zh.options.zodb_cachesize),
+            call("calllimit %s\n" % t.zh.options.worker_call_limit),
+            call("profiling %s\n" % t.zh.options.profiling),
+            call("monitor %s\n" % t.zh.options.monitor),
+        ])
+
+    @patch('{src}.NICE_PATH'.format(**PATH), '/path/to/nice')
+    def test_createWorker(t):
+        '''Worker Management Function
+        creates the protocol class internally to make tesging extra-difficult
+        factor it out
+        '''
+        # should be set by __init__
+        t.zh.workerprocessmap = {}
+        t.zh.worker_processes = set()
+        t.zh.options = Mock(
+            name='options', spec_set=['workers', 'hubworker_priority'],
+            workers=1,
+            hubworker_priority=1
+        )
+        workerNum = 'worker_id'
+        t.zh.hubworker_priority = sentinel.hubworker_priority
+        t.zh.workerconfig = 'workerconfig'
+
+        t.zh.createWorker(workerNum)
+
+        t.assertEqual(
+            t.zh.workerprocessmap,
+            {t.reactor.spawnProcess.return_value.pid:
+                t.reactor.spawnProcess.return_value}
+        )
+        # pull the protocol out of the spawnProcess call
+        args, kwargs = t.reactor.spawnProcess.call_args
+        proc = args[0]
+        t.assertEqual(t.zh.worker_processes, set([proc]))
+
+    def test_heartbeat(t):
+        '''Event Management / Daemon Function
+        Also, some Metrics Reporting stuff for fun
+        '''
+        pass
