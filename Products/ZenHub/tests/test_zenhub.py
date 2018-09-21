@@ -2,6 +2,7 @@ from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, MagicMock, sentinel
 
 from zope.interface.verify import verifyObject
+from zope.component import adaptedBy
 
 from mock_interface import create_interface_mock
 
@@ -31,6 +32,9 @@ from Products.ZenHub.zenhub import (
     collections,
     defer,
     LastCallReturnValue,
+    XML_RPC_PORT, PB_PORT,
+    DefaultConfProvider, IHubConfProvider,
+    DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -542,6 +546,7 @@ class ZenHubTest(TestCase):
         # Set attributes that should be created by __init__
         t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception', 'warning'])
         t.zh.shutdown = False
+        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
@@ -627,7 +632,6 @@ class ZenHubTest(TestCase):
         '''Metric reporting function
         '''
         t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
         t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
 
         # patch to deal with internal import
@@ -847,7 +851,6 @@ class ZenHubTest(TestCase):
     def test_sendEvent(t, Event):
         '''Event Management.  send events to the EventManager
         '''
-        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
         event = {'device': 'x', 'component': 'y', 'summary': 'msg'}
 
         t.zh.sendEvent(**event)
@@ -857,7 +860,6 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
     def test_sendEvent_defaults(t, Event):
-        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
         t.zh.options = Mock(name='options', spec_set=['monitor'])
 
         t.zh.sendEvent(eventClass='class', summary='something', severity=0)
@@ -1178,8 +1180,211 @@ class ZenHubTest(TestCase):
         proc = args[0]
         t.assertEqual(t.zh.worker_processes, set([proc]))
 
-    def test_heartbeat(t):
+    @patch('{src}.IHubHeartBeatCheck'.format(**PATH), autospec=True)
+    @patch('{src}.EventHeartbeat'.format(**PATH), autospec=True)
+    def test_heartbeat(t, EventHeartbeat, IHubHeartBeatCheck):
         '''Event Management / Daemon Function
         Also, some Metrics Reporting stuff for fun
         '''
-        pass
+        t.zh.options = Mock(
+            name='options', spec_set=['monitor', 'name', 'heartbeatTimeout'],
+        )
+        t.zh.niceDoggie = create_autospec(t.zh.niceDoggie)
+        # static value defined in function
+        seconds = 30
+        # Metrics reporting portion needs to be factored out
+        t.zh.rrdStats = Mock(name='rrdStats', spec_set=['counter', 'gauge'])
+        t.zh.totalTime = 1
+        t.zh.totalEvents = sentinel.totalEvents
+        service0 = Mock(name='service0', spec_set=['callTime'], callTime=9)
+        t.zh.services = {'service0': service0}
+        t.zh.workList = [sentinel.work0, sentinel.work1]
+        t.zh.counters = collections.Counter()
+
+        t.zh.heartbeat()
+
+        EventHeartbeat.assert_called_with(
+            t.zh.options.monitor, t.zh.name, t.zh.options.heartbeatTimeout
+        )
+        t.zh.zem.sendEvent.assert_called_with(EventHeartbeat.return_value)
+        t.zh.niceDoggie.assert_called_with(seconds)
+        t.reactor.callLater.assert_called_with(seconds, t.zh.heartbeat)
+        IHubHeartBeatCheck.assert_called_with(t.zh)
+        IHubHeartBeatCheck.return_value.check.assert_called_with()
+        # Metrics reporting, copies zenhub.counters into rrdStats.counter
+        t.zh.rrdStats.counter.has_calls([
+            call('totalTime', int(t.zh.totalTime * 1000)),
+            call('totalEvents', t.zh.totalEvents),
+            call(
+                'totalCallTime',
+                sum(s.callTime for s in t.zh.services.values())
+            ),
+        ])
+        t.zh.rrdStats.gauge.assert_has_calls([
+            call('services', len(t.zh.services)),
+            call('workListLength', len(t.zh.workList)),
+        ])
+
+    def test_check_workers(t):
+        '''Worker Management Function
+        '''
+        # WARNING! creates workers without a worker number argument
+        # WARNING! Logic is backwards, this test will fail
+        t.zh.worker_processes = [i for i in range(3)]
+        t.zh.options = sentinel.options
+        t.zh.options.workers = 5
+        t.zh.createWorker = create_autospec(t.zh.createWorker)
+
+        t.zh.check_workers()
+
+        # 5 expected workers - 3 worker processes = 2 missing workers
+        # WARNING! Logic is backwards, this test will fail currently
+        #t.zh.createWorker.assert_has_calls([call() for _ in range(2)])
+
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
+    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
+    def test_main(t, LoopingCall, TwistedMetricReporter, os):
+        '''Daemon Entry Point
+        Execution waits at reactor.run() until the reactor stops
+        '''
+        t.zh.options = Mock(
+            name='options', spec_set=['cycle', 'monitor', 'profiling'],
+            cycle=True, profiling=True
+        )
+        # Metric Management
+        t.zh._metric_writer = sentinel.metric_writer
+        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
+        # Worker Management
+        worker_proc = Mock(name='worker_proc', spec_set=['signalProcess'])
+        t.zh.workerprocessmap = {'po0': worker_proc}
+        t.zh.workerconfig = sentinel.workerconfig
+
+
+        t.zh.main()
+
+        # convert to a looping call
+        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
+        # sets up and starts its metric reporter
+        TwistedMetricReporter.assert_called_with(
+            metricWriter=t.zh._metric_writer,
+            tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': t.zh.options.monitor,
+                'internal': True
+            }
+        )
+        t.assertEqual(t.zh.metricreporter, TwistedMetricReporter.return_value)
+        t.zh.metricreporter.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhub exits
+        t.reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', t.zh.metricreporter.stop
+        )
+        # After the reactor stops:
+        # shut down workers
+        worker_proc.signalProcess.assert_called_with('KILL')
+        os.unlink.assert_called_with(t.zh.workerconfig)
+        t.zh.profiler.stop.assert_called_with()
+
+    @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
+    @patch('{src}.notify'.format(**PATH), autospec=True)
+    @patch('{src}.zenPath'.format(**PATH))
+    @patch('{src}.ZCmdBase'.format(**PATH))
+    def test_buildOptions(
+        t, ZCmdBase, zenPath, notify, ParserReadyForOptionsEvent
+    ):
+        '''After initialization, the ZenHub instance should have
+        options parsed from its buildOptions method
+        assertions based on default options
+        '''
+        # this should call buildOptions on parent classes, up the tree
+        # currently calls an ancestor class directly
+        # parser expected to be added by CmdBase.buildParser
+        from optparse import OptionParser
+        t.zh.parser = OptionParser()
+
+        t.zh.buildOptions()
+        t.zh.options, args = t.zh.parser.parse_args()
+
+        ZCmdBase.buildOptions.assert_called_with(t.zh)
+        t.assertEqual(t.zh.options.xmlrpcport, XML_RPC_PORT)
+        t.assertEqual(t.zh.options.pbport, PB_PORT)
+        zenPath.assert_called_with('etc', 'hubpasswd')
+        t.assertEqual(t.zh.options.passwordfile, zenPath.return_value)
+        t.assertEqual(t.zh.options.monitor, 'localhost')
+        t.assertEqual(t.zh.options.workers, 2)
+        t.assertEqual(t.zh.options.hubworker_priority, 5)
+        t.assertEqual(t.zh.options.prioritize, False)
+        t.assertEqual(t.zh.options.workersReservedForEvents, 1)
+        t.assertEqual(t.zh.options.worker_call_limit, 200)
+        t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
+        t.assertEqual(t.zh.options.profiling, False)
+        t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
+        # delay before actually parsing the options
+        notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
+
+
+class DefaultConfProviderTest(TestCase):
+
+    def test_implements_IHubConfProvider(t):
+        # the class Implements the Interface
+        t.assertTrue(IHubConfProvider.implementedBy(DefaultConfProvider))
+
+    def test_adapts_ZenHub(t):
+        t.assertEqual(
+            adaptedBy(DefaultConfProvider), (ZenHub, )
+        )
+        t.assertIn(ZenHub, adaptedBy(DefaultConfProvider))
+
+    def test___init__(t):
+        zenhub = sentinel.zenhub
+
+        default_conf_provider = DefaultConfProvider(zenhub)
+
+        # the object provides the interface
+        t.assertTrue(IHubConfProvider.providedBy(default_conf_provider))
+        # Verify the object implments the interface properly
+        verifyObject(IHubConfProvider, default_conf_provider)
+        t.assertEqual(default_conf_provider._zenhub, zenhub)
+
+    def test_getHubConf(t):
+        zenhub = Mock(name='zenhub', spec_set=['dmd', 'options'])
+        default_conf_provider = DefaultConfProvider(zenhub)
+
+        ret = default_conf_provider.getHubConf()
+
+        zenhub.dmd.Monitors.Performance._getOb.assert_called_with(
+            zenhub.options.monitor, None
+        )
+        t.assertEqual(ret, zenhub.dmd.Monitors.Performance._getOb.return_value)
+
+
+class DefaultHubHeartBeatCheckTest(TestCase):
+
+    def test_implements_IHubHeartBeatCheck(t):
+        # the class Implements the Interface
+        t.assertTrue(
+            IHubHeartBeatCheck.implementedBy(DefaultHubHeartBeatCheck)
+        )
+
+    def test_adapts_ZenHub(t):
+        t.assertIn(ZenHub, adaptedBy(DefaultHubHeartBeatCheck))
+
+    def test___init__(t):
+        zenhub = sentinel.zenhub
+
+        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
+
+        # the object provides the interface
+        t.assertTrue(
+            IHubHeartBeatCheck.providedBy(default_hub_heartbeat_check)
+        )
+        # Verify the object implments the interface properly
+        verifyObject(IHubHeartBeatCheck, default_hub_heartbeat_check)
+        t.assertEqual(default_hub_heartbeat_check._zenhub, zenhub)
+
+    def test_check(t):
+        # does nothing
+        zenhub = sentinel.zenhub
+        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
+        default_hub_heartbeat_check.check()
