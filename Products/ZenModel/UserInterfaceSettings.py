@@ -10,12 +10,23 @@
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.utils import ZuulMessageFactory as _t
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGER_ROLE,
+    CZ_ADMIN_ROLE,
+)
 from copy import deepcopy
 
 def manage_addUserInterfaceSettings(context, id="UserInterfaceSettings"):
     settings = UserInterfaceSettings(id)
     context._setObject(id, settings)
     return getattr(context, id)
+
+ZEN_MANAGER_EDIT_PERM = (
+    'enableHtmlInEventFields',
+    'defaultTimeRange',
+    'graphColumns'
+)
+
 
 class UserInterfaceSettings(ZenModelRM):
     """
@@ -68,6 +79,18 @@ class UserInterfaceSettings(ZenModelRM):
         'zenjobsGridBufferSize': {'xtype': 'numberfield', 'name': _t('Job Grid Buffer Size'), 'defaultValue': 100, 'minValue': 50, 'maxValue': 300, 'allowBlank': False},
     }
 
+    def iseditable(self, field):
+        currentUser = self.dmd.ZenUsers.getUser()
+        if currentUser:
+            if currentUser.has_role((CZ_ADMIN_ROLE)):
+                return True
+
+            if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
+                return True
+
+        return False
+
+
     def getInterfaceSettings(self):
         """
         @rtype:   Dictionary
@@ -79,14 +102,17 @@ class UserInterfaceSettings(ZenModelRM):
             settings[propId] = prop['value']
         return settings
 
-    def getSettingsData(self):
+
+    def getSettingsData(self, unrestricted=True):
         """
         @rtype: Dictionary
         @return: The value of the settings along with some meta information
-        for display
+        for display. If restricted do filter setting by role.
         """
         settings = deepcopy(self._properties)
         for prop in settings:
             prop.update(self._propertyMetaData[prop['id']])
             prop['value'] = getattr(self, prop['id'], prop['defaultValue'])
+        if not unrestricted:
+            settings = [setting for setting in settings if self.iseditable(setting['id'])]
         return settings

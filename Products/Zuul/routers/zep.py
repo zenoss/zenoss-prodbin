@@ -30,7 +30,11 @@ from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
 from Products.ZenMessaging.audit import audit
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_EVENTS
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGE_EVENTS,
+    ZEN_MANAGER_ROLE,
+    CZ_ADMIN_ROLE
+)
 from Products.ZenUtils.deprecated import deprecated
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.utils import ZuulMessageFactory as _t
@@ -41,6 +45,17 @@ from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
+
+ZEN_MANAGER_EDIT_PERM = (
+    'event_age_disable_severity',
+    'event_age_interval_minutes',
+    'event_archive_interval_minutes',
+    'default_syslog_priority',
+    'default_availability_days',
+    'event_time_purge_interval_days',
+    'enable_event_flapping_detection',
+    'flapping_event_class',
+)
 
 log = logging.getLogger('zen.%s' % __name__)
 
@@ -1038,6 +1053,17 @@ class EventsRouter(DirectRouter):
                 }]
         return configSchema
 
+    def iseditable(self, field):
+        currentUser = self.context.dmd.ZenUsers.getUser()
+        if currentUser:
+            if currentUser.has_role((CZ_ADMIN_ROLE)):
+                return True
+
+            if currentUser.has_role(ZEN_MANAGER_ROLE) and field in ZEN_MANAGER_EDIT_PERM:
+                return True
+
+        return False
+
     def _mergeSchemaAndZepConfig(self, data, configSchema):
         """
         Copy the values and defaults from ZEP to our schema
@@ -1055,7 +1081,8 @@ class EventsRouter(DirectRouter):
         # constructed to include default values and be keyed by the protobuf
         # property name.
         data = self.zep.getConfig()
-        config = self._mergeSchemaAndZepConfig(data, self.configSchema)
+        schema = self._mergeSchemaAndZepConfig(data, self.configSchema)
+        config = [setting for setting in schema if self.iseditable(setting['id'])]
         return DirectResponse.succeed(data=config)
 
     @require('Manage DMD')
@@ -1078,7 +1105,9 @@ class EventsRouter(DirectRouter):
         if defaultAvailabilityDays is not None:
             self.context.dmd.ZenEventManager.defaultAvailabilityDays = int(defaultAvailabilityDays)
 
-        self.zep.setConfigValues(values)
+        # filter by role whether user can update settings.
+        eventConfig = {key: value for (key, value) in values.items() if self.iseditable(key)}
+        self.zep.setConfigValues(eventConfig)
         return DirectResponse.succeed()
 
     def column_config(self, uid=None, archive=False):
