@@ -587,7 +587,8 @@
                 });
             }
 
-            if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
+            // match /cz/
+            if (new RegExp('^'+Zenoss.render.link(false, '/zport/dmd/Events')).test(window.location.pathname)) {
                 configureMenuItems.splice(2, 0, {
                     text: _t('Save this configuration...'),
                     handler: function(){
