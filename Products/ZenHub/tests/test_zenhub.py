@@ -35,6 +35,7 @@ from Products.ZenHub.zenhub import (
     XML_RPC_PORT, PB_PORT,
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
+    IEventPublisher,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -387,7 +388,9 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
-
+    @patch('{src}.load_config_override'.format(**PATH), spec=True)
+    #@patch.object(ZenHub, 'getRRDStats')
+    @patch('{src}.metricWriter'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
     @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
@@ -409,7 +412,7 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.ZCmdBase.__init__'.format(**PATH), spec=True)
     def test___init__(
         t,
-        CmdBase___init__,
+        ZCmdBase___init__,
         _ZenHubWorklist,
         load_config,
         notify,
@@ -428,11 +431,13 @@ class ZenHubInitTest(TestCase):
         HubCreatedEvent,
         App_Start,
         signal,
+        metricWriter,
+        #ZenHub_getRRDStats,
+        load_config_override,
     ):
-
-        # Mock out attributes set the parent class
+        # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
-        zenhub_patchers = [
+        t.zenhub_patchers = [
             patch.object(ZenHub, 'dmd', create=True),
             patch.object(ZenHub, 'log', create=True),
             patch.object(ZenHub, 'options', create=True),
@@ -445,18 +450,33 @@ class ZenHubInitTest(TestCase):
             patch.object(ZenHub, 'sendEvent', autospec=True),
         ]
 
-        for patcher in zenhub_patchers:
+        for patcher in t.zenhub_patchers:
             patcher.start()
+            t.addCleanup(patcher.stop)
 
         ZenHub.options.workers = 10
         ZenHub._getConf.return_value.id = 'config_id'
         ipv6_available.return_value = False
 
-        zh = ZenHub()
-        t.assertIsInstance(zh, ZenHub)
+        # patch to deal with internal import
+        # import of its parent package, Projects.ZenHub
+        # import Products.ZenMessaging.queuemessaging
+        Products = MagicMock(
+            name='Products', spec_set=['ZenHub', 'ZenMessaging']
+        )
+        modules = {
+            'Products': Products,
+            'Products.ZenHub': Products.ZenHub,
+            'Products.ZenMessaging.queuemessaging': Products.ZenMessaging.queuemessaging
+        }
+        with patch.dict('sys.modules', modules):
+            zh = ZenHub()
 
+        t.assertIsInstance(zh, ZenHub)
         t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
         # Skip Metrology validation for now due to complexity
+        ZCmdBase___init__.assert_called_with(zh)
+        load_config.assert_called_with("hub.zcml", Products.ZenHub)
         HubWillBeCreatedEvent.assert_called_with(zh)
         notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
         # Performance Profiling
@@ -497,11 +517,11 @@ class ZenHubInitTest(TestCase):
             )
         ])
         # Messageing config, including work and invalidations
-        # skip for now due to internal import
-        #load_config_override.assert_called_with(
-        #    'twistedpublisher.zcml',
-        #    Products.ZenMessaging.queuemessaging
-        #)
+        # Patched internal import of Products.ZenMessaging.queuemessaging
+        load_config_override.assert_called_with(
+            'twistedpublisher.zcml',
+            Products.ZenMessaging.queuemessaging
+        )
         HubCreatedEvent.assert_called_with(zh)
         notify.assert_called_with(HubCreatedEvent.return_value)
         zh.sendEvent.assert_called_with(
@@ -516,12 +536,11 @@ class ZenHubInitTest(TestCase):
         zh.createWorker.assert_has_calls(
             [call(zh, i) for i in range(zh.options.workers)]
         )
+        t.assertEqual(zh._metric_writer, metricWriter.return_value)
+        t.assertEqual(zh.rrdStats, zh.getRRDStats())
         # Convert this to a LoopingCall
         reactor.callLater.assert_called_with(2, zh.giveWorkToWorkers, True)
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
-
-        for patcher in zenhub_patchers:
-            patcher.stop()
 
 
 class ZenHubTest(TestCase):
@@ -1241,10 +1260,11 @@ class ZenHubTest(TestCase):
         # WARNING! Logic is backwards, this test will fail currently
         #t.zh.createWorker.assert_has_calls([call() for _ in range(2)])
 
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
     @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
     @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
-    def test_main(t, LoopingCall, TwistedMetricReporter, os):
+    def test_main(t, LoopingCall, TwistedMetricReporter, os, getUtility):
         '''Daemon Entry Point
         Execution waits at reactor.run() until the reactor stops
         '''
@@ -1259,7 +1279,6 @@ class ZenHubTest(TestCase):
         worker_proc = Mock(name='worker_proc', spec_set=['signalProcess'])
         t.zh.workerprocessmap = {'po0': worker_proc}
         t.zh.workerconfig = sentinel.workerconfig
-
 
         t.zh.main()
 
@@ -1285,6 +1304,9 @@ class ZenHubTest(TestCase):
         worker_proc.signalProcess.assert_called_with('KILL')
         os.unlink.assert_called_with(t.zh.workerconfig)
         t.zh.profiler.stop.assert_called_with()
+        # Closes IEventPublisher, which breaks old integration tests
+        getUtility.assert_called_with(IEventPublisher)
+        getUtility.return_value.close.assert_called_with()
 
     @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
