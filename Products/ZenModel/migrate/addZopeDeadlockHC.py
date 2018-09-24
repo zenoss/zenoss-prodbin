@@ -46,13 +46,13 @@ class AddZopeDeadlockHC(Migrate.Step):
                 # type of service/tree it comes from.
                 answering = filter(lambda c: c.name == 'answering', z.healthChecks)
                 if not answering:
-                    log.info("Unable to find the zope answering healthcheck")
+                    log.warn("Unable to find the zope answering healthcheck")
                     continue
                 # grab the service name and port out of the answering healthcheck.
                 answering = answering[0]
                 match = pattern.match(answering.script)
                 if not match:
-                    log.info("Unable to parse the zope name/port from {}: {}".format(answering.name, answering.script))
+                    log.warn("Unable to parse the zope name/port from {}: {}".format(answering.name, answering.script))
                     continue
                 name = match.group(1)
                 port = match.group(2)
