@@ -267,11 +267,10 @@ class _ZenHubWorklistTest(TestCase):
         '''zenhub_worker_list[dispatch] uses the dispatch dict to
         map 'sendEvents', 'sendEvent', 'applyDataMaps' keys to worklists
         '''
-        wl = _ZenHubWorklist()
-        t.assertEqual(wl['sendEvents'], t.wl.eventworklist)
-        t.assertEqual(wl['sendEvent'], t.wl.eventworklist)
-        t.assertEqual(wl['applyDataMaps'], t.wl.applyworklist)
-        t.assertEqual(wl['anything else'], t.wl.otherworklist)
+        t.assertEqual(t.wl['sendEvents'], t.wl.eventworklist)
+        t.assertEqual(t.wl['sendEvent'], t.wl.eventworklist)
+        t.assertEqual(t.wl['applyDataMaps'], t.wl.applyworklist)
+        t.assertEqual(t.wl['anything else'], t.wl.otherworklist)
 
     def test___len__(t):
         '''len(zenhub_worker_list) returns the sum of all work lists
