@@ -513,7 +513,8 @@ function editDataSourceOrPoint() {
         config.isDataPoint = isDataPoint;
         config.title = _t('Edit Data Source');
         config.directFn = router.setInfo;
-        config.width = 800;
+        // set min width to window to avoid field shrinking on window resize
+        config.minWidth = config.width = 800;
 
         newId = findSubObject({name:"newId"}, config)
         if (newId) {
