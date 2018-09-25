@@ -24,6 +24,7 @@ from Products.Five.browser import BrowserView
 
 from Products.ZenUtils.jsonutils import unjson
 from Products.Zuul.routers.zep import EventsRouter
+from Products.ZenUtils.Time import convertJsTimeFormatToPy
 
 from interfaces import IEventManagerProxy
 
@@ -111,13 +112,6 @@ class EventsExporter(BrowserView):
 
             yield header, event
 
-    def _convert(self, fmt):
-        d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
-             'HH': '%H', 'hh': '%I', 'mm': '%M',
-             'ss': '%S', 'a': '%p'}
-        pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
-        return pattern.sub(lambda x: d[x.group()], fmt)
-
     def _timeformat(self, value, options):
         utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(value)))
         tz = pytz.timezone(options['tz'])
@@ -128,7 +122,7 @@ class EventsExporter(BrowserView):
             return str(int(value))
         if options['fmt'] == "user":
             return str(tval.strftime(
-                self._convert(options['datefmt']+" "+options['timefmt']))
+                convertJsTimeFormatToPy(options['datefmt']+" "+options['timefmt']))
             )
 
     def csv(self, response, archive, options, **params):
@@ -209,7 +203,11 @@ class EventsExporter(BrowserView):
                 evt.update(details)
                 del evt[DETAILS_KEY]
 
-            for key, value in evt.iteritems():
+            exportVisible = params.get('exportVisible', True)
+            evtItems = {k: v for k, v in evt.iteritems()
+                if k in fields and exportVisible} if exportVisible else evt
+
+            for key, value in evtItems.iteritems():
                 if value is not None:
                     if key in ("lastTime", "firstTime", "stateChange"):
                         value = self._timeformat(value, options)
