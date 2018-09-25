@@ -20,7 +20,6 @@ from Products.ZenHub.zenhub import (
     _ZenHubWorklist,
     publisher,
     redisPublisher,
-    metricWriter,
     ZenHub,
     CONNECT_TIMEOUT, OPTION_STATE,
     IInvalidationFilter,
@@ -345,44 +344,6 @@ class ZenHubModuleTest(TestCase):
         RedisListPublisher.assert_called_with()
         t.assertEqual(ret, RedisListPublisher.return_value)
 
-    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
-    def test_metricWriter(
-        t,
-        MetricWriter,
-        redisPublisher,
-        os,
-        publisher,
-        FilteredMetricWriter,
-        AggregateMetricWriter
-    ):
-        '''Returns an initialized MetricWriter instance,
-        should probably be refactored into its own class
-        '''
-        os.environ = {
-            'CONTROLPLANE': '1',
-            'CONTROLPLANE_CONSUMER_URL': 'consumer_url',
-            'CONTROLPLANE_CONSUMER_USERNAME': 'consumer_username',
-            'CONTROLPLANE_CONSUMER_PASSWORD': 'consumer_password',
-        }
-
-        ret = metricWriter()
-
-        MetricWriter.assert_called_with(redisPublisher.return_value)
-        publisher.assert_called_with(
-            os.environ['CONTROLPLANE_CONSUMER_USERNAME'],
-            os.environ['CONTROLPLANE_CONSUMER_PASSWORD'],
-            os.environ['CONTROLPLANE_CONSUMER_URL'],
-        )
-        AggregateMetricWriter.assert_called_with(
-            [MetricWriter.return_value, FilteredMetricWriter.return_value]
-        )
-        t.assertEqual(ret, AggregateMetricWriter.return_value)
-
 
 class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
@@ -390,7 +351,6 @@ class ZenHubInitTest(TestCase):
     '''
     @patch('{src}.zenhub_module'.format(**PATH), spec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    @patch('{src}.metricWriter'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
     @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
@@ -431,7 +391,6 @@ class ZenHubInitTest(TestCase):
         HubCreatedEvent,
         App_Start,
         signal,
-        metricWriter,
         load_config_override,
         zenhub_module,
     ):
@@ -1245,7 +1204,6 @@ class ZenHubTest(TestCase):
             cycle=True, profiling=True
         )
         # Metric Management
-        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
         t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
         t.zh._metric_manager = MetricManager(t.zh.options.monitor)
         t.zh._metric_writer = sentinel.metric_writer
@@ -1344,8 +1302,7 @@ class MetricManagerTest(TestCase):
         t.mm.stop()
         t.mm.metricreporter.stop.assert_called_with()
 
-    def test_metric_reporter_property(t):
-        #t.mm.metric_writer = sentinel.metric_writer
+    def test_metric_reporter(t):
         t.assertEqual(
             t.mm.metricreporter, t.TwistedMetricReporter.return_value
         )
@@ -1360,9 +1317,6 @@ class MetricManagerTest(TestCase):
     def test_get_rrd_stats(
         t, DaemonStats, ThresholdNotifier, DerivativeTracker, BuiltInDS
     ):
-        '''Metric reporting function
-        '''
-        #t.mm.metric_writer = sentinel.metric_writer
         hub_config = Mock(
             name='hub_config', spec_set=['getThresholdInstances', 'id']
         )

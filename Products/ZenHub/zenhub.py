@@ -1085,8 +1085,6 @@ class MetricManager(object):
         return tags and tags.get("internal", False)
 
 
-
-
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
     'priority recvtime deferred servicename instance method args'
@@ -1339,36 +1337,6 @@ def publisher(username, password, url):
 
 def redisPublisher():
     return RedisListPublisher()
-
-
-def metricWriter():
-    metric_writer = MetricWriter(redisPublisher())
-    if os.environ.get("CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get(
-            "CONTROLPLANE_CONSUMER_USERNAME", ""
-        )
-        internal_password = os.environ.get(
-            "CONTROLPLANE_CONSUMER_PASSWORD", ""
-        )
-
-        if internal_url:
-            internal_publisher = publisher(
-                internal_username, internal_password, internal_url
-            )
-            internal_metric_filter = lambda metric, value, timestamp, tags:\
-                tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(
-                internal_publisher, internal_metric_filter
-            )
-            return AggregateMetricWriter(
-                [metric_writer, internal_metric_writer]
-            )
-
-    return metric_writer
-
-
-
 
 
 class DefaultConfProvider(object):
