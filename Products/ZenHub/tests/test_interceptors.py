@@ -46,7 +46,7 @@ class WorkerInterceptorTest(TestCase):
         self.zenhub = Mock(name='zenhub instance')
         self.zenhub.deferToWorker.return_value = 'deferred'
         self.wi = WorkerInterceptor(zenhub=self.zenhub, service=self.service)
-        self.broker = Mock(name='pb.Broker', spec=pb.Broker)
+        self.broker = Mock(name='pb.Broker', spec_set=pb.Broker)
 
     def test_remoteMessageRecieved(self):
         state = self.wi.remoteMessageRecieved(
@@ -136,22 +136,27 @@ class WorkerInterceptorTest(TestCase):
 
     def test_mark_send_event_timer(self):
         self.wi._eventsSent = Mock(
-            name='_eventsSent', spec=self.wi._eventsSent
+            name='_eventsSent', spec_set=self.wi._eventsSent
         )
         self.wi.mark_send_event_timer(None, None)
         self.wi._eventsSent.mark.assert_called_with()
 
     def test_mark_send_events_timer(self):
         self.wi._eventsSent = Mock(
-            name='_eventsSent', spec=self.wi._eventsSent
+            name='_eventsSent', spe_set=self.wi._eventsSent
         )
         events = ['a', 'b']
         self.wi.mark_send_events_timer(events, None)
         self.wi._eventsSent.mark.assert_called_with(len(events))
 
-    @patch('{interceptors}.time'.format(**PATH), name='time', autospec=True)
+    @patch(
+        '{interceptors}.time'.format(**PATH), name='time',
+        autospec=True, spec_set=True
+    )
     def test_mark_apply_datamaps_timer(self, mtime):
-        self.wi._admTimer = Mock(name='_eventsSent', spec=self.wi._admTimer)
+        self.wi._admTimer = Mock(
+            name='_eventsSent', spec_set=self.wi._admTimer
+        )
         mtime.return_value = 300
         start = 100
         self.wi.mark_apply_datamaps_timer(None, start)
