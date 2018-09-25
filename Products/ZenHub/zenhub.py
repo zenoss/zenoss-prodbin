@@ -14,20 +14,14 @@
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 """
-import Globals
+try:
+    import Globals
+except ImportError:
+    pass
 
-if __name__ == "__main__":
-    # Install the 'best' reactor available, BUT only if run as a script.
-    from Products.ZenHub import installReactor
-    installReactor()
-
-from XmlRpcService import XmlRpcService
-
+# std lib
 import collections
 import heapq
-from metrology import Metrology
-from metrology.registry import registry
-from metrology.instruments import Gauge
 import time
 import signal
 import cPickle as pickle
@@ -35,29 +29,46 @@ import os
 import subprocess
 import itertools
 from random import choice
-from zope.component import subscribers
+import sys
+
+# 3rd party
+from metrology import Metrology
+from metrology.registry import registry
+from metrology.instruments import Gauge
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
 banana.SIZE_LIMIT = 1024 * 1024 * 10
-
 from twisted.internet import reactor, protocol, defer, task
 from twisted.web import server, xmlrpc
 from twisted.internet.error import ProcessExitedAlready
 from twisted.internet.defer import inlineCallbacks, returnValue
+
+from zope.component import subscribers, getUtility, getUtilitiesFor, adapts
 from zope.event import notify
 from zope.interface import implements
-from zope.component import getUtility, getUtilitiesFor, adapts
 from ZODB.POSException import POSKeyError
 
-from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+# zenoss
+from zenoss.protocols.protobufs.zep_pb2 import (
+    SEVERITY_CRITICAL, SEVERITY_CLEAR
+)
+
 from Products.ZenUtils.Utils import (
     zenPath, getExitMessage, unused, load_config, load_config_override,
     ipv6_available, wait
 )
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.metricwriter import (
+    MetricWriter,
+    FilteredMetricWriter,
+    AggregateMetricWriter,
+    ThresholdNotifier,
+    DerivativeTracker
+)
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
@@ -65,6 +76,32 @@ from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager
 )
 from Products.ZenModel.DeviceComponent import DeviceComponent
+from Products.DataCollector.Plugins import loadPlugins
+# Due to the manipulation of sys.path during the loading of plugins,
+# we can get ObjectMap imported both as DataMaps.ObjectMap and the
+# full-path from Products.  The following gets the class registered
+# with the jelly serialization engine under both names:
+#
+#  1st: get Products.DataCollector.plugins.DataMaps.ObjectMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap
+#  2nd: get DataMaps.ObjectMap
+sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
+import DataMaps
+unused(DataMaps, ObjectMap)
+
+# local
+import Products.ZenHub as zenhub_module
+from Products.ZenHub import (
+    XML_RPC_PORT,
+    PB_PORT,
+    OPTION_STATE,
+    CONNECT_TIMEOUT,
+)
+from Products.ZenHub.interceptors import WorkerInterceptor
+from Products.ZenHub.XmlRpcService import XmlRpcService
+from Products.ZenHub.PBDaemon import RemoteBadMonitor
+from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
+from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenHub.interfaces import (
     IInvalidationProcessor,
     IServiceAddedEvent,
@@ -78,22 +115,14 @@ from Products.ZenHub.interfaces import (
     FILTER_INCLUDE,
     FILTER_EXCLUDE
 )
-from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
-from Products.ZenHub.WorkerSelection import WorkerSelector
-from zenoss.protocols.protobufs.zep_pb2 import (
-    SEVERITY_CRITICAL, SEVERITY_CLEAR
-)
-from Products.ZenUtils.metricwriter import (
-    MetricWriter,
-    FilteredMetricWriter,
-    AggregateMetricWriter,
-    ThresholdNotifier,
-    DerivativeTracker
-)
 from Products.ZenHub.metricpublisher.publisher import (
     HttpPostPublisher, RedisListPublisher
 )
-from Products.ZenHub.PBDaemon import RemoteBadMonitor
+if __name__ == "__main__":
+    # Install the 'best' reactor available, BUT only if run as a script.
+    from Products.ZenHub import installReactor
+    installReactor()
+
 pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 # Due to the manipulation of sys.path during the loading of plugins,
@@ -104,306 +133,19 @@ pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 #  1st: get Products.DataCollector.plugins.DataMaps.ObjectMap
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 #  2nd: get DataMaps.ObjectMap
-import sys
-sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
+
+sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 unused(DataMaps, ObjectMap)
 
-from Products.ZenHub import XML_RPC_PORT
-from Products.ZenHub import PB_PORT
-from Products.ZenHub import OPTION_STATE
-from Products.ZenHub import CONNECT_TIMEOUT
-
-from Products.ZenHub.interceptors import WorkerInterceptor
 
 # How often we check the number of running workers in Seconds
 CHECK_WORKER_INTERVAL = 60
-
-from Products.ZenUtils.debugtools import ContinuousProfiler
-
-HubWorklistItem = collections.namedtuple(
-    'HubWorklistItem',
-    'priority recvtime deferred servicename instance method args'
-)
-WorkerStats = collections.namedtuple(
-    'WorkerStats',
-    'status description lastupdate previdle'
-)
-LastCallReturnValue = collections.namedtuple(
-    'LastCallReturnValue', 'returnvalue'
-)
-
 try:
     NICE_PATH = subprocess.check_output('which nice', shell=True).strip()
 except Exception:
     NICE_PATH = None
 
-
-class AuthXmlRpcService(XmlRpcService):
-    """Provide some level of authentication for XML/RPC calls"""
-
-    def __init__(self, dmd, checker):
-        XmlRpcService.__init__(self, dmd)
-        self.checker = checker
-
-    def doRender(self, unused, request):
-        """
-        Call the inherited render engine after authentication succeeds.
-        See @L{XmlRpcService.XmlRpcService.Render}.
-        """
-        return XmlRpcService.render(self, request)
-
-    def unauthorized(self, request):
-        """
-        Render an XMLRPC error indicating an authentication failure.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: None
-        """
-        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-
-    def render(self, request):
-        """
-        Unpack the authorization header and check the credentials.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: NOT_DONE_YET
-        """
-        auth = request.getHeader('authorization')
-        if not auth:
-            self.unauthorized(request)
-        else:
-            try:
-                type, encoded = auth.split()
-                if type not in ('Basic',):
-                    self.unauthorized(request)
-                else:
-                    user, passwd = encoded.decode('base64').split(':')
-                    c = credentials.UsernamePassword(user, passwd)
-                    d = self.checker.requestAvatarId(c)
-                    d.addCallback(self.doRender, request)
-
-                    def error(unused, request):
-                        self.unauthorized(request)
-
-                    d.addErrback(error, request)
-            except Exception:
-                self.unauthorized(request)
-        return server.NOT_DONE_YET
-
-
-class HubAvitar(pb.Avatar):
-    """
-    Connect collectors to their configuration Services
-    """
-
-    def __init__(self, hub):
-        self.hub = hub
-
-    def perspective_ping(self):
-        return 'pong'
-
-    def perspective_getHubInstanceId(self):
-        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
-
-    def perspective_getService(self,
-                               serviceName,
-                               instance=None,
-                               listener=None,
-                               options=None):
-        """
-        Allow a collector to find a Hub service by name.  It also
-        associates the service with a collector so that changes can be
-        pushed back out to collectors.
-
-        @type serviceName: string
-        @param serviceName: a name, like 'EventService'
-        @type instance: string
-        @param instance: the collector's instance name, like 'localhost'
-        @type listener: a remote reference to the collector
-        @param listener: the callback interface to the collector
-        @return a remote reference to a service
-        """
-        try:
-            service = self.hub.getService(serviceName, instance)
-        except RemoteBadMonitor:
-            # This is a valid remote exception, so let it go through
-            # to the collector daemon to handle
-            raise
-        except Exception:
-            self.hub.log.exception("Failed to get service '%s'", serviceName)
-            return None
-        else:
-            if service is not None and listener:
-                service.addListener(listener, options)
-            return service
-
-    def perspective_reportingForWork(self, worker, pid=None):
-        """
-        Allow a worker register for work.
-
-        @type worker: a pb.RemoteReference
-        @param worker: a reference to zenhubworker
-        @return None
-        """
-        worker.busy = False
-        if pid is not None:
-            worker.pid = pid
-        self.hub.workers.append(worker)
-
-        def removeWorker(worker):
-            if worker in self.hub.workers:
-                self.hub.workers.remove(worker)
-
-        worker.notifyOnDisconnect(removeWorker)
-
-
-class ServiceAddedEvent(object):
-    implements(IServiceAddedEvent)
-
-    def __init__(self, name, instance):
-        self.name = name
-        self.instance = instance
-
-
-class HubWillBeCreatedEvent(object):
-    implements(IHubWillBeCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class HubCreatedEvent(object):
-    implements(IHubCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class ParserReadyForOptionsEvent(object):
-    implements(IParserReadyForOptionsEvent)
-
-    def __init__(self, parser):
-        self.parser = parser
-
-
-class HubRealm(object):
-    """
-    Following the Twisted authentication framework.
-    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
-    """
-    implements(portal.IRealm)
-
-    def __init__(self, hub):
-        self.hubAvitar = HubAvitar(hub)
-
-    def requestAvatar(self, collName, mind, *interfaces):
-        if pb.IPerspective not in interfaces:
-            raise NotImplementedError
-        return pb.IPerspective, self.hubAvitar, lambda: None
-
-
-class _ZenHubWorklist(object):
-
-    def __init__(self):
-        self.eventworklist = []
-        self.otherworklist = []
-        self.applyworklist = []
-
-        # priority lists for eventual task selection.
-        # All queues are appended in case any of them are empty.
-        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
-        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
-        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
-        self.dispatch = {
-            'sendEvents': self.eventworklist,
-            'sendEvent': self.eventworklist,
-            'applyDataMaps': self.applyworklist
-        }
-
-    def __getitem__(self, item):
-        return self.dispatch.get(item, self.otherworklist)
-
-    def __len__(self):
-        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
-
-    def pop(self, allowADM=True):
-        """
-        Select a single task to be distributed to a worker.
-        We prioritize tasks as follows:
-            sendEvents > configuration service calls > applyDataMaps
-        To prevent starving any queue in an event storm,
-        we randomize the task selection,
-        preferring tasks according to the above priority.
-
-        allowADM controls whether we should allow popping jobs from the
-        applyDataMaps list, this should be False while models are changing
-        (like during a zenpack install/upgrade/removal)
-        """
-        # the priority lists have eventworklist, otherworklist, and
-        # applyworklist when we don't want to allow ApplyDataMaps,
-        # we should exclude the possibility of popping from applyworklist
-        eventchain = filter(
-            None,
-            self.eventPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-        otherchain = filter(
-            None,
-            self.otherPriorityList if allowADM
-            else [self.otherworklist, self.eventworklist])
-        applychain = filter(
-            None,
-            self.applyPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-
-        # choose a job to pop based on weighted random
-        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
-        chosen_list = choice(choice_list)
-        if len(chosen_list) > 0:
-            item = heapq.heappop(chosen_list[0])
-            return item
-        else:
-            return None
-
-    def push(self, job):
-        heapq.heappush(self[job.method], job)
-
-    append = push
-
-
-def publisher(username, password, url):
-    return HttpPostPublisher(username, password, url)
-
-
-def redisPublisher():
-    return RedisListPublisher()
-
-
-def metricWriter():
-    metric_writer = MetricWriter(redisPublisher())
-    if os.environ.get("CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get(
-            "CONTROLPLANE_CONSUMER_USERNAME", ""
-        )
-        internal_password = os.environ.get(
-            "CONTROLPLANE_CONSUMER_PASSWORD", ""
-        )
-
-        if internal_url:
-            internal_publisher = publisher(
-                internal_username, internal_password, internal_url
-            )
-            internal_metric_filter = lambda metric, value, timestamp, tags:\
-                tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(
-                internal_publisher, internal_metric_filter
-            )
-            return AggregateMetricWriter(
-                [metric_writer, internal_metric_writer]
-            )
-
-    return metric_writer
 
 
 class ZenHub(ZCmdBase):
@@ -501,8 +243,8 @@ class ZenHub(ZCmdBase):
             Metrology.gauge('zenhub.workList', WorkListTotal())
 
         ZCmdBase.__init__(self)
-        import Products.ZenHub
-        load_config("hub.zcml", Products.ZenHub)
+
+        load_config("hub.zcml", zenhub_module)
         notify(HubWillBeCreatedEvent(self))
 
         if self.options.profiling:
@@ -812,7 +554,7 @@ class ZenHub(ZCmdBase):
             u, p = checker._loadCredentials().next()
             self.workerUsername, self.workerPassword = u, p
             return checker
-        except Exception:
+        except Exception as err:
             self.log.exception("Unable to load %s", self.options.passwordfile)
         return []
 
@@ -1139,7 +881,8 @@ class ZenHub(ZCmdBase):
             proc.spawn_time = time.time()
             self.workerprocessmap[proc.pid] = proc
             self.worker_processes.add(prot)
-        except Exception:
+        except Exception as e:
+            print(e)
             self.log.exception('Exception in createWorker')
 
     def heartbeat(self):
@@ -1284,6 +1027,290 @@ class ZenHub(ZCmdBase):
             help="Maximum number of seconds to pause modeling during ZenPack install/upgrade/removal (default: %default)")
 
         notify(ParserReadyForOptionsEvent(self.parser))
+
+
+HubWorklistItem = collections.namedtuple(
+    'HubWorklistItem',
+    'priority recvtime deferred servicename instance method args'
+)
+WorkerStats = collections.namedtuple(
+    'WorkerStats',
+    'status description lastupdate previdle'
+)
+LastCallReturnValue = collections.namedtuple(
+    'LastCallReturnValue', 'returnvalue'
+)
+
+
+class AuthXmlRpcService(XmlRpcService):
+    """Provide some level of authentication for XML/RPC calls"""
+
+    def __init__(self, dmd, checker):
+        XmlRpcService.__init__(self, dmd)
+        self.checker = checker
+
+    def doRender(self, unused, request):
+        """
+        Call the inherited render engine after authentication succeeds.
+        See @L{XmlRpcService.XmlRpcService.Render}.
+        """
+        return XmlRpcService.render(self, request)
+
+    def unauthorized(self, request):
+        """
+        Render an XMLRPC error indicating an authentication failure.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: None
+        """
+        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
+
+    def render(self, request):
+        """
+        Unpack the authorization header and check the credentials.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: NOT_DONE_YET
+        """
+        auth = request.getHeader('authorization')
+        if not auth:
+            self.unauthorized(request)
+        else:
+            try:
+                type, encoded = auth.split()
+                if type not in ('Basic',):
+                    self.unauthorized(request)
+                else:
+                    user, passwd = encoded.decode('base64').split(':')
+                    c = credentials.UsernamePassword(user, passwd)
+                    d = self.checker.requestAvatarId(c)
+                    d.addCallback(self.doRender, request)
+
+                    def error(unused, request):
+                        self.unauthorized(request)
+
+                    d.addErrback(error, request)
+            except Exception:
+                self.unauthorized(request)
+        return server.NOT_DONE_YET
+
+
+class HubAvitar(pb.Avatar):
+    """
+    Connect collectors to their configuration Services
+    """
+
+    def __init__(self, hub):
+        self.hub = hub
+
+    def perspective_ping(self):
+        return 'pong'
+
+    def perspective_getHubInstanceId(self):
+        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
+
+    def perspective_getService(self,
+                               serviceName,
+                               instance=None,
+                               listener=None,
+                               options=None):
+        """
+        Allow a collector to find a Hub service by name.  It also
+        associates the service with a collector so that changes can be
+        pushed back out to collectors.
+
+        @type serviceName: string
+        @param serviceName: a name, like 'EventService'
+        @type instance: string
+        @param instance: the collector's instance name, like 'localhost'
+        @type listener: a remote reference to the collector
+        @param listener: the callback interface to the collector
+        @return a remote reference to a service
+        """
+        try:
+            service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
+        except Exception:
+            self.hub.log.exception("Failed to get service '%s'", serviceName)
+            return None
+        else:
+            if service is not None and listener:
+                service.addListener(listener, options)
+            return service
+
+    def perspective_reportingForWork(self, worker, pid=None):
+        """
+        Allow a worker register for work.
+
+        @type worker: a pb.RemoteReference
+        @param worker: a reference to zenhubworker
+        @return None
+        """
+        worker.busy = False
+        if pid is not None:
+            worker.pid = pid
+        self.hub.workers.append(worker)
+
+        def removeWorker(worker):
+            if worker in self.hub.workers:
+                self.hub.workers.remove(worker)
+
+        worker.notifyOnDisconnect(removeWorker)
+
+
+class ServiceAddedEvent(object):
+    implements(IServiceAddedEvent)
+
+    def __init__(self, name, instance):
+        self.name = name
+        self.instance = instance
+
+
+class HubWillBeCreatedEvent(object):
+    implements(IHubWillBeCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class HubCreatedEvent(object):
+    implements(IHubCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class ParserReadyForOptionsEvent(object):
+    implements(IParserReadyForOptionsEvent)
+
+    def __init__(self, parser):
+        self.parser = parser
+
+
+class HubRealm(object):
+    """
+    Following the Twisted authentication framework.
+    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
+    """
+    implements(portal.IRealm)
+
+    def __init__(self, hub):
+        self.hubAvitar = HubAvitar(hub)
+
+    def requestAvatar(self, collName, mind, *interfaces):
+        if pb.IPerspective not in interfaces:
+            raise NotImplementedError
+        return pb.IPerspective, self.hubAvitar, lambda: None
+
+
+class _ZenHubWorklist(object):
+
+    def __init__(self):
+        self.eventworklist = []
+        self.otherworklist = []
+        self.applyworklist = []
+
+        # priority lists for eventual task selection.
+        # All queues are appended in case any of them are empty.
+        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
+        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
+        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
+        self.dispatch = {
+            'sendEvents': self.eventworklist,
+            'sendEvent': self.eventworklist,
+            'applyDataMaps': self.applyworklist
+        }
+
+    def __getitem__(self, item):
+        return self.dispatch.get(item, self.otherworklist)
+
+    def __len__(self):
+        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
+
+    def pop(self, allowADM=True):
+        """
+        Select a single task to be distributed to a worker.
+        We prioritize tasks as follows:
+            sendEvents > configuration service calls > applyDataMaps
+        To prevent starving any queue in an event storm,
+        we randomize the task selection,
+        preferring tasks according to the above priority.
+
+        allowADM controls whether we should allow popping jobs from the
+        applyDataMaps list, this should be False while models are changing
+        (like during a zenpack install/upgrade/removal)
+        """
+        # the priority lists have eventworklist, otherworklist, and
+        # applyworklist when we don't want to allow ApplyDataMaps,
+        # we should exclude the possibility of popping from applyworklist
+        eventchain = filter(
+            None,
+            self.eventPriorityList if allowADM else self.eventworklist
+        )
+        otherchain = filter(
+            None,
+            self.otherPriorityList if allowADM else self.otherworklist
+        )
+        applychain = filter(
+            None,
+            self.applyPriorityList if allowADM else []
+        )
+
+        # choose a job to pop based on weighted random
+        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
+        chosen_list = choice(choice_list)
+
+        if len(chosen_list) > 0:
+            item = heapq.heappop(chosen_list[0])
+            return item
+        else:
+            return None
+
+    def push(self, job):
+        heapq.heappush(self[job.method], job)
+
+    append = push
+
+
+def publisher(username, password, url):
+    return HttpPostPublisher(username, password, url)
+
+
+def redisPublisher():
+    return RedisListPublisher()
+
+
+def metricWriter():
+    metric_writer = MetricWriter(redisPublisher())
+    if os.environ.get("CONTROLPLANE", "0") == "1":
+        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
+        internal_username = os.environ.get(
+            "CONTROLPLANE_CONSUMER_USERNAME", ""
+        )
+        internal_password = os.environ.get(
+            "CONTROLPLANE_CONSUMER_PASSWORD", ""
+        )
+
+        if internal_url:
+            internal_publisher = publisher(
+                internal_username, internal_password, internal_url
+            )
+            internal_metric_filter = lambda metric, value, timestamp, tags:\
+                tags and tags.get("internal", False)
+            internal_metric_writer = FilteredMetricWriter(
+                internal_publisher, internal_metric_filter
+            )
+            return AggregateMetricWriter(
+                [metric_writer, internal_metric_writer]
+            )
+
+    return metric_writer
+
+
+
 
 
 class DefaultConfProvider(object):
