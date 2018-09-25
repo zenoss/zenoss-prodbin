@@ -45,6 +45,8 @@ from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
 from Products.ZenUtils.virtual_root import IVirtualRoot
 
+from Products.Jobber.zenmodel import DeviceUpdateProdStates
+
 _MARKER = object()
 
 # Custom device properties start with c
@@ -376,6 +378,36 @@ class ZenModelBase(object):
 
         @permission: ZEN_MANAGE_DMD
         """
+        newValuesInProdStates = [x for x in REQUEST.form['prodStateConversions'] 
+            if x not in self.prodStateConversions]
+        if newValuesInProdStates:
+            prodStateDashboardThresh = None
+            oldProdStatesDict = {name: int(value) for name,value in
+                (s.split(':') for s in self.prodStateConversions)}            
+            dashboardThresh = [key for key, value in oldProdStatesDict.iteritems()
+                if value == int(REQUEST.form['prodStateDashboardThresh'])]
+            if dashboardThresh:
+                prodStateDashboardThresh = dashboardThresh[0]
+            newProdStatesDict = {name: int(value) for name,value in
+                (s.split(':') for s in newValuesInProdStates)}                
+            if prodStateDashboardThresh in newProdStatesDict.keys():
+                REQUEST.form['prodStateDashboardThresh'] = str(
+                    newProdStatesDict[prodStateDashboardThresh])
+
+            job = self.JobManager.addJob(
+                DeviceUpdateProdStates,
+                description="Set updated production states on all devices",
+                kwargs=dict(
+                        oldProdStatesDict=oldProdStatesDict,
+                        newProdStatesDict=newProdStatesDict
+                        )
+                )
+            href = "/zport/dmd/joblist#jobs:%s" % (job.getId())
+            messaging.IMessageSender(self).sendToBrowser(
+                'Job Added',
+                'Job Added to set new production states values for all devices, view the <a href="{}"> job log</a>'.format(href)
+            )
+
         self.manage_changeProperties(**REQUEST.form)
         index_object = getattr(self, 'index_object', lambda self: None)
         index_object()

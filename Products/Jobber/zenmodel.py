@@ -1,6 +1,6 @@
 ##############################################################################
 # 
-# Copyright (C) Zenoss, Inc. 2012, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2012, 2018 all rights reserved.
 # 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -32,3 +32,20 @@ class DeviceSetLocalRolesJob(Job):
         log.info("About to set local roles for uid: %s " % organizerUid)
         organizer = self.dmd.unrestrictedTraverse(organizerUid)
         organizer._setDeviceLocalRoles()
+
+
+class DeviceUpdateProdStates(Job):
+    """
+    Update production states values if they were changed in settings
+    """
+
+    def _run(self, oldProdStatesDict, newProdStatesDict):
+        def _getKeyByValue(dct, val):
+            for key, value in dct.iteritems():
+                if value == val:
+                    return key
+            return None
+        for device in self.dmd.Devices.getSubDevices():
+            originalProdState = _getKeyByValue(oldProdStatesDict, device.getProductionState())
+            if originalProdState in newProdStatesDict.keys():
+                device.setProdState(newProdStatesDict[originalProdState])
