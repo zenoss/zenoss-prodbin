@@ -1034,8 +1034,12 @@ class MetricManager():
             'zenoss_monitor': monitor,
             'internal': True
         }
-        self.metricreporter = TwistedMetricReporter(
-            metricWriter=metric_writer, tags=self.daemon_tags
+        self.metric_writer = metric_writer
+
+    @property
+    def metricreporter(self):
+        return TwistedMetricReporter(
+            metricWriter=self.metric_writer, tags=self.daemon_tags
         )
 
     def start(self):

@@ -1262,10 +1262,10 @@ class ZenHubTest(TestCase):
         #t.zh.createWorker.assert_has_calls([call() for _ in range(2)])
 
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
     @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
-    def test_main(t, LoopingCall, TwistedMetricReporter, os, getUtility):
+    def test_main(t, LoopingCall, os, MetricManager, getUtility):
         '''Daemon Entry Point
         Execution waits at reactor.run() until the reactor stops
         '''
@@ -1286,16 +1286,13 @@ class ZenHubTest(TestCase):
         # convert to a looping call
         t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
         # sets up and starts its metric reporter
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=t.zh._metric_writer,
-            tags={
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': t.zh.options.monitor,
-                'internal': True
-            }
+        MetricManager.assert_called_with(
+            t.zh._metric_writer, t.zh.options.monitor
         )
-        t.assertEqual(t.zh.metricreporter, TwistedMetricReporter.return_value)
-        t.zh.metricreporter.start.assert_called_with()
+        _metric_manager = MetricManager.return_value
+        t.assertEqual(t.zh._metric_manager, _metric_manager)
+        t.assertEqual(t.zh.metricreporter, _metric_manager.metricreporter)
+        t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
         t.reactor.addSystemEventTrigger.assert_called_with(
             'before', 'shutdown', t.zh._metric_manager.stop
@@ -1367,13 +1364,8 @@ class MetricManagerTest(TestCase):
             'zenoss_monitor': t.monitor,
             'internal': True
         }
-        t.TwistedMetricReporter.assert_called_with(
-            metricWriter=t.metric_writer, tags=daemon_tags
-        )
-        t.assertEqual(
-            t.mm.metricreporter, t.TwistedMetricReporter.return_value
-        )
         t.assertEqual(t.mm.daemon_tags, daemon_tags)
+        t.assertEqual(t.mm.metric_writer, t.metric_writer)
 
     def test_start(t):
         t.mm.start()
@@ -1382,6 +1374,14 @@ class MetricManagerTest(TestCase):
     def test_stop(t):
         t.mm.stop()
         t.mm.metricreporter.stop.assert_called_with()
+
+    def test_metric_reporter_property(t):
+        t.assertEqual(
+            t.mm.metricreporter, t.TwistedMetricReporter.return_value
+        )
+        t.TwistedMetricReporter.assert_called_with(
+            metricWriter=t.metric_writer, tags=t.mm.daemon_tags
+        )
 
 
 class DefaultConfProviderTest(TestCase):
