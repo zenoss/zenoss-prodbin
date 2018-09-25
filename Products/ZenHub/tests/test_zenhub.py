@@ -1344,48 +1344,10 @@ class MetricManagerTest(TestCase):
 
         t.assertEqual(ret, DaemonStats.return_value)
 
-    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
     @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
     @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
-    def test_metric_writer(
-        t,
-        MetricWriter,
-        redisPublisher,
-        os,
-        publisher,
-        FilteredMetricWriter,
-        AggregateMetricWriter
-    ):
-        '''Returns an initialized MetricWriter instance,
-        should probably be refactored into its own class
-        '''
-        os.environ = {
-            'CONTROLPLANE': '1',
-            'CONTROLPLANE_CONSUMER_URL': 'consumer_url',
-            'CONTROLPLANE_CONSUMER_USERNAME': 'consumer_username',
-            'CONTROLPLANE_CONSUMER_PASSWORD': 'consumer_password',
-        }
-
-        ret = t.mm.metric_writer
-
-        MetricWriter.assert_called_with(redisPublisher.return_value)
-        publisher.assert_called_with(
-            os.environ['CONTROLPLANE_CONSUMER_USERNAME'],
-            os.environ['CONTROLPLANE_CONSUMER_PASSWORD'],
-            os.environ['CONTROLPLANE_CONSUMER_URL'],
-        )
-        AggregateMetricWriter.assert_called_with(
-            [MetricWriter.return_value, FilteredMetricWriter.return_value]
-        )
-        t.assertEqual(ret, AggregateMetricWriter.return_value)
-
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
-    def test_metric_writer_refactor(t, MetricWriter, redisPublisher, os):
+    def test_metric_writer(t, MetricWriter, redisPublisher, os):
         os.environ = {'CONTROLPLANE': '0'}
 
         ret = t.mm.metric_writer
