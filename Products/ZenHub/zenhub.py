@@ -933,18 +933,15 @@ class ZenHub(ZCmdBase):
         if self.options.cycle:
             reactor.callLater(0, self.heartbeat)
             self.log.debug("Creating async MetricReporter")
-            daemonTags = {
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': self.options.monitor,
-                'internal': True
-            }
-            self.metricreporter = TwistedMetricReporter(
-                metricWriter=self._metric_writer, tags=daemonTags
+            self._metric_manager = MetricManager(
+                self._metric_writer, self.options.monitor
             )
-            self.metricreporter.start()
+            self._metric_manager.start()
             reactor.addSystemEventTrigger(
-                'before', 'shutdown', self.metricreporter.stop
+                'before', 'shutdown', self._metric_manager.stop
             )
+            # preserve legacy API
+            self.metricreporter = self._metric_manager.metricreporter
 
         self.check_workers_task = task.LoopingCall(self.check_workers)
         self.check_workers_task.start(CHECK_WORKER_INTERVAL)

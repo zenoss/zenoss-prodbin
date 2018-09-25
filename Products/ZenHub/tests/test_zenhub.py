@@ -1298,7 +1298,7 @@ class ZenHubTest(TestCase):
         t.zh.metricreporter.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
         t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh.metricreporter.stop
+            'before', 'shutdown', t.zh._metric_manager.stop
         )
         # After the reactor stops:
         # shut down workers
