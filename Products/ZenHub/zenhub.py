@@ -301,6 +301,9 @@ class ZenHub(ZCmdBase):
         )
 
         self._metric_writer = metricWriter()
+        self._metric_manager = MetricManager(
+            self._metric_writer, self.options.monitor
+        )
         self.rrdStats = self.getRRDStats()
 
         if self.options.workers:
@@ -378,6 +381,12 @@ class ZenHub(ZCmdBase):
         return confProvider.getHubConf()
 
     def getRRDStats(self):
+        # NOTE: check the difference between sendEvent and zem.sendEvent
+        return self._metric_manager.get_rrd_stats(
+            self._getConf(), self.zem.sendEvent
+        )
+
+    def __getRRDStats(self):
         """
         Return the most recent RRD statistic information.
         """
@@ -934,9 +943,6 @@ class ZenHub(ZCmdBase):
         if self.options.cycle:
             reactor.callLater(0, self.heartbeat)
             self.log.debug("Creating async MetricReporter")
-            self._metric_manager = MetricManager(
-                self._metric_writer, self.options.monitor
-            )
             self._metric_manager.start()
             reactor.addSystemEventTrigger(
                 'before', 'shutdown', self._metric_manager.stop

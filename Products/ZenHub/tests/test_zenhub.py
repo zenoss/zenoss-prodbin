@@ -645,26 +645,24 @@ class ZenHubTest(TestCase):
         confProvider = IHubConfProvider.return_value
         t.assertEqual(ret, confProvider.getHubConf.return_value)
 
+    @patch('{src}.BuiltInDS'.format(**PATH), autospec=True)
     @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
     @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
     @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
-    def test_getRRDStats(t, DaemonStats, ThresholdNotifier, DerivativeTracker):
+    def test_getRRDStats(
+        t, DaemonStats, ThresholdNotifier, DerivativeTracker, BuiltInDS
+    ):
         '''Metric reporting function
         '''
-        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
+        t.zh.options = sentinel.options
+        t.zh.options.monitor = sentinel.monitor
         t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
-
-        # patch to deal with internal import
-        BuiltInDS_module = MagicMock(
-            name='Products.ZenModel.BuiltInDS',
-            spec_set=['BuiltInDS'],
+        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
+        t.zh._metric_manager = MetricManager(
+            t.zh._metric_writer, t.zh.options.monitor
         )
-        BuiltInDS = MagicMock(name='BuiltInDS', spec_set=['sourcetype'])
-        BuiltInDS_module.BuiltInDS = BuiltInDS
-        modules = {'Products.ZenModel.BuiltInDS': BuiltInDS_module}
 
-        with patch.dict('sys.modules', modules):
-            ret = t.zh.getRRDStats()
+        ret = t.zh.getRRDStats()
 
         rrdStats = DaemonStats.return_value
         perfConf = t.zh._getConf.return_value
@@ -1274,6 +1272,11 @@ class ZenHubTest(TestCase):
             cycle=True, profiling=True
         )
         # Metric Management
+        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
+        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
+        t.zh._metric_manager = MetricManager(
+            t.zh._metric_writer, t.zh.options.monitor
+        )
         t.zh._metric_writer = sentinel.metric_writer
         t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
         # Worker Management
@@ -1285,10 +1288,7 @@ class ZenHubTest(TestCase):
 
         # convert to a looping call
         t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
-        # sets up and starts its metric reporter
-        MetricManager.assert_called_with(
-            t.zh._metric_writer, t.zh.options.monitor
-        )
+        # starts its metricreporter
         _metric_manager = MetricManager.return_value
         t.assertEqual(t.zh._metric_manager, _metric_manager)
         t.assertEqual(t.zh.metricreporter, _metric_manager.metricreporter)
