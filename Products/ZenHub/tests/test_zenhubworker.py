@@ -76,9 +76,9 @@ class zenhubworkerInitTest(TestCase):
         zenhubworker.options.profiling = True
         zenhubworker.options.hubhost = sentinel.hubhost
         zenhubworker.options.hubport = sentinel.hubport
-        zenhubworker.options.username = sentinel.username
-        zenhubworker.options.password = sentinel.password
-        zenhubworker.options.workernum = sentinel.workernum
+        zenhubworker.options.hubusername = sentinel.hubusername
+        zenhubworker.options.hubpassword = sentinel.hubpassword
+        zenhubworker.options.workerid = sentinel.workerid
         zenhubworker.options.monitor = sentinel.monitor
 
         zhw = zenhubworker()
@@ -111,7 +111,7 @@ class zenhubworkerInitTest(TestCase):
             factory
         )
         credentials.UsernamePassword.assert_called_with(
-            zhw.options.username, zhw.options.password
+            zhw.options.hubusername, zhw.options.hubpassword
         )
         t.assertEqual(factory.gotPerspective, zhw.gotPerspective)
         # The reactor will be stopped if the client looses its connection
@@ -125,7 +125,7 @@ class zenhubworkerInitTest(TestCase):
         TwistedMetricReporter.assert_called_with(
             metricWriter=metricWriter.return_value,
             tags={
-                'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workernum,
+                'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workerid,
                 'zenoss_monitor': zhw.options.monitor,
                 'internal': True
             }
@@ -156,7 +156,13 @@ class zenhubworkerTest(TestCase):
         t.addCleanup(t.init_patcher.stop)
 
         t.zhw = zenhubworker()
-        t.zhw.options = sentinel.options
+        t.zhw.options = Mock(
+            name='options',
+            spec_set=[
+                'profiling', 'hubhost', 'hubport', 'hubusername',
+                'hubpassword', 'workerid', 'monitor', 'call_limit'
+            ]
+        )
         t.zhw.log = Mock(name='log', spec_set=['error', 'debug', 'info'])
 
     def test_audit(t):
@@ -192,7 +198,7 @@ class zenhubworkerTest(TestCase):
         this function is difficult to read and should be refactored
         '''
         t.zhw.current = sentinel.current_job
-        t.zhw.pid = 1001
+        t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
         time.time.return_value = 7
         name = 'module.module_name'
@@ -211,7 +217,7 @@ class zenhubworkerTest(TestCase):
         parsed_service_id = '{instance}/module_name'.format(**locals())
         average_time = stats.totaltime / stats.numoccurrences
         t.zhw.log.debug.assert_called_with(
-            '({t.zhw.pid}) Running statistics:\n'
+            'Running statistics:\n'
             ' - {parsed_service_id: <49}{method: <32}'
             '{stats.numoccurrences: 9}{stats.totaltime: 13.2f}'
             '{average_time: 9.2f} 1970-01-01 00:09:15'.format(**locals())
@@ -221,13 +227,13 @@ class zenhubworkerTest(TestCase):
     def test_gotPerspective(t, reactor):
         '''register the worker with zenhub
         '''
-        t.zhw.pid = sentinel.pid
+        t.zhw.options.workerid = sentinel.workerId
         perspective = Mock(name='perspective', spec_set=['callRemote'])
 
         t.zhw.gotPerspective(perspective)
 
         perspective.callRemote.assert_called_with(
-            'reportingForWork', t.zhw, pid=t.zhw.pid
+            'reportingForWork', t.zhw, workerId=t.zhw.options.workerid
         )
         # pull the internally defined function out of the return value
         deferred = perspective.callRemote.return_value
@@ -293,7 +299,7 @@ class zenhubworkerTest(TestCase):
         t.zhw.async_syncdb = create_autospec(t.zhw.async_syncdb)
         t.zhw.numCalls = Mock(name='numCalls', spec_set=['count', 'mark'])
         t.zhw.numCalls.count = 0
-        t.zhw.options.calllimit = 10
+        t.zhw.options.call_limit = 10
 
         ret = t.zhw.remote_execute(
             service_fullname, instance, method, pickled_args
@@ -327,7 +333,7 @@ class zenhubworkerTest(TestCase):
         kwargs = {'kwarg0': 'sentinel.kwarg0', 'kwarg1': 'sentinel.kwarg1'}
         pickled_args = pickle.dumps((args, kwargs))
         t.zhw.numCalls.count = 10
-        t.zhw.options.calllimit = 10
+        t.zhw.options.call_limit = 10
 
         ret = t.zhw.remote_execute(
             service_fullname, instance, method, pickled_args
@@ -373,9 +379,9 @@ class zenhubworkerTest(TestCase):
         ZCmdBase.buildOptions.assert_called_with(t.zhw)
         t.assertEqual(t.zhw.options.hubhost, 'localhost')
         t.assertEqual(t.zhw.options.hubport, PB_PORT)
-        t.assertEqual(t.zhw.options.username, 'zenoss')
-        t.assertEqual(t.zhw.options.password, 'zenoss')
-        t.assertEqual(t.zhw.options.calllimit, 200)
+        t.assertEqual(t.zhw.options.hubusername, 'admin')
+        t.assertEqual(t.zhw.options.hubpassword, 'zenoss')
+        t.assertEqual(t.zhw.options.call_limit, 200)
         t.assertEqual(t.zhw.options.profiling, False)
         t.assertEqual(t.zhw.options.monitor, 'localhost')
-        t.assertEqual(t.zhw.options.workernum, 0)
+        t.assertEqual(t.zhw.options.workerid, 0)
