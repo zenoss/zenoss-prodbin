@@ -300,10 +300,8 @@ class ZenHub(ZCmdBase):
             self.processQueue
         )
 
-        self._metric_writer = metricWriter()
-        self._metric_manager = MetricManager(
-            self._metric_writer, self.options.monitor
-        )
+        self._metric_manager = MetricManager(self.options.monitor)
+        self._metric_writer = self._metric_manager.metric_writer
         self.rrdStats = self.getRRDStats()
 
         if self.options.workers:
@@ -385,24 +383,6 @@ class ZenHub(ZCmdBase):
         return self._metric_manager.get_rrd_stats(
             self._getConf(), self.zem.sendEvent
         )
-
-    def __getRRDStats(self):
-        """
-        Return the most recent RRD statistic information.
-        """
-        rrdStats = DaemonStats()
-        perfConf = self._getConf()
-
-        from Products.ZenModel.BuiltInDS import BuiltInDS
-        threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
-        threshold_notifier = ThresholdNotifier(self.zem.sendEvent, threshs)
-
-        derivative_tracker = DerivativeTracker()
-
-        rrdStats.config('zenhub', perfConf.id, self._metric_writer,
-                        threshold_notifier, derivative_tracker)
-
-        return rrdStats
 
     @defer.inlineCallbacks
     def processQueue(self):
@@ -1033,21 +1013,25 @@ class ZenHub(ZCmdBase):
         notify(ParserReadyForOptionsEvent(self.parser))
 
 
-class MetricManager():
+class MetricManager(object):
 
-    def __init__(self, metric_writer, monitor):
+    def __init__(self, monitor):
         self.daemon_tags = {
             'zenoss_daemon': 'zenhub',
             'zenoss_monitor': monitor,
             'internal': True
         }
-        self.metric_writer = metric_writer
+        self._metric_writer = None
+        self._metric_reporter = None
 
     @property
     def metricreporter(self):
-        return TwistedMetricReporter(
-            metricWriter=self.metric_writer, tags=self.daemon_tags
-        )
+        if not self._metric_reporter:
+            self._metric_reporter = TwistedMetricReporter(
+                metricWriter=self.metric_writer, tags=self.daemon_tags
+            )
+
+        return self._metric_reporter
 
     def start(self):
         self.metricreporter.start()
@@ -1070,6 +1054,36 @@ class MetricManager():
         )
 
         return rrd_stats
+
+    @property
+    def metric_writer(self):
+        if not self._metric_writer:
+            self._metric_writer = MetricWriter(redisPublisher())
+            self._metric_writer = self._setup_cc_metric_writer(
+                self._metric_writer
+            )
+
+        return self._metric_writer
+
+    def _setup_cc_metric_writer(self, metric_writer):
+        cc = os.environ.get("CONTROLPLANE", "0") == "1"
+        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
+        if cc and internal_url:
+            username = os.environ.get("CONTROLPLANE_CONSUMER_USERNAME", "")
+            password = os.environ.get("CONTROLPLANE_CONSUMER_PASSWORD", "")
+            _publisher = publisher(username, password, internal_url)
+            internal_metric_writer = FilteredMetricWriter(
+                _publisher, self._internal_metric_filter
+            )
+            metric_writer = AggregateMetricWriter(
+                [metric_writer, internal_metric_writer]
+            )
+        return metric_writer
+
+    @staticmethod
+    def _internal_metric_filter(metric, value, timestamp, tags):
+        return tags and tags.get("internal", False)
+
 
 
 

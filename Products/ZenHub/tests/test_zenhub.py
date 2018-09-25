@@ -37,7 +37,6 @@ from Products.ZenHub.zenhub import (
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
     MetricManager,
-    TwistedMetricReporter,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -537,7 +536,7 @@ class ZenHubInitTest(TestCase):
         zh.createWorker.assert_has_calls(
             [call(zh, i) for i in range(zh.options.workers)]
         )
-        t.assertEqual(zh._metric_writer, metricWriter.return_value)
+        t.assertEqual(zh._metric_writer, zh._metric_manager.metric_writer)
         t.assertEqual(zh.rrdStats, zh.getRRDStats())
         # Convert this to a LoopingCall
         reactor.callLater.assert_called_with(2, zh.giveWorkToWorkers, True)
@@ -645,43 +644,17 @@ class ZenHubTest(TestCase):
         confProvider = IHubConfProvider.return_value
         t.assertEqual(ret, confProvider.getHubConf.return_value)
 
-    @patch('{src}.BuiltInDS'.format(**PATH), autospec=True)
-    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
-    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
-    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
-    def test_getRRDStats(
-        t, DaemonStats, ThresholdNotifier, DerivativeTracker, BuiltInDS
-    ):
-        '''Metric reporting function
-        '''
-        t.zh.options = sentinel.options
-        t.zh.options.monitor = sentinel.monitor
-        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
-        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh._metric_manager = MetricManager(
-            t.zh._metric_writer, t.zh.options.monitor
-        )
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    def test_getRRDStats(t, MetricManager):
+        t.zh._metric_manager = MetricManager.return_value
+        t.zh._getConf = create_autospec(t.zh._getConf)
 
         ret = t.zh.getRRDStats()
 
-        rrdStats = DaemonStats.return_value
-        perfConf = t.zh._getConf.return_value
-        thresholds = perfConf.getThresholdInstances.return_value
-        threshold_notifier = ThresholdNotifier.return_value
-        derivative_tracker = DerivativeTracker.return_value
-
-        perfConf.getThresholdInstances.assert_called_with(BuiltInDS.sourcetype)
-        ThresholdNotifier.assert_called_with(t.zh.zem.sendEvent, thresholds)
-
-        rrdStats.config.assert_called_with(
-            'zenhub',
-            perfConf.id,
-            t.zh._metric_writer,
-            threshold_notifier,
-            derivative_tracker
+        t.zh._metric_manager.get_rrd_stats.assert_called_with(
+            t.zh._getConf(), t.zh.zem.sendEvent
         )
-
-        t.assertEqual(ret, DaemonStats.return_value)
+        t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
     def test_processQueue(t):
         '''Configuration Invalidation Processing function
@@ -1004,7 +977,7 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
     def test_updateStatusAtStart(t, WorkerStats):
-        '''Metric reporting function'''
+        '''Worker Management Metric reporting function'''
         # these should be set by __init__, not specified here
         t.zh.workTracker = {}
         t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
@@ -1026,7 +999,7 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
     def test_updateStatusAtFinish(t, WorkerStats):
-        '''Metric reporting function
+        '''Worker Management Metric reporting function
         '''
         # this should be set by __init__, not specified here
         t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
@@ -1274,9 +1247,7 @@ class ZenHubTest(TestCase):
         # Metric Management
         t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
         t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh._metric_manager = MetricManager(
-            t.zh._metric_writer, t.zh.options.monitor
-        )
+        t.zh._metric_manager = MetricManager(t.zh.options.monitor)
         t.zh._metric_writer = sentinel.metric_writer
         t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
         # Worker Management
@@ -1354,9 +1325,8 @@ class MetricManagerTest(TestCase):
         t.addCleanup(t.tmr_patcher.stop)
 
         t.monitor = sentinel.monitor
-        t.metric_writer = sentinel.metric_writer
 
-        t.mm = MetricManager(t.metric_writer, t.monitor)
+        t.mm = MetricManager(t.monitor)
 
     def test___init__(t):
         daemon_tags = {
@@ -1365,7 +1335,6 @@ class MetricManagerTest(TestCase):
             'internal': True
         }
         t.assertEqual(t.mm.daemon_tags, daemon_tags)
-        t.assertEqual(t.mm.metric_writer, t.metric_writer)
 
     def test_start(t):
         t.mm.start()
@@ -1376,11 +1345,12 @@ class MetricManagerTest(TestCase):
         t.mm.metricreporter.stop.assert_called_with()
 
     def test_metric_reporter_property(t):
+        #t.mm.metric_writer = sentinel.metric_writer
         t.assertEqual(
             t.mm.metricreporter, t.TwistedMetricReporter.return_value
         )
         t.TwistedMetricReporter.assert_called_with(
-            metricWriter=t.metric_writer, tags=t.mm.daemon_tags
+            metricWriter=t.mm.metric_writer, tags=t.mm.daemon_tags
         )
 
     @patch('{src}.BuiltInDS'.format(**PATH), autospec=True)
@@ -1392,6 +1362,7 @@ class MetricManagerTest(TestCase):
     ):
         '''Metric reporting function
         '''
+        #t.mm.metric_writer = sentinel.metric_writer
         hub_config = Mock(
             name='hub_config', spec_set=['getThresholdInstances', 'id']
         )
@@ -1418,6 +1389,97 @@ class MetricManagerTest(TestCase):
         )
 
         t.assertEqual(ret, DaemonStats.return_value)
+
+    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.publisher'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
+    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
+    def test_metric_writer(
+        t,
+        MetricWriter,
+        redisPublisher,
+        os,
+        publisher,
+        FilteredMetricWriter,
+        AggregateMetricWriter
+    ):
+        '''Returns an initialized MetricWriter instance,
+        should probably be refactored into its own class
+        '''
+        os.environ = {
+            'CONTROLPLANE': '1',
+            'CONTROLPLANE_CONSUMER_URL': 'consumer_url',
+            'CONTROLPLANE_CONSUMER_USERNAME': 'consumer_username',
+            'CONTROLPLANE_CONSUMER_PASSWORD': 'consumer_password',
+        }
+
+        ret = t.mm.metric_writer
+
+        MetricWriter.assert_called_with(redisPublisher.return_value)
+        publisher.assert_called_with(
+            os.environ['CONTROLPLANE_CONSUMER_USERNAME'],
+            os.environ['CONTROLPLANE_CONSUMER_PASSWORD'],
+            os.environ['CONTROLPLANE_CONSUMER_URL'],
+        )
+        AggregateMetricWriter.assert_called_with(
+            [MetricWriter.return_value, FilteredMetricWriter.return_value]
+        )
+        t.assertEqual(ret, AggregateMetricWriter.return_value)
+
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
+    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
+    def test_metric_writer_refactor(t, MetricWriter, redisPublisher, os):
+        os.environ = {'CONTROLPLANE': '0'}
+
+        ret = t.mm.metric_writer
+
+        t.assertEqual(ret, MetricWriter.return_value)
+        MetricWriter.assert_called_with(redisPublisher.return_value)
+
+    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
+    @patch('{src}.publisher'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    def test__setup_cc_metric_writer(
+        t, os, publisher, FilteredMetricWriter, AggregateMetricWriter
+    ):
+        usr, pas = 'consumer_username', 'consumer_password'
+        internal_url = 'consumer_url'
+        os.environ = {
+            'CONTROLPLANE': '1',
+            'CONTROLPLANE_CONSUMER_URL': internal_url,
+            'CONTROLPLANE_CONSUMER_USERNAME': usr,
+            'CONTROLPLANE_CONSUMER_PASSWORD': pas,
+        }
+        metric_writer = sentinel.metric_writer
+
+        ret = t.mm._setup_cc_metric_writer(metric_writer)
+
+        publisher.assert_called_with(usr, pas, internal_url)
+        FilteredMetricWriter.assert_called_with(
+            publisher.return_value, t.mm._internal_metric_filter
+        )
+        AggregateMetricWriter.assert_called_with(
+            [metric_writer, FilteredMetricWriter.return_value]
+        )
+        t.assertEqual(ret, AggregateMetricWriter.return_value)
+
+    def test_internal_metric_filter(t):
+        tags = {'t1': True, 'internal': True}
+        ret = t.mm._internal_metric_filter(
+            sentinel.metric, sentinel.value, sentinel.timestamp, tags
+        )
+        t.assertEqual(ret, True)
+
+    def test_internal_metric_filter_False(t):
+        tags = {'t1': True, 'not internal': True}
+        ret = t.mm._internal_metric_filter(
+            sentinel.metric, sentinel.value, sentinel.timestamp, tags
+        )
+        t.assertEqual(ret, False)
 
 
 class DefaultConfProviderTest(TestCase):
