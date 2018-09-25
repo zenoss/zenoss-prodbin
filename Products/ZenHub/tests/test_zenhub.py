@@ -36,6 +36,8 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    MetricManager,
+    TwistedMetricReporter,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -387,8 +389,8 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.zenhub_module'.format(**PATH), spec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    #@patch.object(ZenHub, 'getRRDStats')
     @patch('{src}.metricWriter'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
@@ -431,8 +433,8 @@ class ZenHubInitTest(TestCase):
         App_Start,
         signal,
         metricWriter,
-        #ZenHub_getRRDStats,
         load_config_override,
+        zenhub_module,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -475,7 +477,7 @@ class ZenHubInitTest(TestCase):
         t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
         # Skip Metrology validation for now due to complexity
         ZCmdBase___init__.assert_called_with(zh)
-        load_config.assert_called_with("hub.zcml", Products.ZenHub)
+        load_config.assert_called_with("hub.zcml", zenhub_module)
         HubWillBeCreatedEvent.assert_called_with(zh)
         notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
         # Performance Profiling
@@ -1343,6 +1345,43 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
+
+
+class MetricManagerTest(TestCase):
+
+    def setUp(t):
+        t.tmr_patcher = patch(
+            '{src}.TwistedMetricReporter'.format(**PATH), autospec=True,
+        )
+        t.TwistedMetricReporter = t.tmr_patcher.start()
+        t.addCleanup(t.tmr_patcher.stop)
+
+        t.monitor = sentinel.monitor
+        t.metric_writer = sentinel.metric_writer
+
+        t.mm = MetricManager(t.metric_writer, t.monitor)
+
+    def test___init__(t):
+        daemon_tags = {
+            'zenoss_daemon': 'zenhub',
+            'zenoss_monitor': t.monitor,
+            'internal': True
+        }
+        t.TwistedMetricReporter.assert_called_with(
+            metricWriter=t.metric_writer, tags=daemon_tags
+        )
+        t.assertEqual(
+            t.mm.metricreporter, t.TwistedMetricReporter.return_value
+        )
+        t.assertEqual(t.mm.daemon_tags, daemon_tags)
+
+    def test_start(t):
+        t.mm.start()
+        t.mm.metricreporter.start.assert_called_with()
+
+    def test_stop(t):
+        t.mm.stop()
+        t.mm.metricreporter.stop.assert_called_with()
 
 
 class DefaultConfProviderTest(TestCase):

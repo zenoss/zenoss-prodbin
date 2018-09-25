@@ -1029,6 +1029,25 @@ class ZenHub(ZCmdBase):
         notify(ParserReadyForOptionsEvent(self.parser))
 
 
+class MetricManager():
+
+    def __init__(self, metric_writer, monitor):
+        self.daemon_tags = {
+            'zenoss_daemon': 'zenhub',
+            'zenoss_monitor': monitor,
+            'internal': True
+        }
+        self.metricreporter = TwistedMetricReporter(
+            metricWriter=metric_writer, tags=self.daemon_tags
+        )
+
+    def start(self):
+        self.metricreporter.start()
+
+    def stop(self):
+        self.metricreporter.stop()
+
+
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
     'priority recvtime deferred servicename instance method args'
