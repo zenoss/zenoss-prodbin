@@ -121,7 +121,6 @@ class zenhubworkerInitTest(TestCase):
         factory.setCredentials.assert_called_with(
             credentials.UsernamePassword.return_value
         )
-
         MetricManager.assert_called_with(
             daemon_tags={
                 'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workerid,
