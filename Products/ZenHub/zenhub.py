@@ -75,6 +75,7 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager
 )
+from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.DataCollector.Plugins import loadPlugins
 # Due to the manipulation of sys.path during the loading of plugins,
@@ -1047,6 +1048,23 @@ class MetricManager():
 
     def stop(self):
         self.metricreporter.stop()
+
+    def get_rrd_stats(self, hub_config, send_event):
+        rrd_stats = DaemonStats()
+        thresholds = hub_config.getThresholdInstances(BuiltInDS.sourcetype)
+        threshold_notifier = ThresholdNotifier(send_event, thresholds)
+        derivative_tracker = DerivativeTracker()
+
+        rrd_stats.config(
+            'zenhub',
+            hub_config.id,
+            self.metric_writer,
+            threshold_notifier,
+            derivative_tracker
+        )
+
+        return rrd_stats
+
 
 
 HubWorklistItem = collections.namedtuple(

@@ -1383,6 +1383,42 @@ class MetricManagerTest(TestCase):
             metricWriter=t.metric_writer, tags=t.mm.daemon_tags
         )
 
+    @patch('{src}.BuiltInDS'.format(**PATH), autospec=True)
+    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
+    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
+    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
+    def test_get_rrd_stats(
+        t, DaemonStats, ThresholdNotifier, DerivativeTracker, BuiltInDS
+    ):
+        '''Metric reporting function
+        '''
+        hub_config = Mock(
+            name='hub_config', spec_set=['getThresholdInstances', 'id']
+        )
+        send_event = sentinel.send_event_function
+
+        ret = t.mm.get_rrd_stats(hub_config, send_event)
+
+        rrd_stats = DaemonStats.return_value
+        thresholds = hub_config.getThresholdInstances.return_value
+        threshold_notifier = ThresholdNotifier.return_value
+        derivative_tracker = DerivativeTracker.return_value
+
+        hub_config.getThresholdInstances.assert_called_with(
+            BuiltInDS.sourcetype
+        )
+        ThresholdNotifier.assert_called_with(send_event, thresholds)
+
+        rrd_stats.config.assert_called_with(
+            'zenhub',
+            hub_config.id,
+            t.mm.metric_writer,
+            threshold_notifier,
+            derivative_tracker
+        )
+
+        t.assertEqual(ret, DaemonStats.return_value)
+
 
 class DefaultConfProviderTest(TestCase):
 
