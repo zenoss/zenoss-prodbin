@@ -11,18 +11,27 @@ log = logging.getLogger('zen.Security')
 
 import time
 
+
 class AuthorizationTool(object):
     implements(IAuthorizationTool)
 
     def __init__(self, context):
         self.context = context
 
-    def authenticateCredentials(self, login, password):
+    def authenticateCredentials(self, creds):
         """
         Call the ZenUsers authenication method.
         """
-        ZenUsers = self.context.zport.dmd.ZenUsers
-        return ZenUsers.authenticateCredentials(login, password)
+        acl_users = self.context.zport.acl_users
+        type = interfaces.plugins.IAuthenticationPlugin
+        plugins = acl_users.plugins.listPlugins(type)
+
+        for (authenticator_id, authenticator) in plugins:
+            auth = authenticator.authenticateCredentials(creds)
+            if auth:
+                return auth
+
+        return None
 
     def extractCredentials(self, request):
         """
@@ -38,13 +47,12 @@ class AuthorizationTool(object):
         # look in the extraction plugins for the credentials
         for (extractor_id, extractor) in plugins:
             creds = extractor.extractCredentials(request)
-            if 'login' in creds and 'password' in creds:
+            if creds:
+                if isinstance(creds, dict):
+                    creds['extractor'] = extractor_id
                 return creds
 
-        # look in the request headers for the creds
-        login = request.get('login', None)
-        password = request.get('password', None)
-        return {'login': login, 'password': password}
+        return None
 
     def extractGlobalConfCredentials(self):
         conf = getGlobalConfiguration()
@@ -61,7 +69,7 @@ class AuthorizationTool(object):
     def createAuthToken(self, request, expires=None):
         """
         Creates an authentication token. Since zauth tokens are currently stored in the session
-        the expires can be no further than ( now + session time out).
+        the expires can be no further than (now + session time out).
         TODO: Allow a config option for default expires.
         @param request
         @return: dictionary with the token id and expiration
@@ -86,7 +94,7 @@ class AuthorizationTool(object):
     def tokenExpired(self, sessionId):
         token = self.getToken(sessionId)
         if token is None:
-            log.debug("Token is None for sessionid %s", sessionId)
+            log.info("Token is None for sessionid %s", sessionId)
             return True
         log.debug("Token is %s for sessionid %s", token, sessionId)
         newexp = self._getSessionTimeout()
