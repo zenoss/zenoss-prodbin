@@ -43,8 +43,7 @@ class _CumulativeWorkerStatsTest(TestCase):
 
 class zenhubworkerInitTest(TestCase):
 
-    @patch('{src}.metricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.credentials'.format(**PATH), autospec=True)
     @patch('{src}.reactor'.format(**PATH), autospec=True)
     @patch('{src}.ReconnectingPBClientFactory'.format(**PATH), autospec=True)
@@ -57,7 +56,7 @@ class zenhubworkerInitTest(TestCase):
     def test___init__(
         t, signal, ZCmdBase__init__, ContinuousProfiler,  Metrology,
         loadPlugins, os, ReconnectingPBClientFactory, reactor, credentials,
-        TwistedMetricReporter, metricWriter,
+        MetricManager,
     ):
         # ZCmdBase.__init__ sets options
         # Mock out attributes set by the parent class
@@ -122,16 +121,18 @@ class zenhubworkerInitTest(TestCase):
         factory.setCredentials.assert_called_with(
             credentials.UsernamePassword.return_value
         )
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=metricWriter.return_value,
-            tags={
+
+        MetricManager.assert_called_with(
+            daemon_tags={
                 'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workernum,
                 'zenoss_monitor': zhw.options.monitor,
                 'internal': True
             }
         )
-        metricreporter = TwistedMetricReporter.return_value
-        t.assertEqual(zhw.metricreporter, metricreporter)
+        t.assertEqual(
+            zhw.metricreporter,
+            MetricManager.return_value.metricreporter
+        )
         zhw.metricreporter.start.assert_called_with()
 
         # Stop the metric reporter before the reactor shuts down

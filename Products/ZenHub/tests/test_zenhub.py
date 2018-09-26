@@ -1199,15 +1199,12 @@ class ZenHubTest(TestCase):
         '''Daemon Entry Point
         Execution waits at reactor.run() until the reactor stops
         '''
-        t.zh.options = Mock(
-            name='options', spec_set=['cycle', 'monitor', 'profiling'],
-            cycle=True, profiling=True
-        )
-        # Metric Management
-        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh._metric_manager = MetricManager(t.zh.options.monitor)
-        t.zh._metric_writer = sentinel.metric_writer
+        t.zh.options = sentinel.options
+        t.zh.options.monitor = 'localhost'
+        t.zh.options.cycle = True
+        t.zh.options.profiling = True
         t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
+        t.zh._metric_manager = MetricManager.return_value
         # Worker Management
         worker_proc = Mock(name='worker_proc', spec_set=['signalProcess'])
         t.zh.workerprocessmap = {'po0': worker_proc}
@@ -1218,9 +1215,7 @@ class ZenHubTest(TestCase):
         # convert to a looping call
         t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
         # starts its metricreporter
-        _metric_manager = MetricManager.return_value
-        t.assertEqual(t.zh._metric_manager, _metric_manager)
-        t.assertEqual(t.zh.metricreporter, _metric_manager.metricreporter)
+        t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
         t.reactor.addSystemEventTrigger.assert_called_with(
@@ -1282,17 +1277,16 @@ class MetricManagerTest(TestCase):
         t.TwistedMetricReporter = t.tmr_patcher.start()
         t.addCleanup(t.tmr_patcher.stop)
 
-        t.monitor = sentinel.monitor
-
-        t.mm = MetricManager(t.monitor)
-
-    def test___init__(t):
-        daemon_tags = {
+        t.daemon_tags = {
             'zenoss_daemon': 'zenhub',
-            'zenoss_monitor': t.monitor,
+            'zenoss_monitor': 'localhost',
             'internal': True
         }
-        t.assertEqual(t.mm.daemon_tags, daemon_tags)
+
+        t.mm = MetricManager(t.daemon_tags)
+
+    def test___init__(t):
+        t.assertEqual(t.mm.daemon_tags, t.daemon_tags)
 
     def test_start(t):
         t.mm.start()

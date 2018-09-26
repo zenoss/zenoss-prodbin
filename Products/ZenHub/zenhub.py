@@ -299,8 +299,12 @@ class ZenHub(ZCmdBase):
             self.options.invalidation_poll_interval,
             self.processQueue
         )
-
-        self._metric_manager = MetricManager(self.options.monitor)
+        self._metric_manager = MetricManager(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            })
         self._metric_writer = self._metric_manager.metric_writer
         self.rrdStats = self.getRRDStats()
 
@@ -1015,12 +1019,8 @@ class ZenHub(ZCmdBase):
 
 class MetricManager(object):
 
-    def __init__(self, monitor):
-        self.daemon_tags = {
-            'zenoss_daemon': 'zenhub',
-            'zenoss_monitor': monitor,
-            'internal': True
-        }
+    def __init__(self, daemon_tags):
+        self.daemon_tags = daemon_tags
         self._metric_writer = None
         self._metric_reporter = None
 

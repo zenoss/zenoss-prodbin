@@ -1,17 +1,17 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
-from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
+from Products.ZenHub.zenhub import LastCallReturnValue, MetricManager
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -90,17 +90,12 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         c = credentials.UsernamePassword(self.options.username,
                                          self.options.password)
         factory.gotPerspective = self.gotPerspective
+
         def stop(*args):
             reactor.callLater(0, reactor.stop)
+
         factory.clientConnectionLost = stop
         factory.setCredentials(c)
-
-        self.log.debug("Creating async MetricReporter")
-        daemonTags = {
-            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
-            'zenoss_monitor': self.options.monitor,
-            'internal': True
-        }
 
         def stopReporter():
             if self.metricreporter:
@@ -109,7 +104,15 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         # Order of the shutdown triggers matter. Want to stop reporter first, calling metricWriter() below
         # registers shutdown triggers for the actual metric http and redis publishers.
         reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
-        self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
+
+        self.log.debug("Creating async MetricReporter")
+        daemonTags = {
+            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
+            'zenoss_monitor': self.options.monitor,
+            'internal': True
+        }
+        self._metric_manager = MetricManager(daemonTags)
+        self.metricreporter = self._metric_manager.metricreporter
         self.metricreporter.start()
 
     def audit(self, action):
