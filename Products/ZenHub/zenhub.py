@@ -1056,6 +1056,11 @@ class MetricManager(object):
         return tags and tags.get("internal", False)
 
 
+# Legacy API:
+def metricWriter():
+    return MetricManager({}).metric_writer
+
+
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
     'priority recvtime deferred servicename instance method args'

@@ -1,14 +1,16 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import unittest
+from mock import patch, call
+
 import Globals
 
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer, BaseTestCase
@@ -185,44 +187,40 @@ class Publisher(object):
         self.queue.append( args)
 
 
-class TestMetricWriter(BaseTestCase):
-    def setUp(self):
+class TestMetricWriter(unittest.TestCase):
+
+    @patch('Products.ZenHub.zenhub.redisPublisher', autospec=True)
+    def testWriteMetric(self, Publisher):
         os.environ["CONTROLPLANE"] = "0"
-        self.publisher = Publisher()
-        self.publisher_cache = Products.ZenHub.zenhub.publisher
-        self.redispublisher_cache = Products.ZenHub.zenhub.redisPublisher
-        Products.ZenHub.zenhub.publisher = lambda u,p,url: self.publisher
-        Products.ZenHub.zenhub.redisPublisher = lambda:self.publisher
         self.metric_writer = Products.ZenHub.zenhub.metricWriter()
+        metric = ["name", 0.0, "now", {}]
 
-    def tearDown(self):
-        Products.ZenHub.zenhub.publisher = self.publisher_cache
-        Products.ZenHub.zenhub.redisPublisher = self.redispublisher_cache
+        self.metric_writer.write_metric(*metric)
 
-    def testWriteMetric(self):
-        metric = [ "name", 0.0, "now", {}]
-        self.metric_writer.write_metric( *metric)
-        self.assertEquals( [tuple(metric)], self.publisher.queue)
+        Publisher.return_value.put.assert_called_with(*metric)
 
-class TestInternalMetricWriter(BaseTestCase):
-    def setUp(self):
+
+class TestInternalMetricWriter(unittest.TestCase):
+
+    @patch('Products.ZenHub.zenhub.redisPublisher', autospec=True)
+    @patch('Products.ZenHub.zenhub.publisher')
+    def test_WriteInternalMetric(self, Publisher, InternalPublisher):
         os.environ["CONTROLPLANE"] = "1"
         os.environ["CONTROLPLANE_CONSUMER_URL"] = "1"
-        self.publisher = Publisher()
-        self.internal_publisher = Publisher()
-        self.publisher_cache = Products.ZenHub.zenhub.publisher
-        self.redispublisher_cache = Products.ZenHub.zenhub.redisPublisher
-        Products.ZenHub.zenhub.publisher = lambda u,p,url:self.internal_publisher
-        Products.ZenHub.zenhub.redisPublisher = lambda:self.publisher
+
         self.metric_writer = Products.ZenHub.zenhub.metricWriter()
 
-    def testWriteInternalMetric(self):
         metric = ["name", 0.0, "now", {}]
-        internal_metric = ["name", 0.0, "now", {"internal":True}]
-        self.metric_writer.write_metric( *metric)
-        self.metric_writer.write_metric( *internal_metric)
-        self.assertEquals( [tuple(internal_metric)], self.internal_publisher.queue)
-        self.assertEquals( [tuple(metric), tuple(internal_metric)], self.publisher.queue)
+        internal_metric = ["name1", 0.0, "now1", {"internal": True}]
+        self.metric_writer.write_metric(*metric)
+        self.metric_writer.write_metric(*internal_metric)
+        InternalPublisher.return_value.put.assert_called_with(*internal_metric)
+        InternalPublisher.return_value.put.assert_has_calls([
+            call(*metric),
+            call(*internal_metric)
+        ])
+        Publisher.return_value.put.assert_called_with(*internal_metric)
+
 
 def test_suite():
     suite = unittest.TestSuite()
