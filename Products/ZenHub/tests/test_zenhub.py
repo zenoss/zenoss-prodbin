@@ -451,6 +451,7 @@ class ZenHubInitTest(TestCase):
             t.addCleanup(patcher.stop)
 
         ZenHub.options.workers = 10
+        ZenHub.options.invalidation_poll_interval = 100
         ZenHub._getConf.return_value.id = 'config_id'
         ipv6_available.return_value = False
 
@@ -661,9 +662,6 @@ class ZenHubTest(TestCase):
         t.zh.async_syncdb.assert_called_with()
         t.zh.doProcessQueue.assert_called_with()
 
-        t.reactor.callLater.assert_called_with(
-            options.invalidation_poll_interval, t.zh.processQueue
-        )
         t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
         t.assertEqual(t.zh.totalEvents, 1)
 

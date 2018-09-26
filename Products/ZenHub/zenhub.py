@@ -149,7 +149,6 @@ except Exception:
     NICE_PATH = None
 
 
-
 class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
@@ -264,10 +263,15 @@ class ZenHub(ZCmdBase):
                        severity=0)
 
         self._initialize_invalidation_filters()
+        '''
         reactor.callLater(
             self.options.invalidation_poll_interval,
             self.processQueue
-        )
+        )'''
+        self.check_workers_task = task.LoopingCall(self.processQueue)
+        self.check_workers_task.start(self.options.invalidation_poll_interval)
+
+        # Setup Metric Reporting
         self._metric_manager = MetricManager(
             daemon_tags={
                 'zenoss_daemon': 'zenhub',
@@ -376,10 +380,7 @@ class ZenHub(ZCmdBase):
                 self.doProcessQueue()
             except Exception:
                 self.log.exception("Unable to poll invalidations.")
-        reactor.callLater(
-            self.options.invalidation_poll_interval,
-            self.processQueue
-        )
+
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
