@@ -384,6 +384,7 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.queuemessaging_module'.format(**PATH), spec=True)
     @patch('{src}.zenhub_module'.format(**PATH), spec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
@@ -428,6 +429,7 @@ class ZenHubInitTest(TestCase):
         signal,
         load_config_override,
         zenhub_module,
+        queuemessaging_module,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -452,19 +454,7 @@ class ZenHubInitTest(TestCase):
         ZenHub._getConf.return_value.id = 'config_id'
         ipv6_available.return_value = False
 
-        # patch to deal with internal import
-        # import of its parent package, Projects.ZenHub
-        # import Products.ZenMessaging.queuemessaging
-        Products = MagicMock(
-            name='Products', spec_set=['ZenHub', 'ZenMessaging']
-        )
-        modules = {
-            'Products': Products,
-            'Products.ZenHub': Products.ZenHub,
-            'Products.ZenMessaging.queuemessaging': Products.ZenMessaging.queuemessaging
-        }
-        with patch.dict('sys.modules', modules):
-            zh = ZenHub()
+        zh = ZenHub()
 
         t.assertIsInstance(zh, ZenHub)
         t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
@@ -513,8 +503,7 @@ class ZenHubInitTest(TestCase):
         # Messageing config, including work and invalidations
         # Patched internal import of Products.ZenMessaging.queuemessaging
         load_config_override.assert_called_with(
-            'twistedpublisher.zcml',
-            Products.ZenMessaging.queuemessaging
+            'twistedpublisher.zcml', queuemessaging_module
         )
         HubCreatedEvent.assert_called_with(zh)
         notify.assert_called_with(HubCreatedEvent.return_value)

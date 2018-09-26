@@ -71,6 +71,7 @@ from Products.ZenUtils.metricwriter import (
 )
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
+import Products.ZenMessaging.queuemessaging as queuemessaging_module
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager
@@ -255,11 +256,8 @@ class ZenHub(ZCmdBase):
         )
 
         # responsible for sending messages to the queues
-        import Products.ZenMessaging.queuemessaging
-        load_config_override(
-            'twistedpublisher.zcml',
-            Products.ZenMessaging.queuemessaging
-        )
+        load_config_override('twistedpublisher.zcml', queuemessaging_module)
+
         notify(HubCreatedEvent(self))
         self.sendEvent(eventClass=App_Start,
                        summary="%s started" % self.name,
