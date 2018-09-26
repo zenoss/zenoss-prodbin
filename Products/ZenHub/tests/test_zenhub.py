@@ -36,6 +36,7 @@ from Products.ZenHub.zenhub import (
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
     MetricManager,
+    ListLengthGauge,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -328,6 +329,40 @@ class _ZenHubWorklistTest(TestCase):
         t.assertEqual(ret, job_a)
         ret = t.wl.pop()
         t.assertEqual(ret, None)
+
+    @patch('{src}.ListLengthGauge'.format(**PATH), autospec=True)
+    @patch('{src}.registry'.format(**PATH), autospec=True)
+    @patch('{src}.Metrology'.format(**PATH), autospec=True)
+    def test_configure_metrology(t, Metrology, registry, ListLengthGauge):
+        registry = []  # assume empty registry
+
+        t.wl.configure_metrology()
+
+        # guages are registered with Metrology
+        Metrology.gauge.assert_has_calls([
+            call('zenhub.eventWorkList', ListLengthGauge.return_value),
+            call('zenhub.admWorkList', ListLengthGauge.return_value),
+            call('zenhub.otherWorkList', ListLengthGauge.return_value),
+            call('zenhub.workList', ListLengthGauge.return_value),
+        ])
+
+        ListLengthGauge.assert_has_calls([
+            call(t.wl.eventworklist),
+            call(t.wl.applyworklist),
+            call(t.wl.otherworklist),
+            call(t.wl),
+        ])
+
+
+class ListLengthGaugeTest(TestCase):
+
+    def test_value(t):
+        _list = [i for i in range(3)]
+        gauge = ListLengthGauge(_list)
+        t.assertEqual(gauge.value, len(_list))
+
+        _list += [i for i in range(4)]
+        t.assertEqual(gauge.value, 7)
 
 
 class ZenHubModuleTest(TestCase):

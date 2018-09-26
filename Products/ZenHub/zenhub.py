@@ -204,6 +204,8 @@ class ZenHub(ZCmdBase):
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
         self.workList = _ZenHubWorklist()
+        self.workList.configure_metrology()
+
         # set of worker processes
         self.worker_processes = set()
         # map of worker pids -> worker processes
@@ -211,37 +213,6 @@ class ZenHub(ZCmdBase):
         self.shutdown = False
         self.counters = collections.Counter()
         self._invalidations_paused = False
-
-        wl = self.workList
-        metricNames = {x[0] for x in registry}
-
-        class EventWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.eventworklist)
-        if 'zenhub.eventWorkList' not in metricNames:
-            Metrology.gauge('zenhub.eventWorkList', EventWorkList())
-
-        class ADMWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.applyworklist)
-        if 'zenhub.admWorkList' not in metricNames:
-            Metrology.gauge('zenhub.admWorkList', ADMWorkList())
-
-        class OtherWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.otherworklist)
-        if 'zenhub.otherWorkList' not in metricNames:
-            Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
-
-        class WorkListTotal(Gauge):
-            @property
-            def value(self):
-                return len(wl)
-        if 'zenhub.workList' not in metricNames:
-            Metrology.gauge('zenhub.workList', WorkListTotal())
 
         ZCmdBase.__init__(self)
 
@@ -1329,6 +1300,39 @@ class _ZenHubWorklist(object):
         heapq.heappush(self[job.method], job)
 
     append = push
+
+    def configure_metrology(self):
+        metricNames = {x[0] for x in registry}
+
+        if 'zenhub.eventWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.eventWorkList', ListLengthGauge(self.eventworklist)
+            )
+
+        if 'zenhub.admWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.admWorkList', ListLengthGauge(self.applyworklist)
+            )
+
+        if 'zenhub.otherWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.otherWorkList', ListLengthGauge(self.otherworklist)
+            )
+
+        if 'zenhub.workList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.workList', ListLengthGauge(self)
+            )
+
+
+class ListLengthGauge(Gauge):
+
+    def __init__(self, _list):
+        self._list = _list
+
+    @property
+    def value(self):
+        return len(self._list)
 
 
 def publisher(username, password, url):
