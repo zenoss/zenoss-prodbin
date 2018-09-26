@@ -262,14 +262,12 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
 
+        # Invalidation Processing
         self._initialize_invalidation_filters()
-        '''
-        reactor.callLater(
-            self.options.invalidation_poll_interval,
-            self.processQueue
-        )'''
-        self.check_workers_task = task.LoopingCall(self.processQueue)
-        self.check_workers_task.start(self.options.invalidation_poll_interval)
+        self.poll_invalidations_task = task.LoopingCall(self.processQueue)
+        self.poll_invalidations_task.start(
+            self.options.invalidation_poll_interval
+        )
 
         # Setup Metric Reporting
         self._metric_manager = MetricManager(
@@ -361,7 +359,7 @@ class ZenHub(ZCmdBase):
             self._getConf(), self.zem.sendEvent
         )
 
-    @defer.inlineCallbacks
+    @inlineCallbacks
     def processQueue(self):
         """
         Periodically process database changes
@@ -849,6 +847,7 @@ class ZenHub(ZCmdBase):
             print(e)
             self.log.exception('Exception in createWorker')
 
+    @inlineCallbacks
     def heartbeat(self):
         """
         Since we don't do anything on a regular basis, just
@@ -860,9 +859,9 @@ class ZenHub(ZCmdBase):
         evt = EventHeartbeat(
             self.options.monitor, self.name, self.options.heartbeatTimeout
         )
-        self.zem.sendEvent(evt)
+        yield self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
-        reactor.callLater(seconds, self.heartbeat)
+
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
         r.counter('totalTime', int(self.totalTime * 1000))
@@ -895,7 +894,8 @@ class ZenHub(ZCmdBase):
         Start the main event loop.
         """
         if self.options.cycle:
-            reactor.callLater(0, self.heartbeat)
+            self.heartbeat_task = task.LoopingCall(self.heartbeat)
+            self.heartbeat_task.start(30)
             self.log.debug("Creating async MetricReporter")
             self._metric_manager.start()
             reactor.addSystemEventTrigger(
@@ -904,6 +904,7 @@ class ZenHub(ZCmdBase):
             # preserve legacy API
             self.metricreporter = self._metric_manager.metricreporter
 
+        # soon to be deprecated
         self.check_workers_task = task.LoopingCall(self.check_workers)
         self.check_workers_task.start(CHECK_WORKER_INTERVAL)
 

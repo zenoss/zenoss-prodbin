@@ -643,7 +643,6 @@ class ZenHubTest(TestCase):
     def test_processQueue(t):
         '''Configuration Invalidation Processing function
         synchronize with the database, and execute doProcessQueue
-        recursive reactor.callLater should be replaced with loopingCall
         '''
         async_syncdb = create_autospec(t.zh.async_syncdb, name='async_syncdb')
         t.zh.async_syncdb = async_syncdb
@@ -1180,7 +1179,6 @@ class ZenHubTest(TestCase):
         )
         t.zh.zem.sendEvent.assert_called_with(EventHeartbeat.return_value)
         t.zh.niceDoggie.assert_called_with(seconds)
-        t.reactor.callLater.assert_called_with(seconds, t.zh.heartbeat)
         IHubHeartBeatCheck.assert_called_with(t.zh)
         IHubHeartBeatCheck.return_value.check.assert_called_with()
         # Metrics reporting, copies zenhub.counters into rrdStats.counter
@@ -1234,8 +1232,9 @@ class ZenHubTest(TestCase):
 
         t.zh.main()
 
-        # convert to a looping call
-        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
+        # start heartbeat LoopingCall
+        LoopingCall.assert_any_call(t.zh.heartbeat)
+        t.zh.heartbeat_task.start.assert_any_call(30)
         # starts its metricreporter
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
