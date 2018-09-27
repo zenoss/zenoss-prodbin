@@ -69,7 +69,10 @@ class TemplateFacade(ZuulFacade):
         templates = imap(unbrain, brains)
         for template in templates:
             try:
-                yield ITemplateLeaf(template)
+                # as our SOLR schema is case insensitive we check received id
+                # with queried templates ids and yield only matched template.
+                if template.id == obj.id:
+                    yield ITemplateLeaf(template)
             except UncataloguedObjectException:
                 pass
 
