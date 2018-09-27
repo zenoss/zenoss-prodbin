@@ -67,7 +67,8 @@ class TemplateFacade(ZuulFacade):
         templates = imap(unbrain, brains)
         for template in templates:
             try:
-                yield ITemplateLeaf(template)
+                if template.id == obj.id:
+                    yield ITemplateLeaf(template)
             except UncataloguedObjectException:
                 pass
 
