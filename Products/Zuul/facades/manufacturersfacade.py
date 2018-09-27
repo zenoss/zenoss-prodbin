@@ -251,7 +251,7 @@ class ManufacturersFacade(TreeFacade):
                 params.get('oldname', params['name']))
 
         # Create pair of products and this products instances which should be updated.
-        product_intance_pairs = []
+        product_instance_pairs = []
         products = manufacturer.products()
         for product in products:
             result = product._find_instances_in_catalog()
@@ -260,7 +260,7 @@ class ManufacturersFacade(TreeFacade):
             product_instances = [
                 (self._dmd.Devices.getObjByPath(uid), product) for uid in instances_uids
             ]
-            product_intance_pairs.extend(product_instances)
+            product_instance_pairs.extend(product_instances)
 
         manufacturer.url = params['URL']
         manufacturer.supportNumber = params['phone']
