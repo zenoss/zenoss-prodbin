@@ -37,39 +37,35 @@ class Login(BrowserView):
         """
         Extract login/password credentials, test authentication, and create a token
         """
-
         # test for uuid
         if self.uuid is None:
             self.request.response.setStatus(503)
-            self.request.response.write( "System uninitialized - please execute setup wizard")
+            self.request.response.write("System uninitialized - please execute setup wizard")
             transaction.abort()
             return
 
-        authorization = IAuthorizationTool( self.context.context)
-        credentials = authorization.extractCredentials(self.request)
-
-        login = credentials.get('login', None)
-        password = credentials.get('password', None)
+        authorization = IAuthorizationTool(self.context.context)
+        creds = authorization.extractCredentials(self.request)
 
         # no credentials to test authentication
-        if login is None or password is None:
+        if not creds:
             self.request.response.setStatus(401)
-            self.request.response.write( "Missing Authentication Credentials")
+            self.request.response.write("Missing Authentication Credentials")
             transaction.abort()
             return
 
         # test authentication
-        if not authorization.authenticateCredentials(login, password):
+        if not authorization.authenticateCredentials(creds):
             self.request.response.setStatus(401)
-            self.request.response.write( "Failed Authentication")
+            self.request.response.write("Failed Authentication")
             transaction.abort()
             return
 
         # create the session data
         token = authorization.createAuthToken(self.request)
-        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
-        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
-        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
+        self.request.response.setHeader('X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader('X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader('X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
 
     @property
@@ -79,6 +75,7 @@ class Login(BrowserView):
     @property
     def uuid(self):
         return self.dmd.uuid
+
 
 class Validate(BrowserView):
     """
@@ -92,7 +89,7 @@ class Validate(BrowserView):
         # test for uuid
         if self.uuid is None:
             self.request.response.setStatus(503)
-            self.request.response.write( "System uninitialized - please execute setup wizard")
+            self.request.response.write("System uninitialized - please execute setup wizard")
             return
 
         tokenId = self.request.get('id', None)
@@ -102,22 +99,22 @@ class Validate(BrowserView):
         # missing token id
         if tokenId is None:
             self.request.response.setStatus(401)
-            self.request.response.write( "Missing Token Id")
+            self.request.response.write("Missing Token Id")
             return
 
-        authorization = IAuthorizationTool( self.context.context)
+        authorization = IAuthorizationTool(self.context.context)
 
         #grab token to handle edge case, when expiration happens after expiration test
         tokenId = tokenId.strip('"')
         token = authorization.getToken(tokenId)
         if authorization.tokenExpired(tokenId):
             self.request.response.setStatus(401)
-            self.request.response.write( "Token Expired")
+            self.request.response.write("Token Expired")
             return
 
-        self.request.response.setHeader( 'X-ZAuth-TokenId', token['id'])
-        self.request.response.setHeader( 'X-ZAuth-TokenExpiration', token['expires'])
-        self.request.response.setHeader( 'X-ZAuth-TenantId', self.uuid)
+        self.request.response.setHeader('X-ZAuth-TokenId', token['id'])
+        self.request.response.setHeader('X-ZAuth-TokenExpiration', token['expires'])
+        self.request.response.setHeader('X-ZAuth-TenantId', self.uuid)
         return json.dumps(token)
 
     @property
