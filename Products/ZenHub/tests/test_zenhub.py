@@ -436,6 +436,7 @@ class ZenHubInitTest(TestCase):
         # Because these changes are made on the class, they must be reversable
         t.zenhub_patchers = [
             patch.object(ZenHub, 'dmd', create=True),
+            patch.object(ZenHub, 'storage', create=True),
             patch.object(ZenHub, 'log', create=True),
             patch.object(ZenHub, 'options', create=True),
             patch.object(ZenHub, 'loadChecker', autospec=True),
@@ -552,6 +553,17 @@ class ZenHubTest(TestCase):
         t.zh.shutdown = False
         t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
 
+        t.zh.dmd = Mock(
+            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
+        )
+        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
+        t.zh._invalidations_manager = InvalidationsManager(
+            t.zh.dmd,
+            t.zh.async_syncdb,
+            t.zh.storage.poll_invalidations,
+            t.zh.log,
+        )
+
     def test_setKeepAlive(t):
         '''ConnectionHandler function
         '''
@@ -645,22 +657,31 @@ class ZenHubTest(TestCase):
         '''Configuration Invalidation Processing function
         synchronize with the database, and execute doProcessQueue
         '''
+
         async_syncdb = create_autospec(t.zh.async_syncdb, name='async_syncdb')
         t.zh.async_syncdb = async_syncdb
+        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
+        t.zh._invalidations_manager = InvalidationsManager(
+            t.zh.dmd,
+            t.zh.async_syncdb,
+            t.zh.storage.poll_invalidations,
+            t.zh.log,
+        )
+
         t.zh.doProcessQueue = create_autospec(
             t.zh.doProcessQueue, name='doProcessQueue'
         )
         options = Mock(name='options', spec_set=['invalidation_poll_interval'])
         t.zh.options = options
-        t.zh.totalEvents = 0
-        t.zh.totalTime = 0
+        #t.zh.totalEvents = 0
+        #t.zh.totalTime = 0
         timestamps = [10, 20]
         t.time.time.side_effect = timestamps
 
         t.zh.processQueue()
 
         t.zh.async_syncdb.assert_called_with()
-        t.zh.doProcessQueue.assert_called_with()
+        #t.zh.doProcessQueue.assert_called_with()
 
         t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
         t.assertEqual(t.zh.totalEvents, 1)
@@ -677,7 +698,6 @@ class ZenHubTest(TestCase):
         getUtilitiesFor.return_value = [
             ('f%s' % i, f) for i, f in enumerate(filters)
         ]
-        t.zh.dmd = sentinel.dmd
 
         t.zh._initialize_invalidation_filters()
 
@@ -695,12 +715,7 @@ class ZenHubTest(TestCase):
         which may exclude them,
         and runs any included devices through _transformOid
         '''
-
-        dmd = Mock(
-            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
-        )
-        app = dmd.getPhysicalRoot.return_value
-        t.zh.dmd = dmd
+        app = t.zh.dmd.getPhysicalRoot.return_value
 
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
@@ -730,10 +745,10 @@ class ZenHubTest(TestCase):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
         filter = MockIInvalidationFilter()
         filter.include = include
-        t.zh._invalidation_filters = [filter]
+        t.zh._invalidations_manager._invalidation_filters = [filter]
 
-        t.zh._transformOid = create_autospec(
-            t.zh._transformOid, name='_transformOid',
+        t.zh._invalidations_manager._transformOid = create_autospec(
+            t.zh._invalidations_manager._transformOid, name='_transformOid',
             # BUG: return value from transformOid overwrites other oids
             return_value=[444],
         )
@@ -744,16 +759,16 @@ class ZenHubTest(TestCase):
         # WARNING: included/excluded logic may be reversed
         # possible bug, _tranformOid is only called on EXCLUDED oids.
         # BUG
-        t.zh._transformOid.assert_has_calls([call(333, excluded_obj)])
+        t.zh._invalidations_manager._transformOid.assert_has_calls(
+            [call(333, excluded_obj)]
+        )
 
         # BUG: f _transformOid wipes out all other oids
         #t.assertEqual(out, [111, 222])
         t.assertEqual(out, [444])
 
     def test__filter_oids_deleted(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.zh.dmd = dmd
-        app = dmd.getPhysicalRoot.return_value = MagicMock(name='root')
+        app = t.zh.dmd.getPhysicalRoot.return_value = MagicMock(name='root')
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
         ret = t.zh._filter_oids([111])
@@ -761,14 +776,12 @@ class ZenHubTest(TestCase):
         t.assertEqual(out, [111])
 
     def test__filter_oids_deleted_primaryaq(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.zh.dmd = dmd
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         with t.assertRaises(KeyError):
             deleted.__of__().primaryAq()
 
-        app = dmd.getPhysicalRoot.return_value
+        app = t.zh.dmd.getPhysicalRoot.return_value
         app._p_jar = {111: deleted}
 
         ret = t.zh._filter_oids([111])
@@ -810,13 +823,15 @@ class ZenHubTest(TestCase):
         '''
         # storage is ZODB access inherited from a parent class
         t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        t.zh._filter_oids = create_autospec(t.zh._filter_oids)
+        t.zh._invalidations_manager._filter_oids = create_autospec(
+            t.zh._invalidations_manager._filter_oids
+        )
 
         t.zh.doProcessQueue()
 
         getUtility.assert_called_with(IInvalidationProcessor)
         getUtility.return_value.processQueue.assert_called_with(
-            tuple(set(t.zh._filter_oids.return_value))
+            tuple(set(t.zh._invalidations_manager._filter_oids.return_value))
         )
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
@@ -1484,12 +1499,16 @@ class InvalidationsManagerTest(TestCase):
     from unittest import skip
 
     def setUp(t):
+        t.dmd = Mock(name='dmd', spec_set=[])
         t.syncdb = Mock(name='syncdb', spec_set=[])
         t.poll_invalidations = Mock(name='poll_invalidations', spec_set=[])
         t.log = Mock(name='log', spec_set=['debug'])
-        t.im = InvalidationsManager(t.syncdb, t.poll_invalidations, t.log)
+        t.im = InvalidationsManager(
+            t.dmd, t.syncdb, t.poll_invalidations, t.log
+        )
 
     def test___init__(t):
+        t.assertEqual(t.im._dmd, t.dmd)
         t.assertEqual(t.im._syncdb, t.syncdb)
         t.assertEqual(t.im._poll_invalidations, t.poll_invalidations)
         t.assertEqual(t.im.log, t.log)
@@ -1507,10 +1526,10 @@ class InvalidationsManagerTest(TestCase):
             ('f%s' % i, f) for i, f in enumerate(filters)
         ]
 
-        t.im._initialize_invalidation_filters(sentinel.dmd)
+        t.im._initialize_invalidation_filters()
 
         for filter in filters:
-            filter.initialize.assert_called_with(sentinel.dmd)
+            filter.initialize.assert_called_with(t.im._dmd)
 
         # check sorted by weight
         filters.reverse()
@@ -1553,8 +1572,7 @@ class InvalidationsManagerTest(TestCase):
         '''Configuration Invalidation Processing function
         synchronize with the database, and execute doProcessQueue
         '''
-        async_syncdb = create_autospec(t.im.async_syncdb, name='async_syncdb')
-        t.im.async_syncdb = async_syncdb
+        t.im._syncdb = create_autospec(t.im._syncdb, name='_syncdb')
         t.im.doProcessQueue = create_autospec(
             t.im.doProcessQueue, name='doProcessQueue'
         )
@@ -1567,7 +1585,7 @@ class InvalidationsManagerTest(TestCase):
 
         t.im.processQueue()
 
-        t.im.async_syncdb.assert_called_with()
+        t.im._syncdb.assert_called_with()
         t.im.doProcessQueue.assert_called_with()
 
         t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
@@ -1581,7 +1599,7 @@ class InvalidationsManagerTest(TestCase):
         refactor to use inline callbacks
         '''
         # storage is ZODB access inherited from a parent class
-        t.im.storage = Mock(name='storage', spec_set=['poll_invalidations'])
+        t.im._poll_invalidations = create_autospec(t.im._poll_invalidations)
         t.im._filter_oids = create_autospec(t.im._filter_oids)
 
         t.im.doProcessQueue()
@@ -1607,7 +1625,7 @@ class InvalidationsManagerTest(TestCase):
             name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
         )
         app = dmd.getPhysicalRoot.return_value
-        t.im.dmd = dmd
+        t.im._dmd = dmd
 
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
@@ -1659,7 +1677,7 @@ class InvalidationsManagerTest(TestCase):
 
     def test__filter_oids_deleted(t):
         dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.im.dmd = dmd
+        t.im._dmd = dmd
         app = dmd.getPhysicalRoot.return_value = MagicMock(name='root')
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
@@ -1669,7 +1687,7 @@ class InvalidationsManagerTest(TestCase):
 
     def test__filter_oids_deleted_primaryaq(t):
         dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.im.dmd = dmd
+        t.im._dmd = dmd
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         with t.assertRaises(KeyError):

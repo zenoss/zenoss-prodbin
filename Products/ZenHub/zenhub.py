@@ -187,8 +187,24 @@ class ZenHub(ZCmdBase):
     TODO: document invalidation workers
     """
 
-    totalTime = 0.
-    totalEvents = 0
+    #totalTime = 0.
+    @property
+    def totalTime(self):
+        return getattr(self._invalidations_manager, 'totalTime', 0.0)
+
+    @totalTime.setter
+    def totalTime(self, t):
+        setattr(self._invalidations_manager, 'totalEvents', t)
+
+    #totalEvents = 0
+    @property
+    def totalEvents(self):
+        return getattr(self._invalidations_manager, 'totalEvents', 0)
+
+    @totalEvents.setter
+    def totalEvents(self, x):
+        setattr(self._invalidations_manager, 'totalEvents', x)
+
     totalCallTime = 0.
     name = 'zenhub'
 
@@ -263,8 +279,17 @@ class ZenHub(ZCmdBase):
                        severity=0)
 
         # Invalidation Processing
-        self._initialize_invalidation_filters()
-        self.poll_invalidations_task = task.LoopingCall(self.processQueue)
+        self._invalidations_manager = InvalidationsManager(
+            self.dmd,
+            self.syncdb,
+            self.storage.poll_invalidations,
+            self.log,
+            poll_interval=self.options.invalidation_poll_interval,
+        )
+        self._invalidations_manager._initialize_invalidation_filters()
+        self.poll_invalidations_task = task.LoopingCall(
+            self._invalidations_manager.processQueue
+        )
         self.poll_invalidations_task.start(
             self.options.invalidation_poll_interval
         )
@@ -359,6 +384,7 @@ class ZenHub(ZCmdBase):
             self._getConf(), self.zem.sendEvent
         )
 
+    # Legacy API
     @inlineCallbacks
     def processQueue(self):
         """
@@ -366,123 +392,30 @@ class ZenHub(ZCmdBase):
 
         @return: None
         """
-        now = time.time()
-        try:
-            self.log.debug("[processQueue] syncing....")
-            yield self.async_syncdb()  # reads the object invalidations
-            self.log.debug("[processQueue] synced")
-        except Exception:
-            self.log.warn("Unable to poll invalidations, will try again.")
-        else:
-            try:
-                self.doProcessQueue()
-            except Exception:
-                self.log.exception("Unable to poll invalidations.")
+        yield self._invalidations_manager.processQueue()
 
-        self.totalEvents += 1
-        self.totalTime += time.time() - now
 
+    # Legacy API
     def _initialize_invalidation_filters(self):
-        filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
-        self._invalidation_filters = []
-        for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
-            fltr.initialize(self.dmd)
-            self._invalidation_filters.append(fltr)
-        self.log.debug('Registered %s invalidation filters.',
-                       len(self._invalidation_filters))
+        self._invalidation_filters = self._invalidations_manager\
+            ._initialize_invalidation_filters()
 
+    # Legacy API
     def _filter_oids(self, oids):
-        app = self.dmd.getPhysicalRoot()
-        i = 0
-        for oid in oids:
-            i += 1
-            try:
-                obj = app._p_jar[oid]
-            except POSKeyError:
-                # State is gone from the database. Send it along.
-                yield oid
-            else:
-                if isinstance(
-                    obj,
-                    (PrimaryPathObjectManager, DeviceComponent)
-                ):
-                    try:
-                        obj = obj.__of__(self.dmd).primaryAq()
-                    except (AttributeError, KeyError):
-                        # It's a delete. This should go through.
-                        yield oid
-                    else:
-                        included = True
-                        for fltr in self._invalidation_filters:
-                            result = fltr.include(obj)
-                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
-                                included = (result == FILTER_INCLUDE)
-                                break
-                        if included:
-                            oids = self._transformOid(oid, obj)
-                            if oids:
-                                for oid in oids:
-                                    yield oid
+        return self._invalidations_manager._filter_oids(oids)
 
+    # Legacy API
     def _transformOid(self, oid, obj):
-        # First, get any subscription adapters registered as transforms
-        adapters = subscribers((obj,), IInvalidationOid)
-        # Next check for an old-style (regular adapter) transform
-        try:
-            adapters = itertools.chain(adapters, (IInvalidationOid(obj),))
-        except TypeError:
-            # No old-style adapter is registered
-            pass
-        transformed = set()
-        for adapter in adapters:
-            o = adapter.transformOid(oid)
-            if isinstance(o, basestring):
-                transformed.add(o)
-            elif hasattr(o, '__iter__'):
-                # If the transform didn't give back a string, it should have
-                # given back an iterable
-                transformed.update(o)
-        # Get rid of any useless Nones
-        transformed.discard(None)
-        # Get rid of the original oid, if returned. We don't want to use it IF
-        # any transformed oid came back.
-        transformed.discard(oid)
-        return transformed or (oid,)
+        return self._invalidations_manager._transformOid(oid, obj)
 
+    # Legacy API
     def doProcessQueue(self):
         """
         Perform one cycle of update notifications.
 
         @return: None
         """
-        changes_dict = self.storage.poll_invalidations()
-        if changes_dict is not None:
-            processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(
-                tuple(set(self._filter_oids(changes_dict)))
-            )
-
-            def done(n):
-                if n == INVALIDATIONS_PAUSED:
-                    self.sendEvent({
-                        'summary': "Invalidation processing is "
-                                   "currently paused. To resume, set "
-                                   "'dmd.pauseHubNotifications = False'",
-                        'severity': SEVERITY_CRITICAL,
-                        'eventkey': INVALIDATIONS_PAUSED
-                    })
-                    self._invalidations_paused = True
-                else:
-                    msg = 'Processed %s oids' % n
-                    self.log.debug(msg)
-                    if self._invalidations_paused:
-                        self.sendEvent({
-                            'summary': msg,
-                            'severity': SEVERITY_CLEAR,
-                            'eventkey': INVALIDATIONS_PAUSED
-                        })
-                        self._invalidations_paused = False
-            d.addCallback(done)
+        self._invalidations_manager.doProcessQueue()
 
     def sendEvent(self, **kw):
         """
@@ -1063,22 +996,27 @@ def metricWriter():
 
 class InvalidationsManager(object):
 
-    def __init__(self, syncdb, poll_invalidations, log, poll_interval=30):
+    def __init__(self, dmd, syncdb, poll_invalidations, log, poll_interval=30):
+        self._dmd = dmd
         self._syncdb = syncdb
         self._poll_invalidations = poll_invalidations
         self.poll_interval = poll_interval
         self.log = log
 
-    def _initialize_invalidation_filters(self, dmd):
+        self.totalEvents = 0
+        self.totalTime = 0
+
+    def _initialize_invalidation_filters(self):
         '''Requires DMD object
         '''
         filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
         self._invalidation_filters = []
         for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
-            fltr.initialize(dmd)
+            fltr.initialize(self._dmd)
             self._invalidation_filters.append(fltr)
         self.log.debug('Registered %s invalidation filters.',
                        len(self._invalidation_filters))
+        return self._invalidation_filters
 
     @inlineCallbacks
     def process_invalidations(self):
@@ -1106,7 +1044,7 @@ class InvalidationsManager(object):
         now = time.time()
         try:
             self.log.debug("[processQueue] syncing....")
-            yield self.async_syncdb()  # reads the object invalidations
+            yield self._syncdb()  # reads the object invalidations
             self.log.debug("[processQueue] synced")
         except Exception:
             self.log.warn("Unable to poll invalidations, will try again.")
@@ -1119,7 +1057,7 @@ class InvalidationsManager(object):
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
-    def async_syncdb(self):
+    def _syncdb(self):
         raise NotImplementedError('sycdb method must be set durring init')
 
     def doProcessQueue(self):
@@ -1128,7 +1066,7 @@ class InvalidationsManager(object):
 
         @return: None
         """
-        changes_dict = self.storage.poll_invalidations()
+        changes_dict = self.poll_invalidations()
         if changes_dict is not None:
             processor = getUtility(IInvalidationProcessor)
             d = processor.processQueue(
@@ -1161,7 +1099,7 @@ class InvalidationsManager(object):
         return self._poll_invalidations()
 
     def _filter_oids(self, oids):
-        app = self.dmd.getPhysicalRoot()
+        app = self._dmd.getPhysicalRoot()
         i = 0
         for oid in oids:
             i += 1
@@ -1176,7 +1114,7 @@ class InvalidationsManager(object):
                     (PrimaryPathObjectManager, DeviceComponent)
                 ):
                     try:
-                        obj = obj.__of__(self.dmd).primaryAq()
+                        obj = obj.__of__(self._dmd).primaryAq()
                     except (AttributeError, KeyError):
                         # It's a delete. This should go through.
                         yield oid
