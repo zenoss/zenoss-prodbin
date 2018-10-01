@@ -385,6 +385,7 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.MetricManager'.format(**PATH), spec=True)
     @patch('{src}.queuemessaging_module'.format(**PATH), spec=True)
     @patch('{src}.zenhub_module'.format(**PATH), spec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
@@ -431,6 +432,7 @@ class ZenHubInitTest(TestCase):
         load_config_override,
         zenhub_module,
         queuemessaging_module,
+        MetricManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -440,7 +442,6 @@ class ZenHubInitTest(TestCase):
             patch.object(ZenHub, 'log', create=True),
             patch.object(ZenHub, 'options', create=True),
             patch.object(ZenHub, 'loadChecker', autospec=True),
-            patch.object(ZenHub, 'getRRDStats', autospec=True),
             patch.object(ZenHub, '_getConf', autospec=True),
             patch.object(ZenHub, '_createWorkerConf', autospec=True),
             patch.object(ZenHub, 'createWorker', autospec=True),
@@ -522,8 +523,17 @@ class ZenHubInitTest(TestCase):
         zh.createWorker.assert_has_calls(
             [call(zh, i) for i in range(zh.options.workers)]
         )
+        MetricManager.assert_called_with(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': zh.options.monitor,
+                'internal': True
+            })
+        t.assertEqual(zh._metric_manager, MetricManager.return_value)
         t.assertEqual(zh._metric_writer, zh._metric_manager.metric_writer)
-        t.assertEqual(zh.rrdStats, zh.getRRDStats())
+        t.assertEqual(
+            zh.rrdStats, zh._metric_manager.get_rrd_stats.return_value
+        )
         # Convert this to a LoopingCall
         reactor.callLater.assert_called_with(2, zh.giveWorkToWorkers, True)
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
@@ -1469,7 +1479,6 @@ class InvalidationsManagerTest(TestCase):
         which may exclude them,
         and runs any included devices through _transformOid
         '''
-
         dmd = Mock(
             name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
         )
@@ -1485,6 +1494,10 @@ class InvalidationsManagerTest(TestCase):
         excluded = Mock(DeviceComponent, __of__=Mock())
         excluded_obj = sentinel.excluded_obj
         excluded.__of__.return_value.primaryAq.return_value = excluded_obj
+        excluded_type = Mock(name='ignored obj type', __of__=Mock())
+        transformer = MagicMock(PrimaryPathObjectManager, __of__=Mock())
+        transf_obj = sentinel.transformer
+        transformer.__of__.return_value.primaryAq.return_value = transf_obj
 
         app._p_jar = {
             111: device,
@@ -1492,37 +1505,36 @@ class InvalidationsManagerTest(TestCase):
             # BUG: any object filtered overwrites other oids
             # but without a filtered object, no oids are returned
             333: excluded,
+            444: excluded_type,
+            555: transformer,
         }
         oids = app._p_jar.keys()
 
         def include(obj):
             if obj in [device_obj, component_obj]:
-                return FILTER_EXCLUDE  # not filter, will be returned
+                return FILTER_INCLUDE
+            if obj is sentinel.transformer:
+                return FILTER_INCLUDE
             if obj == excluded_obj:
-                return FILTER_INCLUDE  # filters, will be ignored
+                return FILTER_EXCLUDE
 
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
         filter = MockIInvalidationFilter()
         filter.include = include
         t.im._invalidation_filters = [filter]
 
-        t.im._transformOid = create_autospec(
-            t.im._transformOid, name='_transformOid',
-            # BUG: return value from transformOid overwrites other oids
-            return_value=[444],
-        )
+        def transform_oid(oid, obj):
+            if oid in [111, 222]:
+                return (oid,)
+            if oid == 555:
+                return {888, 999}
+
+        t.im._transformOid = transform_oid
 
         ret = t.im._filter_oids(oids)
-        out = [o for o in ret]  # unwind the generator
+        out = {o for o in ret}  # unwind the generator
 
-        # WARNING: included/excluded logic may be reversed
-        # possible bug, _tranformOid is only called on EXCLUDED oids.
-        # BUG
-        t.im._transformOid.assert_has_calls([call(333, excluded_obj)])
-
-        # BUG: f _transformOid wipes out all other oids
-        #t.assertEqual(out, [111, 222])
-        t.assertEqual(out, [444])
+        t.assertEqual(out, {111, 222, 888, 999})
 
     def test__filter_oids_deleted(t):
         dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
@@ -1548,6 +1560,63 @@ class InvalidationsManagerTest(TestCase):
         ret = t.im._filter_oids([111])
         out = [o for o in ret]
         t.assertEqual(out, [111])
+
+    def test__oid_to_object(t):
+        device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
+        device_obj = sentinel.device_obj
+        device.__of__.return_value.primaryAq.return_value = device_obj
+        app = sentinel.dmd_root
+        app._p_jar = {111: device}
+
+        ret = t.im._oid_to_object(app, 111)
+
+        t.assertEqual(ret, device_obj)
+
+    def test__oid_to_object_poskeyerror(t):
+        app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
+        app._p_jar.__getitem__.side_effect = POSKeyError()
+
+        ret = t.im._oid_to_object(app, 111)
+
+        t.assertEqual(ret, FILTER_INCLUDE)
+
+    def test__oid_to_object_deleted_primaryaq_keyerror(t):
+        deleted = MagicMock(DeviceComponent, __of__=Mock())
+        deleted.__of__.return_value.primaryAq.side_effect = KeyError
+        app = sentinel.dmd_root
+        app._p_jar = {111: deleted}
+
+        ret = t.im._oid_to_object(app, 111)
+
+        t.assertEqual(ret, FILTER_INCLUDE)
+
+    def test__oid_to_object_exclude_unsuported_types(t):
+        unsuported = MagicMock(name='unsuported type', __of__=Mock())
+        app = sentinel.dmd_root
+        app._p_jar = {111: unsuported}
+
+        ret = t.im._oid_to_object(app, 111)
+
+        t.assertEqual(ret, FILTER_EXCLUDE)
+
+    def test__apply_filters(t):
+        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
+        filter = MockIInvalidationFilter()
+
+        def include(obj):
+            if obj is sentinel.included:
+                return FILTER_INCLUDE
+            elif obj is sentinel.excluded:
+                return FILTER_EXCLUDE
+            else:
+                return "FILTER_CONTINUE"
+
+        filter.include = include
+        t.im._invalidation_filters = [filter]
+
+        t.assertTrue(t.im._apply_filters(sentinel.included))
+        t.assertFalse(t.im._apply_filters(sentinel.excluded))
+        t.assertTrue(t.im._apply_filters(sentinel.other))
 
     @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
     @patch('{src}.subscribers'.format(**PATH), autospec=True)

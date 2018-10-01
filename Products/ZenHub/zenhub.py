@@ -187,7 +187,6 @@ class ZenHub(ZCmdBase):
     TODO: document invalidation workers
     """
 
-    #totalTime = 0.
     @property
     def totalTime(self):
         return getattr(self._invalidations_manager, 'totalTime', 0.0)
@@ -196,7 +195,6 @@ class ZenHub(ZCmdBase):
     def totalTime(self, t):
         setattr(self._invalidations_manager, 'totalEvents', t)
 
-    #totalEvents = 0
     @property
     def totalEvents(self):
         return getattr(self._invalidations_manager, 'totalEvents', 0)
@@ -302,7 +300,9 @@ class ZenHub(ZCmdBase):
                 'internal': True
             })
         self._metric_writer = self._metric_manager.metric_writer
-        self.rrdStats = self.getRRDStats()
+        self.rrdStats = self._metric_manager.get_rrd_stats(
+            self._getConf(), self.zem.sendEvent
+        )
 
         if self.options.workers:
             self.workerconfig = zenPath(
@@ -1099,36 +1099,50 @@ class InvalidationsManager(object):
 
     def _filter_oids(self, oids):
         app = self._dmd.getPhysicalRoot()
-        i = 0
         for oid in oids:
-            i += 1
-            try:
-                obj = app._p_jar[oid]
-            except POSKeyError:
-                # State is gone from the database. Send it along.
+            obj = self._oid_to_object(app, oid)
+            if obj is FILTER_INCLUDE:
                 yield oid
-            else:
-                if isinstance(
-                    obj,
-                    (PrimaryPathObjectManager, DeviceComponent)
-                ):
-                    try:
-                        obj = obj.__of__(self._dmd).primaryAq()
-                    except (AttributeError, KeyError):
-                        # It's a delete. This should go through.
-                        yield oid
-                    else:
-                        included = True
-                        for fltr in self._invalidation_filters:
-                            result = fltr.include(obj)
-                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
-                                included = (result == FILTER_INCLUDE)
-                                break
-                        if included:
-                            oids = self._transformOid(oid, obj)
-                            if oids:
-                                for oid in oids:
-                                    yield oid
+                continue
+            if obj is FILTER_EXCLUDE:
+                continue
+
+            # Filter all remaining oids
+            include = self._apply_filters(obj)
+            if include:
+                _oids = self._transformOid(oid, obj)
+                for _oid in _oids:
+                    yield _oid
+
+    def _oid_to_object(self, app, oid):
+        # Include oids that are missing from the database
+        try:
+            obj = app._p_jar[oid]
+        except POSKeyError:
+            return FILTER_INCLUDE
+
+        # Exclude any unmatched types
+        if not isinstance(
+            obj, (PrimaryPathObjectManager, DeviceComponent)
+        ):
+            return FILTER_EXCLUDE
+
+        # Include deleted oids
+        try:
+            obj = obj.__of__(self._dmd).primaryAq()
+        except (AttributeError, KeyError):
+            return FILTER_INCLUDE
+
+        return obj
+
+    def _apply_filters(self, obj):
+        for fltr in self._invalidation_filters:
+            result = fltr.include(obj)
+            if result is FILTER_INCLUDE:
+                return True
+            if result is FILTER_EXCLUDE:
+                return False
+        return True
 
     @staticmethod
     def _transformOid(oid, obj):
@@ -1155,7 +1169,6 @@ class InvalidationsManager(object):
         # any transformed oid came back.
         transformed.discard(oid)
         return transformed or (oid,)
-
 
 
 HubWorklistItem = collections.namedtuple(
