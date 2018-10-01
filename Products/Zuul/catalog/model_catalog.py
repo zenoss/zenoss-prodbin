@@ -468,7 +468,7 @@ class ModelCatalogDataManager(object):
     def cursor_search(self, search_params, context):
         try:
             search_params.fields = self._get_fields_to_return(search_params.fields)
-            search_params = self._add_tx_state_query(search_params)
+            search_params = self._add_tx_state_query(search_params, None)
             catalog_results = self.model_index.cursor_search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
