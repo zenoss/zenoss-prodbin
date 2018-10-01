@@ -557,11 +557,14 @@ class ZenHubTest(TestCase):
             name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
         )
         t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        t.zh._invalidations_manager = InvalidationsManager(
+        '''t.zh._invalidations_manager = InvalidationsManager(
             t.zh.dmd,
             t.zh.async_syncdb,
             t.zh.storage.poll_invalidations,
             t.zh.log,
+        )'''
+        t.zh._invalidations_manager = Mock(
+            InvalidationsManager, name='InvalidationsManager'
         )
 
     def test_setKeepAlive(t):
@@ -654,185 +657,31 @@ class ZenHubTest(TestCase):
         t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
     def test_processQueue(t):
-        '''Configuration Invalidation Processing function
-        synchronize with the database, and execute doProcessQueue
-        '''
-
-        async_syncdb = create_autospec(t.zh.async_syncdb, name='async_syncdb')
-        t.zh.async_syncdb = async_syncdb
-        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        t.zh._invalidations_manager = InvalidationsManager(
-            t.zh.dmd,
-            t.zh.async_syncdb,
-            t.zh.storage.poll_invalidations,
-            t.zh.log,
-        )
-
-        t.zh.doProcessQueue = create_autospec(
-            t.zh.doProcessQueue, name='doProcessQueue'
-        )
-        options = Mock(name='options', spec_set=['invalidation_poll_interval'])
-        t.zh.options = options
-        #t.zh.totalEvents = 0
-        #t.zh.totalTime = 0
-        timestamps = [10, 20]
-        t.time.time.side_effect = timestamps
-
         t.zh.processQueue()
+        t.zh._invalidations_manager.processQueue.assert_called_with()
 
-        t.zh.async_syncdb.assert_called_with()
-        #t.zh.doProcessQueue.assert_called_with()
-
-        t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
-        t.assertEqual(t.zh.totalEvents, 1)
-
-    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
-    def test__initialize_invalidation_filters(t, getUtilitiesFor):
-        '''Configuration Invalidation Processing function
-        '''
-        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filters = [MockIInvalidationFilter() for i in range(3)]
-        # weighted in reverse order
-        for i, filter in enumerate(filters):
-            filter.weight = 10 - i
-        getUtilitiesFor.return_value = [
-            ('f%s' % i, f) for i, f in enumerate(filters)
-        ]
-
+    def test__initialize_invalidation_filters(t):
         t.zh._initialize_invalidation_filters()
-
-        for filter in filters:
-            filter.initialize.assert_called_with(t.zh.dmd)
-
-        # check sorted by weight
-        filters.reverse()
-        t.assertEqual(t.zh._invalidation_filters, filters)
+        t.zh._invalidations_manager\
+            ._initialize_invalidation_filters.assert_called_with()
 
     def test__filter_oids(t):
-        '''Configuration Invalidation Processing function
-        yields a generator with the OID if the object has been deleted
-        runs changed devices through invalidation_filters
-        which may exclude them,
-        and runs any included devices through _transformOid
-        '''
-        app = t.zh.dmd.getPhysicalRoot.return_value
+        oids = sentinel.oids
+        t.zh._filter_oids(oids)
+        t.zh._invalidations_manager._filter_oids.assert_called_with(oids)
 
-        device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
-        device_obj = sentinel.device_obj
-        device.__of__.return_value.primaryAq.return_value = device_obj
-        component = MagicMock(DeviceComponent, __of__=Mock())
-        component_obj = sentinel.component_obj
-        component.__of__.return_value.primaryAq.return_value = component_obj
-        excluded = Mock(DeviceComponent, __of__=Mock())
-        excluded_obj = sentinel.excluded_obj
-        excluded.__of__.return_value.primaryAq.return_value = excluded_obj
-
-        app._p_jar = {
-            111: device,
-            222: component,
-            # BUG: any object filtered overwrites other oids
-            # but without a filtered object, no oids are returned
-            333: excluded,
-        }
-        oids = app._p_jar.keys()
-
-        def include(obj):
-            if obj in [device_obj, component_obj]:
-                return FILTER_EXCLUDE  # not filter, will be returned
-            if obj == excluded_obj:
-                return FILTER_INCLUDE  # filters, will be ignored
-
-        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filter = MockIInvalidationFilter()
-        filter.include = include
-        t.zh._invalidations_manager._invalidation_filters = [filter]
-
-        t.zh._invalidations_manager._transformOid = create_autospec(
-            t.zh._invalidations_manager._transformOid, name='_transformOid',
-            # BUG: return value from transformOid overwrites other oids
-            return_value=[444],
+    def test__transformOid(t):
+        ret = t.zh._transformOid('oid', sentinel.obj)
+        t.zh._invalidations_manager._transformOid.assert_called_with(
+            'oid', sentinel.obj
+        )
+        t.assertEqual(
+            ret, t.zh._invalidations_manager._transformOid()
         )
 
-        ret = t.zh._filter_oids(oids)
-        out = [o for o in ret]  # unwind the generator
-
-        # WARNING: included/excluded logic may be reversed
-        # possible bug, _tranformOid is only called on EXCLUDED oids.
-        # BUG
-        t.zh._invalidations_manager._transformOid.assert_has_calls(
-            [call(333, excluded_obj)]
-        )
-
-        # BUG: f _transformOid wipes out all other oids
-        #t.assertEqual(out, [111, 222])
-        t.assertEqual(out, [444])
-
-    def test__filter_oids_deleted(t):
-        app = t.zh.dmd.getPhysicalRoot.return_value = MagicMock(name='root')
-        app._p_jar.__getitem__.side_effect = POSKeyError()
-
-        ret = t.zh._filter_oids([111])
-        out = [o for o in ret]  # unwind the generator
-        t.assertEqual(out, [111])
-
-    def test__filter_oids_deleted_primaryaq(t):
-        deleted = MagicMock(DeviceComponent, __of__=Mock())
-        deleted.__of__.return_value.primaryAq.side_effect = KeyError
-        with t.assertRaises(KeyError):
-            deleted.__of__().primaryAq()
-
-        app = t.zh.dmd.getPhysicalRoot.return_value
-        app._p_jar = {111: deleted}
-
-        ret = t.zh._filter_oids([111])
-        out = [o for o in ret]
-        t.assertEqual(out, [111])
-
-    @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
-    @patch('{src}.subscribers'.format(**PATH), autospec=True)
-    def test__transformOid(t, subscribers, IInvalidationOid):
-        '''Configuration Invalidation Processing function
-        given an oid: object pair
-        gets a list of transforms for the object
-        executes the transforms given the oid
-        returns a set of oids returned by the transforms
-        '''
-        adapter_a = Mock(
-            name='adapter_a', spec_set=['transformOid'],
-            transformOid=lambda x: x + '0'
-        )
-        subscribers.return_value = [adapter_a]
-        adapter_b = Mock(
-            name='adapter_b', spec_set=['transformOid'],
-            transformOid=lambda x: [x + '1', x + '2']
-        )
-        IInvalidationOid.return_value = adapter_b
-        oid = 'oid'
-        obj = sentinel.object
-
-        ret = t.zh._transformOid(oid, obj)
-
-        t.assertEqual(ret, {'oid0', 'oid1', 'oid2'})
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_doProcessQueue(t, getUtility):
-        '''Configuration Invalidation Processing function
-        pulls in a dict of invalidations, and the IInvalidationProcessor
-        and processes them, then sends an event
-        refactor to use inline callbacks
-        '''
-        # storage is ZODB access inherited from a parent class
-        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        t.zh._invalidations_manager._filter_oids = create_autospec(
-            t.zh._invalidations_manager._filter_oids
-        )
-
+    def test_doProcessQueue(t):
         t.zh.doProcessQueue()
-
-        getUtility.assert_called_with(IInvalidationProcessor)
-        getUtility.return_value.processQueue.assert_called_with(
-            tuple(set(t.zh._invalidations_manager._filter_oids.return_value))
-        )
+        t.zh._invalidations_manager.doProcessQueue.assert_called_with()
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
     def test_sendEvent(t, Event):

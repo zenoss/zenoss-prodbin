@@ -394,7 +394,6 @@ class ZenHub(ZCmdBase):
         """
         yield self._invalidations_manager.processQueue()
 
-
     # Legacy API
     def _initialize_invalidation_filters(self):
         self._invalidation_filters = self._invalidations_manager\
