@@ -38,6 +38,7 @@ from Products.ZenHub.zenhub import (
     MetricManager,
     ListLengthGauge,
     InvalidationsManager,
+    SEVERITY_CLEAR, INVALIDATIONS_PAUSED,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -385,29 +386,31 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
-    @patch('{src}.MetricManager'.format(**PATH), spec=True)
-    @patch('{src}.queuemessaging_module'.format(**PATH), spec=True)
-    @patch('{src}.zenhub_module'.format(**PATH), spec=True)
-    @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    @patch('{src}.signal'.format(**PATH), spec=True)
-    @patch('{src}.App_Start'.format(**PATH), spec=True)
-    @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
-    @patch('{src}.pb'.format(**PATH), spec=True)
-    @patch('{src}.zenPath'.format(**PATH), spec=True)
-    @patch('{src}.server'.format(**PATH), spec=True)
-    @patch('{src}.AuthXmlRpcService'.format(**PATH), spec=True)
-    @patch('{src}.reactor'.format(**PATH), spec=True)
-    @patch('{src}.ipv6_available'.format(**PATH), spec=True)
-    @patch('{src}.portal'.format(**PATH), spec=True)
-    @patch('{src}.HubRealm'.format(**PATH), spec=True)
-    @patch('{src}.loadPlugins'.format(**PATH), spec=True)
-    @patch('{src}.WorkerSelector'.format(**PATH), spec=True)
-    @patch('{src}.ContinuousProfiler'.format(**PATH), spec=True)
-    @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), spec=True)
-    @patch('{src}.notify'.format(**PATH), spec=True)
-    @patch('{src}.load_config'.format(**PATH), spec=True)
-    @patch('{src}._ZenHubWorklist'.format(**PATH), spec=True)
-    @patch('{src}.ZCmdBase.__init__'.format(**PATH), spec=True)
+    @patch('{src}.task'.format(**PATH), autospec=True)
+    @patch('{src}.InvalidationsManager'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    @patch('{src}.queuemessaging_module'.format(**PATH), autospec=True)
+    @patch('{src}.zenhub_module'.format(**PATH), autospec=True)
+    @patch('{src}.load_config_override'.format(**PATH), autospec=True)
+    @patch('{src}.signal'.format(**PATH), autospec=True)
+    @patch('{src}.App_Start'.format(**PATH), autospec=True)
+    @patch('{src}.HubCreatedEvent'.format(**PATH), autospec=True)
+    @patch('{src}.pb'.format(**PATH), autospec=True)
+    @patch('{src}.zenPath'.format(**PATH), autospec=True)
+    @patch('{src}.server'.format(**PATH), autospec=True)
+    @patch('{src}.AuthXmlRpcService'.format(**PATH), autospec=True)
+    @patch('{src}.reactor'.format(**PATH), autospec=True)
+    @patch('{src}.ipv6_available'.format(**PATH), autospec=True)
+    @patch('{src}.portal'.format(**PATH), autospec=True)
+    @patch('{src}.HubRealm'.format(**PATH), autospec=True)
+    @patch('{src}.loadPlugins'.format(**PATH), autospec=True)
+    @patch('{src}.WorkerSelector'.format(**PATH), autospec=True)
+    @patch('{src}.ContinuousProfiler'.format(**PATH), autospec=True)
+    @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), autospec=True)
+    @patch('{src}.notify'.format(**PATH), autospec=True)
+    @patch('{src}.load_config'.format(**PATH), autospec=True)
+    @patch('{src}._ZenHubWorklist'.format(**PATH), autospec=True)
+    @patch('{src}.ZCmdBase.__init__'.format(**PATH), autospec=True)
     def test___init__(
         t,
         ZCmdBase___init__,
@@ -433,6 +436,8 @@ class ZenHubInitTest(TestCase):
         zenhub_module,
         queuemessaging_module,
         MetricManager,
+        InvalidationsManager,
+        task,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -523,6 +528,31 @@ class ZenHubInitTest(TestCase):
         zh.createWorker.assert_has_calls(
             [call(zh, i) for i in range(zh.options.workers)]
         )
+        # Invalidations Management
+        # Invalidation Processing
+        t.assertEqual(
+            zh._invalidations_manager, InvalidationsManager.return_value
+        )
+        InvalidationsManager.assert_called_with(
+            zh.dmd,
+            zh.log,
+            zh.async_syncdb,
+            zh.storage.poll_invalidations,
+            zh.sendEvent,
+            poll_interval=zh.options.invalidation_poll_interval,
+        )
+        zh._invalidations_manager.initialize_invalidation_filters\
+            .assert_called_with()
+        t.assertEqual(
+            zh.process_invalidations_task, task.LoopingCall.return_value
+        )
+        task.LoopingCall.assert_called_with(
+            zh._invalidations_manager.process_invalidations
+        )
+        zh.process_invalidations_task.start.assert_called_with(
+            zh.options.invalidation_poll_interval
+        )
+
         MetricManager.assert_called_with(
             daemon_tags={
                 'zenoss_daemon': 'zenhub',
@@ -668,12 +698,12 @@ class ZenHubTest(TestCase):
 
     def test_processQueue(t):
         t.zh.processQueue()
-        t.zh._invalidations_manager.processQueue.assert_called_with()
+        t.zh._invalidations_manager.process_invalidations.assert_called_with()
 
     def test__initialize_invalidation_filters(t):
         t.zh._initialize_invalidation_filters()
         t.zh._invalidations_manager\
-            ._initialize_invalidation_filters.assert_called_with()
+            .initialize_invalidation_filters.assert_called_with()
 
     def test__filter_oids(t):
         oids = sentinel.oids
@@ -691,7 +721,7 @@ class ZenHubTest(TestCase):
 
     def test_doProcessQueue(t):
         t.zh.doProcessQueue()
-        t.zh._invalidations_manager.doProcessQueue.assert_called_with()
+        t.zh._invalidations_manager._doProcessQueue.assert_called_with()
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
     def test_sendEvent(t, Event):
@@ -1288,94 +1318,37 @@ class MetricManagerTest(TestCase):
         t.assertEqual(ret, False)
 
 
-class DefaultConfProviderTest(TestCase):
-
-    def test_implements_IHubConfProvider(t):
-        # the class Implements the Interface
-        t.assertTrue(IHubConfProvider.implementedBy(DefaultConfProvider))
-
-    def test_adapts_ZenHub(t):
-        t.assertEqual(
-            adaptedBy(DefaultConfProvider), (ZenHub, )
-        )
-        t.assertIn(ZenHub, adaptedBy(DefaultConfProvider))
-
-    def test___init__(t):
-        zenhub = sentinel.zenhub
-
-        default_conf_provider = DefaultConfProvider(zenhub)
-
-        # the object provides the interface
-        t.assertTrue(IHubConfProvider.providedBy(default_conf_provider))
-        # Verify the object implments the interface properly
-        verifyObject(IHubConfProvider, default_conf_provider)
-        t.assertEqual(default_conf_provider._zenhub, zenhub)
-
-    def test_getHubConf(t):
-        zenhub = Mock(name='zenhub', spec_set=['dmd', 'options'])
-        default_conf_provider = DefaultConfProvider(zenhub)
-
-        ret = default_conf_provider.getHubConf()
-
-        zenhub.dmd.Monitors.Performance._getOb.assert_called_with(
-            zenhub.options.monitor, None
-        )
-        t.assertEqual(ret, zenhub.dmd.Monitors.Performance._getOb.return_value)
-
-
-class DefaultHubHeartBeatCheckTest(TestCase):
-
-    def test_implements_IHubHeartBeatCheck(t):
-        # the class Implements the Interface
-        t.assertTrue(
-            IHubHeartBeatCheck.implementedBy(DefaultHubHeartBeatCheck)
-        )
-
-    def test_adapts_ZenHub(t):
-        t.assertIn(ZenHub, adaptedBy(DefaultHubHeartBeatCheck))
-
-    def test___init__(t):
-        zenhub = sentinel.zenhub
-
-        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
-
-        # the object provides the interface
-        t.assertTrue(
-            IHubHeartBeatCheck.providedBy(default_hub_heartbeat_check)
-        )
-        # Verify the object implments the interface properly
-        verifyObject(IHubHeartBeatCheck, default_hub_heartbeat_check)
-        t.assertEqual(default_hub_heartbeat_check._zenhub, zenhub)
-
-    def test_check(t):
-        # does nothing
-        zenhub = sentinel.zenhub
-        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
-        default_hub_heartbeat_check.check()
-
-
 class InvalidationsManagerTest(TestCase):
-    from unittest import skip
 
     def setUp(t):
-        t.dmd = Mock(name='dmd', spec_set=[])
-        t.syncdb = Mock(name='syncdb', spec_set=[])
-        t.poll_invalidations = Mock(name='poll_invalidations', spec_set=[])
-        t.log = Mock(name='log', spec_set=['debug'])
+        t.dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
+        t.log = Mock(name='log', spec_set=['debug', 'warn'])
+        t.syncdb = Mock(name='ZenHub.async_syncdb', spec_set=[])
+        t.poll_invalidations = Mock(
+            name='ZenHub.storage.poll_invalidations', spec_set=[]
+        )
+        t.send_event = create_autospec(ZenHub.sendEvent)
+
         t.im = InvalidationsManager(
-            t.dmd, t.syncdb, t.poll_invalidations, t.log
+            t.dmd, t.log, t.syncdb, t.poll_invalidations, t.send_event
         )
 
     def test___init__(t):
-        t.assertEqual(t.im._dmd, t.dmd)
-        t.assertEqual(t.im._syncdb, t.syncdb)
-        t.assertEqual(t.im._poll_invalidations, t.poll_invalidations)
+        t.assertEqual(t.im._InvalidationsManager__dmd, t.dmd)
         t.assertEqual(t.im.log, t.log)
+        t.assertEqual(t.im._InvalidationsManager__syncdb, t.syncdb)
+        t.assertEqual(
+            t.im._InvalidationsManager__poll_invalidations,
+            t.poll_invalidations
+        )
+        t.assertEqual(t.im._InvalidationsManager__send_event, t.send_event)
+
+        t.assertEqual(t.im._invalidations_paused, False)
+        t.assertEqual(t.im.totalEvents, 0)
+        t.assertEqual(t.im.totalTime, 0)
 
     @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
-    def test__initialize_invalidation_filters(t, getUtilitiesFor):
-        '''Configuration Invalidation Processing function
-        '''
+    def test_initialize_invalidation_filters(t, getUtilitiesFor):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
         filters = [MockIInvalidationFilter() for i in range(3)]
         # weighted in reverse order
@@ -1385,91 +1358,44 @@ class InvalidationsManagerTest(TestCase):
             ('f%s' % i, f) for i, f in enumerate(filters)
         ]
 
-        t.im._initialize_invalidation_filters()
+        t.im.initialize_invalidation_filters()
 
         for filter in filters:
-            filter.initialize.assert_called_with(t.im._dmd)
+            filter.initialize.assert_called_with(t.dmd)
 
         # check sorted by weight
         filters.reverse()
         t.assertEqual(t.im._invalidation_filters, filters)
 
-    @skip('implement after relocating old functions')
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_process_invalidations(t, time):
+    def test_process_invalidations(t, time, getUtility):
         '''synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
         '''
-        syncdb = Mock(name='syncdb', spec_set=[])
-        log = Mock(name='log', spec_set=['debug'])
-        t.im = InvalidationsManager(syncdb, log)
-
-        t.im.syncdb = create_autospec(t.im.syncdb)
-        t.im.poll_invalidations = create_autospec(t.im.poll_invalidations)
-        t.im.filter_oids = create_autospec(t.im.filter_oids)
-        t.im.totalEvents = 0
-        t.im.totalTime = 0
+        t.im._filter_oids = create_autospec(t.im._filter_oids)
+        processor = getUtility.return_value
         timestamps = [10, 20]
         time.time.side_effect = timestamps
 
         t.im.process_invalidations()
 
-        t.im.syncdb.assert_called_with()
-        t.im.poll_invalidations.assert_called_with()
-        t.im.filter_oids.assert_called_with(
-            t.im.poll_invalidations.retun_value
-        )
-        t.im.invalidation_processor.processQueue.assert_called_with(
-            tuple(set(t.im.filter_oids.return_value))
-        )
-
-        t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
-        t.assertEqual(t.im.totalEvents, 1)
-
-    @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_processQueue(t, time):
-        '''Configuration Invalidation Processing function
-        synchronize with the database, and execute doProcessQueue
-        '''
-        t.im._syncdb = create_autospec(t.im._syncdb, name='_syncdb')
-        t.im.doProcessQueue = create_autospec(
-            t.im.doProcessQueue, name='doProcessQueue'
-        )
-        options = Mock(name='options', spec_set=['invalidation_poll_interval'])
-        t.im.options = options
-        t.im.totalEvents = 0
-        t.im.totalTime = 0
-        timestamps = [10, 20]
-        time.time.side_effect = timestamps
-
-        t.im.processQueue()
-
-        t.im._syncdb.assert_called_with()
-        t.im.doProcessQueue.assert_called_with()
-
-        t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
-        t.assertEqual(t.im.totalEvents, 1)
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_doProcessQueue(t, getUtility):
-        '''Configuration Invalidation Processing function
-        pulls in a dict of invalidations, and the IInvalidationProcessor
-        and processes them, then sends an event
-        refactor to use inline callbacks
-        '''
-        # storage is ZODB access inherited from a parent class
-        t.im._poll_invalidations = create_autospec(t.im._poll_invalidations)
-        t.im._filter_oids = create_autospec(t.im._filter_oids)
-
-        t.im.doProcessQueue()
-
+        t.syncdb.assert_called_with()
+        t.poll_invalidations.assert_called_with()
         getUtility.assert_called_with(IInvalidationProcessor)
-        getUtility.return_value.processQueue.assert_called_with(
-            tuple(set(t.im._filter_oids.return_value))
+        processor.processQueue.assert_called_with(
+            tuple(set(t.im._filter_oids(t.poll_invalidations.return_value)))
         )
+
+        t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
+        t.assertEqual(t.im.totalEvents, 1)
+
+    def test__syncdb(t):
+        t.im._syncdb()
+        t.syncdb.assert_called_with()
 
     def test_poll_invalidations(t):
-        ret = t.im.poll_invalidations()
+        ret = t.im._poll_invalidations()
         t.assertEqual(ret, t.poll_invalidations.return_value)
 
     def test__filter_oids(t):
@@ -1479,11 +1405,7 @@ class InvalidationsManagerTest(TestCase):
         which may exclude them,
         and runs any included devices through _transformOid
         '''
-        dmd = Mock(
-            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
-        )
-        app = dmd.getPhysicalRoot.return_value
-        t.im._dmd = dmd
+        app = t.dmd.getPhysicalRoot.return_value
 
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
@@ -1502,8 +1424,6 @@ class InvalidationsManagerTest(TestCase):
         app._p_jar = {
             111: device,
             222: component,
-            # BUG: any object filtered overwrites other oids
-            # but without a filtered object, no oids are returned
             333: excluded,
             444: excluded_type,
             555: transformer,
@@ -1537,9 +1457,7 @@ class InvalidationsManagerTest(TestCase):
         t.assertEqual(out, {111, 222, 888, 999})
 
     def test__filter_oids_deleted(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.im._dmd = dmd
-        app = dmd.getPhysicalRoot.return_value = MagicMock(name='root')
+        app = t.dmd.getPhysicalRoot.return_value = MagicMock(name='root')
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
         ret = t.im._filter_oids([111])
@@ -1547,14 +1465,12 @@ class InvalidationsManagerTest(TestCase):
         t.assertEqual(out, [111])
 
     def test__filter_oids_deleted_primaryaq(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.im._dmd = dmd
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         with t.assertRaises(KeyError):
             deleted.__of__().primaryAq()
 
-        app = dmd.getPhysicalRoot.return_value
+        app = t.dmd.getPhysicalRoot.return_value
         app._p_jar = {111: deleted}
 
         ret = t.im._filter_oids([111])
@@ -1643,3 +1559,98 @@ class InvalidationsManagerTest(TestCase):
         ret = t.im._transformOid(oid, obj)
 
         t.assertEqual(ret, {'oid0', 'oid1', 'oid2'})
+
+    def test__send_event(t):
+        t.im._send_event(sentinel.event)
+        t.send_event.assert_called_with(sentinel.event)
+
+    def test__send_invalidations_unpaused_event(t):
+        t.im._send_invalidations_unpaused_event(sentinel.msg)
+        t.send_event.assert_called_with({
+            'summary': sentinel.msg,
+            'severity': SEVERITY_CLEAR,
+            'eventkey': INVALIDATIONS_PAUSED
+        })
+
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    def test__doProcessQueue(t, getUtility):
+        '''Configuration Invalidation Processing function
+        pulls in a dict of invalidations, and the IInvalidationProcessor
+        and processes them, then sends an event
+        refactor to use inline callbacks
+        '''
+        # storage is ZODB access inherited from a parent class
+        t.im._filter_oids = create_autospec(t.im._filter_oids)
+
+        t.im._doProcessQueue()
+
+        getUtility.assert_called_with(IInvalidationProcessor)
+        getUtility.return_value.processQueue.assert_called_with(
+            tuple(set(t.im._filter_oids.return_value))
+        )
+
+
+class DefaultConfProviderTest(TestCase):
+
+    def test_implements_IHubConfProvider(t):
+        # the class Implements the Interface
+        t.assertTrue(IHubConfProvider.implementedBy(DefaultConfProvider))
+
+    def test_adapts_ZenHub(t):
+        t.assertEqual(
+            adaptedBy(DefaultConfProvider), (ZenHub, )
+        )
+        t.assertIn(ZenHub, adaptedBy(DefaultConfProvider))
+
+    def test___init__(t):
+        zenhub = sentinel.zenhub
+
+        default_conf_provider = DefaultConfProvider(zenhub)
+
+        # the object provides the interface
+        t.assertTrue(IHubConfProvider.providedBy(default_conf_provider))
+        # Verify the object implments the interface properly
+        verifyObject(IHubConfProvider, default_conf_provider)
+        t.assertEqual(default_conf_provider._zenhub, zenhub)
+
+    def test_getHubConf(t):
+        zenhub = Mock(name='zenhub', spec_set=['dmd', 'options'])
+        default_conf_provider = DefaultConfProvider(zenhub)
+
+        ret = default_conf_provider.getHubConf()
+
+        zenhub.dmd.Monitors.Performance._getOb.assert_called_with(
+            zenhub.options.monitor, None
+        )
+        t.assertEqual(ret, zenhub.dmd.Monitors.Performance._getOb.return_value)
+
+
+class DefaultHubHeartBeatCheckTest(TestCase):
+
+    def test_implements_IHubHeartBeatCheck(t):
+        # the class Implements the Interface
+        t.assertTrue(
+            IHubHeartBeatCheck.implementedBy(DefaultHubHeartBeatCheck)
+        )
+
+    def test_adapts_ZenHub(t):
+        t.assertIn(ZenHub, adaptedBy(DefaultHubHeartBeatCheck))
+
+    def test___init__(t):
+        zenhub = sentinel.zenhub
+
+        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
+
+        # the object provides the interface
+        t.assertTrue(
+            IHubHeartBeatCheck.providedBy(default_hub_heartbeat_check)
+        )
+        # Verify the object implments the interface properly
+        verifyObject(IHubHeartBeatCheck, default_hub_heartbeat_check)
+        t.assertEqual(default_hub_heartbeat_check._zenhub, zenhub)
+
+    def test_check(t):
+        # does nothing
+        zenhub = sentinel.zenhub
+        default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
+        default_hub_heartbeat_check.check()

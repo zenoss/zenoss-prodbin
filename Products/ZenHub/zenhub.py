@@ -193,7 +193,7 @@ class ZenHub(ZCmdBase):
 
     @totalTime.setter
     def totalTime(self, t):
-        setattr(self._invalidations_manager, 'totalEvents', t)
+        setattr(self._invalidations_manager, 'totalTime', t)
 
     @property
     def totalEvents(self):
@@ -279,16 +279,17 @@ class ZenHub(ZCmdBase):
         # Invalidation Processing
         self._invalidations_manager = InvalidationsManager(
             self.dmd,
-            self.syncdb,
-            self.storage.poll_invalidations,
             self.log,
+            self.async_syncdb,
+            self.storage.poll_invalidations,
+            self.sendEvent,
             poll_interval=self.options.invalidation_poll_interval,
         )
-        self._invalidations_manager._initialize_invalidation_filters()
-        self.poll_invalidations_task = task.LoopingCall(
-            self._invalidations_manager.processQueue
+        self._invalidations_manager.initialize_invalidation_filters()
+        self.process_invalidations_task = task.LoopingCall(
+            self._invalidations_manager.process_invalidations
         )
-        self.poll_invalidations_task.start(
+        self.process_invalidations_task.start(
             self.options.invalidation_poll_interval
         )
 
@@ -392,12 +393,12 @@ class ZenHub(ZCmdBase):
 
         @return: None
         """
-        yield self._invalidations_manager.processQueue()
+        yield self._invalidations_manager.process_invalidations()
 
     # Legacy API
     def _initialize_invalidation_filters(self):
         self._invalidation_filters = self._invalidations_manager\
-            ._initialize_invalidation_filters()
+            .initialize_invalidation_filters()
 
     # Legacy API
     def _filter_oids(self, oids):
@@ -414,7 +415,7 @@ class ZenHub(ZCmdBase):
 
         @return: None
         """
-        self._invalidations_manager.doProcessQueue()
+        self._invalidations_manager._doProcessQueue()
 
     def sendEvent(self, **kw):
         """
@@ -776,7 +777,6 @@ class ZenHub(ZCmdBase):
             self.workerprocessmap[proc.pid] = proc
             self.worker_processes.add(prot)
         except Exception as e:
-            print(e)
             self.log.exception('Exception in createWorker')
 
     @inlineCallbacks
@@ -995,23 +995,38 @@ def metricWriter():
 
 class InvalidationsManager(object):
 
-    def __init__(self, dmd, syncdb, poll_invalidations, log, poll_interval=30):
-        self._dmd = dmd
-        self._syncdb = syncdb
-        self._poll_invalidations = poll_invalidations
-        self.poll_interval = poll_interval
-        self.log = log
+    _invalidation_paused_event = {
+        'summary': "Invalidation processing is "
+                   "currently paused. To resume, set "
+                   "'dmd.pauseHubNotifications = False'",
+        'severity': SEVERITY_CRITICAL,
+        'eventkey': INVALIDATIONS_PAUSED
+    }
 
+    def __init__(
+        self, dmd, log,
+        syncdb, poll_invalidations, send_event,
+        poll_interval=30
+    ):
+        self.__dmd = dmd
+        self.__syncdb = syncdb
+        self.log = log
+        self.__poll_invalidations = poll_invalidations
+        self.__send_event = send_event
+        self.poll_interval = poll_interval
+
+        self._invalidations_paused = False
         self.totalEvents = 0
         self.totalTime = 0
 
-    def _initialize_invalidation_filters(self):
-        '''Requires DMD object
+    def initialize_invalidation_filters(self):
+        '''Get Invalidation Filters, initialize them,
+        store them in the _invalidation_filters list, and return the list
         '''
         filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
         self._invalidation_filters = []
         for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
-            fltr.initialize(self._dmd)
+            fltr.initialize(self.__dmd)
             self._invalidation_filters.append(fltr)
         self.log.debug('Registered %s invalidation filters.',
                        len(self._invalidation_filters))
@@ -1019,86 +1034,48 @@ class InvalidationsManager(object):
 
     @inlineCallbacks
     def process_invalidations(self):
-        """
-        Periodically process database changes
+        '''Periodically process database changes.
+        synchronize with the database, and poll invalidated oids from it,
+        filter the oids,  send them to the invalidation_processor
 
         @return: None
-        """
+        '''
         now = time.time()
-        self.log.debug("[processQueue] syncing....")
+        yield self._syncdb()
+        oids = self._poll_invalidations()
+        processor = getUtility(IInvalidationProcessor)
 
-        yield self.syncdb()
-        oids = self.poll_invalidations()
+        ret = processor.processQueue(
+            tuple(set(self._filter_oids(oids)))
+        )
+
+        if ret == INVALIDATIONS_PAUSED:
+            self._send_event(self._invalidation_paused_event)
+            self._invalidations_paused = True
+        else:
+            msg = 'Processed %s oids' % ret
+            self.log.debug(msg)
+            if self._invalidations_paused:
+                self.send_invalidations_unpaused_event(msg)
+                self._invalidations_paused = False
 
         self.totalEvents += 1
         self.totalTime += time.time() - now
 
     @inlineCallbacks
-    def processQueue(self):
-        """
-        Periodically process database changes
-
-        @return: None
-        """
-        now = time.time()
+    def _syncdb(self):
         try:
             self.log.debug("[processQueue] syncing....")
-            yield self._syncdb()  # reads the object invalidations
+            yield self.__syncdb()
             self.log.debug("[processQueue] synced")
-        except Exception:
+        except Exception as err:
             self.log.warn("Unable to poll invalidations, will try again.")
-        else:
-            try:
-                self.doProcessQueue()
-            except Exception:
-                self.log.exception("Unable to poll invalidations.")
 
-        self.totalEvents += 1
-        self.totalTime += time.time() - now
-
-    def _syncdb(self):
-        raise NotImplementedError('sycdb method must be set durring init')
-
-    def doProcessQueue(self):
-        """
-        Perform one cycle of update notifications.
-
-        @return: None
-        """
-        changes_dict = self.poll_invalidations()
-        if changes_dict is not None:
-            processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(
-                tuple(set(self._filter_oids(changes_dict)))
-            )
-
-            def done(n):
-                if n == INVALIDATIONS_PAUSED:
-                    self.sendEvent({
-                        'summary': "Invalidation processing is "
-                                   "currently paused. To resume, set "
-                                   "'dmd.pauseHubNotifications = False'",
-                        'severity': SEVERITY_CRITICAL,
-                        'eventkey': INVALIDATIONS_PAUSED
-                    })
-                    self._invalidations_paused = True
-                else:
-                    msg = 'Processed %s oids' % n
-                    self.log.debug(msg)
-                    if self._invalidations_paused:
-                        self.sendEvent({
-                            'summary': msg,
-                            'severity': SEVERITY_CLEAR,
-                            'eventkey': INVALIDATIONS_PAUSED
-                        })
-                        self._invalidations_paused = False
-            d.addCallback(done)
-
-    def poll_invalidations(self):
-        return self._poll_invalidations()
+    def _poll_invalidations(self):
+        return self.__poll_invalidations()
 
     def _filter_oids(self, oids):
-        app = self._dmd.getPhysicalRoot()
+        app = self.__dmd.getPhysicalRoot()
         for oid in oids:
             obj = self._oid_to_object(app, oid)
             if obj is FILTER_INCLUDE:
@@ -1129,7 +1106,7 @@ class InvalidationsManager(object):
 
         # Include deleted oids
         try:
-            obj = obj.__of__(self._dmd).primaryAq()
+            obj = obj.__of__(self.__dmd).primaryAq()
         except (AttributeError, KeyError):
             return FILTER_INCLUDE
 
@@ -1169,6 +1146,52 @@ class InvalidationsManager(object):
         # any transformed oid came back.
         transformed.discard(oid)
         return transformed or (oid,)
+
+    @inlineCallbacks
+    def _send_event(self, event):
+        yield self.__send_event(event)
+
+    def _send_invalidations_unpaused_event(self, msg):
+        self._send_event({
+            'summary': msg,
+            'severity': SEVERITY_CLEAR,
+            'eventkey': INVALIDATIONS_PAUSED
+        })
+
+    def _doProcessQueue(self):
+        """
+        Perform one cycle of update notifications.
+
+        @return: None
+        """
+        changes_dict = self._poll_invalidations()
+        if changes_dict is not None:
+            processor = getUtility(IInvalidationProcessor)
+            d = processor.processQueue(
+                tuple(set(self._filter_oids(changes_dict)))
+            )
+
+            def done(n):
+                if n == INVALIDATIONS_PAUSED:
+                    self.sendEvent({
+                        'summary': "Invalidation processing is "
+                                   "currently paused. To resume, set "
+                                   "'dmd.pauseHubNotifications = False'",
+                        'severity': SEVERITY_CRITICAL,
+                        'eventkey': INVALIDATIONS_PAUSED
+                    })
+                    self._invalidations_paused = True
+                else:
+                    msg = 'Processed %s oids' % n
+                    self.log.debug(msg)
+                    if self._invalidations_paused:
+                        self.sendEvent({
+                            'summary': msg,
+                            'severity': SEVERITY_CLEAR,
+                            'eventkey': INVALIDATIONS_PAUSED
+                        })
+                        self._invalidations_paused = False
+            d.addCallback(done)
 
 
 HubWorklistItem = collections.namedtuple(
