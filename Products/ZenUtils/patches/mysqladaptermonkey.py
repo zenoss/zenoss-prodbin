@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2014, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 """
 This module patches relstorage.adapters.mysql.MySQLdbConnectionManager to
@@ -63,8 +63,8 @@ def record_pid(conn, cursor):
         conn.autocommit(False)
 
 try:
-    from relstorage.adapters.schema import MySQLSchemaInstaller
-    @monkeypatch('relstorage.adapters.mysql.MySQLdbConnectionManager')
+    from relstorage.adapters.mysql.schema import MySQLSchemaInstaller
+    @monkeypatch('relstorage.adapters.mysql.connmanager.MySQLdbConnectionManager')
     def open(self, *args, **kwargs):
         global TRIM_TIME
         conn, cursor = original(self, *args, **kwargs)
@@ -74,7 +74,7 @@ try:
             trim_db(conn, cursor)
         return conn, cursor
 
-    @monkeypatch('relstorage.adapters.mysql.MySQLdbConnectionManager')
+    @monkeypatch('relstorage.adapters.mysql.connmanager.MySQLdbConnectionManager')
     def close(self,conn,cursor):
         try:
             if conn is not None and cursor is not None:
@@ -85,18 +85,18 @@ try:
             pass
         original(self, conn, cursor)
 
-    @monkeypatch('relstorage.adapters.schema.MySQLSchemaInstaller')
+    @monkeypatch('relstorage.adapters.mysql.schema.MySQLSchemaInstaller')
     def create(self, cursor):
         super(MySQLSchemaInstaller, self).create(cursor)
         self.create_connection_info(cursor)
 
-    @monkeypatch('relstorage.adapters.schema.MySQLSchemaInstaller')
+    @monkeypatch('relstorage.adapters.mysql.schema.MySQLSchemaInstaller')
     def update_schema(self, cursor, tables):
         super(MySQLSchemaInstaller, self).update_schema(cursor, tables)
         if not "connection_info" in tables:
             self.create_connection_info(cursor)
 
-    @monkeypatch('relstorage.adapters.schema.MySQLSchemaInstaller')
+    @monkeypatch('relstorage.adapters.mysql.schema.MySQLSchemaInstaller')
     def create_connection_info(self, cursor):
         script = """
             CREATE TABLE IF NOT EXISTS connection_info(
@@ -112,4 +112,4 @@ try:
 
 except ImportError:
     pass
-    
+
