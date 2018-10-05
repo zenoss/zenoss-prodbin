@@ -43,10 +43,11 @@ Zenoss.ToolTip = Ext.extend(Ext.ToolTip, {
    }
 });
 
-Zenoss.registerTooltip = function(config, cmp) {
+Zenoss.registerTooltip = function(config, component) {
     var target = config.target,
-        initialConfig = Ext.apply({}, config);
-    cmp = Ext.getCmp(target) || cmp;
+        initialConfig = Ext.apply({}, config),
+        cmp = component ? component : Ext.getCmp(target);
+
     if (Ext.isDefined(cmp)) {
         cmp.on('destroy', function(){
             Zenoss.TIPS[target] = initialConfig;
