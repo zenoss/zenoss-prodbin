@@ -116,7 +116,10 @@ class AuthXmlRpcServiceTest(TestCase):
 class HubAvitarTest(TestCase):
 
     def setUp(t):
-        t.hub = Mock(name='hub', spec_set=['getService', 'log', 'workers'])
+        t.hub = Mock(
+            name='hub',
+            spec_set=['getService', 'log', 'workers', 'updateEventWorkerCount']
+        )
         t.avitar = HubAvitar(t.hub)
 
     def test___init__(t):
@@ -157,13 +160,13 @@ class HubAvitarTest(TestCase):
 
     def test_perspective_reportingForWork(t):
         worker = Mock(pb.RemoteReference, autospec=True)
-        pid = 9999
+        workerId = 0
         t.hub.workers = []
 
-        t.avitar.perspective_reportingForWork(worker, pid=pid)
+        t.avitar.perspective_reportingForWork(worker, workerId=workerId)
 
         t.assertFalse(worker.busy)
-        t.assertEqual(worker.pid, pid)
+        t.assertEqual(worker.workerId, workerId)
         t.assertIn(worker, t.hub.workers)
 
         # Ugly test for the notifyOnDisconnect method, please refactor
@@ -448,8 +451,6 @@ class ZenHubInitTest(TestCase):
             patch.object(ZenHub, 'options', create=True),
             patch.object(ZenHub, 'loadChecker', autospec=True),
             patch.object(ZenHub, '_getConf', autospec=True),
-            patch.object(ZenHub, '_createWorkerConf', autospec=True),
-            patch.object(ZenHub, 'createWorker', autospec=True),
             patch.object(ZenHub, 'setKeepAlive', autospec=True),
             patch.object(ZenHub, 'sendEvent', autospec=True),
         ]
@@ -458,7 +459,6 @@ class ZenHubInitTest(TestCase):
             patcher.start()
             t.addCleanup(patcher.stop)
 
-        ZenHub.options.workers = 10
         ZenHub.options.invalidation_poll_interval = 100
         ZenHub._getConf.return_value.id = 'config_id'
         ipv6_available.return_value = False
@@ -481,7 +481,7 @@ class ZenHubInitTest(TestCase):
         t.assertEqual(zh.workerselector, WorkerSelector.return_value)
         # check this, was it supposed to be set on workerselector?
         t.assertEqual(zh.workList.log, zh.log)
-        t.assertLess(zh.options.workersReservedForEvents, zh.options.workers)
+
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
         loadPlugins.assert_called_with(zh.dmd)
@@ -521,13 +521,6 @@ class ZenHubInitTest(TestCase):
             severity=0
         )
 
-        # Additional worker management, separated from the rest
-        zenPath.assert_called_with('var', 'zenhub', 'config_id_worker.conf')
-        t.assertEqual(zh.workerconfig, zenPath.return_value)
-        zh._createWorkerConf.assert_called_with(zh)
-        zh.createWorker.assert_has_calls(
-            [call(zh, i) for i in range(zh.options.workers)]
-        )
         # Invalidations Management
         # Invalidation Processing
         t.assertEqual(
@@ -564,8 +557,6 @@ class ZenHubInitTest(TestCase):
         t.assertEqual(
             zh.rrdStats, zh._metric_manager.get_rrd_stats.return_value
         )
-        # Convert this to a LoopingCall
-        reactor.callLater.assert_called_with(2, zh.giveWorkToWorkers, True)
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
 
@@ -638,18 +629,11 @@ class ZenHubTest(TestCase):
         _workerStats = create_autospec(t.zh._workerStats, name='_workerStats')
         t.zh._workerStats = _workerStats
         t.zh.SIGUSR_TIMEOUT = 1
-        # should use the workerProcess class as spec, but its currently burried
-        worker_proc = Mock(
-            name='worker_1', spec_set=['spawn_time', 'signalProcess'],
-            spawn_time=3
-        )
         t.time.time.return_value = 5
-        t.zh.workerprocessmap = {'w1': worker_proc}
 
         ZenHub.sighandler_USR2(t.zh, signum='unused', frame='unused')
 
         t.zh._workerStats.assert_called_with()
-        worker_proc.signalProcess.assert_called_with(signal.SIGUSR2)
 
     @patch('{src}.super'.format(**PATH))
     @patch('{src}.signal'.format(**PATH), autospec=True)
@@ -659,8 +643,6 @@ class ZenHubTest(TestCase):
         '''
         t.zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
         t.zh.options = Mock(name='options', profiling=True)
-        worker_proc = Mock(name='worker_1', spec_set=['signalProcess'])
-        t.zh.workerprocessmap = {'w1': worker_proc}
         signum = sentinel.signum
         frame = sentinel.frame
 
@@ -671,7 +653,6 @@ class ZenHubTest(TestCase):
         super.return_value.sighandler_USR1.assert_called_with(
             signum, frame
         )
-        worker_proc.signalProcess.assert_called_with(signal.SIGUSR1)
 
     def test_stop(t):
         t.assertFalse(t.zh.shutdown)
@@ -683,6 +664,30 @@ class ZenHubTest(TestCase):
         ret = t.zh._getConf()
         confProvider = IHubConfProvider.return_value
         t.assertEqual(ret, confProvider.getHubConf.return_value)
+
+    def test_updateEventWorkerCount(t):
+        t.zh.options = Mock(
+            name='options', spec_set=['workersReservedForEvents']
+        )
+        subtests = [
+            {"reserved": 1, "workers": 0, "expected": 0},
+            {"reserved": 1, "workers": 1, "expected": 0},
+            {"reserved": 2, "workers": 1, "expected": 0},
+            {"reserved": 1, "workers": 2, "expected": 1},
+            {"reserved": 2, "workers": 2, "expected": 1},
+            {"reserved": 2, "workers": 3, "expected": 2}
+        ]
+        for subtest in subtests:
+            t.zh.options.workersReservedForEvents = subtest['reserved']
+            t.zh.workers = [sentinel.worker] * subtest['workers']
+            t.zh.updateEventWorkerCount()
+            t.assertEqual(
+                t.zh.options.workersReservedForEvents, subtest['expected'],
+                msg=("%s != %s; %s" % (
+                    t.zh.options.workersReservedForEvents,
+                    subtest['expected'], subtest
+                ))
+            )
 
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     def test_getRRDStats(t, MetricManager):
@@ -787,8 +792,6 @@ class ZenHubTest(TestCase):
 
     def test_getService_cache_miss(t):
         t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
-        t.zh.options = Mock(name='options', spec_set=['workers'])
-        t.zh.options.workers = False
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
@@ -812,7 +815,6 @@ class ZenHubTest(TestCase):
     @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
     def test_getService_forwarded_to_WorkerInterceptor(t, WorkerInterceptor):
         t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
-        t.zh.options = Mock(name='options', spec_set=['workers'])
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
@@ -834,7 +836,7 @@ class ZenHubTest(TestCase):
             ret = t.zh.getService(name, instance)
 
         WorkerInterceptor.assert_called_with(t.zh, service)
-        t.assertEqual(ret, interceptor_service)
+        t.assertEqual(ret, service)
         t.assertEqual(t.zh.services[name, instance], interceptor_service)
 
     @patch('{src}.defer'.format(**PATH), autospec=True)
@@ -1000,62 +1002,6 @@ class ZenHubTest(TestCase):
         '''
         pass
 
-    @patch('{src}.os'.format(**PATH))
-    def test__createWorkerConf(t, os):
-        t.zh.workerconfig = '/path/to/config'
-        t.zh.options = Mock(name='options')
-        t.zh.workerUsername = sentinel.worker_username
-        t.zh.workerPassword = sentinel.worker_password
-        os.path.exists.return_value = False
-
-        from mock import mock_open
-        file_handler = mock_open()
-        with patch('{src}.open'.format(**PATH), file_handler):
-            t.zh._createWorkerConf()
-
-        handle = file_handler()
-        os.makedirs.assert_called_with(os.path.dirname.return_value)
-        handle.write.assert_has_calls([
-            call("hubport %s\n" % t.zh.options.pbport),
-            call("username %s\n" % t.zh.workerUsername),
-            call("password %s\n" % t.zh.workerPassword),
-            call("logseverity %s\n" % t.zh.options.logseverity),
-            call("zodb-cachesize %s\n" % t.zh.options.zodb_cachesize),
-            call("calllimit %s\n" % t.zh.options.worker_call_limit),
-            call("profiling %s\n" % t.zh.options.profiling),
-            call("monitor %s\n" % t.zh.options.monitor),
-        ])
-
-    @patch('{src}.NICE_PATH'.format(**PATH), '/path/to/nice')
-    def test_createWorker(t):
-        '''Worker Management Function
-        creates the protocol class internally to make tesging extra-difficult
-        factor it out
-        '''
-        # should be set by __init__
-        t.zh.workerprocessmap = {}
-        t.zh.worker_processes = set()
-        t.zh.options = Mock(
-            name='options', spec_set=['workers', 'hubworker_priority'],
-            workers=1,
-            hubworker_priority=1
-        )
-        workerNum = 'worker_id'
-        t.zh.hubworker_priority = sentinel.hubworker_priority
-        t.zh.workerconfig = 'workerconfig'
-
-        t.zh.createWorker(workerNum)
-
-        t.assertEqual(
-            t.zh.workerprocessmap,
-            {t.reactor.spawnProcess.return_value.pid:
-                t.reactor.spawnProcess.return_value}
-        )
-        # pull the protocol out of the spawnProcess call
-        args, kwargs = t.reactor.spawnProcess.call_args
-        proc = args[0]
-        t.assertEqual(t.zh.worker_processes, set([proc]))
-
     @patch('{src}.IHubHeartBeatCheck'.format(**PATH), autospec=True)
     @patch('{src}.EventHeartbeat'.format(**PATH), autospec=True)
     def test_heartbeat(t, EventHeartbeat, IHubHeartBeatCheck):
@@ -1100,22 +1046,6 @@ class ZenHubTest(TestCase):
             call('workListLength', len(t.zh.workList)),
         ])
 
-    def test_check_workers(t):
-        '''Worker Management Function
-        '''
-        # WARNING! creates workers without a worker number argument
-        # WARNING! Logic is backwards, this test will fail
-        t.zh.worker_processes = [i for i in range(3)]
-        t.zh.options = sentinel.options
-        t.zh.options.workers = 5
-        t.zh.createWorker = create_autospec(t.zh.createWorker)
-
-        t.zh.check_workers()
-
-        # 5 expected workers - 3 worker processes = 2 missing workers
-        # WARNING! Logic is backwards, this test will fail currently
-        #t.zh.createWorker.assert_has_calls([call() for _ in range(2)])
-
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
@@ -1130,10 +1060,6 @@ class ZenHubTest(TestCase):
         t.zh.options.profiling = True
         t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
         t.zh._metric_manager = MetricManager.return_value
-        # Worker Management
-        worker_proc = Mock(name='worker_proc', spec_set=['signalProcess'])
-        t.zh.workerprocessmap = {'po0': worker_proc}
-        t.zh.workerconfig = sentinel.workerconfig
 
         t.zh.main()
 
@@ -1148,9 +1074,6 @@ class ZenHubTest(TestCase):
             'before', 'shutdown', t.zh._metric_manager.stop
         )
         # After the reactor stops:
-        # shut down workers
-        worker_proc.signalProcess.assert_called_with('KILL')
-        os.unlink.assert_called_with(t.zh.workerconfig)
         t.zh.profiler.stop.assert_called_with()
         # Closes IEventPublisher, which breaks old integration tests
         getUtility.assert_called_with(IEventPublisher)
@@ -1182,11 +1105,8 @@ class ZenHubTest(TestCase):
         zenPath.assert_called_with('etc', 'hubpasswd')
         t.assertEqual(t.zh.options.passwordfile, zenPath.return_value)
         t.assertEqual(t.zh.options.monitor, 'localhost')
-        t.assertEqual(t.zh.options.workers, 2)
-        t.assertEqual(t.zh.options.hubworker_priority, 5)
         t.assertEqual(t.zh.options.prioritize, False)
         t.assertEqual(t.zh.options.workersReservedForEvents, 1)
-        t.assertEqual(t.zh.options.worker_call_limit, 200)
         t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
         t.assertEqual(t.zh.options.profiling, False)
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
