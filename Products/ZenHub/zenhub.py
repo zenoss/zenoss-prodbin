@@ -115,8 +115,10 @@ from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
 
 from Products.ZenHub.interceptors import WorkerInterceptor
+from Products.ZenHub.worklist import ZenHubPriority, ZenHubWorklist
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
+
 
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
@@ -303,74 +305,6 @@ class HubRealm(object):
         return pb.IPerspective, self.hubAvitar, lambda: None
 
 
-class _ZenHubWorklist(object):
-
-    def __init__(self):
-        self.eventworklist = []
-        self.otherworklist = []
-        self.applyworklist = []
-
-        # priority lists for eventual task selection.
-        # All queues are appended in case any of them are empty.
-        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
-        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
-        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
-        self.dispatch = {
-            'sendEvents': self.eventworklist,
-            'sendEvent': self.eventworklist,
-            'applyDataMaps': self.applyworklist
-        }
-
-    def __getitem__(self, item):
-        return self.dispatch.get(item, self.otherworklist)
-
-    def __len__(self):
-        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
-
-    def pop(self, allowADM=True):
-        """
-        Select a single task to be distributed to a worker.
-        We prioritize tasks as follows:
-            sendEvents > configuration service calls > applyDataMaps
-        To prevent starving any queue in an event storm,
-        we randomize the task selection,
-        preferring tasks according to the above priority.
-
-        allowADM controls whether we should allow popping jobs from the
-        applyDataMaps list, this should be False while models are changing
-        (like during a zenpack install/upgrade/removal)
-        """
-        # the priority lists have eventworklist, otherworklist, and
-        # applyworklist when we don't want to allow ApplyDataMaps,
-        # we should exclude the possibility of popping from applyworklist
-        eventchain = filter(
-            None,
-            self.eventPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-        otherchain = filter(
-            None,
-            self.otherPriorityList if allowADM
-            else [self.otherworklist, self.eventworklist])
-        applychain = filter(
-            None,
-            self.applyPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-
-        # choose a job to pop based on weighted random
-        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
-        chosen_list = choice(choice_list)
-        if len(chosen_list) > 0:
-            item = heapq.heappop(chosen_list[0])
-            return item
-        else:
-            return None
-
-    def push(self, job):
-        heapq.heappush(self[job.method], job)
-
-    append = push
-
-
 def publisher(username, password, url):
     return HttpPostPublisher(username, password, url)
 
@@ -451,7 +385,7 @@ class ZenHub(ZCmdBase):
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        self.workList = _ZenHubWorklist()
+        self.workList = ZenHubWorklist()
         self.shutdown = False
         self.counters = collections.Counter()
         self._invalidations_paused = False
@@ -462,21 +396,21 @@ class ZenHub(ZCmdBase):
         class EventWorkList(Gauge):
             @property
             def value(self):
-                return len(wl.eventworklist)
+                return wl.length_of(ZenHubPriority.EVENTS)
         if 'zenhub.eventWorkList' not in metricNames:
             Metrology.gauge('zenhub.eventWorkList', EventWorkList())
 
         class ADMWorkList(Gauge):
             @property
             def value(self):
-                return len(wl.applyworklist)
+                return wl.length_of(ZenHubPriority.APPLY_DATA_MAPS)
         if 'zenhub.admWorkList' not in metricNames:
             Metrology.gauge('zenhub.admWorkList', ADMWorkList())
 
         class OtherWorkList(Gauge):
             @property
             def value(self):
-                return len(wl.otherworklist)
+                return wl.length_of(ZenHubPriority.OTHER)
         if 'zenhub.otherWorkList' not in metricNames:
             Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
 
@@ -498,7 +432,6 @@ class ZenHub(ZCmdBase):
 
         # Worker selection handler
         self.workerselector = WorkerSelector(self.options)
-        self.workList.log = self.log
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
@@ -826,7 +759,7 @@ class ZenHub(ZCmdBase):
         service = self.getService(svcName, instance).service
         priority = service.getMethodPriority(method)
 
-        self.workList.append(
+        self.workList.push(
             HubWorklistItem(
                 priority, time.time(), d, svcName, instance, method,
                 (svcName, instance, method, args)
@@ -953,9 +886,9 @@ class ZenHub(ZCmdBase):
         now = time.time()
         lines = [
             'Worklist Stats:',
-            '\tEvents:\t%s' % len(self.workList.eventworklist),
-            '\tOther:\t%s' % len(self.workList.otherworklist),
-            '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
+            '\tEvents:\t%s' % self.workList.length_of(ZenHubPriority.EVENTS),
+            '\tOther:\t%s' % self.workList.length_of(ZenHubPriority.OTHER),
+            '\tApplyDataMaps:\t%s' % self.workList.length_of(ZenHubPriority.MODELING),
             '\tTotal:\t%s' % len(self.workList),
             '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
         ]
