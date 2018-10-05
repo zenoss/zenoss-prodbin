@@ -143,296 +143,6 @@ except Exception:
     NICE_PATH = None
 
 
-HubWorklistItem = collections.namedtuple(
-    'HubWorklistItem',
-    'priority recvtime deferred servicename instance method args'
-)
-WorkerStats = collections.namedtuple(
-    'WorkerStats',
-    'status description lastupdate previdle'
-)
-LastCallReturnValue = collections.namedtuple(
-    'LastCallReturnValue', 'returnvalue'
-)
-
-
-class AuthXmlRpcService(XmlRpcService):
-    """Provide some level of authentication for XML/RPC calls"""
-
-    def __init__(self, dmd, checker):
-        XmlRpcService.__init__(self, dmd)
-        self.checker = checker
-
-    def doRender(self, unused, request):
-        """
-        Call the inherited render engine after authentication succeeds.
-        See @L{XmlRpcService.XmlRpcService.Render}.
-        """
-        return XmlRpcService.render(self, request)
-
-    def unauthorized(self, request):
-        """
-        Render an XMLRPC error indicating an authentication failure.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: None
-        """
-        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-
-    def render(self, request):
-        """
-        Unpack the authorization header and check the credentials.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: NOT_DONE_YET
-        """
-        auth = request.getHeader('authorization')
-        if not auth:
-            self.unauthorized(request)
-        else:
-            try:
-                type, encoded = auth.split()
-                if type not in ('Basic',):
-                    self.unauthorized(request)
-                else:
-                    user, passwd = encoded.decode('base64').split(':')
-                    c = credentials.UsernamePassword(user, passwd)
-                    d = self.checker.requestAvatarId(c)
-                    d.addCallback(self.doRender, request)
-
-                    def error(unused, request):
-                        self.unauthorized(request)
-
-                    d.addErrback(error, request)
-            except Exception:
-                self.unauthorized(request)
-        return server.NOT_DONE_YET
-
-
-class HubAvitar(pb.Avatar):
-    """
-    Connect collectors to their configuration Services
-    """
-
-    def __init__(self, hub):
-        self.hub = hub
-
-    def perspective_ping(self):
-        return 'pong'
-
-    def perspective_getHubInstanceId(self):
-        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
-
-    def perspective_getService(self,
-                               serviceName,
-                               instance=None,
-                               listener=None,
-                               options=None):
-        """
-        Allow a collector to find a Hub service by name.  It also
-        associates the service with a collector so that changes can be
-        pushed back out to collectors.
-
-        @type serviceName: string
-        @param serviceName: a name, like 'EventService'
-        @type instance: string
-        @param instance: the collector's instance name, like 'localhost'
-        @type listener: a remote reference to the collector
-        @param listener: the callback interface to the collector
-        @return a remote reference to a service
-        """
-        try:
-            service = self.hub.getService(serviceName, instance)
-        except RemoteBadMonitor:
-            # This is a valid remote exception, so let it go through
-            # to the collector daemon to handle
-            raise
-        except Exception:
-            self.hub.log.exception("Failed to get service '%s'", serviceName)
-            return None
-        else:
-            if service is not None and listener:
-                service.addListener(listener, options)
-            return service
-
-    def perspective_reportingForWork(self, worker, workerId):
-        """
-        Allow a worker register for work.
-
-        @type worker: a pb.RemoteReference
-        @param worker: a reference to zenhubworker
-        @return None
-        """
-        worker.busy = False
-        worker.workerId = workerId
-        self.hub.log.info("Worker %s reporting for work", workerId)
-        self.hub.workers.append(worker)
-        self.hub.updateEventWorkerCount()
-
-        def removeWorker(worker):
-            if worker in self.hub.workers:
-                self.hub.workers.remove(worker)
-                self.hub.updateEventWorkerCount()
-                self.hub.log.info("Worker %s disconnected", worker.workerId)
-
-        worker.notifyOnDisconnect(removeWorker)
-
-
-class ServiceAddedEvent(object):
-    implements(IServiceAddedEvent)
-
-    def __init__(self, name, instance):
-        self.name = name
-        self.instance = instance
-
-
-class HubWillBeCreatedEvent(object):
-    implements(IHubWillBeCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class HubCreatedEvent(object):
-    implements(IHubCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class ParserReadyForOptionsEvent(object):
-    implements(IParserReadyForOptionsEvent)
-
-    def __init__(self, parser):
-        self.parser = parser
-
-
-class HubRealm(object):
-    """
-    Following the Twisted authentication framework.
-    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
-    """
-    implements(portal.IRealm)
-
-    def __init__(self, hub):
-        self.hubAvitar = HubAvitar(hub)
-
-    def requestAvatar(self, collName, mind, *interfaces):
-        if pb.IPerspective not in interfaces:
-            raise NotImplementedError
-        return pb.IPerspective, self.hubAvitar, lambda: None
-
-
-class _ZenHubWorklist(object):
-
-    def __init__(self):
-        self.eventworklist = []
-        self.otherworklist = []
-        self.applyworklist = []
-
-        # priority lists for eventual task selection.
-        # All queues are appended in case any of them are empty.
-        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
-        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
-        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
-        self.dispatch = {
-            'sendEvents': self.eventworklist,
-            'sendEvent': self.eventworklist,
-            'applyDataMaps': self.applyworklist
-        }
-
-    def __getitem__(self, item):
-        return self.dispatch.get(item, self.otherworklist)
-
-    def __len__(self):
-        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
-
-    def pop(self, allowADM=True):
-        """
-        Select a single task to be distributed to a worker.
-        We prioritize tasks as follows:
-            sendEvents > configuration service calls > applyDataMaps
-        To prevent starving any queue in an event storm,
-        we randomize the task selection,
-        preferring tasks according to the above priority.
-
-        allowADM controls whether we should allow popping jobs from the
-        applyDataMaps list, this should be False while models are changing
-        (like during a zenpack install/upgrade/removal)
-        """
-        # the priority lists have eventworklist, otherworklist, and
-        # applyworklist when we don't want to allow ApplyDataMaps,
-        # we should exclude the possibility of popping from applyworklist
-        eventchain = filter(
-            None,
-            self.eventPriorityList if allowADM else self.eventworklist
-        )
-        otherchain = filter(
-            None,
-            self.otherPriorityList if allowADM else self.otherworklist
-        )
-        applychain = filter(
-            None,
-            self.applyPriorityList if allowADM else []
-        )
-
-        # choose a job to pop based on weighted random
-        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
-        chosen_list = choice(choice_list)
-
-        if len(chosen_list) > 0:
-            item = heapq.heappop(chosen_list[0])
-            return item
-        else:
-            return None
-
-    def push(self, job):
-        heapq.heappush(self[job.method], job)
-
-    append = push
-
-    def configure_metrology(self):
-        metricNames = {x[0] for x in registry}
-
-        if 'zenhub.eventWorkList' not in metricNames:
-            Metrology.gauge(
-                'zenhub.eventWorkList', ListLengthGauge(self.eventworklist)
-            )
-
-        if 'zenhub.admWorkList' not in metricNames:
-            Metrology.gauge(
-                'zenhub.admWorkList', ListLengthGauge(self.applyworklist)
-            )
-
-        if 'zenhub.otherWorkList' not in metricNames:
-            Metrology.gauge(
-                'zenhub.otherWorkList', ListLengthGauge(self.otherworklist)
-            )
-
-        if 'zenhub.workList' not in metricNames:
-            Metrology.gauge(
-                'zenhub.workList', ListLengthGauge(self)
-            )
-
-
-class ListLengthGauge(Gauge):
-
-    def __init__(self, _list):
-        self._list = _list
-
-    @property
-    def value(self):
-        return len(self._list)
-
-
-def publisher(username, password, url):
-    return HttpPostPublisher(username, password, url)
-
-
-def redisPublisher():
-    return RedisListPublisher()
-
-
 class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
@@ -1021,6 +731,259 @@ class ZenHub(ZCmdBase):
         notify(ParserReadyForOptionsEvent(self.parser))
 
 
+class HubRealm(object):
+    """
+    Following the Twisted authentication framework.
+    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
+    """
+    implements(portal.IRealm)
+
+    def __init__(self, hub):
+        self.hubAvitar = HubAvitar(hub)
+
+    def requestAvatar(self, collName, mind, *interfaces):
+        if pb.IPerspective not in interfaces:
+            raise NotImplementedError
+        return pb.IPerspective, self.hubAvitar, lambda: None
+
+
+class HubAvitar(pb.Avatar):
+    """
+    Connect collectors to their configuration Services
+    """
+
+    def __init__(self, hub):
+        self.hub = hub
+
+    def perspective_ping(self):
+        return 'pong'
+
+    def perspective_getHubInstanceId(self):
+        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
+
+    def perspective_getService(self,
+                               serviceName,
+                               instance=None,
+                               listener=None,
+                               options=None):
+        """
+        Allow a collector to find a Hub service by name.  It also
+        associates the service with a collector so that changes can be
+        pushed back out to collectors.
+
+        @type serviceName: string
+        @param serviceName: a name, like 'EventService'
+        @type instance: string
+        @param instance: the collector's instance name, like 'localhost'
+        @type listener: a remote reference to the collector
+        @param listener: the callback interface to the collector
+        @return a remote reference to a service
+        """
+        try:
+            service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
+        except Exception:
+            self.hub.log.exception("Failed to get service '%s'", serviceName)
+            return None
+        else:
+            if service is not None and listener:
+                service.addListener(listener, options)
+            return service
+
+    def perspective_reportingForWork(self, worker, workerId):
+        """
+        Allow a worker register for work.
+
+        @type worker: a pb.RemoteReference
+        @param worker: a reference to zenhubworker
+        @return None
+        """
+        worker.busy = False
+        worker.workerId = workerId
+        self.hub.log.info("Worker %s reporting for work", workerId)
+        self.hub.workers.append(worker)
+        self.hub.updateEventWorkerCount()
+
+        def removeWorker(worker):
+            if worker in self.hub.workers:
+                self.hub.workers.remove(worker)
+                self.hub.updateEventWorkerCount()
+                self.hub.log.info("Worker %s disconnected", worker.workerId)
+
+        worker.notifyOnDisconnect(removeWorker)
+
+
+class _ZenHubWorklist(object):
+
+    def __init__(self):
+        self.eventworklist = []
+        self.otherworklist = []
+        self.applyworklist = []
+
+        # priority lists for eventual task selection.
+        # All queues are appended in case any of them are empty.
+        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
+        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
+        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
+        self.dispatch = {
+            'sendEvents': self.eventworklist,
+            'sendEvent': self.eventworklist,
+            'applyDataMaps': self.applyworklist
+        }
+
+    def __getitem__(self, item):
+        return self.dispatch.get(item, self.otherworklist)
+
+    def __len__(self):
+        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
+
+    def pop(self, allowADM=True):
+        """
+        Select a single task to be distributed to a worker.
+        We prioritize tasks as follows:
+            sendEvents > configuration service calls > applyDataMaps
+        To prevent starving any queue in an event storm,
+        we randomize the task selection,
+        preferring tasks according to the above priority.
+
+        allowADM controls whether we should allow popping jobs from the
+        applyDataMaps list, this should be False while models are changing
+        (like during a zenpack install/upgrade/removal)
+        """
+        # the priority lists have eventworklist, otherworklist, and
+        # applyworklist when we don't want to allow ApplyDataMaps,
+        # we should exclude the possibility of popping from applyworklist
+        eventchain = filter(
+            None,
+            self.eventPriorityList if allowADM else self.eventworklist
+        )
+        otherchain = filter(
+            None,
+            self.otherPriorityList if allowADM else self.otherworklist
+        )
+        applychain = filter(
+            None,
+            self.applyPriorityList if allowADM else []
+        )
+
+        # choose a job to pop based on weighted random
+        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
+        chosen_list = choice(choice_list)
+
+        if len(chosen_list) > 0:
+            item = heapq.heappop(chosen_list[0])
+            return item
+        else:
+            return None
+
+    def push(self, job):
+        heapq.heappush(self[job.method], job)
+
+    append = push
+
+    def configure_metrology(self):
+        metricNames = {x[0] for x in registry}
+
+        if 'zenhub.eventWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.eventWorkList', ListLengthGauge(self.eventworklist)
+            )
+
+        if 'zenhub.admWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.admWorkList', ListLengthGauge(self.applyworklist)
+            )
+
+        if 'zenhub.otherWorkList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.otherWorkList', ListLengthGauge(self.otherworklist)
+            )
+
+        if 'zenhub.workList' not in metricNames:
+            Metrology.gauge(
+                'zenhub.workList', ListLengthGauge(self)
+            )
+
+
+class ListLengthGauge(Gauge):
+
+    def __init__(self, _list):
+        self._list = _list
+
+    @property
+    def value(self):
+        return len(self._list)
+
+
+HubWorklistItem = collections.namedtuple(
+    'HubWorklistItem',
+    'priority recvtime deferred servicename instance method args'
+)
+WorkerStats = collections.namedtuple(
+    'WorkerStats',
+    'status description lastupdate previdle'
+)
+LastCallReturnValue = collections.namedtuple(
+    'LastCallReturnValue', 'returnvalue'
+)
+
+
+class AuthXmlRpcService(XmlRpcService):
+    """Provide some level of authentication for XML/RPC calls"""
+
+    def __init__(self, dmd, checker):
+        XmlRpcService.__init__(self, dmd)
+        self.checker = checker
+
+    def doRender(self, unused, request):
+        """
+        Call the inherited render engine after authentication succeeds.
+        See @L{XmlRpcService.XmlRpcService.Render}.
+        """
+        return XmlRpcService.render(self, request)
+
+    def unauthorized(self, request):
+        """
+        Render an XMLRPC error indicating an authentication failure.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: None
+        """
+        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
+
+    def render(self, request):
+        """
+        Unpack the authorization header and check the credentials.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: NOT_DONE_YET
+        """
+        auth = request.getHeader('authorization')
+        if not auth:
+            self.unauthorized(request)
+        else:
+            try:
+                type, encoded = auth.split()
+                if type not in ('Basic',):
+                    self.unauthorized(request)
+                else:
+                    user, passwd = encoded.decode('base64').split(':')
+                    c = credentials.UsernamePassword(user, passwd)
+                    d = self.checker.requestAvatarId(c)
+                    d.addCallback(self.doRender, request)
+
+                    def error(unused, request):
+                        self.unauthorized(request)
+
+                    d.addErrback(error, request)
+            except Exception:
+                self.unauthorized(request)
+        return server.NOT_DONE_YET
+
+
 class MetricManager(object):
 
     def __init__(self, daemon_tags):
@@ -1087,6 +1050,14 @@ class MetricManager(object):
     @staticmethod
     def _internal_metric_filter(metric, value, timestamp, tags):
         return tags and tags.get("internal", False)
+
+
+def publisher(username, password, url):
+    return HttpPostPublisher(username, password, url)
+
+
+def redisPublisher():
+    return RedisListPublisher()
 
 
 # Legacy API:
@@ -1318,6 +1289,35 @@ class DefaultHubHeartBeatCheck(object):
 
     def check(self):
         pass
+
+
+class ServiceAddedEvent(object):
+    implements(IServiceAddedEvent)
+
+    def __init__(self, name, instance):
+        self.name = name
+        self.instance = instance
+
+
+class HubWillBeCreatedEvent(object):
+    implements(IHubWillBeCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class HubCreatedEvent(object):
+    implements(IHubCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class ParserReadyForOptionsEvent(object):
+    implements(IParserReadyForOptionsEvent)
+
+    def __init__(self, parser):
+        self.parser = parser
 
 
 if __name__ == '__main__':
