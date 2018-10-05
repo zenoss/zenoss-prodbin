@@ -13,7 +13,7 @@ if (system.args.length < 5 || system.args.length > 7) {
     username = system.args[2];
     password = system.args[3];
     outputFile = system.args[4];
-    pageFormat = system.args[5] || "Letter";
+    pageFormat = system.args[5] || "A4";
     pageZoomFactor = system.args[6] || 1;
 
     page.settings.localToRemoteUrlAccessEnabled = true;
@@ -26,11 +26,10 @@ if (system.args.length < 5 || system.args.length > 7) {
         console.log('Username and password were not provided');
     }
 
-    page.viewportSize = { width: 850, height: 1100 };
     page.zoomFactor = pageZoomFactor;
     page.paperSize = {
         format: pageFormat,
-        orientation: "landscape",
+        orientation: "portrait",
         margin: "0.25in"
     };
 
@@ -39,10 +38,18 @@ if (system.args.length < 5 || system.args.length > 7) {
             console.log('Unable to load the address!');
             phantom.exit(1);
         } else {
-            window.setTimeout(function () {
-                page.render(outputFile);
-                phantom.exit(0);
-            }, 1000);
+            var el = document.createElement( 'html' );
+            el.innerHTML = page.content;
+            var report = el.querySelector('[id="graph_report"]');
+            if (report) {
+                page.viewportSize = { width: 1000, height: parseInt(report.style.height)+110 };
+            }
+            page.open(address, function (status) {
+                window.setTimeout(function () {
+                   page.render(outputFile);
+                   phantom.exit(0);
+                }, 10000);
+            });
         }
     });
 }
