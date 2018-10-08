@@ -152,16 +152,25 @@ Ext.define("Zenoss.CommandWindow", {
         var tempText = document.createElement("textarea");
         tempText.value = body;
         document.body.appendChild(tempText);
-        tempText.focus();
-        tempText.select();
-        try {
-            if (document.execCommand('copy')) {
-               Zenoss.flares.Manager.success('Copied command output to clipboard');
+
+        function afterTextareaAppending() {
+            tempText.focus();
+            tempText.select();
+            try {
+                if (document.execCommand('copy')) {
+                    Zenoss.flares.Manager.success('Copied command output to clipboard');
+                }
+            } catch (err) {
+                console.error("Failed to copy command output to clipboard", err);
+            } finally {
+                document.body.removeChild(tempText);
             }
-        } catch(err) {
-            console.error("Failed to copy command output to clipboard", err);
-        } finally {
-            document.body.removeChild(tempText);
+        }
+
+        if (Ext.isChrome) {
+            setTimeout(afterTextareaAppending);
+        } else {
+            afterTextareaAppending();
         }
     },
     closeAndRedirect: function() {
