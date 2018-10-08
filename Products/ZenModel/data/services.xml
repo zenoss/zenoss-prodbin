@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2018-08-28 14:06:45.602204
+    Zenoss RelationshipManager export completed on 2018-09-24 13:11:47.378582
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 6.3.0]" export_date="2018-08-28 14:06:45.602204" zenoss_server="73bcbcce82af" >
+<objects version="[Zenoss, version 6.3.0]" export_date="2018-09-24 13:11:47.378582" zenoss_server="c192cd155798" >
 <object id='/zport/dmd/Services' module='Products.ZenModel.ServiceOrganizer' class='ServiceOrganizer' move='False'>
 <property visible="True" type="boolean" id="zMonitor" >
 False
