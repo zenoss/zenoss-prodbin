@@ -39,9 +39,8 @@ from metrology.instruments import Gauge
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
 banana.SIZE_LIMIT = 1024 * 1024 * 10
-from twisted.internet import reactor, protocol, defer, task
+from twisted.internet import reactor, defer, task
 from twisted.web import server, xmlrpc
-from twisted.internet.error import ProcessExitedAlready
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from zope.component import subscribers, getUtility, getUtilitiesFor, adapts
@@ -55,7 +54,7 @@ from zenoss.protocols.protobufs.zep_pb2 import (
 )
 
 from Products.ZenUtils.Utils import (
-    zenPath, getExitMessage, unused, load_config, load_config_override,
+    zenPath, unused, load_config, load_config_override,
     ipv6_available, wait
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
@@ -209,9 +208,10 @@ class ZenHub(ZCmdBase):
         self.counters['total_time'] = 0.0
         self.counters['total_events'] = 0
         self._invalidations_paused = False
+        self.services = {}
 
         ZCmdBase.__init__(self)
-        #import Products.ZenHub
+
         load_config("hub.zcml", zenhub_module)
         notify(HubWillBeCreatedEvent(self))
 
@@ -225,21 +225,8 @@ class ZenHub(ZCmdBase):
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
-        self.services = {}
 
-        er = HubRealm(self)
-        checker = self.loadChecker()
-        pt = portal.Portal(er, [checker])
-        interface = '::' if ipv6_available() else ''
-        pbport = reactor.listenTCP(
-            self.options.pbport, pb.PBServerFactory(pt), interface=interface
-        )
-        self.setKeepAlive(pbport.socket)
-
-        xmlsvc = AuthXmlRpcService(self.dmd, checker)
-        reactor.listenTCP(
-            self.options.xmlrpcport, server.Site(xmlsvc), interface=interface
-        )
+        self._setup_pb_daemon()
 
         # responsible for sending messages to the queues
         load_config_override('twistedpublisher.zcml', queuemessaging_module)
@@ -289,6 +276,21 @@ class ZenHub(ZCmdBase):
         # ZEN-26671 Wait at least this duration in secs
         # before signaling a worker process
         self.SIGUSR_TIMEOUT = 5
+
+    def _setup_pb_daemon(self):
+        er = HubRealm(self)
+        checker = self.loadChecker()
+        pt = portal.Portal(er, [checker])
+        interface = '::' if ipv6_available() else ''
+        pbport = reactor.listenTCP(
+            self.options.pbport, pb.PBServerFactory(pt), interface=interface
+        )
+        self.setKeepAlive(pbport.socket)
+
+        xmlsvc = AuthXmlRpcService(self.dmd, checker)
+        reactor.listenTCP(
+            self.options.xmlrpcport, server.Site(xmlsvc), interface=interface
+        )
 
     def setKeepAlive(self, sock):
         import socket

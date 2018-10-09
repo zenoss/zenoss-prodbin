@@ -57,14 +57,7 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.signal'.format(**PATH), autospec=True)
     @patch('{src}.App_Start'.format(**PATH), autospec=True)
     @patch('{src}.HubCreatedEvent'.format(**PATH), autospec=True)
-    @patch('{src}.pb'.format(**PATH), autospec=True)
     @patch('{src}.zenPath'.format(**PATH), autospec=True)
-    @patch('{src}.server'.format(**PATH), autospec=True)
-    @patch('{src}.AuthXmlRpcService'.format(**PATH), autospec=True)
-    @patch('{src}.reactor'.format(**PATH), autospec=True)
-    @patch('{src}.ipv6_available'.format(**PATH), autospec=True)
-    @patch('{src}.portal'.format(**PATH), autospec=True)
-    @patch('{src}.HubRealm'.format(**PATH), autospec=True)
     @patch('{src}.loadPlugins'.format(**PATH), autospec=True)
     @patch('{src}.WorkerSelector'.format(**PATH), autospec=True)
     @patch('{src}.ContinuousProfiler'.format(**PATH), autospec=True)
@@ -83,14 +76,7 @@ class ZenHubInitTest(TestCase):
         ContinuousProfiler,
         WorkerSelector,
         loadPlugins,
-        HubRealm,
-        portal,
-        ipv6_available,
-        reactor,
-        AuthXmlRpcService,
-        server,
         zenPath,
-        pb,
         HubCreatedEvent,
         App_Start,
         signal,
@@ -112,6 +98,7 @@ class ZenHubInitTest(TestCase):
             patch.object(ZenHub, '_getConf', autospec=True),
             patch.object(ZenHub, 'setKeepAlive', autospec=True),
             patch.object(ZenHub, 'sendEvent', autospec=True),
+            patch.object(ZenHub, '_setup_pb_daemon', autospec=True),
         ]
 
         for patcher in t.zenhub_patchers:
@@ -120,7 +107,6 @@ class ZenHubInitTest(TestCase):
 
         ZenHub.options.invalidation_poll_interval = 100
         ZenHub._getConf.return_value.id = 'config_id'
-        ipv6_available.return_value = False
 
         zh = ZenHub()
 
@@ -145,29 +131,8 @@ class ZenHubInitTest(TestCase):
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
         loadPlugins.assert_called_with(zh.dmd)
         # PB, and XMLRPC communication config.
-        # TODO: move this into its own manager class
-        HubRealm.assert_called_with(zh)
-        zh.setKeepAlive.assert_called_with(
-            zh, reactor.listenTCP.return_value.socket
-        )
+        zh._setup_pb_daemon.assert_called_with(zh)
 
-        pb.PBServerFactory.assert_called_with(portal.Portal.return_value)
-        AuthXmlRpcService.assert_called_with(
-            zh.dmd, zh.loadChecker.return_value
-        )
-        server.Site.assert_called_with(AuthXmlRpcService.return_value)
-        reactor.listenTCP.assert_has_calls([
-            call(
-                zh.options.pbport,
-                pb.PBServerFactory.return_value,
-                interface=''
-            ),
-            call(
-                zh.options.xmlrpcport,
-                server.Site.return_value,
-                interface=''
-            )
-        ])
         # Messageing config, including work and invalidations
         # Patched internal import of Products.ZenMessaging.queuemessaging
         load_config_override.assert_called_with(
@@ -247,15 +212,49 @@ class ZenHubTest(TestCase):
             name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
         )
         t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        '''t.zh._invalidations_manager = InvalidationsManager(
-            t.zh.dmd,
-            t.zh.async_syncdb,
-            t.zh.storage.poll_invalidations,
-            t.zh.log,
-        )'''
         t.zh._invalidations_manager = Mock(
             InvalidationsManager, name='InvalidationsManager'
         )
+
+    @patch('{src}.ipv6_available'.format(**PATH), autospec=True)
+    @patch('{src}.AuthXmlRpcService'.format(**PATH), autospec=True)
+    @patch('{src}.server'.format(**PATH), autospec=True)
+    @patch('{src}.portal'.format(**PATH), autospec=True)
+    @patch('{src}.pb'.format(**PATH), autospec=True)
+    @patch('{src}.HubRealm'.format(**PATH), autospec=True)
+    def test__setup_pb_daemon(
+        t, HubRealm, pb, portal, server, AuthXmlRpcService, ipv6_available
+    ):
+        t.zh.options = sentinel.options
+        t.zh.options.pbport = sentinel.pbport
+        t.zh.options.xmlrpcport = sentinel.xmlrpcport
+        t.zh.loadChecker = create_autospec(t.zh.loadChecker)
+        t.zh.setKeepAlive = create_autospec(t.zh.setKeepAlive)
+        ipv6_available.return_value = False
+
+        t.zh._setup_pb_daemon()
+
+        HubRealm.assert_called_with(t.zh)
+        t.zh.setKeepAlive.assert_called_with(
+            t.reactor.listenTCP.return_value.socket
+        )
+        pb.PBServerFactory.assert_called_with(portal.Portal.return_value)
+        AuthXmlRpcService.assert_called_with(
+            t.zh.dmd, t.zh.loadChecker.return_value
+        )
+        server.Site.assert_called_with(AuthXmlRpcService.return_value)
+        t.reactor.listenTCP.assert_has_calls([
+            call(
+                t.zh.options.pbport,
+                pb.PBServerFactory.return_value,
+                interface=''
+            ),
+            call(
+                t.zh.options.xmlrpcport,
+                server.Site.return_value,
+                interface=''
+            )
+        ])
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
