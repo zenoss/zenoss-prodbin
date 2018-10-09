@@ -15,7 +15,7 @@ from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import unused, zenPath
+from Products.ZenUtils.Utils import unused, zenPath, atomicWrite
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
@@ -177,10 +177,23 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             'reportingForWork', self, workerId=self.options.workerid
         )
 
+        filename = 'zenhub_connected'
+        signalFilePath = zenPath('var', filename)
+
+        def reportSuccess(args):
+            self.log.debug('Writing file at %s', signalFilePath)
+            atomicWrite(signalFilePath, '')
+
         def reportProblem(why):
             self.log.error("Unable to report for work: %s", why)
+            self.log.debug('Removing file at %s', signalFilePath)
+            try:
+                os.remove(signalFilePath)
+            except Exception:
+                pass
             reactor.stop()
 
+        d.addCallback(reportSuccess)
         d.addErrback(reportProblem)
 
     def _getService(self, name, instance):
