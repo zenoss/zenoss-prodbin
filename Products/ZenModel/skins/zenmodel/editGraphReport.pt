@@ -179,18 +179,25 @@
     <tr>
         <td class="tableheader" width="100" >Device</td>
         <td class="tablevalues">
-            <input type="text" name="deviceFilter"
-                 id="deviceFilter" size="20" />
-            <input class="tableheader" type="button" value="Filter"
-                id="filterButton" name="filter" />
-            <br />
-            <select name="deviceIds:list" 
-                id="deviceIds" size="8"
-                class="wide-select"
-                onChange="getComponentList(); getThirdList()" multiple="1">
-            </select>
-            <br />
-            <input type="checkbox" id="component_path" onclick="javascript:componentpath(this.checked);" />Show component path<br/>
+            <div class="tablevalues-input-row">
+                <input type="text" name="deviceFilter"
+                       id="deviceFilter" size="20"/>
+
+                <input class="tableheader" type="button" value="Filter"
+                       id="filterButton" name="filter"/>
+            </div>
+
+            <div class="tablevalues-input-row">
+                <select name="deviceIds:list"
+                        id="deviceIds" size="8"
+                        class="wide-select"
+                        onChange="getComponentList(); getThirdList()" multiple="1">
+                </select>
+            </div>
+
+            <div class="tablevalues-input-row">
+                <input type="checkbox" id="component_path" onclick="javascript:componentpath(this.checked);" /> Show component path
+            </div>
         </td>
 	
     </tr>
