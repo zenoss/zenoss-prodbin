@@ -47941,7 +47941,7 @@
             },
             "running": {
                 "Interval": 5.0,
-                "Script": "pgrep -fu zenoss zenhubworker.py /dev/null",
+                "Script": "pgrep -fu zenoss zenhubworker.py > /dev/null",
                 "Timeout": 0
             },
             "solr_answering": {
