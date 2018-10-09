@@ -30,6 +30,7 @@ import subprocess
 import itertools
 from random import choice
 import sys
+import logging
 
 # 3rd party
 from metrology import Metrology
@@ -141,6 +142,8 @@ try:
 except Exception:
     NICE_PATH = None
 
+log = logging.getLogger('zen.ZenHub')
+
 
 class ZenHub(ZCmdBase):
     """
@@ -201,8 +204,8 @@ class ZenHub(ZCmdBase):
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        self.workList = _ZenHubWorklist()
-        self.workList.configure_metrology()
+        self._worker_manager = WorkerManager(self.getService)
+        self.workList = self._worker_manager.work_list
         self.shutdown = False
         self.counters = collections.Counter()
         self.counters['total_time'] = 0.0
@@ -210,7 +213,7 @@ class ZenHub(ZCmdBase):
         self._invalidations_paused = False
         self.services = {}
 
-        ZCmdBase.__init__(self)
+        super(ZenHub, self).__init__()
 
         load_config("hub.zcml", zenhub_module)
         notify(HubWillBeCreatedEvent(self))
@@ -312,6 +315,28 @@ class ZenHub(ZCmdBase):
             self.profiler.dump_stats()
 
         super(ZenHub, self).sighandler_USR1(signum, frame)
+
+    def main(self):
+        """
+        Start the main event loop.
+        """
+        if self.options.cycle:
+            self.heartbeat_task = task.LoopingCall(self.heartbeat)
+            self.heartbeat_task.start(30)
+            self.log.debug("Creating async MetricReporter")
+            self._metric_manager.start()
+            reactor.addSystemEventTrigger(
+                'before', 'shutdown', self._metric_manager.stop
+            )
+            # preserve legacy API
+            self.metricreporter = self._metric_manager.metricreporter
+
+        reactor.run()
+
+        self.shutdown = True
+        getUtility(IEventPublisher).close()
+        if self.options.profiling:
+            self.profiler.stop()
 
     def stop(self):
         self.shutdown = True
@@ -456,18 +481,9 @@ class ZenHub(ZCmdBase):
             method in the worker
         @return: a Deferred for the eventual results of the method call
         """
-        d = defer.Deferred()
-        service = self.getService(svcName, instance).service
-        priority = service.getMethodPriority(method)
-
-        self.workList.append(
-            HubWorklistItem(
-                priority, time.time(), d, svcName, instance, method,
-                (svcName, instance, method, args)
-            ))
-
-        reactor.callLater(0, self.giveWorkToWorkers)
-        return d
+        return self._worker_manager.defer_to_worker(
+            svcName, instance, method, args
+        )
 
     def updateStatusAtStart(self, wId, job):
         now = time.time()
@@ -662,28 +678,6 @@ class ZenHub(ZCmdBase):
         except Exception:
             self.log.exception("Error processing heartbeat hook")
 
-    def main(self):
-        """
-        Start the main event loop.
-        """
-        if self.options.cycle:
-            self.heartbeat_task = task.LoopingCall(self.heartbeat)
-            self.heartbeat_task.start(30)
-            self.log.debug("Creating async MetricReporter")
-            self._metric_manager.start()
-            reactor.addSystemEventTrigger(
-                'before', 'shutdown', self._metric_manager.stop
-            )
-            # preserve legacy API
-            self.metricreporter = self._metric_manager.metricreporter
-
-        reactor.run()
-
-        self.shutdown = True
-        getUtility(IEventPublisher).close()
-        if self.options.profiling:
-            self.profiler.stop()
-
     def buildOptions(self):
         """
         Adds our command line options to ZCmdBase command line options.
@@ -816,6 +810,114 @@ class HubAvitar(pb.Avatar):
                 self.hub.log.info("Worker %s disconnected", worker.workerId)
 
         worker.notifyOnDisconnect(removeWorker)
+
+
+class WorkerManager(object):
+
+    def __init__(self, get_service):
+        self.work_list = _ZenHubWorklist()
+        self.work_list.configure_metrology()
+
+        self._get_service = get_service
+
+    def defer_to_worker(self, svcName, instance, method, args):
+        """Take a remote request and queue it for worker processes.
+
+        @type svcName: string
+        @param svcName: the name of the hub service to call
+        @type instance: string
+        @param instance: the name of the hub service instance to call
+        @type method: string
+        @param method: the name of the method on the hub service to call
+        @type args: tuple
+        @param args: the remaining arguments to the remote_execute()
+            method in the worker
+        @return: a Deferred for the eventual results of the method call
+        """
+        d = defer.Deferred()
+        service = self._get_service(svcName, instance).service
+        priority = service.getMethodPriority(method)
+
+        self.work_list.append(
+            HubWorklistItem(
+                priority, time.time(), d, svcName, instance, method,
+                (svcName, instance, method, args)
+            ))
+
+        reactor.callLater(0, self.giveWorkToWorkers)
+        return d
+
+    @inlineCallbacks
+    def giveWorkToWorkers(self, requeue=False):
+        """Parcel out a method invocation to an available worker process
+        """
+        print('start giveWorkToWorkers')
+        if self.work_list:
+            print("work_list has %d items" % len(self.work_list))
+            log.debug("work_list has %d items", len(self.work_list))
+        incompleteJobs = []
+        while self.work_list:
+            if all(w.busy for w in self.workers):
+                print("all workers are busy")
+                log.debug("all workers are busy")
+                yield wait(0.1)
+                break
+
+            allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
+            job = self.work_list.pop(allowADM)
+            if job is None:
+                print('job is None')
+                log.info("Got None from the job work_list.  ApplyDataMaps"
+                              " may be paused for zenpack"
+                              " install/upgrade/removal.")
+                yield wait(0.1)
+                break
+
+            candidateWorkers = [
+                x for x in
+                self.workerselector.getCandidateWorkerIds(
+                    job.method, self.workers
+                )
+            ]
+            print(candidateWorkers)
+            for i in candidateWorkers:
+                worker = self.workers[i]
+                print('worker=%s' % worker)
+                worker.busy = True
+                self.counters['workerItems'] += 1
+                print('self.updateStatusAtStart')
+                self.updateStatusAtStart(i, job)
+                print('finished self.updateStatusAtStart')
+                try:
+                    print('worker.callRemote')
+                    result = yield worker.callRemote('execute', *job.args)
+                    print('finished worker.callRemote')
+                except Exception as ex:
+                    print(ex)
+                    log.warning("Failed to execute job on zenhub worker")
+                    result = ex
+                finally:
+                    yield self.finished(job, result, worker, i)
+                break
+            else:
+                # could not complete this job, put it back in the queue once
+                # we're finished saturating the workers
+                incompleteJobs.append(job)
+
+        for job in reversed(incompleteJobs):
+            # could not complete this job, put it back in the queue
+            self.work_list.push(job)
+
+        if incompleteJobs:
+            log.debug("No workers available for %d jobs.",
+                           len(incompleteJobs))
+            reactor.callLater(0.1, self.giveWorkToWorkers)
+
+        if requeue and not self.shutdown:
+            reactor.callLater(5, self.giveWorkToWorkers, True)
+
+    def updateStatusAtStart(self, i, job):
+        pass
 
 
 class _ZenHubWorklist(object):

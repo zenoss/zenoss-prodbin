@@ -39,6 +39,7 @@ from Products.ZenHub.zenhub import (
     ListLengthGauge,
     InvalidationsManager,
     SEVERITY_CLEAR, INVALIDATIONS_PAUSED,
+    WorkerManager,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -112,7 +113,9 @@ class ZenHubInitTest(TestCase):
 
         t.assertIsInstance(zh, ZenHub)
         t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
-        # Skip Metrology validation for now due to complexity
+        _ZenHubWorklist.return_value.configure_metrology.assert_called_with()
+
+        # Run parent class __init__
         ZCmdBase___init__.assert_called_with(zh)
         load_config.assert_called_with("hub.zcml", zenhub_module)
         HubWillBeCreatedEvent.assert_called_with(zh)
@@ -312,6 +315,39 @@ class ZenHubTest(TestCase):
             signum, frame
         )
 
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
+    def test_main(t, LoopingCall, os, MetricManager, getUtility):
+        '''Daemon Entry Point
+        Execution waits at reactor.run() until the reactor stops
+        '''
+        t.zh.options = sentinel.options
+        t.zh.options.monitor = 'localhost'
+        t.zh.options.cycle = True
+        t.zh.options.profiling = True
+        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
+        t.zh._metric_manager = MetricManager.return_value
+
+        t.zh.main()
+
+        # start heartbeat LoopingCall
+        LoopingCall.assert_any_call(t.zh.heartbeat)
+        t.zh.heartbeat_task.start.assert_any_call(30)
+        # starts its metricreporter
+        t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
+        t.zh._metric_manager.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhub exits
+        t.reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', t.zh._metric_manager.stop
+        )
+        # After the reactor stops:
+        t.zh.profiler.stop.assert_called_with()
+        # Closes IEventPublisher, which breaks old integration tests
+        getUtility.assert_called_with(IEventPublisher)
+        getUtility.return_value.close.assert_called_with()
+
     def test_stop(t):
         t.assertFalse(t.zh.shutdown)
         t.zh.stop()
@@ -508,6 +544,8 @@ class ZenHubTest(TestCase):
         t.zh.workList = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
         args = (sentinel.arg0, sentinel.arg1)
 
+        t.zh._worker_manager = WorkerManager(t.zh.getService)
+
         ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
 
         HubWorklistItem.assert_called_with(
@@ -517,7 +555,7 @@ class ZenHubTest(TestCase):
             'svcName', 'instance', 'method',
             ('svcName', 'instance', 'method', args),
         )
-        t.reactor.callLater.assert_called_with(0, t.zh.giveWorkToWorkers)
+        t.reactor.callLater.assert_called_with(0, t.zh._worker_manager.giveWorkToWorkers)
         t.assertEqual(ret, defer.Deferred.return_value)
 
     @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
@@ -704,39 +742,6 @@ class ZenHubTest(TestCase):
             call('workListLength', len(t.zh.workList)),
         ])
 
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
-    def test_main(t, LoopingCall, os, MetricManager, getUtility):
-        '''Daemon Entry Point
-        Execution waits at reactor.run() until the reactor stops
-        '''
-        t.zh.options = sentinel.options
-        t.zh.options.monitor = 'localhost'
-        t.zh.options.cycle = True
-        t.zh.options.profiling = True
-        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
-        t.zh._metric_manager = MetricManager.return_value
-
-        t.zh.main()
-
-        # start heartbeat LoopingCall
-        LoopingCall.assert_any_call(t.zh.heartbeat)
-        t.zh.heartbeat_task.start.assert_any_call(30)
-        # starts its metricreporter
-        t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
-        t.zh._metric_manager.start.assert_called_with()
-        # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh._metric_manager.stop
-        )
-        # After the reactor stops:
-        t.zh.profiler.stop.assert_called_with()
-        # Closes IEventPublisher, which breaks old integration tests
-        getUtility.assert_called_with(IEventPublisher)
-        getUtility.return_value.close.assert_called_with()
-
     @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
     @patch('{src}.zenPath'.format(**PATH))
@@ -834,6 +839,75 @@ class HubAvitarTest(TestCase):
 
         removeWorker(worker)
         t.assertNotIn(worker, t.hub.workers)
+
+
+class WorkerManagerTest(TestCase):
+
+    def setUp(t):
+        t.getService = create_autospec(ZenHub.getService)
+        t.wm = WorkerManager(t.getService)
+
+    def test___init__(t):
+        t.assertEqual(t.wm._get_service, t.getService)
+
+    @patch('{src}.reactor'.format(**PATH), autospec=True)
+    @patch('{src}.time'.format(**PATH), autospec=True)
+    @patch('{src}.defer'.format(**PATH), autospec=True)
+    @patch('{src}.HubWorklistItem'.format(**PATH), autospec=True)
+    def test_defer_to_worker(t, HubWorklistItem, defer, time, reactor):
+        '''should be refactored to use inlineCallbacks
+        '''
+        getService = Mock(ZenHub.getService, name='getService')
+        t.wm = WorkerManager(getService)
+
+        service = getService.return_value.service
+        t.wm.work_list = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
+        args = (sentinel.arg0, sentinel.arg1)
+
+        ret = t.wm.defer_to_worker('svcName', 'instance', 'method', args)
+
+        HubWorklistItem.assert_called_with(
+            service.getMethodPriority.return_value,
+            time.time.return_value,
+            defer.Deferred.return_value,
+            'svcName', 'instance', 'method',
+            ('svcName', 'instance', 'method', args),
+        )
+        reactor.callLater.assert_called_with(0, t.wm.giveWorkToWorkers)
+        t.assertEqual(ret, defer.Deferred.return_value)
+
+    def test_giveWorkToWorkers(t):
+        t.wm.dmd = Mock(name='dmd', spec_set=['getPauseADMLife'])
+        t.wm.dmd.getPauseADMLife.return_value = 1
+        t.wm.options = Mock(
+            name='options', spec_set=['modeling_pause_timeout']
+        )
+        t.wm.options.modeling_pause_timeout = 0
+        job = Mock(name='job', spec_set=['method', 'args'])
+        job.args = [sentinel.arg0, sentinel.arg1]
+        t.wm.work_list.append(job)
+        worker = Mock(
+            name='worker', spec_set=['busy', 'callRemote'], busy=False
+        )
+        worker.callRemote.return_value = sentinel.result
+        t.wm.workers = [worker]
+        t.wm.workerselector = Mock(
+            name='WorkerSelector', spec_set=['getCandidateWorkerIds']
+        )
+        t.wm.workerselector.getCandidateWorkerIds.return_value = [0]
+        t.wm.counters = {'workerItems': 0}
+        t.wm.updateStatusAtStart = create_autospec(t.wm.updateStatusAtStart)
+        t.wm.finished = Mock() #create_autospec(t.wm.finished)
+
+        t.wm.giveWorkToWorkers()
+
+        t.wm.workerselector.getCandidateWorkerIds.assert_called_with(
+            job.method, [worker]
+        )
+        worker.callRemote.assert_called_with('execute', *job.args)
+        t.wm.finished.assert_called_with(
+            job, worker.callRemote.return_value, worker, 0
+        )
 
 
 class _ZenHubWorklistTest(TestCase):
