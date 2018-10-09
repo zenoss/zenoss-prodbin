@@ -107,7 +107,8 @@
                         if (value) {
                             return Ext.String.format("{0} {1}", value, _t('seconds'));
                         }
-                        return "--";
+                        // Return the default zero value for initial field state
+                        return "0";
                     }
                 }, {
                     dataIndex: 'logfile',

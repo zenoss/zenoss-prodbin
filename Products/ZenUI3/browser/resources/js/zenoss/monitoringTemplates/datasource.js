@@ -50,13 +50,6 @@ Ext.define("Zenoss.GraphStore", {
     }
 });
 
-
-/**********************************************************************
- *
- * Add Data Source
- *
- */
-
 /**
  * @class Zenoss.templates.DataSourceTypeModel
  * @extends Ext.data.Model
@@ -69,7 +62,6 @@ Ext.define('Zenoss.templates.DataSourceTypeModel',  {
         {name: 'type'}
     ]
 });
-
 
 /**
  * @class Zenoss.templates.DataSourceModel

@@ -1115,4 +1115,12 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    Ext.isEdge = (function () {
+        return /edge/.test(Ext.userAgent);
+    })();
+
+    Ext.isChrome = !Ext.isEdge && (function () {
+        return /\bchrome\b/.test(Ext.userAgent);
+    })();
+
 }());
