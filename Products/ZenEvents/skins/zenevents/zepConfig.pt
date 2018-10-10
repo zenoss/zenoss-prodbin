@@ -11,7 +11,7 @@
     }
   </style>
 <link rel="stylesheet" type="text/css"
-            href="/++resource++zenui/css/xtheme-zenoss.css" />  
+            href="/++resource++zenui/css/xtheme-zenoss.css" />
   </tal:block>
 
   <tal:block metal:fill-slot="breadCrumbPane">
@@ -31,6 +31,42 @@
         <div id="propList"></div>
         <div id="saveButton" style="height:1px"></div>
         <div id="clearHeartbeat"></div>
+        <script tal:condition="here/isManager">
+            Ext.onReady(function () {
+                new Ext.Panel({
+                    renderTo: 'clearHeartbeat',
+                    layout: 'anchor',
+                    layoutConfig: {
+                    align: 'left'
+                    },
+                    width: 500,
+                    padding: 10,
+                    border: false,
+                    items: [{
+                        xtype: 'label',
+                        html: '<label id="event_age_disable_severity-labelEl" class="x-form-item-label x-form-item-label-top"' +
+                        ' style="margin-bottom:5px;font-size: 13px; color: #5a5a5a" for="ext-gen1129">Clear Event Heartbeats:</label>'
+                    },{
+                        xtype: 'tbspacer',
+                        width: 100
+                    },{
+                        xtype: 'FlexButton',
+                        text: _t('Clear'),
+                        handler: function() {
+                            router.clear_heartbeats({}, function(response) {
+                                if (response.success) {
+                                    Zenoss.message.success(_t('Heartbeat events succesfully deleted.'));
+                                }
+                                else {
+                                    Zenoss.message.error(_t('Error deleting heartbeat events.'));
+                                }
+                            });
+                        }
+                    }
+                    ]
+                });
+            });
+        </script>
       </tal:block>
     </tal:block>
   </tal:block>

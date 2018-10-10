@@ -1,0 +1,30 @@
+<!--
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+-->
+
+
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="title">Network Discovery</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+    <script>
+        Ext.ns('Zenoss.quickstart.Wizard.pageOptions');
+        Zenoss.quickstart.Wizard.pageOptions.title = 'Network Discovery';
+        Zenoss.quickstart.Wizard.pageOptions.componentType = 'wizardautodiscoveryview';
+    </script>
+
+    <script
+        tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/quickstart/app.js')"
+    >
+    </script>
+</tal:block>
+
+</tal:block>

@@ -132,6 +132,11 @@ Ext.define("Zenoss.IFramePanel", {
             iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
             cseClasses = [];
 
+        // add custom style to iframe <html> if it's defined;
+        if (this.iframeCustomCss) {
+            cseClasses.push(this.iframeCustomCss);
+        }
+
         Ext.each(html.classList, function(key, item) {
             if (typeof key === 'string' && key.startsWith('z-cse')) {
                 cseClasses.push(key);
@@ -165,7 +170,8 @@ Ext.define("Zenoss.BackCompatPanel", {
     contextUid: null,
     constructor: function(config) {
         Ext.apply(config || {}, {
-            testEarlyReadiness: true
+            testEarlyReadiness: true,
+            iframeCustomCss: 'z-cse-reports'
         });
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         this.addEvents('frameloadfinished');

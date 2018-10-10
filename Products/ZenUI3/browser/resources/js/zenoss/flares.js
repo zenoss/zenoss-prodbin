@@ -173,6 +173,19 @@
             args = Array.prototype.slice.call(args, 1);
             // in case if message has some encoded html returned from server;
             message = Ext.htmlDecode(message);
+            // append string into div element and add missing /cz/ into <a> href attr;
+            var div = Ext.get(document.createElement('div')),
+                a;
+            div.setHTML(message);
+            a = div.query('a');
+            if (a.length) {
+                Ext.Array.each(a, function (item, idx, count) {
+                    var link = Ext.get(item);
+                    link.set({'href': Zenoss.render.link(false, link.getAttribute('href'))});
+                }, this);
+            }
+            message = div.getHTML();
+
             var flare = new Zenoss.flares.Flare(message, args, {
                 iconCls: type,
                 animateTarget: Zenoss.flares.Manager.container.el

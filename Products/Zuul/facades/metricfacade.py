@@ -240,8 +240,10 @@ class MetricFacade(ZuulFacade):
             auth_token = context.REQUEST.cookies.get(Z_AUTH_TOKEN, None)
             if not auth_token:
                 credentials_dict = authorization.extractCredentials(context.REQUEST)
-                credentials = (credentials_dict['login'],
-                               credentials_dict['password'])
+                login = credentials_dict.get('login', None) or credentials_dict.get('auth0_userid', None)
+                passwd = credentials_dict.get('password', None) or credentials_dict.get('auth0_userid', None)
+                credentials = (login,
+                               passwd)
         else:
             credentials = None
 

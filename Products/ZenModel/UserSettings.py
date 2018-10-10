@@ -726,6 +726,7 @@ class UserSettings(ZenModelRM):
                 thisUser.has_role(MANAGER_ROLE)):
             return True
 
+
         return False
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_resetPassword')

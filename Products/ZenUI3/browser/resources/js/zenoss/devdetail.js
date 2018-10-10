@@ -466,7 +466,8 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 
 // find out how many columns the graph panel should be based on
 // on the width of the detail panel
-var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 277;
+var center_panel = Ext.getCmp('center_panel');
+var center_panel_width = center_panel.getEl().getWidth() - 277;
 var extra_column_threshold = 1000;
 var userColumns = Zenoss.settings.graphColumns;
 
@@ -744,7 +745,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
 });
 
 
-Ext.getCmp('center_panel').add({
+center_panel.add({
     id: 'center_panel_container',
     layout: 'border',
     tbar: {
@@ -798,7 +799,7 @@ Ext.getCmp('center_panel').add({
                 id: 'deviceDetailNav'
             },{
                 xtype: 'montemplatetreepanel',
-                id: 'templateTree',
+                itemId: 'templateTree',
                 ui: 'hierarchy',
                 detailPanelId: 'detail_card_panel'
             }]
@@ -813,7 +814,7 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
-Ext.getCmp('templateTree').setContext(UID);
+Zenoss.getCmp('templateTree', center_panel).setContext(UID);
 
 
 
@@ -937,10 +938,14 @@ function addComponentHandler(item) {
     });
 }
 
-function modelDevice() {
+function modelDevice(debugging) {
+    var target = 'run_model';
+    if (debugging == true) {
+        target = 'run_model_debug';
+    }
     var win = new Zenoss.CommandWindow({
         uids: [UID],
-        target: 'run_model',
+        target: target,
         listeners: {
             close: function(){
                 Ext.defer(function() {
@@ -952,6 +957,11 @@ function modelDevice() {
     });
     win.show();
 }
+
+function modelDeviceDebug() {
+        modelDevice(true);
+}
+
 
 function resumeCollection() {
     Zenoss.remote.DeviceRouter.resumeCollection(UID, function(data) {
@@ -1212,13 +1222,29 @@ Ext.getCmp('footer_bar').add([{
     },
     menu: {}
 },'-', {
-
-    xtype: 'button',
-    text: _t('Model Device'),
-    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-    handler: modelDevice
-
-}]);
+        xtype: 'ContextConfigureMenu',
+        id: 'testing_configure_menu',
+        text: _t('Modeling'),
+        iconCls: '',
+        listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    },
+    menuItems: [
+        {
+            xtype: 'menuitem',
+            text: _t('Model Device'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDevice
+        }, {
+            xtype: 'menuitem',
+            text: _t('Model Device (Debug)'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDeviceDebug
+        }
+    ]}
+]);
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');

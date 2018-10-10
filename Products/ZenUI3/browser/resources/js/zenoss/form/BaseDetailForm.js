@@ -50,12 +50,14 @@ ZF.createDirectSubmitFunction = function(router) {
         });
 
         // define a callback to run after server responds
-        var callback = function() {
-            form.clearInvalid();
-            form.setValues(dirtyFieldValues); // isDirty() will return false now
-            form.afterAction(directSubmitAction, true);
-            form.reset();
-            Zenoss.message.info(_t("Details updated successfully"));
+        var callback = function(result) {
+            if (result && result.success) {
+                form.clearInvalid();
+                form.setValues(dirtyFieldValues); // isDirty() will return false now
+                form.afterAction(directSubmitAction, true);
+                form.reset();
+                Zenoss.message.info(_t("Details updated successfully"));
+            }
         };
 
         // the remote call

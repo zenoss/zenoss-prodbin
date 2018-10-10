@@ -20,10 +20,12 @@ from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.PASUtils import activatePluginForInterfaces, movePluginToTop
 from zope.component import getUtility
 from Products.ZenUtils.virtual_root import IVirtualRoot
+import memcache
 
 import base64
 import jwt
 import logging
+import re
 import time
 
 log = logging.getLogger('Auth0')
@@ -32,6 +34,9 @@ TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
 PLUGIN_VERSION = 3
+MEMCACHED_IMPORT = ('localhost', '11211')
+
+rbac_pattern = re.compile("^(internal:)?(CZ[0-9]+):(.+)")
 
 _AUTH0_CONFIG = {
     'audience': None,
@@ -70,9 +75,18 @@ def manage_delAuth0(context, id):
 
 
 class SessionInfo(object):
+    ATTRIBUTES = ['userid', 'expiration', 'refreshToken', 'roles']
+
     def __init__(self):
-        for i in ['userid', 'expiration', 'refreshToken', 'roles']:
+        for i in SessionInfo.ATTRIBUTES:
             setattr(self, i, '')
+
+    def __str__(self):
+        output = ''
+        for i in SessionInfo.ATTRIBUTES:
+            output += '{}:{}, '.format(i, getattr(self, i))
+        return output.strip(', ')
+
 
 class Auth0(BasePlugin):
     """Auth0 is a PluggableAuthService MultiPlugin which satisfies interfaces:
@@ -86,6 +100,7 @@ class Auth0(BasePlugin):
     """
 
     zc_token_key = 'accessToken'
+    zc_token_exp_key = 'accessTokenExpiration'
 
     meta_type = 'Auth0 plugin'
     session_key = 'auth0'
@@ -113,6 +128,43 @@ class Auth0(BasePlugin):
         request.SESSION.pop(Auth0.session_key, None)
         if request.response:
             request.response.expireCookie(Auth0.zc_token_key)
+
+    @staticmethod
+    def getRoleAssignments(roles=None):
+        """
+        This looks for RBAC style roles in the role list ("CZ0:CZAdmin"), and uses those if they exist.  If they
+        don't exist, return the roles as-is (they may contain older style roles, ie, "CZAdmin" for Zenoss-com
+        connections).
+
+        :param roles:an array of roles, possibly in RBAC format (strings), [ "CZ0:ZenManager", "CZ0:ZenUser", .. ]
+        :return: an array of roles (strings), [ "ZenManager", "ZenUser", .. ]
+        """
+        if not roles:
+            return []
+
+        # The cz_prefix for this CZ is going to be "CZ#", ie: "CZ0", "CZ1", ..
+        cz_prefix = getUtility(IVirtualRoot).get_prefix().strip("/").upper()
+
+        # RBAC style roles are in the form: "CZ#:ZenManager". If our user has any RBAC style role mappings, we need to
+        # return only RBAC assigned roles.  This covers the case where we were assigned CZ1:ZenManager and not assigned
+        # any roles for CZ0.  We shouldn't return the older gsuite group mappings for this user in this case.
+        matches = [rbac_pattern.match(role) for role in roles]
+
+        # filter non-matches (None) without evaluating the regex a second time.
+        matches = [match for match in matches if match]
+
+        # If there are any RBAC roles assigned, use only the RBAC roles for this CZ.
+        if matches:
+            # for an RBAC role: "CZ0:ZenManager", match.group(3) = "ZenManager", match.group(2) = "CZ0"
+            # if this has the optional beginning "internal:CZ0:ZenManager", match(1) is "internal:" and unused.
+            return [match.group(3) for match in matches if match.group(2) == cz_prefix]
+
+        # No RBAC style roles are assigned to this user. Return the raw list of roles, which may contain RM roles. This
+        # will only be a list of RM roles for role mapping that were specifically mapped to the gsuite groups (only
+        # the zenoss-com connection will have this).  At some point the old style mappings will be removed from Auth0
+        # entirely and this list won't contain any RM roles at all -- so returning them won't have any effect at that
+        # point.
+        return roles
 
     @staticmethod
     def storeToken(token, request, conf):
@@ -168,7 +220,7 @@ class Auth0(BasePlugin):
             else:
                 sessionInfo.userid = payload['sub'].encode('utf8').split('|')[-1]
             sessionInfo.expiration = payload['exp']
-            sessionInfo.roles = payload.get('https://zenoss.com/roles', [])
+            sessionInfo.roles = Auth0.getRoleAssignments(payload.get('https://zenoss.com/roles', []))
             return sessionInfo
         except Exception as ex:
             log.debug('Error storing jwt token: {}'.format(ex.message))
@@ -189,6 +241,7 @@ class Auth0(BasePlugin):
         # Clear session variables and redirect to the ZC logout.
         request.SESSION.clear()
         response.expireCookie(Auth0.zc_token_key)
+        response.expireCookie(Auth0.zc_token_exp_key)
         conf = getAuth0Conf()
         if conf:
             log.info('Redirecting user to Auth0 logout: %s' % conf)
@@ -214,6 +267,18 @@ class Auth0(BasePlugin):
         sessionInfo = request.SESSION.get(Auth0.session_key)
         if not sessionInfo:
             sessionInfo = Auth0.storeToken(token, request, conf)
+
+        # ZING-821: We need to verify that the session data we've cached matches the
+        # token expiration.  If the expiration cookie is set, make sure it matches
+        # our cache - otherwise we need to parse the access token again.
+        token_expiration = request.cookies.get(Auth0.zc_token_exp_key, None)
+        if sessionInfo and token_expiration:
+            # ZING stores the expiration *1000 instead of the expiration value (why??), so we
+            # have to adjust to compare to our cached session expiration from the token.
+            token_expiration = int(token_expiration) / 1000
+            if not sessionInfo.expiration == token_expiration:
+                log.info('Token expiration does not match stored expiration. Parsing token again.')
+                sessionInfo = Auth0.storeToken(token, request, conf)
 
         if not sessionInfo or not sessionInfo.userid:
             log.debug('No userid found in sessionInfo - not directing to Auth0 login')
@@ -264,6 +329,26 @@ class Auth0(BasePlugin):
                 sessionInfo = self.storeToken(token, request, conf)
                 if sessionInfo:
                     return True
+
+        # ZING-805: Unauthorized access to a page results in an infinite loop as Zope issues a challenge (which
+        # redirects to ZING), then ZING says you're already logged in and sends you back. This uses memcache (so
+        # each zope gets the same data) to store the token expiration for each user, to detect a redirect loop
+        # between RM<->ZING. If a redirect loop is detected, the user is sent to the ZING home page.  Note that
+        # sessionInfo doesn't persist the auth_expiration property when modified outside of the initial storage,
+        # and a local dictionary isn't available to all zopes.
+        if sessionInfo:
+            mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
+            EXPIRATION_KEY = 'auth0_{}_expiration_key'.format(sessionInfo.userid)
+            auth_exp = mc.get(EXPIRATION_KEY)
+            if auth_exp == sessionInfo.expiration:
+                log.warn('Unauthorized access (user {}): {}'.format(sessionInfo.userid, request.PATH_INFO))
+                # This is a redirect loop. send them to the Zing UI
+                mc.delete(EXPIRATION_KEY)
+                request['RESPONSE'].redirect('/', lock=1)
+                return True
+            # store the token expiration and send them to the login.  If zing sends them back without
+            # logging them in again (the same expiration), then that's a redirect loop.
+            mc.set(EXPIRATION_KEY, sessionInfo.expiration)
 
         currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
         redirect = base64.urlsafe_b64encode(currentLocation)
