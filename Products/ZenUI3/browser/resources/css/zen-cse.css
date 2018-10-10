@@ -2366,6 +2366,10 @@ BYE BYE BORDERS
         min-width: 80px;
     }
 
+    .z-cse .tablevalues-input-row:not(:last-child) {
+        margin-bottom: 6px;
+    }
+
 /*
         =====================================================================================
         DARK THEME

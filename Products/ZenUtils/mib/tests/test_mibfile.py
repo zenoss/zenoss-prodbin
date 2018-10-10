@@ -305,13 +305,13 @@ class TestPackageManager(TestCase):
     @mock.patch("Products.ZenUtils.mib.mibfile.urllib.urlretrieve")
     def test_get_remote(self, mock_urlretrieve):
         url = "http://server.eng/thefile.tar"
-        with tempfile.NamedTemporaryFile() as dl, \
-                tempfile.NamedTemporaryFile() as ex:
-            mock_urlretrieve.return_value = (dl.name + "/thefile.tar", None)
-            mgr = PackageManager(dl.name, ex.name)
-            pkg = mgr.get(url)
-            mock_urlretrieve.assert_called_with(url, dl.name)
-            self.assertEqual(pkg._target, ex.name)
+        tmpdir = "/tmp/mib_downloads/"
+        expdir = "/tmp/mib_ex/"
+        mock_urlretrieve.return_value = (tmpdir + "/thefile.tar", None)
+        mgr = PackageManager(tmpdir, expdir)
+        pkg = mgr.get(url)
+        mock_urlretrieve.assert_called_with(url, tmpdir+"thefile.tar")
+        self.assertEqual(pkg._target, expdir)
 
     def test_cleanup(self):
         dl = tempfile.mkdtemp()
