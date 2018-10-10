@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-07-07 15:29:16.526491
+    Zenoss RelationshipManager export completed on 2018-09-28 17:53:28.685222
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.3.0]" export_date="2017-07-07 15:29:16.526491" zenoss_server="1d38757a8d69" >
-<object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer'>
+<objects version="[Zenoss, version 7.0.5]" export_date="2018-09-28 17:53:28.685222" zenoss_server="7fafc7a614e2" >
+<object id='/zport/dmd/Processes/Zenoss' module='Products.ZenModel.OSProcessOrganizer' class='OSProcessOrganizer' move='False'>
 <property id='zendoc' type='string'>
 Base Zenoss daemons
 </property>
@@ -23,7 +23,7 @@ False
 4
 </property>
 <tomanycont id='osProcessClasses'>
-<object id='Zope' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='Zope' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Zope is the web front end for Zenoss
 </property>
@@ -49,7 +49,7 @@ Zope is the web front end for Zenoss
 0
 </property>
 </object>
-<object id='zenactiond' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenactiond' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Sends out notifications based on triggers
 </property>
@@ -75,7 +75,7 @@ Sends out notifications based on triggers
 1
 </property>
 </object>
-<object id='zencommand' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zencommand' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Using protocols such as Telnet and SSH, runs a command on the remote machine and parses the results into events and performance metrics.
 </property>
@@ -101,7 +101,7 @@ Using protocols such as Telnet and SSH, runs a command on the remote machine and
 2
 </property>
 </object>
-<object id='zeneventd' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zeneventd' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property type="string" id="name" mode="w" >
 zeneventd
 </property>
@@ -121,7 +121,7 @@ False
 3
 </property>
 </object>
-<object id='zeneventserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zeneventserver' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 The Zenoss event processor.
 </property>
@@ -147,7 +147,7 @@ The Zenoss event processor.
 4
 </property>
 </object>
-<object id='zenhub' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenhub' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 This daemon provides a stable interface to ZODB, via services that are requested by daemons.
 </property>
@@ -173,7 +173,7 @@ This daemon provides a stable interface to ZODB, via services that are requested
 5
 </property>
 </object>
-<object id='zenjobs' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenjobs' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 An 'at'-style scheduler for running long-running commands.
 </property>
@@ -199,7 +199,7 @@ An 'at'-style scheduler for running long-running commands.
 6
 </property>
 </object>
-<object id='zenmail' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenmail' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 </property>
@@ -231,7 +231,7 @@ Listen on the SMTP port (default 25) and convert e-mails into Zenoss events.
 7
 </property>
 </object>
-<object id='zenmodeler' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenmodeler' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Model a device using protocols such as WMI, SNMP, SSH.
 </property>
@@ -257,7 +257,7 @@ Model a device using protocols such as WMI, SNMP, SSH.
 8
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenperfsnmp' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 SNMP performance metric poller daemon
 </property>
@@ -283,7 +283,7 @@ SNMP performance metric poller daemon
 9
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenping' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 IPv4 and IPv6 ICMP ECHO sending daemon
 </property>
@@ -309,7 +309,7 @@ IPv4 and IPv6 ICMP ECHO sending daemon
 10
 </property>
 </object>
-<object id='zenpop3' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenpop3' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Connect to a POP3 server and convert any messages into Zenoss events.
 </property>
@@ -335,7 +335,7 @@ Connect to a POP3 server and convert any messages into Zenoss events.
 11
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenprocess' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 SNMP based daemon that gathers process information, and based on what has been modeled, reports on process metrics such as memory and CPU utilization.
 </property>
@@ -361,7 +361,7 @@ SNMP based daemon that gathers process information, and based on what has been m
 12
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zenstatus' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 A daemon that opens a TCP connection to the remote service to determine if it is available.
 </property>
@@ -387,7 +387,7 @@ A daemon that opens a TCP connection to the remote service to determine if it is
 13
 </property>
 </object>
-<object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zensyslog' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Daemon that runs on the syslog ports and converts syslog messages to Zenoss events.
 </property>
@@ -419,7 +419,7 @@ Daemon that runs on the syslog ports and converts syslog messages to Zenoss even
 14
 </property>
 </object>
-<object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass'>
+<object id='zentrap' module='Products.ZenModel.OSProcessClass' class='OSProcessClass' move='False'>
 <property id='zendoc' type='string'>
 Receive SNMP v1/2c/3 traps, convert using MIB definitions, and turn into Zenoss events.
 </property>

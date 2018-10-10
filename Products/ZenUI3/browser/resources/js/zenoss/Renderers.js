@@ -29,6 +29,10 @@ var ipInterfaceStatusTemplate = new Ext.Template(
     '<span title="Administrative / Operational">{adminStatus} / {operStatus}</span>');
 ipInterfaceStatusTemplate.compile();
 
+// Array with URL prefixes which should be resolved as an external URLs and
+// should not concatenate as a part of /sport/dmd/ path.
+var externalUrlPrefixes = ['http', 'https'];
+
 function convertToUnits(num, divby, unitstr, places){
     unitstr = unitstr || "B";
     places = Ext.isDefined(places) ? places : 2;
@@ -75,6 +79,21 @@ function pingStatusBase(bool) {
 }
 
 Ext.apply(Zenoss.render, {
+
+    date: function(date, format) {
+        if (!format && typeof format !== "string" && !(format instanceof String)) {
+            format = Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT + ' z';
+        }
+        // timestamp in seconds (UNIX style)
+        if (Ext.isNumeric(date)) {
+            return moment.unix(date).tz(Zenoss.USER_TIMEZONE).format(format);
+        }
+        // Ext Datetime object
+        if (Ext.isDate(date)) {
+            return moment.tz(date, Zenoss.USER_TIMEZONE).format(format);
+        }
+        return date;
+    },
 
     conditionalEscaping: function(data) {
         if (!Zenoss.settings.enableHtmlInEventFields)
@@ -272,6 +291,19 @@ Ext.apply(Zenoss.render, {
                 return renderer(uid, name);
             }
         }
+
+        // If URL is external (starts with http, ftp etc.) don't add CZ prefix.
+        var isExternalUrl = false;
+        for (var i = 0; i < externalUrlPrefixes.length; i++) {
+            if (url.startswith(externalUrlPrefixes[i])) {
+                isExternalUrl = true;
+            }
+        }
+
+        if (!url.startswith(Zenoss.env.CSE_VIRTUAL_ROOT) && !isExternalUrl) {
+            url = Zenoss.env.CSE_VIRTUAL_ROOT + url.replace(/^\/+/g, '');
+        }
+
         if (url && name) {
             return '<a class="z-entity" href="'+url+'">'+Ext.htmlEncode(name)+'</a>';
         }
@@ -282,8 +314,12 @@ Ext.apply(Zenoss.render, {
 
     default_uid_renderer: function(uid, name) {
         // Just straight up links to the object.
-        var parts;
-        if (!uid) {
+        var parts,
+            vTypes = Ext.form.VTypes;
+        // ZEN-29776: do not render ipaddress as link
+        // since there is no such object in the system and
+        // "192.168.1.1/24" is not an zope uid format.
+        if (!uid || vTypes.ipaddress(uid) || vTypes.ipaddresswithnetmask(uid)) {
             return uid;
         }
         if (Ext.isObject(uid)) {
@@ -415,6 +451,18 @@ Ext.apply(Zenoss.render, {
         return item.text;
     },
 
+    DeviceZcLink: function(uid, intro, text) {
+        var anchor = '<a href="https://ZCLINK"><span class="zc-intro">ZCINTRO</span><span class="zc-label">ZCTEXT</span></a>'
+        var loc = window.location.host;
+        var encodedQuery = encodeURIComponent(JSON.stringify({
+            contextUUID: uid
+        }));
+        var landing = '/#/_lucky?q=';
+        var url = loc + landing + encodedQuery;
+        var link = anchor.replace('ZCINTRO',intro).replace('ZCTEXT',text).replace('ZCLINK', url);
+        return link
+    },
+
     EventClass: function(uid, name) {
         return Zenoss.render.default_uid_renderer(uid, name);
     },
@@ -498,8 +546,31 @@ Ext.apply(Zenoss.render, {
 
         data = Zenoss.render.conditionalEscaping(data);
         return data;
-    }
+    },
 
+    zProperty: function(value, record) {
+        // if value is an object or array, it must be stringified via JSON
+        if (typeof value === "object") {
+            value = JSON.stringify(value);
+        }
+        var severityFields = ['zEventSeverity', 'zFlappingSeverity'];
+        if (severityFields.includes(record.data.id)) {
+            if (value === -1) {
+                value = 'Default (-1)';
+            } else {
+                value = Ext.String.format('{0} ({1})', Zenoss.util.convertSeverity(value), value);
+                value = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+        }
+        return Ext.htmlEncode(value);
+    },
+
+    // Renders the paths of properties by removing the '/zport/dmd/Devices' from the start.
+    PropertyPath: function(path) {
+        var exclusions = ['zport', 'dmd', 'Devices'],
+            exclude = function(v) { return exclusions.indexOf(v) === -1; };
+        return '/' + path.split('/').slice(1).filter(exclude).join('/');
+    }
 
 }); // Ext.apply
 

@@ -9,4 +9,5 @@
 ##############################################################################
 
 (timeout 10s /opt/zenoss/bin/redis-mon post) &
+(timeout 10s /opt/zenoss/bin/redis-mon post-length --list metrics) &
 redis-cli ping

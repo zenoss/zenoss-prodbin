@@ -49,7 +49,7 @@ class BrowserMessage(object):
         @type image: str
         """
         self.title = cgi.escape(title)
-        self.body = cgi.escape(body)
+        self.body = body
         self.priority = priority
         self.image = image
         self.timestamp = time.time()

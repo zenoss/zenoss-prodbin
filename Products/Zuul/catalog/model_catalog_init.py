@@ -20,6 +20,7 @@ import ctypes
 import zope.component
 from zExceptions import NotFound
 from collections import deque
+from contextlib import contextmanager
 
 from OFS.ObjectManager import ObjectManager
 from Products.AdvancedQuery import And, Not, MatchGlob, Eq, MatchRegexp, In, Or
@@ -31,6 +32,7 @@ from Products.Zuul.catalog.model_catalog import get_solr_config
 from Products.Zuul.utils import dottedname
 from zenoss.modelindex.constants import ZENOSS_MODEL_COLLECTION_NAME
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
+from Products.ZenUtils.AutoGCObjectReader import gc_cache_every
 
 log = logging.getLogger('zenoss.model_catalog_reindexer')
 log.setLevel(logging.INFO)
@@ -38,11 +40,27 @@ log.setLevel(logging.INFO)
 TERMINATE_SENTINEL = 'xxTERMINATExx'
 MODEL_INDEX_BATCH_SIZE = 10000
 INDEX_SIZE = 5000
-QUEUE_TIMEOUT = 2
+QUEUE_TIMEOUT = 60
+
+
+@contextmanager
+def worker_context(worker):
+    yield
+    # notify parent one last time before exiting
+    worker.notify_parent()
+    log.info("Worker {} exiting".format(worker.idx))
+
+
+def checkLogging(evt):
+    if evt:
+        loglevel = logging.DEBUG if evt.is_set() else logging.INFO
+        if log.getEffectiveLevel() != loglevel:
+            log.setLevel(loglevel)
 
 
 class ReindexProcess(multiprocessing.Process):
-    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, fields=None):
+    def __init__(self, error_queue, idx, worker_count, parent_queue, counter, semaphore, cond, cancel, terminator,
+                 fields=None, logtoggle=None):
         super(ReindexProcess, self).__init__()
 
         self.error_queue = error_queue
@@ -54,13 +72,17 @@ class ReindexProcess(multiprocessing.Process):
         self.semaphore = semaphore
         self.cond = cond
         self.cancel = cancel
+        self.terminator = terminator
         self.fields = fields
+        self.logtoggle = logtoggle
 
         self.semaphore_acquired = False
 
         self._batch = []
 
-        self.dmd = ZenScriptBase(connect=True).dmd
+        zsb = ZenScriptBase(connect=True, should_log=False)
+        self.dmd = zsb.dmd
+        self._db = zsb.db
         self.index_client = zope.component.createObject('ModelIndex', get_solr_config())
 
     def get_work(self):
@@ -140,40 +162,48 @@ class ReindexProcess(multiprocessing.Process):
         """
         Operates on uids/nodes from get_work until exhausted.
         """
-        count = 0
-        while True:
-            if self.cancel.is_set():
-                return
-            for uid in self.get_work():
-                if uid == TERMINATE_SENTINEL:
-                    log.debug('Worker {0} found sentinel'.format(self.idx))
-                    self.cancel.set()
-                    self.notify_parent(True)
-                    break
-                try:
-                    self.process(uid)
-                except Exception:
-                    self.handle_exception()
-                    continue
-                count += 1
-                # update our counter every so often (less lock usage)
-                if count >= 1000:
-                    with self.counter.get_lock():
-                        self.counter.value += count
-                    count = 0
-                    log.debug('Worker {0} notifying parent of count update'.format(self.idx))
-                    self.notify_parent()
-            # Flush the index batch dregs
-            self.index(True)
-            if count:
-                with self.counter.get_lock():
-                    self.counter.value += count
+        with worker_context(self):
+            with gc_cache_every(1000, self._db):
                 count = 0
-            # Should we die? Or wait for more work from the parent?
-            if self.cancel.is_set():
-                return
-            log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
-            self.notify_parent(True)
+                while True:
+                    if self.cancel.is_set() or self.terminator.is_set():
+                        return
+                    for uid in self.get_work():
+                        if self.terminator.is_set():
+                            # If terminator is set, we exit immediately, leaving data behind
+                            return
+
+                        checkLogging(self.logtoggle)
+
+                        if uid == TERMINATE_SENTINEL:
+                            log.debug('Worker {0} found sentinel'.format(self.idx))
+                            self.cancel.set()
+                            self.notify_parent(True)
+                            break
+                        try:
+                            self.process(uid)
+                        except Exception:
+                            self.handle_exception()
+                            continue
+                        count += 1
+                        # update our counter every so often (less lock usage)
+                        if count >= 1000:
+                            with self.counter.get_lock():
+                                self.counter.value += count
+                            count = 0
+                            log.debug('Worker {0} notifying parent of count update'.format(self.idx))
+                            self.notify_parent()
+                    # Flush the index batch dregs
+                    self.index(True)
+                    if count:
+                        with self.counter.get_lock():
+                            self.counter.value += count
+                        count = 0
+                    # Should we die? Or wait for more work from the parent?
+                    if self.cancel.is_set() or self.terminator.is_set():
+                        return
+                    log.debug('Worker {0} notifying parent it is out of work'.format(self.idx))
+                    self.notify_parent(True)
 
 
 class HardReindex(ReindexProcess):
@@ -302,6 +332,11 @@ def get_uids(index_client, root="", types=()):
         need_results = start < search_results.total_count
 
 
+def collection_exists(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
+    index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
+    return collection_name in index_client.get_collections()
+
+
 def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client = zope.component.createObject('ModelIndex', get_solr_config(), collection_name)
     config = {}
@@ -311,12 +346,13 @@ def init_model_catalog(collection_name=ZENOSS_MODEL_COLLECTION_NAME):
     index_client.init(config)
     return index_client
 
-def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
+
+def run(processor_count=8, hard=False, root="", indexes=None, types=(), terminator=None, toggle_debug=None):
     if hard and (root or indexes or types):
         raise Exception("Root node, indexes, and types can only be specified during soft re-index")
 
     log.info("Beginning {0} redindexing with {1} child processes.".format(
-    "hard" if hard else "soft", processor_count))
+        "hard" if hard else "soft", processor_count))
 
     start = time.time()
 
@@ -330,6 +366,10 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     counter = multiprocessing.Value(ctypes.c_uint32)
     semaphore = multiprocessing.Semaphore(processor_count)
     cond = multiprocessing.Condition()
+
+    if not terminator:
+        terminator = multiprocessing.Event()
+
     cancel = multiprocessing.Event()
 
     processes_remaining = 0
@@ -339,10 +379,17 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     proc_start = time.time()
 
     def hard_index_is_done():
-        return semaphore.get_value() == 0 and parent_queue.empty()
+        return terminator.is_set() or (semaphore.get_value() == 0 and parent_queue.empty())
 
     def soft_index_is_done():
-        return cancel.is_set()
+        return cancel.is_set() or terminator.is_set()
+
+    # In the case of early termination, we only want to wait up to 30 seconds
+    # In the case of straggler processes, we wait up to an hour
+    def get_timeout():
+        if terminator.is_set():
+            return 30
+        return 3600
 
     if hard:
         log.info("Clearing Solr data")
@@ -358,7 +405,8 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
 
     log.info("Starting child processes")
     for n in range(processor_count):
-        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, indexes)
+        p = Worker(error_queue, n, processor_count, parent_queue, counter, semaphore, cond, cancel, terminator, indexes,
+                   toggle_debug)
         processes.append(p)
         p.start()
 
@@ -366,7 +414,7 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
         parent_queue.put(uid)
 
     if not hard:
-        # Put the terminate sentinal at the end of the queue
+        # Put the terminate sentinel at the end of the queue
         parent_queue.put(TERMINATE_SENTINEL)
 
     log.info("Waiting for processes to finish")
@@ -375,11 +423,17 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
     last = start
     while True:
         with cond:
-            if cancel.is_set():
+            # soft_index_is_done is actually appropriate in both cases
+            if soft_index_is_done():
+                log.info("Terminating condition met. Done!")
+                cancel.set()
                 # In case we were terminated before we were waiting
                 cond.notify_all()
                 break
             cond.wait()
+
+            checkLogging(toggle_debug)
+
             try:
                 # Print any errors we've built up
                 while not error_queue.empty():
@@ -408,11 +462,12 @@ def run(processor_count=8, hard=False, root="", indexes=None, types=[]):
             finally:
                 # Pass the ball back to the child that notified
                 cond.notify_all()
+    log.info("Indexing complete, waiting for workers to clean up")
     for proc in processes:
         log.debug("Joining proc {0}".format(proc.idx))
-        proc.join(60)
+        proc.join(get_timeout())
         if proc.is_alive():
-            log.warn("Worker did not exit within timeout, terminating...")
+            log.warn("Worker {} did not exit within timeout, terminating...".format(proc.idx))
             proc.terminate()
     end = time.time()
     log.info("Total time: {0}".format(end - start))

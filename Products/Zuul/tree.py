@@ -236,19 +236,19 @@ class CatalogTool(object):
         self.model_catalog = IModelCatalogTool(self.context)
 
     def getBrain(self, path):
-        return self.model_catalog.getBrain(path)
+        return self.model_catalog.global_catalog.getBrain(path)
 
     def parents(self, path):
         return self.model_catalog.parents(path)
 
     def count(self, types=(), path=None, filterPermissions=True):
-        return self.model_catalog.parents(types=types, path=path, filterPermissions=filterPermissions)
+        return self.model_catalog.count(types=types, path=path, filterPermissions=filterPermissions)
 
     def search(self, types=(), start=0, limit=None, orderby=None,
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None):
 
-        return self.model_catalog.search(types=types, start=start, limit=limit, orderby=orderby,
+        return self.model_catalog.global_catalog.search(types=types, start=start, limit=limit, orderby=orderby,
                reverse=reverse, paths=paths, depth=depth, query=query,
                hashcheck=hashcheck, filterPermissions=filterPermissions, globFilters=globFilters)
 

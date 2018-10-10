@@ -195,7 +195,7 @@
     template="templates/collectortemplate.pt"
     name="collectorTemplate"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ManageControlCenter"
     />
 
 <browser:page
@@ -249,10 +249,17 @@
     />
 
 <browser:page
-    template="templates/quickstart.pt"
-    name="quickstart"
-    for="Products.ZenModel.interfaces.IDataRoot"
-    permission="zenoss.ManageDMD"
+    class=".pages.AddDevices"
+    name="addDevices"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".pages.DiscoverNetwork"
+    name="discoverNetwork"
+    for="*"
+    permission="zenoss.ManageDevice"
     />
 
 <browser:page
@@ -286,6 +293,13 @@
 <browser:page
     class=".command.ModelView"
     name="run_model"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.ModelDebugView"
+    name="run_model_debug"
     for="*"
     permission="zenoss.ManageDevice"
     />
@@ -366,13 +380,6 @@
     name="getDaemonLogs"
     for="Products.ZenModel.interfaces.IDataRoot"
     permission="zenoss.Common"
-    />
-
-<browser:page
-    template="templates/localDocumentation.pt"
-    name="localDocumentation"
-    for="*"
-    permission="zope2.Public"
     />
 
 <browser:view

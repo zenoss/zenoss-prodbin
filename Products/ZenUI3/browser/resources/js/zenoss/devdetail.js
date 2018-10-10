@@ -213,18 +213,22 @@ function showMonitoringDialog() {
 }
 
 function componentGridOptions() {
-    var grid = Ext.getCmp('component_card').componentgrid,
-        sm = grid.getSelectionModel(),
+    var grid = Ext.getCmp('component_card').componentgrid;
+    if (grid !== undefined) {
+        var sm = grid.getSelectionModel(),
         rows = sm.getSelection(),
         pluck = Ext.Array.pluck,
         uids = pluck(pluck(rows, 'data'), 'uid'),
         name = Ext.getCmp('component_searchfield').getValue();
-    return {
-        uids: uids,
-        ranges: [],
-        name: name,
-        hashcheck: grid.lastHash
-    };
+
+        return {
+            uids: uids,
+            ranges: [],
+            name: name,
+            hashcheck: grid.lastHash
+        };
+    }
+    return {};
 }
 
     function showComponentLockingDialog() {
@@ -321,7 +325,33 @@ var componentCard = {
                 grid.getSelectionModel().deselectAll();
             }
         }]
-    }, '->', {
+    },{
+        id: "component-smart-view-button",
+        text: _t('Smart View'),
+        handler: function(){
+            var grid = Ext.getCmp('component_card').componentgrid,
+            sm = grid.getSelectionModel(),
+            uuid = sm.selected.items[0].data.uuid;
+            var loc = "https://" + window.location.host;
+            var encodedQuery = encodeURIComponent(JSON.stringify({
+                contextUUID: uuid
+            }));
+            var landing = '/#/_lucky?q=';
+            var url = loc + landing + encodedQuery;
+            window.location = url;
+        },
+        selectionChange() {
+            var sq = componentGridOptions();
+            if (sq.uids) {
+                this.disabled = sq.uids.length !== 1;
+                if (this.disabled) {
+                    this.el.dom.classList.add("unavail");
+                } else {
+                    this.el.dom.classList.remove("unavail");
+                }
+            }
+        }
+    },'->',{
         xtype: 'panel',
         baseCls: 'no-panel-class',
         ui: 'none',
@@ -426,7 +456,7 @@ var configuration_properties = Ext.create('Zenoss.form.ConfigPropertyPanel', {
     id: 'device_config_properties'
 });
 
-var custom_properties = Ext.create('Zenoss.form.CustomPropertyPanel', {
+var custom_properties = Ext.create('widget.custompropertypanel', {
     id: 'custom_device_properties'
 });
 
@@ -436,14 +466,18 @@ var dev_admin = Ext.create('Zenoss.devicemanagement.Administration', {
 
 // find out how many columns the graph panel should be based on
 // on the width of the detail panel
-var center_panel_width = Ext.getCmp('center_panel').getEl().getWidth() - 275,
-    extra_column_threshold = 1000;
+var center_panel = Ext.getCmp('center_panel');
+var center_panel_width = center_panel.getEl().getWidth() - 277;
+var extra_column_threshold = 1000;
+var userColumns = Zenoss.settings.graphColumns;
 
+if (userColumns === 0) { // graphColumns 0 is "Auto"
+    userColumns = (center_panel_width > extra_column_threshold) ? 2 : 1;
+}
 var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
-    columns: (center_panel_width > extra_column_threshold) ? 2 : 1,
+    columns: userColumns,
     id: 'device_graphs'
 });
-
 
 /**
  * Show either one column of graphs or two depending on how much space is available
@@ -451,18 +485,22 @@ var device_graphs = Ext.create('Zenoss.form.GraphPanel', {
  **/
 device_graphs.on('resize', function(panel, width) {
     var columns = panel.columns;
-
-    if (width >= extra_column_threshold && columns === 1) {
-        panel.columns = 2;
-    }
-
-    if (width < extra_column_threshold && columns === 2) {
-        panel.columns = 1;
+    if (Zenoss.settings.graphColumns === 0) {
+        // graphColumns 0 is "Auto"
+        if (width >= extra_column_threshold && columns === 1) {
+            panel.columns = 2;
+        }
+        if (width < extra_column_threshold && columns === 2) {
+            panel.columns = 1;
+        }
+    } else {
+        panel.columns = Zenoss.settings.graphColumns;
     }
     // always redraw the graphs completely when we resize the page,
     // this way the svg's are the correct size.
     panel.setContext(panel.uid);
-});
+    // add resize buffer to allow user finish resize action and to not resize graphs too often;
+}, device_graphs, {buffer: 300});
 
 var component_graphs = Ext.create('Zenoss.form.ComponentGraphPanel', {
     id: 'device_component_graphs'
@@ -481,6 +519,9 @@ Ext.define('Zenoss.DeviceDetailNav', {
             target: 'detail_card_panel',
             menuIds: ['More','Add','TopLevel','Manage'],
             hasComponents: false,
+            viewConfig: {
+                preserveScrollOnRefresh: true
+            },
             listeners:{
                 render: function() {
                     this.setContext(UID);
@@ -704,7 +745,7 @@ Ext.define('Zenoss.DeviceDetailNav', {
 });
 
 
-Ext.getCmp('center_panel').add({
+center_panel.add({
     id: 'center_panel_container',
     layout: 'border',
     tbar: {
@@ -758,7 +799,7 @@ Ext.getCmp('center_panel').add({
                 id: 'deviceDetailNav'
             },{
                 xtype: 'montemplatetreepanel',
-                id: 'templateTree',
+                itemId: 'templateTree',
                 ui: 'hierarchy',
                 detailPanelId: 'detail_card_panel'
             }]
@@ -773,7 +814,7 @@ Ext.getCmp('center_panel').add({
     }]
 });
 
-Ext.getCmp('templateTree').setContext(UID);
+Zenoss.getCmp('templateTree', center_panel).setContext(UID);
 
 
 
@@ -811,41 +852,62 @@ var editDeviceClass = function(deviceClass, uid) {
             ref: '../savebtn',
             disabled: Zenoss.Security.doesNotHavePermission('Manage Device'),
             handler: function(btn) {
-                var vals = btn.refOwner.editForm.getForm().getValues();
-                var submitVals = {
-                    uids: [uid],
-                    asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
-                    target: '/zport/dmd/Devices' + vals.deviceClass,
-                    hashcheck: ''
-                };
-                Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
-                    var moveToNewDevicePage = function() {
-                        var hostString = window.location.protocol + '//' +
-                            window.location.host;
-                        window.location = hostString + '/zport/dmd/Devices' +
-                            vals.deviceClass + '/devices' +
-                            uid.slice(uid.lastIndexOf('/'));
+                var vals = btn.refOwner.editForm.getForm().getValues(),
+                    target = '/zport/dmd/Devices' + vals.deviceClass,
+                    needRemodelVals = {
+                        uid: uid,
+                        target: target
                     };
+                Zenoss.remote.DeviceRouter.doesMoveRequireRemodel(needRemodelVals, function(data) {
                     if (data.success) {
-                        if (data.exports) {
-                         new Zenoss.dialog.SimpleMessageDialog({
+                        var moveToNewDevicePage = function() {
+                                var hostString = window.location.protocol + '//' +
+                                    window.location.host;
+                                window.location = hostString + '/zport/dmd/Devices' +
+                                    vals.deviceClass + '/devices' +
+                                    uid.slice(uid.lastIndexOf('/'));
+                                },
+                            submitVals = {
+                                uids: [uid],
+                                asynchronous: Zenoss.settings.deviceMoveIsAsync([uid]),
+                                target: target,
+                                hashcheck: ''
+                            };
+                        if (data.remodelRequired) {
+                            new Zenoss.dialog.SimpleMessageDialog({
                                 title: _t('Remodel Required'),
-                                message: _t("Not all of the configuration could be preserved, so a remodel of the device is required. Performance templates have been reset to the defaults for the device class."),
+                                message: _t("Not all of the configuration can be preserved, so a remodel of the device will be required. Performance templates will be reset to the defaults for the device class. Continue with move?"),
                                 buttons: [{
                                     xtype: 'DialogButton',
                                     text: _t('OK'),
                                     handler: function() {
-                                        moveToNewDevicePage();
+                                        Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                            if (data.success) {
+                                                moveToNewDevicePage();
+                                            }
+                                        });
                                     }
                                 }, {
                                     xtype: 'DialogButton',
                                     text: _t('Cancel')
                                 }]
                             }).show();
+                        } else {
+                            Zenoss.remote.DeviceRouter.moveDevices(submitVals, function(data) {
+                                if (data.success) {
+                                    moveToNewDevicePage();
+                                }
+                            });
                         }
-                        else {
-                            moveToNewDevicePage();
-                        }
+                    } else {
+                        new Zenoss.dialog.SimpleMessageDialog({
+                            title: _t('Unable To Move'),
+                            message: _t("A test to determine if the move would require a remodel has encountered an unexpected error, unable to move the device."),
+                            buttons: [{
+                                xtype: 'DialogButton',
+                                text: _t('OK')
+                            }]
+                        }).show();
                     }
                 });
                 win.destroy();
@@ -876,10 +938,14 @@ function addComponentHandler(item) {
     });
 }
 
-function modelDevice() {
+function modelDevice(debugging) {
+    var target = 'run_model';
+    if (debugging == true) {
+        target = 'run_model_debug';
+    }
     var win = new Zenoss.CommandWindow({
         uids: [UID],
-        target: 'run_model',
+        target: target,
         listeners: {
             close: function(){
                 Ext.defer(function() {
@@ -891,6 +957,11 @@ function modelDevice() {
     });
     win.show();
 }
+
+function modelDeviceDebug() {
+        modelDevice(true);
+}
+
 
 function resumeCollection() {
     Zenoss.remote.DeviceRouter.resumeCollection(UID, function(data) {
@@ -1151,13 +1222,29 @@ Ext.getCmp('footer_bar').add([{
     },
     menu: {}
 },'-', {
-
-    xtype: 'button',
-    text: _t('Model Device'),
-    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-    handler: modelDevice
-
-}]);
+        xtype: 'ContextConfigureMenu',
+        id: 'testing_configure_menu',
+        text: _t('Modeling'),
+        iconCls: '',
+        listeners: {
+        render: function(){
+            this.setContext(UID);
+        }
+    },
+    menuItems: [
+        {
+            xtype: 'menuitem',
+            text: _t('Model Device'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDevice
+        }, {
+            xtype: 'menuitem',
+            text: _t('Model Device (Debug)'),
+            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+            handler: modelDeviceDebug
+        }
+    ]}
+]);
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054
         var viewport = Ext.getCmp('viewport');

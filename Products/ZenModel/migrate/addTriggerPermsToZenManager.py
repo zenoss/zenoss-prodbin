@@ -17,7 +17,7 @@ import Migrate
 
 
 class AddTriggerPermToZenManager(Migrate.Step):
-    version = Migrate.Version(5, 0, 70)
+    version = Migrate.Version(200, 0, 0)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:

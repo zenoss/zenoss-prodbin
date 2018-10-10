@@ -15,13 +15,14 @@ log = logging.getLogger("zen.migrate")
 import Migrate
 import servicemigration as sm
 from servicemigration import InstanceLimits
+
 sm.require("1.0.0")
 
 
 class SetZeneventMaxInstances(Migrate.Step):
     """Add `Max = 1` to zeneventserver service"""
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 
@@ -34,15 +35,18 @@ class SetZeneventMaxInstances(Migrate.Step):
         services = filter(lambda s: s.name == "zeneventserver", ctx.services)
         log.info("Found %d services named 'zeneventserver'." % len(services))
 
+        changed = False
         for service in services:
             if not service.instanceLimits.maximum == 1:
                 log.info("Instance max is not 1; setting.")
                 service.instanceLimits.maximum = 1
+                changed = True
             else:
                 log.info("Instance max is already 1; skipping.")
 
-        # Commit our changes.
-        ctx.commit()
+        if changed:
+            # Commit our changes.
+            ctx.commit()
 
 
 SetZeneventMaxInstances()

@@ -44,6 +44,9 @@ parser.add_option('--script',
 parser.add_option('--commit',
             dest="commit", default=False, action="store_true",
             help="Run commit() at end of script?")
+parser.add_option('--shell',
+            dest="shell", default=False, action="store_true",
+            help="Start a shell at end of script?")
 parser.add_option('-n', '--no-ipython',
             dest="use_ipython", default=True, action="store_false",
             help="Do not embed IPython shell if IPython is found")
@@ -582,17 +585,22 @@ if __name__=="__main__":
         # copy globals() to temporary dict
         allVars = dict(globals().iteritems())
         allVars.update(vars_)
+        oldKeys = {k for k in allVars.keys()}
         execfile(opts.script, allVars)
-        if opts.commit:
-            audit.audit('Shell.Script.Commit')
-            from transaction import commit
-            commit()
+        if opts.shell:
+            newKeys = {k for k in allVars.keys()}.difference(oldKeys)
+            vars_.update({k: allVars[k] for k in newKeys})
         else:
-            try:
-                transaction.abort()
-            except:
-                pass
-        sys.exit(0)
+            if opts.commit:
+                audit.audit('Shell.Script.Commit')
+                from transaction import commit
+                commit()
+            else:
+                try:
+                    transaction.abort()
+                except:
+                    pass
+            sys.exit(0)
 
     _banner = ("Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "

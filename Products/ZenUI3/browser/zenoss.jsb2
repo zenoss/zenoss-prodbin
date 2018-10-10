@@ -16,6 +16,9 @@
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
         },{
+            "text": "date.js",
+            "path": "resources/js/zenoss/"
+        },{
             "text": "BaseGrid.js",
             "path": "resources/js/zenoss/"
         }, {
@@ -154,6 +157,9 @@
             "text": "ComponentPanel.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "EventAction.js",
+            "path": "resources/js/zenoss/form/"
+        },{
             "text": "Severity.js",
             "path": "resources/js/zenoss/form/"
         },{

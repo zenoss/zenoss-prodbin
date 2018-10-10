@@ -32,8 +32,8 @@ class DataRootError(Exception):pass
 
 class ZenScriptBase(CmdBase):
 
-    def __init__(self, noopts=0, app=None, connect=False):
-        CmdBase.__init__(self, noopts)
+    def __init__(self, noopts=0, app=None, connect=False, should_log=True):
+        CmdBase.__init__(self, noopts, should_log=should_log)
         self.dataroot = None
         self.app = app
         self.db = None

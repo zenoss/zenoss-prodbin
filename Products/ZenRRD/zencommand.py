@@ -384,6 +384,15 @@ class SshPerformanceCollectionTask(BaseTask):
         self.executed = 0
         self._lastErrorMsg = ''
 
+        self.manage_ip_event = {
+            'eventClass': Cmd_Fail,
+            'device': self._devId,
+            'summary': 'IP address not set, collection will be attempted\
+                        with host name',
+            'component' : COLLECTOR_NAME,
+            'eventKey': 'Empty_IP_address'
+        }
+
     def __str__(self):
         return "COMMAND schedule Name: %s configId: %s Datasources: %d" % (
                self.name, self.configId, len(self._datasources))
@@ -404,6 +413,11 @@ class SshPerformanceCollectionTask(BaseTask):
         self._doTask_start = datetime.now()
         self.state = SshPerformanceCollectionTask.STATE_CONNECTING
         try:
+            if not self._manageIp and self._useSsh:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Event.Info)
+            else:
+                self._eventService.sendEvent(self.manage_ip_event, severity=Clear)
+
             yield self._connector.connect(self)
 
             if self._useSsh:
@@ -423,7 +437,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                          summary=e.message,
                                          component=COLLECTOR_NAME,
                                          severity=Event.Error)
-            raise e
+            raise
         else:
             self._returnToNormalSchedule()
 

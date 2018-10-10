@@ -28,6 +28,7 @@ MAPPINGS = {
 
 # zencommand
 # ----------
+'zCommandCollectionInterval': 'zencommand',
 'zCommandCommandTimeout': 'zencommand',
 'zCommandUserCommandTimeout': 'zencommand',
 'zCommandExistanceTest': 'zencommand',

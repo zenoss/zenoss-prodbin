@@ -13,6 +13,8 @@ import time
 import logging
 import json
 import re
+from metrology import Metrology
+from metrology.instruments import Gauge
 import zope.interface
 from zope.component import getUtilitiesFor
 from twisted.internet import defer,  reactor, task
@@ -203,25 +205,52 @@ class CollectorDaemon(RRDDaemon):
                                       self.preferences.collectorName)
 
         super(CollectorDaemon, self).__init__(name=self.preferences.collectorName)
-
-        # setup daemon statistics (deprecated names)
         self._statService = StatisticsService()
-        self._statService.addStatistic("devices", "GAUGE")
-        self._statService.addStatistic("dataPoints", "DERIVE")
-        self._statService.addStatistic("runningTasks", "GAUGE")
-        self._statService.addStatistic("taskCount", "GAUGE")
-        self._statService.addStatistic("queuedTasks", "GAUGE")
-        self._statService.addStatistic("missedRuns", "GAUGE")
-
-        # namespace these a bit so they can be used in ZP monitoring.
-        # prefer these stat names in future refs
-        self._statService.addStatistic("collectordaemon.devices", "GAUGE")
-        self._statService.addStatistic("collectordaemon.dataPoints", "DERIVE")
-        self._statService.addStatistic("collectordaemon.runningTasks", "GAUGE")
-        self._statService.addStatistic("collectordaemon.taskCount", "GAUGE")
-        self._statService.addStatistic("collectordaemon.queuedTasks", "GAUGE")
-        self._statService.addStatistic("collectordaemon.missedRuns", "GAUGE")
         zope.component.provideUtility(self._statService, IStatisticsService)
+
+        if self.options.cycle:
+            # setup daemon statistics (deprecated names)
+            self._statService.addStatistic("devices", "GAUGE")
+            self._statService.addStatistic("dataPoints", "DERIVE")
+            self._statService.addStatistic("runningTasks", "GAUGE")
+            self._statService.addStatistic("taskCount", "GAUGE")
+            self._statService.addStatistic("queuedTasks", "GAUGE")
+            self._statService.addStatistic("missedRuns", "GAUGE")
+
+            # namespace these a bit so they can be used in ZP monitoring.
+            # prefer these stat names and metrology in future refs
+            self._dataPointsMetric = Metrology.meter("collectordaemon.dataPoints")
+            daemon = self
+            class DeviceGauge(Gauge):
+                @property
+                def value(self):
+                    return len(daemon._devices)
+            Metrology.gauge('collectordaemon.devices', DeviceGauge())
+
+            # Scheduler statistics
+            class RunningTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.running
+            Metrology.gauge('collectordaemon.runningTasks', RunningTasks())
+
+            class TaskCount(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.taskCount
+            Metrology.gauge('collectordaemon.taskCount', TaskCount())
+
+            class QueuedTasks(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler._executor.queued
+            Metrology.gauge('collectordaemon.queuedTasks', QueuedTasks())
+
+            class MissedRuns(Gauge):
+                @property
+                def value(self):
+                    return daemon._scheduler.missedRuns
+            Metrology.gauge('collectordaemon.missedRuns', MissedRuns())
 
         self._deviceGuids = {}
         self._devices = set()
@@ -427,9 +456,6 @@ class CollectorDaemon(RRDDaemon):
         if deviceId:
             tags['device'] = deviceId
 
-        # write the raw metric to Redis
-        yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
-
         # compute (and cache) a rate for COUNTER/DERIVE
         if metricType in {'COUNTER', 'DERIVE'}:
             if metricType == 'COUNTER' and min == 'U':
@@ -442,7 +468,12 @@ class CollectorDaemon(RRDDaemon):
 
         # check for threshold breaches and send events when needed
         if value is not None:
-            self._threshold_notifier.notify(contextUUID, contextId, metric,
+            # write the  metric to Redis
+            try:
+                yield defer.maybeDeferred(self._metric_writer.write_metric, metric_name, value, timestamp, tags)
+            except Exception as e:
+                self.log.debug("Error sending metric %s", e)
+            yield defer.maybeDeferred(self._threshold_notifier.notify, contextUUID, contextId, metric,
                     timestamp, value, threshEventData)
 
     def writeMetricWithMetadata(self, metric, value, metricType, timestamp='N',
@@ -631,7 +662,11 @@ class CollectorDaemon(RRDDaemon):
                     task_.startDelay = 0
                 else:
                     task_.startDelay = startDelay
-            self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            try:
+                self._scheduler.addTask(task_, self._taskCompleteCallback, now)
+            except ValueError:
+                self.log.exception("Error adding device config")
+                continue
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):
@@ -851,24 +886,9 @@ class CollectorDaemon(RRDDaemon):
             stat = self._statService.getStatistic("missedRuns")
             stat.value = self._scheduler.missedRuns
 
-            stat = self._statService.getStatistic("collectordaemon.devices")
-            stat.value = len(self._devices)
 
-            stat = self._statService.getStatistic("collectordaemon.dataPoints")
-            stat.value = self.metricWriter().dataPoints
-
-            # Scheduler statistics
-            stat = self._statService.getStatistic("collectordaemon.runningTasks")
-            stat.value = self._scheduler._executor.running
-
-            stat = self._statService.getStatistic("collectordaemon.taskCount")
-            stat.value = self._scheduler.taskCount
-
-            stat = self._statService.getStatistic("collectordaemon.queuedTasks")
-            stat.value = self._scheduler._executor.queued
-
-            stat = self._statService.getStatistic("collectordaemon.missedRuns")
-            stat.value = self._scheduler.missedRuns
+            diff = self.metricWriter().dataPoints - self._dataPointsMetric.count
+            self._dataPointsMetric.mark(diff)
 
             self._statService.postStatistics(self.rrdStats)
 

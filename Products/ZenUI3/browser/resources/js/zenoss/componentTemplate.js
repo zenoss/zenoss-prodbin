@@ -30,25 +30,7 @@
                         xtype: 'tbtext',
                         text: _t('Data Sources')
                     }, '-'],
-                    dsAddHandler: function() {
-                        var templateUid = this.ownerCt.ownerCt.ownerCt.getContext();
-                        if (!templateUid) {
-                            new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a datasource.')});
-                            return;
-                        }
-                        Ext.create('Zenoss.templates.AddDataSourceDialog', {templateUid: templateUid}).show();
-                    },
-                    dpAddHandler: function() {
-                        var selectedNode = this.ownerCt.ownerButton.ownerCt.ownerCt.getSelectionModel().getSelectedNode();
-                        if (!selectedNode) {
-                            new Zenoss.dialog.ErrorDialog({message: _t('You must select a data source.')});
-                            return;
-                        }
-                        Ext.create('Zenoss.templates.AddDataPointDialog', {
-                            dataSourceUid: selectedNode.data.uid,
-                            dataSourceId: selectedNode.data.id
-                        }).show();
-                    },
+                    useTemplateSource: true,
                     root: {
                         uid: config.contextUid
                     }

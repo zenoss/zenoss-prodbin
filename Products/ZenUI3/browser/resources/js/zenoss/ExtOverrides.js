@@ -93,6 +93,10 @@ Ext.override(Ext.util.Sorter, {
         border: false
     });
 
+    Ext.override(Ext.menu.Menu, {
+        border: true
+    });
+
     /**
      * Refs were removed when going from Ext3 to 4, we rely heavily on this feature and it is much more
      * concise way of accessing children so we are patching it back in.
@@ -1043,5 +1047,80 @@ Ext.override(Ext.util.Sorter, {
             me.doMultiSelect(toSelect, true);
         }
     });
+
+    /*
+        Override store pageMap class add/remove functionality.
+        For buffered store if it has many pages relations between pages(prev/next) in map
+        are calculated wrong- this cause problem when pageMap reach "maxSize" of pages
+        and tries to remove them from map. To solve this problem
+        1.) rebuild page relations (next/prev) on page add;
+        2.) change prune functionality;
+     */
+    Ext.override(Ext.data.Store.prototype.PageMap, {
+        add: function(key, newValue) {
+            var result = this.callParent(arguments);
+            this.rebuildMapRelations();
+            return result;
+        },
+
+        // build right relations between pages;
+        rebuildMapRelations: function() {
+            var prev;
+            Ext.Object.each(this.map, function(key, item) {
+                item.prev = prev;
+                if (prev) {
+                    prev.next = item;
+                }
+                prev = item;
+            });
+        },
+
+        /*
+            rewrite prune functionality to remove pages from start or end depending on the last page;
+         */
+        prune: function() {
+            var me = this,
+                purgeCount = me.maxSize ? (me.length - me.maxSize) : 0,
+                mapKeys = Ext.Object.getKeys(me.map),
+                // get index of last page in pageMap keys arr
+                // to decide from where remove pages if we reach maxSize;
+                lastIndex = mapKeys.indexOf(me.last.key.toString()),
+                // from where to start loop in pageMap key array;
+                reverse = lastIndex/mapKeys.length < 0.5;
+
+            if (purgeCount > 0) {
+                Ext.Array.each(mapKeys, function(item, index, count) {
+                    if (purgeCount < 1) return false; // break a loop;
+                    me.removeAtKey(item);
+                    purgeCount--;
+                }, me, reverse);
+            }
+        }
+    });
+
+    /*
+    * Change background color to transparent for legend box in ExtJs charts.
+    */
+    Ext.chart.Legend.override({
+        constructor: function() {
+            this.callParent(arguments);
+            this.boxFill = 'transparent';
+        }
+    });
+
+    Ext.form.field.File.override({
+        onFileChange: function (button, e, value) {
+            var newValue = value.replace(/^c:\\fakepath\\/i, '');
+            return this.callParent([button, e, newValue]);
+        }
+    });
+
+    Ext.isEdge = (function () {
+        return /edge/.test(Ext.userAgent);
+    })();
+
+    Ext.isChrome = !Ext.isEdge && (function () {
+        return /\bchrome\b/.test(Ext.userAgent);
+    })();
 
 }());

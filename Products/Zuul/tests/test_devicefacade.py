@@ -178,8 +178,8 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
         # This test specifically verifies the fix for ZEN-26901 sorting by a non-indexed
         # field while filtering on productionState caused a ProdStateNotSetError.
 
-        # sort by collector (non-indexed) with productionState filter
-        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='collector', params=dict(productionState=[400, 1000]))
+        # sort by status (non-indexed) with productionState filter
+        results = self.facade.getDeviceBrains(uid="/zport/dmd/Devices", sort='status', params=dict(productionState=[400, 1000]))
         resultIter = iter(results)
         self.assertEquals(2, results.total)
         device = resultIter.next()

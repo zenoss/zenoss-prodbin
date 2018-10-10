@@ -65,7 +65,7 @@ class IBasicDataSourceInfo(IInfo):
                                xtype='severity')
     eventClass = schema.TextLine(title=_t(u'Event Class'),
                                  xtype='eventclass')
-    cycletime = schema.Int(title=_t(u'Cycle Time (seconds)'))
+    cycletime = schema.TextLine(title=_t(u'Cycle Time (seconds)'))
     parser = schema.TextLine(title=_t(u'Parser'),
                              xtype='parser')
 

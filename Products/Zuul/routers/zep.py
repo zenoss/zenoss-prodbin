@@ -14,17 +14,18 @@ Operations for Events.
 Available at:  /zport/dmd/evconsole_router
 """
 
-import time
 import logging
 import re
+import time
 from json import loads
-from AccessControl import getSecurityManager
+from lxml.html.clean import clean_html
 from zenoss.protocols.exceptions import NoConsumersException, PublishException
 from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED
+from zenoss.protocols.services import ServiceResponseError
+from AccessControl import getSecurityManager
 from Products import Zuul
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.ZenUtils.Time import isoToTimestamp
 from Products.Zuul.decorators import require, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
 from Products.ZenEvents.EventClass import EventClass
@@ -38,8 +39,6 @@ from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUI3.security.security import permissionsForContext
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.infos.event import EventCompatInfo, EventCompatDetailInfo
-from zenoss.protocols.services import ServiceResponseError
-from lxml.html.clean import clean_html
 
 READ_WRITE_ROLES = ['ZenManager', 'Manager', 'ZenOperator']
 
@@ -233,7 +232,7 @@ class EventsRouter(DirectRouter):
             values = []
             splitter = ' TO ' if ' TO ' in value else '/'
             for t in value.split(splitter):
-                values.append(int(isoToTimestamp(t)) * 1000)
+                values.append(float(t))
             return values
         except ValueError:
             log.warning("Invalid timestamp: %s", value)
@@ -892,7 +891,6 @@ class EventsRouter(DirectRouter):
     def updateEventSummaries(self, update, event_filter=None, exclusion_filter=None, limit=None, timeout=None):
         status, response = self.zep.updateEventSummaries(update, event_filter, exclusion_filter, limit, timeout=timeout)
         return DirectResponse.succeed(data=response)
-
 
     @require(ZEN_MANAGE_EVENTS)
     def add_event(self, summary, device, component, severity, evclasskey,

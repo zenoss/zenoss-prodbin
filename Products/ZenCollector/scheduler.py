@@ -173,12 +173,19 @@ class CallableTask(object):
         Called whenever this task is late and missed its scheduled run time.
         """
         try:
+            # some tasks we don't want to consider a missed run.
+            if getattr(self.task, 'suppress_late', False):
+                return
+
             # send event only for missed runs on devices.
             self.task._eventService.sendEvent(
                 {'eventClass': '/Perf/MissedRuns',
                  'component': os.path.basename(sys.argv[0]).replace('.py', ''), },
                 device=self.task._devId,
                 summary="Missed run: {}".format(self.task.name),
+                message=self._scheduler._displayStateStatistics(
+                    '', self.taskStats.states
+                ),
                 severity=Event.Warning, eventKey=self.task.name)
             self.task.missed = True
         except Exception:

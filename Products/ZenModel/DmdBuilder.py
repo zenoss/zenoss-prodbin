@@ -56,7 +56,7 @@ from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
 from Products.Zuul.catalog.interfaces import IGlobalCatalogFactory
 from Products.ZenModel.ZenossSecurity import \
-     MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
+     MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE, CZ_ADMIN_ROLE
 from Products.ZenModel.NotificationSubscription import manage_addNotificationSubscriptionManager
 from Products.ZenModel.Trigger import manage_addTriggerManager
 from Products.ZenModel.UserInterfaceSettings import manage_addUserInterfaceSettings
@@ -76,7 +76,6 @@ class DmdBuilder(object):
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
-        self.dmd._rq = False
         self.dmd.smtpHost = smtphost
         self.dmd.smtpPort = smtpport
         self.dmd.pageCommand = pagecommand
@@ -84,6 +83,7 @@ class DmdBuilder(object):
         self.dmd.manage_permission('Access contents information',
                                    ['Authenticated',
                                     MANAGER_ROLE,
+                                    CZ_ADMIN_ROLE,
                                     ZEN_MANAGER_ROLE,
                                     ZEN_USER_ROLE,
                                     OWNER_ROLE],

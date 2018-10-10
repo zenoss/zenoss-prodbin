@@ -13,7 +13,6 @@ Ext.ns('Zenoss.ui.Reports');
 Ext.onReady(function () {
 
 var report_panel,
-    treesm,
     REPORT_PERMISSION = 'Manage DMD',
     report_tree;
 
@@ -65,49 +64,60 @@ report_panel = Ext.create('Ext.panel.Panel', {
  */
 function deleteNode(e) {
     report_tree.deleteSelectedNode();
-}
+};
 
 /*
  * add report class to zenpack
  */
 function addToZenPack(e) {
-    var addtozenpack = new Zenoss.AddToZenPackWindow();
-    addtozenpack.setTarget(treesm.getSelectedNode().data.uid);
-    addtozenpack.show();
-}
+    var addtozenpack = new Zenoss.AddToZenPackWindow(),
+        selNode = report_tree.getSelectionModel().getSelectedNode();
+    if (selNode) {
+        addtozenpack.setTarget(selNode.data.uid);
+        addtozenpack.show();
+    }
+};
 
 function initializeTreeDrop(tree) {
 
-    tree.getView().on('beforedrop', function(element, event, target) {
-        if (Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION)) {
-            return false;
-        }
-        // should always only be one selection
-        var uid = event.records[0].get("uid"),
-            targetUid = target.get("uid");
-        if (target.get("leaf") || uid === targetUid) {
-            return false;
-        }
-
-        Zenoss.remote.ReportRouter.moveNode({
-            uid: uid,
-            target: targetUid
-        }, function(response){
-            if(response.success){
-               tree.refresh();
+    tree.getView().on({
+        beforedrop: function(element, dragData, target) {
+            if (Zenoss.Security.doesNotHavePermission(REPORT_PERMISSION)) {
+                return false;
             }
-        });
-        return true;
+            // should always only be one selection
+            var uid = dragData.records[0].get("uid"),
+                targetUid = target.get("uid");
+            if (target.get("leaf") || uid === targetUid) {
+                return false;
+            }
+            return true;
+        },
+        // we should do the action on successful UI drop;
+        drop: function(element, dragData, target) {
+            var uid = dragData.records[0].get("uid"),
+                targetUid = target.get("uid");
 
+            Zenoss.remote.ReportRouter.moveNode({
+                uid: uid,
+                target: targetUid
+            }, function(response){
+                if(response.success){
+                   tree.refresh(function() {
+                       tree.selectNodeAfterAction(targetUid);
+                   });
+                }
+            });
+        }
     });
-}
+};
 
 function insertNewNode(tree, data, organizerNode) {
     var newNode = organizerNode.appendChild(data.newNode);
     organizerNode.expand();
     report_tree.getSelectionModel().select(newNode);
     return newNode;
-}
+};
 
 
 Ext.define('Zenoss.ReportTreePanel', {
@@ -115,11 +125,28 @@ Ext.define('Zenoss.ReportTreePanel', {
     // Do not automatically select the first filtered result since running
     // a report is so expensive.
     postFilter: Ext.emptFn,
+    //helper functiona to select node after add/remove/move
+    selectNodeAfterAction: function(nodeUid) {
+        var rootNode = this.getRootNode(),
+            //get fresh target node because store was reloaded and old target node was destroyed;
+            node = rootNode.findChild('uid', nodeUid, true);
+        //check if we have this node loaded, if so expand and select it;
+        if (node) {
+            node.expand(false);
+            this.getSelectionModel().select(node);
+        } else {
+            // otherwise listen store "expand" event and repeat this action.
+            this.store.on('expand', function () {
+                this.selectNodeAfterAction(nodeUid);
+            }, this, {single: true});
+        }
+    },
     addNode: function (nodeType, id) {
         var selNode = this.getSelectionModel().getSelectedNode(),
             tree = this,
             newNode;
-        if(!selNode.data.uid){
+        // we should also check is something is selected;
+        if(!selNode || !selNode.data.uid){
             this.getSelectionModel().selectByPosition({row: 0});
             selNode = this.getSelectionModel().getSelectedNode();
         }
@@ -131,10 +158,16 @@ Ext.define('Zenoss.ReportTreePanel', {
         }, function (data) {
             if (data.success) {
                 newNode = insertNewNode(tree, data, parentNode);
-                if (newNode.data.edit_url) {
-                    window.location = newNode.data.edit_url;
+
+                if (newNode.get('edit_url')) {
+                    tree.editReport(newNode);
+                } else {
+                    // refresh only we not navigating to edit url;
+                    tree.refresh(function() {
+                        // select parent node on after refresh;
+                        tree.selectNodeAfterAction(parentNode.data.uid);
+                    });
                 }
-                tree.refresh();
             }
         });
     },
@@ -158,11 +191,18 @@ Ext.define('Zenoss.ReportTreePanel', {
             msg: message,
             fn: function(buttonid) {
                 if (buttonid==='ok') {
+                    report_tree._deleteSubNodes();
                     report_tree._deleteSelectedNode();
                 }
             },
             buttons: Ext.MessageBox.OKCANCEL
         });
+    },
+    _deleteSubNodes: function () {
+        var node = this.getSelectionModel().getSelectedNode();
+        while(node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
     },
     _deleteSelectedNode: function () {
         var node = this.getSelectionModel().getSelectedNode(),
@@ -178,48 +218,28 @@ Ext.define('Zenoss.ReportTreePanel', {
                 parentNode.removeChild(node);
                 node.destroy();
                 this.addHistoryToken(this.getView(), parentNode);
-                this.refresh();
+                this.refresh(function() {
+                    // select parent node on after refresh;
+                    this.selectNodeAfterAction(parentNode.data.uid);
+                }, this);
             }
         }
         this.router.deleteNode(params, Ext.Function.bind(callback, this));
     },
-    editReport: function () {
-        window.location = this.getSelectionModel().getSelectedNode().data.edit_url;
-    }
-});
+    editReport: function (node) {
+        var selNode = node || this.getSelectionModel().getSelectedNode(),
+            // Add /VirtualRoot/ if it is absent to prevent conflicts
+            editUrl = Zenoss.render.link(false, selNode && selNode.get('edit_url'));
 
-
-
-
-
-treesm = new Zenoss.TreeSelectionModel({
-    listeners: {
-        'selectionchange': function (sm, newnode) {
-            if (newnode === null || !report_panel.backcompat.processed
-                || !report_panel.graph_reports.graphs_added) {
-                return;
-            }
-            var attrs = newnode[0].data;
-            if (attrs.isGraphReport && attrs.uid) {
-                report_panel.graph_reports.graphs_added = false;
-                report_panel.renderGraphReport(attrs);
-            } else if (attrs.isMultiGraphReport && attrs.uid) {
-                report_panel.graph_reports.graphs_added = false;
-                report_panel.renderMultiGraphReport(attrs);
-            } else {
-                report_panel.backcompat.processed = false;
-                report_panel.setContext(attrs.leaf ? Ext.urlAppend(attrs.uid, 'adapt=false') : '');
-            }
-
-            if (Zenoss.Security.hasPermission(REPORT_PERMISSION)) {
-                Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
-                Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
-                Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
-                Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
-            }
+        // we should also check if something is selected;
+        if(selNode && editUrl) {
+            window.location = editUrl;
         }
     }
 });
+
+
+
 
 report_tree = new Zenoss.ReportTreePanel({
     id: 'reporttree',
@@ -237,7 +257,37 @@ report_tree = new Zenoss.ReportTreePanel({
         text: _t('Report Classes'),
         allowDrop: false
     },
-    selModel: treesm,
+    // selection model should be defined in component scopes;
+    selModel: new Zenoss.TreeSelectionModel({
+        listeners: {
+            'selectionchange': function (sm, newnode) {
+                if (!newnode || !newnode.length || !report_panel.backcompat.processed
+                    || !report_panel.graph_reports.graphs_added) {
+                    return;
+                }
+                var attrs = newnode[0].data;
+                if (attrs.isGraphReport && attrs.uid) {
+                    report_panel.graph_reports.graphs_added = false;
+                    report_panel.renderGraphReport(attrs);
+                } else if (attrs.isMultiGraphReport && attrs.uid) {
+                    report_panel.graph_reports.graphs_added = false;
+                    report_panel.renderMultiGraphReport(attrs);
+                } else {
+                    report_panel.backcompat.processed = false;
+                    // Add /VirtualRoot/ if it is absent to prevent conflicts
+                    var uid = Zenoss.render.link(false, attrs.uid);
+                    report_panel.setContext(attrs.leaf ? Ext.urlAppend(uid, 'adapt=false') : '');
+                }
+
+                if (Zenoss.Security.hasPermission(REPORT_PERMISSION)) {
+                    Ext.getCmp('add-organizer-button').setDisabled(attrs.leaf);
+                    Ext.getCmp('add-to-zenpack-button').setDisabled(attrs.leaf);
+                    Ext.getCmp('edit-button').setDisabled(!attrs.edit_url);
+                    Ext.getCmp('delete-button').setDisabled(!attrs.deletable);
+                }
+            }
+        }
+    }),
     listeners: {
         render: initializeTreeDrop
     },

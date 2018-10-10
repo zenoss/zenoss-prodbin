@@ -280,7 +280,11 @@ class MibRouter(TreeRouter):
         return DirectResponse.succeed(count=count, data=Zuul.marshal(nodes))
 
     def getOid(self, oid):
-        node = next(iter(self.api.getOidList(oid)), None)
+        try:
+            node = next(iter(self.api.getOidList(oid)), None)
+        except Exception as ex:
+            log.warn("Error while looking up OID '%s': %s", oid, ex)
+            node = None
         if node is None:
             return DirectResponse.fail()
         return DirectResponse.succeed(info=Zuul.marshal(IInfo(node)))

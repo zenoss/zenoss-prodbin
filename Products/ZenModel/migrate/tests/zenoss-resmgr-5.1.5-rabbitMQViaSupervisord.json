@@ -1051,7 +1051,7 @@
          "Filename": "/etc/rabbitmq/rabbit_supervisor.conf",
          "Owner": "root:root",
          "Permissions": "0664",
-         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:rabbitmq]\ncommand=/usr/sbin/rabbitmq-server\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:rabbitmq_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/gather.py rabbitmq\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:rabbitmq]\ncommand=/usr/sbin/rabbitmq-server\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:rabbitmq_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/rabbitstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
        }
      },
      "ConfigFiles": {
@@ -1071,7 +1071,7 @@
          "Filename": "/etc/rabbitmq/rabbit_supervisor.conf",
          "Owner": "root:root",
          "Permissions": "0664",
-         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:rabbitmq]\ncommand=/usr/sbin/rabbitmq-server\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:rabbitmq_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/gather.py rabbitmq\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+         "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:rabbitmq]\ncommand=/usr/sbin/rabbitmq-server\nautorestart=true\nautostart=true\nstartsecs=5\npriority=1\n\n[program:rabbitmq_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/rabbitstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=10\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
        }
      },
      "Instances": 1,

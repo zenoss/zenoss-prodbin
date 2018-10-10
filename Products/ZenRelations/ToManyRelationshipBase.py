@@ -26,6 +26,7 @@ from App.Management import Tabs
 
 from Products.ZenRelations.Exceptions import zenmarker
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.deprecated import deprecated
 
 class ToManyRelationshipBase(
             RelCopyContainer,
@@ -48,17 +49,19 @@ class ToManyRelationshipBase(
 
     _operation = -1 # if a Relationship's are only deleted
 
-    _count = None
 
+
+    @deprecated
     def setCount(self):
-        self._count = len(self._objects)
+        # It appeared that there is a mysterious issue with count syncing in
+        # some cases e.g. ZEN-27668 after discussion with Ian decided to remove it
+        # as it is redundant.
+        pass
 
 
     def countObjects(self):
         """Return the number of objects in this relationship"""
-        if self._count is None:
-            self.setCount()
-        return self._count
+        return len(self._objects)
 
 
     def findObjectsById(self, partid):

@@ -225,4 +225,28 @@ Ext.onReady(function(){
             });
     }
 
+    // ZEN-28542: memory leak, unclear if it's from our extensions to
+    // Ext or Ext itself. Set up activity listeners and reload the page
+    // after 1 hour of inactivity.
+    var timeoutID;
+    var body = Ext.getBody();
+    body.on('mousemove', resetInactive);
+    body.on('keydown', resetInactive);
+
+    function resetInactive() {
+        clearTimeout(timeoutID);
+        startInactive();
+    }
+
+    function startInactive() {
+        timeoutID = setTimeout(doReload, 1000 * 60 * 60);
+    }
+
+    function doReload() {
+        grid.destroy();
+        window.location.reload();
+    }
+
+    startInactive();
+
 });

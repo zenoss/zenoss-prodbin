@@ -1,8 +1,10 @@
+
 import logging
 log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
+
 sm.require("1.1.8")
 
 zproxy_supervisord_conf = '''\
@@ -35,7 +37,7 @@ startsecs=5
 priority=1
 
 [program:zproxy_metrics]
-command=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py zproxy
+command=/usr/bin/python /opt/zenoss/bin/metrics/zenossStatsView.py
 autorestart=true
 autostart=true
 startsecs=5
@@ -51,7 +53,7 @@ stdout_logfile=/opt/zenoss/log/%(program_name)s.log
 class ZProxyViaSupervisorD(Migrate.Step):
     """Run zproxy via supervisord."""
 
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
 

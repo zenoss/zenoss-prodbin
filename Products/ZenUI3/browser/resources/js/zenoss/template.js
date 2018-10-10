@@ -67,16 +67,27 @@ function reloadTree(selectedId) {
     if (selectedId){
         tree.getStore().load({
             callback: function() {
-                tree.getRootNode().childNodes[0].expand();
+                // we should sort tree store on after add because new added node always appear at bottom event after store reload;
+                tree.store.sort('id', 'ASC');
+                // tree.getRootNode().childNodes[0].expand();
                 tree.selectByToken(selectedId);
             }
         });
     }else{
         // select the first node
         tree.getStore().load({
-            callback: function(){
-                tree.getRootNode().childNodes[0].expand();
-                tree.getRootNode().childNodes[0].childNodes[0].select();
+            callback: function() {
+                var rootNode = tree.getRootNode(),
+                    firstNode = rootNode.firstChild;
+                // need to refresh view before we expand/select something
+                // because on after remove and reload tree node map doesn't refresh and this cause selection problem;
+                tree.getView().refresh();
+                // select first node leaf on after node is expanded;
+                firstNode.expand(false, function() {
+                    if (firstNode.firstChild) {
+                        tree.selectByToken(firstNode.firstChild.get('uid'));
+                    }
+                }, this);
             }
         });
     }
@@ -87,10 +98,11 @@ beforeselectHandler = function(sm, node) {
 };
 
 updateDataSources = function(uid) {
-    var panel, treeGrid;
-    if ( ! Ext.getCmp(dataSourcesId) ) {
-        panel = Ext.getCmp('center_detail_panel');
-        panel.add({
+    var panel = Ext.getCmp('center_detail_panel'),
+        treeGrid = Zenoss.getCmp(dataSourcesId, panel);
+
+    if (!treeGrid) {
+        treeGrid = panel.add({
             xtype: 'DataSourceTreeGrid',
             uid: uid,
             root: {
@@ -98,12 +110,9 @@ updateDataSources = function(uid) {
                 uid: uid
             }
         });
-        treeGrid = Ext.getCmp(dataSourcesId);
-    } else {
-        // create a new async node since we may have had a dummy one
-        var tree = Ext.getCmp(dataSourcesId);
-        tree.setContext(uid);
     }
+    // create a new async node since we may have had a dummy one
+    treeGrid.setContext(uid);
 };
 
 updateThresholds = function(uid) {
@@ -118,24 +127,24 @@ updateThresholds = function(uid) {
 };
 
 updateGraphs = function(uid) {
-    var panel;
-    panel = Ext.getCmp('bottom_detail_panel');
-    if ( ! Ext.getCmp(graphsId) ) {
-        panel.add({
+    var panel = Ext.getCmp('bottom_detail_panel'),
+        graphGrid = Zenoss.getCmp(graphsId, panel);
+
+    if (!graphGrid ) {
+        graphGrid = panel.add({
             xtype: 'graphgrid',
-            id: graphsId
+            itemId: graphsId
         });
         panel.doLayout();
     }
-    Ext.getCmp(graphsId).setContext(uid);
+    graphGrid.setContext(uid);
 };
 
 
 selectionchangeHandler = function(sm, nodes) {
-    var node;
-    if (nodes){
-        // only single select
-        node = nodes[0];
+    // only single select
+    var node = nodes && nodes[0];
+    if (node){
         updateDataSources(node.data.uid);
         updateThresholds(node.data.uid);
         updateGraphs(node.data.uid);
@@ -157,23 +166,22 @@ selectionchangeHandler = function(sm, nodes) {
     footerBar.buttonAdd.setTooltip(_t('Add a monitoring template'));
 
     // disable/enable the add buttons
-    Ext.getCmp(thresholdsId).addButton.setDisabled(!node);
-    Ext.getCmp(graphsId).addButton.setDisabled(!node);
-    Ext.getCmp(dataSourcesId).disableToolBarButtons(!node);
+    Zenoss.getCmp(thresholdsId, footerBar).addButton.setDisabled(!node);
+    Zenoss.getCmp(graphsId, footerBar).addButton.setDisabled(!node);
+    Zenoss.getCmp(dataSourcesId, footerBar).disableToolBarButtons(!node);
 };
-
-selModel = new Zenoss.TreeSelectionModel({
-    listeners: {
-        beforeselect: beforeselectHandler,
-        selectionchange: selectionchangeHandler
-    }
-});
 
 Ext.getCmp('master_panel').add({
     xtype: 'HierarchyTreePanelSearch',
     items:[{
         xtype: 'TemplateTreePanel',
-        selModel: selModel,
+        // selection model should be defined in component scopes;
+        selModel: new Zenoss.TreeSelectionModel({
+            listeners: {
+                beforeselect: beforeselectHandler,
+                selectionchange: selectionchangeHandler
+            }
+        }),
         enableDragDrop: false,
         currentView: getCurrentView()
     }]
@@ -431,6 +439,8 @@ addTemplateDialogConfig = {
         queryMode: 'remote',
         ref: '../comboBox',
         selectOnFocus: true,
+        // make it required to avoid server error if no template selected;
+        allowBlank: false,
         typeAhead: true,
         listConfig: {
             resizable: true
@@ -466,7 +476,9 @@ Zenoss.footerHelper(_t('Monitoring Template'),
                         addToZenPack: false,
                         customAddDialog: addTemplateDialogConfig
                     });
-
+//disable remove/edit buttons untill we select something in tree;
+footerBar.buttonContextMenu.disable();
+footerBar.buttonDelete.disable();
 footerBar.buttonContextMenu.menu.add({
     text: _t('View and Edit Details'),
     disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
@@ -487,31 +499,44 @@ footerBar.buttonContextMenu.menu.add({
 });
 
 footerBar.on('buttonClick', function(actionName, id, values) {
-    var params, tree = Ext.getCmp(treeId);
+    var params, tree = Ext.getCmp(treeId),
+        rootNode = tree.getRootNode();
+    // if no root node we should prevent any action if buttons are enabled;
+    if (!rootNode) return;
+
     switch (actionName) {
-        case 'addClass':
+        case 'addClass': {
             params = {
                 id: values.id,
                 targetUid: values.targetUid
             };
-            router.addTemplate(params, function(response) {
+            router.addTemplate(params, function (response) {
                 reloadTree(response.nodeConfig.uid);
             });
-        break;
-        case 'delete':
-            params = {
-                uid: Ext.getCmp(treeId).getSelectionModel().getSelectedNode().data.uid
-            };
-            router.deleteTemplate(params,
-            function(){
-                reloadTree();
-                tree.clearFilter();
-                footerBar.buttonDelete.setDisabled(true);
-                footerBar.buttonContextMenu.setDisabled(true);
-            });
-        break;
-        default:
-        break;
+            break;
+        }
+        case 'delete': {
+            var selModel = tree.getSelectionModel(),
+                selection = selModel.getSelectedNode();
+            if (selection) {
+                params = {
+                    uid: selection.data.uid
+                };
+                router.deleteTemplate(params,
+                    function () {
+                        tree.store.clearFilter();
+                        reloadTree();
+                    });
+                // we should manualy remove record from store to refresh view and get rid of old nodes;
+                // for some reasons after store reload tree nodes are not refreshed;
+                rootNode.removeChild(selection.parentNode);
+                selModel.deselectAll();
+            }
+            break;
+        }
+        default: {
+            break;
+        }
     }
 });
 

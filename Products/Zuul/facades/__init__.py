@@ -23,13 +23,15 @@ import logging
 import re
 from itertools import imap, islice
 from Acquisition import aq_parent
+from zope.component import getUtility
 from zope.event import notify
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.ComponentOrganizer import ComponentOrganizer
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between, In, MatchGlob
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import (
     ITreeFacade, IInfo, IOrganizerInfo
@@ -77,6 +79,7 @@ class ZuulFacade(object):
             return get_dmd()
 
     def _getObject(self, uid):
+        uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
         try:
             obj = self._dmd.unrestrictedTraverse(str(uid))
         except Exception, e:
@@ -175,15 +178,7 @@ class TreeFacade(ZuulFacade):
         params = params if params else {}
         for key, value in params.iteritems():
             if key == 'ipAddress':
-                ip = ensureIp(value)
-                try:
-                    checkip(ip)
-                except IpAddressError:
-                    pass
-                else:
-                    if numbip(ip):
-                        minip, maxip = getSubnetBounds(ip)
-                        qs.append(Between('decimal_ipAddress', str(minip), str(maxip)))
+                qs.append(MatchGlob('text_ipAddress', '{}*'.format(value)))
             elif key == 'productionState':
                 qs.append(Or(*[Eq('productionState', str(state))
                              for state in value]))
@@ -216,7 +211,7 @@ class TreeFacade(ZuulFacade):
 
         # ZEN-10057 - Handle the case of empty results for a filter with no matches
         if not brains:
-            return SearchResults([], 0, [])
+            return SearchResults(iter([]), 0, '0')
 
         devices = [ IInfo(obj) for obj in imap(unbrain, brains) if obj ]
 
@@ -313,3 +308,4 @@ from .application import ApplicationFacade
 from .monitor import MonitorFacade
 from userfacade import UserFacade
 from .hostfacade import HostFacade
+from .modelqueryfacade import ModelQueryFacade

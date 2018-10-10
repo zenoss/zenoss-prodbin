@@ -99,7 +99,7 @@ class Layer3Link(object):
         brains = self.abrains + self.bbrains
 
         # lookup all device uuids, make sure at least one exists
-        devUuids = [self.idmgr.findDeviceUuid(a.deviceId, None) for a in brains]
+        devUuids = [self.idmgr.findDeviceUuid(a.deviceId.split("/")[-1], None) for a in brains if a.deviceId]
         validDevUuids = filter(None, devUuids)
         if not validDevUuids:
             return SEVERITY_CLEAR
@@ -358,7 +358,7 @@ class LinkManager(Folder):
                 for loc in locs:
                     # get l3 brains that belong to net and whose device is in devices_per_location[location]
                     location_devices = devices_per_location[loc]
-                    location_brains = set( [ b for b in layer3_brains if b.deviceId in location_devices ] )
+                    location_brains = set( [ b for b in layer3_brains if b.deviceId and b.deviceId.split("/")[-1] in location_devices ] )
                     layer3_brains = layer3_brains - location_brains
                     net_locations[loc] = list(location_brains)
 

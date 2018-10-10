@@ -22,22 +22,26 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 
-def createOID(dmd, container, new_oid, logger=None):
-    oid_list = [i.getObject() for i in dmd.mibSearch(oid=new_oid.oid)]
-    for old_oid in oid_list:
-        if logger and old_oid.moduleName != new_oid.moduleName:
+def createOID(dmd, container, new_node, logger=None):
+    for brain in dmd.mibSearch(oid=new_node.oid):
+        old_node = dmd.unrestrictedTraverse(brain.getPath(), None)
+        if old_node is None:
+            # Brain's path not found, so delete it.
+            dmd.mibSearch.uncatalog_object(brain.getPath())
+            continue
+        if logger and (old_node.moduleName != new_node.moduleName):
             logger.warn(
                 "OID '%s' will be removed from organizer '%s' "
                 "and added to organizer '%s'.",
-                new_oid.oid, old_oid.moduleName, new_oid.moduleName
+                new_node.oid, old_node.moduleName, new_node.moduleName
             )
-        old_oid.getParentNode()._delObject(old_oid.id)
+        old_node.getParentNode()._delObject(old_node.id)
     try:
-        container._checkId(new_oid.id)
+        container._checkId(new_node.id)
     except BadRequest:
-        container._delObject(new_oid.id)
-    container._setObject(new_oid.id, new_oid)
-    return container._getOb(new_oid.id)
+        container._delObject(new_node.id)
+    container._setObject(new_node.id, new_node)
+    return container._getOb(new_node.id)
 
 
 class MibModule(ZenModelRM, ZenPackable):

@@ -19,11 +19,12 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchG
 from Products.ZenUtils.NaturalSort import natural_compare
 from Products.Zuul.catalog.interfaces import IModelCatalog
 from Products.Zuul.catalog.model_catalog import SearchResults, MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
+from zenoss.modelindex.constants import DEFAULT_SEARCH_LIMIT
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.tree import StaleResultsException
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups, unbrain
-from zenoss.modelindex.model_index import SearchParams
+from zenoss.modelindex.model_index import SearchParams, CursorSearchParams
 from zope.interface import implements
 from zope.component import getUtility
 
@@ -110,7 +111,7 @@ class ModelCatalogTool(object):
 
         @return: tuple (AdvancedQuery query, not indexed filters dict)
         """
-        available_indexes = self.model_catalog_client.get_indexes()
+        indexed, stored, _ = self.model_catalog_client.get_indexes()
         not_indexed_user_filters = {} # Filters that use not indexed fields
 
         user_filters_query = None
@@ -119,7 +120,6 @@ class ModelCatalogTool(object):
         permissions_query = None
 
         partial_queries = []
-
         if query:
             """
             # if query is a dict, we convert it to AdvancedQuery
@@ -139,11 +139,11 @@ class ModelCatalogTool(object):
         # Build query from filters passed by user
         if globFilters:
             for key, value in globFilters.iteritems():
-                if key in available_indexes:
+                if key in indexed:
                     if user_filters_query:
-                        user_filters_query = And(query, MatchRegexp(key, '*%s*' % value))
+                        user_filters_query = And(user_filters_query, MatchRegexp(key, value))
                     else:
-                        user_filters_query = MatchRegexp(key, '*%s*' % value)
+                        user_filters_query = MatchRegexp(key, value)
                 else:
                     not_indexed_user_filters[key] = value
 
@@ -191,7 +191,7 @@ class ModelCatalogTool(object):
         return (search_query, not_indexed_user_filters)
 
     def search_model_catalog(self, query, start=0, limit=None, order_by=None, reverse=False,
-                             fields=None, commit_dirty=False):
+                             fields=None, commit_dirty=False, facets_for_field=None):
         """
         @returns: SearchResults
         """
@@ -199,6 +199,8 @@ class ModelCatalogTool(object):
         brains = []
         count = 0
         search_params = SearchParams(query, start=start, limit=limit, order_by=order_by, reverse=reverse, fields=fields)
+        if facets_for_field:
+            search_params.facet_field=facets_for_field
         catalog_results = self.model_catalog_client.search(search_params, self.context, commit_dirty=commit_dirty)
         return catalog_results
 
@@ -269,20 +271,30 @@ class ModelCatalogTool(object):
         return sorted((unbrain(brain) for brain in queryResults),
                       key=getValue, reverse=reverse, cmp=natural_compare)
 
+    def cursor_search(self, types=(), limit=DEFAULT_SEARCH_LIMIT, filterPermissions=False, fields=None):
+        """
+        Get all results from catalog by using solr deep pagination.
+        return generator.
+        """
+        query, _ = self._build_query(filterPermissions=filterPermissions, types=types)
+        search_params = CursorSearchParams(query, limit=limit, fields=fields)
+        return self.model_catalog_client.cursor_search(search_params, self.context)
+
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,
                hashcheck=None, filterPermissions=True, globFilters=None,
-               fields=None, commit_dirty=False):
+               fields=None, commit_dirty=False, facets_for_field=None):
         """
         Build and execute a query against the global catalog.
         @param query: Advanced Query query
         @param globFilters: dict {field: value}
         @param fields: Fields we want model index to return. The fewer 
                        fields we need to retrieve the faster the query will be
+        @param facets_for_field: Field for which we want to retrieve its facets
         """
-        available_indexes = self.model_catalog_client.get_indexes()
+        indexed, stored, _ = self.model_catalog_client.get_indexes()
         # if orderby is not an index then query results will be unbrained and sorted
-        areBrains = orderby in available_indexes or orderby is None
+        areBrains = orderby in indexed or orderby is None
         queryOrderby = orderby if areBrains else None
         
         query, not_indexed_user_filters = self._build_query(types, paths, depth, query, filterPermissions, globFilters)
@@ -293,7 +305,7 @@ class ModelCatalogTool(object):
 
         catalog_results = self.search_model_catalog(query, start=queryStart, limit=queryLimit,
                                                     order_by=queryOrderby, reverse=reverse,
-                                                    fields=fields, commit_dirty=commit_dirty)
+                                                    fields=fields, commit_dirty=commit_dirty, facets_for_field=facets_for_field)
         if len(not_indexed_user_filters) > 0:
             # unbrain everything and filter
             results = self._filterQueryResults(catalog_results, not_indexed_user_filters)
@@ -304,33 +316,32 @@ class ModelCatalogTool(object):
 
         hash_ = totalCount
 
-        if areBrains:
-            allResults = results
-        else: # Even if orderby was an indexed field,, _filterQueryResults will randomize the order
-            allResults = self._sortQueryResults(results, orderby, reverse)
-
         if hashcheck is not None:
             if hash_ != int(hashcheck):
                 raise StaleResultsException("Search results do not match")
 
-        # Return a slice
-        start = max(start, 0)
-        if limit is None:
-            stop = None
-        else:
-            stop = start + limit
-        results = islice(allResults, start, stop)
-
-        return SearchResults(results, totalCount, str(hash_), areBrains)
+        if not areBrains: # Even if orderby was an indexed field,, _filterQueryResults will randomize the order
+            sorted_results = self._sortQueryResults(results, orderby, reverse)
+            # Return a slice
+            start = max(start, 0)
+            if limit is None:
+                stop = None
+            else:
+                stop = start + limit
+            results = islice(sorted_results, start, stop)
+        search_results = SearchResults(results, totalCount, str(hash_), areBrains)
+        if catalog_results.facets:
+            search_results.facets = catalog_results.facets
+        return search_results
 
     def __call__(self, *args, **kwargs):
         return self.search(*args, **kwargs)
 
-    def getBrainFromObject(self, ob):
+    def getBrainFromObject(self, ob, fields=None):
         """
         Builds a object's brain without searching model_catalog
         """
-        return self.model_catalog_client.get_brain_from_object(ob, self.context)
+        return self.model_catalog_client.get_brain_from_object(ob, self.context, fields=fields)
 
     def getBrain(self, path, fields=None, commit_dirty=False):
         """

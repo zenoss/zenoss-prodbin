@@ -168,12 +168,13 @@ Ext.define("Zenoss.templates.MonTemplateTreePanel", {
         }, this);
     },
     setContext: function(uid, callback, scope) {
-        this.uid = uid;
-        if ( uid.match('^/zport/dmd/Devices') ) {
+        // ZEN-30062
+        this.uid = Zenoss.render.link(false, uid);
+        if ( this.uid.match('^/zport/dmd/Devices') ) {
             this.show();
             var root = this.getRootNode();
             if (root) {
-                root.data.uid = uid;
+                root.data.uid = this.uid;
                 this.getStore().load({
                     callback: callback,
                     scope: scope

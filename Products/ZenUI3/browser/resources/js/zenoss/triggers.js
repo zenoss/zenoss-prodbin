@@ -7,7 +7,7 @@
  *
  ****************************************************************************/
 
-Ext.ns('Zenoss.ui.Triggers');
+Ext.ns('Zenoss.triggers');
 
 Ext.onReady(function () {
 
@@ -809,7 +809,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
 
 
 
-    Ext.define("Zenoss.trigger.EditScheduleDialogue", {
+    Ext.define("Zenoss.triggers.EditScheduleDialogue", {
         alias:['widget.editscheduledialogue'],
         extend:"Zenoss.dialog.BaseWindow",
         constructor: function(config) {
@@ -817,10 +817,10 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
             Ext.applyIf(config, {
                 modal: true,
                 plain: true,
-                width: 450,
-                height: 250,
-                maxWidth: 450,
-                maxHeight: 250,
+                autoHeight: true,
+                minHeight: 100,
+                autoWidth: true,
+                minWidth: 250,
                 closeAction: 'hide',
                 items:{
                     xtype:'form',
@@ -832,99 +832,85 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         },
                         scope: this
                     },
-                    items:[
-                        {
-                            xtype: 'hidden',
-                            name: 'uid',
-                            ref: 'uid'
-                        },{
-                            xtype: 'checkbox',
-                            name: 'enabled',
-                            id: 'edit_notification_schedule_enabled_checkbox',
-                            ref: 'enabled',
-                            fieldLabel: _t('Enabled')
-                        },{
-                            xtype: 'datefield',
-                            name: 'start',
-                            ref: 'start',
-                            id: 'edit_notification_schedule_start_datefield',
-                            format: 'm-d-Y',
-                            allowBlank: false,
-                            fieldLabel: _t('Start Date')
-                        }, {
-                            xtype: 'timefield',
-                            name: 'starttime',
-                            ref: 'starttime',
-                            id: 'edit_notification_schedule_starttime_timefield',
-                            allowBlank: false,
-                            format: 'H:i',
-                            submitFormat: 'H:i',
-                            fieldLabel: _t('Start Time')
-                        },
-                        new Ext.form.ComboBox({
-                            store: new Ext.data.ArrayStore({
-                                model: 'Zenoss.model.Name',
-                                id: 0,
-                                data: [
-                                    ['Never'],
-                                    ['Daily'],
-                                    ['Every Weekday'],
-                                    ['Weekly'],
-                                    ['Monthly'],
-                                    ['First Sunday of the Month']
-                                ]
-                            }),
-                            queryMode: 'local',
-                            name: 'repeat',
-                            id: 'edit_notification_schedule_repeat_checkbox',
-                            allowBlank: false,
-                            required: true,
-                            editable: false,
-                            displayField: 'name',
-                            valueField: 'name',
-                            triggerAction: 'all',
-                            fieldLabel: _t('Repeat')
-                        }),{
-                            xtype: 'numberfield',
-                            allowNegative: false,
-                            allowDecimals: false,
-                            id: 'edit_notification_schedule_duration_numberfield',
-                            name: 'duration',
-                            ref: 'duration',
-                            fieldLabel: _t('Duration (minutes)')
+                    items:[{
+                        xtype: 'hidden',
+                        name: 'uid',
+                        ref: 'uid'
+                    },{
+                        xtype: 'checkbox',
+                        name: 'enabled',
+                        id: 'edit_notification_schedule_enabled_checkbox',
+                        fieldLabel: _t('Enabled')
+                    },{
+                        xtype: 'zendatetimefield',
+                        name: 'start_ts',
+                        id: 'edit_notification_schedule_start_datefield',
+                        allowBlank: false,
+                        fieldLabel: _t('Start Date')
+                    },
+                    new Ext.form.ComboBox({
+                        store: new Ext.data.ArrayStore({
+                            model: 'Zenoss.model.Name',
+                            id: 0,
+                            data: [
+                                ['Never'],
+                                ['Daily'],
+                                ['Every Weekday'],
+                                ['Weekly'],
+                                ['Monthly'],
+                                ['First Sunday of the Month']
+                            ]
+                        }),
+                        queryMode: 'local',
+                        name: 'repeat',
+                        id: 'edit_notification_schedule_repeat_checkbox',
+                        allowBlank: false,
+                        required: true,
+                        editable: false,
+                        displayField: 'name',
+                        valueField: 'name',
+                        triggerAction: 'all',
+                        fieldLabel: _t('Repeat')
+                    }),{
+                        xtype: 'numberfield',
+                        allowNegative: false,
+                        allowDecimals: false,
+                        id: 'edit_notification_schedule_duration_numberfield',
+                        name: 'duration',
+                        ref: 'duration',
+                        fieldLabel: _t('Duration (minutes)')
+                    }],
+                    buttons:[{
+                        xtype: 'button',
+                        ui: 'dialog-dark',
+                        text: _t('Submit'),
+                        ref: '../../submitButton',
+                        id: 'edit_notification_schedule_submit_button',
+                        handler: function(button) {
+                            if (config.submitHandler) {
+                                config.submitHandler(button);
+                            } else {
+                                var params = button.refOwner.editForm.getForm().getValues();
+                                console.log(params);
+                                config.directFn(params, function(){
+                                    config.reloadFn();
+                                    button.refOwner.hide();
+                                });
+                            }
                         }
-                    ],
-                    buttons:[
-                        {
-                            xtype: 'button',
-                            ui: 'dialog-dark',
-                            text: _t('Submit'),
-                            ref: '../../submitButton',
-                            id: 'edit_notification_schedule_submit_button',
-                            handler: function(button) {
-                                if (config.submitHandler) {
-                                    config.submitHandler(button);
-                                } else {
-                                    var params = button.refOwner.editForm.getForm().getValues();
-                                    config.directFn(params, function(){
-                                        config.reloadFn();
-                                        button.refOwner.hide();
-                                    });
-                                }
-                            }
-                        },{
-                            xtype: 'button',
-                            ui: 'dialog-dark',
-                            ref: '../../cancelButton',
-                            id: 'edit_notification_schedule_cancel_button',
-                            text: _t('Cancel'),
-                            handler: function(button) {
-                                button.refOwner.hide();
-                            }
-                        }]
-                    }
+                    },{
+                        xtype: 'button',
+                        ui: 'dialog-dark',
+                        ref: '../../cancelButton',
+                        id: 'edit_notification_schedule_cancel_button',
+                        text: _t('Cancel'),
+                        handler: function(button) {
+                            button.refOwner.hide();
+                        }
+                    }]
+                }
             });
-            Zenoss.trigger.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
+            Zenoss.triggers.EditScheduleDialogue.superclass.constructor.apply(this, arguments);
         },
         loadData: function(data) {
             Ext.each(this.editForm.items.items, function(item) {
@@ -934,7 +920,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
     });
 
 
-    editScheduleDialogue = new Zenoss.trigger.EditScheduleDialogue(editScheduleDialogueConfig);
+    editScheduleDialogue = new Zenoss.triggers.EditScheduleDialogue(editScheduleDialogueConfig);
     addScheduleDialogue = new Zenoss.trigger.AddDialogue(addScheduleDialogueConfig);
 
     /**
@@ -1010,22 +996,19 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 },
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(sm) {
-                            var rows = sm.getSelection(),
-                                row,
+                        selectionchange: function(t, selection) {
+                            var sel = selection[0],
+                                delState = state = !sel,
                                 panel = Ext.getCmp(schedulesPanelConfig.id);
-                            if (!rows.length) {
-                                return;
+
+                            if (sel) {
+                                panel.setContext(sel.data.uid, sel.data);
+                                delState = !sel.data.userWrite;
                             }
-                            row = rows[0];
-                            panel.setContext(row.data.uid, row.data);
-                            me.deleteButton.setDisabled(!row.data.userWrite);
-                            me.customizeButton.setDisabled(false);
-                        },
-                        deselect: function() {
-                            Ext.getCmp(schedulesPanelConfig.id).disableButtons(true);
-                            me.deleteButton.setDisabled(true);
-                            me.customizeButton.setDisabled(true);
+
+                            me.deleteButton.setDisabled(state);
+                            me.customizeButton.setDisabled(state);
+                            panel.disableButtons(state);
                         }
                     },
                     scope: this
@@ -1206,14 +1189,12 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                 store: Ext.create('Zenoss.triggers.TriggersStore', {}),
                 selModel: new Zenoss.SingleRowSelectionModel({
                     listeners: {
-                        select: function(record) {
+                        selectionchange: function(t, selection) {
+                            var sel = selection[0],
+                                state = !sel;
                             // enable/disabled the edit button
-                            me.deleteButton.setDisabled(!record.lastSelected.data.userWrite);
-                            me.customizeButton.setDisabled(false);
-                        },
-                        deselect: function() {
-                            me.deleteButton.setDisabled(true);
-                            me.customizeButton.setDisabled(true);
+                            me.deleteButton.setDisabled(state || !sel.data.userWrite);
+                            me.customizeButton.setDisabled(state);
                         }
                     }
                 }),
@@ -1251,10 +1232,9 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         ref: '../deleteButton',
                         handler: function() {
                             var rows = me.getSelectionModel().getSelection(),
-                                row,
+                                row = rows && rows[0],
                                 uuid, params, callback;
-                            if (rows){
-                                row = rows[0];
+                            if (row){
                                 uuid = row.data.uuid;
                                 // show a confirmation
                                  new Zenoss.dialog.SimpleMessageDialog({
@@ -1320,13 +1300,14 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
         extend: 'Ext.data.Model',
         idProperty: 'uid',
         fields: [
-            { name:'uid'},
-            { name:'newId'},
-            { name:'enabled'},
-            { name:'start', type: 'date'},
-            { name:'starttime' },
-            { name:'repeat'},
-            { name:'duration'}
+            {name: 'uid'},
+            {name: 'newId'},
+            {name: 'enabled'},
+            {name: 'start_ts'},
+            {name: 'start'},
+            {name: 'starttime'},
+            {name: 'repeat'},
+            {name: 'duration'}
         ]
     });
 
@@ -1412,11 +1393,11 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                     flex: 1,
                     sortable: true
                 },{
-                    dataIndex: 'start',
+                    dataIndex: 'start_ts',
                     header: _t('Start'),
                     width: 200,
                     sortable: true,
-                    renderer: Ext.util.Format.dateRenderer(Zenoss.date.ShortDate)
+                    renderer: Zenoss.date.renderDateColumn()
                 }],
 
                 tbar:[{
@@ -2028,6 +2009,7 @@ Ext.define('Zenoss.triggers.UsersPermissionGrid', {
                         xtype:'form',
                         ref: 'wrapping_form',
                         buttonAlign: 'left',
+                        layout: 'fit',
                         listeners: {
                             validitychange: function(form, isValid) {
                                 this.query('DialogButton')[0].setDisabled(!isValid);

@@ -20,7 +20,7 @@ Application JSON format:
         "ID":              "9827-939070095",
         "Name":            "zentrap",
         "Startup":         "/bin/true",
-        "Description":     "This is a collector deamon 4",
+        "Description":     "This is a collector daemon 4",
         "Instances":       0,
         #"Running": [
         #    {

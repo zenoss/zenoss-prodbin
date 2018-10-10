@@ -193,41 +193,47 @@ Ext.onReady(function() {
         extend:"Ext.Panel",
         alias: "widget.detailpanel",
         isHistory: false,
-        layout: 'border',
+        layout: {
+            type: 'vbox',
+            align: 'stretch'
+        },
         constructor: function(config){
             this.sections = [];
             this.renderers = {};
             config.onDetailHide = config.onDetailHide || Ext.emptyFn;
-            config.items = [
-                // Details Toolbar
-                {
+            config.items = [{ // Details Toolbar
                     id: 'evdetail_hd',
-                    region: 'north',
-                    layout: 'border',
-                    height: 50,
+                    layout: {
+                        type: 'hbox'
+                    },
+                    defaults: {
+                        height: 50
+                    },
                     cls: 'evdetail_hd',
                     items: [{
-                        region: 'west',
-                        width: 77,
-                        height:47,
-                        defaults:{height:47},
-                        layout: 'hbox',
-                        items: [{
-                            id: 'severity-icon',
-                            cls: 'severity-icon'
-                        },{
-                            id: 'evdetail-sep',
-                            cls: 'evdetail-sep'
-                        }]
-                    }, {
-                        region: 'center',
-                        id: 'evdetail-summary',
-                        html: ''
+                        id: 'severity-icon',
+                        cls: 'severity-icon'
                     },{
-                        region: 'east',
+                        id: 'evdetail-sep',
+                        cls: 'evdetail-sep'
+                    }, {
+                        xtype: 'displayfield',
+                        id: 'evdetail-summary',
+                        fieldStyle: {
+                            'font-size': '15px',
+                            'font-family': 'helvetica,sans-serif',
+                            'white-space': 'nowrap',
+                            'text-overflow': 'ellipsis',
+                            'overflow': 'hidden'
+                        },
+                        flex: 1
+                    },{
                         id: 'evdetail-tools',
                         layout: 'hbox',
-                        width: 57,
+                        margin: '0 5 0 5',
+                        defaults: {
+                            xtype: 'component'
+                        },
                         items: [{
                             id: 'evdetail-popout',
                             cls: 'evdetail-popout'
@@ -236,25 +242,19 @@ Ext.onReady(function() {
                             cls: 'evdetail_close'
                         }]
                     }]
-                },
-
-                // Details Body
-                {
+                },{// Details Body
                     id: 'evdetail_bd',
-                    region: 'center',
-                    width: "90%",
+                    flex: 1,
                     autoScroll: true,
                     cls: 'evdetail_bd',
-                    items: [   {
+                    items: [{
                         xtype:'toolbar',
-                        width: "105%",
                         style: {
-                            position: "relative",
-                            top: -1
+                            marginTop: 5
                         },
                         hidden: !config.showActions,
                         id: 'actiontoolbar',
-                        items:[ {
+                        items:[{
                                 xtype: 'tbtext',
                                 text: _t('Event Actions:')
                             },
@@ -262,10 +262,8 @@ Ext.onReady(function() {
                             Zenoss.events.EventPanelToolbarActions.close,
                             Zenoss.events.EventPanelToolbarActions.reopen,
                             Zenoss.events.EventPanelToolbarActions.unclose
-
                         ]
-                    },
-                    {
+                    },{
                         id: 'event_detail_properties',
                         frame: false,
                         defaults: {
@@ -280,18 +278,12 @@ Ext.onReady(function() {
                                 }
                             }
                         }
-                    },
-
-                    // Event Log Header
-                    {
+                    },{// Event Log Header
                         id: 'evdetail-log-header',
                         cls: 'evdetail-log-header',
                         hidden: false,
                         html: '<'+'hr/><'+'h2>LOG<'+'/h2>'
-                    },
-
-                    // Event Audit Form
-                    {
+                    },{// Event Audit Form
                         xtype: 'form',
                         id: 'log-container',
                         width: '90%',
@@ -344,19 +336,13 @@ Ext.onReady(function() {
                                     });
                             }
                         }]
-                    },
-
-                    // Event Log Content
-                    {
+                    },{// Event Log Content
                         id: 'evdetail_log',
                         cls: 'log-content',
                         hidden: false,
-                        autoScroll: true,
-                        height: 200
-                    }
-                    ]
+                        autoScroll: true
+                    }]
                 }
-
             ];
 
             this.callParent([config]);
@@ -365,12 +351,13 @@ Ext.onReady(function() {
         init: function() {
             var default_renderers = {
                 device: function(value, sourceData) {
-                    var val = sourceData.device_title;
+                    var val = Ext.htmlEncode(sourceData.device_title);
                     if (sourceData.device_url) {
                         val = Zenoss.render.default_uid_renderer(
                             sourceData.device_url,
                             sourceData.device_title);
                     }
+
                     return val;
                 },
                 component: function(value, sourceData) {
@@ -635,9 +622,9 @@ Ext.onReady(function() {
         },
 
         setSummary: function(summary){
-            var panel = Ext.getCmp('evdetail-summary');
-            if (panel && panel.el){
-                panel.update(summary);
+            var summaryCmp = Ext.getCmp('evdetail-summary');
+            if (summaryCmp && summaryCmp.el){
+                summaryCmp.setValue(summary);
             }
         },
 
@@ -660,6 +647,14 @@ Ext.onReady(function() {
             eventData.firstTime = Zenoss.date.renderWithTimeZone(eventData.firstTime);
             eventData.lastTime = Zenoss.date.renderWithTimeZone(eventData.lastTime);
             eventData.stateChange = Zenoss.date.renderWithTimeZone(eventData.stateChange);
+            // Convert log timestamps to localized dates
+            eventData.log = eventData.log.map(
+                function(item) {
+                    item[1] = Zenoss.date.renderWithTimeZone(item[1]/1000);
+                    return item;
+                }
+            )
+
             var renderedData = this.renderData(eventData);
 
             this.setSummary(renderedData.summary);

@@ -34,7 +34,11 @@ def publishRemove(ob, event):
 @adapter(IGloballyIdentifiable, IIndexingEvent)
 def publishModified(ob, event):
     publisher = getModelChangePublisher()
-    publisher.publishModified(ob)
+
+    fromMaintWindow = False
+    if hasattr(event, 'triggered_by_maint_window') and event.triggered_by_maint_window:
+        fromMaintWindow = True
+    publisher.publishModified(ob, fromMaintWindow)
 
 
 @adapter(IGloballyIdentifiable, IObjectAddedToOrganizerEvent)

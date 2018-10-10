@@ -44,9 +44,8 @@ Ext.define('Zenoss.inspector.InspectorProperty', {
             items: [
                 {
                     cls: 'inspector-property-label',
-                    ref: 'labelItem',
-                    xtype: 'label',
-                    text: config.label ? config.label + ':' : ''
+                    xtype: 'header',
+                    title: config.label ? config.label + ':' : ''
                 },
                 {
                     cls: 'inspector-property-value',
@@ -72,7 +71,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
     extend: 'Ext.Panel',
     constructor: function(config) {
         config = Ext.applyIf(config || {}, {
-            defaultType: 'devdetailitem',
+            defaultType: 'container',
             layout: 'anchor',
             bodyBorder: false,
             items: [],
@@ -86,15 +85,17 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 ref: 'headerItem',
                 items: [
                     {
-                        cls: 'header-icon',
+                        cls: 'header-icon-wrapper',
                         ref: 'iconItem',
-                        xtype: 'panel'
+                        xtype: 'container',
+                        layout: 'fit'
                     },
                     {
                         cls: 'header-title',
                         ref: 'titleItem',
-                        xtype: 'label',
-                        tpl: config.titleTpl
+                        xtype: 'container',
+                        tpl: config.titleTpl,
+                        layout: 'fit'
                     }
                 ]
             },
@@ -117,7 +118,7 @@ Ext.define('Zenoss.inspector.BaseInspector', {
                 'background-image', 'url(' + url + ')'
             );
         } else {
-            this.headerItem.iconItem.update(Ext.String.format('<img height="43px" src="{0}" />', url));
+            this.headerItem.iconItem.update(Ext.String.format('<img class="header-icon" src="{0}" alt="" />', url));
         }
     },
     /**
@@ -235,11 +236,11 @@ Ext.define('Zenoss.inspector.DeviceInspector', {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             keys: ['ipAddress', 'device', 'deviceClass'],
             cls: 'inspector',
-            titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
+            titleTpl: '<div class="name"><a href="{[Zenoss.render.link(undefined, values.uid)]}" target="_top">{name}</a></div><div class="info">{[Zenoss.render.DeviceClass(values.deviceClass.uid)]}</div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
         this.callParent(arguments);
 
-        var url = "{uid}/devicedetail?filter=default#deviceDetailNav:device_events";
+        var url = "{[Zenoss.render.link(undefined, values.uid)]}/devicedetail?filter=default#deviceDetailNav:device_events";
         this.addPropertyTpl(_t('Events'), '<div onclick="location.href=\''+url+'\';">{[Zenoss.render.events(values.events, 4)]}</div>');
         this.addPropertyTpl(_t('Device Status'), '{[Zenoss.render.pingStatus(values.status)]}');
         this.addProperty(_t('Production State'), 'productionState');
@@ -256,7 +257,7 @@ Ext.define('Zenoss.inspector.ComponentInspector', {
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             keys: ['ipAddress', 'device'],
             cls: 'inspector',
-            titleTpl: '<div class="name"><a href="{uid}" target="_top">{name}</a></div><div class="info"><a href="{[values.device.uid]}" target="_top">{[values.device.name]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
+            titleTpl: '<div class="name"><a href="{[Zenoss.render.link(undefined, values.uid)]}" target="_top">{name}</a></div><div class="info"><a href="{[Zenoss.render.link(undefined, values.device.uid)]}" target="_top">{[values.device.name]}</a></div><div class="info">{[Zenoss.render.ipAddress(values.ipAddress)]}</div>'
         });
 
         config.items = [(

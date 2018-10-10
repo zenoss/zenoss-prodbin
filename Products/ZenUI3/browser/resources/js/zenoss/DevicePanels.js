@@ -35,6 +35,7 @@ var deviceColumns = [
         hidden: true,
         header: _t('System Name')
     },{
+        tdCls: 'x-grid-cell-ipAddress',
         width: 100,
         dataIndex: 'ipAddress',
         header: _t('IP Address'),
@@ -42,6 +43,7 @@ var deviceColumns = [
             return record.data.ipAddressString;
         }
     },{
+        tdCls: 'x-grid-cell-deviceClass',
         dataIndex: 'uid',
         header: _t('Device Class'),
         width: 120,
@@ -50,6 +52,7 @@ var deviceColumns = [
         id: 'status',
         dataIndex: 'status',
         sortable: true,
+        hidden: true,
         filter: {
             xtype: 'multiselect-devicestatus'
         },
@@ -115,6 +118,7 @@ var deviceColumns = [
         header: _t('OS Model'),
         renderer: objectRenderer
     },{
+        tdCls: 'x-grid-cell-collector',
         dataIndex: 'collector',
         width: 100,
         hidden: true,
@@ -132,6 +136,7 @@ var deviceColumns = [
             return Zenoss.env.PRIORITIES_MAP[value];
         }
     },{
+        tdCls: 'x-grid-cell-systems',
         dataIndex: 'systems',
         width: 100,
         hidden: true,
@@ -147,6 +152,7 @@ var deviceColumns = [
             return links.join(" | ");
         }
     },{
+        tdCls: 'x-grid-cell-groups',
         dataIndex: 'groups',
         width: 100,
         hidden: true,
@@ -163,6 +169,7 @@ var deviceColumns = [
 
         }
     },{
+        tdCls: 'x-grid-cell-location',
         dataIndex: 'location',
         width: 100,
         hidden: true,
@@ -183,7 +190,7 @@ var deviceColumns = [
         header: _t('Events'),
         renderer: function(ev, ignored, record) {
             var table = Zenoss.render.worstevents(ev),
-            url = record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events';
+                url = Zenoss.render.link(false, record.data.uid + '/devicedetail?filter=default#deviceDetailNav:device_events');
             if (table){
                 table = table.replace('table', 'table onclick="location.href=\''+url+'\';"');
             }
@@ -447,7 +454,7 @@ Ext.define("Zenoss.DeviceGridPanel", {
     },
 
     onItemDblClick: function(view, record) {
-        window.location = record.get("uid");
+        window.location = Zenoss.render.link(null, record.get("uid"));
     },
     applyOptions: function(options){
         // only request the visible columns

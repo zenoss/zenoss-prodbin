@@ -127,4 +127,11 @@
             name="hosts"
             for="*"
             />
+
+    <adapter factory=".ModelQueryFacade"
+            provides="..interfaces.IFacade"
+            name="modelquery"
+            for="*"
+            />
+
 </configure>

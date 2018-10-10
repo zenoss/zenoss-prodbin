@@ -29,6 +29,9 @@ class ModelCatalogToolGenericHelper(object):
     def __call__(self, *args, **kwargs):
         return self.search(*args, **kwargs)
 
+    def getBrain(self, path):
+        return self.model_catalog.getBrain(path, fields=self.fields)
+
     def search(self, *args, **kwargs):
         if self.objectImplements:
             dict_query =  { "objectImplements" : self.objectImplements }

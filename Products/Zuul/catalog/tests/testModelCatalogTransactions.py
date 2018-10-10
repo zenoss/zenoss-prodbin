@@ -74,7 +74,11 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertIsNotNone(getattr(result, TX_STATE_FIELD))
             self.assertTrue(getattr(result, TX_STATE_FIELD) != 0)
         self.assertEquals(set(found_object_uids), set(expected_object_uids))
-
+    
+    def _simulate_tx_commit(self):
+        tx = transaction.get()
+        self.data_manager.tpc_begin(tx)
+        self.data_manager.tpc_finish(tx)
 
     def testPartialUpdates(self):
         # for this test we need to create a test device and commit the changes to
@@ -91,7 +95,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         updated_uids = set(tx_state.pending_updates.keys()) | tx_state.temp_indexed_uids
         try:
             # simulate the transaction was committed and do a few partial updates
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             # make sure the device was correctly indexed
             fields = ["productionState", "text_ipAddress"]
             search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
@@ -138,7 +142,7 @@ class TestModelCatalogTransactions(BaseTestCase):
             self.assertEquals(expected_fields, index_update.idxs)
 
             # simulate another transaction commit and check everything went well
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             search_results = self.model_catalog.search(query=Eq(UID, device_uid), fields=fields, commit_dirty=False)
             self.assertEquals(search_results.total, 1)
             brain = search_results.results.next()
@@ -207,6 +211,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         device_class_1 = "device_class_1"
         device_class_2 = "device_class_2"
         device_class_3 = "device_class_3"
+        device_class_4 = "device_class_4"
 
         # create an organizer
         dc_1 = self.dmd.Devices.createOrganizer(device_class_1)
@@ -268,6 +273,9 @@ class TestModelCatalogTransactions(BaseTestCase):
         #   however, we should have two temp docs matching "/zport/dmd/Devices/device_class*"
         mi_results = self.model_index.search(SearchParams(query))
         self.assertTrue( mi_results.total_count == 2 )
+        #   make sure a count type of query works (search with limit=0)
+        search_results = self.model_catalog.search(query=query, limit=0, commit_dirty=True)
+        self.assertTrue( search_results.total == 1 )
 
         #   some more tx_state checks before moving on to the next thing
         tx_state = self._get_transaction_state()
@@ -284,7 +292,7 @@ class TestModelCatalogTransactions(BaseTestCase):
             mi_results = self.model_index.search(SearchParams( Eq(TX_STATE_FIELD, tid) ))
             self.assertTrue( mi_results.total_count == 2 )
             # Lets do the commit
-            self.data_manager.tpc_finish(transaction.get())
+            self._simulate_tx_commit()
             self.assertIsNone(self._get_transaction_state())
             # Check we only have one doc matching "/zport/dmd/Devices/device_class*"
             search_results = self.model_catalog.search(query=query, commit_dirty=False)
@@ -330,6 +338,32 @@ class TestModelCatalogTransactions(BaseTestCase):
         self.assertEquals( mi_results.total_count, 0 )
         self.assertIsNone(self._get_transaction_state())
 
+        # delete a doc that exists before current tx, do a search with commit dirty and abort
+        dc_4 = self.dmd.Devices.createOrganizer(device_class_4)
+        dc_4_uid = dc_4.idx_uid()
+        query = Eq(UID, dc_4_uid)
+        try:
+            self._simulate_tx_commit() # commit to get the device_class_4 doc in solr
+            # check the doc exists in solr
+            search_results = self.model_catalog.search(query=query)
+            self.assertTrue(search_results.total == 1)
+            # delete the object
+            self.dmd.Devices._delObject(device_class_4)
+            # a model catalog search with commit_dirty=True should no return the deleted doc
+            search_results = self.model_catalog.search(query=query, commit_dirty=True)
+            self.assertTrue(search_results.total == 0)
+            # however the doc is still in solr
+            mi_results = self.model_index.search(SearchParams(query))
+            self.assertTrue( mi_results.total_count == 1 )
+            # Abort tx
+            self.data_manager.abort(transaction.get())
+            # The doc should have been left intact in solr
+            search_results = self.model_catalog.search(query=query)
+            self.assertTrue(search_results.total == 1)
+        finally:
+            # clean up created docs in solr
+            self.model_index.unindex_search(SearchParams(query))  
+
     def testSearchBrain(self):
         # create an object
         device_class_1 = "device_class_1"
@@ -340,6 +374,31 @@ class TestModelCatalogTransactions(BaseTestCase):
         search_results = self.data_manager.search_brain(uid=dc_1_uid, context=self.dmd, commit_dirty=True)
         self.assertTrue( search_results.total == 1 )
         self._validate_temp_indexed_results(search_results, expected_object_uids=[dc_1_uid])
+
+    def testSearches(self):
+        n_organizers = 100
+        organizers = {}
+        pattern = "testSearches_DEVICE_CLASS_"
+        for i in xrange(n_organizers):
+            dc = self.dmd.Devices.createOrganizer("{}{:02}".format(pattern, i))
+            organizers[dc.idx_uid()] = dc
+        query = MatchGlob(UID, "/zport/dmd/Devices/{}*".format(pattern))
+        search_results = self.model_catalog.search(query=query, commit_dirty=False)
+        self.assertTrue( search_results.total == 0 )
+        search_results = self.model_catalog.search(query=query, commit_dirty=True)
+        self.assertTrue( search_results.total == n_organizers )
+        search_results = self.model_catalog.search(query=query, limit=0)
+        self.assertTrue( search_results.total == n_organizers )
+        limit = 18
+        for start in [ 0, 12, 45, 70 ]:
+            expected_uids = { "/zport/dmd/Devices/{}{:02}".format(pattern, i) for i in xrange(start, start+limit) }
+            search_results = self.model_catalog.search(query=query, start=start, limit=limit)
+            self.assertTrue( search_results.total == n_organizers )
+            brain_uids = { getattr(brain, UID) for brain in search_results.results }
+            self.assertEquals( len(brain_uids), limit )
+            self.assertEquals( len(brain_uids), len(expected_uids) )
+            self.assertTrue( len( expected_uids - brain_uids ) == 0 )
+            self.assertTrue( len( brain_uids - expected_uids ) == 0 )
 
 
 def test_suite():

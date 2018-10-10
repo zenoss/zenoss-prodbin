@@ -20,7 +20,7 @@ class UpdateRedisBindAddress(Migrate.Step):
      Fixes redis configs to allow remote connections after the introduction of
      protected-mode in newer versions.
     """
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:
@@ -29,6 +29,7 @@ class UpdateRedisBindAddress(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
+        changed = False
         redises = filter(lambda s: "redis" in s.name, ctx.services)
         log.info("Found {0} services with 'redis' in their service path".format(len(redises)))
         for redis in redises:
@@ -40,8 +41,11 @@ class UpdateRedisBindAddress(Migrate.Step):
                     if line.startswith("#bind " or line.startswith("bind ")):
                         lines[i] = "bind 0.0.0.0"
                         log.info("Changed Redis bind setting to 0.0.0.0")
+                        changed = True
                 cf.content = '\n'.join(lines)
-        # Commit our changes.
-        ctx.commit()
+
+        if changed:
+            # Commit our changes.
+            ctx.commit()
 
 UpdateRedisBindAddress()

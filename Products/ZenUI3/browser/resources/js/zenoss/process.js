@@ -68,13 +68,6 @@ function selectionchangeHandler(sm, nodes) {
     }
 }
 
-var selModel = new Zenoss.TreeSelectionModel({
-    listeners: {
-        beforeselect: beforeselectHandler,
-        selectionchange: selectionchangeHandler
-    }
-});
-
 var MoveProcessCallback = Ext.extend(Object, {
     constructor: function(tree, node) {
         this.tree = tree;
@@ -86,14 +79,7 @@ var MoveProcessCallback = Ext.extend(Object, {
             tree = this.tree;
         node.setId(response.result.id);
         node.data.uid = response.result.uid;
-        tree.selectPath(this.node.getPath());
-        tree.refresh({
-            callback: function() {
-                tree.expandAll();
-                // select the node that just moved
-                tree.selectByToken(node.get("uid"));
-            }
-        });
+        tree.refresh();
 
         Ext.History.add(tree.id + Ext.History.DELIMITER + node.get("id"));
     }
@@ -108,7 +94,12 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             cls: 'x-tree-noicon',
             directFn: router.getTree,
             router: router,
-            selModel: selModel,
+            selModel: new Zenoss.TreeSelectionModel({
+                listeners: {
+                    beforeselect: beforeselectHandler,
+                    selectionchange: selectionchangeHandler
+                }
+            }),
             listeners: {
                 scope: this,
                 expandnode: this.onExpandnode
@@ -125,17 +116,16 @@ var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
             }
         });
         ProcessTreePanel.superclass.constructor.call(this, config);
-
     },
     onNodeDrop: function(element, event, target) {
-        var uid, targetUid, params, callback;
-        uid = event.records[0].get("uid");
-        target.expand();
+        var uid, targetUid, params, callback, dropped;
+        dropped = event.records[0];
+        uid = dropped.get("uid");
         targetUid = target.get("uid");
         params = {uid: uid, targetUid: targetUid};
-        callback = new MoveProcessCallback(this, target);
+        callback = new MoveProcessCallback(this, dropped);
         router.moveProcess(params, callback.call, callback);
-        return false;
+        return true;
     },
 
     onExpandnode: function(node) {
@@ -268,6 +258,10 @@ Ext.define("Zenoss.process.ProcessGrid", {
             }]
         });
         this.callParent(arguments);
+        // preselect first record on store load;
+        this.store.on('load', function(store, records) {
+            this.getSelectionModel().select(records[0]);
+        }, this);
     },
 
     filterAndSelectRow: function(serviceClassName) {
@@ -713,6 +707,7 @@ Ext.define("Zenoss.SequenceStore", {
             directFn: router.getSequence,
             pageSize: 1000,
             scrollToLoadBuffer: 0,
+            buffered: false,
             root: 'data'
         });
         this.callParent(arguments);
@@ -869,7 +864,7 @@ Ext.define("Zenoss.SequenceGrid2", {
 });
 
 function readBlob() {
-    var files = document.getElementById("files").files;
+    var files = document.querySelector("#files input[type=file]").files;
     if (!files.length) {
       alert("Please select a file!");
       return;
@@ -1137,25 +1132,37 @@ Ext.define("Zenoss.TestRegexDialog", {
                                     autoWidth: true
                                 }
                             ]},
-                            {layout: {
-                                type: 'hbox',
-                                pack: 'start',
-                                align: 'stretch'
-                            },
-                            items: [
-                                    {fieldLabel: 'File', html: '<input type="file" id="files" name="file" />', ui: 'dialog-dark', flex:1},
+                            {
+                                layout: {
+                                    type: 'hbox',
+                                    pack: 'start',
+                                    align: 'stretch'
+                                },
+                                items: [
+                                    {
+                                        fieldLabel: 'File',
+                                        xtype: 'filefield',
+                                        id: 'files',
+                                        name: 'file',
+                                        flex: 1,
+                                        ui: 'dialog-dark'
+                                    },
                                     {
                                         xtype: 'button',
                                         ui: 'dialog-dark',
                                         autoWidth: true,
                                         text: _t('Add'),
+                                        margins: {
+                                            left: 5
+                                        },
                                         listeners: {
                                             click: function() {
                                                 readBlob();
                                             }
                                         }
                                     }
-                            ]},
+                                ]
+                            },
                             {title: 'Input'},
                             {xtype: 'textareafield', grow: 'true', name: 'input1', id: 'input1',
                                 value: demoInput1,

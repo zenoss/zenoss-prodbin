@@ -9,13 +9,15 @@
 
 
 import logging
+import sys
+import time
 import transaction
 import zope.component
 from zope.component.factory import Factory
 from zope.component.interfaces import IFactory
 from zExceptions import NotFound
 
-from Acquisition import aq_parent, Implicit
+from Acquisition import aq_parent, Implicit, aq_base
 from interfaces import IModelCatalog
 from collections import defaultdict
 from Products.AdvancedQuery import And, Or, Eq, Not, In
@@ -29,6 +31,7 @@ from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
+from zenoss.modelindex.constants import NULL_SEARCH_LIMIT
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
@@ -41,11 +44,31 @@ log = logging.getLogger("model_catalog")
 
 #logging.getLogger("requests").setLevel(logging.ERROR) # requests can be pretty chatty
 
+SOLR_CONFIG = []
+
 TX_SEPARATOR = "@=@"
 
 TX_STATE_FIELD = "tx_state"
 
 MANDATORY_FIELDS = set([ TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD ])
+
+
+class IterResults(object):
+    def __init__(self, results, parse_method, context):
+        self.results = results
+        self.parse_method = parse_method
+        self.context = context
+
+    def __iter__(self):
+        # Must use next(self) to initialize the generator in the 'next' method
+        return next(self)
+
+    def next(self):
+        for results in self.results:
+            brains = self.parse_method(results, self.context)
+            for brain in brains:
+                yield brain
+
 
 class SearchResults(object):
 
@@ -54,6 +77,7 @@ class SearchResults(object):
         self.total = total
         self.hash_ = hash_
         self.areBrains = areBrains
+        self.facets = None
 
     def __hash__(self):
         return self.hash_
@@ -63,6 +87,14 @@ class SearchResults(object):
 
     def __len__(self):
         return self.total
+
+
+class CursorSearchResults(object):
+    def __init__(self, results):
+        self.results = results
+
+    def __iter__(self):
+        return iter(self.results)
 
 
 class ModelCatalogBrain(Implicit):
@@ -109,18 +141,31 @@ class ModelCatalogBrain(Implicit):
         try:
             obj = parent.unrestrictedTraverse(self.getPath())
         except (NotFound, KeyError, AttributeError):
-            log.error("Unable to get object from brain. Path: {0}. Catalog may be out of sync.".format(self.uid))
+            info = sys.exc_info()
+            msg = "Unable to get object from brain. Path: {0}. Model catalog may be out of sync. "
+            log.error(msg.format(self.uid))
+            raise info[0], info[1], info[2]
         return obj
 
     def getRID(self):
         """Return the record ID for this object."""
         return getattr(self, "uuid")
 
+    def to_dict(self, idxs=None):
+        
+        if idxs:
+            if isinstance(idxs, basestring):
+                idxs = [idxs]
+        else:
+            idxs = self.idxs
+        return {idx:getattr(self, idx) for idx in idxs}
+        
+
 
 class ObjectUpdate(object):
     """ Contains the info needed to create a modelindex.IndexUpdate """
     def __init__(self, obj, op=INDEX, idxs=None):
-        self.uid = obj.idx_uid()
+        self.uid = aq_base(obj).getPrimaryId()
         self.obj = obj
         self.op = op
         self.idxs = idxs
@@ -131,6 +176,7 @@ class ModelCatalogClient(object):
     def __init__(self, solr_url, context):
         self.context = context
         self._data_manager = zope.component.createObject('ModelCatalogDataManager', solr_url, context)
+        self._zing_handler = zope.component.createObject("ZingObjectUpdateHandler", self.context)
 
     @property
     def model_index(self):
@@ -141,6 +187,12 @@ class ModelCatalogClient(object):
 
     def get_indexes(self):
         return self._data_manager.get_indexes()
+
+    def get_object_indexes(self, obj, idxs=None):
+        return self._data_manager.get_indexes(obj, idxs)
+
+    def cursor_search(self, search_params, context):
+        return self._data_manager.cursor_search(search_params, context)
 
     def search(self, search_params, context, commit_dirty=False):
         return self._data_manager.search(search_params, context, commit_dirty)
@@ -154,7 +206,9 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=INDEX, idxs=idxs))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception indexing object")
+        # keep Zing up to date. This call wont raise any exceptions
+        self._zing_handler.update_object(obj, idxs)
 
     def uncatalog_object(self, obj):
         if not isinstance(obj, self._get_forbidden_classes()):
@@ -162,11 +216,13 @@ class ModelCatalogClient(object):
                 self._data_manager.add_model_update(ObjectUpdate(obj, op=UNINDEX))
             except IndexException as e:
                 log.error("EXCEPTION {0} {1}".format(e, e.message))
-                self._data_manager.raise_model_catalog_error()
+                self._data_manager.raise_model_catalog_error("Exception unindexing object")
+        # keep Zing up to date. This call wont raise any exceptions
+        self._zing_handler.delete_object(obj)
 
-    def get_brain_from_object(self, obj, context):
+    def get_brain_from_object(self, obj, context, fields=None):
         """ Builds a brain for the passed object without performing a search """
-        spec = self._data_manager.model_index.get_object_spec(obj)
+        spec = self._data_manager.model_index.get_object_spec(obj, idxs=fields)
         brain = ModelCatalogBrain(spec.to_dict(use_attr_query_name=True))
         brain = brain.__of__(context.dmd)
         return brain
@@ -186,28 +242,25 @@ class ModelCatalogTransactionState(object):
     def __init__(self, tid):
         """ """
         self.tid = tid
-        # @TODO For the time being we only have two index operations INDEX and UNINDEX
-        # Once we are able to index only certain indexes and use solr
-        # atomic updates this will become more complex in order to send as few requests to solr
-        # as possible
         #
-        # model_update may become a list of updates when we support more
-        # operations other than INDEX, UNINDEX
-        #
-        self.pending_updates = {}  # { object_uid :  model_update }
-        self.indexed_updates = {}  # { object_uid :  model_update }
+        self.pending_updates = {}  # { object_uid :  ObjectUpdate }
+        self.indexed_updates = {}  # { object_uid :  IndexUpdate }
         # ^^
         # In indexed_updates we store updates that we indexed mid transaction
         # because a search came in. Only this transaction should see such changes
         self.temp_indexed_uids = set() # object uids of temporary indexed documents
         self.temp_deleted_uids = set() # object uids of temporary deleted documents
 
+        # During the tpc_begin phase, IndexUpdates are created for each
+        # object we need to index
+        self._updates_to_finish_tx = {} # { object_uid: modelindex.IndexUpdate}
+
         self.commits_metric = []
 
     def add_model_update(self, object_update):
         """
-        Generates and stores a IndexUpdate from the received ObjectUpdate taking into account
-        any previous model update (if any)
+        Generates and stores an ObjectUpdate than combines the received ObjectUpdate
+        with any previous updates to the same object (if any)
         """
         uid = object_update.uid
         op = object_update.op
@@ -232,32 +285,47 @@ class ModelCatalogTransactionState(object):
         if idxs: # make sure mandatory idxs are always sent
             idxs.update( MANDATORY_FIELDS ) # Mandatory fields
 
-        model_update = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
-        self.pending_updates[object_update.uid] = model_update
-        del object_update # Make sure we dont keep references to the object
+        # store the ObjectUpdate. Defer creating the IndexUpdate
+        # until the end of the transaction or before a dirty search
+        self.pending_updates[object_update.uid] = ObjectUpdate(object_update.obj, op=op , idxs=idxs)
 
     def get_pending_updates(self):
         """ return updates that have not been sent to the index """
-        return self.pending_updates.values()
+        # build the IndexUpdate from the ObjectUpdate buffered in self.pending_updates
+        modelindex_updates = {}
+        for object_update in self.pending_updates.values():
+            uid = object_update.uid
+            op = object_update.op
+            idxs = object_update.idxs
+            modelindex_updates[uid] = IndexUpdate(object_update.obj, op=op , idxs=idxs, uid=uid)
+        return modelindex_updates
 
     def get_indexed_updates(self):
+        # self.indexed_updates stores the IndexUpdate
         return self.indexed_updates.values()
 
     def get_updates_to_finish_transaction(self):
-        #
+        """
+        This is called during tpc.finish
+        """
+        return self._updates_to_finish_tx.values()
+
+    def prepare_updates_to_finish_transaction(self):
+        """
+        This is called during tx tpc_vote phase. return all
+        modelindex.IndexUpdate that need to be commited in solr
+        """
         self.commits_metric.append(len(self.pending_updates))
         # Get all updates
-        final_updates = {}
+        self._updates_to_finish_tx = {}
         for uid, update in self.indexed_updates.iteritems():
             # update the uid and tx_state
             if update.op == INDEX:
                 update.spec.set_field_value(MODEL_INDEX_UID_FIELD, uid)
                 update.spec.set_field_value(TX_STATE_FIELD, 0)
-            final_updates[uid] = update
-        # now update overwriting in case we had a new update for any
-        # of the already indexed objects
-        final_updates.update(self.pending_updates)
-        return final_updates.values()
+            self._updates_to_finish_tx[uid] = update
+        # Any non mid tx commit update overwrites any previous update
+        self._updates_to_finish_tx.update(self.get_pending_updates())
 
     def are_there_pending_updates(self):
         return len(self.pending_updates) > 0
@@ -265,16 +333,18 @@ class ModelCatalogTransactionState(object):
     def are_there_indexed_updates(self):
         return len(self.indexed_updates) > 0
 
-    def mark_pending_updates_as_indexed(self, indexed_uids, deleted_uids):
+    def mark_pending_updates_as_indexed(self, indexed_updates, indexed_uids, deleted_uids):
         """
+        @param indexed_updates: dict {uid: IndexUpdate} containing the IndexUpdates
+                                that were just sent to solr
         @param indexed_uids: temporary uids we indexed the docs with
         """
-        self.commits_metric.append(len(self.pending_updates))
+        self.commits_metric.append(len(indexed_updates))
         self.temp_indexed_uids = self.temp_indexed_uids | indexed_uids
         self.temp_deleted_uids = self.temp_deleted_uids | deleted_uids
         self.temp_indexed_uids = self.temp_indexed_uids - deleted_uids
         self.temp_deleted_uids = self.temp_deleted_uids - indexed_uids
-        self.indexed_updates.update(self.pending_updates)
+        self.indexed_updates.update(indexed_updates)
         self.pending_updates = {} # clear pending updates
         #log.info("SEARCH TRIGGERED TEMP INDEXING. {0}".format(traceback.format_stack()))   # @TODO TEMP LOGGING
 
@@ -305,8 +375,11 @@ class ModelCatalogDataManager(object):
     def get_indexes(self):
         return self.model_index.get_indexes()
 
+    def get_object_indexes(self, obj, idxs=None):
+        return self.model_index.get_indexes(obj, idxs)
+
     def _process_pending_updates(self, tx_state):
-        """ index all pending updates """
+        """ index all pending updates during a mid transaction commit """
         updates = tx_state.get_pending_updates()
         # we are going to index all pending updates setting the MODEL_INDEX_UID_FIELD
         # field as the OBJECT_UID_FIELD appending the tid and setting tx_state field
@@ -314,10 +387,10 @@ class ModelCatalogDataManager(object):
         tweaked_updates = []
         indexed_uids = set()
         deleted_uids = set()
-        for update in updates:
+        for update in updates.itervalues():
             tid = tx_state.tid
             if update.op == UNINDEX:
-                # we dont do anything for unindexed objects, we just add the to
+                # dont do anything for unindexed objects, just add them to
                 # a set to be able to blacklist them from search results
                 deleted_uids.add(update.uid)
             else:
@@ -335,12 +408,12 @@ class ModelCatalogDataManager(object):
                 update.spec.set_field_value(MODEL_INDEX_UID_FIELD, temp_uid)
                 update.spec.set_field_value(TX_STATE_FIELD, tid)
                 indexed_uids.add(update.uid)
-            tweaked_updates.append(update)
+                tweaked_updates.append(update)
 
         # send and commit indexed docs to solr
         self.model_index.process_batched_updates(tweaked_updates)
         # marked docs as indexed
-        tx_state.mark_pending_updates_as_indexed(indexed_uids, deleted_uids)
+        tx_state.mark_pending_updates_as_indexed(updates, indexed_uids, deleted_uids)
 
     def _add_tx_state_query(self, search_params, tx_state):
         """
@@ -392,36 +465,76 @@ class ModelCatalogDataManager(object):
         brain_fields = set(fields) if fields else set()
         return list(brain_fields | MANDATORY_FIELDS)
 
+    def cursor_search(self, search_params, context):
+        try:
+            search_params.fields = self._get_fields_to_return(search_params.fields)
+            search_params = self._add_tx_state_query(search_params, None)
+            catalog_results = self.model_index.cursor_search(search_params)
+        except SearchException as e:
+            log.error("EXCEPTION: {0}".format(e.message))
+            self.raise_model_catalog_error("Exception performing search")
+        else:
+            results = IterResults(catalog_results, self._parse_catalog_results, context)
+            return CursorSearchResults(results)
+
     def _do_search(self, search_params, context):
         """
         @param  context object to hook brains up to acquisition
         """
         tx_state = self._get_tx_state()
+        is_tx_dirty = tx_state and tx_state.are_there_indexed_updates()
+
+        if is_tx_dirty:
+            # to get an accurate count when there are mid transaction documents
+            # already committed to solr we need to get all the results :(
+            original_start = search_params.start
+            original_limit = search_params.limit
+            search_params.start = 0
+            search_params.limit = None
+
         try:
             search_params.fields = self._get_fields_to_return(search_params.fields)
             catalog_results = self.model_index.search(search_params)
         except SearchException as e:
             log.error("EXCEPTION: {0}".format(e.message))
-            self.raise_model_catalog_error()
+            self.raise_model_catalog_error("Exception performing search")
 
-        brains = self._parse_catalog_results(catalog_results, context)
+        brains = iter(self._parse_catalog_results(catalog_results, context))
         count = catalog_results.total_count
+
         # if we have mid-transaction commits, we need to extract
         # all brains from the generator to return the real count
-        if tx_state and tx_state.are_there_indexed_updates():
+        # Please do not use mid tx commits !!
+        if is_tx_dirty:
             brains = [ b for b in brains ]
             count = len(brains)
-            brains = iter(brains)
 
-        return SearchResults(brains, total=count, hash_=str(count))
+            if original_limit != NULL_SEARCH_LIMIT or original_start != 0:
+                # We need to do some slicing
+                start = original_start
+                if original_limit == NULL_SEARCH_LIMIT:
+                    end = count
+                else:
+                    end = original_start + original_limit
+                brains = iter(brains[start:end])
+            else:
+                brains = iter(brains)
+            # undo changes to search_params
+            search_params.start = original_start
+            search_params.limit = original_limit
+        
+        results = SearchResults(brains, total=count, hash_=str(count))
+        if catalog_results.facets:
+            results.facets = catalog_results.facets
+        return results
 
     def do_mid_transaction_commit(self):
         """
         When commit_dirty is True, objects that have been modified as a part of a transaction
-        that has not been commited yet, will be commited with tx_state = tid so they can be searched.
+        that has not been commited yet, will be commited with TX_STATE_FIELD = tid so they can be searched.
         These "dirty" objects will remain in the catalog until transaction.abort is called,
         which will remove them from the catalog, or transaction.commit is called, which will remove
-        them as a "dirty" object, then add them to the catalog with tx_state = 0.
+        them as a "dirty" object, then add them to the catalog with TX_STATE_FIELD = 0.
         """
         tx_state = self._get_tx_state()
         # Lets add tx_state filters
@@ -479,6 +592,10 @@ class ModelCatalogDataManager(object):
                 log.fatal("Exception trying to abort current transaction. {0} / {1}".format(e, e.message))
                 raise ModelCatalogError("Model Catalog error trying to abort transaction")
 
+    #---------------------------------------------------------------------------
+    # Two-phase commit protocol sequence of calls:
+    #     tpc_begin commit tpc_vote (tpc_finish | tpc_abort)
+    #---------------------------------------------------------------------------
     def abort(self, tx):
         try:
             self._delete_temporary_tx_documents()
@@ -486,7 +603,13 @@ class ModelCatalogDataManager(object):
             self.reset_tx_state(tx)
 
     def tpc_begin(self, transaction):
-        pass
+        # Get the modelindex.IndexUpdate of all updated objects
+        # Doing this in any of the following tpc phases can cause PosKeyErrors
+        tx_state = self._get_tx_state(transaction)
+        if tx_state:
+            start = time.time()
+            tx_state.prepare_updates_to_finish_transaction()
+            log.debug("Preparing updates to finish tx took {}".format(time.time()-start))
 
     def commit(self, transaction):
         pass
@@ -505,8 +628,7 @@ class ModelCatalogDataManager(object):
                 try:
                     self.model_index.process_batched_updates(updates)
                     self._delete_temporary_tx_documents()
-                    # @TODO TEMP LOGGING
-                    log.warn("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
+                    log.debug("COMMIT_METRIC: {0}. MID-TX COMMITS? {1}".format(tx_state.commits_metric, dirty_tx))
                 except Exception as e:
                     log.exception("Exception in tcp_finish: {0} / {1}".format(e, e.message))
                     self.abort(transaction)
@@ -603,12 +725,22 @@ class ModelCatalog(object):
         catalog_client = self.get_client(context)
         return catalog_client.get_indexes()
 
-def get_solr_config():
+    def get_object_indexes(self, obj, idxs=None):
+        catalog_client = self.get_client(obj)
+        return catalog_client.get_object_indexes(obj, idxs)
+
+
+def get_solr_config(test=False):
     config = getGlobalConfiguration()
-    return config.get('solr-servers', 'localhost:8983')
+    if test:
+        return config.get('solr-test-server', 'localhost:8993')
+    if not SOLR_CONFIG:
+        SOLR_CONFIG.append(config.get('solr-servers', 'localhost:8983'))
+        log.info("Loaded Solr config from global.conf. Solr Servers: {}".format(SOLR_CONFIG))
+    return SOLR_CONFIG[0]
 
 
-def register_model_catalog():
+def register_model_catalog(test=False):
     """
     Register the model catalog as an utility
     To get the utility we will use this code:
@@ -616,7 +748,7 @@ def register_model_catalog():
         >>> from zope.component import getUtility
         >>> getUtility(IModelCatalog)
     """
-    model_catalog = ModelCatalog(get_solr_config())
+    model_catalog = ModelCatalog(get_solr_config(test))
     getGlobalSiteManager().registerUtility(model_catalog, IModelCatalog)
 
 

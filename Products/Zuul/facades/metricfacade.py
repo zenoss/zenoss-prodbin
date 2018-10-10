@@ -17,7 +17,7 @@ import itertools
 from collections import defaultdict
 from datetime import datetime, timedelta
 from zenoss.protocols.services import ServiceResponseError, ServiceConnectionError
-from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.facades import ZuulFacade, ObjectNotFoundException
 from Products.Zuul.interfaces import IInfo
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.Zuul.interfaces import IAuthorizationTool
@@ -240,8 +240,10 @@ class MetricFacade(ZuulFacade):
             auth_token = context.REQUEST.cookies.get(Z_AUTH_TOKEN, None)
             if not auth_token:
                 credentials_dict = authorization.extractCredentials(context.REQUEST)
-                credentials = (credentials_dict['login'],
-                               credentials_dict['password'])
+                login = credentials_dict.get('login', None) or credentials_dict.get('auth0_userid', None)
+                passwd = credentials_dict.get('password', None) or credentials_dict.get('auth0_userid', None)
+                credentials = (login,
+                               passwd)
         else:
             credentials = None
 
@@ -419,6 +421,11 @@ class MetricFacade(ZuulFacade):
                 return content
             return content.get('results')
 
+    def _formatDownsample(self, downsample):
+        if isinstance(downsample, int):
+            downsample = "%ss-avg" % downsample
+        return downsample
+
     def _buildRequest(self, contexts, metrics, start, end, returnSet, downsample):
         request = {
             'returnset': returnSet,
@@ -427,10 +434,7 @@ class MetricFacade(ZuulFacade):
             'metrics': metrics
         }
         if downsample is not None:
-            if isinstance(downsample, int):
-                request['downsample'] = "%ss-avg" % downsample
-            else:
-                request['downsample'] = downsample
+            request['downsample'] = self._formatDownsample(downsample)
         return request
 
     def _buildTagsFromContextAndMetric(self, context, dsId):
@@ -489,7 +493,7 @@ class MetricFacade(ZuulFacade):
 
     def _buildWildCardMetrics(self, device, metricName, cf='avg', isRate=False, format="%.2lf"):
         """
-        method only works with 
+        method only works with
         """
         # find out our aggregation function
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
@@ -547,6 +551,54 @@ class MetricFacade(ZuulFacade):
 
         return None
 
+    def getAggregatedMetric(self, device, componentType, metricName, returnSet=None, start='1h-ago', end='30s-ago', agg="sum", downSample=None, format=''):
+        """
+        For a device returns the aggregate time series for a metric belonging to components. e.g. aggregate interface
+        usage for all interfaces.
+
+        :param device: Device object
+        :type device: Device
+        :param componentType: the name of the component meta type, used to look up metric definition (eg. rate, rpn etc)
+        :type componentType: str
+        :param metricName: name of the metric
+        :type metricName: str
+        :param start: start of time range, defaults to 1 hour ago
+        :type start: str or int,float,long. string can be of the form "1h-ago"
+        :param end: end of time range, defaults to 30s ago. Aggregate metrics benefit from a bit of lag
+        :type end: str or int,float,long. string can be of the form "1h-ago"
+        :param agg: aggregation function for the time series. e.g. avg, sum
+        :type agg: str
+        :param downSample: how to downsample series. e.g. 1m-avg
+        :type downSample: str
+        :return: series for the metric
+        """
+        components = device.getDeviceComponents(type=componentType)
+        if not components:
+            raise ObjectNotFoundException("No components of type %s found" % componentType)
+        component = components[0] #get the first one to determine datapoint information
+        dataPoint = component.getRRDDataPoint(metricName)
+        if not dataPoint:
+            raise ObjectNotFoundException("Metric %s for %s not found" % (metricName, componentType))
+
+        metric = self._buildMetric(component, dataPoint, agg, format=format)
+        #replace context specific tag with just device tag
+        for m in metric:
+            #remove contextid tag so we can query for component metrics across device
+            m['tags'] = {'device': [device.id]}
+
+        start, end = self._defaultStartAndEndTime(start, end, returnSet)
+        request = self._buildRequest(None, metric, start, end, returnSet, downSample)
+        # submit it to the client
+        content = self._metrics_connection.request(METRIC_URL_PATH, request)
+        if content is None:
+            return {}
+        if format and content.get('results') is not None:
+            for item in content['results']:
+                if item.get('datapoints', False):
+                    for dp in item.get('datapoints'):
+                        dp['value'] = float(format % dp['value'])
+        return content
+
     def getMetricsForContexts(self, contexts, metricNames, start=None,
                                  end=None, format="%.2lf", cf="avg",
                                  downsample=None, timeout=10, isRate=False):
@@ -579,6 +631,10 @@ class MetricFacade(ZuulFacade):
 
         agg = AGGREGATION_MAPPING.get(cf.lower(), cf.lower())
         metricRequests = []
+
+        if downsample is not None:
+            downsample = self._formatDownsample(downsample)
+
         for seriesName, ctxKeys in seriesToCtxKey.items():
             contextKeys=ctxKeys
             #if we have a bunch just do a wildcard.
@@ -590,14 +646,15 @@ class MetricFacade(ZuulFacade):
                 aggregator=agg,
                 format=format,
                 tags={'key': contextKeys},
-                rate=isRate
+                rate=isRate,
+                downsample=downsample
             )
             metricRequests.append(metricReq)
 
         # Only EXACT resultsets are supported yet.
         returnSet = 'EXACT'
         start, end = self._defaultStartAndEndTime(start, end, returnSet)
-        request = self._buildRequest([], metricRequests, start, end, returnSet, downsample)
+        request = self._buildRequest([], metricRequests, start, end, returnSet, downsample=None)
         request['queries'] = request['metrics']
         del request['metrics']
 

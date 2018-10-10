@@ -217,16 +217,24 @@ Zenoss.nav.register({
         id: 'Edit',
         text: _t('Details'),
         action: function(node, target, combo) {
-            var uid = combo.contextUid;
-            if (!Ext.get('edit_panel')) {
-                Zenoss.form.getGeneratedForm(uid, function(config){
-                    target.add(Ext.apply({id:'edit_panel'}, config));
-                    target.layout.setActiveItem('edit_panel');
+            var uid = combo.contextUid,
+                editPanel = Ext.getCmp('edit_panel');
+            if (!editPanel) {
+                // create a static container that will handle forms;
+                editPanel = target.add({
+                    xtype: 'container',
+                    id: 'edit_panel',
+                    layout: 'fit'
                 });
-            } else {
-                target.layout.setActiveItem('edit_panel');
-                target.layout.activeItem.setContext(uid);
             }
+            target.layout.setActiveItem('edit_panel');
+            editPanel.setLoading(true);
+            Zenoss.form.getGeneratedForm(uid, function(config){
+                // remove previous form and add new one;
+                editPanel.removeAll(true);
+                editPanel.add(Ext.apply({autoScroll: true}, config));
+                editPanel.setLoading(false);
+            });
         }
     },{
         nodeType: 'subselect',
@@ -553,7 +561,11 @@ Ext.define("Zenoss.component.ComponentPanel", {
                         this.detailcontainer.removeAll();
                         this.componentnavcombo.reset();
                     },
+                    deselect: function() {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
+                    },
                     select: function(sm, row) {
+                        Ext.getCmp('component-smart-view-button').selectionChange();
                         // top grid selection change
                         if (row) {
                             // When infinite grids are resized the "selectionchange" event can be fired
@@ -564,8 +576,6 @@ Ext.define("Zenoss.component.ComponentPanel", {
                                 return;
                             }
                             this.previousRow = row;
-                            this.detailcontainer.removeAll();
-                            this.componentnavcombo.reset();
                             Zenoss.env.compUUID = row.data.uuid;
                             this.componentnavcombo.setContext(row.data.uid);
                             var delimiter = Ext.History.DELIMITER,

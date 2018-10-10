@@ -7,6 +7,12 @@
 <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
 <include package="Products.ZenModel" file="permissions.zcml"/>
 
+<browser:directRouter
+    name="modelquery_router"
+    for="*"
+    class=".modelQuery.ModelQueryRouter"
+    namespace="Zenoss.remote"
+    />
 
 <browser:directRouter
     name="messaging_router"

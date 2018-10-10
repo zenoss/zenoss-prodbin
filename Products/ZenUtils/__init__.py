@@ -1,10 +1,10 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2007, 2018, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 from Products.CMFCore.DirectoryView import registerDirectory
@@ -17,9 +17,10 @@ from patches import mysqladaptermonkey
 from patches import signalsmonkey
 from patches import advancedquerymonkey
 from patches import xmlmonkey
+from patches import ofsmonkey
 from Products.ZenUtils import pbkdf2  # Register PBKDF2 for password hashing
 from Products.ZenUtils.Utils import unused
-unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey, xmlmonkey, pbkdf2)
+unused(pasmonkey, dirviewmonkey, advancedquerymonkey, mysqladaptermonkey, signalsmonkey, xmlmonkey, pbkdf2, ofsmonkey)
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
@@ -30,6 +31,9 @@ from AccessControl.Permissions import add_user_folders
 from AccountLocker.AccountLocker import AccountLocker
 from AccountLocker.AccountLocker import manage_addAccountLocker
 from AccountLocker.AccountLocker import manage_addAccountLockerForm
+
+from Auth0.Auth0 import Auth0
+from Auth0.Auth0 import manage_addAuth0
 
 def initialize(context):
     context.registerClass(
@@ -45,6 +49,13 @@ def initialize(context):
     context.registerClass(AccountLocker,
                         permission=add_user_folders,
                         constructors=(manage_addAccountLockerForm, manage_addAccountLocker),
+                        visibility=None,
+                        )
+
+    registerMultiPlugin(Auth0.meta_type)
+    context.registerClass(Auth0,
+                        permission=add_user_folders,
+                        constructors=(manage_addAuth0, ),
                         visibility=None,
                         )
 

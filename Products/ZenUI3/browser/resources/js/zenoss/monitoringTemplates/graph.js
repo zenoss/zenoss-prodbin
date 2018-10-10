@@ -10,25 +10,13 @@
 
 (function(){
 
-var router, getSelectedTemplateUid, getSelectedTemplate, getSelectedGraphDefinition;
+var router;
     //addGraphDefinition, deleteGraphDefinition, addThresholdToGraph;
 
 
 Ext.ns('Zenoss', 'Zenoss.templates');
 
 router = Zenoss.remote.TemplateRouter;
-
-getSelectedTemplate = function() {
-    return Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
-};
-
-getSelectedTemplateUid = function() {
-    return getSelectedTemplate().data.uid;
-};
-
-getSelectedGraphDefinition = function() {
-    return Ext.getCmp('graphGrid').getSelectionModel().getSelected();
-};
 
 
 Ext.define('Zenoss.InstructionTypeModel', {
@@ -640,29 +628,32 @@ Ext.define("Zenoss.templates.GraphGrid", {
             },
             selModel: new Zenoss.SingleRowSelectionModel({
                 listeners: {
-                    select: function() {
+                    selectionchange: function (s, selection) {
+                        // enable/disable buttons when selection changes;
                         if (Zenoss.Security.hasPermission('Manage DMD')){
-                            Ext.getCmp('deleteGraphDefinitionButton').enable();
-                            Ext.getCmp('graphDefinitionMenuButton').enable();
+                            var doDisable = !(selection && selection.length);
+                            this.deleteGraphDefinitionButton.setDisabled(doDisable);
+                            this.graphDefinitionMenuButton.setDisabled(doDisable);
                         }
-                    }
+                    },
+                    scope: me
                 }
             }),
             columns: [{dataIndex: 'name', header: _t('Name'), flex:1, width: 400}],
 
             tbar: tbarItems.concat([{
-                id: 'addGraphDefinitionButton',
+                itemId: 'addGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'add',
                 ref: '../addButton',
                 disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                 listeners: {
-                    render: function() {
-                        Zenoss.registerTooltipFor('addGraphDefinitionButton');
+                    render: function(t) {
+                        Zenoss.registerTooltipFor('addGraphDefinitionButton', t);
                     }
                 },
-                handler: function() {
-                    var templateUid = Ext.getCmp('dataSourceTreeGrid').uid;
+                handler: function(t) {
+                    var templateUid = Zenoss.getCmp('dataSourceTreeGrid', t).uid;
                     if (!templateUid) {
                         new Zenoss.dialog.ErrorDialog({message: _t('There is no template to which to add a graph definition.')});
                         return;
@@ -719,14 +710,14 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     dialog.show();
                 }
             }, {
-                id: 'deleteGraphDefinitionButton',
-                ref: 'deleteGraphDefinitionButton',
+                itemId: 'deleteGraphDefinitionButton',
+                ref: '../deleteGraphDefinitionButton',
                 xtype: 'button',
                 iconCls: 'delete',
                 disabled: true,
                 listeners: {
-                    render: function() {
-                        Zenoss.registerTooltipFor('deleteGraphDefinitionButton');
+                    render: function(t) {
+                        Zenoss.registerTooltipFor('deleteGraphDefinitionButton', t);
                     }
                 },
                 handler: function(button) {
@@ -754,12 +745,12 @@ Ext.define("Zenoss.templates.GraphGrid", {
                     dialog.show();
                 }
             }, {
-                id: 'graphDefinitionMenuButton',
-                ref: 'graphDefinitionMenuButton',
+                itemId: 'graphDefinitionMenuButton',
+                ref: '../graphDefinitionMenuButton',
                 xtype: 'button',
                 listeners: {
-                    render: function() {
-                        Zenoss.registerTooltipFor('graphDefinitionMenuButton');
+                    render: function(t) {
+                        Zenoss.registerTooltipFor('graphDefinitionMenuButton', t);
                     }
                 },
                 iconCls: 'customize',
@@ -815,7 +806,13 @@ Ext.define("Zenoss.templates.GraphGrid", {
         });
         this.callParent(arguments);
     },
-    getSelectedTemplateUid: getSelectedTemplateUid,
+    getSelectedTemplate: function() {
+        return Zenoss.getCmp('templateTree', this).getSelectionModel().getSelectedNode();
+    },
+
+    getSelectedTemplateUid: function() {
+        return this.getSelectedTemplate().data.uid;
+    },
     getSelectedGraphDefinition: function() {
         return this.getSelectionModel().getSelected();
     }

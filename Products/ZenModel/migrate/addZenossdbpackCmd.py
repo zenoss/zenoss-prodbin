@@ -15,12 +15,13 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
+
 sm.require("1.0.0")
 
 
 class AddZenossdbpackCmd(Migrate.Step):
 
-    version = Migrate.Version(108, 0, 0)
+    version = Migrate.Version(200, 0, 0)
 
     def cutover(self, dmd):
         try:

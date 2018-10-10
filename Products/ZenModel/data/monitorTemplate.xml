@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2017-07-07 15:29:13.201711
+    Zenoss RelationshipManager export completed on 2018-09-28 17:53:23.813099
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 5.3.0]" export_date="2017-07-07 15:29:13.201711" zenoss_server="1d38757a8d69" >
-<object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
+<objects version="[Zenoss, version 7.0.5]" export_date="2018-09-28 17:53:23.813099" zenoss_server="7fafc7a614e2" >
+<object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass' move='False'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
 </property>
@@ -17,7 +17,7 @@ MonitorClass
 ()
 </property>
 <tomanycont id='rrdTemplates'>
-<object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Graphs and Thresholds for Core Collectors
 </property>
@@ -28,7 +28,7 @@ Graphs and Thresholds for Core Collectors
 Products.ZenModel.PerformanceConf
 </property>
 <tomanycont id='datasources'>
-<object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -38,11 +38,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='commands' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='commands' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -50,7 +50,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -58,7 +58,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -66,7 +66,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -74,7 +74,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -82,7 +82,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -90,7 +90,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -98,7 +98,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -108,7 +108,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -118,11 +118,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -130,7 +130,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -138,7 +138,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -146,7 +146,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -154,7 +154,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 COUNTER
 </property>
@@ -162,7 +162,7 @@ COUNTER
 True
 </property>
 </object>
-<object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -172,7 +172,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenperfsnmp' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -182,11 +182,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -194,7 +194,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -202,7 +202,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -210,7 +210,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -218,7 +218,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -226,7 +226,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -234,7 +234,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -242,63 +242,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenping' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -308,7 +252,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenprocess' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenping' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -318,11 +262,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -330,7 +274,63 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='zenprocess' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -338,7 +338,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -346,7 +346,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -354,7 +354,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -362,7 +362,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -370,7 +370,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='pids' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='pids' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -378,7 +378,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -386,7 +386,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='restarted' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='restarted' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -394,71 +394,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenstatus' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -468,7 +404,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zensyslog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenstatus' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -478,11 +414,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -490,7 +426,71 @@ GAUGE
 True
 </property>
 </object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='zensyslog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -498,7 +498,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -506,7 +506,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -514,7 +514,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -524,7 +524,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zentrap' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zentrap' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -534,11 +534,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -546,7 +546,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -554,7 +554,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -562,7 +562,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -570,7 +570,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -582,7 +582,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
@@ -605,7 +605,7 @@ False
 0
 </property>
 </object>
-<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
@@ -630,7 +630,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Collected Events' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Collected Events' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -662,7 +662,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -694,7 +694,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zentrap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zentrap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -728,7 +728,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Cycle Times' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Cycle Times' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -760,7 +760,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -797,7 +797,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Data Point Rate' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Data Point Rate' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -829,7 +829,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -861,7 +861,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -893,7 +893,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -927,7 +927,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -962,7 +962,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='eventQueueLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -994,7 +994,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength3' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength3' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -1026,7 +1026,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength4' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength4' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -1058,7 +1058,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 5
 </property>
@@ -1090,7 +1090,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength6' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength6' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 6
 </property>
@@ -1122,7 +1122,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength7' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength7' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 7
 </property>
@@ -1154,7 +1154,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength8' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength8' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 8
 </property>
@@ -1186,7 +1186,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength9' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength9' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 9
 </property>
@@ -1218,7 +1218,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1231,7 +1231,7 @@ ${graphPoint/id}
 </object>
 </tomanycont>
 </object>
-<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1263,7 +1263,7 @@ True
 9
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1295,7 +1295,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1327,7 +1327,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -1359,7 +1359,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -1391,7 +1391,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -1425,7 +1425,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1460,7 +1460,7 @@ True
 8
 </property>
 <tomanycont id='graphPoints'>
-<object id='modeledDevices' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='modeledDevices' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1494,7 +1494,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Queued Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Queued Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1526,7 +1526,7 @@ True
 7
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1558,7 +1558,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1590,7 +1590,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -1622,7 +1622,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -1654,7 +1654,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -1688,7 +1688,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -1720,7 +1720,7 @@ True
 6
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -1752,7 +1752,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1784,7 +1784,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -1816,7 +1816,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -1848,7 +1848,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -1886,7 +1886,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='rrdTemplates'>
-<object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate' move='False'>
 <property id='zendoc' type='string'>
 Graphs and Thresholds for Core Collectors
 </property>
@@ -1897,7 +1897,7 @@ Graphs and Thresholds for Core Collectors
 Products.ZenModel.PerformanceConf
 </property>
 <tomanycont id='datasources'>
-<object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -1907,11 +1907,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='commands' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='commands' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -1919,7 +1919,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1927,7 +1927,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -1935,7 +1935,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1943,7 +1943,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1951,7 +1951,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1959,7 +1959,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1967,7 +1967,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1977,7 +1977,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -1987,11 +1987,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -1999,7 +1999,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2007,7 +2007,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2015,7 +2015,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2023,7 +2023,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='modeledDevices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 COUNTER
 </property>
@@ -2031,7 +2031,7 @@ COUNTER
 True
 </property>
 </object>
-<object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2041,7 +2041,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenperfsnmp' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -2051,11 +2051,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2063,7 +2063,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2071,7 +2071,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2079,7 +2079,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2087,7 +2087,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2095,7 +2095,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2103,7 +2103,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2111,63 +2111,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenping' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2177,7 +2121,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenprocess' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenping' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -2187,11 +2131,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2199,7 +2143,63 @@ GAUGE
 True
 </property>
 </object>
-<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='zenprocess' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2207,7 +2207,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2215,7 +2215,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2223,7 +2223,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2231,7 +2231,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2239,7 +2239,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='pids' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='pids' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2247,7 +2247,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2255,7 +2255,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='restarted' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='restarted' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2263,71 +2263,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='zenstatus' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2337,7 +2273,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zensyslog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zenstatus' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -2347,11 +2283,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2359,7 +2295,71 @@ GAUGE
 True
 </property>
 </object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='zensyslog' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
+<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
+Built-In
+</property>
+<property type="boolean" id="enabled" mode="w" >
+True
+</property>
+<property type="int" id="severity" mode="w" >
+3
+</property>
+<property type="string" id="cycletime" mode="w" >
+300
+</property>
+<tomanycont id='datapoints'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
+<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
+GAUGE
+</property>
+<property type="boolean" id="isrow" mode="w" >
+True
+</property>
+</object>
+<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2367,7 +2367,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2375,7 +2375,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2383,7 +2383,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2393,7 +2393,7 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zentrap' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
+<object id='zentrap' module='Products.ZenModel.BuiltInDS' class='BuiltInDS' move='False'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
 Built-In
 </property>
@@ -2403,11 +2403,11 @@ True
 <property type="int" id="severity" mode="w" >
 3
 </property>
-<property type="int" id="cycletime" mode="w" >
+<property type="string" id="cycletime" mode="w" >
 300
 </property>
 <tomanycont id='datapoints'>
-<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2415,7 +2415,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2423,7 +2423,7 @@ DERIVE
 True
 </property>
 </object>
-<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2431,7 +2431,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
@@ -2439,7 +2439,7 @@ GAUGE
 True
 </property>
 </object>
-<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
+<object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
@@ -2451,7 +2451,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='high event queue' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
@@ -2474,7 +2474,7 @@ False
 0
 </property>
 </object>
-<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
+<object id='zenmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold' move='False'>
 <property type="string" id="eventClass" mode="w" >
 /Perf
 </property>
@@ -2499,7 +2499,7 @@ False
 </object>
 </tomanycont>
 <tomanycont id='graphDefs'>
-<object id='Collected Events' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Collected Events' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2531,7 +2531,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zensyslog' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2563,7 +2563,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zentrap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zentrap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -2597,7 +2597,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Cycle Times' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Cycle Times' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2629,7 +2629,7 @@ True
 0
 </property>
 <tomanycont id='graphPoints'>
-<object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2666,7 +2666,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Data Point Rate' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Data Point Rate' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2698,7 +2698,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -2730,7 +2730,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2762,7 +2762,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -2796,7 +2796,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Event Queue' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -2831,7 +2831,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='eventQueueLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -2863,7 +2863,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength3' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength3' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -2895,7 +2895,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength4' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength4' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -2927,7 +2927,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 5
 </property>
@@ -2959,7 +2959,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength6' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength6' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 6
 </property>
@@ -2991,7 +2991,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength7' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength7' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 7
 </property>
@@ -3023,7 +3023,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength8' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength8' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 8
 </property>
@@ -3055,7 +3055,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='eventQueueLength9' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='eventQueueLength9' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 9
 </property>
@@ -3087,7 +3087,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<object id='high event queue' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3100,7 +3100,7 @@ ${graphPoint/id}
 </object>
 </tomanycont>
 </object>
-<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Missed Runs' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3132,7 +3132,7 @@ True
 9
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3164,7 +3164,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -3196,7 +3196,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -3228,7 +3228,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -3260,7 +3260,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -3294,7 +3294,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Modeled Devices' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3329,7 +3329,7 @@ True
 8
 </property>
 <tomanycont id='graphPoints'>
-<object id='modeledDevices' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='modeledDevices' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3363,7 +3363,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Queued Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Queued Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3395,7 +3395,7 @@ True
 7
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3427,7 +3427,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -3459,7 +3459,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -3491,7 +3491,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -3523,7 +3523,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -3557,7 +3557,7 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition'>
+<object id='Running Tasks' module='Products.ZenModel.GraphDefinition' class='GraphDefinition' move='False'>
 <property type="int" id="height" mode="w" >
 100
 </property>
@@ -3589,7 +3589,7 @@ True
 6
 </property>
 <tomanycont id='graphPoints'>
-<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zencommand' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 0
 </property>
@@ -3621,7 +3621,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenperfsnmp' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -3653,7 +3653,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenping' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -3685,7 +3685,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenprocess' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 3
 </property>
@@ -3717,7 +3717,7 @@ AVERAGE
 False
 </property>
 </object>
-<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='zenstatus' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint' move='False'>
 <property type="long" id="sequence" mode="w" >
 4
 </property>
@@ -3754,14 +3754,14 @@ False
 </tomanycont>
 </object>
 </tomanycont>
-<object id='Performance' module='Products.ZenModel.MonitorClass' class='MonitorClass'>
+<object id='Performance' module='Products.ZenModel.MonitorClass' class='MonitorClass' move='False'>
 <property type="string" id="sub_class" mode="w" >
 PerformanceConf
 </property>
 <property type="lines" id="sub_meta_types" mode="w" >
 ()
 </property>
-<object id='localhost' module='Products.ZenModel.PerformanceConf' class='PerformanceConf'>
+<object id='localhost' module='Products.ZenModel.PerformanceConf' class='PerformanceConf' move='False'>
 <property type="int" id="eventlogCycleInterval" mode="w" >
 60
 </property>

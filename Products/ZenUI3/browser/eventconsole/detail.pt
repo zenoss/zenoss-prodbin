@@ -1,4 +1,4 @@
-<html>
+<html class="z-cse z-cse-dark">
     <head>
         <link rel="stylesheet" type="text/css"
             href="/++resource++extjs/resources/css/ext-all.css" />
@@ -6,14 +6,20 @@
             href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zenoss.css" />
+        <link rel="stylesheet" type="text/css"
+            href="/++resource++zenui/css/zen-cse.css" />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block tal:content="structure provider:jssnippets"/>
+        <script>
+        // get user theme
+        if (window.localStorage.getItem("z-theme") === "light") {
+            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark")
+        }
+        </script>
     </head>
     <body class="zenui3">
-
-
 
 <!--The following is using a python statement to avoid permission issues for non-global roles -->
 <script tal:content="python: 'Ext.onReady(function() { Zenoss.env.EVENTSGRID_STATEID = \'' + here.id + '_evconsole\';  });'" >
@@ -40,5 +46,8 @@ Ext.onReady(function(){
     Ext.getCmp('dpanelcontainer').load(EVENT_ID);
 });
 </script>
+<script tal:content="string:
+    Zenoss.env.CSE_VIRTUAL_ROOT = '${context/zport/virtualRoot}/';
+" tal:on-error="string:console.error('Unable to load virtual root config')"></script>
     </body>
 </html>

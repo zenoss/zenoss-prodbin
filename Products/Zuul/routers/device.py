@@ -26,12 +26,14 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE_PRODSTATE, ZEN_MANAGE_DMD, \
     ZEN_ADMIN_DEVICE, ZEN_MANAGE_DEVICE, ZEN_DELETE_DEVICE
 from Products.Zuul import filterUidsByPermission
+from Products.Zuul.facades import ObjectNotFoundException
 from Products.Zuul.routers import TreeRouter
 from Products.Zuul.exceptions import DatapointNameConfict
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.Zuul.form.interfaces import IFormBuilder
 from Products.Zuul.decorators import require, contextRequire, serviceConnectionError
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier, IGUIDManager
+from Products.ZenUtils.Utils import getPasswordFields, maskSecureProperties
 from Products.ZenMessaging.audit import audit
 from zope.event import notify
 
@@ -303,7 +305,9 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         process = facade.getInfo(uid)
+        secure_properties = getPasswordFields(process)
         data = Zuul.marshal(process, keys)
+        maskSecureProperties(data, secure_properties)
         disabled = not Zuul.checkPermission('Manage DMD', self.context)
         return DirectResponse(data=data, disabled=disabled)
 
@@ -397,6 +401,7 @@ class DeviceRouter(TreeRouter):
         If uuid is set, ensures that it is included in the returned list.
         """
         facade = self._getFacade()
+        query = "*" if not query else query
         devices = facade.getDevices(params={'name':query}) # TODO: pass start=start, limit=limit
         result = [{'name':escape(dev.name),
                    'uuid':IGlobalIdentifier(dev._object).getGUID()}
@@ -496,6 +501,19 @@ class DeviceRouter(TreeRouter):
         facade = self._getFacade()
         newUid = facade.renameDevice(uid, newId, retainGraphData)
         return DirectResponse.succeed(uid=newUid)
+
+    def doesMoveRequireRemodel(self, uid, target):
+        """
+        Determine if the device will need to be remodeled if it is moved.
+
+        @type  uid: string
+        @param uid: Uid of device in current location
+        @type  target: string
+        @param target: Uid of the organizer to move the device to
+        """
+        facade = self._getFacade()
+        remodelRequired = facade.doesMoveRequireRemodel(uid, target)
+        return DirectResponse.succeed(remodelRequired=remodelRequired)
 
     def moveDevices(self, uids, target, hashcheck=None, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC', asynchronous=True):
@@ -1329,7 +1347,11 @@ class DeviceRouter(TreeRouter):
         @return:  List of credentials props
         """
         organizerUid = '/zport/dmd/Devices' + deviceClass
-        connInfo = self._getFacade().getConnectionInfo(organizerUid)
+        try:
+            connInfo = self._getFacade().getConnectionInfo(organizerUid)
+        except ObjectNotFoundException as o:
+            connInfo = {}
+
         props = OrderedDict([(item['id'], item.get('valueAsString', '')) for item in connInfo])
         if props.get('zSnmpCommunity'):
             del props['zSnmpCommunity'] # its always on the form
@@ -1549,14 +1571,21 @@ class DeviceRouter(TreeRouter):
             title = deviceName
 
         # the device name is used as part of the URL, so any unicode characters
-        # will be stripped before saving. Pre-empt this and make the device name
+        # will be stripped before saving. Preempt this and make the device name
         # safe prior to the uniqueness check.
         safeDeviceName = organizer.prepId(deviceName)
 
-        device = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
-        if device and organizer.getZ('zUsesManageIp', True):
-            return DirectResponse.fail(deviceUid=device.getPrimaryId(),
-                                       msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, device.getPrimaryId()))
+        foundDevice = None
+        if organizer.getZ('zUsesManageIp', False):
+            foundDevice = facade.getDeviceByIpAddress(safeDeviceName, collector, manageIp)
+        if not foundDevice:
+            foundDevice = facade.getDeviceByName(safeDeviceName)
+        if foundDevice and foundDevice.getDeviceClassName() == deviceClass:
+            primaryId = foundDevice.getPrimaryId()
+            return DirectResponse.fail(
+                deviceUid=primaryId,
+                msg="Device %s already exists. <a href='%s'>Go to the device</a>" % (deviceName, primaryId)
+            )
 
         if isinstance(systemPaths, basestring):
             systemPaths = [systemPaths]
@@ -1611,19 +1640,33 @@ class DeviceRouter(TreeRouter):
         return DirectResponse.succeed(new_jobs=Zuul.marshal(jobrecords, keys=('uuid', 'description')))
 
     @require('Manage Device')
-    def remodel(self, deviceUid):
+    def remodel(self, deviceUid, collectPlugins='', background=True):
         """
         Submit a job to have a device remodeled.
 
         @type  deviceUid: string
         @param deviceUid: Device uid to have local template
+        @type  collectPlugins: string
+        @param collectPlugins: (optional) Modeler plugins to use.
+                               Takes a regular expression (default: '')
+        @type  background: boolean
+        @param background: (optional) False to not schedule a job
+                           (default: True)
         @rtype:   DirectResponse
         @return:  B{Properties}:
-             - jobId: (string) ID of the add device job
+             - status: (string) ID of the add device job or command exit status
         """
-        jobStatus = self._getFacade().remodel(deviceUid)
+        status = self._getFacade().remodel(deviceUid, collectPlugins=collectPlugins, background=background)
         audit('UI.Device.Remodel', deviceUid)
-        return DirectResponse.succeed(jobId=jobStatus.id)
+        if background:
+           response = DirectResponse.succeed(jobId=status.id)
+        else:
+           #returned value is exit status of a command
+           #if command end up successfully None is returned
+           #make from None a zero value to make it clear
+           status = status or 0
+           response = DirectResponse.succeed(exitStatus=status)
+        return response
 
     @require('Edit Local Templates')
     def addLocalTemplate(self, deviceUid, templateId):
@@ -1745,11 +1788,12 @@ class DeviceRouter(TreeRouter):
         """
         facade = self._getFacade()
         try:
+            old_templateIds = [t.id for t in facade.getBoundTemplates(uid)]
             facade.setBoundTemplates(uid, templateIds)
         except DatapointNameConfict, e:
             log.info("Failed to bind templates for {}: {}".format(uid, e))
             return DirectResponse.exception(e, 'Failed to bind templates.')
-        audit('UI.Device.BindTemplates', uid, templates=templateIds)
+        audit('UI.Device.BindTemplates', uid,new_bound_templates=templateIds, old_bound_templates=old_templateIds )
         return DirectResponse.succeed()
 
     @require('Edit Local Templates')

@@ -15,12 +15,14 @@ Available at:  /zport/dmd/network_router
 """
 
 import logging
+from zope.component import getUtility
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
 from Products.ZenUtils.Utils import getDisplayType
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products import Zuul
 from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
@@ -77,6 +79,7 @@ class NetworkRouter(TreeRouter):
             response = DirectResponse.fail('You must include a subnet mask.')
         else:
             try:
+                contextUid = getUtility(IVirtualRoot).strip_virtual_root(contextUid)
                 netip, netmask = newSubnet.split('/')
                 netmask = int(netmask)
                 foundSubnet = self.api.findSubnet(netip, netmask, contextUid)
@@ -112,7 +115,7 @@ class NetworkRouter(TreeRouter):
         """
         self.api.deleteSubnet(uid)
         audit('UI.Network.DeleteSubnet', subnet=uid)
-        return DirectResponse.succeed(tree=self.getTree())
+        return DirectResponse.succeed("Network removed")
 
 
     def getTree(self, id='/zport/dmd/Networks'):
@@ -192,7 +195,7 @@ class NetworkRouter(TreeRouter):
 
         keys = ['name', 'netmask', 'pingstatus', 'snmpstatus', 'uid',
                 'device', 'interface', 'macAddress',
-                'interfaceDescription']
+                'interfaceDescription', 'manageDevice']
         data = Zuul.marshal(instances.results, keys)
         return DirectResponse.succeed(data=data, totalCount=instances.total,
                                       hash=instances.hash_)

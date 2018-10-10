@@ -1,15 +1,23 @@
-VERSION  ?= 6.0.0
+VERSION  ?= 7.0.6
 BUILD_NUMBER ?= DEV
 BRANCH   ?= develop
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
+
+# The SCHEMA_* values define the DB schema version used for upgrades.
+# See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
+# for more information about setting these values.
+# See zenoss-version.mk for more information about make targets that use these values.
+SCHEMA_MAJOR ?= 300
+SCHEMA_MINOR ?= 0 
+SCHEMA_REVISION ?= 4
 
 DIST_ROOT := dist
 
 # Define the name, version and tag name for the docker build image
 # Note that build-tools is derived from zenoss-centos-base which contains JSBuilder
 BUILD_IMAGE = build-tools
-BUILD_VERSION = 0.0.5
+BUILD_VERSION = 0.0.11
 BUILD_IMAGE_TAG = zenoss/$(BUILD_IMAGE):$(BUILD_VERSION)
 
 UID := $(shell id -u)

@@ -1,20 +1,18 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
-
-__doc__ = """ps
+"""ps
 Interpret the output from the ps command and provide performance data for
 CPU utilization, total RSS and the number of processes that match the
 /Process tree definitions.
 """
 
-import re
 import logging
 log = logging.getLogger("zen.ps")
 
@@ -25,10 +23,15 @@ from Products.ZenEvents.ZenEventClasses import Status_OSProcess
 from Products.ZenModel.OSProcessMatcher import OSProcessDataMatcher
 from Products.ZenModel.OSProcessState import determineProcessState
 
-
 # Keep track of state between runs
 # (device, cmdAndArgs)
 Globals.MostRecentMonitoredTimePids = getattr(Globals, "MostRecentMonitoredTimePids", {})
+
+
+# For use in unit tests, to reset MostRecentMonitoredTimePids between tests.
+def resetRecentlySeenPids():
+    Globals.MostRecentMonitoredTimePids = {}
+
 
 def parseCpuTime(cputime):
     """
@@ -52,6 +55,7 @@ def parseCpuTime(cputime):
            cputime[0] * 60 +
            cputime[1])
     return int(round(cputime))
+
 
 class ps(CommandParser):
 
@@ -123,6 +127,10 @@ class ps(CommandParser):
         return combinedPids, combinedRss, combinedCpu
 
     def processResults(self, cmd, results):
+        if cmd.result.exitCode != 0:
+            log.warn("Processing skipped: command has a non-zero exit code")
+            return
+
         matcher = OSProcessDataMatcher(
             includeRegex   = cmd.includeRegex,
             excludeRegex   = cmd.excludeRegex,
@@ -134,12 +142,12 @@ class ps(CommandParser):
         def matches(processMetrics):
             pid, rss, cpu, cmdAndArgs = processMetrics
             return matcher.matches(cmdAndArgs)
-	
-	data = unicode(cmd.result.output, errors="replace")  # without relying on "ps" command output
-	lines = data.splitlines()[1:]
+
+        data = unicode(cmd.result.output, errors="replace")  # without relying on "ps" command output
+        lines = data.splitlines()[1:]
         metrics = map(self._extractProcessMetrics, lines)
         matchingMetrics = filter(matches, metrics)
-        
+
         # We can not take into account processes that have already been
         # matched by other process class
         if hasattr(cmd, 'already_matched_cmdAndArgs'):
@@ -159,7 +167,7 @@ class ps(CommandParser):
             # cmd.points = list of tuples ... each tuple contains one of the following:
             #    dictionary, count
             #    dictionary, cpu
-            #    dictionary, mem        
+            #    dictionary, mem
             if pids:
                 if 'cpu' in dp.id:
                     results.values.append( (dp, cpu) )
@@ -183,8 +191,9 @@ class ps(CommandParser):
                         component=processSet,
                         eventKey=cmd.generatedId,
                         severity=failSeverity)
-                    log.warning("(%s) %s" % (cmd.deviceConfig.device, message))
+                    log.warning("(%s) %s", cmd.deviceConfig.device, message)
                     missingeventSent = summary
+
         # When not instantiated for each call fixes missing messages
         missingeventSent = False
 
@@ -206,15 +215,15 @@ class ps(CommandParser):
             beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device].get(processSet, None)
         else:
             beforePidsProcesses = Globals.MostRecentMonitoredTimePids[device] = {}
-        
+
         # the first time this runs ... there is no "before"
         # this occurs when beforePidsProcesses is an empty dict
         # we need to save off the current processes and continue til the next monitoring time when "before" and "after" will be present
         if beforePidsProcesses is None:
-            log.debug("No existing 'before' process information for process set: %s ... skipping" % processSet)
+            log.debug("No existing 'before' process information for process set: %s ... skipping", processSet)
             Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses
             return
-        
+
         beforePids = beforePidsProcesses.keys()
         beforeProcessSetPIDs = {}
         beforeProcessSetPIDs[processSet] = beforePids
@@ -239,7 +248,7 @@ class ps(CommandParser):
                 component=processSet,
                 eventKey=cmd.generatedId,
                 severity=cmd.severity)
-            log.info("(%s) %s" % (cmd.deviceConfig.device, message))
+            log.info("(%s) %s", cmd.deviceConfig.device, message)
 
         # report alive processes
         for alivePid in afterProcessSetPIDs[processSet]:
@@ -254,9 +263,9 @@ class ps(CommandParser):
                 component=processSet,
                 eventKey=cmd.generatedId,
                 severity=Event.Clear)
-            log.debug("(%s) %s" % (cmd.deviceConfig.device, message))
+            log.debug("(%s) %s", cmd.deviceConfig.device, message)
 
         for newPid in newPids:
-            log.debug("found new process: %s (pid: %d) on %s" % (afterPidsProcesses[newPid], newPid, cmd.deviceConfig.device))
+            log.debug("found new process: %s (pid: %d) on %s", afterPidsProcesses[newPid], newPid, cmd.deviceConfig.device)
 
         Globals.MostRecentMonitoredTimePids[device][processSet] = afterPidsProcesses

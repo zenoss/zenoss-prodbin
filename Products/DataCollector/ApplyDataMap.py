@@ -10,6 +10,7 @@
 
 import sys
 from collections import defaultdict
+
 import logging
 log = logging.getLogger("zen.ApplyDataMap")
 
@@ -18,8 +19,11 @@ import transaction
 from ZODB.transact import transact
 from zope.event import notify
 from zope.container.contained import ObjectMovedEvent
+from zope.component import createObject
 from Acquisition import aq_base
+from metrology.registry import registry
 
+from Products.ZenUtils.MetricReporter import QueueGauge
 from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.events import pausedAndOptimizedIndexing
@@ -52,7 +56,6 @@ def isSameData(x, y):
 
     return x == y
 
-
 class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
@@ -61,6 +64,11 @@ class ApplyDataMap(object):
         self._dmd = None
         if datacollector:
             self._dmd = getattr(datacollector, 'dmd', None)
+        metricName = 'applyDataMap.updateRelationship'
+        if metricName not in {x[0] for x in registry}:
+            registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
+        self._urGauge = registry.get(metricName)
+        self.zing_datamap_handler = createObject("ZingDatamapHandler", self._dmd)
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
@@ -103,7 +111,6 @@ class ApplyDataMap(object):
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
 
-
     def setDeviceClass(self, device, deviceClass=None):
         """
         If a device class has been passed and the current class is not /Classifier
@@ -120,10 +127,12 @@ class ApplyDataMap(object):
         probably set commit to False and handle your own transactions.
 
         """
+        self.zing_datamap_handler.add_datamap(device, datamap)
         if commit:
-            return transact(self._applyDataMapImpl)(device, datamap)
+            result = transact(self._applyDataMapImpl)(device, datamap)
         else:
-            return self._applyDataMapImpl(device, datamap)
+            result = self._applyDataMapImpl(device, datamap)
+        return result
 
     def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
@@ -182,7 +191,15 @@ class ApplyDataMap(object):
 
             if hasattr(datamap, "relname"):
                 logname = datamap.relname
-                changed = self._updateRelationship(tobj, datamap)
+                # a 'naked' ObjectMap can have a relname but is not iterable
+                maps = datamap if hasattr(datamap, 'maps') else [datamap]
+                for objmap in maps:
+                    if objmap.modname:
+                        with self._urGauge(device.id, objmap.modname, False):
+                            changed = self._updateRelationship(tobj, datamap)
+                        break
+                else:
+                    changed = self._updateRelationship(tobj, datamap)
             elif hasattr(datamap, 'modname'):
                 logname = datamap.compname
                 changed = self._updateObject(tobj, datamap)
@@ -395,6 +412,11 @@ class ApplyDataMap(object):
         else:
             obj._p_deactivate()
         self.num_obj_changed += 1 if changed else 0
+
+        # Store the object with the objmap as the key, so when we serialize
+        # objmap, we can look up the associated UUID and other information.
+        self.zing_datamap_handler.add_context(objmap, obj)
+
         return changed
 
 

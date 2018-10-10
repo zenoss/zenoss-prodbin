@@ -20,6 +20,9 @@ from Products import Zuul
 from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Jobber.exceptions import NoSuchJobException
+from zope.event import notify
+from ZODB.transact import transact
+from Products.ZenUtils.events import QuickstartWizardFinishedEvent
 
 log = logging.getLogger('zen.JobsRouter')
 
@@ -107,3 +110,8 @@ class JobsRouter(DirectRouter):
                 job['description'] = cgi.escape(job['description'])
         return DirectResponse(jobs=jobs, totals=totals)
 
+    def quickstartWizardFinished(self):
+        # a place to hook up anything that needs to happen
+        app = self.context.dmd.primaryAq().getParentNode().getParentNode()
+        transact(notify)(QuickstartWizardFinishedEvent(app))
+        return DirectResponse.succeed()

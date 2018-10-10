@@ -74,10 +74,10 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         self.privateattr_productionState = state
 
     def getPreMWProductionState(self):
-        return self.privateattr_preMWProductionState
+        return getattr(self, '_preMWProductionState', None)
 
     def setPreMWProductionState(self, state):
-        self.privateattr_preMWProductionState = state
+        self._preMWProductionState = state
 
     def resetProductionState(self):
         # The Device class should override this and set a default value
@@ -87,7 +87,7 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
             pass
 
         try:
-            del self.privateattr_preMWProductionState
+            del self._preMWProductionState
         except AttributeError:
             pass
 
@@ -116,14 +116,13 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, MetricMixin,
         """
         self._setProductionState(int(state))
 
-        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
-
+        indexEvent = IndexingEvent(self.primaryAq(), ('productionState',), True, )
+        indexEvent.triggered_by_maint_window = maintWindowChange
+        notify(indexEvent)
         if not maintWindowChange:
             # Saves our production state for use at the end of the
             # maintenance window.
             self.setPreMWProductionState(self.getProductionState()) 
-
-        publishModified(self, None)
 
 
         if REQUEST:

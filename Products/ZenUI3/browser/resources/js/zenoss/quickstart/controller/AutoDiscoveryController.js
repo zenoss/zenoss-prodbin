@@ -34,7 +34,7 @@
         init: function() {
             this.control({
                 'wizardautodiscoveryview': {
-                    show: function() {
+                    afterrender: function() {
                         // focus on the ip ranges when the user
                         // first sees this wizard step
                         Ext.getCmp('wizard_ip_ranges').focus();

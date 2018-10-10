@@ -637,7 +637,7 @@ def AddDistToWorkingSet(distPath):
     """
     zpDists = []
     for d in pkg_resources.find_distributions(distPath):
-        pkg_resources.working_set.add(d)
+        pkg_resources.working_set.add(d, replace=True)
         pkg_resources.require(d.project_name)
         if d.project_name.startswith('ZenPacks.'):
             zpDists.append(d)

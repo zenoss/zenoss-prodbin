@@ -33,7 +33,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils import DotNetCommunication
-from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
+from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable, IGlobalIdentifier
 from Products.ZenUtils.csrf import validate_csrf_token
 from Products.ZenWidgets import messaging
 from Products.ZenModel.interfaces import IProvidesEmailAddresses, IProvidesPagerAddresses
@@ -41,8 +41,11 @@ from Products.ZenMessaging.audit import audit
 from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import (
-   ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
-   ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS,
+    ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
+    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE,
+    ZEN_MANAGE_GLOBAL_SETTINGS, MANAGER_ROLE, ZEN_MANAGE_GLOBAL_COMMANDS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
 )
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
@@ -90,22 +93,22 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../editSettings'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : ( ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dataRootManage'
-                , 'permissions'   : (ZEN_MANAGE_DMD,)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'manageUserFolder'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS, )
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -115,17 +118,17 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../../About/zenossVersions'
-                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG,)
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : '../userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
            )
          },
@@ -173,9 +176,13 @@ class UserSettingsManager(ZenModelRM):
     def getUser(self, userid=None):
         """Return a user object.  If userid is not passed return current user.
         """
-        if userid is None:
-            user = getSecurityManager().getUser()
-        else:
+
+        user = getSecurityManager().getUser()
+        # If passed in userid matches current user return current user from
+        # security manager as it will have role set.
+        # self.acl_users.getUser doesn't really work with Auth0 since
+        # we don't call back into Auth0 to find users.
+        if userid and userid != user.getId():
             user = self.acl_users.getUser(userid)
         if user: return user.__of__(self.acl_users)
 
@@ -246,7 +253,6 @@ class UserSettingsManager(ZenModelRM):
         if uf: return uf.getPrimaryUrlPath()
         return ""
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     @validate_csrf_token
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
@@ -305,7 +311,7 @@ class UserSettingsManager(ZenModelRM):
         return ''.join(choice(chars) for i in range(6))
 
 
-    def authenticateCredentials(self, login, password):
+    def authenticateCredentials(self, login, password, auth0_userid=None):
         """
         Authenticates a given set of credentials against all configured
         authentication plugins. Returns True for successful authentication and
@@ -325,8 +331,12 @@ class UserSettingsManager(ZenModelRM):
         # try each authenticator until a non-None user_id is returned
         for authenticator_id, auth in authenticators:
             try:
-                uid_and_info = auth.authenticateCredentials(
-                    {'login':login, 'password':password})
+                credentials = {
+                    'login':login,
+                    'password':password,
+                    'auth0_userid': auth0_userid,
+                    'extractor': 'auth0_plugin'}
+                uid_and_info = auth.authenticateCredentials(credentials)
 
                 if isinstance(uid_and_info, tuple):
                     # make sure tuple has enough values to unpack
@@ -600,6 +610,7 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
+    userTheme = "z-cse z-cse-dark"
     defaultAdminRole = "ZenUser"
     oncallStart = 0
     oncallEnd = 0
@@ -618,6 +629,7 @@ class UserSettings(ZenModelRM):
         {'id':'pager', 'type':'string', 'mode':'w'},
         {'id':'defaultPageSize', 'type':'int', 'mode':'w'},
         {'id':'defaultEventPageSize', 'type':'int', 'mode':'w'},
+        {'id':'userTheme', 'type':'string', 'mode':'w'},
         {'id':'defaultAdminRole', 'type':'string', 'mode':'w'},
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
@@ -685,13 +697,11 @@ class UserSettings(ZenModelRM):
             return self.acl_users._getGroupsForPrincipal(user)
         return ()
 
-
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'updatePropsFromDict')
     def updatePropsFromDict(self, propdict):
         props = self.propertyIds()
         for k, v in propdict.items():
             if k in props: setattr(self,k,v)
-
 
     def iseditable(self):
         """Can the current user edit this settings object.
@@ -699,22 +709,23 @@ class UserSettings(ZenModelRM):
         currentUser = getSecurityManager().getUser()
 
         # Managers can edit any users' settings.
-        if currentUser.has_role("Manager"):
+        if currentUser.has_role(MANAGER_ROLE):
             return True
 
         # thisUser can be None if the plugin that created it is inactive.
-        thisUser = self.acl_users.getUser(self.id)
+        thisUser = self.getUser(self.id)
         if thisUser is None:
             return False
 
-        # ZenManagers can edit any users' settings except for Managers.
-        if currentUser.has_role("ZenManager") \
-            and not thisUser.has_role("Manager"):
+        # Users can edit themselves
+        if currentUser == thisUser:
             return True
 
-        # Users can edit their own settings.
-        if thisUser.getUserName() == currentUser.getUserName():
+        # CZAdmins can edit any users' settings except for Managers.
+        if (currentUser.has_role(CZ_ADMIN_ROLE) and not
+                thisUser.has_role(MANAGER_ROLE)):
             return True
+
 
         return False
 
@@ -730,6 +741,15 @@ class UserSettings(ZenModelRM):
                 'Password Reset Failed',
                 'Cannot send password reset email; user has no'+
                 ' email address.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(self.REQUEST)
+
+        curuser = self.getUser().getId()
+        if self.id == "admin" and curuser != "admin":
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                '{0} cannot update admin password. Password not updated.'.format(curuser),
                 priority=messaging.WARNING
             )
             return self.callZenScreen(self.REQUEST)
@@ -801,24 +821,6 @@ class UserSettings(ZenModelRM):
 
         # update only email and page size if true
         outOfTurnUpdate = False
-        # Verify existing password
-        curuser = self.getUser().getId()
-        if not oldpassword or not self.ZenUsers.authenticateCredentials(curuser, oldpassword):
-            if REQUEST:
-                reqSettings = REQUEST.form
-                if str(self.defaultPageSize) == reqSettings['defaultPageSize'] and \
-                    self.email == reqSettings['email']:
-                    messaging.IMessageSender(self).sendToBrowser(
-                        'Error',
-                        'Confirmation password is empty or invalid. Please'+
-                        ' confirm your password for security reasons.',
-                        priority=messaging.WARNING
-                    )
-                    return self.callZenScreen(REQUEST)
-                else:
-                    outOfTurnUpdate = True
-            else:
-                raise ValueError("Current password is incorrect.")
 
         # update role info
         roleManager = self.acl_users.roleManager
@@ -905,7 +907,7 @@ class UserSettings(ZenModelRM):
             kw = REQUEST.form
         if outOfTurnUpdate:
             settings = {}
-            for key in ['defaultPageSize', 'email']:
+            for key in ['defaultPageSize', 'email', 'userTheme']:
                 setting = kw.get(key)
                 if setting:
                     settings[key] = setting
@@ -945,6 +947,16 @@ class UserSettings(ZenModelRM):
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords don't match")
+            elif self.id == "admin" and curuser != "admin":
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        '{0} cannot update admin password. Password not updated.'.format(curuser),
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("You cannot update admin password")
             else:
                 try:
                     userManager.updateUserPassword(self.id, password)
@@ -1133,6 +1145,31 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminGuids')
+    def getAllAdminGuids(self, returnChildrenForRootObj=False):
+        """
+        Return all guids user has permissions to.
+        """
+        guids = []
+        rootOrganizers = (
+                        '/zport/dmd/Devices',
+                        '/zport/dmd/Locations',
+                        '/zport/dmd/Groups',
+                        '/zport/dmd/Systems'
+        )
+        ars = self.getAllAdminRoles()
+        if not returnChildrenForRootObj:
+            guids.extend(IGlobalIdentifier(ar.managedObject()).getGUID() for ar in ars)
+        else:
+            for ar in ars:
+                if ar.managedObject().getPrimaryId() in rootOrganizers:
+                    guids.extend(IGlobalIdentifier(child).getGUID() for child in ar.managedObject().children())
+                else:
+                    guids.append(IGlobalIdentifier(ar.managedObject()).getGUID())
+
+        return guids
+
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminRoles')
     def getAllAdminRoles(self):
         """Return all admin roles for this user and its groups
@@ -1285,7 +1322,8 @@ class GroupSettings(UserSettings):
         """Can the current user edit this settings object.
         """
         currentUser = getSecurityManager().getUser()
-        return currentUser.has_role("Manager") or currentUser.has_role("ZenManager")
+        return (currentUser.has_role(MANAGER_ROLE) or
+                currentUser.has_role(CZ_ADMIN_ROLE))
 
     def _getG(self):
         return self.zport.acl_users.groupManager
@@ -1312,6 +1350,9 @@ class GroupSettings(UserSettings):
             group_ids = self._getG().listGroupIds()
             if self.id not in group_ids:
                 self._getG().addGroup(self.id)
+            user = self.ZenUsers.getUser(userid)
+            if not user:
+                self.manage_addUser(userid)
             self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)

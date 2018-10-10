@@ -174,16 +174,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
-        
-        if ip:
-            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
-            netroot = mon.getNetworkRoot()
-            ipobj = netroot.findIp(ip)
-            if ipobj:
-                dev = ipobj.device()
-                if dev:
-                    raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-    
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
@@ -195,6 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                             deviceName, dev)
                 
         if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
@@ -307,7 +298,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 @rtype: string
                 """
                 o = StringIO()
-                d.exportXml(o, exportPasswords=True)
+                d.exportXml(o, exportPasswords=True, move=True)
                 return switchClass(o, module, klass)
 
             def devImport(xmlfile):
@@ -507,7 +498,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Or(*ors) )
         fields = [ "name", "id", "text_ipAddress" ]
-        search_results = IModelCatalogTool(self).search(query=query, fields=fields, commit_dirty=commit_dirty)
+        search_results = IModelCatalogTool(self.dmd.Devices).search(query=query, fields=fields, commit_dirty=commit_dirty)
         return list(search_results.results)
 
     def findDevicePath(self, devicename, commit_dirty=False):
@@ -541,7 +532,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         if devicename:
             query = And( Eq("objectImplements", "Products.ZenModel.Device.Device"), Eq('id', devicename) )
-            search_results = IModelCatalogTool(self).search(query=query)
+            search_results = IModelCatalogTool(self.dmd.Devices).search(query=query)
             for brain in search_results.results:
                 dev = brain.getObject()
                 if dev.id == devicename:

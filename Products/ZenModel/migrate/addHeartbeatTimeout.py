@@ -21,7 +21,7 @@ sm.require("1.1.9")
 
 class AddHeartbeatTimeout(Migrate.Step):
 
-    version = Migrate.Version(114,0,0)
+    version = Migrate.Version(115,0,0)
 
     def cutover(self, dmd):
         try:

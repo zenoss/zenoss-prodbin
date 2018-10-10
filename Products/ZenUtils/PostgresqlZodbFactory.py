@@ -77,25 +77,10 @@ class PostgresqlZodbFactory(object):
              dsn="dbname=%(dbname)s port=%(port)s user=%(user)s password=%(password)s" % connectionParams,
              options=relstorage.options.Options(**kwargs))
 
-        # rename the poll_interval and cache_servers options to not
-        # have the zodb prefix.
-        if 'zodb_poll_interval' in kwargs:
-            kwargs['poll_interval'] = kwargs['zodb_poll_interval']
+        # rename the cache_servers option to not have the zodb prefix.
         if 'zodb_cacheservers' in kwargs:
             kwargs['cache_servers'] = kwargs['zodb_cacheservers']
 
-        if 'poll_interval' in kwargs:
-            poll_interval = kwargs['poll_interval']
-            if 'cache_servers' in kwargs:
-                if poll_interval is None:
-                    log.info("Using default poll-interval of 60 seconds because "
-                             "cache-servers was set.")
-                    kwargs['poll_interval'] = 60
-                else:
-                    kwargs['poll_interval'] = poll_interval
-            else:
-                log.warn("poll-interval of %r is being ignored because "
-                         "cache-servers was not set." % poll_interval)
         storage = relstorage.storage.RelStorage(adapter, **kwargs)
         cache_size = kwargs.get('zodb_cachesize', 1000)
         db = ZODB.DB(storage, cache_size=cache_size)
@@ -129,7 +114,4 @@ class PostgresqlZodbFactory(object):
                     help='Name of socket file for PostgreSQL server connection if host is localhost')
         group.add_option('--zodb-cacheservers', dest='zodb_cacheservers', default="",
                     help='memcached servers to use for object cache (eg. 127.0.0.1:11211)')
-        group.add_option('--zodb-poll-interval', dest='zodb_poll_interval', default=None, type='int',
-                    help='Defer polling the database for the specified maximum time interval, in seconds.'
-                    ' This will default to 60 only if --zodb-cacheservers is set.')
         parser.add_option_group(group)

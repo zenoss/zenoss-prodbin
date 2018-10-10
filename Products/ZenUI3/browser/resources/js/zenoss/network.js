@@ -50,8 +50,9 @@ treeConfigs.addAll([{
 
 var getRootId = function(fn) {
     var config;
+    var parentContext = Zenoss.render.link(undefined, Zenoss.env.PARENT_CONTEXT);
     treeConfigs.each(function(item) {
-        if (Zenoss.env.PARENT_CONTEXT.indexOf(item.root.uid) === 0) {
+        if (parentContext.indexOf(item.root.uid) === 0) {
             config = item;
             return false; //stops iteration
         }
@@ -84,13 +85,9 @@ var deleteNetwork = function() {
     tree.router.deleteNode({uid:uid},
         function(data) {
             if (data.success) {
-                tree.getStore().load({
-                    scope: this,
-                    callback: function() {
-                        tree.selectByToken(parentNode.get("id"));
-                        tree.addHistoryToken(tree.getView(), parentNode);
-                    }
-                });
+                tree.selectByToken(parentNode.get("id"));
+                tree.addHistoryToken(tree.getView(), parentNode);
+                tree.refresh();
             }
         }
     );
@@ -151,7 +148,7 @@ function treeselectionchange(sm, newnodes) {
         return;
     }
     var newnode = newnodes[0];
-    var uid = newnode.data.uid;
+    var uid = Zenoss.render.link(false, newnode.data.uid);
 
     Ext.getCmp('NetworkDetailCardPanel').setContext(uid);
 
@@ -244,14 +241,14 @@ var statusRenderer = function (statusNum) {
     var color = 'red',
         desc = _t('Down');
     if (statusNum === 0) {
-        color = 'green';
+        color = '#00e000';
         desc = _t('Up');
     }
     else if (statusNum === 5) {
-        color = 'gray';
+        color = '#afafaf';
         desc = _t('N/A');
     }
-    return '<span style="color:' + color + '">' + desc + '</span>';
+    return '<span style="font-size: 12px;font-weight: bold !important;color:' + color + '">' + desc + '</span>';
 };
 
 var ipAddressColumnConfig = [{
@@ -266,28 +263,28 @@ var ipAddressColumnConfig = [{
             name;
     }
 }, {
-    id: 'device',
-    dataIndex: 'device',
-    header: _t('Device'),
+    id: 'mangeDevice',
+    dataIndex: 'manageDevice',
+    header: _t('Manage Device'),
     sortable: true,
     width: 200,
-    renderer: function(device) {
-        if (!device) {
+    renderer: function(manageDevice) {
+        if (!manageDevice) {
             return _t('No Device');
         }
-        return Zenoss.render.link(device.uid, null, device.name);
+        return Zenoss.render.link(manageDevice.uid, null, manageDevice.name);
     }
 }, {
     id: 'interface',
     dataIndex: 'interface',
-    header: _t('Interface'),
+    header: _t('Interface / Device'),
     sortable: true,
-    width: 200,
+    width: 300,
     renderer: function(iface){
         if (!iface) {
             return _t('No Interface');
         }
-        return Zenoss.render.link(iface.uid, null, iface.name);
+        return Zenoss.render.link(iface.uid, null, iface.name) + " / " + Zenoss.render.link(iface.device.uid, null, iface.device.name);
     }
 },{
     id: 'macAddress',
@@ -340,6 +337,7 @@ Ext.define('Zenoss.network.IpAddressModel',  {
         {name: 'interfaceDescription'},
         {name: 'device'},
         {name: 'interface'},
+        {name: 'manageDevice'},
         {name: 'pingstatus'},
         {name: 'snmpstatus'},
         {name: 'uid'}
@@ -396,6 +394,7 @@ Ext.getCmp('detail_panel').add(ipAddressGridConfig);
     toolbar.add( {
             xtype: 'button',
             iconCls: 'delete',
+            tooltip: 'Delete IP Addresses',
             handler: deleteIpAddresses
         },{
             xtype: 'tbspacer',

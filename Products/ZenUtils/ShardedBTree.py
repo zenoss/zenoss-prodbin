@@ -12,6 +12,8 @@ from OFS.SimpleItem import SimpleItem
 from itertools import chain
 from zlib import adler32
 
+import logging
+log = logging.getLogger('zen.ShardedBTree')
 
 DEFAULT_N_SHARDS = 127
 
@@ -52,19 +54,30 @@ class ShardedBTree(SimpleItem):
             self.shards = new_shards
 
     def _get_shard_id(self, key):
-        return self.hash_func(key) % self.n_shards
+        s_id = -1
+        if key:
+            try:
+                s_id = self.hash_func(key) % self.n_shards
+            except Exception:
+                log.warn("Could not hash key: {}".format(key))
+        return s_id
 
     def _get_shard(self, key):
+        shard = None
         shard_id = self._get_shard_id(key)
-        return self.shards[shard_id]
+        if shard_id >= 0:
+            shard = self.shards[shard_id]
+        return shard
 
     def __setitem__(self, key, item):
         shard = self._get_shard(key)
-        shard[key] = item
+        if shard is not None:
+            shard[key] = item
 
     def __getitem__(self, key):
         shard = self._get_shard(key)
-        return shard[key]
+        if shard is not None:
+            return shard[key]
 
     def __len__(self):
         total = 0
@@ -74,7 +87,8 @@ class ShardedBTree(SimpleItem):
 
     def __delitem__(self, key):
         shard = self._get_shard(key)
-        del shard[key]
+        if shard is not None:
+            del shard[key]
 
     def __contains__(self, key):
         return self.has_key(key)
@@ -84,7 +98,9 @@ class ShardedBTree(SimpleItem):
 
     def get(self, key, default=None):
         shard = self._get_shard(key)
-        return shard.get(key, default)
+        if shard is not None:
+            return shard.get(key, default)
+        return default
 
     def clear(self):
         for shard in self.shards:
@@ -92,6 +108,8 @@ class ShardedBTree(SimpleItem):
 
     def has_key(self, key):
         shard = self._get_shard(key)
+        if shard is None:
+            return False
         return shard.has_key(key) > 0
 
     def keys(self):

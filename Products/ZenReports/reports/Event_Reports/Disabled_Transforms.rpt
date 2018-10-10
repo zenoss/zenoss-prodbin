@@ -1,0 +1,53 @@
+<tal:block tal:define="
+	objects  python:here.getDmdRoot('Events').getSubEventClassesWithDisabledTransform();
+    tableName string: disabledtransformreport;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                        sortedHeader='getOrganizerName');
+	exportFields python:['getOrganizerName', 'countChildren', 'maxTransformFails']
+	">
+<tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
+<tal:block metal:fill-slot="report">
+
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="breadCrumbPane">
+    <span metal:use-macro="here/miscmacros/macros/reportBreadCrumbsList"/>
+</tal:block>
+<tal:block metal:fill-slot="contentPane">
+
+<form method="POST" tal:attributes="action request/URL;"
+			tal:define="tabletitle string:Event Classes with disabled transform;
+                        showfilterbox python:True;
+						tblcolspan string:4">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getOrganizerName','Name of EventClass')" />
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'countChildren','SubClasses which inherit disabled transform')" />
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'maxTransformFails','Value of zEventMaxTransformFails')" />
+    </tr>
+    <tr tal:repeat="evdict batch">
+        <td class="tablevalues" align="left">
+            <a tal:attributes="href evdict/getPrimaryUrlPath"
+            tal:content="evdict/getOrganizerName">Name</a>
+        </td>
+        <td class="tablevalues" align="left" tal:content="evdict/countChildren"/>
+        <td class="tablevalues" align="left" tal:content="python:evdict.getProperty('zEventMaxTransformFails')"/>
+    </tr>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
+        </td>
+    </tr>
+</tal:block>
+</tal:block>
+</form>
+
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>

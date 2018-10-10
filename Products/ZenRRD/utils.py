@@ -583,7 +583,7 @@ def rpneval(value, rpn):
     >>> rpneval(None, '2,*')
     None
     """
-    if value is None: return value
+    if not all([value, rpn]) : return value
     rpnOps = [op.strip().upper() for op in rpn.split(',')]
     stack = rpnStack(value)
     try:

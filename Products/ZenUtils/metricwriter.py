@@ -218,7 +218,7 @@ class ThresholdNotifier(object):
     def updateThresholds(self, thresholds):
         self._thresholds.updateList(thresholds)
 
-
+    @defer.inlineCallbacks
     def notify(self, context_uuid, context_id, metric, timestamp, value, thresh_event_data={}):
         """
         Check the specified value against thresholds and send any generated
@@ -250,4 +250,5 @@ class ThresholdNotifier(object):
                         ev[key] = value
                 if ev.get("component", None):
                     ev['component_guid'] = context_uuid
-                self._send_callback(ev)
+                yield defer.maybeDeferred(self._send_callback, ev)
+

@@ -14,12 +14,15 @@ from zope.event import notify
 from zenoss.protocols.twisted.amqp import AMQPFactory
 from zenoss.protocols.exceptions import NoRouteException
 from zenoss.protocols.amqp import Publisher as BlockingPublisher
+from Products.Zing.tx_state import get_zing_tx_state
 from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 from Products.ZenUtils.guid import generate
 from zope.component import getUtility
 from Products.ZenUtils.AmqpDataManager import AmqpDataManager
-from Products.ZenMessaging.ChangeEvents.events import MessagePrePublishingEvent
-from Products.ZenMessaging.queuemessaging.interfaces import IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher
+from Products.ZenMessaging.ChangeEvents.events import (MessagePrePublishingEvent,
+        MessagePostPublishingEvent)
+from Products.ZenMessaging.queuemessaging.interfaces import (
+        IModelProtobufSerializer, IQueuePublisher, IProtobufSerializer, IEventPublisher)
 from contextlib import closing
 from zenoss.protocols.protobufutil import ProtobufEnum
 from zenoss.protocols.protobufs import modelevents_pb2
@@ -31,8 +34,6 @@ import logging
 log = logging.getLogger('zen.queuepublisher')
 
 MODEL_TYPE = ProtobufEnum(modelevents_pb2.ModelEvent, 'model_type')
-
-_prepublishing_timer = Metrology.timer("MessagePrePublishingEvents")
 
 class ModelChangePublisher(object):
     """
@@ -50,6 +51,7 @@ class ModelChangePublisher(object):
         self._publishable = []
         self._discarded = 0
         self._total = 0
+        self._maintWindowChanges = []
 
     def _createModelEventProtobuf(self, ob, eventType):
         """
@@ -145,9 +147,12 @@ class ModelChangePublisher(object):
         else:
             self._discarded+=1
 
-    def publishModified(self, ob):
-        self._total+=1
+    def publishModified(self, ob, maintWindowChange=False):
+        self._total += 1
+
         guid = self._getGUID(ob)
+        if maintWindowChange:
+            self._maintWindowChanges.append(guid)
 
         def _createModified(object):
             #do the check again in case an add was added afterwards. this happens
@@ -207,9 +212,17 @@ def getModelChangePublisher():
     return tx._synchronizedPublisher
 
 
-class PublishSynchronizer(object):
+_prepublishing_timer = None
 
+def _getPrepublishingTimer():
+    global _prepublishing_timer
+    if not _prepublishing_timer:
+        _prepublishing_timer =  Metrology.timer("MessagePrePublishingEvents")
+    return _prepublishing_timer
+
+class PublishSynchronizer(object):
     _queuePublisher = None
+    _postPublishingEventArgs = ()
 
     def findNonImpactingEvents(self, events):
         """
@@ -265,8 +278,10 @@ class PublishSynchronizer(object):
             publisher = getattr(tx, '_synchronizedPublisher', None)
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
-                with _prepublishing_timer:
-                    notify(MessagePrePublishingEvent(msgs))
+                zing_tx_state = get_zing_tx_state()
+                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges, zing_tx_state)
+                with _getPrepublishingTimer():
+                    notify(MessagePrePublishingEvent(msgs, maintWindowChanges=publisher._maintWindowChanges))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
                     dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)
@@ -287,8 +302,11 @@ class PublishSynchronizer(object):
                     self._queuePublisher.close()
                 except Exception:
                     log.exception("Error closing queue publisher")
+            if self._postPublishingEventArgs:
+                notify(MessagePostPublishingEvent(*self._postPublishingEventArgs))
         finally:
             self._queuePublisher=None
+            self._postPublishingEventArgs=()
 
 
 class EventPublisherBase(object):
@@ -416,7 +434,9 @@ class BlockingQueuePublisher(object):
                 declareExchange=True):
         if createQueues:
             for queue in createQueues:
-                self._client.createQueue(queue)
+                if not self._client.queueExists(queue):
+                    self.reconnect()
+                    self._client.createQueue(queue)
         self._client.publish(exchange, routing_key, message,
                              mandatory=mandatory, headers=headers,
                              declareExchange=declareExchange)

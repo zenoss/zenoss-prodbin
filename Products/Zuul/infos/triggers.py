@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -18,8 +18,10 @@ from zope.interface import implements
 from zope.component import getUtility
 from Products.ZenModel.interfaces import IAction
 from Products.Zuul.infos import InfoBase, ProxyProperty
-from Products.Zuul import getFacade
-from Products.Zuul.interfaces import INotificationWindowInfo, INotificationSubscriptionInfo
+from Products.Zuul.interfaces import (
+    INotificationWindowInfo,
+    INotificationSubscriptionInfo
+)
 
 
 def generateMissingJavascript():
@@ -91,6 +93,10 @@ class NotificationWindowInfo(InfoBase):
     @property
     def newId(self):
         return self._object.id
+
+    @property
+    def start_ts(self):
+        return self._object.start
 
     def _getStart(self):
         # is a unix timestamp convert to string

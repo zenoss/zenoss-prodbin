@@ -73,9 +73,6 @@ class CreateUserView(BrowserView):
             self.context.acl_users.resetCredentials(
                 self.request, self.request.response)
 
-        # Don't run the quickstart next time
-        self.context.dmd._rq = True
-
         # Send us on our way
         nextStep = getTopQuickstartStep(self.context.dmd)
         response.redirect(nextStep)

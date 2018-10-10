@@ -1,6 +1,8 @@
 /* global EventActionManager:true, moment:true */
 /* jshint freeze: false, eqeqeq: false */
 /*TODO: move overriding the prototype to a util funciton */
+
+
 (function(){ // Local scope
 /**
  * Base namespace to contain all Zenoss-specific JavaScript.
@@ -40,7 +42,6 @@ Ext.apply(Ext.direct.RemotingProvider.prototype, {
     })
 });
 
-
 /**
  * Constants
  */
@@ -69,7 +70,7 @@ Ext.namespace('Zenoss.env');
 Ext.QuickTips.init();
 
 /**
- * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function. 
+ * This workaround is the full copy of current ExtJs GC function in Zenoss except lines with deprecated function.
  * Currently new version of ExtJs hasn't fixed deprecated calls in GC function
  */
 
@@ -193,7 +194,6 @@ Zenoss.env.initPriorities = function(){
     }
 };
 
-
 Zenoss.env.textMasks = {
         allowedNameTextMask: /[\w\s]/i,
         allowedNameText: /^[\w\s]+$/,
@@ -207,6 +207,14 @@ Zenoss.env.textMasks = {
         allowedDescText: /^[\w\?,\s\.\-]+$/,
         allowedDescTextFeedback: 'Allowed text: . - ? spaces, letters and numbers only'
 };
+
+Zenoss.env.isDarkTheme = (function () {
+    if (document.documentElement.classList.contains('z-cse-dark')) {
+        return true;
+    }
+
+    return false;
+}());
 
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
@@ -255,7 +263,7 @@ Ext.define('Zenoss.state.PersistentProvider', {
         if(!this.onSaveTask) {
             this.onSaveTask = new Ext.util.DelayedTask(function(){
                 this.directFn(
-                    {state: Ext.encode(this.state)}, 
+                    {state: Ext.encode(this.state)},
                     function(){
                         this.isDirty = false;
                     });
@@ -369,7 +377,16 @@ function setToDefaultCursorStyle() {
         setCursorStyle("default");
     }
 }
-Ext.Ajax.on('requestcomplete', setToDefaultCursorStyle);
+Ext.Ajax.on('requestcomplete', function () {
+    Ext.namespace('Zenoss.env.DirectException');
+
+    setToDefaultCursorStyle();
+
+    if (Zenoss.env.DirectException.timeout) {
+        Zenoss.env.DirectException.timeout = clearTimeout(Zenoss.env.DirectException.timeout);
+        Zenoss.env.DirectException.errorMessage.hide();
+    }
+});
 Ext.Ajax.on('requestexception', setToDefaultCursorStyle);
 
 
@@ -379,8 +396,9 @@ Ext.EventManager.on(window, 'beforeunload', function() {
     Zenoss.env.unloading=true;
 });
 
-
 Ext.Direct.on('exception', function(e) {
+    Ext.namespace('Zenoss.env.DirectException');
+
     if (Zenoss.env.unloading === true){
         return;
     }
@@ -390,10 +408,32 @@ Ext.Direct.on('exception', function(e) {
         window.location.reload();
         return;
     }
+    else if (e.code === Ext.direct.Manager.exceptions.TRANSPORT) {
+        if (!Zenoss.env.DirectException.timeout) {
+            Zenoss.env.DirectException.errorMessage = Zenoss.message.error('Unable to connect to the server. Will retry in a few moments.');
+
+            Zenoss.env.DirectException.timeout = setTimeout(function () {
+                window.location.reload();
+            }, 30000);
+        }
+
+        return;
+    }
+
     var dialogId = "serverExceptionDialog", cmp;
     cmp = Ext.getCmp(dialogId);
     if(cmp) {
         cmp.destroy();
+    }
+
+    // If we're in a CSE environment and missing the accessToken cookie, we've been
+    // logged out.  Refresh the browser window so we're presented with an Auth0 login prompt.
+    if (Zenoss.env.CSE_VIRTUAL_ROOT) {
+        if (document.cookie.indexOf('accessToken') === -1) {
+            console.log('Auth0 accessToken not found; reloading page');
+            window.location.reload();
+            return;
+        }
     }
 
     Ext.create('Zenoss.dialog.SimpleMessageDialog', {
@@ -1000,6 +1040,8 @@ Zenoss.util.isSuccessful = function(response) {
     return response.result && response.result.success;
 };
 
+Zenoss.env.ACTIONS = ['history', 'drop', 'status', 'heartbeat', 'log', 'alert_state', 'detail'];
+
 Zenoss.env.SEVERITIES = [
     [5, 'Critical'],
     [4, 'Error'],
@@ -1046,7 +1088,6 @@ Zenoss.util.render_linkable = function(name, col, record) {
         return title;
     }
 };
-
 
 Zenoss.util.render_device_group_link = function(name, col, record) {
     var links = record.data.DeviceGroups.split('|'),
@@ -1222,65 +1263,7 @@ Zenoss.util.callWhenReady = function(componentId, func, scope) {
 
 };
 
-/**
- * @class Zenoss.DateRange
- * @extends Ext.form.field.Date
- * A DateRange
- */
-Ext.define("Zenoss.DateRange", {
-    extend: "Ext.form.field.Date",
-    alias: ['widget.DateRange'],
-    xtype: "daterange",
-    getErrors: function(value) {
-        var errors = new Array();
-        if (value == "") {
-            return errors;
-        }
-        //Look first for invalid characters, fail fast
-        if (/[^0-9TO :-]/.test(value)) {
-            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
-            return errors;
-        }
-        if (value.indexOf("TO") === -1) {
-            if (!Zenoss.date.regex.ISO8601Long.test(value)) {
-                errors.push("Date is formatted incorrectly - format should be " + Zenoss.date.ISO8601Long);
-                return errors;
-            }
-        }
-        else {
-            if (!Zenoss.date.regex.ISO8601LongRange.test(value)) {
-                errors.push("Date range is formatted incorrectly - format should be " + Zenoss.date.ISO8601LongRange.replace(/\\/g, ''));
-                return errors;
-            }
-        }
-        return errors;
-    },
-    getValue: function() {
-        // Counting on getErrors() to sanitize input before executing this code
-        var value = this.getRawValue();
-        if (!value) {
-            return "";
-        }
-        var has_TO = (value.indexOf("TO") === -1);
-        if (has_TO) {
-            var retVal = value.replace(" TO ", "/");
-            return retVal.replace(" ", "T");
-        }
-        else {
-            return value.replace(" ", "T");
-        }
-    },
-    parseDate: function(value) {
-        var newVal = Ext.form.field.Date.prototype.parseDate.call(this, value);
-        Ext.iterate(Zenoss.date.regex, function(key, regex) {
-            if (regex.test(value)) {
-                newVal = value;
-                return false;
-            }
-        });
-        return newVal;
-    }
-});
+
 
 /**
 * Used in BaseGrid.js by onFocus() and onResize() events.
@@ -1332,70 +1315,25 @@ Zenoss.util.ipv6wrap = function(string) {
     return string;
 };
 
-
 /**
- * Zenoss date patterns and manipulations
+ * Helper fn to get Ext component by 'itemId' starting from from some target component.
+ * We move up in Ext cmp hierarchy and search ('down') for cmp by it's 'itemId'.
+ * @param itemId
+ * @param targetCmp
+ * @returns {*}
  */
-Ext.namespace('Zenoss.date');
-
-/**
- * A set of useful date formats. All dates should come from the server as
- * ISO8601Long, but we may of course want to render dates in many different
- * ways.
- */
-Ext.apply(Zenoss.date, {
-    ISO8601Long:"Y-m-d H:i:s",
-    ISO8601Short:"Y-m-d",
-    ShortDate: "n/j/Y",
-    LongDate: "l, F d, Y",
-    FullDateTime: "l, F d, Y g:i:s A",
-    MonthDay: "F d",
-    ShortTime: "g:i A",
-    LongTime: "g:i:s A",
-    SortableDateTime: "Y-m-d\\TH:i:s",
-    UniversalSortableDateTime: "Y-m-d H:i:sO",
-    YearMonth: "F, Y",
-    ISO8601LongRange: "Y-m-d H:i:s \\T\\O Y-m-d H:i:s",
-    LongRangeAndDefault: Ext.form.field.Date.prototype.altFormats + '|' + Zenoss.date.ISO8601LongRange,
-    regex: {
-        ISO8601LongRange: /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]) TO (19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/,
-        ISO8601Long: /^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/
-    }
-});
-
-
-/**
- * This takes a unix timestamp and renders it in the
- * logged in users's selected timezone.
- * Format is optional, if not passed in the default will be used.
- * NOTE: value here must be in seconds, not milliseconds
- **/
-Zenoss.date.renderWithTimeZone = function (value, format) {
-    if (Ext.isNumeric(value)) {
-        if (!format) {
-            format = "YYYY-MM-DD hh:mm:ss a z";
+Zenoss.getCmp = function(itemId, targetCmp) {
+    var cmp = null, target;
+    if (itemId) {
+        while (!cmp && targetCmp) {
+            target = targetCmp.down ? targetCmp : targetCmp.getEl();
+            cmp = target.down('#'+itemId);
+            targetCmp = targetCmp.up();
         }
-        return moment.utc(value, "X").tz(Zenoss.USER_TIMEZONE).format(format);
     }
-    return value;
+    return cmp;
 };
 
-Zenoss.date.renderDateColumn = function(format) {
-    return function(v) {
-        return Zenoss.date.renderWithTimeZone(v, format||Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
-    };
-};
-
-Ext.onReady(function(){
-    // For compatibility use the same data format for Zenoss.date.timeZones
-    // as before.
-    zones = {}
-
-    Ext.each(moment.tz.names(), function(zone) {
-        zones[zone] = zone;
-    });
-    Zenoss.date.timeZones = {zones: zones};
-});
 
 
 // Force checkbox to fire valid
@@ -1414,39 +1352,6 @@ String.prototype.startswith = function(str){
 
 String.prototype.endswith = function(str){
     return (this.match(str+'$')==str);
-};
-
-/* Readable dates */
-
-var _time_units = [
-    ['year',   60*60*24*365],
-    ['month',  60*60*24*30],
-    ['week',   60*60*24*7],
-    ['day',    60*60*24],
-    ['hour',   60*60],
-    ['minute', 60],
-    ['second', 1]
-];
-
-Date.prototype.readable = function(precision) {
-    var diff = (new Date().getTime() - this.getTime())/1000,
-        remaining = Math.abs(diff),
-        result = [], i;
-    for (i=0;i<_time_units.length;i++) {
-        var unit = _time_units[i],
-            unit_name = unit[0],
-            unit_mult = unit[1],
-            num = Math.floor(remaining/unit_mult);
-        remaining = remaining - num * unit_mult;
-        if (num) {
-            result.push(num + " " + unit_name + (num>1 ? 's' : ''));
-        }
-        if (result.length === precision) {
-            break;
-        }
-    }
-    var base = result.join(' ');
-    return diff >= 0 ? base + " ago" : "in " + base;
 };
 
 
@@ -1571,7 +1476,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
     }
 };
 
-
 // The data for all states
     Zenoss.util.states = [
         {"abbr":"AL","name":"Alabama","slogan":"The Heart of Dixie"},
@@ -1626,7 +1530,6 @@ Zenoss.settings.deviceMoveIsAsync = function(devices) {
         {"abbr":"WI","name":"Wisconsin","slogan":"America's Dairyland"},
         {"abbr":"WY","name":"Wyoming","slogan":"Like No Place on Earth"}
     ];
-
 
 // Create a portlets object
 //

@@ -19,7 +19,7 @@ sm.require("1.0.0")
 class AddTagToImages(Migrate.Step):
     "Add tag latest to all Images that do not have a tag"
 
-    version = Migrate.Version(107, 0, 0)
+    version = Migrate.Version(108, 0, 0)
 
     def cutover(self, dmd):
         try:

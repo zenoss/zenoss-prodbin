@@ -23,7 +23,7 @@ class AddServiceRunLevels(Migrate.Step):
     See ZEN-23931, ZEN-27299.
     """
 
-    version = Migrate.Version(113, 0, 0)
+    version = Migrate.Version(109, 0, 0)
 
     def cutover(self, dmd):
         try:

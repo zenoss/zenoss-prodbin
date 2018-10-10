@@ -10,17 +10,14 @@
 
 import socket
 import re
-import os
 import logging
-import subprocess
 from collections import OrderedDict
 from itertools import imap
 from ZODB.transact import transact
 from zope.interface import implements
 from zope.event import notify
-from zope.component import getMultiAdapter, queryUtility
+from zope.component import getMultiAdapter, queryUtility, getUtility
 from Products.AdvancedQuery import Eq, Or, Generic, And, MatchGlob
-from Products.Zuul.catalog.interfaces import IComponentFieldSpec
 from Products.Zuul.decorators import info
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
@@ -28,7 +25,6 @@ from Products.Zuul.catalog.component_catalog import get_component_field_spec, pa
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.interfaces import IDeviceFacade, IInfo, ITemplateNode, IMetricServiceGraphDefinition
 from Products.Jobber.facade import FacadeMethodJob
-from Products.Jobber.jobs import SubprocessJob
 from Products.Zuul.tree import SearchResults
 from Products.DataCollector.Plugins import CoreImporter, PackImporter, loadPlugins
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -46,9 +42,9 @@ from Products.Zuul.utils import ZuulMessageFactory as _t, UncataloguedObjectExce
 from Products.Zuul.interfaces import IDeviceCollectorChangeEvent
 from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.IpUtil import isip, getHostByName
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenUtils.Utils import getObjectsFromCatalog
 from Products.ZenEvents.Event import Event
-from Products.ZenUtils.Utils import binPath, zenPath
 from Acquisition import aq_base
 from Products.Zuul.infos.metricserver import MultiContextMetricServiceGraphDefinition
 from AccessControl import getSecurityManager
@@ -124,9 +120,10 @@ class DeviceFacade(TreeFacade):
             for i, b in enumerate(comps):
                 if '/'.join(b._object.getPrimaryPath())==componentUid:
                     return i
-        for i, b in enumerate(brains):
-            if b.getPath() == componentUid:
-                return i
+        else:
+            for i, b in enumerate(brains):
+                if b.getPath() == componentUid:
+                    return i
 
     def _filterComponents(self, comps, keys, query):
         """
@@ -188,7 +185,7 @@ class DeviceFacade(TreeFacade):
             brains = brains[start:start+limit]
         return brains, total
 
-    def _typecatComponentPostProcess(self, brains, total):
+    def _typecatComponentPostProcess(self, brains, total, sort='name', reverse=False):
         hash_ = str(total)
         comps = map(IInfo, map(unbrain, brains))
         # fetch any rrd data necessary
@@ -201,7 +198,8 @@ class DeviceFacade(TreeFacade):
             severities = zep.getWorstSeverity(uuids)
             for r in comps:
                 r.setWorstEventSeverity(severities[r.uuid])
-        return SearchResults(iter(comps), total, hash_, False)
+        sortedComps = sorted(comps, key=lambda x: getattr(x, sort), reverse=reverse)
+        return SearchResults(iter(sortedComps), total, hash_, False)
 
     # Get components from model catalog. Not used for now
     def _get_component_brains_from_model_catalog(self, uid, meta_type=()):
@@ -218,12 +216,12 @@ class DeviceFacade(TreeFacade):
 
     def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
                          limit=None, sort='name', dir='ASC', name=None, keys=()):
+        reverse = dir=='DESC'
         if isinstance(meta_type, basestring) and get_component_field_spec(meta_type) is not None:
             brains, total = self._typecatComponentBrains(uid, types, meta_type, start,
                     limit, sort, dir, name, keys)
             if brains is not None:
-                return self._typecatComponentPostProcess(brains, total)
-        reverse = dir=='DESC'
+                return self._typecatComponentPostProcess(brains, total, sort, reverse)
         if isinstance(meta_type, basestring):
             meta_type = (meta_type,)
         if isinstance(types, basestring):
@@ -241,7 +239,15 @@ class DeviceFacade(TreeFacade):
         brains = cat.evalAdvancedQuery(query)
 
         # unbrain the results
-        comps=map(IInfo, map(unbrain, brains))
+        comps = []
+        for brain in brains:
+            try:
+                comps.append(IInfo(unbrain(brain)))
+            except:
+                log.warn('There is broken component "{}" in componentSearch catalog on {} device.'.format(
+                     brain.id, obj.device().id
+                     )
+                )
 
         # filter the components
         if name is not None:
@@ -389,6 +395,7 @@ class DeviceFacade(TreeFacade):
                 raise Exception("%s %s cannot be manually deleted" %
                             (getattr(comp,'meta_type','component'),comp.id))
 
+
     def _deleteDevices(self, uids, deleteEvents=False, deletePerf=True):
         @transact
         def dbDeleteDevices(uids):
@@ -400,10 +407,6 @@ class DeviceFacade(TreeFacade):
                 parent = dev.getPrimaryParent()
                 dev.deleteDevice(deleteStatus=deleteEvents,
                                  deletePerf=deletePerf)
-                # Make absolutely sure that the count gets updated
-                # when we delete a device.
-                parent = self._dmd.unrestrictedTraverse("/".join(parent.getPhysicalPath()))
-                parent.setCount()
             return deletedIds
 
         def uidChunks(uids, chunksize=10):
@@ -585,6 +588,15 @@ class DeviceFacade(TreeFacade):
             if isinstance(dev, Device):
                 dev.setProdState(int(state))
 
+    def doesMoveRequireRemodel(self, uid, target):
+        # Resolve target if a path
+        if isinstance(target, basestring):
+            target = self._getObject(target)
+        assert isinstance(target, DeviceClass)
+        targetClass = target.getPythonDeviceClass()
+        dev = self._getObject(uid)
+        return dev and dev.__class__ != targetClass
+
     @info
     def moveDevices(self, uids, target, asynchronous=True):
         if asynchronous:
@@ -615,12 +627,16 @@ class DeviceFacade(TreeFacade):
 
         # find a device with the same ip on the same collector
         cat = IModelCatalogTool(self.context.Devices)
-        query = Eq('text_ipAddress', ipAddress)
+        query = And(Eq('text_ipAddress', ipAddress),
+                    Eq('objectImplements', 'Products.ZenModel.Device.Device'))
         search_results = cat.search(query=query)
 
         for brain in search_results.results:
             if brain.getObject().getPerformanceServerName() == collector:
                 return brain.getObject()
+
+    def getDeviceByName(self, deviceName):
+        return self.context.Devices.findDeviceByIdExact(deviceName)
 
     @info
     def setCollector(self, uids, collector, moveData=False, asynchronous=True):
@@ -693,11 +709,13 @@ class DeviceFacade(TreeFacade):
                                                title=title)
         return jobrecords
 
-    def remodel(self, deviceUid):
-        fake_request = {'CONTENT_TYPE': 'xml'}
+    def remodel(self, deviceUid, collectPlugins='', background=True):
+        #fake_request will break not a background command 
+        fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
-            device, background=True, REQUEST=fake_request)
+            device, background=background, collectPlugins=collectPlugins,
+            REQUEST=fake_request)
 
     def addLocalTemplate(self, deviceUid, templateId):
         """
@@ -720,7 +738,11 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        rrdTemplates = object.getRRDTemplates()
+        
+        if isinstance(object, Device):
+            rrdTemplates = object.getAvailableTemplates()
+        else:
+            rrdTemplates = object.getRRDTemplates()        
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -758,9 +780,16 @@ class DeviceFacade(TreeFacade):
 
     def _getBoundTemplates(self, uid, isBound):
         obj = self._getObject(uid)
-        for template in obj.getAvailableTemplates():
-            if (template.id in obj.zDeviceTemplates) == isBound:
-                yield template
+        templates = (
+            template
+            for template in obj.getAvailableTemplates()
+            if (template.id in obj.zDeviceTemplates) == isBound
+        )
+        if isBound:
+            templates = sorted(
+                templates, key=lambda x: obj.zDeviceTemplates.index(x.id)
+            )
+        return templates
 
     def setBoundTemplates(self, uid, templateIds):
         obj = self._getObject(uid)
@@ -904,7 +933,7 @@ class DeviceFacade(TreeFacade):
                 proptype = inst.getPropertyType(propname)
                 objects.append({
                     'devicelink':inst.getPrimaryDmdId(),
-                    'props':"******" if proptype == 'password' else getattr(inst, propname),
+                    'props':self.maskPropertyPassword(inst, propname),
                     'proptype':proptype
                 })
                 if relName == 'devices':
@@ -917,7 +946,7 @@ class DeviceFacade(TreeFacade):
             proptype = inst.getPropertyType(propname)
             objects.append({
                 'devicelink':inst.getPrimaryDmdId(),
-                'props':"******" if proptype == 'password' else getattr(inst, propname),
+                'props':self.maskPropertyPassword(inst, propname),
                 'proptype':proptype
             })
         return objects
@@ -928,8 +957,8 @@ class DeviceFacade(TreeFacade):
             prop = ''
             proptype = ''
         else:
-            prop = getattr(obj, propname)
             proptype = obj.getPropertyType(propname)
+            prop = self.maskPropertyPassword(obj, propname)
         return [{'devicelink':uid, 'props':prop, 'proptype':proptype}]
 
     def getOverriddenZprops(self, uid, all=True, pfilt=iszprop):
@@ -1020,7 +1049,7 @@ class DeviceFacade(TreeFacade):
             org_id = org.getPrimaryId()
             if not hasattr(aq_base(org), 'devtypes') or not org.devtypes:
                 devtypes.append({
-                    'value': org_id,
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
                     'description': org_name,
                     'protocol': "",
                 })
@@ -1046,7 +1075,7 @@ class DeviceFacade(TreeFacade):
                 if matched_org_to_dev_cls and ptcl == 'WMI':
                     ptcl = "WinRM"
                 devtypes.append({
-                    'value': org_id,
+                    'value': getUtility(IVirtualRoot).ensure_virtual_root(org_id),
                     'description': desc,
                     'protocol': ptcl,
                 })
@@ -1081,3 +1110,9 @@ class DeviceFacade(TreeFacade):
             for prop in org.zCredentialsZProperties:
                 props[prop] = prop
         return props.keys()
+
+    def maskPropertyPassword(self, inst, propname):
+        prop = getattr(inst, propname)
+        if inst.zenPropIsPassword(propname):
+            prop = "*" * len(prop)
+        return prop

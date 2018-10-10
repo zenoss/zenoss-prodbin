@@ -33,9 +33,11 @@ from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.Security import activateSessionBasedAuthentication, activateCookieBasedAuthentication
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from ZODB.transact import transact
 from Commandable import Commandable
 from datetime import datetime
+from zope.component import getUtility
 import os
 import sys
 import string
@@ -48,7 +50,12 @@ from Products.ZenEvents.Exceptions import (
     MySQLConnectionError, pythonThresholdException, rpnThresholdException)
 
 from ZenModelRM import ZenModelRM
-from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
+from ZenossSecurity import (
+    ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW, ZEN_MANAGE_GLOBAL_SETTINGS,
+    ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_VIEW_USERS, ZEN_MANAGE_USERS,
+    ZEN_MANAGE_ZENPACKS, ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG,
+    ZEN_MANAGE_UI_SETTINGS,
+)
 from interfaces import IDataRoot
 from zExceptions import Unauthorized
 
@@ -76,7 +83,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     #setTitle = DTMLFile('dtml/setTitle',globals())
 
-    _rq = True
     uuid = None
     availableVersion = None
     lastVersionCheck = 0
@@ -84,7 +90,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
-    instanceIdentifier = 'Zenoss'
+    cz_prefix = getUtility(IVirtualRoot).get_prefix()
+    instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
     smtpHost = ''
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
@@ -100,6 +107,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     AUTH_TYPE_SESSION = "session"
     AUTH_TYPE_COOKIE = "cookie"
     userAuthType = AUTH_TYPE_SESSION
+    userTheme = "z-cse"
     pauseHubNotifications = False
     zendmdStartupCommands = []
     pauseADMStart = datetime.min
@@ -129,6 +137,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
         {'id':'userAuthType', 'type': 'string', 'mode':'w'},
+        {'id':'userTheme', 'type': 'string', 'mode':'w'},
         {'id':'pauseHubNotifications', 'type': 'boolean', 'mode':'w'},
         {'id':'zendmdStartupCommands', 'type': 'lines', 'mode':'w'},
         {'id':'pauseADMStart', 'type': 'datetime', 'mode':'w'},
@@ -159,22 +168,22 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : 'editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_SETTINGS, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : 'dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_GLOBAL_COMMANDS,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'ZenUsers/manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : 'ZenPackManager/viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_ZENPACKS,)
                 },
                 { 'id'            : 'portlets'
                 , 'name'          : 'Portlets'
@@ -184,17 +193,17 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_VIEW_SOFTWARE_VERSIONS,)
                 },
                 { 'id'            : 'eventConfig'
                 , 'name'          : 'Events'
                 , 'action'        : 'eventConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_EVENT_CONFIG, )
                 },
                 { 'id'            : 'userInterfaceConfig'
                 , 'name'          : 'User Interface'
                 , 'action'        : 'userInterfaceConfig'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : (ZEN_MANAGE_UI_SETTINGS,)
                 },
             )
           },
@@ -261,11 +270,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self.version = "Zenoss " + VERSION
 
     def index_html(self):
-        """
-        Override to force redirection to quickstart.
-        """
-        if not self._rq:
-            return self.unrestrictedTraverse('quickstart')()
         return self()
 
     def getEventCount(self, **kwargs):
@@ -592,7 +596,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 return None
         if not obj: return None
         if REQUEST is not None:
-            REQUEST['RESPONSE'].redirect(obj.getPrimaryUrlPath())
+            path = getUtility(IVirtualRoot).ensure_virtual_root(obj.getPrimaryUrlPath())
+            REQUEST['RESPONSE'].redirect(path)
 
 
     def getXMLEdges(self, objid, depth=1, filter="/"):
@@ -771,14 +776,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return getattr(self, 'productName', 'core')
 
-
     def getProductHelpLink(self):
         """
         Return a URL to docs for the Zenoss product that is installed.
         """
-        return "/zport/dmd/localDocumentation"
-        # return "http://www.zenoss.com/resources/documentation"
-
+        return "https://help.zenoss.com/docs/collection-zone"
 
     def getDocFilesInfo(self):
         docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
@@ -889,18 +891,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
 
         if REQUEST:
-            curuser = self.dmd.ZenUsers.getUser().getId()
-            curpasswd = REQUEST.get('curPasswd')
-
-            if not self.dmd.ZenUsers.authenticateCredentials(curuser, curpasswd):
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'Confirmation password is empty or invalid. Please'
-                    ' confirm your password for security reasons.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-
             app = self.unrestrictedTraverse('/')
             if REQUEST.get('userAuthType') == self.AUTH_TYPE_SESSION:
                 activateSessionBasedAuthentication(self.zport)

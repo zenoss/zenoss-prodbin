@@ -31,8 +31,15 @@ Ext.define("Zenoss.IFramePanel", {
         this.callParent(arguments);
         this.addEvents('frameload', 'framefailed', 'isReady');
         this.on('frameload', function() {
+            this.injectCss();
             // Load any messages that may have been created by the frame
             Zenoss.messenger.checkMessages();
+            this.iframeEl.show();
+        }, this);
+        // double check not always "frameload" is fired
+        this.on('load', function() {
+            this.injectCss();
+            this.iframeEl.show();
         }, this);
     },
     onRender: function() {
@@ -101,13 +108,49 @@ Ext.define("Zenoss.IFramePanel", {
     },
     setSrc: function(url) {
         this.frameLoaded = false;
-        if (url === 'about:blank' || url === '') {
+        if (url === 'about:blank' || !url) {
             this.load('about:blank');
         } else {
             this.load(Ext.urlAppend(url,
                     '_dc=' + new Date().getTime()));
         }
+        // hide iframe el to avoid flickering on injectCss;
+        // show it on after load;
+        this.iframeEl.hide();
         this.waitForLoad();
+    },
+    /*
+    * this fn inject zen-cse.css into iframe document to make styles same as in main page
+    * we should call it every time on after iframe load;
+    * */
+    injectCss: function() {
+        var iframe = this.getFrame(),
+            html = document.getElementsByTagName('html')[0],
+            // zen_cse_css - name of zen-cse.css link in base-new.pt template
+            css = document.querySelector('[name=zen_cse_css]'),
+            cssClone,
+            iframeHtml = iframe.contentDocument.getElementsByTagName('html')[0],
+            cseClasses = [];
+
+        // add custom style to iframe <html> if it's defined;
+        if (this.iframeCustomCss) {
+            cseClasses.push(this.iframeCustomCss);
+        }
+
+        Ext.each(html.classList, function(key, item) {
+            if (typeof key === 'string' && key.startsWith('z-cse')) {
+                cseClasses.push(key);
+            }
+        });
+
+        if (css && iframeHtml) {
+            cssClone = css.cloneNode();
+            Ext.Array.each(cseClasses, function(item) {
+                iframeHtml.classList.add(item);
+            });
+            cssClone.innerHTML = css.innerHTML;
+            iframe.contentDocument.head.appendChild(cssClone);
+        }
     }
 });
 
@@ -127,7 +170,8 @@ Ext.define("Zenoss.BackCompatPanel", {
     contextUid: null,
     constructor: function(config) {
         Ext.apply(config || {}, {
-            testEarlyReadiness: true
+            testEarlyReadiness: true,
+            iframeCustomCss: 'z-cse-reports'
         });
         Zenoss.BackCompatPanel.superclass.constructor.call(this, config);
         this.addEvents('frameloadfinished');
@@ -159,6 +203,7 @@ Ext.define("Zenoss.BackCompatPanel", {
         if (Ext.isDefined(this.viewName) && this.viewName !== null) {
             url = uid + '/' + this.viewName;
         }
+        url = Zenoss.render.link(null, url);
         // make sure we are rendered before we set our source
         if (this.rendered) {
             this.setSrc(url);

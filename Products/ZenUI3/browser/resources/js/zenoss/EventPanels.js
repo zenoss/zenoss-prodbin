@@ -470,6 +470,39 @@
         dialog.show();
     };
 
+    Zenoss.events.Exp = function(gridId, type, format){
+        var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
+        if (context === "/zport/dmd/Events") {
+            context = location.pathname.replace('/viewEvents', '');
+        }
+        var grid = Ext.getCmp(gridId),
+            state = grid.getState(),
+            historyCombo = Ext.getCmp('history_combo'),
+            params = {
+                type: type,
+          options: {
+              fmt: format,
+              datefmt: Zenoss.USER_DATE_FORMAT,
+              timefmt: Zenoss.USER_TIME_FORMAT,
+              tz: Zenoss.USER_TIMEZONE 
+          },
+                isHistory: false,
+                params: {
+                    uid: context,
+                    fields: Ext.Array.pluck(state.columns, 'id'),
+                    sort: state.sort.property,
+                    dir: state.sort.direction,
+                    params: grid.getExportParameters()
+                }
+            };
+        if (historyCombo && historyCombo.getValue() === 1) {
+            params.isHistory = true;
+        }
+        Ext.get('export_body').dom.value =
+            Ext.encode(params);
+        Ext.get('exportform').dom.submit();
+    };
+
     Zenoss.EventConsoleTBar = Ext.extend(Zenoss.LargeToolbar, {
         constructor: function(config){
             var gridId = config.gridId,
@@ -554,7 +587,8 @@
                 });
             }
 
-            if (/^\/zport\/dmd\/Events/.test(window.location.pathname)) {
+            // match /cz/
+            if (new RegExp('^'+Zenoss.render.link(false, '/zport/dmd/Events')).test(window.location.pathname)) {
                 configureMenuItems.splice(2, 0, {
                     text: _t('Save this configuration...'),
                     handler: function(){
@@ -911,68 +945,92 @@
                     },
                     Zenoss.events.EventPanelToolbarSelectMenu,
                     {
-                        text: _t('Export'),
-                        id: 'export-button',
-                        //iconCls: 'export',
-                        menu: {
-                            items: [{
-                                text: 'XML',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context === "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
+                    text: _t('Export'),
+                    //iconCls: 'export',
+                    handler: function(){
 
-                                    var grid = Ext.getCmp(gridId),
-                                        state = grid.getState(),
-                                        historyCombo = Ext.getCmp('history_combo'),
-                                        params = {
-                                            type: 'xml',
-                                            isHistory: false,
-                                            params: {
-                                                uid: context,
-                                                fields: Ext.Array.pluck(state.columns, 'id'),
-                                                sort: state.sort.property,
-                                                dir: state.sort.direction,
-                                                params: grid.getExportParameters()
-                                            }
-                                        };
-                                    if (historyCombo && historyCombo.getValue() === 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
+                    var dialog = Ext.create('Zenoss.dialog.Form', {
+                    title: _t('Export events'),
+                    minWidth: 350,
+                    submitHandler: function(form) {
+                        var values = form.getValues();
+                        Zenoss.events.Exp(gridId, values['ftype'], values['ffmt']);
+                    },
+                    form: {
+                        layout: 'anchor',
+                        defaults: {
+                            xtype: 'displayfield',
+                            padding: '0 0 10 0',
+                            margin: 0,
+                            anchor: '100%'
+                        },
+                        fieldDefaults: {
+                            labelAlign: 'left',
+                            labelWidth: 75,
+                            labelStyle: 'color:#aaccaa'
+                        },
+                        items: [{
+                            name: 'ftype',
+                            fieldLabel: 'File type',
+                            value: '',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                  fields:['id','name'],
+                                  data:[
+                                        {id:'xml', name:'XML'},
+                                        {id:'csv', name:'CSV'}
+                                  ]
+                            }),
+                            editable: false,
+                            disableKeyFilter: false,
+                            submitValue: true
+                        },
+                        {
+                            name: 'ffmt',
+                            fieldLabel: 'Date/Time format',
+                            xtype: 'combo',
+                            allowBlank: false,
+                            displayField:'name',
+                            valueField:'id',
+                            store: Ext.create('Ext.data.Store',{
+                                       fields:['id','name'],
+                                       data:[
+                                            {id:'iso',  name:'ISO'},
+                                            {id:'unix', name:'Unix'},
+                                            {id:'user', name:'User settings'}
+                                       ]
+                            }),
+                            listeners: {'select': function (combo, record){
+                                if(record[0].data.id == "unix"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("x")).show();
+                                } else if(record[0].data.id == "iso"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format("YYYY-MM-DDTHH:mm:ssZ")).show();
+                                } else if(record[0].data.id == "user"){
+                                    Ext.getCmp('fexample').setValue(moment.tz(new Date(), Zenoss.USER_TIMEZONE).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT)).show();
                                 }
-                            }, {
-                                text: 'CSV',
-                                handler: function(){
-                                    var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
-                                    if (context === "/zport/dmd/Events") {
-                                        context = location.pathname.replace('/viewEvents', '');
-                                    }
-                                    var grid = Ext.getCmp(gridId),
-                                    state = Ext.getCmp(gridId).getState(),
-                                    historyCombo = Ext.getCmp('history_combo'),
-                                    params = {
-                                        type: 'csv',
-                                        params: {
-                                            uid: context,
-                                            fields: Ext.Array.pluck(state.columns, 'id'),
-                                            sort: state.sort.property,
-                                            dir: state.sort.direction,
-                                            params: grid.getExportParameters()
-                                        }
-                                    };
-                                    if (historyCombo && historyCombo.getValue() === 1) {
-                                        params.isHistory = true;
-                                    }
-                                    Ext.get('export_body').dom.value =
-                                        Ext.encode(params);
-                                    Ext.get('exportform').dom.submit();
-                                }
-                            }]
-                        }
+                            }
+                        },
+                        editable: false,
+                        disableKeyFilter: false,
+                        submitValue: true
+                    },
+                    {
+                        name: 'example',
+                        id: 'fexample',
+                        fieldLabel:'Format example',
+                        value: '',
+                        hidden: true,
+                        submitValue: false
+                    }
+                    ]
+                }
+            });
+            dialog.down('form');
+            dialog.show();
+                }
                     },
                     {
                         text: _t('Configure'),
@@ -1496,14 +1554,16 @@
             if (decoded.state) {
                 try {
                     state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(decoded.state)));
+                    Ext.state.Manager.set(this.stateId, state);
+                    this.fireEvent('recreateGrid', this);
                 } catch(e) { }
             //in case parameters are not encoded
             } else {
-                state = {"filters": decoded};
+                var filters = { filters: decoded };
+                this.clearFilters();
+                this.applyState(filters);
+                this.filterRow.storeSearch();
             }
-
-            Ext.state.Manager.set(this.stateId, state);
-            this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
@@ -1698,13 +1758,17 @@
                 this.refresh();
             }
         },
-        refresh: function(){
-            this.directFn({uid:this.uid, keys:['events']}, function(result){
-                if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
-                    return;
-                }
-                this.updateRainbow(result.data.events);
-            }, this);
+        refresh: function() {
+            var uid = this.uid;
+            // we always need uid - so no uid no refresh;
+            if (uid) {
+                this.directFn({uid: uid, keys: ['events']}, function (result) {
+                    if (Zenoss.env.contextUid && Zenoss.env.contextUid !== this.uid) {
+                        return;
+                    }
+                    this.updateRainbow(result.data.events);
+                }, this);
+            }
         },
         updateRainbow: function(severityCounts) {
             this.setText(Zenoss.render.events(severityCounts, this.count));

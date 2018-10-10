@@ -85,6 +85,16 @@ loader.insert();
             tal:attributes="value here/smtpPort" />
       </td>
     </tr>
+    <tr>
+      <td class="tablevalues" hidden="true">
+        <input class="tablevalues" hidden="true" autocomplete="off" title="Hidden field for preventing username autofill" type="text" />
+      </td>
+    </tr>
+    <tr>
+      <td class="tablevalues" hidden="true">
+        <input class="tablevalues" hidden="true" autocomplete="off" title="Hidden field for preventing password autofill" type="password" />
+      </td>
+    </tr>
     <tr class="odd">
       <td class="noselect tableheader" i18n:attributes="title" title="Use this only if authentication is required" i18n:translate='' align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
@@ -207,18 +217,6 @@ loader.insert();
             <label for="sessionAuthentication" i18n:translate=''>
               Session-based Authentication (More Secure)
             </label>
-        </td>
-    </tr>
-
-    <tr>
-        <td style="color:darkred;width:275px;height:50px" class="tableheader" align="left">
-            <strong>Enter current password to confirm changes</strong>
-        </td>
-        <td align="left" style="padding:4px 0 0 4px;" class="tableheader" colspan="3">
-            <div style="float:left;">
-            <input style="margin-top:2px;" id="pwconfirm" class="tablevalues" type="password" name="curPasswd"
-                autocomplete="off"/>
-            </div>
         </td>
     </tr>
 

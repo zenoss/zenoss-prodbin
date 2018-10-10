@@ -33,6 +33,7 @@ class IndexingEvent(object):
         self.idxs = idxs
         self.update_metadata = update_metadata
         self.triggered_by_zope_event = triggered_by_zope_event
+        self.triggered_by_maint_window = False
 
 
 def _get_object_to_index(ob):
@@ -56,17 +57,25 @@ def _get_object_to_index(ob):
 def onIndexingEvent(ob, event):
     model_catalog = getUtility(IModelCatalog)
     object_to_index = _get_object_to_index(ob)
-
+        
     idxs = event.idxs
     if isinstance(idxs, basestring):
         idxs = [idxs]
 
-    if idxs:
-        # check idxs are valid indexes
-        bad_idxs = set(idxs) - set(model_catalog.get_indexes(object_to_index))
-        if bad_idxs:
-            raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
     if object_to_index:
+        if idxs:
+            s_idxs = set(idxs)
+            indexed, stored, _ = model_catalog.get_indexes(object_to_index)
+            obj_indexes = indexed.union(stored)
+            # Every time we index "path" we also need to index "deviceOrganizers"
+            if "path" in s_idxs and "deviceOrganizers" in obj_indexes:
+               s_idxs.add("deviceOrganizers")
+               idxs = s_idxs
+            # check idxs are valid indexes
+            bad_idxs = s_idxs - obj_indexes
+            if bad_idxs:
+                raise BadIndexingEvent("Indexing event contains unknown indexes: {}".format(bad_idxs))
+
         model_catalog.catalog_object(object_to_index, idxs)
         if IAfterIndexingEventSubscriber.providedBy(object_to_index):
             object_to_index.after_indexing_event(event)
@@ -110,7 +119,7 @@ def onOrganizerBeforeDelete(ob, event):
     """
     if not IObjectWillBeAddedEvent.providedBy(event):
         for device in ob.devices.objectValuesGen():
-            notify(IndexingEvent(device, idxs=['path'], triggered_by_zope_event=True))
+            notify(IndexingEvent(device, idxs='path', triggered_by_zope_event=True))
 
 
 #-------------------------------------------------------------

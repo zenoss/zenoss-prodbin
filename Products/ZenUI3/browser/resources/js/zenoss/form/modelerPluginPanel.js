@@ -40,7 +40,7 @@
                     height: 65,
                     autoScroll: true,
                     ref: 'doc',
-                    toolTip: 'Select a single plugin to see the docs',
+                    tooltip: 'Select a single plugin to see the docs',
                     fieldLabel: _t('Plugin Documentation')
                 }],
                 buttonAlign: 'left',

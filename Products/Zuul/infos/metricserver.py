@@ -74,7 +74,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
         if gType not in ('line', 'area'):
             #check if all datapoints are area and stacked
             for dp in self.datapoints:
-                if dp.type != 'area' and not dp.stacked:
+                if dp.type != 'area' or not dp.stacked:
                     return 'line'
             gType = 'area'
         return gType
@@ -218,11 +218,15 @@ class ColorMetricServiceGraphPoint(MetricServiceGraph):
     def legend(self):
         o = self._object
         legend = o.talesEval(o.legend, self._context)
+        """
+        Multicontext legend definitions require device identification.
+        If not present, prepend user legend value with self.id
+        containing device name and metric name
+        """
         if self._multiContext:
-            if legend not in self.id:
-                legend = self.id + " " + legend
-            else:
-               legend = self.id
+            device = self._context.device().titleOrId()
+            if  device not in legend:
+                legend = self.id
         return legend
 
     @property
@@ -323,7 +327,7 @@ class MetricServiceGraphPoint(ColorMetricServiceGraphPoint):
             # the "s" means scale it to the appropiate units. This maybe something
             # we need to replicate later
             # also sometimes we had a %% which means to display a literal percent.
-            return fmt.replace("l", "").replace("%s", "").rstrip("%")
+            return fmt.replace("l", "").replace("%s", "")
 
     @property
     def emit(self):

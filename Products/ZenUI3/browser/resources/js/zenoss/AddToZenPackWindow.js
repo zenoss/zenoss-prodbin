@@ -31,7 +31,7 @@ Ext.define("Zenoss.AddToZenPackWindow", {
             width: 310,
             plain: true,
             items: [{
-                id: 'addzenpackform',
+                itemId: 'addzenpackform',
                 xtype: 'form',
                 listeners: {
                     validitychange: function(form, isValid) {
@@ -68,15 +68,15 @@ Ext.define("Zenoss.AddToZenPackWindow", {
                     forceSelection: true,
                     triggerAction: 'all',
                     selectOnFocus: true,
-                    id: 'zpcombobox'
+                    itemId: 'zpcombobox'
                 }],
                 buttons: [{
                     text: _t('Submit'),
                     xtype: 'DialogButton',
                     disabled: true,
-                    handler: function () {
-                        var form = Ext.getCmp('addzenpackform'),
-                            chosenzenpack = form.getForm().findField('zpname').getValue(), i, targets = [], callback;
+                    handler: function (t) {
+                        var form = t.up('form'),
+                            chosenzenpack = form.down('#zpcombobox').getValue(), i, targets = [], callback;
                         if (!Ext.isArray(me.target)) {
                             targets.push(me.target);
                         } else {
@@ -104,7 +104,6 @@ Ext.define("Zenoss.AddToZenPackWindow", {
         this.target = target;
     }
 });
-
 
 
 })();

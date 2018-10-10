@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-set_deamon_list() {
+set_daemon_list() {
     WEBSERVERCTL=$(${ZENHOME}/bin/zenglobalconf -p webserverctl)
     if [ -z "${WEBSERVERCTL}" ]; then
         WEBSERVERCTL=zopectl
@@ -138,7 +138,7 @@ issue() {
                 ZENDAEMONS=`reverse $ZENDAEMONS`
                 FUNC=stop
                 issue
-                ZENDAEMONS=`set_deamon_list`
+                ZENDAEMONS=`set_daemon_list`
                 FUNC=start
                 issue
                 return $?
@@ -269,7 +269,7 @@ done
 . $ZENHOME/bin/zenfunctions
 
 
-ZENDAEMONS=`set_deamon_list`
+ZENDAEMONS=`set_daemon_list`
 # $CMD is defined in zenfunctions, start stop etc
 FUNC=$CMD
 

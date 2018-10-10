@@ -261,7 +261,7 @@ class ZenossData(JavaScriptSnippet):
             Zenoss.env.priorities = %r;
             Zenoss.env.productionStates = %r;
             Zenoss.USER_TIMEZONE = "%s" || jstz.determine().name();
-            Zenoss.USER_DATE_FORMAT = "%s" || "MM/DD/YY";
+            Zenoss.USER_DATE_FORMAT = "%s" || "YYYY/MM/DD";
             Zenoss.USER_TIME_FORMAT = "%s" || "HH:mm:ss";
           })();
         """ % ( collectors, priorities, productionStates, timezone, date_fmt, time_fmt )

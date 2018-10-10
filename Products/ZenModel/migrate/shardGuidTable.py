@@ -10,12 +10,11 @@
 import Migrate
 
 from Products.ZenUtils.ShardedBTree import ShardedBTree
-from Products.ZenUtils.guid.guid import GUID_TABLE_PATH
+from Products.ZenUtils.guid.guid import GUID_TABLE_PATH, DEFAULT_NUMBER_OF_SHARDS
 
-N_SHARDS = 599
 
 class ShardGuidTable(Migrate.Step):
-    version = Migrate.Version(112, 0, 0)
+    version = Migrate.Version(200, 0, 1)
 
     def cutover(self, dmd):
         old_table = dmd.unrestrictedTraverse(GUID_TABLE_PATH)
@@ -25,10 +24,9 @@ class ShardGuidTable(Migrate.Step):
             table_parent = dmd.unrestrictedTraverse(splitted_path[:-1])
             table_name = splitted_path[-1]
             # create sharded table
-            sharded_tree = ShardedBTree(n_shards=N_SHARDS)
+            sharded_tree = ShardedBTree(n_shards=DEFAULT_NUMBER_OF_SHARDS)
             sharded_tree.update(old_table)
             # replace the old table
-            # using _delOb instead of _delObject to avoid indexing events
             table_parent._delOb(table_name)
             table_parent._setObject(table_name, sharded_tree)
 

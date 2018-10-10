@@ -29,7 +29,7 @@
         init: function() {
             this.control({
                 'wizardadddeviceview': {
-                    show: function() {
+                    beforerender: function() {
                         this.setCategories();
                         this.setResubmitHandler();
                     }
@@ -129,13 +129,11 @@
             return Ext.Array.unique(results);
         },
         getCredentials: function(uid) {
-            // make sure it is a valid full uid incase the start typing
-            if (!uid || !uid.startswith('/zport/dmd')) {
-                return;
+            if (uid) {
+                Zenoss.remote.DeviceRouter.getConnectionInfo({
+                    uid: uid
+                }, this.addCredentials, this);
             }
-            Zenoss.remote.DeviceRouter.getConnectionInfo({
-                uid: uid
-            }, this.addCredentials, this);
         },
         _getCredentialFields: function(connectionInfo){
             var hostField = {
@@ -187,14 +185,6 @@
                 if (item.type !== "password") {
                     item.value = property.value || property.valueAsString;
                 }
-                // if it seems like credentials make it required
-                // do not make fields required if the category is SNMP per ZEN-18954
-                if (!isSnmp &&
-                    (item.name.toLowerCase().indexOf('username') !== -1 ||
-                    item.name.toLowerCase().indexOf('password') !== -1 ||
-                    item.name.toLowerCase().indexOf('community') !== -1)) {
-                    item.allowBlank = false;
-                }
 
                 if (property.description) {
                     item.inputAttrTpl = " data-qtip='" + property.description + "' ";
@@ -242,7 +232,7 @@
 
             // allow either commas to separate or new lines or both
             hosts = this.parseHosts(values.hosts);
-            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass).get('shortdescription');
+            var displayDeviceClass = typeGrid.getStore().findRecord('value', deviceClass, 0, false, true, true).get('shortdescription');
             // go through each host and add a record
             Ext.Array.each(hosts, function(host){
                 if (Ext.isEmpty(host)) {
@@ -433,7 +423,7 @@
 
     // globally namespaced function so it can be called from a column handler
     Zenoss.quickstart.Wizard.editZProperties = function(recordId) {
-        var controller = window.globalApp.getController("AddDeviceController");
+        var controller = Zenoss.quickstart.Wizard.getApplication().getController('AddDeviceController');
         controller.fetchConnectionInfoForDialog(recordId);
     };
 

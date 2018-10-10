@@ -77,8 +77,8 @@ class LegacyFieldTranslation(object):
 GLOBAL_CATALOG_TRANSLATIONS =[
     LegacyFieldTranslation(old="uid", new="uid",
                            value_converter=TranslationValueConverter(
-                                            search=add_zport_dmd_value_converter,
-                                            result=strip_zport_dmd_value_converter)),
+                                            search=add_zport_dmd_value_converter
+                                            )),
     LegacyFieldTranslation(old="id", new="id"),
     LegacyFieldTranslation(old="name", new="name"),
     LegacyFieldTranslation(old="meta_type", new="meta_type"),
@@ -133,7 +133,7 @@ LAYER_3_CATALOG_TRANSLATIONS = [
 
 
 IP_SEARCH_CATALOG_TRANSLATIONS = [
-    LegacyFieldTranslation(old="path", new="uid", value_converter=TranslationValueConverter(result=list)),
+    LegacyFieldTranslation(old="path", new="uid", value_converter=TranslationValueConverter()),
     LegacyFieldTranslation(old="ipAddressAsInt", new="decimal_ipAddress",
                            value_converter=TranslationValueConverter(result=str)),
     LegacyFieldTranslation(old="id", new="id"),
@@ -209,6 +209,11 @@ class LegacyFieldsTranslator(object):
         return self.new_fields.keys()
 
 
+class MockZCatalog(object):
+    def delIndex(self, index):
+        pass
+
+
 class LegacyCatalogAdapter(SimpleItem):
     """
     Adapt the ZCatalog interface to use model catalog for searching.
@@ -226,6 +231,7 @@ class LegacyCatalogAdapter(SimpleItem):
         """
         self.context = context
         self.zcatalog_name = zcatalog_name
+        self._catalog = MockZCatalog()
 
     def _get_translator(self):
         translator = LegacyFieldsTranslator()
@@ -248,6 +254,11 @@ class LegacyCatalogAdapter(SimpleItem):
 
     def __call__(self, query=None, **kw):
         return self.search(query, **kw)
+
+    def __len__(self):
+        model_catalog = self._get_model_catalog()
+        return model_catalog.search(limit=0).total
+
 
     def searchResults(self, query=None, **kw):
         return self.search(query, **kw)

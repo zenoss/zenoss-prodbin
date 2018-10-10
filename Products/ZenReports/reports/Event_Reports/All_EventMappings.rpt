@@ -3,8 +3,8 @@
     tableName string: neweventclassmapreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='getDmdKey');
-	exportFields python:['getDmdKey', 'eventClassKey', 'ruleOrRegex',
-						'getStatus']
+	exportFields python:[('getDmdKey', 'Name'), ('eventClassKey', 'EventClassKey'), 
+                             ('ruleOrRegex', 'Evaluation'), ('getStatus', 'Events')]
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
