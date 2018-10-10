@@ -198,13 +198,11 @@ class ZenHub(ZCmdBase):
         Hook ourselves up to the Zeo database and wait for collectors
         to connect.
         """
+        super(ZenHub, self).__init__()
         # list of remote worker references
         self.workers = []
-        self.workTracker = {}
-        # zenhub execution stats:
-        # [count, idle_total, running_total, last_called_time]
-        self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        self._worker_manager = WorkerManager(self.getService)
+
+        self._worker_manager = WorkerManager(self.getService, self.options)
         self.workList = self._worker_manager.work_list
         self.shutdown = False
         self.counters = collections.Counter()
@@ -213,8 +211,6 @@ class ZenHub(ZCmdBase):
         self._invalidations_paused = False
         self.services = {}
 
-        super(ZenHub, self).__init__()
-
         load_config("hub.zcml", zenhub_module)
         notify(HubWillBeCreatedEvent(self))
 
@@ -222,8 +218,6 @@ class ZenHub(ZCmdBase):
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
 
-        # Worker selection handler
-        self.workerselector = WorkerSelector(self.options)
         self.workList.log = self.log
 
         self.zem = self.dmd.ZenEventManager
@@ -467,6 +461,7 @@ class ZenHub(ZCmdBase):
                 notify(ServiceAddedEvent(name, instance))
                 return svc
 
+    # Legacy API: worker management
     def deferToWorker(self, svcName, instance, method, args):
         """Take a remote request and queue it for worker processes.
 
@@ -485,164 +480,31 @@ class ZenHub(ZCmdBase):
             svcName, instance, method, args
         )
 
+    # Legacy API: worker management
     def updateStatusAtStart(self, wId, job):
-        now = time.time()
-        jobDesc = "%s:%s.%s" % (job.instance, job.servicename, job.method)
-        stats = self.workTracker.pop(wId, None)
-        idletime = now - stats.lastupdate if stats else 0
-        self.executionTimer[job.method][0] += 1
-        self.executionTimer[job.method][1] += idletime
-        self.executionTimer[job.method][3] = now
-        self.log.debug("Giving %s to worker %d, (%s)",
-                       job.method, wId, jobDesc)
-        self.workTracker[wId] = WorkerStats('Busy', jobDesc, now, idletime)
+        self._worker_manager.updateStatusAtStart(wId, job)
 
+    # Legacy API: worker management
     def updateStatusAtFinish(self, wId, job, error=None):
-        now = time.time()
-        self.executionTimer[job.method][3] = now
-        stats = self.workTracker.pop(wId, None)
-        if stats:
-            elapsed = now - stats.lastupdate
-            self.executionTimer[job.method][2] += elapsed
-            self.log.debug("worker %s, work %s finished in %s",
-                           wId, stats.description, elapsed)
-        self.workTracker[wId] = WorkerStats(
-            'Error: %s' % error if error else 'Idle',
-            stats.description, now, 0
-        )
+        self._worker_manager.updateStatusAtFinish(wId, job, error=error)
 
+    # Legacy API: worker management
     @inlineCallbacks
     def finished(self, job, result, finishedWorker, wId):
-        finishedWorker.busy = False
-        error = None
-        if isinstance(result, Exception):
-            job.deferred.errback(result)
-        else:
-            try:
-                result = pickle.loads(''.join(result))
-            except Exception as e:
-                error = e
-                self.log.exception("Error un-pickling result from worker")
+        yield returnValue(
+            self._worker_manager.finished(job, result, finishedWorker, wId)
+        )
 
-            # if zenhubworker is about to shutdown, it will wrap the actual
-            # result in a LastCallReturnValue tuple - remove worker from worker
-            # list to keep from accidentally sending it any more work while
-            # it shuts down
-            if isinstance(result, LastCallReturnValue):
-                self.log.debug("worker %s is shutting down", wId)
-                result = result.returnvalue
-                if finishedWorker in self.workers:
-                    self.workers.remove(finishedWorker)
-
-            # the job contains a deferred to be used to return the actual value
-            job.deferred.callback(result)
-
-        self.updateStatusAtFinish(wId, job, error)
-        reactor.callLater(0.1, self.giveWorkToWorkers)
-        yield returnValue(result)
-
+    # Legacy API: worker management
     @inlineCallbacks
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
-        if self.workList:
-            self.log.debug("worklist has %d items", len(self.workList))
-        incompleteJobs = []
-        while self.workList:
-            if all(w.busy for w in self.workers):
-                self.log.debug("all workers are busy")
-                yield wait(0.1)
-                break
+        yield self._worker_manager.giveWorkToWorkers(requeue=requeue)
 
-            allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
-            job = self.workList.pop(allowADM)
-            if job is None:
-                self.log.info("Got None from the job worklist.  ApplyDataMaps"
-                              " may be paused for zenpack"
-                              " install/upgrade/removal.")
-                yield wait(0.1)
-                break
-
-            candidateWorkers = [
-                x for x in
-                self.workerselector.getCandidateWorkerIds(
-                    job.method, self.workers
-                )
-            ]
-            for i in candidateWorkers:
-                worker = self.workers[i]
-                worker.busy = True
-                self.counters['workerItems'] += 1
-                self.updateStatusAtStart(i, job)
-                try:
-                    result = yield worker.callRemote('execute', *job.args)
-                except Exception as ex:
-                    self.log.warning("Failed to execute job on zenhub worker")
-                    result = ex
-                finally:
-                    yield self.finished(job, result, worker, i)
-                break
-            else:
-                # could not complete this job, put it back in the queue once
-                # we're finished saturating the workers
-                incompleteJobs.append(job)
-
-        for job in reversed(incompleteJobs):
-            # could not complete this job, put it back in the queue
-            self.workList.push(job)
-
-        if incompleteJobs:
-            self.log.debug("No workers available for %d jobs.",
-                           len(incompleteJobs))
-            reactor.callLater(0.1, self.giveWorkToWorkers)
-
-        if requeue and not self.shutdown:
-            reactor.callLater(5, self.giveWorkToWorkers, True)
-
+    # Legacy API: worker management
     def _workerStats(self):
-        now = time.time()
-        lines = [
-            'Worklist Stats:',
-            '\tEvents:\t%s' % len(self.workList.eventworklist),
-            '\tOther:\t%s' % len(self.workList.otherworklist),
-            '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
-            '\tTotal:\t%s' % len(self.workList),
-            '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
-        ]
-
-        statline = " - %-32s %8d %12.2f %8.2f  %s"
-        for method, stats in sorted(self.executionTimer.iteritems(), key=lambda v: -v[1][2]):
-            lines.append(statline % (
-                method, stats[0], stats[1], stats[2],
-                time.strftime(
-                    "%Y-%d-%m %H:%M:%S", time.localtime(stats[3])
-                )
-            ))
-
-        lines.append('\nWorker Stats:')
-        for wId, worker in enumerate(self.workers):
-            stat = self.workTracker.get(wId, None)
-            linePattern = '\t%d(pid=%s):%s\t[%s%s]\t%.3fs'
-            lines.append(linePattern % (
-                wId,
-                '{}'.format(worker.workerId),
-                'Busy' if worker.busy else 'Idle',
-                '%s %s' % (stat.status, stat.description) if stat
-                else 'No Stats',
-                ' Idle:%.3fs' % stat.previdle if stat and stat.previdle
-                else '',
-                now - stat.lastupdate if stat else 0
-            ))
-            if stat and (
-                (worker.busy and stat.status is 'Idle')
-                or
-                (not worker.busy and stat.status is 'Busy')
-            ):
-                self.log.warn(
-                    'worker.busy: %s and stat.status: %s do not match!',
-                    worker.busy, stat.status
-                )
-        self.log.info('\n'.join(lines))
+        self._worker_manager._workerStats()
 
     @inlineCallbacks
     def heartbeat(self):
@@ -814,11 +676,25 @@ class HubAvitar(pb.Avatar):
 
 class WorkerManager(object):
 
-    def __init__(self, get_service):
-        self.work_list = _ZenHubWorklist()
+    def __init__(self, get_service, options):
+        self._work_list = _ZenHubWorklist()
         self.work_list.configure_metrology()
 
         self._get_service = get_service
+        # TODO: remove options, only workersReservedForEvents is used
+        # and is no longer needed
+        self.options = options
+        self._worker_selector = WorkerSelector(self.options)
+
+        self.workers = []
+        self.workTracker = {}
+        # zenhub execution stats:
+        # [count, idle_total, running_total, last_called_time]
+        self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+
+    @property
+    def work_list(self):
+        return self._work_list
 
     def defer_to_worker(self, svcName, instance, method, args):
         """Take a remote request and queue it for worker processes.
@@ -851,14 +727,11 @@ class WorkerManager(object):
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
-        print('start giveWorkToWorkers')
         if self.work_list:
-            print("work_list has %d items" % len(self.work_list))
             log.debug("work_list has %d items", len(self.work_list))
         incompleteJobs = []
         while self.work_list:
             if all(w.busy for w in self.workers):
-                print("all workers are busy")
                 log.debug("all workers are busy")
                 yield wait(0.1)
                 break
@@ -866,7 +739,6 @@ class WorkerManager(object):
             allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
             job = self.work_list.pop(allowADM)
             if job is None:
-                print('job is None')
                 log.info("Got None from the job work_list.  ApplyDataMaps"
                               " may be paused for zenpack"
                               " install/upgrade/removal.")
@@ -879,21 +751,14 @@ class WorkerManager(object):
                     job.method, self.workers
                 )
             ]
-            print(candidateWorkers)
             for i in candidateWorkers:
                 worker = self.workers[i]
-                print('worker=%s' % worker)
                 worker.busy = True
                 self.counters['workerItems'] += 1
-                print('self.updateStatusAtStart')
                 self.updateStatusAtStart(i, job)
-                print('finished self.updateStatusAtStart')
                 try:
-                    print('worker.callRemote')
                     result = yield worker.callRemote('execute', *job.args)
-                    print('finished worker.callRemote')
                 except Exception as ex:
-                    print(ex)
                     log.warning("Failed to execute job on zenhub worker")
                     result = ex
                 finally:
@@ -916,8 +781,106 @@ class WorkerManager(object):
         if requeue and not self.shutdown:
             reactor.callLater(5, self.giveWorkToWorkers, True)
 
-    def updateStatusAtStart(self, i, job):
-        pass
+    def updateStatusAtStart(self, wId, job):
+        now = time.time()
+        jobDesc = "%s:%s.%s" % (job.instance, job.servicename, job.method)
+        stats = self.workTracker.pop(wId, None)
+        idletime = now - stats.lastupdate if stats else 0
+        self.executionTimer[job.method][0] += 1
+        self.executionTimer[job.method][1] += idletime
+        self.executionTimer[job.method][3] = now
+        log.debug("Giving %s to worker %d, (%s)",
+                       job.method, wId, jobDesc)
+        self.workTracker[wId] = WorkerStats('Busy', jobDesc, now, idletime)
+
+    def updateStatusAtFinish(self, wId, job, error=None):
+        now = time.time()
+        self.executionTimer[job.method][3] = now
+        stats = self.workTracker.pop(wId, None)
+        if stats:
+            elapsed = now - stats.lastupdate
+            self.executionTimer[job.method][2] += elapsed
+            log.debug("worker %s, work %s finished in %s",
+                           wId, stats.description, elapsed)
+        self.workTracker[wId] = WorkerStats(
+            'Error: %s' % error if error else 'Idle',
+            stats.description, now, 0
+        )
+
+    @inlineCallbacks
+    def finished(self, job, result, finishedWorker, wId):
+        finishedWorker.busy = False
+        error = None
+        if isinstance(result, Exception):
+            job.deferred.errback(result)
+        else:
+            try:
+                result = pickle.loads(''.join(result))
+            except Exception as e:
+                error = e
+                log.exception("Error un-pickling result from worker")
+
+            # if zenhubworker is about to shutdown, it will wrap the actual
+            # result in a LastCallReturnValue tuple - remove worker from worker
+            # list to keep from accidentally sending it any more work while
+            # it shuts down
+            if isinstance(result, LastCallReturnValue):
+                log.debug("worker %s is shutting down", wId)
+                result = result.returnvalue
+                if finishedWorker in self.workers:
+                    self.workers.remove(finishedWorker)
+
+            # the job contains a deferred to be used to return the actual value
+            job.deferred.callback(result)
+
+        self.updateStatusAtFinish(wId, job, error)
+        reactor.callLater(0.1, self.giveWorkToWorkers)
+        yield returnValue(result)
+
+    def _workerStats(self):
+        now = time.time()
+        lines = [
+            'Worklist Stats:',
+            '\tEvents:\t%s' % len(self.work_list.eventworklist),
+            '\tOther:\t%s' % len(self.work_list.otherworklist),
+            '\tApplyDataMaps:\t%s' % len(self.work_list.applyworklist),
+            '\tTotal:\t%s' % len(self.work_list),
+            '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
+        ]
+
+        statline = " - %-32s %8d %12.2f %8.2f  %s"
+        for method, stats in sorted(self.executionTimer.iteritems(), key=lambda v: -v[1][2]):
+            lines.append(statline % (
+                method, stats[0], stats[1], stats[2],
+                time.strftime(
+                    "%Y-%d-%m %H:%M:%S", time.localtime(stats[3])
+                )
+            ))
+
+        lines.append('\nWorker Stats:')
+        for wId, worker in enumerate(self.workers):
+            stat = self.workTracker.get(wId, None)
+            linePattern = '\t%d(pid=%s):%s\t[%s%s]\t%.3fs'
+            lines.append(linePattern % (
+                wId,
+                '{}'.format(worker.workerId),
+                'Busy' if worker.busy else 'Idle',
+                '%s %s' % (stat.status, stat.description) if stat
+                else 'No Stats',
+                ' Idle:%.3fs' % stat.previdle if stat and stat.previdle
+                else '',
+                now - stat.lastupdate if stat else 0
+            ))
+            if stat and (
+                (worker.busy and stat.status is 'Idle')
+                or
+                (not worker.busy and stat.status is 'Busy')
+            ):
+                log.warn(
+                    'worker.busy: %s and stat.status: %s do not match!',
+                    worker.busy, stat.status
+                )
+        log.info('\n'.join(lines))
 
 
 class _ZenHubWorklist(object):

@@ -40,6 +40,7 @@ from Products.ZenHub.zenhub import (
     InvalidationsManager,
     SEVERITY_CLEAR, INVALIDATIONS_PAUSED,
     WorkerManager,
+    WorkerSelector,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -49,6 +50,7 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.WorkerManager'.format(**PATH), autospec=True)
     @patch('{src}.task'.format(**PATH), autospec=True)
     @patch('{src}.InvalidationsManager'.format(**PATH), autospec=True)
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
@@ -60,7 +62,6 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.HubCreatedEvent'.format(**PATH), autospec=True)
     @patch('{src}.zenPath'.format(**PATH), autospec=True)
     @patch('{src}.loadPlugins'.format(**PATH), autospec=True)
-    @patch('{src}.WorkerSelector'.format(**PATH), autospec=True)
     @patch('{src}.ContinuousProfiler'.format(**PATH), autospec=True)
     @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
@@ -75,7 +76,6 @@ class ZenHubInitTest(TestCase):
         notify,
         HubWillBeCreatedEvent,
         ContinuousProfiler,
-        WorkerSelector,
         loadPlugins,
         zenPath,
         HubCreatedEvent,
@@ -87,6 +87,7 @@ class ZenHubInitTest(TestCase):
         MetricManager,
         InvalidationsManager,
         task,
+        WorkerManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -111,24 +112,17 @@ class ZenHubInitTest(TestCase):
 
         zh = ZenHub()
 
-        t.assertIsInstance(zh, ZenHub)
-        t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
-        _ZenHubWorklist.return_value.configure_metrology.assert_called_with()
-
         # Run parent class __init__
         ZCmdBase___init__.assert_called_with(zh)
+        t.assertIsInstance(zh, ZenHub)
+        t.assertEqual(zh.workList, zh._worker_manager.work_list)
+
         load_config.assert_called_with("hub.zcml", zenhub_module)
         HubWillBeCreatedEvent.assert_called_with(zh)
         notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
         # Performance Profiling
         ContinuousProfiler.assert_called_with('zenhub', log=zh.log)
         zh.profiler.start.assert_called_with()
-        # Worklist, used to delegate jobs to workers
-        # TODO: move worker management into its own manager class
-        WorkerSelector.assert_called_with(zh.options)
-        t.assertEqual(zh.workerselector, WorkerSelector.return_value)
-        # check this, was it supposed to be set on workerselector?
-        t.assertEqual(zh.workList.log, zh.log)
 
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
@@ -186,16 +180,50 @@ class ZenHubInitTest(TestCase):
         )
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
+from unittest import skip
+@skip
+class NewZenHubInitTest(TestCase):
+
+    def test___init__(t):
+        t.patchers = {
+            'super': patch('{src}.super'.format(**PATH)),
+            'WorkerManager': patch('{src}.WorkerManager'.format(**PATH)),
+            'load_config': patch('{src}.load_config'.format(**PATH)),
+            'load_config_override': patch('{src}.load_config_override'.format(**PATH)),
+        }
+        mocks = {}
+        for id, patcher in t.patchers.items():
+            mocks[id] = patcher.start()
+            t.addCleanup(patcher.stop)
+
+        # Attributes set by parent class
+        ZenHub.options = sentinel.options
+        ZenHub.options.profiling = sentinel.profiling
+        ZenHub.log = Mock(name='log', set_spec=[])
+        ZenHub.dmd = Mock(name='dmd', set_spec=[])
+
+        # Mock out setup methods with too many side-effects
+        t.zenhub_patchers = [
+            patch.object(ZenHub, '_setup_pb_daemon', autospec=True),
+            patch.object(ZenHub, 'sendEvent', autospec=True),
+        ]
+        for patcher in t.zenhub_patchers:
+            patcher.start()
+            t.addCleanup(patcher.stop)
+
+        zh = ZenHub()
 
 class ZenHubTest(TestCase):
 
     def setUp(t):
         # Patch out the ZenHub __init__ method, due to excessive side-effects
+        # TODO: use the init method with external side-effects patched out
         t.init_patcher = patch.object(
             ZenHub, '__init__', autospec=True, return_value=None
         )
         t.init_patcher.start()
         t.addCleanup(t.init_patcher.stop)
+
         t.time_patcher = patch('{src}.time'.format(**PATH), autospec=True)
         t.time = t.time_patcher.start()
         t.addCleanup(t.time_patcher.stop)
@@ -204,6 +232,12 @@ class ZenHubTest(TestCase):
         )
         t.reactor = t.reactor_patcher.start()
         t.addCleanup(t.reactor_patcher.stop)
+        t.wm_patcher = patch(
+            '{src}.WorkerManager'.format(**PATH), autospec=True
+        )
+        t.WorkerManager = t.wm_patcher.start()
+        t.addCleanup(t.wm_patcher.stop)
+        ZenHub.options = sentinel.options
 
         t.zh = ZenHub()
         # Set attributes that should be created by __init__
@@ -218,6 +252,8 @@ class ZenHubTest(TestCase):
         t.zh._invalidations_manager = Mock(
             InvalidationsManager, name='InvalidationsManager'
         )
+        t.zh.options = sentinel.options
+        t.zh._worker_manager = t.WorkerManager(t.zh.getService, t.zh.options)
 
     @patch('{src}.ipv6_available'.format(**PATH), autospec=True)
     @patch('{src}.AuthXmlRpcService'.format(**PATH), autospec=True)
@@ -533,80 +569,39 @@ class ZenHubTest(TestCase):
         t.assertEqual(ret, service)
         t.assertEqual(t.zh.services[name, instance], interceptor_service)
 
-    @patch('{src}.defer'.format(**PATH), autospec=True)
-    @patch('{src}.HubWorklistItem'.format(**PATH), autospec=True)
-    def test_deferToWorker(t, HubWorklistItem, defer):
-        '''Worker Management Function
-        should be refactored to use inlineCallbacks
-        '''
-        t.zh.getService = create_autospec(t.zh.getService)
-        service = t.zh.getService.return_value.service
-        t.zh.workList = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
+    def test_deferToWorker(t):
         args = (sentinel.arg0, sentinel.arg1)
-
-        t.zh._worker_manager = WorkerManager(t.zh.getService)
 
         ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
 
-        HubWorklistItem.assert_called_with(
-            service.getMethodPriority.return_value,
-            t.time.time.return_value,
-            defer.Deferred.return_value,
-            'svcName', 'instance', 'method',
-            ('svcName', 'instance', 'method', args),
+        t.zh._worker_manager.defer_to_worker.assert_called_with(
+            'svcName', 'instance', 'method', args
         )
-        t.reactor.callLater.assert_called_with(0, t.zh._worker_manager.giveWorkToWorkers)
-        t.assertEqual(ret, defer.Deferred.return_value)
+        t.assertEqual(ret, t.zh._worker_manager.defer_to_worker.return_value)
 
-    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
-    def test_updateStatusAtStart(t, WorkerStats):
-        '''Worker Management Metric reporting function'''
-        # these should be set by __init__, not specified here
-        t.zh.workTracker = {}
-        t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+    def test_updateStatusAtStart(t):
         wId = sentinel.worker_id
         job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
 
         t.zh.updateStatusAtStart(wId, job)
 
-        t.assertEqual(
-            t.zh.executionTimer, {job.method: [1, 0.0, 0.0, t.time.time()]}
-        )
-        WorkerStats.assert_called_with(
-            'Busy',
-            "%s:%s.%s" % (job.instance, job.servicename, job.method),
-            t.time.time(),
-            0
-        )
-        t.assertEqual(t.zh.workTracker[wId], WorkerStats.return_value)
+        t.zh._worker_manager.updateStatusAtStart.assert_called_with(wId, job)
 
-    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
-    def test_updateStatusAtFinish(t, WorkerStats):
+    def test_updateStatusAtFinish(t):
         '''Worker Management Metric reporting function
         '''
-        # this should be set by __init__, not specified here
-        t.zh.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
         wId = sentinel.worker_id
-        t0, t1 = 100, 300
-        stats = Mock(
-            name='stats', spec_set=['lastupdate', 'description'], lastupdate=t0
-        )
-        t.time.time.return_value = t1
-        t.zh.workTracker = {wId: stats}
         job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
 
         t.zh.updateStatusAtFinish(wId, job)
 
-        t.assertEqual(
-            t.zh.executionTimer, {job.method: [0, 0.0, t1 - t0, t1]},
+        t.zh._worker_manager.updateStatusAtFinish.assert_called_with(
+            wId, job, error=None
         )
-        WorkerStats.assert_called_with('Idle', stats.description, t1, 0)
-        t.assertEqual(t.zh.workTracker[wId], WorkerStats.return_value)
 
     def test_finished(t):
         '''Worker Management Function
         '''
-        t.zh.updateStatusAtFinish = create_autospec(t.zh.updateStatusAtFinish)
         job = Mock(
             name='job', spec_set=['deferred'],
             deferred=Mock(defer.Deferred, name='deferred', autospec=True)
@@ -617,78 +612,18 @@ class ZenHubTest(TestCase):
 
         ret = t.zh.finished(job, result, finishedWorker, wId)
 
-        job.deferred.callback.assert_called_with(result)
-        # WARNING: may be called with error from pickle.loads, or ''.join
-        # this should be
-        # t.zh.updateStatusAtFinish.assert_called_with(wId, job, None)
-        # Hack to test called_with manually
-        args, kwargs = t.zh.updateStatusAtFinish.call_args
-        t.assertEqual(args[0], wId)
-        t.assertEqual(args[1], job)
-        t.assertIsInstance(args[2], TypeError)
-
-        t.assertIsInstance(ret, defer.Deferred)
-        t.assertEqual(ret.result, result)
-        t.assertFalse(finishedWorker.busy)
-        t.reactor.callLater.assert_called_with(0.1, t.zh.giveWorkToWorkers)
-
-    def test_finished_handles_LastCallReturnValue(t):
-        '''Worker Management Function
-        refactor as a LoopingCall instead of using reactor.callLater
-        '''
-        t.zh.updateStatusAtFinish = create_autospec(t.zh.updateStatusAtFinish)
-        job = Mock(
-            name='job', spec_set=['deferred'],
-            deferred=Mock(defer.Deferred, name='deferred', autospec=True)
+        t.zh._worker_manager.finished.assert_called_with(
+            job, result, finishedWorker, wId
         )
-        result = Mock(
-            LastCallReturnValue, name='result', spec_set=['returnvalue']
-        )
-
-        finishedWorker = sentinel.zenhub_worker
-        wId = sentinel.worker_id
-        t.zh.workers = [wId, 'other worker']
-
-        ret = t.zh.finished(job, result, finishedWorker, wId)
-
-        t.assertNotIn(t.zh.workers, t.zh.workers)
-        t.assertEqual(ret.result, result)
+        t.assertEqual(ret.result, t.zh._worker_manager.finished.return_value)
 
     def test_giveWorkToWorkers(t):
         '''Worker Management Function
         '''
-        t.zh.dmd = Mock(name='dmd', spec_set=['getPauseADMLife'])
-        t.zh.dmd.getPauseADMLife.return_value = 1
-        t.zh.options = Mock(
-            name='options', spec_set=['modeling_pause_timeout']
-        )
-        t.zh.options.modeling_pause_timeout = 0
-        job = Mock(name='job', spec_set=['method', 'args'])
-        job.args = [sentinel.arg0, sentinel.arg1]
-        # should be set in __init__
-        t.zh.workList = _ZenHubWorklist()
-        t.zh.workList.append(job)
-        worker = Mock(
-            name='worker', spec_set=['busy', 'callRemote'], busy=False
-        )
-        worker.callRemote.reutnr_value = sentinel.result
-        t.zh.workers = [worker]
-        t.zh.workerselector = Mock(
-            name='WorkerSelector', spec_set=['getCandidateWorkerIds']
-        )
-        t.zh.workerselector.getCandidateWorkerIds.return_value = [0]
-        t.zh.counters = {'workerItems': 0}
-        t.zh.updateStatusAtStart = create_autospec(t.zh.updateStatusAtStart)
-        t.zh.finished = Mock() #create_autospec(t.zh.finished)
-
+        t.zh._worker_manager = Mock(WorkerManager)
         t.zh.giveWorkToWorkers()
-
-        t.zh.workerselector.getCandidateWorkerIds.assert_called_with(
-            job.method, [worker]
-        )
-        worker.callRemote.assert_called_with('execute', *job.args)
-        t.zh.finished.assert_called_with(
-            job, worker.callRemote.return_value, worker, 0
+        t.zh._worker_manager.giveWorkToWorkers.assert_called_with(
+            requeue=False
         )
 
     def test__workerStats(t):
@@ -696,7 +631,8 @@ class ZenHubTest(TestCase):
         sends status details for a worker to log output
         not testing log output formatting at this time
         '''
-        pass
+        t.zh._workerStats()
+        t.zh._worker_manager._workerStats.assert_called_with()
 
     @patch('{src}.IHubHeartBeatCheck'.format(**PATH), autospec=True)
     @patch('{src}.EventHeartbeat'.format(**PATH), autospec=True)
@@ -844,24 +780,34 @@ class HubAvitarTest(TestCase):
 class WorkerManagerTest(TestCase):
 
     def setUp(t):
-        t.getService = create_autospec(ZenHub.getService)
-        t.wm = WorkerManager(t.getService)
+        t.selector_patcher = patch(
+            '{src}.WorkerSelector'.format(**PATH), autospec=True
+        )
+        t.selector_patcher.start()
+        t.addCleanup(t.selector_patcher.stop)
+
+        t.reactor_patcher = patch(
+            '{src}.reactor'.format(**PATH), autospec=True
+        )
+        t.reactor = t.reactor_patcher.start()
+        t.addCleanup(t.reactor_patcher.stop)
+
+        t.getService = Mock(ZenHub.getService)
+        t.zenhub_options = sentinel.zenhub_options
+        t.wm = WorkerManager(t.getService, t.zenhub_options)
 
     def test___init__(t):
         t.assertEqual(t.wm._get_service, t.getService)
+        t.assertIsInstance(t.wm._worker_selector, WorkerSelector)
+        t.assertEqual(t.wm.workers, [])
 
-    @patch('{src}.reactor'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
     @patch('{src}.defer'.format(**PATH), autospec=True)
     @patch('{src}.HubWorklistItem'.format(**PATH), autospec=True)
-    def test_defer_to_worker(t, HubWorklistItem, defer, time, reactor):
+    def test_defer_to_worker(t, HubWorklistItem, defer, time):
         '''should be refactored to use inlineCallbacks
         '''
-        getService = Mock(ZenHub.getService, name='getService')
-        t.wm = WorkerManager(getService)
-
-        service = getService.return_value.service
-        t.wm.work_list = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
+        service = t.getService.return_value.service
         args = (sentinel.arg0, sentinel.arg1)
 
         ret = t.wm.defer_to_worker('svcName', 'instance', 'method', args)
@@ -873,7 +819,7 @@ class WorkerManagerTest(TestCase):
             'svcName', 'instance', 'method',
             ('svcName', 'instance', 'method', args),
         )
-        reactor.callLater.assert_called_with(0, t.wm.giveWorkToWorkers)
+        t.reactor.callLater.assert_called_with(0, t.wm.giveWorkToWorkers)
         t.assertEqual(ret, defer.Deferred.return_value)
 
     def test_giveWorkToWorkers(t):
@@ -897,7 +843,7 @@ class WorkerManagerTest(TestCase):
         t.wm.workerselector.getCandidateWorkerIds.return_value = [0]
         t.wm.counters = {'workerItems': 0}
         t.wm.updateStatusAtStart = create_autospec(t.wm.updateStatusAtStart)
-        t.wm.finished = Mock() #create_autospec(t.wm.finished)
+        t.wm.finished = create_autospec(t.wm.finished)
 
         t.wm.giveWorkToWorkers()
 
@@ -908,6 +854,106 @@ class WorkerManagerTest(TestCase):
         t.wm.finished.assert_called_with(
             job, worker.callRemote.return_value, worker, 0
         )
+
+    @patch('{src}.time'.format(**PATH), autospec=True)
+    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
+    def test_updateStatusAtStart(t, WorkerStats, time):
+        '''Worker Management Metric reporting function'''
+        wId = sentinel.worker_id
+        job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
+
+        t.wm.updateStatusAtStart(wId, job)
+
+        t.assertEqual(
+            t.wm.executionTimer, {job.method: [1, 0.0, 0.0, time.time()]}
+        )
+        WorkerStats.assert_called_with(
+            'Busy',
+            "%s:%s.%s" % (job.instance, job.servicename, job.method),
+            time.time(),
+            0
+        )
+        t.assertEqual(t.wm.workTracker[wId], WorkerStats.return_value)
+
+    @patch('{src}.time'.format(**PATH), autospec=True)
+    @patch('{src}.WorkerStats'.format(**PATH), autospec=True)
+    def test_updateStatusAtFinish(t, WorkerStats, time):
+        '''Worker Management Metric reporting function
+        '''
+        # this should be set by __init__, not specified here
+        t.wm.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        wId = sentinel.worker_id
+        t0, t1 = 100, 300
+        stats = Mock(
+            name='stats', spec_set=['lastupdate', 'description'], lastupdate=t0
+        )
+        time.time.return_value = t1
+        t.wm.workTracker = {wId: stats}
+        job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
+
+        t.wm.updateStatusAtFinish(wId, job)
+
+        t.assertEqual(
+            t.wm.executionTimer, {job.method: [0, 0.0, t1 - t0, t1]},
+        )
+        WorkerStats.assert_called_with('Idle', stats.description, t1, 0)
+        t.assertEqual(t.wm.workTracker[wId], WorkerStats.return_value)
+
+    def test_finished(t):
+        '''Worker Management Function
+        '''
+        t.wm.updateStatusAtFinish = create_autospec(t.wm.updateStatusAtFinish)
+        job = Mock(
+            name='job', spec_set=['deferred'],
+            deferred=Mock(defer.Deferred, name='deferred', autospec=True)
+        )
+        result = Mock(name='result', spec_set=['returnvalue'])
+        finishedWorker = sentinel.zenhub_worker
+        wId = sentinel.worker_id
+
+        ret = t.wm.finished(job, result, finishedWorker, wId)
+
+        job.deferred.callback.assert_called_with(result)
+        # WARNING: may be called with error from pickle.loads, or ''.join
+        # this should be
+        # t.wm.updateStatusAtFinish.assert_called_with(wId, job, None)
+        # Hack to test called_with manually
+        args, kwargs = t.wm.updateStatusAtFinish.call_args
+        t.assertEqual(args[0], wId)
+        t.assertEqual(args[1], job)
+        t.assertIsInstance(args[2], TypeError)
+
+        t.assertIsInstance(ret, defer.Deferred)
+        t.assertEqual(ret.result, result)
+        t.assertFalse(finishedWorker.busy)
+        t.reactor.callLater.assert_called_with(0.1, t.wm.giveWorkToWorkers)
+
+    def test_finished_handles_LastCallReturnValue(t):
+        '''Worker Management Function
+        refactor as a LoopingCall instead of using reactor.callLater
+        '''
+        t.wm.updateStatusAtFinish = create_autospec(t.wm.updateStatusAtFinish)
+        job = Mock(
+            name='job', spec_set=['deferred'],
+            deferred=Mock(defer.Deferred, name='deferred', autospec=True)
+        )
+        result = Mock(LastCallReturnValue, name='result')
+        t.assertIsInstance(result, LastCallReturnValue)
+        finishedWorker = sentinel.zenhub_worker
+        wId = sentinel.worker_id
+        t.wm.workers = [finishedWorker, 'other worker']
+
+        ret = t.wm.finished(job, result, finishedWorker, wId)
+
+        t.assertNotIn(finishedWorker, t.wm.workers)
+        t.assertEqual(ret.result, result.returnvalue)
+
+    def test_workerStats(t):
+        '''Worker Status Logging
+        sends status details for workers to log output
+        not testing log output formatting at this time
+        '''
+        t.wm._workerStats()
 
 
 class _ZenHubWorklistTest(TestCase):
