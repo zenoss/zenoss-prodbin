@@ -185,6 +185,7 @@ class ZenHub(ZCmdBase):
         self.notify_will_be_created()
 
         super(ZenHub, self).__init__()
+
         load_config("hub.zcml", zenhub_module)
         loadPlugins(self.dmd)
         self._setup_pb_daemon()
@@ -247,7 +248,6 @@ class ZenHub(ZCmdBase):
             # Ignore it as we've already set up the signal handler.
             pass
 
-
     def notify_will_be_created(self):
         notify(HubWillBeCreatedEvent(self))
 
@@ -294,38 +294,36 @@ class ZenHub(ZCmdBase):
         """
         Start the main event loop.
         """
-        if self.options.cycle:
-            self.heartbeat_task = task.LoopingCall(self.heartbeat)
-            self.heartbeat_task.start(30)
-            self.log.debug("Creating async MetricReporter")
-            self._metric_manager.start()
-            reactor.addSystemEventTrigger(
-                'before', 'shutdown', self._metric_manager.stop
+        try:
+            log.info('Start zenhub.main()')
+            if self.options.cycle:
+                self.heartbeat_task = task.LoopingCall(self.heartbeat)
+                self.heartbeat_task.start(30)
+                self.log.debug("Creating async MetricReporter")
+                self._metric_manager.start()
+                reactor.addSystemEventTrigger(
+                    'before', 'shutdown', self._metric_manager.stop
+                )
+                # preserve legacy API
+                self.metricreporter = self._metric_manager.metricreporter
+
+            # Start Processing Invalidations
+            self.process_invalidations_task = task.LoopingCall(
+                self._invalidations_manager.process_invalidations
             )
-            # preserve legacy API
-            self.metricreporter = self._metric_manager.metricreporter
+            self.process_invalidations_task.start(
+                self.options.invalidation_poll_interval
+            )
 
-        # Start Processing Invalidations
-        self.process_invalidations_task = task.LoopingCall(
-            self._invalidations_manager.process_invalidations
-        )
-        self.process_invalidations_task.start(
-            self.options.invalidation_poll_interval
-        )
-        '''
-        self.notify_hub_created()
-        self.sendEvent(
-            eventClass=App_Start,
-            summary="%s started" % self.name,
-            severity=0
-        )'''
+            reactor.run()
+            log.debug('reactor shut down, zenhub shutting down')
 
-        reactor.run()
-
-        self.shutdown = True
-        getUtility(IEventPublisher).close()
-        if self.options.profiling:
-            self.profiler.stop()
+            self.shutdown = True
+            getUtility(IEventPublisher).close()
+            if self.options.profiling:
+                self.profiler.stop()
+        except Exception:
+            log.exception()
 
     def stop(self):
         self.shutdown = True
@@ -1158,14 +1156,19 @@ class InvalidationsManager(object):
         '''Get Invalidation Filters, initialize them,
         store them in the _invalidation_filters list, and return the list
         '''
-        filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
-        self._invalidation_filters = []
-        for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
-            fltr.initialize(self.__dmd)
-            self._invalidation_filters.append(fltr)
-        self.log.debug('Registered %s invalidation filters.',
-                       len(self._invalidation_filters))
-        return self._invalidation_filters
+        try:
+            filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
+            self._invalidation_filters = []
+            for fltr in sorted(
+                filters, key=lambda f: getattr(f, 'weight', 100)
+            ):
+                fltr.initialize(self.__dmd)
+                self._invalidation_filters.append(fltr)
+            self.log.debug('Registered %s invalidation filters.',
+                           len(self._invalidation_filters))
+            return self._invalidation_filters
+        except Exception:
+            log.exception('error in initialize_invalidation_filters')
 
     @inlineCallbacks
     def process_invalidations(self):
@@ -1175,27 +1178,38 @@ class InvalidationsManager(object):
 
         @return: None
         '''
-        now = time.time()
-        yield self._syncdb()
-        oids = self._poll_invalidations()
-        processor = getUtility(IInvalidationProcessor)
+        try:
+            now = time.time()
+            yield self._syncdb()
+            oids = self._poll_invalidations()
+            if not oids:
+                log.debug('no invalidations found')
+                return
+            oids = self._filter_oids(oids)
+            if not oids:
+                log.debug('filter returned no oids')
+                return
 
-        ret = processor.processQueue(
-            tuple(set(self._filter_oids(oids)))
-        )
+            processor = getUtility(IInvalidationProcessor)
+            ret = processor.processQueue(tuple(set(oids)))
+            result = ret.result
+            log.debug('finished processing oids')
+            if result == INVALIDATIONS_PAUSED:
+                self._send_event(self._invalidation_paused_event)
+                self._invalidations_paused = True
+            else:
+                msg = 'Processed %s oids' % result
+                self.log.debug(msg)
+                if self._invalidations_paused:
+                    self.send_invalidations_unpaused_event(msg)
+                    self._invalidations_paused = False
 
-        if ret == INVALIDATIONS_PAUSED:
-            self._send_event(self._invalidation_paused_event)
-            self._invalidations_paused = True
-        else:
-            msg = 'Processed %s oids' % ret
-            self.log.debug(msg)
-            if self._invalidations_paused:
-                self.send_invalidations_unpaused_event(msg)
-                self._invalidations_paused = False
-
-        self.totalEvents += 1
-        self.totalTime += time.time() - now
+        except Exception:
+            log.exception('error in process_invalidations')
+        finally:
+            self.totalEvents += 1
+            self.totalTime += time.time() - now
+            log.debug('end process_invalidations')
 
     @inlineCallbacks
     def _syncdb(self):
@@ -1207,24 +1221,31 @@ class InvalidationsManager(object):
             self.log.warn("Unable to poll invalidations, will try again.")
 
     def _poll_invalidations(self):
-        return self.__poll_invalidations()
+        try:
+            log.debug('poll invalidations from dmd.storage')
+            return self.__poll_invalidations()
+        except Exception:
+            log.exception('error in _poll_invalidations')
 
     def _filter_oids(self, oids):
-        app = self.__dmd.getPhysicalRoot()
-        for oid in oids:
-            obj = self._oid_to_object(app, oid)
-            if obj is FILTER_INCLUDE:
-                yield oid
-                continue
-            if obj is FILTER_EXCLUDE:
-                continue
+        try:
+            app = self.__dmd.getPhysicalRoot()
+            for oid in oids:
+                obj = self._oid_to_object(app, oid)
+                if obj is FILTER_INCLUDE:
+                    yield oid
+                    continue
+                if obj is FILTER_EXCLUDE:
+                    continue
 
-            # Filter all remaining oids
-            include = self._apply_filters(obj)
-            if include:
-                _oids = self._transformOid(oid, obj)
-                for _oid in _oids:
-                    yield _oid
+                # Filter all remaining oids
+                include = self._apply_filters(obj)
+                if include:
+                    _oids = self._transformOid(oid, obj)
+                    for _oid in _oids:
+                        yield _oid
+        except Exception:
+            log.exception('error in _filter_oids')
 
     def _oid_to_object(self, app, oid):
         # Include oids that are missing from the database
