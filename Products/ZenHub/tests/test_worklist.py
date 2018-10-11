@@ -1,12 +1,100 @@
 from itertools import chain
+from mock import patch, call, MagicMock
 from unittest import TestCase
 
 from Products.ZenHub.worklist import (
     ZenHubPriority, ZenHubWorklist,
     _build_weighted_list,
     _message_priority_map,
-    _normal_priorities, _no_adm_priorities
+    _normal_priorities, _no_adm_priorities,
+    register_metrics_on_worklist, _metric_priority_map,
+    PriorityListLengthGauge, WorklistLengthGauge
 )
+
+PATH = {'src': 'Products.ZenHub.worklist'}
+
+
+class MetrologySupportTest(TestCase):
+
+    def test_has_required_metric_mapping(self):
+        expected_mapping = {
+            "zenhub.eventWorkList": ZenHubPriority.EVENTS,
+            "zenhub.admWorkList": ZenHubPriority.MODELING,
+            "zenhub.otherWorkList": ZenHubPriority.OTHER,
+        }
+        for metric, expected in expected_mapping.iteritems():
+            actual = _metric_priority_map.get(metric)
+            self.assertEqual(
+                actual, expected,
+                "Metric '%s' should map to %s, not %s" % (
+                    metric, expected.name, actual.name
+                )
+            )
+
+    @patch("{src}.registry".format(**PATH), {})
+    @patch("{src}.Metrology".format(**PATH), autospec=True)
+    @patch("{src}.PriorityListLengthGauge".format(**PATH))
+    @patch("{src}.WorklistLengthGauge".format(**PATH))
+    def test_metrology_registration(self, wgauge, pgauge, metro):
+
+        eventGauge = MagicMock()
+        admGauge = MagicMock()
+        otherGauge = MagicMock()
+        totalGauge = MagicMock()
+
+        def map_gauge_to_inputs(worklist, priority):
+            return {
+                ZenHubPriority.EVENTS: eventGauge,
+                ZenHubPriority.MODELING: admGauge,
+                ZenHubPriority.OTHER: otherGauge,
+            }[priority]
+
+        pgauge.side_effect = map_gauge_to_inputs
+        wgauge.return_value = totalGauge
+
+        worklist = ZenHubWorklist()
+        register_metrics_on_worklist(worklist)
+
+        pgauge.assert_has_calls([
+            call(worklist, ZenHubPriority.EVENTS),
+            call(worklist, ZenHubPriority.MODELING),
+            call(worklist, ZenHubPriority.OTHER),
+        ], any_order=True)
+        wgauge.assert_called_once_with(worklist)
+
+        metro.gauge.assert_has_calls([
+            call("zenhub.eventWorkList", eventGauge),
+            call("zenhub.admWorkList", admGauge),
+            call("zenhub.otherWorkList", otherGauge),
+            call("zenhub.workList", totalGauge),
+        ], any_order=True)
+
+    def test_gauges(self):
+        worklist = ZenHubWorklist()
+
+        pg1 = PriorityListLengthGauge(worklist, ZenHubPriority.EVENTS)
+        pg2 = PriorityListLengthGauge(worklist, ZenHubPriority.MODELING)
+        pg3 = PriorityListLengthGauge(worklist, ZenHubPriority.OTHER)
+        wg = WorklistLengthGauge(worklist)
+
+        eventJob1 = MockJob("sendEvent")
+        eventJob2 = MockJob("sendEvent")
+        eventJob3 = MockJob("sendEvent")
+        admJob = MockJob("applyDataMaps")
+        otherJob1 = MockJob("doThis")
+        otherJob2 = MockJob("doThat")
+
+        worklist.push(eventJob1)
+        worklist.push(eventJob2)
+        worklist.push(eventJob3)
+        worklist.push(admJob)
+        worklist.push(otherJob1)
+        worklist.push(otherJob2)
+
+        self.assertEqual(pg1.value, 3)
+        self.assertEqual(pg2.value, 1)
+        self.assertEqual(pg3.value, 2)
+        self.assertEqual(wg.value, 6)
 
 
 class ZenHubPriorityTest(TestCase):

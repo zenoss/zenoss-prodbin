@@ -10,6 +10,9 @@
 import enum
 
 from itertools import cycle, chain, count
+from metrology import Metrology
+from metrology.registry import registry
+from metrology.instruments import Gauge
 
 
 class OrderedEnum(enum.Enum):
@@ -145,6 +148,47 @@ _message_priority_map = _MessagePriorityMap({
     "sendEvents":    ZenHubPriority.EVENTS,
     "applyDataMaps": ZenHubPriority.MODELING
 })
+
+
+class PriorityListLengthGauge(Gauge):
+
+    def __init__(self, worklist, priority):
+        self.__worklist = worklist
+        self.__priority = priority
+
+    @property
+    def value(self):
+        return self.__worklist.length_of(self.__priority)
+
+
+class WorklistLengthGauge(Gauge):
+
+    def __init__(self, worklist):
+        self.__worklist = worklist
+
+    @property
+    def value(self):
+        return len(self.__worklist)
+
+
+_metric_priority_map = {
+    "zenhub.eventWorkList": ZenHubPriority.EVENTS,
+    "zenhub.admWorkList": ZenHubPriority.MODELING,
+    "zenhub.otherWorkList": ZenHubPriority.OTHER,
+}
+
+
+def register_metrics_on_worklist(worklist):
+    metricNames = {x[0] for x in registry}
+
+    for metricName, priority in _metric_priority_map.iteritems():
+        if metricName not in metricNames:
+            gauge = PriorityListLengthGauge(worklist, priority)
+            Metrology.gauge(metricName, gauge)
+
+    if "zenhub.workList" not in metricNames:
+        gauge = WorklistLengthGauge(worklist)
+        Metrology.gauge("zenhub.workList", gauge)
 
 
 class ZenHubWorklist(object):

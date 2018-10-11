@@ -25,9 +25,6 @@ from XmlRpcService import XmlRpcService
 
 import collections
 import heapq
-from metrology import Metrology
-from metrology.registry import registry
-from metrology.instruments import Gauge
 import time
 import signal
 import cPickle as pickle
@@ -115,7 +112,9 @@ from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
 
 from Products.ZenHub.interceptors import WorkerInterceptor
-from Products.ZenHub.worklist import ZenHubPriority, ZenHubWorklist
+from Products.ZenHub.worklist import (
+    ZenHubPriority, ZenHubWorklist, register_metrics_on_worklist
+)
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
@@ -390,36 +389,8 @@ class ZenHub(ZCmdBase):
         self.counters = collections.Counter()
         self._invalidations_paused = False
 
-        wl = self.workList
-        metricNames = {x[0] for x in registry}
-
-        class EventWorkList(Gauge):
-            @property
-            def value(self):
-                return wl.length_of(ZenHubPriority.EVENTS)
-        if 'zenhub.eventWorkList' not in metricNames:
-            Metrology.gauge('zenhub.eventWorkList', EventWorkList())
-
-        class ADMWorkList(Gauge):
-            @property
-            def value(self):
-                return wl.length_of(ZenHubPriority.APPLY_DATA_MAPS)
-        if 'zenhub.admWorkList' not in metricNames:
-            Metrology.gauge('zenhub.admWorkList', ADMWorkList())
-
-        class OtherWorkList(Gauge):
-            @property
-            def value(self):
-                return wl.length_of(ZenHubPriority.OTHER)
-        if 'zenhub.otherWorkList' not in metricNames:
-            Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
-
-        class WorkListTotal(Gauge):
-            @property
-            def value(self):
-                return len(wl)
-        if 'zenhub.workList' not in metricNames:
-            Metrology.gauge('zenhub.workList', WorkListTotal())
+        # configure Metrology for the worklists
+        register_metrics_on_worklist(self.workList)
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
