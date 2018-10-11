@@ -318,30 +318,15 @@ class ZenHubTest(TestCase):
             call(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
         ])
 
-    @patch('{src}.signal'.format(**PATH), autospec=True)
-    def test_sighandler_USR2(t, signal):
-        '''Daemon function
-        when signal USR2 is recieved, broadcast it to all worker processes
-        '''
-        _workerStats = create_autospec(t.zh._workerStats, name='_workerStats')
-        t.zh._workerStats = _workerStats
-        t.zh.SIGUSR_TIMEOUT = 1
-        t.time.time.return_value = 5
-
-        ZenHub.sighandler_USR2(t.zh, signum='unused', frame='unused')
-
-        t.zh._workerStats.assert_called_with()
+    def test_sighandler_USR2(t):
+        t.zh.sighandler_USR2(signum='unused', frame='unused')
+        t.zh._worker_manager._workerStats.assert_called_with()
 
     @patch('{src}.super'.format(**PATH))
-    @patch('{src}.signal'.format(**PATH), autospec=True)
-    def test_sighandler_USR1(t, signal, super):
-        '''Daemon function
-        when signal USR1 is recieved, broadcast it to all worker processes
-        '''
+    def test_sighandler_USR1(t, super):
         t.zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
-        t.zh.options = Mock(name='options', profiling=True)
-        signum = sentinel.signum
-        frame = sentinel.frame
+        t.zh.options.profiling = True
+        signum, frame = sentinel.signum, sentinel.frame
 
         ZenHub.sighandler_USR1(t.zh, signum=signum, frame=frame)
 
@@ -394,30 +379,6 @@ class ZenHubTest(TestCase):
         ret = t.zh._getConf()
         confProvider = IHubConfProvider.return_value
         t.assertEqual(ret, confProvider.getHubConf.return_value)
-
-    def test_updateEventWorkerCount(t):
-        t.zh.options = Mock(
-            name='options', spec_set=['workersReservedForEvents']
-        )
-        subtests = [
-            {"reserved": 1, "workers": 0, "expected": 0},
-            {"reserved": 1, "workers": 1, "expected": 0},
-            {"reserved": 2, "workers": 1, "expected": 0},
-            {"reserved": 1, "workers": 2, "expected": 1},
-            {"reserved": 2, "workers": 2, "expected": 1},
-            {"reserved": 2, "workers": 3, "expected": 2}
-        ]
-        for subtest in subtests:
-            t.zh.options.workersReservedForEvents = subtest['reserved']
-            t.zh.workers = [sentinel.worker] * subtest['workers']
-            t.zh.updateEventWorkerCount()
-            t.assertEqual(
-                t.zh.options.workersReservedForEvents, subtest['expected'],
-                msg=("%s != %s; %s" % (
-                    t.zh.options.workersReservedForEvents,
-                    subtest['expected'], subtest
-                ))
-            )
 
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     def test_getRRDStats(t, MetricManager):

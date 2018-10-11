@@ -218,8 +218,6 @@ class ZenHub(ZCmdBase):
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
 
-        self.workList.log = self.log
-
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
 
@@ -301,7 +299,7 @@ class ZenHub(ZCmdBase):
 
     def sighandler_USR2(self, signum, frame):
         # log zenhub's worker stats
-        self._workerStats()
+        self._worker_manager._workerStats()
 
     def sighandler_USR1(self, signum, frame):
         # handle it ourselves
@@ -344,11 +342,6 @@ class ZenHub(ZCmdBase):
         return self._metric_manager.get_rrd_stats(
             self._getConf(), self.zem.sendEvent
         )
-
-    def updateEventWorkerCount(self):
-        maxEventWorkers = max(0, len(self.workers) - 1)
-        if self.options.workersReservedForEvents > maxEventWorkers:
-            self.options.workersReservedForEvents = maxEventWorkers
 
     # Legacy API
     @inlineCallbacks
@@ -532,8 +525,6 @@ class ZenHub(ZCmdBase):
         for name, value in self.counters.items():
             r.counter(name, value)
 
-        #self._metric_manager.heartbeat_stats(self.services, self.workList, self.counters)
-
         try:
             hbcheck = IHubHeartBeatCheck(self)
             hbcheck.check()
@@ -663,12 +654,10 @@ class HubAvitar(pb.Avatar):
         worker.workerId = workerId
         self.hub.log.info("Worker %s reporting for work", workerId)
         self.hub.workers.append(worker)
-        self.hub.updateEventWorkerCount()
 
         def removeWorker(worker):
             if worker in self.hub.workers:
                 self.hub.workers.remove(worker)
-                self.hub.updateEventWorkerCount()
                 self.hub.log.info("Worker %s disconnected", worker.workerId)
 
         worker.notifyOnDisconnect(removeWorker)
@@ -739,9 +728,10 @@ class WorkerManager(object):
             allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
             job = self.work_list.pop(allowADM)
             if job is None:
-                log.info("Got None from the job work_list.  ApplyDataMaps"
-                              " may be paused for zenpack"
-                              " install/upgrade/removal.")
+                log.info(
+                    "Got None from the job work_list.  ApplyDataMaps"
+                    " may be paused for zenpack install/upgrade/removal."
+                )
                 yield wait(0.1)
                 break
 
