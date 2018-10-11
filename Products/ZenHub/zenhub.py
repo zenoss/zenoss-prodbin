@@ -174,22 +174,6 @@ class ZenHub(ZCmdBase):
     TODO: document invalidation workers
     """
 
-    @property
-    def totalTime(self):
-        return getattr(self._invalidations_manager, 'totalTime', 0.0)
-
-    @totalTime.setter
-    def totalTime(self, t):
-        setattr(self._invalidations_manager, 'totalTime', t)
-
-    @property
-    def totalEvents(self):
-        return getattr(self._invalidations_manager, 'totalEvents', 0)
-
-    @totalEvents.setter
-    def totalEvents(self, x):
-        setattr(self._invalidations_manager, 'totalEvents', x)
-
     totalCallTime = 0.
     name = 'zenhub'
 
@@ -198,38 +182,32 @@ class ZenHub(ZCmdBase):
         Hook ourselves up to the Zeo database and wait for collectors
         to connect.
         """
-        super(ZenHub, self).__init__()
-        # list of remote worker references
-        self.workers = []
+        self.notify_will_be_created()
 
-        self._worker_manager = WorkerManager(self.getService, self.options)
-        self.workList = self._worker_manager.work_list
+        super(ZenHub, self).__init__()
+        load_config("hub.zcml", zenhub_module)
+        loadPlugins(self.dmd)
+        self._setup_pb_daemon()
+        # responsible for sending messages to the queues
+        load_config_override('twistedpublisher.zcml', queuemessaging_module)
+
         self.shutdown = False
         self.counters = collections.Counter()
-        self.counters['total_time'] = 0.0
-        self.counters['total_events'] = 0
         self._invalidations_paused = False
         self.services = {}
+        # ZEN-26671 Wait at least this duration in secs
+        # before signaling a worker process
+        self.SIGUSR_TIMEOUT = 5
 
-        load_config("hub.zcml", zenhub_module)
-        notify(HubWillBeCreatedEvent(self))
+        self.zem = self.dmd.ZenEventManager
+
+        self._worker_manager = WorkerManager(self.getService, self.options)
+        self.workers = self._worker_manager.workers
+        self.workList = self._worker_manager.work_list
 
         if self.options.profiling:
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
-
-        self.zem = self.dmd.ZenEventManager
-        loadPlugins(self.dmd)
-
-        self._setup_pb_daemon()
-
-        # responsible for sending messages to the queues
-        load_config_override('twistedpublisher.zcml', queuemessaging_module)
-
-        notify(HubCreatedEvent(self))
-        self.sendEvent(eventClass=App_Start,
-                       summary="%s started" % self.name,
-                       severity=0)
 
         # Invalidation Processing
         self._invalidations_manager = InvalidationsManager(
@@ -239,13 +217,6 @@ class ZenHub(ZCmdBase):
             self.storage.poll_invalidations,
             self.sendEvent,
             poll_interval=self.options.invalidation_poll_interval,
-        )
-        self._invalidations_manager.initialize_invalidation_filters()
-        self.process_invalidations_task = task.LoopingCall(
-            self._invalidations_manager.process_invalidations
-        )
-        self.process_invalidations_task.start(
-            self.options.invalidation_poll_interval
         )
 
         # Setup Metric Reporting
@@ -260,6 +231,13 @@ class ZenHub(ZCmdBase):
             self._getConf(), self.zem.sendEvent
         )
 
+        self.notify_hub_created()
+        self.sendEvent(
+            eventClass=App_Start,
+            summary="%s started" % self.name,
+            severity=0
+        )
+
         # set up SIGUSR2 handling
         try:
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
@@ -268,9 +246,13 @@ class ZenHub(ZCmdBase):
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
             pass
-        # ZEN-26671 Wait at least this duration in secs
-        # before signaling a worker process
-        self.SIGUSR_TIMEOUT = 5
+
+
+    def notify_will_be_created(self):
+        notify(HubWillBeCreatedEvent(self))
+
+    def notify_hub_created(self):
+        notify(HubCreatedEvent(self))
 
     def _setup_pb_daemon(self):
         er = HubRealm(self)
@@ -323,6 +305,21 @@ class ZenHub(ZCmdBase):
             # preserve legacy API
             self.metricreporter = self._metric_manager.metricreporter
 
+        # Start Processing Invalidations
+        self.process_invalidations_task = task.LoopingCall(
+            self._invalidations_manager.process_invalidations
+        )
+        self.process_invalidations_task.start(
+            self.options.invalidation_poll_interval
+        )
+        '''
+        self.notify_hub_created()
+        self.sendEvent(
+            eventClass=App_Start,
+            summary="%s started" % self.name,
+            severity=0
+        )'''
+
         reactor.run()
 
         self.shutdown = True
@@ -337,6 +334,7 @@ class ZenHub(ZCmdBase):
         confProvider = IHubConfProvider(self)
         return confProvider.getHubConf()
 
+    # Legacy API
     def getRRDStats(self):
         # NOTE: check the difference between sendEvent and zem.sendEvent
         return self._metric_manager.get_rrd_stats(
@@ -516,8 +514,10 @@ class ZenHub(ZCmdBase):
 
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
-        r.counter('totalTime', int(self.totalTime * 1000))
-        r.counter('totalEvents', self.totalEvents)
+        r.counter(
+            'totalTime', int(self._invalidations_manager.totalTime * 1000)
+        )
+        r.counter('totalEvents', self._invalidations_manager.totalEvents)
         r.gauge('services', len(self.services))
         r.counter('totalCallTime', totalTime)
         r.gauge('workListLength', len(self.workList))
@@ -675,11 +675,15 @@ class WorkerManager(object):
         self.options = options
         self._worker_selector = WorkerSelector(self.options)
 
-        self.workers = []
+        self._workers = []
         self.workTracker = {}
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+
+    @property
+    def workers(self):
+        return self._workers
 
     @property
     def work_list(self):
@@ -1147,6 +1151,8 @@ class InvalidationsManager(object):
         self._invalidations_paused = False
         self.totalEvents = 0
         self.totalTime = 0
+
+        self.initialize_invalidation_filters()
 
     def initialize_invalidation_filters(self):
         '''Get Invalidation Filters, initialize them,
