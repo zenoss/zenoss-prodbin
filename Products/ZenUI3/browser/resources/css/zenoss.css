@@ -1758,7 +1758,7 @@ div.europagraph {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-  div.europagraph.z-hidden-footer .zenfooter {
+  div.europagraph-inner.z-hidden-footer .zenfooter {
     display: none !important;
   }
 

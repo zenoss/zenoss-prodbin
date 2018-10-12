@@ -191,11 +191,11 @@
          * </ul>
          **/
         datapoints: [],
-        graphTemplate: new  Ext.Template('<div id="{graphId}" class="europagraph" style="padding: 0 5px 0 0;height:{graphHeight}px;"> ' +
-                                         '     <div class="graph_title">{graphTitle}' +
-                                         '        <div class="graph_description">{description}</div>'+
-                                         '     </div> ' +
-                                         '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
+        graphTemplate: new  Ext.Template('<div id="{graphId}" class="europagraph-inner" style="padding: 0 5px 0 0;height:{graphHeight}px;"> ' +
+                                         // '     <div class="graph_title">{graphTitle}' +
+                                         // '        <div class="graph_description">{description}</div>'+
+                                         // '     </div> ' +
+                                         // '    <img id="{buttonId}" class="europaGraphGear" src="/++resource++zenui/img/gear.png"  />' +
                                          '</div>'),
         /**
          * @cfg {int} maxLinkLength
@@ -215,30 +215,111 @@
             }
             // width is not customizable - always fills column
             delete config.width;
-            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
+            var me = this,
+                ZSDTR = Zenoss.settings.defaultTimeRange || 0,
+                hasMenu = config.hasMenu===undefined ? me.hasMenu : config.hasMenu,
+                agrToggleGroup = me.getId()+'-aggregationGroup';
 
             // dynamically adjust the height;
             config.graphHeight = config.height - 50;
-            config.buttonId = Ext.id();
             config = Ext.applyIf(config||{}, {
-                html: this.graphTemplate.apply(config),
-                cls: 'graph-panel',
-                margin: 5,
+                html: me.graphTemplate.apply(config),
+                cls: 'graph-panel europagraph',
+                margin: 10,
                 graph_params: {
                     drange: DATE_RANGES[ZSDTR][0],
                     end: config.end || CURRENT_TIME,
                     start: config.start || DATE_RANGES[ZSDTR][0]
                 },
-                dockedItems: []
+                dockedItems: [],
+                tbar: {
+                    border: false,
+                    style: 'background-color: transparent;background-image: none;',
+                    defaults: {
+                        pressedCls: 'graph-btn-pressed'
+                    },
+                    items: [{
+                        xtype: 'displayfield',
+                        flex: 1,
+                        fieldStyle: 'font-size: 1.5em;',
+                        margin: '0 0 0 10',
+                        value: config.graphTitle
+                    },{
+                        xtype: 'button',
+                        toggleGroup: agrToggleGroup,
+                        allowDepress: false,
+                        text: 'Min',
+                        aggregation: 'min',
+                        handler: me.aggregationOnChange,
+                        scope: me
+                    },{
+                        xtype: 'button',
+                        toggleGroup: agrToggleGroup,
+                        allowDepress: false,
+                        text: 'Max',
+                        aggregation: 'max',
+                        handler: me.aggregationOnChange,
+                        scope: me
+                    },{
+                        xtype: 'button',
+                        allowDepress: false,
+                        toggleGroup: agrToggleGroup,
+                        text: 'Sum',
+                        aggregation: 'sum',
+                        handler: me.aggregationOnChange,
+                        scope: me
+                    },{
+                        xtype: 'button',
+                        allowDepress: false,
+                        toggleGroup: agrToggleGroup,
+                        pressed: true,
+                        margin: '0 10 0 0',
+                        text: 'Avg',
+                        aggregation: 'avg',
+                        handler: me.aggregationOnChange,
+                        scope: me
+                    },{
+                        xtype: 'button',
+                        margin: '0 5',
+                        style: 'background-color: transparent;',
+                        icon: '/++resource++zenui/img/gear.png',
+                        iconCls: 'europaGraphGear',
+                        menu: {
+                            baseCls: 'z-europa-menu',
+                            items: [{
+                                text: _t('Definition'),
+                                handler: me.displayDefinition,
+                                scope: me
+                            }, {
+                                text: _t('Export to CSV'),
+                                handler: me.exportData,
+                                scope: me
+                            }, {
+                                text: _t('Link to this Graph'),
+                                handler: me.displayLink,
+                                scope: me
+                            }, {
+                                text: _t('Expand Graph'),
+                                disabled: !hasMenu,
+                                handler: me.expandGraph,
+                                scope: me
+                            }, {
+                                text: _t('Toggle Footer'),
+                                handler: me.toggleFooter,
+                                scope: me
+                            }]
+                        }
+                    }]
+                }
             });
 
-            Zenoss.EuropaGraph.superclass.constructor.call(this, config);
+            Zenoss.EuropaGraph.superclass.constructor.call(me, config);
         },
         initComponent: function() {
             // the visualization library depends on our div rendering,
             // let's make sure that has happened
             this.on('afterrender', this.initChart, this);
-            this.on('afterrender', this.buildMenu, this, {single: true});
+            // this.on('afterrender', this.buildMenu, this, {single: true});
             this.on('resize', this.refreshOnResize, this);
             this.callParent(arguments);
         },
@@ -247,7 +328,7 @@
                 this.menu.destroy();
             }
         },
-        buildMenu: function() {
+        /*buildMenu: function() {
             if (! this.hasMenu) {
                 return;
             }
@@ -279,6 +360,14 @@
                 this.menu.showAt(x, y);
             }, this);
 
+        },*/
+        aggregationOnChange: function(t, e) {
+            var chart = zenoss.visualization.chart.getChart(this.graphId);
+            if (chart) {
+                chart.downsample = t.aggregation;
+                // Ext.Array.each(chart.config.datapoints, function(item) {item.aggregator = t.aggregation;});
+                chart.update();
+            }
         },
         initChart: function() {
             var cname = isSingleComponentChart(this.datapoints);
@@ -438,7 +527,7 @@
                 encodedConfig, link,
                 drange="null",
                 // keys to exclude when cloning config object
-                exclusions = ["dockedItems"];
+                exclusions = ["dockedItems", 'html', 'id', 'tbar'];
 
             // shallow clone initialConfig object as long as the
             // key being copied is not in the exclusions list.
@@ -450,10 +539,11 @@
                 }
             }
             // see if we can find the date range selected
-            var graphPanel = this.up('graphpanel');
+            /*var graphPanel = this.up('graphpanel');
             if (graphPanel && Ext.isNumber(graphPanel.drange)) {
                 drange = graphPanel.drange;
-            }
+            }*/
+            drange = this.graph_params.drange;
             // get the zipped + encoded config from the server
             router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
@@ -475,18 +565,14 @@
         expandGraph: function(){
             var config = {},
                 drange = "null",
-                exclusions = ["dockedItems"];
+                exclusions = ["dockedItems", 'html', 'id', 'tbar'];
 
             for(var i in this.initialConfig){
                 if(exclusions.indexOf(i) === -1){
                     config[i] = this.initialConfig[i];
                 }
             }
-            // see if we can find the date range selected
-            var graphPanel = this.up('graphpanel');
-            if (graphPanel && Ext.isNumber(graphPanel.drange)) {
-                drange = graphPanel.drange;
-            }
+
             // ZEN-30758
             var width = window.innerWidth
                         || document.documentElement.clientWidth
@@ -501,7 +587,7 @@
             config.xtype = 'europagraph';
             config.height = height * 0.8;
             config.autoScroll = true;
-            delete config.html;
+            config.graph_params = this.graph_params;
 
             var win = Ext.create('Zenoss.dialog.BaseWindow', {
                 cls: 'white-background-panel',
@@ -520,31 +606,21 @@
             footerHeight = Math.min(footerHeight, 150);
             chart.$div.find(".zenfooter").height(footerHeight);
 
-            var graphHeight = Number(this.height);
-            chart.$div.height(graphHeight);
-            this.setHeight(graphHeight + 36);
+            Ext.get(chart.svgwrapper).setHeight(this.body.getHeight()-footerHeight-10);
             chart.resize();
         },
-        toggleFooter: function() {
+        toggleFooter: function(t, e) {
             var c = zenoss.visualization.chart.getChart(this.graphId);
-            var eurograph = c.$div.find(".zenfooter").parent();
 
             // footer height: check before hiding and after reappearing
             var footerHeightIn = Number(c.$div.find(".zenfooter").outerHeight() || 0);
-            eurograph.toggleClass("z-hidden-footer");
+            this.graphEl.toggleCls("z-hidden-footer");
             var footerHeightOut = Number(c.$div.find(".zenfooter").outerHeight() || 0);
             var footerHeight = Math.max(footerHeightIn, footerHeightOut);
 
-            var graphHeight = Number(this.height);
-            adjustedHeight = graphHeight - 36;
-
             c.config.footer = !c.config.footer;
-            adjustedHeight = c.config.footer ?
-                adjustedHeight += footerHeight :
-                adjustedHeight -= footerHeight;
-
-            c.$div.height(adjustedHeight);
-            this.setHeight(adjustedHeight + 36);
+            var adjustedHeight = c.config.footer ? footerHeight+10 : 10;
+            Ext.get(c.svgwrapper).setHeight(this.body.getHeight()-adjustedHeight);
             c.resize();
         },
         displayDefinition: function(){
