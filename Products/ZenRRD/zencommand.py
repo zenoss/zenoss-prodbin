@@ -238,6 +238,7 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     rrdMin = None
     rrdMax = None
     metadata = None
+    tags = None
 
     def __init__(self):
         self.data = {}
@@ -636,7 +637,8 @@ class SshPerformanceCollectionTask(BaseTask):
                         min=dp.rrdMin,
                         max=dp.rrdMax,
                         threshEventData=threshData,
-                        metadata=dp.metadata)
+                        metadata=dp.metadata,
+                        extraTags=getattr(dp, "tags", {}))
                 except Exception, e:
                     log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(dp.metadata, e))
 
