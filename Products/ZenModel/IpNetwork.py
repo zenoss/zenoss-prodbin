@@ -635,6 +635,10 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             net = IpNetwork(ip_id, netmask=netmask, version=self.version)
             self._setObject(ip_id, net)
         elif netobj.netmask > netmask: # ex 10.1.0.0/12 exists and we need to add 10.0.0.0/8
+            net_ips = filter(lambda z: z.interface(), netobj.ipaddresses())
+            iface_ips = (x.interface().ipaddresses() for x in net_ips)
+            iface_ips_bkup = [item for sublist in iface_ips for item in sublist if
+                                item.getNetworkName() == netobj.getNetworkName()]
             self._operation = 1 # Do we need this?
             self._delObject(ip_id) # remove ref to old net with greater mask
             new_net = IpNetwork(ip_id, netmask=netmask, version=self.version)
@@ -642,6 +646,8 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             new_net = self._getOb(ip_id)
             netobj = aq_base(netobj)
             new_net._setObject(ip_id, netobj)
+            for i in iface_ips_bkup:
+                i.interface().ipaddresses._setObject(i.id, i)
 
         return self.getSubNetwork(ip)
 
