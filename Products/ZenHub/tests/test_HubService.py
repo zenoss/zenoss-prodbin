@@ -34,7 +34,6 @@ class TestHubService(TestCase):
         self.assertEqual(self.hub_service.listeners, [])
         self.assertEqual(self.hub_service.listenerOptions, {})
         self.assertEqual(self.hub_service.callTime, 0)
-        self.assertEqual(self.hub_service.methodPriorityMap, {})
 
     def test_getPerformanceMonitor(self):
         out = self.hub_service.getPerformanceMonitor()
@@ -112,19 +111,6 @@ class TestHubService(TestCase):
 
         self.assertNotIn(listener, self.hub_service.listeners)
         self.assertNotIn(listener, self.hub_service.listenerOptions.keys())
-
-    def test_getMethodPriority(self):
-        method_name = 'method_name'
-        priority = 0.5
-        self.hub_service.methodPriorityMap = {method_name: priority}
-
-        out = self.hub_service.getMethodPriority(method_name)
-
-        self.assertEqual(out, priority)
-
-        # Test Default priority = 1
-        out = self.hub_service.getMethodPriority('unprioritized method')
-        self.assertEqual(out, 1)
 
     def test_sendEvents(self):
         events = ['evt1', 'evt2', 'evt3']

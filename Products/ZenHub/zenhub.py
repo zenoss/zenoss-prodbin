@@ -121,7 +121,7 @@ from Products.ZenUtils.debugtools import ContinuousProfiler
 
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
-    'priority recvtime deferred servicename instance method args'
+    'recvtime deferred servicename instance method args'
 )
 WorkerStats = collections.namedtuple(
     'WorkerStats',
@@ -727,12 +727,10 @@ class ZenHub(ZCmdBase):
         @return: a Deferred for the eventual results of the method call
         """
         d = defer.Deferred()
-        service = self.getService(svcName, instance).service
-        priority = service.getMethodPriority(method)
 
         self.workList.push(
             HubWorklistItem(
-                priority, time.time(), d, svcName, instance, method,
+                time.time(), d, svcName, instance, method,
                 (svcName, instance, method, args)
             ))
 
@@ -977,14 +975,6 @@ class ZenHub(ZCmdBase):
             '--monitor', dest='monitor',
             default='localhost',
             help='Name of the distributed monitor this hub runs on')
-        self.parser.add_option(
-            '--prioritize', dest='prioritize',
-            action='store_true', default=False,
-            help="Run higher priority jobs before lower priority ones")
-        self.parser.add_option(
-            '--anyworker', dest='anyworker',
-            action='store_true', default=False,
-            help='Allow any priority job to run on any worker')
         self.parser.add_option(
             '--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,

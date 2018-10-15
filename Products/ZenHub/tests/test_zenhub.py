@@ -898,14 +898,12 @@ class ZenHubTest(TestCase):
         should be refactored to use inlineCallbacks
         '''
         t.zh.getService = create_autospec(t.zh.getService)
-        service = t.zh.getService.return_value.service
         t.zh.workList = Mock(ZenHubWorklist, name='ZenHubWorklist')
         args = (sentinel.arg0, sentinel.arg1)
 
         ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
 
         HubWorklistItem.assert_called_with(
-            service.getMethodPriority.return_value,
             t.time.time.return_value,
             defer.Deferred.return_value,
             'svcName', 'instance', 'method',
@@ -1166,7 +1164,6 @@ class ZenHubTest(TestCase):
         zenPath.assert_called_with('etc', 'hubpasswd')
         t.assertEqual(t.zh.options.passwordfile, zenPath.return_value)
         t.assertEqual(t.zh.options.monitor, 'localhost')
-        t.assertEqual(t.zh.options.prioritize, False)
         t.assertEqual(t.zh.options.workersReservedForEvents, 1)
         t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
         t.assertEqual(t.zh.options.profiling, False)
