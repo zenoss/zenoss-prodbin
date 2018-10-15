@@ -22,7 +22,7 @@ from Products.ZenModel.ZenossSecurity import (
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
-class RevertUpdateEditUserPermission(Migrate.Step):
+class UpdatePermsForAdvancedPage(Migrate.Step):
 
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
@@ -51,4 +51,4 @@ class RevertUpdateEditUserPermission(Migrate.Step):
         self.addPermissions(zport,  ZEN_MANAGE_EVENT_CONFIG,
                             [OWNER_ROLE, MANAGER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
 
-RevertUpdateEditUserPermission()
+UpdatePermsForAdvancedPage()
