@@ -48,8 +48,8 @@ class WorkerInterceptorTest(TestCase):
         self.wi = WorkerInterceptor(zenhub=self.zenhub, service=self.service)
         self.broker = Mock(name='pb.Broker', spec_set=pb.Broker)
 
-    def test_remoteMessageRecieved(self):
-        state = self.wi.remoteMessageRecieved(
+    def test_remoteMessageReceived(self):
+        state = self.wi.remoteMessageReceived(
             broker=self.broker,  # twisted.spread.pb.Broke
             message='applyDataMaps',
             args=self.cap_args,
@@ -75,8 +75,8 @@ class WorkerInterceptorTest(TestCase):
             self.wi.perspective
         )
 
-    def test_remoteMessageRecieved_sendEvent(self):
-        state = self.wi.remoteMessageRecieved(
+    def test_remoteMessageReceived_sendEvent(self):
+        state = self.wi.remoteMessageReceived(
             broker=self.broker,  # twisted.spread.pb.Broke
             message='sendEvent',
             args=self.cap_args,
@@ -89,8 +89,8 @@ class WorkerInterceptorTest(TestCase):
             self.broker.unserialize.return_value
         )
 
-    def test_remoteMessageRecieved_sendEvents(self):
-        state = self.wi.remoteMessageRecieved(
+    def test_remoteMessageReceived_sendEvents(self):
+        state = self.wi.remoteMessageReceived(
             broker=self.broker,  # twisted.spread.pb.Broke
             message='sendEvents',
             args=self.cap_args,

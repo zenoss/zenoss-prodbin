@@ -409,13 +409,16 @@ class ZenHubTest(TestCase):
         with t.assertRaises(RemoteBadMonitor):
             t.zh.getService('name', 'instance')
 
-    def test_getService_cache_miss(t):
+    @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
+    def test_getService_cache_miss(t, WorkerInterceptor):
         t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
+        interceptor_service = sentinel.interceptor_service
         t.zh.dmd.Monitors.Performance._getOb.return_value = True
         t.zh.services = {}
+        WorkerInterceptor.return_value = interceptor_service
 
         # patch the internal import
         # from Products.ZenUtils.Utils import importClass
@@ -429,7 +432,7 @@ class ZenHubTest(TestCase):
         with patch.dict('sys.modules', modules):
             ret = t.zh.getService(name, instance)
 
-        t.assertEqual(ret, service)
+        t.assertEqual(ret, interceptor_service)
 
     @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
     def test_getService_forwarded_to_WorkerInterceptor(t, WorkerInterceptor):
@@ -455,7 +458,7 @@ class ZenHubTest(TestCase):
             ret = t.zh.getService(name, instance)
 
         WorkerInterceptor.assert_called_with(t.zh, service)
-        t.assertEqual(ret, service)
+        t.assertEqual(ret, interceptor_service)
         t.assertEqual(t.zh.services[name, instance], interceptor_service)
 
     def test_deferToWorker(t):
@@ -1182,6 +1185,12 @@ class ZenHubModuleTest(TestCase):
 class InvalidationsManagerTest(TestCase):
 
     def setUp(t):
+        t.get_utility_patcher = patch(
+            '{src}.getUtility'.format(**PATH), autospec=True
+        )
+        t.getUtility = t.get_utility_patcher.start()
+        t.addCleanup(t.get_utility_patcher.stop)
+
         t.dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
         t.log = Mock(name='log', spec_set=['debug', 'warn'])
         t.syncdb = Mock(name='ZenHub.async_syncdb', spec_set=[])
@@ -1207,6 +1216,8 @@ class InvalidationsManagerTest(TestCase):
         t.assertEqual(t.im._invalidations_paused, False)
         t.assertEqual(t.im.totalEvents, 0)
         t.assertEqual(t.im.totalTime, 0)
+        t.getUtility.assert_called_with(IInvalidationProcessor)
+        t.assertEqual(t.im.processor, t.getUtility.return_value)
 
     @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
     def test_initialize_invalidation_filters(t, getUtilitiesFor):
@@ -1228,14 +1239,12 @@ class InvalidationsManagerTest(TestCase):
         filters.reverse()
         t.assertEqual(t.im._invalidation_filters, filters)
 
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_process_invalidations(t, time, getUtility):
+    def test_process_invalidations(t, time):
         '''synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
         '''
         t.im._filter_oids = create_autospec(t.im._filter_oids)
-        processor = getUtility.return_value
         timestamps = [10, 20]
         time.time.side_effect = timestamps
 
@@ -1243,8 +1252,7 @@ class InvalidationsManagerTest(TestCase):
 
         t.syncdb.assert_called_with()
         t.poll_invalidations.assert_called_with()
-        getUtility.assert_called_with(IInvalidationProcessor)
-        processor.processQueue.assert_called_with(
+        t.im.processor.processQueue.assert_called_with(
             tuple(set(t.im._filter_oids(t.poll_invalidations.return_value)))
         )
 

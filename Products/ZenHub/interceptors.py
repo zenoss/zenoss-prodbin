@@ -38,7 +38,7 @@ class WorkerInterceptor(pb.Referenceable):
         }
 
     @defer.inlineCallbacks
-    def remoteMessageRecieved(self, broker, message, args, kw):
+    def remoteMessageReceived(self, broker, message, args, kw):
         try:
             start = time()
 
