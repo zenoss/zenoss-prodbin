@@ -38,28 +38,26 @@ class WorkerInterceptor(pb.Referenceable):
         }
 
     @defer.inlineCallbacks
-    def remoteMessageReceived(self, broker, message, args, kwargs):
+    def remoteMessageReceived(self, broker, message, args, kw):
         try:
             self.log.debug(
                 'WorkerInterceptor: remoteMessageReceived(%s, %s, %s, %s)',
-                broker, message, args, kwargs
+                broker, message, args, kw
             )
             start = time()
             args = broker.unserialize(args)
-            kwargs = broker.unserialize(kwargs)
+            kw = broker.unserialize(kw)
 
-            # TODO: sendEvent/s methods have various signatures
-            # we need to account for them to avoid exceptions
             if message in ('sendEvent', 'sendEvents'):
                 method = getattr(self.zenhub.zem, message, None)
-                state = yield method(kwargs)
+                state = yield method(*args, **kw)
 
             else:
                 state = yield self.zenhub.deferToWorker(
                     self.service_name,
                     self.service.instance,
                     message,
-                    self.serialize_args(args, kwargs),
+                    self.serialize_args(args, kw),
                 )
 
             if message in self.meters:
