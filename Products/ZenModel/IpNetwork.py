@@ -642,6 +642,10 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             new_net = self._getOb(ip_id)
             netobj = aq_base(netobj)
             new_net._setObject(ip_id, netobj)
+            ips = filter(
+                lambda n: isinstance(n, IpAddress) and n.interface(), netobj.getSubObjects())
+            for i in ips:
+                i.interface().ipaddresses._setObject(i.id, i)
 
         return self.getSubNetwork(ip)
 
