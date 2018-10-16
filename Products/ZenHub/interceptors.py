@@ -38,21 +38,28 @@ class WorkerInterceptor(pb.Referenceable):
         }
 
     @defer.inlineCallbacks
-    def remoteMessageReceived(self, broker, message, args, kw):
+    def remoteMessageReceived(self, broker, message, args, kwargs):
         try:
+            self.log.debug(
+                'WorkerInterceptor: remoteMessageReceived(%s, %s, %s, %s)',
+                broker, message, args, kwargs
+            )
             start = time()
+            args = broker.unserialize(args)
+            kwargs = broker.unserialize(kwargs)
 
+            # TODO: sendEvent/s methods have various signatures
+            # we need to account for them to avoid exceptions
             if message in ('sendEvent', 'sendEvents'):
-                xargs = broker.unserialize(args)
                 method = getattr(self.zenhub.zem, message, None)
-                state = yield method(xargs)
+                state = yield method(kwargs)
 
             else:
                 state = yield self.zenhub.deferToWorker(
                     self.service_name,
                     self.service.instance,
                     message,
-                    self.serialize_args(args, kw)
+                    self.serialize_args(args, kwargs),
                 )
 
             if message in self.meters:
@@ -68,7 +75,8 @@ class WorkerInterceptor(pb.Referenceable):
     def service_name(self):
         return str(self.service.__class__).rpartition('.')[0]
 
-    def serialize_args(self, args, kwargs):
+    def serialize_args(self, args, kwargs={}):
+        self.log.debug('serialize_args(%s, %s)', args, kwargs)
         pargs = pickle.dumps((args, kwargs), pickle.HIGHEST_PROTOCOL)
         size = 102400
         return [pargs[i:i + size] for i in xrange(0, len(pargs), size)]
