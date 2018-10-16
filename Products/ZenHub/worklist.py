@@ -52,8 +52,9 @@ class ZenHubPriority(OrderedEnum):
     Priority order is ascending; lowest value has highest priority.
     """
     EVENTS = 1
-    OTHER = 2
-    MODELING = 3
+    SINGLE_MODELING = 2
+    OTHER = 3
+    MODELING = 4
 
 
 def _build_weighted_list(data):
@@ -131,6 +132,9 @@ _normal_priorities = list(ZenHubPriority)
 # List of all message priorities except MODELING
 _no_adm_priorities = [ZenHubPriority.EVENTS, ZenHubPriority.OTHER]
 
+# List of applyDataMaps priorties
+_adm_priorities = [ZenHubPriority.MODELING, ZenHubPriority.SINGLE_MODELING]
+
 
 class _MessagePriorityMap(dict):
     """Extends dict to provide ZenHubPriority.OTHER as the default
@@ -144,9 +148,10 @@ class _MessagePriorityMap(dict):
 # Maps request messages to ZenHubPriority values.  _MessagePriorityMap is
 # used since all unmapped messages should default to ZenHubPriority.OTHER.
 _message_priority_map = _MessagePriorityMap({
-    "sendEvent":     ZenHubPriority.EVENTS,
-    "sendEvents":    ZenHubPriority.EVENTS,
-    "applyDataMaps": ZenHubPriority.MODELING
+    "sendEvent":           ZenHubPriority.EVENTS,
+    "sendEvents":          ZenHubPriority.EVENTS,
+    "applyDataMaps":       ZenHubPriority.MODELING,
+    "singleApplyDataMaps": ZenHubPriority.SINGLE_MODELING
 })
 
 
@@ -175,6 +180,7 @@ _metric_priority_map = {
     "zenhub.eventWorkList": ZenHubPriority.EVENTS,
     "zenhub.admWorkList": ZenHubPriority.MODELING,
     "zenhub.otherWorkList": ZenHubPriority.OTHER,
+    "zenhub.singleADMWorkList": ZenHubPriority.SINGLE_MODELING,
 }
 
 
@@ -235,7 +241,7 @@ class ZenHubWorklist(object):
         return sum(
             len(v)
             for p, v in self.__worklists.iteritems()
-            if p is not ZenHubPriority.MODELING
+            if p not in _adm_priorities
         )
 
     def length_of(self, priority):

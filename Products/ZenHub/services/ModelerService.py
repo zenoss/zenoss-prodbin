@@ -193,6 +193,10 @@ class ModelerService(PerformanceConfig):
 
         return changed
 
+    # Alias applyDataMaps as singleApplyDataMaps so that ZenHub can map
+    # singleApplyDataMaps to a different priority.
+    remote_singleApplyDataMaps = remote_applyDataMaps
+
     def _setSnmpLastCollection(self, device):
         transactional = transact(device.setSnmpLastCollection)
         return self._do_with_retries(transactional)

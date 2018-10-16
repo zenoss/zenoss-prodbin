@@ -21,9 +21,10 @@ class MetrologySupportTest(TestCase):
             "zenhub.eventWorkList": ZenHubPriority.EVENTS,
             "zenhub.admWorkList": ZenHubPriority.MODELING,
             "zenhub.otherWorkList": ZenHubPriority.OTHER,
+            "zenhub.singleADMWorkList": ZenHubPriority.SINGLE_MODELING,
         }
-        for metric, expected in expected_mapping.iteritems():
-            actual = _metric_priority_map.get(metric)
+        for metric, actual in _metric_priority_map.iteritems():
+            expected = expected_mapping.get(metric)
             self.assertEqual(
                 actual, expected,
                 "Metric '%s' should map to %s, not %s" % (
@@ -39,6 +40,7 @@ class MetrologySupportTest(TestCase):
 
         eventGauge = MagicMock()
         admGauge = MagicMock()
+        singleAdmGauge = MagicMock()
         otherGauge = MagicMock()
         totalGauge = MagicMock()
 
@@ -47,6 +49,7 @@ class MetrologySupportTest(TestCase):
                 ZenHubPriority.EVENTS: eventGauge,
                 ZenHubPriority.MODELING: admGauge,
                 ZenHubPriority.OTHER: otherGauge,
+                ZenHubPriority.SINGLE_MODELING: singleAdmGauge,
             }[priority]
 
         pgauge.side_effect = map_gauge_to_inputs
@@ -55,19 +58,25 @@ class MetrologySupportTest(TestCase):
         worklist = ZenHubWorklist()
         register_metrics_on_worklist(worklist)
 
-        pgauge.assert_has_calls([
+        expected_pgauge_calls = [
             call(worklist, ZenHubPriority.EVENTS),
             call(worklist, ZenHubPriority.MODELING),
+            call(worklist, ZenHubPriority.SINGLE_MODELING),
             call(worklist, ZenHubPriority.OTHER),
-        ], any_order=True)
+        ]
+        self.assertEqual(len(expected_pgauge_calls), len(pgauge.mock_calls))
+        pgauge.assert_has_calls(expected_pgauge_calls, any_order=True)
         wgauge.assert_called_once_with(worklist)
 
-        metro.gauge.assert_has_calls([
+        metro_gauge_calls = [
             call("zenhub.eventWorkList", eventGauge),
             call("zenhub.admWorkList", admGauge),
+            call("zenhub.singleADMWorkList", singleAdmGauge),
             call("zenhub.otherWorkList", otherGauge),
             call("zenhub.workList", totalGauge),
-        ], any_order=True)
+        ]
+        self.assertEqual(len(metro_gauge_calls), len(metro.gauge.mock_calls))
+        metro.gauge.assert_has_calls(metro_gauge_calls, any_order=True)
 
     def test_gauges(self):
         worklist = ZenHubWorklist()
@@ -100,13 +109,14 @@ class MetrologySupportTest(TestCase):
 class ZenHubPriorityTest(TestCase):
 
     def test_has_required_priority_names(self):
-        expected = set(["OTHER", "EVENTS", "MODELING"])
+        expected = set(["OTHER", "EVENTS", "SINGLE_MODELING", "MODELING"])
         actual = set(p.name for p in ZenHubPriority)
         self.assertEqual(actual, expected)
 
     def test_has_required_priority_ordering(self):
         expected = [
             ZenHubPriority.EVENTS,
+            ZenHubPriority.SINGLE_MODELING,
             ZenHubPriority.OTHER,
             ZenHubPriority.MODELING,
         ]
@@ -230,11 +240,10 @@ class ZenHubWorklistTest(TestCase):
 
     def test_normal_pop_order(self):
         expected = [
-            self.eventJobs[0],
-            self.eventJobs[1], self.otherJobs[0],
-            self.eventJobs[2],
-            self.eventJobs[3], self.otherJobs[1], self.admJobs[0],
+            self.eventJobs[0], self.eventJobs[1], self.eventJobs[2],
+            self.eventJobs[3], self.otherJobs[0],
             self.eventJobs[4],
+            self.otherJobs[1], self.admJobs[0],
             self.otherJobs[2], self.otherJobs[3],
             self.otherJobs[4], self.admJobs[1],
             self.admJobs[2], self.admJobs[3], self.admJobs[4],

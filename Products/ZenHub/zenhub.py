@@ -857,7 +857,10 @@ class ZenHub(ZCmdBase):
             'Worklist Stats:',
             '\tEvents:\t%s' % self.workList.length_of(ZenHubPriority.EVENTS),
             '\tOther:\t%s' % self.workList.length_of(ZenHubPriority.OTHER),
-            '\tApplyDataMaps:\t%s' % self.workList.length_of(ZenHubPriority.MODELING),
+            '\tApplyDataMaps:\t%s' % sum(
+                self.workList.length_of(ZenHubPriority.MODELING),
+                self.workList.length_of(ZenHubPriority.SINGLE_MODELING)
+            ),
             '\tTotal:\t%s' % len(self.workList),
             '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
         ]
