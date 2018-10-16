@@ -40,7 +40,6 @@ from Products.ZenHub.zenhub import (
     InvalidationsManager,
     SEVERITY_CLEAR, INVALIDATIONS_PAUSED,
     WorkerManager,
-    WorkerSelector,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -148,14 +147,19 @@ class ZenHubTest(TestCase):
         t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
 
         t.zh.dmd = Mock(
-            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
+            name='dmd',
+            spec_set=[
+                'getPhysicalRoot', '_invalidation_filters', 'getPauseADMLife'
+            ]
         )
         t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
         t.zh._invalidations_manager = Mock(
             InvalidationsManager, name='InvalidationsManager'
         )
         t.zh.options = sentinel.options
-        t.zh._worker_manager = t.WorkerManager(t.zh.getService, t.zh.options)
+        t.zh._worker_manager = t.WorkerManager(
+            t.zh.getService, t.zh.dmd.getPauseADMLife, t.zh.options
+        )
 
     @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
@@ -514,7 +518,7 @@ class ZenHubTest(TestCase):
         '''
         t.zh._worker_manager = Mock(WorkerManager)
         t.zh.giveWorkToWorkers()
-        t.zh._worker_manager.giveWorkToWorkers.assert_called_with(
+        t.zh._worker_manager.give_work_to_workers.assert_called_with(
             requeue=False
         )
 
@@ -675,12 +679,6 @@ class HubAvitarTest(TestCase):
 class WorkerManagerTest(TestCase):
 
     def setUp(t):
-        t.selector_patcher = patch(
-            '{src}.WorkerSelector'.format(**PATH), autospec=True
-        )
-        t.selector_patcher.start()
-        t.addCleanup(t.selector_patcher.stop)
-
         t.reactor_patcher = patch(
             '{src}.reactor'.format(**PATH), autospec=True
         )
@@ -688,12 +686,12 @@ class WorkerManagerTest(TestCase):
         t.addCleanup(t.reactor_patcher.stop)
 
         t.getService = Mock(ZenHub.getService)
-        t.zenhub_options = sentinel.zenhub_options
-        t.wm = WorkerManager(t.getService, t.zenhub_options)
+        t.getPauseADMLife = Mock(name='ZenHub.dmd.getPauseADMLife')
+        t.options = sentinel.options
+        t.wm = WorkerManager(t.getService, t.getPauseADMLife, t.options)
 
     def test___init__(t):
         t.assertEqual(t.wm._get_service, t.getService)
-        t.assertIsInstance(t.wm._worker_selector, WorkerSelector)
         t.assertEqual(t.wm.workers, [])
 
     @patch('{src}.time'.format(**PATH), autospec=True)
@@ -714,10 +712,10 @@ class WorkerManagerTest(TestCase):
             'svcName', 'instance', 'method',
             ('svcName', 'instance', 'method', args),
         )
-        t.reactor.callLater.assert_called_with(0, t.wm.giveWorkToWorkers)
+        t.reactor.callLater.assert_called_with(0, t.wm.give_work_to_workers)
         t.assertEqual(ret, defer.Deferred.return_value)
 
-    def test_giveWorkToWorkers(t):
+    def test_give_work_to_workers(t):
         t.wm.dmd = Mock(name='dmd', spec_set=['getPauseADMLife'])
         t.wm.dmd.getPauseADMLife.return_value = 1
         t.wm.options = Mock(
@@ -728,26 +726,21 @@ class WorkerManagerTest(TestCase):
         job.args = [sentinel.arg0, sentinel.arg1]
         t.wm.work_list.append(job)
         worker = Mock(
-            name='worker', spec_set=['busy', 'callRemote'], busy=False
+            name='worker',
+            spec_set=['busy', 'callRemote', 'workerId'],
+            busy=False
         )
         worker.callRemote.return_value = sentinel.result
         t.wm._workers = [worker]
-        t.wm.workerselector = Mock(
-            name='WorkerSelector', spec_set=['getCandidateWorkerIds']
-        )
-        t.wm.workerselector.getCandidateWorkerIds.return_value = [0]
         t.wm.counters = {'workerItems': 0}
         t.wm.updateStatusAtStart = create_autospec(t.wm.updateStatusAtStart)
         t.wm.finished = create_autospec(t.wm.finished)
 
-        t.wm.giveWorkToWorkers()
+        t.wm.give_work_to_workers()
 
-        t.wm.workerselector.getCandidateWorkerIds.assert_called_with(
-            job.method, [worker]
-        )
         worker.callRemote.assert_called_with('execute', *job.args)
         t.wm.finished.assert_called_with(
-            job, worker.callRemote.return_value, worker, 0
+            job, worker.callRemote.return_value, worker, worker.workerId
         )
 
     @patch('{src}.time'.format(**PATH), autospec=True)
@@ -777,22 +770,22 @@ class WorkerManagerTest(TestCase):
         '''
         # this should be set by __init__, not specified here
         t.wm.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        wId = sentinel.worker_id
+        workerId = sentinel.worker_id
         t0, t1 = 100, 300
         stats = Mock(
             name='stats', spec_set=['lastupdate', 'description'], lastupdate=t0
         )
         time.time.return_value = t1
-        t.wm.workTracker = {wId: stats}
+        t.wm.workTracker = {workerId: stats}
         job = Mock(name='job', spec_set=['instance', 'servicename', 'method'])
 
-        t.wm.updateStatusAtFinish(wId, job)
+        t.wm.updateStatusAtFinish(workerId, job)
 
         t.assertEqual(
             t.wm.executionTimer, {job.method: [0, 0.0, t1 - t0, t1]},
         )
         WorkerStats.assert_called_with('Idle', stats.description, t1, 0)
-        t.assertEqual(t.wm.workTracker[wId], WorkerStats.return_value)
+        t.assertEqual(t.wm.workTracker[workerId], WorkerStats.return_value)
 
     def test_finished(t):
         '''Worker Management Function
@@ -821,7 +814,7 @@ class WorkerManagerTest(TestCase):
         t.assertIsInstance(ret, defer.Deferred)
         t.assertEqual(ret.result, result)
         t.assertFalse(finishedWorker.busy)
-        t.reactor.callLater.assert_called_with(0.1, t.wm.giveWorkToWorkers)
+        t.reactor.callLater.assert_called_with(0.1, t.wm.give_work_to_workers)
 
     def test_finished_handles_LastCallReturnValue(t):
         t.wm.updateStatusAtFinish = create_autospec(t.wm.updateStatusAtFinish)

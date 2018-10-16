@@ -103,7 +103,6 @@ from Products.ZenHub.interceptors import WorkerInterceptor
 from Products.ZenHub.XmlRpcService import XmlRpcService
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
-from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenHub.interfaces import (
     IInvalidationProcessor,
     IServiceAddedEvent,
@@ -204,7 +203,9 @@ class ZenHub(ZCmdBase):
 
         self.zem = self.dmd.ZenEventManager
 
-        self._worker_manager = WorkerManager(self.getService, self.options)
+        self._worker_manager = WorkerManager(
+            self.getService, self.dmd.getPauseADMLife, self.options
+        )
         self.workers = self._worker_manager.workers
         self.workList = self._worker_manager.work_list
 
@@ -322,7 +323,7 @@ class ZenHub(ZCmdBase):
 
             # Start Processing jobs
             self.dispatch_to_workers_task = task.LoopingCall(
-                self._worker_manager.giveWorkToWorkers
+                self._worker_manager.give_work_to_workers
             )
             self.dispatch_to_workers_task.start(5)
 
@@ -487,7 +488,7 @@ class ZenHub(ZCmdBase):
         @return: a Deferred for the eventual results of the method call
         """
         try:
-            log.debug('ZenHub.deferToWorker()')
+            log.info('ZenHub.deferToWorker(%s, %s, %s, %s)', svcName, instance, method, args)
             return self._worker_manager.defer_to_worker(
                 svcName, instance, method, args
             )
@@ -514,7 +515,7 @@ class ZenHub(ZCmdBase):
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
-        yield self._worker_manager.giveWorkToWorkers(requeue=requeue)
+        yield self._worker_manager.give_work_to_workers(requeue=requeue)
 
     # Legacy API: worker management
     def _workerStats(self):
@@ -688,21 +689,20 @@ class HubAvitar(pb.Avatar):
 
 class WorkerManager(object):
 
-    def __init__(self, get_service, options):
+    def __init__(self, get_service, get_pause_adm_life, options):
         self._work_list = _ZenHubWorklist()
         self.work_list.configure_metrology()
 
         self._get_service = get_service
-        # TODO: remove options, only workersReservedForEvents is used
-        # and is no longer needed
+        self._get_pause_adm_life = get_pause_adm_life
         self.options = options
-        self._worker_selector = WorkerSelector(self.options)
 
         self._workers = []
         self.workTracker = {}
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        self.counters = collections.Counter()
 
     @property
     def workers(self):
@@ -727,38 +727,40 @@ class WorkerManager(object):
         @return: a Deferred for the eventual results of the method call
         """
         try:
-            log.debug('defer_to_worker()')
+            log.info('defer_to_worker(%s, %s, %s, %s)' % (svcName, instance, method, args))
             d = defer.Deferred()
             service = self._get_service(svcName, instance).service
             priority = service.getMethodPriority(method)
 
-            self.work_list.append(
-                HubWorklistItem(
-                    priority, time.time(), d, svcName, instance, method,
-                    (svcName, instance, method, args)
-                ))
+            job = HubWorklistItem(
+                priority, time.time(), d, svcName, instance, method,
+                (svcName, instance, method, args)
+            )
+            log.info('append job to worklist: %s', job)
 
-            reactor.callLater(0, self.giveWorkToWorkers)
+            self.work_list.append(job)
+
+            reactor.callLater(0, self.give_work_to_workers)
             return d
         except Exception:
             log.exception('failed to defer_to_worker')
 
+    # TODO: Concurrency is a major issue with this approach
     @inlineCallbacks
-    def giveWorkToWorkers(self, requeue=False):
+    def give_work_to_workers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
         try:
-            log.debug('START: giveWorkToWorkers')
             if self.work_list:
                 log.debug("work_list has %d items", len(self.work_list))
-            incompleteJobs = []
+
             while self.work_list:
                 if all(w.busy for w in self.workers):
                     log.debug("all workers are busy")
                     yield wait(0.1)
                     break
 
-                allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
+                allowADM = self._get_pause_adm_life() > self.options.modeling_pause_timeout
                 job = self.work_list.pop(allowADM)
                 if job is None:
                     log.info(
@@ -768,66 +770,49 @@ class WorkerManager(object):
                     yield wait(0.1)
                     break
 
-                candidateWorkers = [
-                    x for x in
-                    self.workerselector.getCandidateWorkerIds(
-                        job.method, self.workers
-                    )
+                workers = [
+                    worker for worker in self.workers if not worker.busy
                 ]
-                for i in candidateWorkers:
-                    worker = self.workers[i]
-                    worker.busy = True
-                    self.counters['workerItems'] += 1
-                    self.updateStatusAtStart(i, job)
-                    try:
-                        result = yield worker.callRemote('execute', *job.args)
-                    except Exception as ex:
-                        log.warning("Failed to execute job on zenhub worker")
-                        result = ex
-                    finally:
-                        yield self.finished(job, result, worker, i)
-                    break
-                else:
-                    # could not complete this job, put it back in the queue once
-                    # we're finished saturating the workers
-                    incompleteJobs.append(job)
+                worker = workers.pop()
+                log.debug('available worker=%s', worker)
+                worker.busy = True
+                self.counters['workerItems'] += 1
+                self.updateStatusAtStart(worker.workerId, job)
+                try:
+                    log.debug('send job: %s to worker: %s', job, worker)
+                    result = yield worker.callRemote('execute', *job.args)
+                except Exception as ex:
+                    log.excetion("Failed to execute job on zenhub worker")
+                    result = ex
+                finally:
+                    yield self.finished(job, result, worker, worker.workerId)
 
-            for job in reversed(incompleteJobs):
-                # could not complete this job, put it back in the queue
-                self.work_list.push(job)
-
-            if incompleteJobs:
-                log.debug("No workers available for %d jobs.", len(incompleteJobs))
-                reactor.callLater(0.1, self.giveWorkToWorkers)
-
-            if requeue and not self.shutdown:
-                reactor.callLater(5, self.giveWorkToWorkers, True)
         except Exception:
             log.exception('failure in give_work_to_workers')
 
-    def updateStatusAtStart(self, wId, job):
+    def updateStatusAtStart(self, workerId, job):
         now = time.time()
         jobDesc = "%s:%s.%s" % (job.instance, job.servicename, job.method)
-        stats = self.workTracker.pop(wId, None)
+        stats = self.workTracker.pop(workerId, None)
         idletime = now - stats.lastupdate if stats else 0
         self.executionTimer[job.method][0] += 1
         self.executionTimer[job.method][1] += idletime
         self.executionTimer[job.method][3] = now
-        log.debug("Giving %s to worker %d, (%s)", job.method, wId, jobDesc)
-        self.workTracker[wId] = WorkerStats('Busy', jobDesc, now, idletime)
+        log.debug("Giving %s to worker %d, (%s)", job.method, workerId, jobDesc)
+        self.workTracker[workerId] = WorkerStats('Busy', jobDesc, now, idletime)
 
-    def updateStatusAtFinish(self, wId, job, error=None):
+    def updateStatusAtFinish(self, workerId, job, error=None):
         now = time.time()
         self.executionTimer[job.method][3] = now
-        stats = self.workTracker.pop(wId, None)
+        stats = self.workTracker.pop(workerId, None)
         if stats:
             elapsed = now - stats.lastupdate
             self.executionTimer[job.method][2] += elapsed
             log.debug(
                 "worker %s, work %s finished in %s",
-                wId, stats.description, elapsed
+                workerId, stats.description, elapsed
             )
-        self.workTracker[wId] = WorkerStats(
+        self.workTracker[workerId] = WorkerStats(
             'Error: %s' % error if error else 'Idle',
             stats.description, now, 0
         )
@@ -859,7 +844,7 @@ class WorkerManager(object):
             job.deferred.callback(result)
 
         self.updateStatusAtFinish(wId, job, error)
-        reactor.callLater(0.1, self.giveWorkToWorkers)
+        reactor.callLater(0.1, self.give_work_to_workers)
         yield returnValue(result)
 
     def _workerStats(self):
