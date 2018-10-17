@@ -313,11 +313,31 @@ class PingTask(BaseTask):
             }
         
         for rrdMeta in self.config.points:
-            id, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
+            rrdMeta_len = len(rrdMeta)
+            if rrdMeta_len == 8:
+                id, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata, tags = rrdMeta
+            elif rrdMeta_len == 7:
+                id, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
+                tags = {}
+            else:
+                log.error(
+                    "unable to write metric for %s/%s: stale config (%r)",
+                    self.configId,
+                    metric,
+                    rrdMeta)
+
+                continue
+
             value = datapoints.get(id, None)
             if value is None:
                 log.debug("No datapoint '%s' found on the %s pingTask",
                           id, self)
             else:
-                self._dataService.writeMetricWithMetadata(metric, value,
-                        rrdType, min=rrdMin, max=rrdMax, metadata=metadata)
+                self._dataService.writeMetricWithMetadata(
+                    metric,
+                    value,
+                    rrdType,
+                    min=rrdMin,
+                    max=rrdMax,
+                    metadata=metadata,
+                    extraTags=tags)
