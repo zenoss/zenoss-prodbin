@@ -13,6 +13,10 @@ from hashlib import md5
 import logging
 from cStringIO import StringIO
 from zope.interface import implements
+
+import Globals  # required to import zenoss Products
+from Products.ZenUtils.Utils import unused
+
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.IpAddress import IpAddress
 from Products.ZenModel.IpNetwork import IpNetwork
@@ -26,6 +30,9 @@ from Products.ZenWidgets.Portlet import Portlet
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
 from .interfaces import IInvalidationFilter, FILTER_EXCLUDE, FILTER_CONTINUE
+
+unused(Globals)
+
 
 log = logging.getLogger('zen.InvalidationFilter')
 
@@ -45,13 +52,13 @@ class IgnorableClassesFilter(object):
         Portlet,
         ProductClass,
         Software,
-        )
+    )
 
     def initialize(self, context):
         pass
 
     def include(self, obj):
-        if isinstance(obj, self.CLASSES_TO_IGNORE ):
+        if isinstance(obj, self.CLASSES_TO_IGNORE):
             log.debug("IgnorableClassesFilter is ignoring %s ", obj)
             return FILTER_EXCLUDE
         return FILTER_CONTINUE
@@ -94,8 +101,10 @@ class BaseOrganizerFilter(object):
                     propertyString = organizer.zenPropertyString(zId)
                 yield zId, propertyString
             except AttributeError:
-                # ZEN-3666: If an attribute error is raised on a zProperty assume it was produced by a zenpack
-                # install whose daemons haven't been restarted and continue excluding the offending property.
+                # ZEN-3666: If an attribute error is raised on a zProperty
+                # assume it was produced by a zenpack
+                # install whose daemons haven't been restarted and continue
+                # excluding the offending property.
                 log.debug("Excluding '%s' property", zId)
 
     def generateChecksum(self, organizer, md5_checksum):
@@ -155,7 +164,9 @@ class DeviceClassInvalidationFilter(BaseOrganizerFilter):
             tpl.exportXml(s)
             md5_checksum.update(s.getvalue())
         # Include z/c properties from base class
-        super(DeviceClassInvalidationFilter, self).generateChecksum(organizer, md5_checksum)
+        super(
+            DeviceClassInvalidationFilter, self
+        ).generateChecksum(organizer, md5_checksum)
 
 
 class OSProcessOrganizerFilter(BaseOrganizerFilter):
@@ -188,6 +199,10 @@ class OSProcessClassFilter(BaseOrganizerFilter):
         # Include properties of OSProcessClass
         for prop in organizer._properties:
             prop_id = prop['id']
-            md5_checksum.update("%s|%s" % (prop_id, getattr(organizer, prop_id, '')))
+            md5_checksum.update(
+                "%s|%s" % (prop_id, getattr(organizer, prop_id, ''))
+            )
         # Include z/c properties from base class
-        super(OSProcessClassFilter, self).generateChecksum(organizer, md5_checksum)
+        super(
+            OSProcessClassFilter, self
+        ).generateChecksum(organizer, md5_checksum)

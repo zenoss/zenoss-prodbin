@@ -191,8 +191,9 @@ class zenhubworkerTest(TestCase):
 
         t.zhw.reportStats.assert_called_with()
 
+    @patch('{src}.isoDateTime'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_reportStats(t, time):
+    def test_reportStats(t, time, isoDateTime):
         '''Metric Reporting Function. Log various statistics on services
         as a general rule, do not test individual log messages, just log format
         this function is difficult to read and should be refactored
@@ -211,8 +212,11 @@ class zenhubworkerTest(TestCase):
         stats.lasttime = 555
         service.callStats = {method: stats}
         t.zhw.services = {(name, instance): service}
+        isodate = isoDateTime.return_value
 
         t.zhw.reportStats()
+
+        isoDateTime.assert_called_with(stats.lasttime)
 
         parsed_service_id = '{instance}/module_name'.format(**locals())
         average_time = stats.totaltime / stats.numoccurrences
@@ -220,7 +224,7 @@ class zenhubworkerTest(TestCase):
             'Running statistics:\n'
             ' - {parsed_service_id: <49}{method: <32}'
             '{stats.numoccurrences: 9}{stats.totaltime: 13.2f}'
-            '{average_time: 9.2f} 1970-01-01 00:09:15'.format(**locals())
+            '{average_time: 9.2f} {isodate}'.format(**locals())
         )
 
     @patch('{src}.reactor'.format(**PATH), autospec=True)
