@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from zope.component import adapts, getUtility
+from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.interfaces import IReportClassNode, IReportNode
@@ -17,7 +17,6 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.routers.report import essentialReportOrganizers
 from Products.ZenModel.GraphReport import GraphReport
 from Products.ZenModel.MultiGraphReport import MultiGraphReport
-from Products.ZenUtils.virtual_root import IVirtualRoot
 
 class ReportClassNode(TreeNode):
     implements(IReportClassNode)
@@ -73,7 +72,7 @@ class ReportNode(TreeNode):
 
     @property
     def uid(self):
-        return getUtility(IVirtualRoot).ensure_virtual_root(self._object.uid)
+        return self._object.uid
 
     @property
     def leaf(self):
