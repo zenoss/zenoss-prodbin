@@ -38,14 +38,15 @@ class WorkerInterceptor(pb.Referenceable):
         }
 
     @defer.inlineCallbacks
-    def remoteMessageRecieved(self, broker, message, args, kw):
+    def remoteMessageReceived(self, broker, message, args, kw):
         try:
             start = time()
 
+            args = broker.unserialize(args)
+            kw = broker.unserialize(kw)
             if message in ('sendEvent', 'sendEvents'):
-                xargs = broker.unserialize(args)
                 method = getattr(self.zenhub.zem, message, None)
-                state = yield method(xargs)
+                state = yield method(*args, **kw)
 
             else:
                 state = yield self.zenhub.deferToWorker(

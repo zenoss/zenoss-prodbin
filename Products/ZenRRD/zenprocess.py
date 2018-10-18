@@ -788,8 +788,13 @@ class ZenProcessTask(ObservableMixin):
         """
         metadata = pidName._config.metadata
         try:
-            self._dataService.writeMetricWithMetadata(statName, value, rrdType,
-                    min=min, metadata=metadata)
+            self._dataService.writeMetricWithMetadata(
+                statName,
+                value,
+                rrdType,
+                min=min,
+                metadata=metadata,
+                extraTags=getattr(pidName._config, "tags", {}))
         except Exception, ex:
             summary = "Unable to save data for process-monitor metric %s" % (
                       metadata.get('contextKey'))

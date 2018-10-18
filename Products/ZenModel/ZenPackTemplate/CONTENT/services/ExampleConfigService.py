@@ -41,21 +41,20 @@ class ExampleConfigService(CollectorConfigService):
     # from this method will be sent as the device's representation to the
     # collector daemon. Use serializable types. DeviceProxy works, as do any
     # simple Python types.
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
+    def _createDeviceProxy(self, device, proxy=None):
+        proxy = CollectorConfigService._createDeviceProxy(
+            self, device, proxy=proxy)
 
         proxy.datapoints = []
         proxy.thresholds = []
 
         perfServer = device.getPerformanceServer()
 
-        self._getDataPoints(proxy, device, device.id, None, perfServer)
+        self._getDataPoints(proxy, device, device, perfServer)
         proxy.thresholds += device.getThresholdInstances('Example Protocol')
 
         for component in device.getMonitoredComponents():
-            self._getDataPoints(
-                proxy, component, component.device().id, component.id,
-                perfServer)
+            self._getDataPoints(proxy, device, component, perfServer)
 
             proxy.thresholds += component.getThresholdInstances(
                 'Example Protocol')
@@ -64,20 +63,18 @@ class ExampleConfigService(CollectorConfigService):
 
     # This is not a method you must implement. It is used by the custom
     # _createDeviceProxy method above.
-    def _getDataPoints(
-            self, proxy, deviceOrComponent, deviceId, componentId, perfServer
-            ):
-        for template in deviceOrComponent.getRRDTemplates():
+    def _getDataPoints(self, proxy, device, component, perfServer):
+        for template in component.getRRDTemplates():
             dataSources = [ds for ds
                            in template.getRRDDataSources('Example Protocol')
                            if ds.enabled]
 
             for ds in dataSources:
                 for dp in ds.datapoints():
-                    path = '/'.join((deviceOrComponent.rrdPath(), dp.name()))
+                    path = '/'.join((component.rrdPath(), dp.name()))
                     dpInfo = dict(
-                        devId=deviceId,
-                        compId=componentId,
+                        devId=device.id,
+                        compId=component.id,
                         dsId=ds.id,
                         dpId=dp.id,
                         path=path,
@@ -85,12 +82,10 @@ class ExampleConfigService(CollectorConfigService):
                         rrdCmd=dp.getRRDCreateCommand(perfServer),
                         minv=dp.rrdmin,
                         maxv=dp.rrdmax,
+                        metadata=comp.getMetricMetadata(device),
+                        tags=dp.getTags(component),
                         exampleProperty=ds.exampleProperty,
                         )
-
-                    if componentId:
-                        dpInfo['componentDn'] = getattr(
-                            deviceOrComponent, 'dn', None)
 
                     proxy.datapoints.append(dpInfo)
 
