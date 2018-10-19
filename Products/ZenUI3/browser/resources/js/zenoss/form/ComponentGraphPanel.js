@@ -44,14 +44,15 @@
                 graphTitle = graph.contextTitle || graph.title;
                 delete graph.title;
                 id = Ext.id();
-                graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
+                graphs.push(Ext.applyIf(graph, {
+                    xtype: 'europagraph',
                     uid: uid,
                     graphId: id,
                     allOnSame: allOnSame,
                     graphTitle: graphTitle,
                     ref: id,
                     height: 500
-                })));
+                }));
             }
             return graphs;
         });
@@ -145,10 +146,11 @@
                     displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function (self, val) {
-                            var panel = self.up("graphpanel");
+                            var panel = self.up("componentgraphpanel");
                             //update graphpanel.start with *UTC time*
                             //NOTE: panel.start should *always* be UTC!
                             panel.start = moment.utc(self.getValue());
+                            panel.refresh();
                         }
                     }
                 }, {
@@ -163,10 +165,11 @@
                     displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function (self, val) {
-                            var panel = self.up("graphpanel");
+                            var panel = self.up("componentgraphpanel");
                             //update graphpanel.end with *UTC time*
                             //NOTE: panel.end should *always* be UTC!
                             panel.end = moment.utc(self.getValue());
+                            panel.refresh();
                         }
                     }
                 }, {
@@ -238,6 +241,17 @@
         cls: 'compgraphpanel',
         layout: 'column',
         pan_factor: 1.25,
+        stateful: true,
+        stateEvents: ['change'],
+        getState: function() {
+            return {
+                aggregation: this.aggregationMenu.aggregation,
+                agrText: this.aggregationMenu.getText()
+            };
+        },
+        applyState: function(state) {
+            Ext.apply(this, state);
+        },
         constructor: function (config) {
             config = config || {};
             var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
@@ -343,10 +357,15 @@
                         panel = btn.up("componentgraphpanel");
                         panel.panRight();
                     }, this)
-                },
-
-
-
+                }, {
+                    xtype: 'aggregationbutton',
+                    margin: '0 10 0 10',
+                    ref: '../aggregationMenu',
+                    text: this.agrText || _t('Avg'),
+                    aggregation: this.aggregation || 'avg',
+                    menuHandler: this.aggregationOnChange,
+                    scope: this
+                }
             ]); // toolbar inserts
 
             // grab default timerange value from user settings
@@ -367,7 +386,29 @@
             if (config.hideToolbar) {
                 this.toolbar.hide();
             }
+            this.toggleAggregation();
+        },
 
+        aggregationOnChange: function(t, e) {
+            Ext.each(this.getGraphs(), function(g) {
+                g.aggregationOnChange(t);
+            });
+            t.up('button').setText(t.text);
+            this.aggregationMenu.aggregation = t.itemId;
+            this.fireEvent('change');
+        },
+        toggleAggregation: function() {
+            this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
+        },
+        initEvents: function() {
+            this.callParent(arguments);
+            this.addEvents(
+                /**
+                 * @event change
+                 * panel state event handler to store current aggregation state;
+                 */
+                'change'
+            );
         },
         setContext: function (uid) {
             this.uid = uid;
@@ -485,14 +526,15 @@
 
                         var gp = {
                             'drange': this.rangeToMilliseconds(this.drange),
-                            'end': this.end.unix(),
-                            'start': this.start.unix()
+                            'end': this.end.valueOf(),
+                            'start': this.start.valueOf()
                         };
 
                         // push graphs into appropriate column
                         for (i = 0; i < graphs.length; i++) {
                             c = i % colCount;
                             graphs[i].graph_params = gp;
+                            graphs[i].defaultAggreagation = this.aggregationMenu.aggregation;
                             grCols[c].items.push(graphs[i]);
                         }
 
@@ -594,6 +636,7 @@
             }
             this.updateStartDatePicker();
             this.updateEndDatePicker();
+            this.toggleAggregation();
         },
         getGraphs: function () {
             return this.query('europagraph');
