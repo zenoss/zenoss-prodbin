@@ -3,11 +3,11 @@ from mock import patch, call, MagicMock
 from unittest import TestCase
 
 from Products.ZenHub.worklist import (
-    ZenHubPriority, ZenHubWorklist,
+    ZenHubPriority, ZenHubWorklist, _PrioritySelection,
     _build_weighted_list,
     _message_priority_map,
-    _normal_priorities, _no_adm_priorities,
-    register_metrics_on_worklist, _metric_priority_map,
+    _all_priorities, _no_adm_priorities,
+    register_metrics_on_worklist, _gauge_priority_map,
     PriorityListLengthGauge, WorklistLengthGauge
 )
 
@@ -23,7 +23,7 @@ class MetrologySupportTest(TestCase):
             "zenhub.otherWorkList": ZenHubPriority.OTHER,
             "zenhub.singleADMWorkList": ZenHubPriority.SINGLE_MODELING,
         }
-        for metric, actual in _metric_priority_map.iteritems():
+        for metric, actual in _gauge_priority_map.iteritems():
             expected = expected_mapping.get(metric)
             self.assertEqual(
                 actual, expected,
@@ -146,9 +146,9 @@ class MessagePriorityMapTest(TestCase):
 
 class PriorityListTest(TestCase):
 
-    def test_normal_priorities(self):
+    def test_all_priorities(self):
         expected = set(ZenHubPriority)
-        actual = set(_normal_priorities)
+        actual = set(_all_priorities)
         self.assertSetEqual(expected, actual)
 
     def test_no_adm_priorities(self):
@@ -194,8 +194,14 @@ class BuildPriorityListTest(TestCase):
 
 class MockJob(object):
 
-    def __init__(self, method):
+    def __init__(self, method, priorityName=None):
         self.method = method
+        self.p = priorityName
+
+    def __repr__(self):
+        if self.p:
+            return "<%s %0x>" % (self.p, id(self))
+        return super(MockJob, self).__repr__()
 
 
 class ZenHubWorklistTest(TestCase):
@@ -203,69 +209,110 @@ class ZenHubWorklistTest(TestCase):
     def setUp(self):
         self.worklist = ZenHubWorklist()
 
-        self.eventJobs = tuple(
-            MockJob("sendEvent%s" % ("s" if (n % 2 == 0) else ""))
+        self.p1 = tuple(
+            MockJob("sendEvent%s" % ("s" if (n % 2 == 0) else ""), "p1")
             for n in range(5)
         )
 
-        self.otherJobs = tuple(
-            MockJob("do%s" % ("That" if (n % 2 == 0) else "This"))
+        self.p3 = tuple(
+            MockJob("do%s" % ("That" if (n % 2 == 0) else "This"), "p3")
             for n in range(5)
         )
 
-        self.admJobs = tuple(MockJob("applyDataMaps") for n in range(5))
+        self.p4 = tuple(MockJob("applyDataMaps", "p4") for n in range(5))
 
-        for job in chain(self.eventJobs, self.otherJobs, self.admJobs):
+        self.p2 = tuple(MockJob("singleApplyDataMaps", "p2") for n in range(5))
+
+        for job in chain(self.p1, self.p3, self.p4, self.p2):
             self.worklist.push(job)
 
     def test_length(self):
-        self.assertEqual(15, len(self.worklist))
+        self.assertEqual(20, len(self.worklist))
 
     def test_length_of(self):
         wl = self.worklist
         self.assertEqual(5, wl.length_of(ZenHubPriority.EVENTS))
         self.assertEqual(5, wl.length_of(ZenHubPriority.OTHER))
         self.assertEqual(5, wl.length_of(ZenHubPriority.MODELING))
+        self.assertEqual(5, wl.length_of(ZenHubPriority.SINGLE_MODELING))
 
     def test_empty_worklist(self):
         worklist = ZenHubWorklist()
-        actual = worklist.pop()
-        self.assertEqual(None, actual)
 
-    def test_only_adm_worklist_with_pop_ignore_adm(self):
-        worklist = ZenHubWorklist()
-        worklist.push(MockJob("applyDataMaps"))
-        actual = worklist.pop(allowADM=False)
-        self.assertEqual(None, actual)
+        expected_len = 0
+        actual_len = len(worklist)
+        self.assertEqual(expected_len, actual_len)
+        self.assertEqual(None, worklist.pop())
 
-    def test_normal_pop_order(self):
+    def test_modeling_paused(self):
+
+        paused = {"state": False}
+
+        def is_paused():
+            return paused["state"]
+
+        worklist = ZenHubWorklist(modeling_paused=is_paused)
+        for job in chain(self.p1, self.p3, self.p4, self.p2):
+            worklist.push(job)
+
         expected = [
-            self.eventJobs[0], self.eventJobs[1], self.eventJobs[2],
-            self.eventJobs[3], self.otherJobs[0],
-            self.eventJobs[4],
-            self.otherJobs[1], self.admJobs[0],
-            self.otherJobs[2], self.otherJobs[3],
-            self.otherJobs[4], self.admJobs[1],
-            self.admJobs[2], self.admJobs[3], self.admJobs[4],
+            self.p1[0], self.p1[1], self.p2[0], self.p1[2], self.p1[3],
         ]
-        actual = []
-        while len(self.worklist):
-            actual.append(self.worklist.pop())
+        actual = [worklist.pop() for _ in range(len(expected))]
+        self.assertListEqual(expected, actual)
+
+        paused["state"] = True
+
+        expected = [
+            self.p1[4], self.p3[0], self.p3[1], self.p3[2], self.p3[3],
+            self.p3[4], None
+        ]
+        actual = [worklist.pop() for _ in range(len(expected))]
+        self.assertListEqual(expected, actual)
+
+        paused["state"] = False
+
+        expected = [
+            self.p2[1], self.p2[2], self.p2[3], self.p4[0], self.p2[4],
+            self.p4[1], self.p4[2], self.p4[3], self.p4[4], None
+        ]
+        actual = [worklist.pop() for _ in range(len(expected))]
+        self.assertListEqual(expected, actual)
+
+
+class TestPrioritySelection(TestCase):
+
+    def setUp(self):
+        self.all = _PrioritySelection(_all_priorities)
+        self.some = _PrioritySelection(_no_adm_priorities)
+
+    def test_priorities_property(self):
+        self.assertSequenceEqual(_all_priorities, self.all.priorities)
+        self.assertSequenceEqual(_no_adm_priorities, self.some.priorities)
+
+    def test_all_sequence_order(self):
+        p1 = ZenHubPriority.EVENTS
+        p2 = ZenHubPriority.SINGLE_MODELING
+        p3 = ZenHubPriority.OTHER
+        p4 = ZenHubPriority.MODELING
+        expected = (
+            p1, p1, p2, p1,
+            p1, p2, p3,
+            p1, p1, p2, p1,
+            p1, p2, p3, p4,
+            p1, p1, p2, p1,
+            p1, p2, p3,
+            p1, p1, p2, p1
+        )
+        actual = [next(self.all) for _ in range(len(expected))]
         self.assertSequenceEqual(expected, actual)
 
-    def test_no_adm_pop_order(self):
-        expected = [
-            self.eventJobs[0],
-            self.eventJobs[1], self.otherJobs[0],
-            self.eventJobs[2],
-            self.eventJobs[3],
-            self.eventJobs[4], self.otherJobs[1],
-            self.otherJobs[2], self.otherJobs[3], self.otherJobs[4],
-        ]
-        actual = []
-        while True:
-            job = self.worklist.pop(allowADM=False)
-            if job is None:
-                break
-            actual.append(job)
+    def test_some_sequence_order(self):
+        p1 = ZenHubPriority.EVENTS
+        p3 = ZenHubPriority.OTHER
+        expected = (
+            p1, p1, p3, p1,
+            p1, p1, p3, p1
+        )
+        actual = [next(self.some) for _ in range(len(expected))]
         self.assertSequenceEqual(expected, actual)
