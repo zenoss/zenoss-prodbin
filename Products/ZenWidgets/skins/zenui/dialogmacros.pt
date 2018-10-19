@@ -6,8 +6,10 @@
         This is a dialog box.
 	</tal:block>
 </div>
-<img id="dialog_close" src="/++resource++zenui/img/xtheme-zenoss/window/close-button.png" 
-     class="dialog_close"/>
+<button id="dialog_close"
+        class="dialog_close">
+    <span class="dialog_close_icon"></span>
+</button>
 </div>
 <script>
 loader = YAHOO.zenoss.getLoader();
