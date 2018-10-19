@@ -4,9 +4,6 @@ from mock import Mock, patch, create_autospec, call, MagicMock, sentinel
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
 
-from mock_interface import create_interface_mock
-
-# Breaks test isolation ImportError: No module named Globals
 from Products.ZenHub.zenhub import (
     AuthXmlRpcService,
     XmlRpcService,
@@ -20,12 +17,6 @@ from Products.ZenHub.zenhub import (
     ZenHubWorklist,
     ZenHub,
     CONNECT_TIMEOUT, OPTION_STATE,
-    IInvalidationFilter,
-    POSKeyError,
-    PrimaryPathObjectManager,
-    DeviceComponent,
-    FILTER_INCLUDE, FILTER_EXCLUDE,
-    IInvalidationProcessor,
     collections,
     defer,
     LastCallReturnValue,
@@ -33,7 +24,7 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
-    ModelingPaused
+    ModelingPaused,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -241,6 +232,7 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.InvalidationManager'.format(**PATH))
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
@@ -285,6 +277,7 @@ class ZenHubInitTest(TestCase):
         signal,
         load_config_override,
         MetricManager,
+        InvalidationManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -297,6 +290,7 @@ class ZenHubInitTest(TestCase):
             patch.object(ZenHub, '_getConf', autospec=True),
             patch.object(ZenHub, 'setKeepAlive', autospec=True),
             patch.object(ZenHub, 'sendEvent', autospec=True),
+            patch.object(ZenHub, 'storage', create=True, set_spec=['poll_invalidations'])
         ]
 
         for patcher in t.zenhub_patchers:
@@ -383,11 +377,10 @@ class ZenHubInitTest(TestCase):
             }
         )
         t.assertEqual(zh._metric_manager, MetricManager.return_value)
-
-        # Convert this to a LoopingCall
-        reactor.callLater.assert_called_with(
-            zh.options.invalidation_poll_interval, zh.processQueue
+        t.assertEqual(
+            zh._invalidation_manager, InvalidationManager.return_value
         )
+
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
 
@@ -400,20 +393,44 @@ class ZenHubTest(TestCase):
         )
         t.init_patcher.start()
         t.addCleanup(t.init_patcher.stop)
+        # Patch external dependencies
         t.time_patcher = patch('{src}.time'.format(**PATH), autospec=True)
-        t.time = t.time_patcher.start()
-        t.addCleanup(t.time_patcher.stop)
         t.reactor_patcher = patch(
             '{src}.reactor'.format(**PATH), autospec=True
         )
+        t.im_patcher = patch(
+            '{src}.InvalidationManager'.format(**PATH), autospec=True
+        )
+        t.time = t.time_patcher.start()
         t.reactor = t.reactor_patcher.start()
+        t.InvalidationManager = t.im_patcher.start()
         t.addCleanup(t.reactor_patcher.stop)
+        t.addCleanup(t.time_patcher.stop)
+        t.addCleanup(t.im_patcher.stop)
 
         t.zh = ZenHub()
+
         # Set attributes that should be created by __init__
-        t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception', 'warning'])
+        t.zh.log = Mock(
+            name='log', spec_set=['debug', 'warn', 'exception', 'warning']
+        )
         t.zh.shutdown = False
-        t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+        t.zh.dmd = Mock(
+            name='dmd',
+            spec_set=['Monitors', 'getPauseADMLife', 'ZenEventManager'],
+            ZenEventManager=Mock(spec_set=['sendEvent'])
+        )
+        t.zh.zem = t.zh.dmd.ZenEventManager
+        t.zh.storage = Mock(
+            name='ZCmdBase.storage', spec_set=['poll_invalidations']
+        )
+        t.zh._invalidation_manager = t.InvalidationManager(
+            t.zh.dmd,
+            t.zh.log,
+            t.zh.async_syncdb,
+            t.zh.storage.poll_invalidations,
+            t.zh.sendEvent,
+        )
 
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
@@ -426,6 +443,7 @@ class ZenHubTest(TestCase):
         t.zh.options.monitor = 'localhost'
         t.zh.options.cycle = True
         t.zh.options.profiling = True
+        t.zh.options.invalidation_poll_interval = sentinel.inval_poll
         # Metric Management
         t.zh._metric_manager = MetricManager.return_value
         t.zh._metric_writer = sentinel.metric_writer
@@ -552,185 +570,26 @@ class ZenHubTest(TestCase):
         t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
     def test_processQueue(t):
-        '''Configuration Invalidation Processing function
-        synchronize with the database, and execute doProcessQueue
-        recursive reactor.callLater should be replaced with loopingCall
-        '''
-        async_syncdb = create_autospec(t.zh.async_syncdb, name='async_syncdb')
-        t.zh.async_syncdb = async_syncdb
-        t.zh.doProcessQueue = create_autospec(
-            t.zh.doProcessQueue, name='doProcessQueue'
-        )
-        options = Mock(name='options', spec_set=['invalidation_poll_interval'])
-        t.zh.options = options
-        t.zh.totalEvents = 0
-        t.zh.totalTime = 0
-        timestamps = [10, 20]
-        t.time.time.side_effect = timestamps
-
         t.zh.processQueue()
+        t.zh._invalidation_manager.process_invalidations.assert_called_with()
 
-        t.zh.async_syncdb.assert_called_with()
-        t.zh.doProcessQueue.assert_called_with()
-
-        t.reactor.callLater.assert_called_with(
-            options.invalidation_poll_interval, t.zh.processQueue
-        )
-        t.assertEqual(t.zh.totalTime, timestamps[1] - timestamps[0])
-        t.assertEqual(t.zh.totalEvents, 1)
-
-    @patch('{src}.getUtilitiesFor'.format(**PATH), autospec=True)
-    def test__initialize_invalidation_filters(t, getUtilitiesFor):
-        '''Configuration Invalidation Processing function
-        '''
-        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filters = [MockIInvalidationFilter() for i in range(3)]
-        # weighted in reverse order
-        for i, filter in enumerate(filters):
-            filter.weight = 10 - i
-        getUtilitiesFor.return_value = [
-            ('f%s' % i, f) for i, f in enumerate(filters)
-        ]
-        t.zh.dmd = sentinel.dmd
-
+    def test__initialize_invalidation_filters(t):
         t.zh._initialize_invalidation_filters()
-
-        for filter in filters:
-            filter.initialize.assert_called_with(t.zh.dmd)
-
-        # check sorted by weight
-        filters.reverse()
-        t.assertEqual(t.zh._invalidation_filters, filters)
+        t.zh._invalidation_manager\
+            .initialize_invalidation_filters.assert_called_with()
 
     def test__filter_oids(t):
-        '''Configuration Invalidation Processing function
-        yields a generator with the OID if the object has been deleted
-        runs changed devices through invalidation_filters
-        which may exclude them,
-        and runs any included devices through _transformOid
-        '''
+        oids = sentinel.oids
+        t.zh._filter_oids(oids)
+        t.zh._invalidation_manager._filter_oids.assert_called_with(oids)
 
-        dmd = Mock(
-            name='dmd', spec_set=['getPhysicalRoot', '_invalidation_filters']
+    def test__transformOid(t):
+        ret = t.zh._transformOid('oid', sentinel.obj)
+        t.zh._invalidation_manager._transformOid.assert_called_with(
+            'oid', sentinel.obj
         )
-        app = dmd.getPhysicalRoot.return_value
-        t.zh.dmd = dmd
-
-        device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
-        device_obj = sentinel.device_obj
-        device.__of__.return_value.primaryAq.return_value = device_obj
-        component = MagicMock(DeviceComponent, __of__=Mock())
-        component_obj = sentinel.component_obj
-        component.__of__.return_value.primaryAq.return_value = component_obj
-        excluded = Mock(DeviceComponent, __of__=Mock())
-        excluded_obj = sentinel.excluded_obj
-        excluded.__of__.return_value.primaryAq.return_value = excluded_obj
-
-        app._p_jar = {
-            111: device,
-            222: component,
-            # BUG: any object filtered overwrites other oids
-            # but without a filtered object, no oids are returned
-            333: excluded,
-        }
-        oids = app._p_jar.keys()
-
-        def include(obj):
-            if obj in [device_obj, component_obj]:
-                return FILTER_EXCLUDE  # not filter, will be returned
-            if obj == excluded_obj:
-                return FILTER_INCLUDE  # filters, will be ignored
-
-        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filter = MockIInvalidationFilter()
-        filter.include = include
-        t.zh._invalidation_filters = [filter]
-
-        t.zh._transformOid = create_autospec(
-            t.zh._transformOid, name='_transformOid',
-            # BUG: return value from transformOid overwrites other oids
-            return_value=[444],
-        )
-
-        ret = t.zh._filter_oids(oids)
-        out = [o for o in ret]  # unwind the generator
-
-        # WARNING: included/excluded logic may be reversed
-        # possible bug, _tranformOid is only called on EXCLUDED oids.
-        # BUG
-        t.zh._transformOid.assert_has_calls([call(333, excluded_obj)])
-
-        # BUG: f _transformOid wipes out all other oids
-        #t.assertEqual(out, [111, 222])
-        t.assertEqual(out, [444])
-
-    def test__filter_oids_deleted(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.zh.dmd = dmd
-        app = dmd.getPhysicalRoot.return_value = MagicMock(name='root')
-        app._p_jar.__getitem__.side_effect = POSKeyError()
-
-        ret = t.zh._filter_oids([111])
-        out = [o for o in ret]  # unwind the generator
-        t.assertEqual(out, [111])
-
-    def test__filter_oids_deleted_primaryaq(t):
-        dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
-        t.zh.dmd = dmd
-        deleted = MagicMock(DeviceComponent, __of__=Mock())
-        deleted.__of__.return_value.primaryAq.side_effect = KeyError
-        with t.assertRaises(KeyError):
-            deleted.__of__().primaryAq()
-
-        app = dmd.getPhysicalRoot.return_value
-        app._p_jar = {111: deleted}
-
-        ret = t.zh._filter_oids([111])
-        out = [o for o in ret]
-        t.assertEqual(out, [111])
-
-    @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
-    @patch('{src}.subscribers'.format(**PATH), autospec=True)
-    def test__transformOid(t, subscribers, IInvalidationOid):
-        '''Configuration Invalidation Processing function
-        given an oid: object pair
-        gets a list of transforms for the object
-        executes the transforms given the oid
-        returns a set of oids returned by the transforms
-        '''
-        adapter_a = Mock(
-            name='adapter_a', spec_set=['transformOid'],
-            transformOid=lambda x: x + '0'
-        )
-        subscribers.return_value = [adapter_a]
-        adapter_b = Mock(
-            name='adapter_b', spec_set=['transformOid'],
-            transformOid=lambda x: [x + '1', x + '2']
-        )
-        IInvalidationOid.return_value = adapter_b
-        oid = 'oid'
-        obj = sentinel.object
-
-        ret = t.zh._transformOid(oid, obj)
-
-        t.assertEqual(ret, {'oid0', 'oid1', 'oid2'})
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_doProcessQueue(t, getUtility):
-        '''Configuration Invalidation Processing function
-        pulls in a dict of invalidations, and the IInvalidationProcessor
-        and processes them, then sends an event
-        refactor to use inline callbacks
-        '''
-        # storage is ZODB access inherited from a parent class
-        t.zh.storage = Mock(name='storage', spec_set=['poll_invalidations'])
-        t.zh._filter_oids = create_autospec(t.zh._filter_oids)
-
-        t.zh.doProcessQueue()
-
-        getUtility.assert_called_with(IInvalidationProcessor)
-        getUtility.return_value.processQueue.assert_called_with(
-            tuple(set(t.zh._filter_oids.return_value))
+        t.assertEqual(
+            ret, t.zh._invalidation_manager._transformOid.return_value
         )
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
@@ -775,7 +634,6 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.workerPassword, 'pas')
 
     def test_getService(t):
-        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
@@ -789,15 +647,12 @@ class ZenHubTest(TestCase):
     def test_getService_raises_RemoteBadMonitor(t):
         '''raises RemoteBadMonitor on invalid instance argument
         '''
-        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
         t.zh.dmd.Monitors.Performance._getOb.return_value = False
 
         with t.assertRaises(RemoteBadMonitor):
             t.zh.getService('name', 'instance')
 
     def test_getService_cache_miss(t):
-        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
-
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
@@ -820,7 +675,6 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
     def test_getService_forwarded_to_WorkerInterceptor(t, WorkerInterceptor):
-        t.zh.dmd = Mock(name='dmd', spec_set=['Monitors'])
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
@@ -965,7 +819,6 @@ class ZenHubTest(TestCase):
     def test_giveWorkToWorkers(t):
         '''Worker Management Function
         '''
-        t.zh.dmd = Mock(name='dmd', spec_set=['getPauseADMLife'])
         t.zh.dmd.getPauseADMLife.return_value = 1
         t.zh.options = Mock(
             name='options', spec_set=['modeling_pause_timeout']
@@ -1016,6 +869,9 @@ class ZenHubTest(TestCase):
             name='options', spec_set=['monitor', 'name', 'heartbeatTimeout'],
         )
         t.zh.niceDoggie = create_autospec(t.zh.niceDoggie)
+        t.zh._invalidation_manager = sentinel._invalidation_manager
+        t.zh._invalidation_manager.totalTime = 100
+        t.zh._invalidation_manager.totalEvents = 20
         # static value defined in function
         seconds = 30
         # Metrics reporting portion needs to be factored out
