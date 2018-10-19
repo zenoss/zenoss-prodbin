@@ -862,7 +862,6 @@
                 state = end-start < 1000*60*60*24*2;
 
             this.aggregationMenu.setDisabled(state);
-            this.aggregationMenu.setTooltip(state ? _t('Aggregation type for less than 48H period is disabled') : _t('Aggregation type'));
         }
     });
 
@@ -958,6 +957,11 @@
                 menu: menu
             });
             this.callParent(arguments);
+        },
+
+        setDisabled: function(state) {
+            this.callParent(arguments);
+            this.setTooltip(state ? _t('Aggregation type for less than 48H period is disabled') : this.tooltip);
         }
     });
 
