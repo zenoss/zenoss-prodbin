@@ -2420,6 +2420,10 @@ BYE BYE BORDERS
         background-size: contain;
     }
 
+    .z-cse .x-grid-with-row-lines.device-type-grid .x-grid-cell-inner {
+        padding-right: 20px;
+    }
+
 /*
         =====================================================================================
         DARK THEME
