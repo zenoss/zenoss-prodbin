@@ -51,15 +51,6 @@ from Products.ZenUtils.Utils import (
 )
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.debugtools import ContinuousProfiler
-from Products.ZenUtils.DaemonStats import DaemonStats
-from Products.ZenUtils.MetricReporter import TwistedMetricReporter
-from Products.ZenUtils.metricwriter import (
-    MetricWriter,
-    FilteredMetricWriter,
-    AggregateMetricWriter,
-    ThresholdNotifier,
-    DerivativeTracker
-)
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenEvents.Event import Event, EventHeartbeat
@@ -68,7 +59,6 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager
 )
-
 
 # local
 from Products.ZenHub import (
@@ -99,9 +89,8 @@ from Products.ZenHub.interfaces import (
     FILTER_INCLUDE,
     FILTER_EXCLUDE
 )
-from Products.ZenHub.metricpublisher.publisher import (
-    HttpPostPublisher, RedisListPublisher
-)
+
+from Products.ZenHub.metricmanager import MetricManager
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -229,8 +218,17 @@ class ZenHub(ZCmdBase):
             self.processQueue
         )
 
-        self._metric_writer = metricWriter()
-        self.rrdStats = self.getRRDStats()
+        # Setup Metric Reporting
+        self._metric_manager = MetricManager(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            })
+        self._metric_writer = self._metric_manager.metric_writer
+        self.rrdStats = self._metric_manager.get_rrd_stats(
+            self._getConf(), self.zem.sendEvent
+        )
 
         # set up SIGUSR2 handling
         try:
@@ -243,6 +241,27 @@ class ZenHub(ZCmdBase):
         # ZEN-26671 Wait at least this duration in secs
         # before signaling a worker process
         self.SIGUSR_TIMEOUT = 5
+
+    def main(self):
+        """
+        Start the main event loop.
+        """
+        if self.options.cycle:
+            reactor.callLater(0, self.heartbeat)
+            self.log.debug("Creating async MetricReporter")
+            self._metric_manager.start()
+            reactor.addSystemEventTrigger(
+                'before', 'shutdown', self._metric_manager.stop
+            )
+            # preserve legacy API
+            self.metricreporter = self._metric_manager.metricreporter
+
+        reactor.run()
+
+        self.shutdown = True
+        getUtility(IEventPublisher).close()
+        if self.options.profiling:
+            self.profiler.stop()
 
     def setKeepAlive(self, sock):
         import socket
@@ -272,23 +291,11 @@ class ZenHub(ZCmdBase):
         confProvider = IHubConfProvider(self)
         return confProvider.getHubConf()
 
+    # Legacy API
     def getRRDStats(self):
-        """
-        Return the most recent RRD statistic information.
-        """
-        rrdStats = DaemonStats()
-        perfConf = self._getConf()
-
-        from Products.ZenModel.BuiltInDS import BuiltInDS
-        threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
-        threshold_notifier = ThresholdNotifier(self.zem.sendEvent, threshs)
-
-        derivative_tracker = DerivativeTracker()
-
-        rrdStats.config('zenhub', perfConf.id, self._metric_writer,
-                        threshold_notifier, derivative_tracker)
-
-        return rrdStats
+        return self._metric_manager.get_rrd_stats(
+            self._getConf(), self.zem.sendEvent
+        )
 
     def updateEventWorkerCount(self):
         maxEventWorkers = max(0, len(self.workers) - 1)
@@ -732,33 +739,6 @@ class ZenHub(ZCmdBase):
         except Exception:
             self.log.exception("Error processing heartbeat hook")
 
-    def main(self):
-        """
-        Start the main event loop.
-        """
-        if self.options.cycle:
-            reactor.callLater(0, self.heartbeat)
-            self.log.debug("Creating async MetricReporter")
-            daemonTags = {
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': self.options.monitor,
-                'internal': True
-            }
-            self.metricreporter = TwistedMetricReporter(
-                metricWriter=self._metric_writer, tags=daemonTags
-            )
-            self.metricreporter.start()
-            reactor.addSystemEventTrigger(
-                'before', 'shutdown', self.metricreporter.stop
-            )
-
-        reactor.run()
-
-        self.shutdown = True
-        getUtility(IEventPublisher).close()
-        if self.options.profiling:
-            self.profiler.stop()
-
     def buildOptions(self):
         """
         Adds our command line options to ZCmdBase command line options.
@@ -963,41 +943,6 @@ class AuthXmlRpcService(XmlRpcService):
             except Exception:
                 self.unauthorized(request)
         return server.NOT_DONE_YET
-
-
-def publisher(username, password, url):
-    return HttpPostPublisher(username, password, url)
-
-
-def redisPublisher():
-    return RedisListPublisher()
-
-
-def metricWriter():
-    metric_writer = MetricWriter(redisPublisher())
-    if os.environ.get("CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get(
-            "CONTROLPLANE_CONSUMER_USERNAME", ""
-        )
-        internal_password = os.environ.get(
-            "CONTROLPLANE_CONSUMER_PASSWORD", ""
-        )
-
-        if internal_url:
-            internal_publisher = publisher(
-                internal_username, internal_password, internal_url
-            )
-            internal_metric_filter = lambda metric, value, timestamp, tags:\
-                tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(
-                internal_publisher, internal_metric_filter
-            )
-            return AggregateMetricWriter(
-                [metric_writer, internal_metric_writer]
-            )
-
-    return metric_writer
 
 
 class DefaultConfProvider(object):

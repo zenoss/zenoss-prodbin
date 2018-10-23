@@ -18,9 +18,6 @@ from Products.ZenHub.zenhub import (
     HubCreatedEvent, IHubCreatedEvent,
     ParserReadyForOptionsEvent, IParserReadyForOptionsEvent,
     ZenHubWorklist,
-    publisher,
-    redisPublisher,
-    metricWriter,
     ZenHub,
     CONNECT_TIMEOUT, OPTION_STATE,
     IInvalidationFilter,
@@ -240,66 +237,12 @@ class ParserReadyForOptionsEventTest(TestCase):
         t.assertEqual(event.parser, parser)
 
 
-class ZenHubModuleTest(TestCase):
-
-    @patch('{src}.HttpPostPublisher'.format(**PATH), autospec=True)
-    def test_publisher(t, HttpPostPublisher):
-        ret = publisher('username', 'password', 'url')
-        HttpPostPublisher.assert_called_with('username', 'password', 'url')
-        t.assertEqual(ret, HttpPostPublisher.return_value)
-
-    @patch('{src}.RedisListPublisher'.format(**PATH), autospec=True)
-    def test_redisPublisher(t, RedisListPublisher):
-        ret = redisPublisher()
-        RedisListPublisher.assert_called_with()
-        t.assertEqual(ret, RedisListPublisher.return_value)
-
-    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
-    def test_metricWriter(
-        t,
-        MetricWriter,
-        redisPublisher,
-        os,
-        publisher,
-        FilteredMetricWriter,
-        AggregateMetricWriter
-    ):
-        '''Returns an initialized MetricWriter instance,
-        should probably be refactored into its own class
-        '''
-        os.environ = {
-            'CONTROLPLANE': '1',
-            'CONTROLPLANE_CONSUMER_URL': 'consumer_url',
-            'CONTROLPLANE_CONSUMER_USERNAME': 'consumer_username',
-            'CONTROLPLANE_CONSUMER_PASSWORD': 'consumer_password',
-        }
-
-        ret = metricWriter()
-
-        MetricWriter.assert_called_with(redisPublisher.return_value)
-        publisher.assert_called_with(
-            os.environ['CONTROLPLANE_CONSUMER_USERNAME'],
-            os.environ['CONTROLPLANE_CONSUMER_PASSWORD'],
-            os.environ['CONTROLPLANE_CONSUMER_URL'],
-        )
-        AggregateMetricWriter.assert_called_with(
-            [MetricWriter.return_value, FilteredMetricWriter.return_value]
-        )
-        t.assertEqual(ret, AggregateMetricWriter.return_value)
-
-
 class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    # @patch.object(ZenHub, 'getRRDStats')
-    @patch('{src}.metricWriter'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
     @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
@@ -340,9 +283,8 @@ class ZenHubInitTest(TestCase):
         HubCreatedEvent,
         App_Start,
         signal,
-        metricWriter,
-        # ZenHub_getRRDStats,
         load_config_override,
+        MetricManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -433,9 +375,15 @@ class ZenHubInitTest(TestCase):
             zh, eventClass=App_Start, summary='zenhub started',
             severity=0
         )
+        MetricManager.assert_called_with(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': zh.options.monitor,
+                'internal': True
+            }
+        )
+        t.assertEqual(zh._metric_manager, MetricManager.return_value)
 
-        t.assertEqual(zh._metric_writer, metricWriter.return_value)
-        t.assertEqual(zh.rrdStats, zh.getRRDStats())
         # Convert this to a LoopingCall
         reactor.callLater.assert_called_with(
             zh.options.invalidation_poll_interval, zh.processQueue
@@ -466,6 +414,39 @@ class ZenHubTest(TestCase):
         t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception', 'warning'])
         t.zh.shutdown = False
         t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    def test_main(t, os, getUtility, MetricManager):
+        '''Daemon Entry Point
+        Execution waits at reactor.run() until the reactor stops
+        '''
+        t.zh.options = sentinel.options
+        t.zh.options.monitor = 'localhost'
+        t.zh.options.cycle = True
+        t.zh.options.profiling = True
+        # Metric Management
+        t.zh._metric_manager = MetricManager.return_value
+        t.zh._metric_writer = sentinel.metric_writer
+        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
+
+        t.zh.main()
+
+        # convert to a looping call
+        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
+
+        t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
+        t.zh._metric_manager.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhub exits
+        t.reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', t.zh._metric_manager.stop
+        )
+        # After the reactor stops:
+        t.zh.profiler.stop.assert_called_with()
+        # Closes IEventPublisher, which breaks old integration tests
+        getUtility.assert_called_with(IEventPublisher)
+        getUtility.return_value.close.assert_called_with()
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
@@ -558,45 +539,17 @@ class ZenHubTest(TestCase):
                 ))
             )
 
-    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
-    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
-    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
-    def test_getRRDStats(t, DaemonStats, ThresholdNotifier, DerivativeTracker):
-        '''Metric reporting function
-        '''
-        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    def test_getRRDStats(t, MetricManager):
+        t.zh._metric_manager = MetricManager.return_value
+        t.zh._getConf = create_autospec(t.zh._getConf)
 
-        # patch to deal with internal import
-        BuiltInDS_module = MagicMock(
-            name='Products.ZenModel.BuiltInDS',
-            spec_set=['BuiltInDS'],
+        ret = t.zh.getRRDStats()
+
+        t.zh._metric_manager.get_rrd_stats.assert_called_with(
+            t.zh._getConf(), t.zh.zem.sendEvent
         )
-        BuiltInDS = MagicMock(name='BuiltInDS', spec_set=['sourcetype'])
-        BuiltInDS_module.BuiltInDS = BuiltInDS
-        modules = {'Products.ZenModel.BuiltInDS': BuiltInDS_module}
-
-        with patch.dict('sys.modules', modules):
-            ret = t.zh.getRRDStats()
-
-        rrdStats = DaemonStats.return_value
-        perfConf = t.zh._getConf.return_value
-        thresholds = perfConf.getThresholdInstances.return_value
-        threshold_notifier = ThresholdNotifier.return_value
-        derivative_tracker = DerivativeTracker.return_value
-
-        perfConf.getThresholdInstances.assert_called_with(BuiltInDS.sourcetype)
-        ThresholdNotifier.assert_called_with(t.zh.zem.sendEvent, thresholds)
-
-        rrdStats.config.assert_called_with(
-            'zenhub',
-            perfConf.id,
-            t.zh._metric_writer,
-            threshold_notifier,
-            derivative_tracker
-        )
-
-        t.assertEqual(ret, DaemonStats.return_value)
+        t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
     def test_processQueue(t):
         '''Configuration Invalidation Processing function
@@ -1097,46 +1050,6 @@ class ZenHubTest(TestCase):
             call('services', len(t.zh.services)),
             call('workListLength', len(t.zh._worklist)),
         ])
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
-    def test_main(t, TwistedMetricReporter, os, getUtility):
-        '''Daemon Entry Point
-        Execution waits at reactor.run() until the reactor stops
-        '''
-        t.zh.options = Mock(
-            name='options', spec_set=['cycle', 'monitor', 'profiling'],
-            cycle=True, profiling=True
-        )
-        # Metric Management
-        t.zh._metric_writer = sentinel.metric_writer
-        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
-
-        t.zh.main()
-
-        # convert to a looping call
-        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
-        # sets up and starts its metric reporter
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=t.zh._metric_writer,
-            tags={
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': t.zh.options.monitor,
-                'internal': True
-            }
-        )
-        t.assertEqual(t.zh.metricreporter, TwistedMetricReporter.return_value)
-        t.zh.metricreporter.start.assert_called_with()
-        # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh.metricreporter.stop
-        )
-        # After the reactor stops:
-        t.zh.profiler.stop.assert_called_with()
-        # Closes IEventPublisher, which breaks old integration tests
-        getUtility.assert_called_with(IEventPublisher)
-        getUtility.return_value.close.assert_called_with()
 
     @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
