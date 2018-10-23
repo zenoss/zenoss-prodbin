@@ -80,7 +80,8 @@ from Products.ZenHub import (
 from Products.ZenHub.interceptors import WorkerInterceptor
 from Products.ZenHub.WorkerSelection import WorkerSelector
 from Products.ZenHub.worklist import (
-    ZenHubPriority, ZenHubWorklist, register_metrics_on_worklist
+    ZenHubPriority, ZenHubWorklist,
+    register_metrics_on_worklist, get_worklist_metrics
 )
 from Products.ZenHub.XmlRpcService import XmlRpcService
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
@@ -167,15 +168,21 @@ class ZenHub(ZCmdBase):
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        self.workList = ZenHubWorklist()
+
         self.shutdown = False
         self.counters = collections.Counter()
         self._invalidations_paused = False
 
-        # configure Metrology for the worklists
-        register_metrics_on_worklist(self.workList)
-
         ZCmdBase.__init__(self)
+
+        modeling_paused = ModelingPaused(
+            self.dmd, self.options.modeling_pause_timeout
+        )
+        self._worklist = ZenHubWorklist(modeling_paused=modeling_paused)
+
+        # configure Metrology for the worklists
+        register_metrics_on_worklist(self._worklist)
+
         import Products.ZenHub
         load_config("hub.zcml", Products.ZenHub)
         notify(HubWillBeCreatedEvent(self))
@@ -511,7 +518,7 @@ class ZenHub(ZCmdBase):
         """
         d = defer.Deferred()
 
-        self.workList.push(
+        self._worklist.push(
             HubWorklistItem(
                 time.time(), d, svcName, instance, method,
                 (svcName, instance, method, args)
@@ -580,17 +587,17 @@ class ZenHub(ZCmdBase):
     def giveWorkToWorkers(self, requeue=False):
         """Parcel out a method invocation to an available worker process
         """
-        if self.workList:
-            self.log.debug("worklist has %d items", len(self.workList))
+        if self._worklist:
+            self.log.debug("worklist has %d items", len(self._worklist))
+
         incompleteJobs = []
-        while self.workList:
+        while self._worklist:
             if all(w.busy for w in self.workers):
                 self.log.debug("all workers are busy")
                 yield wait(0.1)
                 break
 
-            allowADM = self.dmd.getPauseADMLife() > self.options.modeling_pause_timeout
-            job = self.workList.pop(allowADM)
+            job = self._worklist.pop()
             if job is None:
                 self.log.info("Got None from the job worklist.  ApplyDataMaps"
                               " may be paused for zenpack"
@@ -624,7 +631,7 @@ class ZenHub(ZCmdBase):
 
         for job in reversed(incompleteJobs):
             # could not complete this job, put it back in the queue
-            self.workList.push(job)
+            self._worklist.push(job)
 
         if incompleteJobs:
             self.log.debug("No workers available for %d jobs.",
@@ -636,16 +643,26 @@ class ZenHub(ZCmdBase):
 
     def _workerStats(self):
         now = time.time()
+        gauges = get_worklist_metrics(self._worklist)
         lines = [
             'Worklist Stats:',
-            '\tEvents:\t%s' % self.workList.length_of(ZenHubPriority.EVENTS),
-            '\tOther:\t%s' % self.workList.length_of(ZenHubPriority.OTHER),
-            '\tApplyDataMaps:\t%s' % sum(
-                self.workList.length_of(ZenHubPriority.MODELING),
-                self.workList.length_of(ZenHubPriority.SINGLE_MODELING)
+            '\tEvents:\t%s' % (
+                gauges[ZenHubPriority.EVENTS],
             ),
-            '\tTotal:\t%s' % len(self.workList),
-            '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
+            '\tOther:\t%s' % (
+                gauges[ZenHubPriority.OTHER],
+            ),
+            '\tApplyDataMaps (batch):\t%s' % (
+                gauges[ZenHubPriority.MODELING],
+            ),
+            '\tApplyDataMaps (single):\t%s' % (
+                gauges[ZenHubPriority.SINGLE_MODELING],
+            ),
+            '\tTotal:\t%s' % (
+                sum(v for v in gauges.values()),
+            ),
+            '\nHub Execution Timings: '
+            '[method, count, idle_total, running_total, last_called_time]'
         ]
 
         statline = " - %-32s %8d %12.2f %8.2f  %s"
@@ -704,7 +721,7 @@ class ZenHub(ZCmdBase):
         r.counter('totalEvents', self.totalEvents)
         r.gauge('services', len(self.services))
         r.counter('totalCallTime', totalTime)
-        r.gauge('workListLength', len(self.workList))
+        r.gauge('workListLength', len(self._worklist))
 
         for name, value in self.counters.items():
             r.counter(name, value)
@@ -782,6 +799,19 @@ class ZenHub(ZCmdBase):
                  ' install/upgrade/removal (default: %default)')
 
         notify(ParserReadyForOptionsEvent(self.parser))
+
+
+class ModelingPaused(object):
+    """ModelingPaused is a simple boolean predicate that returns True if
+    modeling (i.e. applyDataMaps processing) is paused.
+    """
+
+    def __init__(self, ctx, modeling_pause_timeout):
+        self.__ctx = ctx
+        self.__modeling_pause_timeout = modeling_pause_timeout
+
+    def __call__(self):
+        return self.__ctx.getPauseADMLife() <= self.__modeling_pause_timeout
 
 
 class HubRealm(object):

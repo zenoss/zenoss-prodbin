@@ -36,6 +36,7 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    ModelingPaused
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -379,7 +380,7 @@ class ZenHubInitTest(TestCase):
             zh = ZenHub()
 
         t.assertIsInstance(zh, ZenHub)
-        t.assertEqual(zh.workList, ZenHubWorklist.return_value)
+        t.assertEqual(zh._worklist, ZenHubWorklist.return_value)
         # Skip Metrology validation for now due to complexity
         ZCmdBase___init__.assert_called_with(zh)
         load_config.assert_called_with("hub.zcml", Products.ZenHub)
@@ -898,7 +899,7 @@ class ZenHubTest(TestCase):
         should be refactored to use inlineCallbacks
         '''
         t.zh.getService = create_autospec(t.zh.getService)
-        t.zh.workList = Mock(ZenHubWorklist, name='ZenHubWorklist')
+        t.zh._worklist = Mock(ZenHubWorklist, name='ZenHubWorklist')
         args = (sentinel.arg0, sentinel.arg1)
 
         ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
@@ -1020,8 +1021,8 @@ class ZenHubTest(TestCase):
         job = Mock(name='job', spec_set=['method', 'args'])
         job.args = [sentinel.arg0, sentinel.arg1]
         # should be set in __init__
-        t.zh.workList = ZenHubWorklist()
-        t.zh.workList.push(job)
+        t.zh._worklist = ZenHubWorklist()
+        t.zh._worklist.push(job)
         worker = Mock(
             name='worker', spec_set=['busy', 'callRemote'], busy=False
         )
@@ -1070,7 +1071,7 @@ class ZenHubTest(TestCase):
         t.zh.totalEvents = sentinel.totalEvents
         service0 = Mock(name='service0', spec_set=['callTime'], callTime=9)
         t.zh.services = {'service0': service0}
-        t.zh.workList = [sentinel.work0, sentinel.work1]
+        t.zh._worklist = [sentinel.work0, sentinel.work1]
         t.zh.counters = collections.Counter()
 
         t.zh.heartbeat()
@@ -1094,7 +1095,7 @@ class ZenHubTest(TestCase):
         ])
         t.zh.rrdStats.gauge.assert_has_calls([
             call('services', len(t.zh.services)),
-            call('workListLength', len(t.zh.workList)),
+            call('workListLength', len(t.zh._worklist)),
         ])
 
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
@@ -1235,3 +1236,28 @@ class DefaultHubHeartBeatCheckTest(TestCase):
         zenhub = sentinel.zenhub
         default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
         default_hub_heartbeat_check.check()
+
+
+class TestModelingPaused(TestCase):
+
+    def test_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 100
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(True, actual)
+
+    def test_not_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 300
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(False, actual)

@@ -9,6 +9,7 @@
 
 import enum
 
+from collections import Iterator
 from itertools import cycle, chain, count
 from metrology import Metrology
 from metrology.registry import registry
@@ -126,16 +127,6 @@ def _build_weighted_list(data):
     return tuple(v for _, v in sorted_by_index)
 
 
-# List of all message priorities
-_normal_priorities = list(ZenHubPriority)
-
-# List of all message priorities except MODELING
-_no_adm_priorities = [ZenHubPriority.EVENTS, ZenHubPriority.OTHER]
-
-# List of applyDataMaps priorties
-_adm_priorities = [ZenHubPriority.MODELING, ZenHubPriority.SINGLE_MODELING]
-
-
 class _MessagePriorityMap(dict):
     """Extends dict to provide ZenHubPriority.OTHER as the default
     return value if the requested key is not found.
@@ -176,7 +167,7 @@ class WorklistLengthGauge(Gauge):
         return len(self.__worklist)
 
 
-_metric_priority_map = {
+_gauge_priority_map = {
     "zenhub.eventWorkList": ZenHubPriority.EVENTS,
     "zenhub.admWorkList": ZenHubPriority.MODELING,
     "zenhub.otherWorkList": ZenHubPriority.OTHER,
@@ -187,7 +178,7 @@ _metric_priority_map = {
 def register_metrics_on_worklist(worklist):
     metricNames = {x[0] for x in registry}
 
-    for metricName, priority in _metric_priority_map.iteritems():
+    for metricName, priority in _gauge_priority_map.iteritems():
         if metricName not in metricNames:
             gauge = PriorityListLengthGauge(worklist, priority)
             Metrology.gauge(metricName, gauge)
@@ -195,6 +186,48 @@ def register_metrics_on_worklist(worklist):
     if "zenhub.workList" not in metricNames:
         gauge = WorklistLengthGauge(worklist)
         Metrology.gauge("zenhub.workList", gauge)
+
+
+def get_worklist_metrics(worklist):
+    gauges = {
+        priority: worklist.length_of(priority)
+        for priority in ZenHubPriority
+    }
+    return gauges
+
+
+class _PrioritySelection(Iterator):
+    """Implements an iterator that produces priority values.
+
+    Higher priority values are produced more frequently than lower
+    priority values.
+    """
+
+    def __init__(self, priorities):
+        """Initializes a _PrioritySelection object.
+
+        @param priorities {sequence} The priorities to iterate over.
+        """
+        self.__priorities = priorities
+
+        # Build a priority selection sequence for all priorities
+        self.__selection = _build_weighted_list(self.__priorities)
+        # Use a cycle iterator over the priority sequence
+        self.__iter = cycle(self.__selection)
+
+    @property
+    def priorities(self):
+        return self.__priorities
+
+    def next(self):
+        return next(self.__iter)
+
+
+# List of all message priorities
+_all_priorities = list(ZenHubPriority)
+
+# List of all message priorities except MODELING
+_no_adm_priorities = [ZenHubPriority.EVENTS, ZenHubPriority.OTHER]
 
 
 class ZenHubWorklist(object):
@@ -210,39 +243,39 @@ class ZenHubWorklist(object):
     lower priorities.  It is never the case that all higher priority jobs
     are popped before lower priority jobs are popped.
 
+    The ZenHubWorklist maintains two sets of priorities.  One set includes
+    all job priorities and the other excludes modeling (applyDataMaps)
+    related priorities.  The priority set used to select a job is
+    determined by a predicate object passed into the constructor.  By
+    default, jobs are selected using all job priorities.
+
     A job is required to have one attribute named 'method' which should
     produce a string value when read.
     """
 
-    def __init__(self):
+    def __init__(self, modeling_paused=None):
+        """Initializes a ZenHubWorklist object.
+
+        If an argument is provided for the modeling_paused parameter,
+        it should be function that takes no arguments and returns True
+        to exclude modeling related priorities for job selection.
+        """
+        if modeling_paused is None:
+            self.__modeling_paused = bool  # always False
+        else:
+            self.__modeling_paused = modeling_paused
+
         # Associate a list with each priority
         self.__worklists = {priority: [] for priority in ZenHubPriority}
 
-        # Build a priority selection sequence for all priorities
-        self.__normalSelection = _build_weighted_list(_normal_priorities)
-        # Use a cycle iterator over the priority sequence
-        self.__normalIter = cycle(self.__normalSelection)
+        # All jobs priority selection
+        self.__alljobs = _PrioritySelection(_all_priorities)
 
-        # Build another priority selection sequence that ignores
-        # apply-data-maps jobs.
-        self.__ignoreAdmSelection = _build_weighted_list(_no_adm_priorities)
-        # Use a cycle iterator over the priority sequence
-        self.__ignoreAdmIter = cycle(self.__ignoreAdmSelection)
+        # No ApplyDataMaps priority selection
+        self.__noadmjobs = _PrioritySelection(_no_adm_priorities)
 
     def __len__(self):
-        return self.__length(True)
-
-    def __length(self, includeAdm):
-        # Calculate and return the number of elements in all the lists.
-        # If includeAdm is False, the elements in the MODELING list
-        # are not included in the count.
-        if includeAdm:
-            return sum(len(v) for v in self.__worklists.itervalues())
-        return sum(
-            len(v)
-            for p, v in self.__worklists.iteritems()
-            if p not in _adm_priorities
-        )
+        return sum(len(v) for v in self.__worklists.itervalues())
 
     def length_of(self, priority):
         """Returns the number of jobs currently available having the
@@ -250,22 +283,23 @@ class ZenHubWorklist(object):
         """
         return len(self.__worklists[priority])
 
-    def pop(self, allowADM=True):
-        """Return the next available job as determined by priority ordering.
+    def __length(self, priorities):
+        return sum(len(self.__worklists[p]) for p in priorities)
 
-        Passing False for allowADM will ensure that the job returned is
-        not an applyDataMaps job.  This parameter is typically False during
-        model schema changes, e.g. ZenPack install/upgrade/removal.
-
-        If no job is available, None is returned.
-        """
-        itr = self.__normalIter if allowADM else self.__ignoreAdmIter
-        while self.__length(allowADM):
-            priority = next(itr)
+    def __pop(self, selection):
+        while self.__length(selection.priorities):
+            priority = next(selection)
             wlist = self.__worklists[priority]
-            if not len(wlist):
-                continue
-            return wlist.pop(0)
+            if len(wlist):
+                return wlist.pop(0)
+
+    def pop(self):
+        """Returns the next job by priority.  If no jobs are available,
+        None is returned.
+        """
+        if self.__modeling_paused():
+            return self.__pop(self.__noadmjobs)
+        return self.__pop(self.__alljobs)
 
     def push(self, job):
         """Adds job to the worklist.
