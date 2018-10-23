@@ -199,22 +199,6 @@
          * 4096 is the max safe number.
          */
         maxLinkLength: 4096,
-        stateful: true,
-        stateEvents: ['change'],
-        defaultAggreagation: 'avg',
-        getState: function() {
-            return {
-                aggregation: this.aggregationMenu.aggregation
-            };
-        },
-        applyState: function(state) {
-            var agr = state && state.aggregation || this.defaultAggreagation,
-                menuItem = this.aggregationMenu.menu.down('#'+agr);
-
-            this.aggregationMenu.setText(menuItem.text);
-            this.aggregationMenu.aggregation = agr;
-            Ext.apply(this, state);
-        },
         constructor: function(config) {
             // backcompat from graph dimensions from rrd
             // the properties were saved on each graph definition and we want to
@@ -224,12 +208,14 @@
             } else if (config.height == undefined) {
                 config.height = 500;
             }
-            config.stateId = config.uuid;
             // width is not customizable - always fills column
             delete config.width;
             var me = this,
                 ZSDTR = Zenoss.settings.defaultTimeRange || 0,
-                hasMenu = config.hasMenu===undefined ? me.hasMenu : config.hasMenu;
+                hasMenu = config.hasMenu===undefined ? me.hasMenu : config.hasMenu,
+                // generate aggregation button state id from graph title
+                // "uuid" - is not unique per chart;
+                aggrStateId = config.graphTitle ? config.graphTitle.replace(/[^a-zA-Z0-9]/g, '_') : config.uuid;
 
             // dynamically adjust the height;
             config.graphHeight = config.height - 50;
@@ -257,10 +243,11 @@
                         value: config.graphTitle
                     },{
                         xtype: 'aggregationbutton',
+                        stateId: aggrStateId,
                         margin: '0 10 0 10',
                         ref: '../aggregationMenu',
-                        text: _t('Avg'),
-                        aggregation: 'avg',
+                        text: config.aggregationText || _t('Avg'),
+                        aggregation: config.aggregation || 'avg',
                         menuHandler: me.aggregationOnChange,
                         scope: me
                     },{
@@ -298,7 +285,7 @@
             });
 
             Zenoss.EuropaGraph.superclass.constructor.call(me, config);
-            me.toggleAggregation();
+            // me.toggleAggregation();
         },
         initComponent: function() {
             // the visualization library depends on our div rendering,
@@ -314,6 +301,7 @@
         },
         aggregationOnChange: function(t, e) {
             var chart = zenoss.visualization.chart.getChart(this.graphId);
+            this.aggregation = t.itemId;
             if (chart) {
                 this.aggregationMenu.aggregation = chart.downsample = t.itemId;
                 this.aggregationMenu.setText(t.text);
@@ -321,7 +309,7 @@
                 // Ext.Array.each(chart.config.datapoints, function(item) {item.aggregator = t.aggregation;});
                 chart.update();
             }
-            this.fireEvent('change');
+            this.aggregationMenu.fireEvent('change');
         },
         initChart: function() {
             var cname = isSingleComponentChart(this.datapoints);
@@ -741,12 +729,7 @@
                  * Fire this event to force the chart to redraw itself.
                  * @param {object} params The parameters we are sending to the object.
                  **/
-                'updateimage',
-                /**
-                 * @event change
-                 * panel state event handler to store current aggregation state;
-                 */
-                'change'
+                'updateimage'
             );
             this.on('updateimage', this.updateGraph, this);
             this.graphEl = Ext.get(this.graphId);
@@ -771,7 +754,7 @@
             };
             zenoss.visualization.chart.update(this.graphId, changes);
             this.graph_params = gp;
-            this.toggleAggregation();
+            // this.toggleAggregation();
         },
         convertStartToAbsoluteTime: function(start) {
             if (Ext.isNumber(start)) {
@@ -854,15 +837,15 @@
 
             this.fireEvent("updatelimits", { start: start, end: end });
             this.fireEvent("updateimage", { start: start, end: end });
-        },
+        }
 
-        toggleAggregation: function() {
+        /*toggleAggregation: function() {
             var start = this.convertStartToAbsoluteTime(this.graph_params.start),
                 end = this.convertEndToAbsolute(this.graph_params.end),
                 state = end-start < 1000*60*60*24*2;
 
             this.aggregationMenu.setDisabled(state);
-        }
+        }*/
     });
 
 
@@ -923,6 +906,9 @@
         extend: "Ext.button.Button",
         tooltip: _t('Aggregation type'),
         width: 45,
+        stateful: true,
+        stateEvents: ['change'],
+        aggregation: 'avg',
         constructor: function(config) {
             config = config || {};
             var menu = {
@@ -954,15 +940,32 @@
                 }]
             };
             Ext.apply(config, {
+                stateId: (config.stateId || '')+'_aggregation',
+                getState: function() {
+                    return {
+                        aggregation: this.aggregation,
+                        text: this.getText()
+                    };
+                },
+                applyState: function(state) {
+                    Ext.apply(this, state);
+                },
                 menu: menu
             });
             this.callParent(arguments);
-        },
+            this.addEvents(
+                /**
+                 * @event change
+                 * panel state event handler to store current aggregation state;
+                 */
+                'change'
+            );
+        }
 
-        setDisabled: function(state) {
+        /*setDisabled: function(state) {
             this.callParent(arguments);
             this.setTooltip(state ? _t('Aggregation type for less than 48H period is disabled') : this.tooltip);
-        }
+        }*/
     });
 
 
@@ -1238,23 +1241,12 @@
     Ext.define("Zenoss.form.GraphPanel", {
         alias:['widget.graphpanel'],
         extend:"Ext.Panel",
-        tbar: tbarConfig,
         cls: "graphpanel",
-        stateful: true,
-        stateEvents: ['change'],
-        getState: function() {
-            return {
-                aggregation: this.aggregationMenu.aggregation,
-                agrText: this.aggregationMenu.getText()
-            };
-        },
-        applyState: function(state) {
-            Ext.apply(this, state);
-        },
+
         constructor: function(config) {
             config = config || {};
-            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
-            config.stateId = config.id;
+            var me = this,
+                ZSDTR = Zenoss.settings.defaultTimeRange || 0;
 
             Ext.applyIf(config, {
                 drange: DATE_RANGES[ZSDTR][0],
@@ -1266,74 +1258,80 @@
                     overflow: 'auto',
                     paddingTop: "15px"
                 },
-                directFn: router.getGraphDefs
+                directFn: router.getGraphDefs,
+                tbar: [{
+                    xtype: 'tbtext',
+                    text: config.tbarTitle || _t('Performance Graphs')
+                }, '-', {
+                    text: '&lt;',
+                    width: 40,
+                    handler: function(btn, e) {
+                        Ext.Array.each(this.getGraphs(), function(graph) {
+                            graph.onPanLeft(graph);
+                        });
+                    },
+                    scope: me
+                },{
+                    text: _t('Zoom In'),
+                    ref: '../zoomin',
+                    handler: function(btn, e) {
+                        Ext.Array.each(this.getGraphs(), function(graph) {
+                            graph.doZoom.call(this, 0, 1/graph.zoom_factor);
+                        });
+                    },
+                    scope: me
+                },{
+                    text: _t('Zoom Out'),
+                    ref: '../zoomout',
+                    handler: function(btn, e) {
+                        Ext.Array.each(this.getGraphs(), function(graph) {
+                            graph.doZoom.call(this, 0, graph.zoom_factor);
+                        });
+                    },
+                    scope: me
+                },{
+                    text: '&gt;',
+                    width: 40,
+                    handler: function(btn, e) {
+                        Ext.Array.each(this.getGraphs(), function(graph) {
+                            graph.onPanRight(graph);
+                        });
+                    },
+                    scope: me
+                },{
+                    xtype: 'aggregationbutton',
+                    stateId: config.id,
+                    margin: '0 10 0 10',
+                    ref: '../aggregationMenu',
+                    text: _t('Avg'),
+                    aggregation: 'avg',
+                    menuHandler: me.aggregationOnChange,
+                    scope: me
+                }].concat(tbarConfig)
             });
 
-            Zenoss.form.GraphPanel.superclass.constructor.apply(this, arguments);
+            Zenoss.form.GraphPanel.superclass.constructor.call(me, config);
 
+            me.refreshTbarConfigs();
+        },
+        refreshTbarConfigs: function() {
             // assumes just one docked item
             this.toolbar = this.getDockedItems()[0];
 
-            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
-            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
-            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
+            this.startDatePicker = this.toolbar.down("utcdatefield[cls='start_date']");
+            this.endDatePicker = this.toolbar.down("utcdatefield[cls='end_date']");
+            this.nowCheck = this.toolbar.down("checkbox[cls='checkbox_now']");
 
             this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
             this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
             // this variable stores the number of current graphs which are actively loading or refreshing
             this.graphBusy = 0;
-            // add title to toolbar
-            this.toolbar.insert(0, [{
-                xtype: 'tbtext',
-                text: config.tbarTitle || _t('Performance Graphs')
-            }, '-', {
-                text: '&lt;',
-                width: 40,
-                handler: Ext.bind(function(btn, e) {
-                    Ext.Array.each(this.getGraphs(), function(graph) {
-                        graph.onPanLeft(graph);
-                    });
-                }, this)
-            },{
-                text: _t('Zoom In'),
-                ref: '../zoomin',
-                handler: Ext.bind(function(btn, e) {
-                    Ext.Array.each(this.getGraphs(), function(graph) {
-                        graph.doZoom.call(this, 0, 1/graph.zoom_factor);
-                    });
-                }, this)
-
-            },{
-                text: _t('Zoom Out'),
-                ref: '../zoomout',
-                handler: Ext.bind(function(btn, e) {
-                    Ext.Array.each(this.getGraphs(), function(graph) {
-                        graph.doZoom.call(this, 0, graph.zoom_factor);
-                    });
-                }, this)
-            },{
-                text: '&gt;',
-                width: 40,
-                handler: Ext.bind(function(btn, e) {
-                    Ext.Array.each(this.getGraphs(), function(graph) {
-                        graph.onPanRight(graph);
-                    });
-                }, this)
-            },{
-                xtype: 'aggregationbutton',
-                margin: '0 10 0 10',
-                ref: '../aggregationMenu',
-                text: this.agrText || _t('Avg'),
-                aggregation: this.aggregation || 'avg',
-                menuHandler: this.aggregationOnChange,
-                scope: this
-            }]);
 
             // default range value of 1 hour
             // NOTE: this should be a real number, not a relative
             // measurement like "1h-ago"
-	        this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
-            this.drange = rangeToMilliseconds(config.drange);
+	        this.toolbar.down("drangeselector[cls='drange_select']").setValue(this.drange);
+            this.drange = rangeToMilliseconds(this.drange);
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
@@ -1346,29 +1344,20 @@
 
             this.hideDatePicker();
 
-            if (config.hideToolbar){
+            if (this.hideToolbar){
                 this.toolbar.hide();
             }
-            this.toggleAggregation();
+            // this.toggleAggregation();
         },
         aggregationOnChange: function(t, e) {
             Ext.each(this.getGraphs(), function(g) {
                 g.aggregationOnChange(t);
             });
             t.up('button').setText(t.text);
-            this.aggregation = this.aggregationMenu.aggregation = t.itemId;
-            this.fireEvent('change');
+            this.aggregationMenu.aggregation = t.itemId;
+            this.aggregationMenu.fireEvent('change');
         },
-        initEvents: function() {
-            this.callParent(arguments);
-            this.addEvents(
-                /**
-                 * @event change
-                 * panel state event handler to store current aggregation state;
-                 */
-                'change'
-            );
-        },
+
         setContext: function(uid) {
             if (this.newwindow) {
                 if (this.newWindowButton) {
@@ -1443,7 +1432,8 @@
                     uid: this.uid,
                     graphId: graphId,
                     graphTitle: graphTitle,
-                    defaultAggreagation: this.aggregation,
+                    aggregation: this.aggregationMenu.aggregation,
+                    aggregationText: this.aggregationMenu.getText(),
                     ref: graphId,
                     printOptimized: this.printOptimized,
                     // when a europa graph appears in a graph panel then don't show controls
@@ -1667,12 +1657,12 @@
                 }
             });
 
-            this.toggleAggregation();
-        },
-
-        toggleAggregation: function() {
-            this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
+            // this.toggleAggregation();
         }
+
+        /*toggleAggregation: function() {
+            this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
+        }*/
     });
 
 

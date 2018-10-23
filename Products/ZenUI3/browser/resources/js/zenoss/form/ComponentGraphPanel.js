@@ -237,24 +237,15 @@
     Ext.define("Zenoss.form.ComponentGraphPanel", {
         alias: ['widget.componentgraphpanel'],
         extend: "Ext.Panel",
-        tbar: tbarCmpGrphConfig,
+
         cls: 'compgraphpanel',
         layout: 'column',
         pan_factor: 1.25,
-        stateful: true,
-        stateEvents: ['change'],
-        getState: function() {
-            return {
-                aggregation: this.aggregationMenu.aggregation,
-                agrText: this.aggregationMenu.getText()
-            };
-        },
-        applyState: function(state) {
-            Ext.apply(this, state);
-        },
+
         constructor: function (config) {
             config = config || {};
-            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
+            var me = this,
+                ZSDTR = Zenoss.settings.defaultTimeRange || 0;
             // var userColumns = Zenoss.settings.graphColumns || 1;
             Ext.applyIf(config, {
                 drange: DATE_RANGES[ZSDTR][0],
@@ -262,22 +253,8 @@
                 bodyStyle: {
                     overflow: 'auto',
                     paddingTop: '15px'
-                }
-            });
-
-            Zenoss.form.ComponentGraphPanel.superclass.constructor.apply(this, arguments);
-            this.toolbar = this.getDockedItems()[0];
-
-            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
-            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
-            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
-            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-            // this variable stores the number of current graphs which are actively loading or refreshing
-            this.graphBusy = 0;
-
-            this.toolbar.insert(0, [
-                {
+                },
+                tbar: [{
                     xtype: 'combo',
                     queryMode: 'local',
                     fieldLabel: _t('Component'),
@@ -291,10 +268,10 @@
                     },
                     matchFieldWidth: false,
                     listeners: {
-                        scope: this,
-                        select: this.onSelectComponentType
+                        scope: me,
+                        select: me.onSelectComponentType
                     }
-                }, {
+                },{
                     xtype: 'combo',
                     disabled: true,
                     queryMode: 'local',
@@ -310,11 +287,10 @@
                         minWidth: 150
                     },
                     listeners: {
-                        scope: this,
-                        select: this.onSelectGraph
+                        scope: me,
+                        select: me.onSelectGraph
                     }
-                },
-                {
+                },{
                     xtype: 'checkbox',
                     baseCls: 'zencheckbox_allonsame',
                     boxLabel: _t('All on same graph'),
@@ -323,54 +299,70 @@
                     margin: '0 10 0 20',
                     ref: '../allOnSame',
                     listeners: {
-                        change: this.updateGraphs,
-                        scope: this
+                        change: me.updateGraphs,
+                        scope: me
                     }
-                },
-                {
+                },{
                     xtype: 'button',
                     text: '&lt;',
                     width: 40,
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.panLeft();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: _t('Zoom In'),
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.zoomIn();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: _t('Zoom Out'),
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.zoomOut();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: '&gt;',
                     width: 40,
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.panRight();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'aggregationbutton',
                     margin: '0 10 0 10',
+                    stateId: config.id,
                     ref: '../aggregationMenu',
-                    text: this.agrText || _t('Avg'),
-                    aggregation: this.aggregation || 'avg',
-                    menuHandler: this.aggregationOnChange,
-                    scope: this
-                }
-            ]); // toolbar inserts
+                    text: _t('Avg'),
+                    aggregation: 'avg',
+                    menuHandler: me.aggregationOnChange,
+                    scope: me
+                }].concat(tbarCmpGrphConfig)
+            });
+
+            Zenoss.form.ComponentGraphPanel.superclass.constructor.call(this, config);
+            me.refreshTbarConfigs();
+        },
+        refreshTbarConfigs: function() {
+            this.toolbar = this.getDockedItems()[0];
+
+            this.startDatePicker = this.toolbar.down("utcdatefield[cls='start_date']");
+            this.endDatePicker = this.toolbar.down("utcdatefield[cls='end_date']");
+            this.nowCheck = this.toolbar.down("checkbox[cls='checkbox_now']");
+            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
 
             // grab default timerange value from user settings
-            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
-            this.drange = this.rangeToMilliseconds(config.drange);
+            this.toolbar.down("drangeselector[cls='drange_select']").setValue(this.drange);
+            this.drange = this.rangeToMilliseconds(this.drange);
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
@@ -383,33 +375,23 @@
 
             this.hideDatePicker();
 
-            if (config.hideToolbar) {
+            if (this.hideToolbar) {
                 this.toolbar.hide();
             }
-            this.toggleAggregation();
+            // this.toggleAggregation();
         },
-
         aggregationOnChange: function(t, e) {
             Ext.each(this.getGraphs(), function(g) {
                 g.aggregationOnChange(t);
             });
             t.up('button').setText(t.text);
             this.aggregationMenu.aggregation = t.itemId;
-            this.fireEvent('change');
+            this.aggregationMenu.fireEvent('change');
         },
-        toggleAggregation: function() {
+        /*toggleAggregation: function() {
             this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
-        },
-        initEvents: function() {
-            this.callParent(arguments);
-            this.addEvents(
-                /**
-                 * @event change
-                 * panel state event handler to store current aggregation state;
-                 */
-                'change'
-            );
-        },
+        },*/
+
         setContext: function (uid) {
             this.uid = uid;
             if (this.newwindow) {
@@ -534,7 +516,8 @@
                         for (i = 0; i < graphs.length; i++) {
                             c = i % colCount;
                             graphs[i].graph_params = gp;
-                            graphs[i].defaultAggreagation = this.aggregationMenu.aggregation;
+                            graphs[i].aggregation = this.aggregationMenu.aggregation;
+                            graphs[i].aggregationText = this.aggregationMenu.getText();
                             grCols[c].items.push(graphs[i]);
                         }
 
@@ -636,7 +619,7 @@
             }
             this.updateStartDatePicker();
             this.updateEndDatePicker();
-            this.toggleAggregation();
+            // this.toggleAggregation();
         },
         getGraphs: function () {
             return this.query('europagraph');
