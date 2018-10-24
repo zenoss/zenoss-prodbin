@@ -578,20 +578,6 @@ class ZenHubTest(TestCase):
         t.zh._invalidation_manager\
             .initialize_invalidation_filters.assert_called_with()
 
-    def test__filter_oids(t):
-        oids = sentinel.oids
-        t.zh._filter_oids(oids)
-        t.zh._invalidation_manager._filter_oids.assert_called_with(oids)
-
-    def test__transformOid(t):
-        ret = t.zh._transformOid('oid', sentinel.obj)
-        t.zh._invalidation_manager._transformOid.assert_called_with(
-            'oid', sentinel.obj
-        )
-        t.assertEqual(
-            ret, t.zh._invalidation_manager._transformOid.return_value
-        )
-
     @patch('{src}.Event'.format(**PATH), autospec=True)
     def test_sendEvent(t, Event):
         '''Event Management.  send events to the EventManager

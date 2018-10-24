@@ -9,28 +9,32 @@
 
 
 import unittest
-import Globals
+from mock import patch, Mock
+import sys
+
+from twisted.python.failure import Failure
+from twisted.cred import credentials
+from twisted.spread import pb
 
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer, BaseTestCase
 from Products.ZenUtils.Driver import drive
-
-# Import from zenhub before importing twisted.internet.reactor
-from Products.ZenHub.zenhub import ZenHub
 from Products.ZenHub.PBDaemon import RemoteException, RemoteConflictError
-
-from twisted.python.failure import Failure
-from twisted.internet import reactor
-from twisted.cred import credentials
-from twisted.spread import pb
-import sys
-import os
-
 from Products.ZenMessaging.queuemessaging.interfaces import IQueuePublisher
-from Products.ZenMessaging.queuemessaging.publisher import DummyQueuePublisher, EventPublisher
+from Products.ZenMessaging.queuemessaging.publisher import (
+    DummyQueuePublisher, EventPublisher
+)
 
-import Products.ZenHub.zenhub
+from Products.ZenHub.zenhub import (
+    ZenHub,
+    IEventPublisher,
+)
+# Import from zenhub before importing twisted.internet.reactor
+from twisted.internet import reactor
 
+PATH = {'src': 'Products.ZenHub.zenhub'}
 count = 0
+
+
 def stop(ignored=None, connector=None):
     if isinstance(ignored, Exception):
         raise ignored
@@ -41,6 +45,7 @@ def stop(ignored=None, connector=None):
         reactor.crash()
     if connector:
         connector.disconnect()
+
 
 class TestClient(pb.Referenceable):
 
@@ -63,7 +68,7 @@ class TestClient(pb.Referenceable):
 
     def bad(self, reason):
         stop(connector=self.connector)
-        self.tester.fail('error: '+str(reason.value))
+        self.tester.fail('error: ' + str(reason.value))
 
     def test(self, service):
         def Test(driver):
@@ -72,6 +77,7 @@ class TestClient(pb.Referenceable):
             self.tester.assertEqual(driver.next(), data)
             self.success = True
         drive(Test).addBoth(stop, connector=self.connector)
+
 
 class SendEventClient(TestClient):
     svc = 'EventService'
@@ -91,9 +97,9 @@ class SendEventClient(TestClient):
 class RaiseExceptionClient(TestClient):
     exception = None
 
-    def complete( self, result):
-        stop( self.connector)
-        self.tester.assertIsInstance( result, Failure)
+    def complete(self, result):
+        stop(self.connector)
+        self.tester.assertIsInstance(result, Failure)
         self.exception = result.value
 
     def test(self, service):
@@ -101,12 +107,13 @@ class RaiseExceptionClient(TestClient):
             yield service.callRemote('raiseException', "an exception message")
         drive(Test).addBoth(self.complete)
 
+
 class RaiseConflictErrorClient(TestClient):
     exception = None
 
-    def complete( self, result):
-        stop( self.connector)
-        self.tester.assertIsInstance( result, Failure)
+    def complete(self, result):
+        stop(self.connector)
+        self.tester.assertIsInstance(result, Failure)
         self.exception = result.value
 
     def test(self, service):
@@ -114,9 +121,7 @@ class RaiseConflictErrorClient(TestClient):
             yield service.callRemote('raiseConflictError', "an error message")
         drive(Test).addBoth(self.complete)
 
-from unittest import skip
 
-@skip('temporary')
 class TestZenHub(BaseTestCase):
 
     layer = ZenossTestCaseLayer
@@ -124,61 +129,81 @@ class TestZenHub(BaseTestCase):
     base = 7000
     xbase = 8000
 
-    def afterSetUp(self):
-        super(TestZenHub, self).afterSetUp()
+    def afterSetUp(t):
+        super(TestZenHub, t).afterSetUp()
         global count
         count += 1
-        base = self.base + count
-        xbase = self.xbase + count
-        self.before, sys.argv = sys.argv, ['run',
-                                           '--pbport=%d' % base,
-                                           '--xmlrpcport=%d' % xbase,
-                                           '--workers=0']
-        self.zenhub = ZenHub()
-        from zope.component import getGlobalSiteManager
-        # The call to zenhub above overrides the queue so we need to
-        # re-override it
-        gsm = getGlobalSiteManager()
-        queue = DummyQueuePublisher()
-        gsm.registerUtility(queue, IQueuePublisher)
+        base = t.base + count
+        xbase = t.xbase + count
 
-    def beforeTearDown(self):
-        sys.argv = self.before
-        super(TestZenHub, self).beforeTearDown()
+        args = ['run', '--pbport=%d' % base, '--xmlrpcport=%d' % xbase, '--workers=0']
+        argv_patcher = patch.object(sys, 'argv', args)
+        t.argv = argv_patcher.start()
+        t.addCleanup(argv_patcher.stop)
 
-    def testPbRegistration(self):
+        getutility_patcher = patch(
+            '{src}.getUtility'.format(**PATH),
+            autospec=True, side_effect=get_utility_mock
+        )
+        t.getUtility = getutility_patcher.start()
+        t.addCleanup(getutility_patcher.stop)
+
+        invalidation_manager_patcher = patch(
+            '{src}.InvalidationManager'.format(**PATH), autospec=True
+        )
+        invalidation_manager_patcher.start()
+        t.addCleanup(invalidation_manager_patcher.stop)
+
+        t.zenhub = ZenHub()
+
+    def beforeTearDown(t):
+        super(TestZenHub, t).beforeTearDown()
+
+    def testPbRegistration(t):
         from twisted.spread.jelly import unjellyableRegistry
-        self.assertTrue(unjellyableRegistry.has_key('DataMaps.ObjectMap'))
-        self.assertTrue(unjellyableRegistry.has_key('Products.DataCollector.plugins.DataMaps.ObjectMap'))
+        t.assertTrue('DataMaps.ObjectMap' in unjellyableRegistry)
+        t.assertTrue(
+            'Products.DataCollector.plugins.DataMaps.ObjectMap'
+            in unjellyableRegistry
+        )
 
-    def testGetService(self):
-        client = TestClient(self, self.base + count)
-        self.assertFalse(client.success)
-        self.zenhub.main()
-        self.assertTrue(client.success)
+    def testGetService(t):
+        client = TestClient(t, t.base + count)
+        t.assertFalse(client.success)
+        t.zenhub.main()
+        t.assertTrue(client.success)
 
-    def testSendEvent(self):
+    def testSendEvent(t):
         EventPublisher._publisher = DummyQueuePublisher()
-        client = SendEventClient(self, self.base + count)
-        self.assertFalse(client.success)
-        self.zenhub.main()
-        self.assertTrue(client.success)
+        client = SendEventClient(t, t.base + count)
+        t.assertFalse(client.success)
+        t.zenhub.main()
+        t.assertTrue(client.success)
 
-    def testRaiseRemoteException(self):
-        client = RaiseExceptionClient(self, self.base + count)
-        self.assertIs( client.exception, None)
-        self.zenhub.main()
-        self.assertIsInstance( client.exception, RemoteException)
-        self.assertIn( "an exception message", str(client.exception))
-        self.assertIsNotNone( client.exception.traceback)
+    def testRaiseRemoteException(t):
+        client = RaiseExceptionClient(t, t.base + count)
+        t.assertIs(client.exception, None)
+        t.zenhub.main()
+        t.assertIsInstance(client.exception, RemoteException)
+        t.assertIn("an exception message", str(client.exception))
+        t.assertIsNotNone(client.exception.traceback)
 
-    def testRaiseRemoteConflictError(self):
-        client = RaiseConflictErrorClient(self, self.base + count)
-        self.assertIs( client.exception, None)
-        self.zenhub.main()
-        self.assertIsInstance( client.exception, RemoteConflictError)
-        self.assertIn( "an error message", str(client.exception))
-        self.assertIsNotNone( client.exception.traceback)
+    def testRaiseRemoteConflictError(t):
+        client = RaiseConflictErrorClient(t, t.base + count)
+        t.assertIs(client.exception, None)
+        t.zenhub.main()
+        t.assertIsInstance(client.exception, RemoteConflictError)
+        t.assertIn("an error message", str(client.exception))
+        t.assertIsNotNone(client.exception.traceback)
+
+
+def get_utility_mock(utility):
+    if utility is IQueuePublisher:
+        return DummyQueuePublisher()
+    if utility is IEventPublisher:
+        return Mock(name='IEventPublisher')
+    if utility == 'IInvalidationProcessor':
+        return Mock(name='IInvalidationProcessor')
 
 
 def test_suite():

@@ -8,7 +8,7 @@
 ##############################################################################
 
 from unittest import TestCase
-from mock import patch, Mock, create_autospec, MagicMock, sentinel
+from mock import patch, Mock, create_autospec, MagicMock, sentinel, call
 
 from mock_interface import create_interface_mock
 
@@ -22,8 +22,12 @@ from Products.ZenHub.invalidationmanager import (
     FILTER_INCLUDE,
     FILTER_EXCLUDE,
     POSKeyError,
-    SEVERITY_CLEAR,
-    INVALIDATIONS_PAUSED,
+    coroutine,
+    iterate,
+    oid_to_obj,
+    filter_obj,
+    transform_obj,
+    InvalidationPipeline,
 )
 
 
@@ -39,14 +43,16 @@ class InvalidationManagerTest(TestCase):
         t.getUtility = t.get_utility_patcher.start()
         t.addCleanup(t.get_utility_patcher.stop)
 
-        t.dmd = Mock(name='dmd', spec_set=['getPhysicalRoot'])
+        t.dmd = Mock(
+            name='dmd', spec_set=['getPhysicalRoot', 'pauseHubNotifications']
+        )
         t.log = Mock(name='log', spec_set=['debug', 'warn'])
         t.syncdb = Mock(name='ZenHub.async_syncdb', spec_set=[])
         t.poll_invalidations = Mock(
             name='ZenHub.storage.poll_invalidations', spec_set=[]
         )
-        t.send_event = create_autospec(ZenHub.sendEvent)
 
+        t.send_event = Mock(ZenHub.sendEvent, name='ZenHub.sendEvent')
         t.im = InvalidationManager(
             t.dmd, t.log, t.syncdb, t.poll_invalidations, t.send_event
         )
@@ -61,7 +67,7 @@ class InvalidationManagerTest(TestCase):
         )
         t.assertEqual(t.im._InvalidationManager__send_event, t.send_event)
 
-        t.assertEqual(t.im._invalidations_paused, False)
+        t.assertEqual(t.im._currently_paused, False)
         t.assertEqual(t.im.totalEvents, 0)
         t.assertEqual(t.im.totalTime, 0)
         t.getUtility.assert_called_with(IInvalidationProcessor)
@@ -92,17 +98,18 @@ class InvalidationManagerTest(TestCase):
         '''synchronize with the database, and poll invalidated oids from it,
         filter the oids,  send them to the invalidation_processor
         '''
-        t.im._filter_oids = create_autospec(t.im._filter_oids)
         timestamps = [10, 20]
         time.side_effect = timestamps
+        t.im._paused = create_autospec(t.im._paused, return_value=False)
+        t.poll_invalidations.return_value = [sentinel.oid]
+        invalidation_pipeline = create_autospec(t.im.invalidation_pipeline)
+        t.im.invalidation_pipeline = invalidation_pipeline
 
         t.im.process_invalidations()
 
         t.syncdb.assert_called_with()
         t.poll_invalidations.assert_called_with()
-        t.im.processor.processQueue.assert_called_with(
-            tuple(set(t.im._filter_oids(t.poll_invalidations.return_value)))
-        )
+        t.im.invalidation_pipeline.run.assert_called_with(sentinel.oid)
 
         t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
         t.assertEqual(t.im.totalEvents, 1)
@@ -111,155 +118,219 @@ class InvalidationManagerTest(TestCase):
         t.im._syncdb()
         t.syncdb.assert_called_with()
 
+    def test__paused_pause(t):
+        t.im._currently_paused = False
+        t.im._InvalidationManager__dmd.pauseHubNotifications = True
+
+        ret = t.im._paused()
+
+        t.assertEqual(ret, True)
+        print(t.send_event)
+        t.send_event.assert_called_with(t.im._invalidation_paused_event)
+
+    def test__paused_currently_paused(t):
+        t.im._currently_paused = True
+        t.im._InvalidationManager__dmd.pauseHubNotifications = True
+
+        ret = t.im._paused()
+
+        t.assertEqual(ret, True)
+        t.send_event.assert_not_called()
+
+    def test__paused_unpause(t):
+        t.im._currently_paused = True
+        t.im._InvalidationManager__dmd.pauseHubNotifications = False
+
+        ret = t.im._paused()
+
+        t.assertEqual(ret, False)
+        t.send_event.assert_called_with(t.im._invalidation_unpaused_event)
+
     def test_poll_invalidations(t):
         ret = t.im._poll_invalidations()
         t.assertEqual(ret, t.poll_invalidations.return_value)
 
-    def test__filter_oids(t):
-        '''Configuration Invalidation Processing function
-        yields a generator with the OID if the object has been deleted
-        runs changed devices through invalidation_filters
-        which may exclude them,
-        and runs any included devices through _transformOid
-        '''
-        app = t.dmd.getPhysicalRoot.return_value
+    def test__send_event(t):
+        t.im._send_event(sentinel.event)
+        t.send_event.assert_called_with(sentinel.event)
 
+
+class InvalidationPipelineTest(TestCase):
+    '''A Pipeline that filters and transforms an invalidated oid,
+    before sending it to IInvalidationProcessor
+    '''
+
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    def test_invalidation_pipeline(t, getUtility):
+        # constructor parameters
+        app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
+        filters = [sentinel.filter_a, sentinel.filter_b]
+        mIInvalidationProcessor = create_interface_mock(IInvalidationProcessor)
+        processor = mIInvalidationProcessor()
+        # Environment, and args
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
         device.__of__.return_value.primaryAq.return_value = device_obj
-        component = MagicMock(DeviceComponent, __of__=Mock())
-        component_obj = sentinel.component_obj
-        component.__of__.return_value.primaryAq.return_value = component_obj
-        excluded = Mock(DeviceComponent, __of__=Mock())
-        excluded_obj = sentinel.excluded_obj
-        excluded.__of__.return_value.primaryAq.return_value = excluded_obj
-        excluded_type = Mock(name='ignored obj type', __of__=Mock())
-        transformer = MagicMock(PrimaryPathObjectManager, __of__=Mock())
-        transf_obj = sentinel.transformer
-        transformer.__of__.return_value.primaryAq.return_value = transf_obj
+        oid = 111
+        app._p_jar = {oid: device}
 
-        app._p_jar = {
-            111: device,
-            222: component,
-            333: excluded,
-            444: excluded_type,
-            555: transformer,
-        }
-        oids = app._p_jar.keys()
+        invalidation_pipeline = InvalidationPipeline(app, filters, processor)
+        invalidation_pipeline.run(oid)
 
-        def include(obj):
-            if obj in [device_obj, component_obj]:
-                return FILTER_INCLUDE
-            if obj is sentinel.transformer:
-                return FILTER_INCLUDE
-            if obj == excluded_obj:
-                return FILTER_EXCLUDE
+        processor.processQueue.assert_called_with([oid])
 
-        MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filter = MockIInvalidationFilter()
-        filter.include = include
-        t.im._invalidation_filters = [filter]
 
-        def transform_oid(oid, obj):
-            if oid in [111, 222]:
-                return (oid,)
-            if oid == 555:
-                return {888, 999}
+class coroutine_Test(TestCase):
 
-        t.im._transformOid = transform_oid
+    def test_coroutine_decorator(t):
+        '''Used to create our pipe segments.
+        parameters configure the segment
+        call .send(<args>) to provide input through yield
+        '''
 
-        ret = t.im._filter_oids(oids)
-        out = {o for o in ret}  # unwind the generator
+        @coroutine
+        def magnitude(mag, output):
+            while True:
+                input = (yield)
+                output.send(mag * input)
 
-        t.assertEqual(out, {111, 222, 888, 999})
+        output = Mock(spec_set=['send'])
+        mag10 = magnitude(10, output)
 
-    def test__filter_oids_deleted(t):
-        app = t.dmd.getPhysicalRoot.return_value = MagicMock(name='root')
-        app._p_jar.__getitem__.side_effect = POSKeyError()
+        mag10.send(1)
+        output.send.assert_called_with(10)
+        mag10.send(2)
+        output.send.assert_called_with(20)
 
-        ret = t.im._filter_oids([111])
-        out = [o for o in ret]  # unwind the generator
-        t.assertEqual(out, [111])
+    def test_iterate(t):
+        '''Used to feed an iterable to a coroutine/input-pipe
+        one item at a time
+        '''
+        output_pipe = Mock(set_spec=['send'])
+        input_pipe = iterate(output_pipe)
+        iterable = (i for i in range(10))
 
-    def test__filter_oids_deleted_primaryaq(t):
-        deleted = MagicMock(DeviceComponent, __of__=Mock())
-        deleted.__of__.return_value.primaryAq.side_effect = KeyError
-        with t.assertRaises(KeyError):
-            deleted.__of__().primaryAq()
+        input_pipe.send(iterable)
 
-        app = t.dmd.getPhysicalRoot.return_value
-        app._p_jar = {111: deleted}
+        output_pipe.send.assert_has_calls([call(i) for i in range(10)])
 
-        ret = t.im._filter_oids([111])
-        out = [o for o in ret]
-        t.assertEqual(out, [111])
 
-    def test__oid_to_object(t):
+class oid_to_obj_Test(TestCase):
+
+    def setUp(t):
+        t.processor = Mock(
+            name='InvalidationProcessor', spec_set=['processQueue']
+        )
+        t.out_pipe = Mock(name='output_pipe', spec_set=['send'])
+
+    def test_oid_to_obj(t):
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
         device.__of__.return_value.primaryAq.return_value = device_obj
         app = sentinel.dmd_root
+        app.zport = sentinel.zport
+        app.zport.dmd = sentinel.dmd_root
         app._p_jar = {111: device}
 
-        ret = t.im._oid_to_object(app, 111)
+        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe.send(111)
 
-        t.assertEqual(ret, device_obj)
+        t.out_pipe.send.assert_called_with((111, device_obj))
 
     def test__oid_to_object_poskeyerror(t):
+        '''oids not found in dmd are considered deletions,
+        and sent straight to the InvalidationProcessor
+        '''
         app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
-        ret = t.im._oid_to_object(app, 111)
+        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe.send(111)
 
-        t.assertEqual(ret, FILTER_INCLUDE)
+        t.processor.processQueue.assert_called_with([111])
 
     def test__oid_to_object_deleted_primaryaq_keyerror(t):
+        '''objects without a primaryAq ar considered deletions,
+        and sent straight to the InvalidationProcessor
+        '''
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         app = sentinel.dmd_root
         app._p_jar = {111: deleted}
 
-        ret = t.im._oid_to_object(app, 111)
+        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe.send(111)
 
-        t.assertEqual(ret, FILTER_INCLUDE)
+        t.processor.processQueue.assert_called_with([111])
 
     def test__oid_to_object_exclude_unsuported_types(t):
+        '''Exclude any unspecified object types
+        '''
         unsuported = MagicMock(name='unsuported type', __of__=Mock())
         app = sentinel.dmd_root
         app._p_jar = {111: unsuported}
 
-        ret = t.im._oid_to_object(app, 111)
+        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe.send(111)
 
-        t.assertEqual(ret, FILTER_EXCLUDE)
+        t.processor.processQueue.assert_not_called()
+        t.out_pipe.send.assert_not_called()
 
-    def test__apply_filters(t):
+
+class filter_obj_Test(TestCase):
+    '''Run the given object through each registered IInvalidationFilter
+    drop any that are specifically Excluded by a filter
+    '''
+
+    def setUp(t):
         MockIInvalidationFilter = create_interface_mock(IInvalidationFilter)
-        filter = MockIInvalidationFilter()
+        t.filter = MockIInvalidationFilter()
+
+        t.included = sentinel.included
+        t.excluded = sentinel.excluded
 
         def include(obj):
-            if obj is sentinel.included:
+            if obj is t.included:
+                print('include: %s' % obj)
                 return FILTER_INCLUDE
-            elif obj is sentinel.excluded:
+            elif obj is t.excluded:
+                print('exclude: %s' % obj)
                 return FILTER_EXCLUDE
             else:
+                print('default include: %s' % obj)
                 return "FILTER_CONTINUE"
 
-        filter.include = include
-        t.im._invalidation_filters = [filter]
+        t.filter.include = include
 
-        t.assertTrue(t.im._apply_filters(sentinel.included))
-        t.assertFalse(t.im._apply_filters(sentinel.excluded))
-        t.assertTrue(t.im._apply_filters(sentinel.other))
+        t.out_pipe = Mock(name='output_pipe', spec_set=['send'])
+        t.filter_object_pipe = filter_obj([t.filter], t.out_pipe)
+
+    def test__filters_object(t):
+        t.filter_object_pipe.send((111, t.included))
+        t.out_pipe.send.assert_called_with((111, t.included))
+
+    def test__filters_object_exclude(t):
+        t.filter_object_pipe.send((111, t.excluded))
+        t.out_pipe.send.assert_not_called()
+
+    def test__filters_object_fallthrough(t):
+        t.filter_object_pipe.send((111, sentinel.other))
+        t.out_pipe.send.assert_called_with((111, sentinel.other))
+
+
+class transform_obj_Test(TestCase):
 
     @patch('{src}.IInvalidationOid'.format(**PATH), autospec=True)
     @patch('{src}.subscribers'.format(**PATH), autospec=True)
-    def test__transformOid(t, subscribers, IInvalidationOid):
-        '''Configuration Invalidation Processing function
-        given an oid: object pair
+    def test__transform_obj(t, subscribers, IInvalidationOid):
+        '''given an oid: object pair
         gets a list of transforms for the object
         executes the transforms given the oid
         returns a set of oids returned by the transforms
         '''
+        processor = Mock(
+            name='InvalidationProcessor', spec_set=['processQueue']
+        )
         adapter_a = Mock(
             name='adapter_a', spec_set=['transformOid'],
             transformOid=lambda x: x + '0'
@@ -273,35 +344,7 @@ class InvalidationManagerTest(TestCase):
         oid = 'oid'
         obj = sentinel.object
 
-        ret = t.im._transformOid(oid, obj)
+        transform_pipe = transform_obj(processor)
+        transform_pipe.send((oid, obj))
 
-        t.assertEqual(ret, {'oid0', 'oid1', 'oid2'})
-
-    def test__send_event(t):
-        t.im._send_event(sentinel.event)
-        t.send_event.assert_called_with(sentinel.event)
-
-    def test__send_invalidations_unpaused_event(t):
-        t.im._send_invalidations_unpaused_event(sentinel.msg)
-        t.send_event.assert_called_with({
-            'summary': sentinel.msg,
-            'severity': SEVERITY_CLEAR,
-            'eventkey': INVALIDATIONS_PAUSED
-        })
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test__doProcessQueue(t, getUtility):
-        '''Configuration Invalidation Processing function
-        pulls in a dict of invalidations, and the IInvalidationProcessor
-        and processes them, then sends an event
-        refactor to use inline callbacks
-        '''
-        # storage is ZODB access inherited from a parent class
-        t.im._filter_oids = create_autospec(t.im._filter_oids)
-
-        t.im._doProcessQueue()
-
-        getUtility.assert_called_with(IInvalidationProcessor)
-        getUtility.return_value.processQueue.assert_called_with(
-            tuple(set(t.im._filter_oids.return_value))
-        )
+        processor.processQueue.assert_called_with({'oid0', 'oid1', 'oid2'})

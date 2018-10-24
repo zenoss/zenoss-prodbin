@@ -144,7 +144,6 @@ class ZenHub(ZCmdBase):
 
         self.shutdown = False
         self.counters = collections.Counter()
-        self._invalidations_paused = False
 
         ZCmdBase.__init__(self)
 
@@ -311,14 +310,6 @@ class ZenHub(ZCmdBase):
     def _initialize_invalidation_filters(self):
         self._invalidation_filters = self._invalidation_manager\
             .initialize_invalidation_filters()
-
-    # Legacy API
-    def _filter_oids(self, oids):
-        return self._invalidation_manager._filter_oids(oids)
-
-    # Legacy API
-    def _transformOid(self, oid, obj):
-        return self._invalidation_manager._transformOid(oid, obj)
 
     def sendEvent(self, **kw):
         """

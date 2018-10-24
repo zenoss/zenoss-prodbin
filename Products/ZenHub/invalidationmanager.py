@@ -10,6 +10,7 @@
 import logging
 from time import time
 from itertools import chain
+from functools import wraps
 
 from twisted.internet.defer import inlineCallbacks
 from zope.component import getUtility, getUtilitiesFor, subscribers
@@ -50,6 +51,12 @@ class InvalidationManager(object):
         'eventkey': INVALIDATIONS_PAUSED
     }
 
+    _invalidation_unpaused_event = {
+        'summary': 'Invalidation processing unpaused',
+        'severity': SEVERITY_CLEAR,
+        'eventkey': INVALIDATIONS_PAUSED
+    }
+
     def __init__(
         self, dmd, log,
         syncdb, poll_invalidations, send_event,
@@ -62,13 +69,17 @@ class InvalidationManager(object):
         self.__send_event = send_event
         self.poll_interval = poll_interval
 
-        self._invalidations_paused = False
+        self._currently_paused = False
         self.totalEvents = 0
         self.totalTime = 0
 
         self.initialize_invalidation_filters()
         self.processor = getUtility(IInvalidationProcessor)
         log.debug('got InvalidationProcessor %s' % self.processor)
+        app = self.__dmd.getPhysicalRoot()
+        self.invalidation_pipeline = InvalidationPipeline(
+            app, self._invalidation_filters, self.processor
+        )
 
     def initialize_invalidation_filters(self):
         '''Get Invalidation Filters, initialize them,
@@ -99,29 +110,18 @@ class InvalidationManager(object):
         try:
             now = time()
             yield self._syncdb()
+            if self._paused():
+                return
+
             oids = self._poll_invalidations()
             if not oids:
                 log.debug('no invalidations found: oids=%s' % oids)
                 return
-            oids = self._filter_oids(oids)
-            if not oids:
-                log.debug('filter returned no oids')
-                return
 
-            ret = self.processor.processQueue(tuple(set(oids)))
-            result = getattr(ret, 'result', None)
-            if not result:
-                result = ret
-            log.debug('finished processing oids')
-            if result == INVALIDATIONS_PAUSED:
-                self._send_event(self._invalidation_paused_event)
-                self._invalidations_paused = True
-            else:
-                msg = 'Processed %s oids' % result
-                self.log.debug(msg)
-                if self._invalidations_paused:
-                    self.send_invalidations_unpaused_event(msg)
-                    self._invalidations_paused = False
+            for oid in oids:
+                yield self.invalidation_pipeline.run(oid)
+
+            self.log.debug('Processed %s raw invalidations', len(oids))
 
         except Exception:
             log.exception('error in process_invalidations')
@@ -139,65 +139,126 @@ class InvalidationManager(object):
         except Exception as err:
             self.log.warn("Unable to poll invalidations, will try again.")
 
+    def _paused(self):
+        if not self._currently_paused:
+            if self.__dmd.pauseHubNotifications:
+                self._currently_paused = True
+                log.info('notifications have been paused')
+                self._send_event(self._invalidation_paused_event)
+                return True
+            else:
+                return False
+
+        else:
+            if self.__dmd.pauseHubNotifications:
+                log.debug('notifications are paused')
+                return True
+            else:
+                self._currently_paused = False
+                log.info('notifications unpaused')
+                self._send_event(self._invalidation_unpaused_event)
+                return False
+
     def _poll_invalidations(self):
+        '''pull a list of invalidated object oids from the database
+        '''
         try:
             log.debug('poll invalidations from dmd.storage')
             return self.__poll_invalidations()
         except Exception:
             log.exception('error in _poll_invalidations')
 
-    def _filter_oids(self, oids):
-        try:
-            app = self.__dmd.getPhysicalRoot()
-            for oid in oids:
-                obj = self._oid_to_object(app, oid)
-                if obj is FILTER_INCLUDE:
-                    yield oid
-                    continue
-                if obj is FILTER_EXCLUDE:
-                    continue
+    @inlineCallbacks
+    def _send_event(self, event):
+        yield self.__send_event(event)
 
-                # Filter all remaining oids
-                include = self._apply_filters(obj)
-                if include:
-                    _oids = self._transformOid(oid, obj)
-                    for _oid in _oids:
-                        yield _oid
-        except Exception:
-            log.exception('error in _filter_oids')
 
-    def _oid_to_object(self, app, oid):
+class InvalidationPipeline(object):
+    '''A Pipeline that applies filters and transforms to an oid
+    Then passes the transformed/expanded list of oids
+    to the InvalidationProcessor processQueue
+    '''
+
+    def __init__(self, app, filters, processor):
+        self.__pipeline = oid_to_obj(
+            app, processor,
+            filter_obj(
+                filters,
+                transform_obj(
+                    processor
+                )
+            )
+        )
+
+    def run(self, invalidation):
+        self.__pipeline.send(invalidation)
+
+
+def coroutine(func):
+    """Decorator for initializing a generator as a coroutine.
+    """
+    @wraps(func)
+    def start(*args, **kw):
+        coro = func(*args, **kw)
+        coro.next()
+        return coro
+    return start
+
+
+@coroutine
+def iterate(target):
+    """iterates over the iterable, sending each produced item to the target.
+    """
+    while True:
+        iterable = (yield)
+        for item in iterable:
+            target.send(item)
+
+
+@coroutine
+def oid_to_obj(app, processor, checker):
+    while True:
+        oid = (yield)
         # Include oids that are missing from the database
         try:
             obj = app._p_jar[oid]
         except POSKeyError:
-            return FILTER_INCLUDE
-
+            processor.processQueue([oid])
+            continue
         # Exclude any unmatched types
-        if not isinstance(
-            obj, (PrimaryPathObjectManager, DeviceComponent)
-        ):
-            return FILTER_EXCLUDE
-
+        if not isinstance(obj, (PrimaryPathObjectManager, DeviceComponent)):
+            continue
         # Include deleted oids
         try:
-            obj = obj.__of__(self.__dmd).primaryAq()
+            obj = obj.__of__(app.zport.dmd).primaryAq()
         except (AttributeError, KeyError):
-            return FILTER_INCLUDE
+            processor.processQueue([oid])
+            continue
 
-        return obj
+        checker.send((oid, obj))
 
-    def _apply_filters(self, obj):
-        for fltr in self._invalidation_filters:
+
+@coroutine
+def filter_obj(filters, target):
+    while True:
+        oid, obj = (yield)
+        included = True
+        for fltr in filters:
             result = fltr.include(obj)
             if result is FILTER_INCLUDE:
-                return True
+                break
             if result is FILTER_EXCLUDE:
-                return False
-        return True
+                included = False
+                break
+        if included:
+            target.send((oid, obj))
 
-    @staticmethod
-    def _transformOid(oid, obj):
+
+@coroutine
+def transform_obj(processor):
+    while True:
+        oid, obj = (yield)
+
         # First, get any subscription adapters registered as transforms
         adapters = subscribers((obj,), IInvalidationOid)
         # Next check for an old-style (regular adapter) transform
@@ -209,7 +270,7 @@ class InvalidationManager(object):
         transformed = set()
         for adapter in adapters:
             o = adapter.transformOid(oid)
-            if isinstance(o, basestring):
+            if isinstance(o, str):
                 transformed.add(o)
             elif hasattr(o, '__iter__'):
                 # If the transform didn't give back a string, it should have
@@ -220,50 +281,4 @@ class InvalidationManager(object):
         # Get rid of the original oid, if returned. We don't want to use it IF
         # any transformed oid came back.
         transformed.discard(oid)
-        return transformed or (oid,)
-
-    @inlineCallbacks
-    def _send_event(self, event):
-        yield self.__send_event(event)
-
-    def _send_invalidations_unpaused_event(self, msg):
-        self._send_event({
-            'summary': msg,
-            'severity': SEVERITY_CLEAR,
-            'eventkey': INVALIDATIONS_PAUSED
-        })
-
-    def _doProcessQueue(self):
-        """
-        Perform one cycle of update notifications.
-
-        @return: None
-        """
-        changes_dict = self._poll_invalidations()
-        if changes_dict is not None:
-            processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(
-                tuple(set(self._filter_oids(changes_dict)))
-            )
-
-            def done(n):
-                if n == INVALIDATIONS_PAUSED:
-                    self.sendEvent({
-                        'summary': "Invalidation processing is "
-                                   "currently paused. To resume, set "
-                                   "'dmd.pauseHubNotifications = False'",
-                        'severity': SEVERITY_CRITICAL,
-                        'eventkey': INVALIDATIONS_PAUSED
-                    })
-                    self._invalidations_paused = True
-                else:
-                    msg = 'Processed %s oids' % n
-                    self.log.debug(msg)
-                    if self._invalidations_paused:
-                        self.sendEvent({
-                            'summary': msg,
-                            'severity': SEVERITY_CLEAR,
-                            'eventkey': INVALIDATIONS_PAUSED
-                        })
-                        self._invalidations_paused = False
-            d.addCallback(done)
+        processor.processQueue(transformed or (oid,))
