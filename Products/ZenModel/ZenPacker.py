@@ -43,7 +43,7 @@ class ZenPacker(object):
                 else:
                     message = 'Nothing to save'
         if REQUEST:
-            path = ''
+            path = '/zport/dmd/ZenPackManager/packs/'
             if isinstance(pack, ZenPack):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Add To ZenPack', message)
