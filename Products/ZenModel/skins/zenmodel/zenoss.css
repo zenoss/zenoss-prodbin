@@ -1359,6 +1359,15 @@ top: 10px;
     overflow: hidden;
     padding-right: 8px;
 }
+.dialog .dialog-custom-graph-point {
+    display: flex;
+}
+.dialog .dialog-custom-graph-point #new_id_label {
+    align-self: center;
+}
+.dialog .dialog-custom-graph-point select[name="flavor"] {
+    margin-left: 10px;
+}
 
 /* IE HACKS */
 
