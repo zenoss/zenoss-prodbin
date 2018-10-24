@@ -10227,3 +10227,8 @@ CORE TRIGGER PAGE STUFF
 #searchInput-inputEl {
   margin-top: 5px !important;
   padding-left: 30px !important; }
+
+.device-type-grid .x-grid-cell-inner {
+  white-space: normal;
+  word-break: break-all;
+}
