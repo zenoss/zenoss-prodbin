@@ -709,9 +709,15 @@ class ZenModeler(PBDaemon):
                 if maps:
                     deviceClass = Classifier.classifyDevice(pluginStats,
                                                 self.classCollectorPlugins)
+                    # If self.single is True, then call singleApplyDataMaps
+                    # instead of applyDataMaps.
+                    if not self.single:
+                        method = "applyDataMaps"
+                    else:
+                        method = "singleApplyDataMaps"
                     yield self.config().callRemote(
-                                                'applyDataMaps', device.id,
-                                                maps, deviceClass, True)
+                        method, device.id, maps, deviceClass, True
+                    )
 
                     if driver.next():
                         devchanged = True

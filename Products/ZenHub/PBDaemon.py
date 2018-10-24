@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -28,6 +28,9 @@ from functools import partial
 from metrology import Metrology
 from metrology.instruments import Gauge
 from metrology.registry import registry
+
+import Globals  # required to import zenoss Products
+
 from Products.ZenHub.metricpublisher import publisher
 from twisted.cred import credentials
 from twisted.internet import reactor, defer, task
@@ -38,12 +41,11 @@ import twisted.python.log
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 from ZODB.POSException import ConflictError
-import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
-from Products.ZenUtils.Utils import zenPath, atomicWrite
+from Products.ZenUtils.Utils import zenPath, atomicWrite, unused
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
     Clear, Warning
@@ -54,6 +56,8 @@ from Products.ZenUtils.metricwriter import MetricWriter, FilteredMetricWriter, A
 from Products.ZenUtils.metricwriter import DerivativeTracker
 from Products.ZenUtils.metricwriter import ThresholdNotifier
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+
+unused(Globals)
 
 
 #field size limits for events
@@ -117,13 +121,13 @@ def translateError(callable):
 PB_PORT = 8789
 
 startEvent = {
-    'eventClass': App_Start, 
+    'eventClass': App_Start,
     'summary': 'started',
     'severity': Clear,
 }
 
 stopEvent = {
-    'eventClass':App_Stop, 
+    'eventClass':App_Stop,
     'summary': 'stopped',
     'severity': Warning,
 }
@@ -567,7 +571,7 @@ class EventQueueManager(object):
 
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
-    
+
     name = 'pbdaemon'
     initialServices = ['EventService']
     heartbeatEvent = {'eventClass':Heartbeat}
@@ -645,7 +649,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             if url:
               self._internal_publisher = publisher.HttpPostPublisher( username, password, url)
         return self._internal_publisher
-            
+
     def metricWriter(self):
         if not self._metric_writer:
             publisher = self.publisher()
@@ -737,7 +741,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def eventService(self):
         return self.getServiceNow('EventService')
-        
+
     def getServiceNow(self, svcName):
         if not svcName in self.services:
             self.log.warning('No service named %r: ZenHub may be disconnected' % svcName)
@@ -897,7 +901,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
-        
+
     def sendEvent(self, event, **kw):
         """ Add event to queue of events to be sent.  If we have an event
         service then process the queue.
@@ -939,7 +943,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         yield self.pushEvents()
-   
+
         # Record the number of events in the queue up to every 2 seconds.
         now = time.time()
         if self.rrdStats.name and now >= (self.lastStats + 2):
@@ -1143,7 +1147,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                 default=DEFAULT_HUB_PASSWORD,
                                 help='Password for zenhub login.'
                                     ' Default is %s.' % DEFAULT_HUB_PASSWORD)
-        self.parser.add_option('--monitor', 
+        self.parser.add_option('--monitor',
                                 dest='monitor',
                                 default=DEFAULT_HUB_MONITOR,
                                 help='Name of monitor instance to use for'

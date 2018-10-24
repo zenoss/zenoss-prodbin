@@ -17,10 +17,7 @@ from Products.ZenHub.zenhub import (
     HubWillBeCreatedEvent, IHubWillBeCreatedEvent,
     HubCreatedEvent, IHubCreatedEvent,
     ParserReadyForOptionsEvent, IParserReadyForOptionsEvent,
-    _ZenHubWorklist,
-    publisher,
-    redisPublisher,
-    metricWriter,
+    ZenHubWorklist,
     ZenHub,
     CONNECT_TIMEOUT, OPTION_STATE,
     IInvalidationFilter,
@@ -36,6 +33,7 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    ModelingPaused
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -239,160 +237,12 @@ class ParserReadyForOptionsEventTest(TestCase):
         t.assertEqual(event.parser, parser)
 
 
-class _ZenHubWorklistTest(TestCase):
-
-    def setUp(t):
-        t.wl = _ZenHubWorklist()
-
-    def test____init__(t):
-        t.assertEqual(
-            t.wl.eventPriorityList,
-            [t.wl.eventworklist, t.wl.otherworklist, t.wl.applyworklist]
-        )
-        t.assertEqual(
-            t.wl.otherPriorityList,
-            [t.wl.otherworklist, t.wl.applyworklist, t.wl.eventworklist]
-        )
-        t.assertEqual(
-            t.wl.applyPriorityList,
-            [t.wl.applyworklist, t.wl.eventworklist, t.wl.otherworklist]
-        )
-        t.assertEqual(
-            t.wl.dispatch,
-            {
-                'sendEvents': t.wl.eventworklist,
-                'sendEvent': t.wl.eventworklist,
-                'applyDataMaps': t.wl.applyworklist
-            }
-        )
-
-    def test___getitem__(t):
-        '''zenhub_worker_list[dispatch] uses the dispatch dict to
-        map 'sendEvents', 'sendEvent', 'applyDataMaps' keys to worklists
-        '''
-        t.assertEqual(t.wl['sendEvents'], t.wl.eventworklist)
-        t.assertEqual(t.wl['sendEvent'], t.wl.eventworklist)
-        t.assertEqual(t.wl['applyDataMaps'], t.wl.applyworklist)
-        t.assertEqual(t.wl['anything else'], t.wl.otherworklist)
-
-    def test___len__(t):
-        '''len(zenhub_worker_list) returns the sum of all work lists
-        '''
-        t.wl.eventworklist = range(1)
-        t.wl.applyworklist = range(2)
-        t.wl.otherworklist = range(4)
-        t.assertEqual(len(t.wl), 7)
-
-    def test_push(t):
-        other = Mock(
-            name='apply_datamap', spec_set=['method'], method='other'
-        )
-        t.wl.push(other)
-        t.assertEqual(t.wl.otherworklist, [other])
-
-    def test_push_sendEvent(t):
-        send_event = Mock(
-            name='send_event', spec_set=['method'], method='sendEvent'
-        )
-        t.wl.push(send_event)
-        t.assertEqual(t.wl['sendEvent'], [send_event])
-
-    def test_push_sendEvents(t):
-        send_events = Mock(
-            name='send_events', spec_set=['method'], method='sendEvents'
-        )
-        t.wl.push(send_events)
-        t.assertEqual(t.wl['sendEvents'], [send_events])
-
-    def test_push_applyDataMaps(t):
-        apply_datamap = Mock(
-            name='apply_datamap', spec_set=['method'], method='applyDataMaps'
-        )
-        t.wl.push(apply_datamap)
-        t.assertEqual(t.wl['applyDataMaps'], [apply_datamap])
-
-    def test_append(t):
-        t.assertEqual(t.wl.append, t.wl.push)
-
-    def test_pop(t):
-        '''randomizes selection from lists in an attempt to weight and balance
-        item selection. with an option to ignore the applyDataMaps queue.
-        current implementation is highly inefficient.
-        current logic will not apply weighing properly if allowADM=False.
-        cannot set random.seed('static'), random was not imported
-
-        Should be reviewed and refactored.
-        '''
-        job_a = Mock(name='job_a', spec_set=['method'], method='sendEvent')
-
-        t.wl.push(job_a)
-
-        ret = t.wl.pop()
-        t.assertEqual(ret, job_a)
-        ret = t.wl.pop()
-        t.assertEqual(ret, None)
-
-
-class ZenHubModuleTest(TestCase):
-
-    @patch('{src}.HttpPostPublisher'.format(**PATH), autospec=True)
-    def test_publisher(t, HttpPostPublisher):
-        ret = publisher('username', 'password', 'url')
-        HttpPostPublisher.assert_called_with('username', 'password', 'url')
-        t.assertEqual(ret, HttpPostPublisher.return_value)
-
-    @patch('{src}.RedisListPublisher'.format(**PATH), autospec=True)
-    def test_redisPublisher(t, RedisListPublisher):
-        ret = redisPublisher()
-        RedisListPublisher.assert_called_with()
-        t.assertEqual(ret, RedisListPublisher.return_value)
-
-    @patch('{src}.AggregateMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.FilteredMetricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.redisPublisher'.format(**PATH), autospec=True)
-    @patch('{src}.MetricWriter'.format(**PATH), autospec=True)
-    def test_metricWriter(
-        t,
-        MetricWriter,
-        redisPublisher,
-        os,
-        publisher,
-        FilteredMetricWriter,
-        AggregateMetricWriter
-    ):
-        '''Returns an initialized MetricWriter instance,
-        should probably be refactored into its own class
-        '''
-        os.environ = {
-            'CONTROLPLANE': '1',
-            'CONTROLPLANE_CONSUMER_URL': 'consumer_url',
-            'CONTROLPLANE_CONSUMER_USERNAME': 'consumer_username',
-            'CONTROLPLANE_CONSUMER_PASSWORD': 'consumer_password',
-        }
-
-        ret = metricWriter()
-
-        MetricWriter.assert_called_with(redisPublisher.return_value)
-        publisher.assert_called_with(
-            os.environ['CONTROLPLANE_CONSUMER_USERNAME'],
-            os.environ['CONTROLPLANE_CONSUMER_PASSWORD'],
-            os.environ['CONTROLPLANE_CONSUMER_URL'],
-        )
-        AggregateMetricWriter.assert_called_with(
-            [MetricWriter.return_value, FilteredMetricWriter.return_value]
-        )
-        t.assertEqual(ret, AggregateMetricWriter.return_value)
-
-
 class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    # @patch.object(ZenHub, 'getRRDStats')
-    @patch('{src}.metricWriter'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
     @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
@@ -410,12 +260,12 @@ class ZenHubInitTest(TestCase):
     @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), spec=True)
     @patch('{src}.notify'.format(**PATH), spec=True)
     @patch('{src}.load_config'.format(**PATH), spec=True)
-    @patch('{src}._ZenHubWorklist'.format(**PATH), spec=True)
+    @patch('{src}.ZenHubWorklist'.format(**PATH), spec=True)
     @patch('{src}.ZCmdBase.__init__'.format(**PATH), spec=True)
     def test___init__(
         t,
         ZCmdBase___init__,
-        _ZenHubWorklist,
+        ZenHubWorklist,
         load_config,
         notify,
         HubWillBeCreatedEvent,
@@ -433,9 +283,8 @@ class ZenHubInitTest(TestCase):
         HubCreatedEvent,
         App_Start,
         signal,
-        metricWriter,
-        # ZenHub_getRRDStats,
         load_config_override,
+        MetricManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -473,7 +322,7 @@ class ZenHubInitTest(TestCase):
             zh = ZenHub()
 
         t.assertIsInstance(zh, ZenHub)
-        t.assertEqual(zh.workList, _ZenHubWorklist.return_value)
+        t.assertEqual(zh._worklist, ZenHubWorklist.return_value)
         # Skip Metrology validation for now due to complexity
         ZCmdBase___init__.assert_called_with(zh)
         load_config.assert_called_with("hub.zcml", Products.ZenHub)
@@ -486,8 +335,6 @@ class ZenHubInitTest(TestCase):
         # TODO: move worker management into its own manager class
         WorkerSelector.assert_called_with(zh.options)
         t.assertEqual(zh.workerselector, WorkerSelector.return_value)
-        # check this, was it supposed to be set on workerselector?
-        t.assertEqual(zh.workList.log, zh.log)
 
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
@@ -528,9 +375,15 @@ class ZenHubInitTest(TestCase):
             zh, eventClass=App_Start, summary='zenhub started',
             severity=0
         )
+        MetricManager.assert_called_with(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub',
+                'zenoss_monitor': zh.options.monitor,
+                'internal': True
+            }
+        )
+        t.assertEqual(zh._metric_manager, MetricManager.return_value)
 
-        t.assertEqual(zh._metric_writer, metricWriter.return_value)
-        t.assertEqual(zh.rrdStats, zh.getRRDStats())
         # Convert this to a LoopingCall
         reactor.callLater.assert_called_with(
             zh.options.invalidation_poll_interval, zh.processQueue
@@ -561,6 +414,39 @@ class ZenHubTest(TestCase):
         t.zh.log = Mock(name='log', spec_set=['debug', 'warn', 'exception', 'warning'])
         t.zh.shutdown = False
         t.zh.zem = Mock(name='ZenEventManager', spec_set=['sendEvent'])
+
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    @patch('{src}.getUtility'.format(**PATH), autospec=True)
+    @patch('{src}.os'.format(**PATH), autospec=True)
+    def test_main(t, os, getUtility, MetricManager):
+        '''Daemon Entry Point
+        Execution waits at reactor.run() until the reactor stops
+        '''
+        t.zh.options = sentinel.options
+        t.zh.options.monitor = 'localhost'
+        t.zh.options.cycle = True
+        t.zh.options.profiling = True
+        # Metric Management
+        t.zh._metric_manager = MetricManager.return_value
+        t.zh._metric_writer = sentinel.metric_writer
+        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
+
+        t.zh.main()
+
+        # convert to a looping call
+        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
+
+        t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
+        t.zh._metric_manager.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhub exits
+        t.reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', t.zh._metric_manager.stop
+        )
+        # After the reactor stops:
+        t.zh.profiler.stop.assert_called_with()
+        # Closes IEventPublisher, which breaks old integration tests
+        getUtility.assert_called_with(IEventPublisher)
+        getUtility.return_value.close.assert_called_with()
 
     def test_setKeepAlive(t):
         '''ConnectionHandler function
@@ -653,45 +539,17 @@ class ZenHubTest(TestCase):
                 ))
             )
 
-    @patch('{src}.DerivativeTracker'.format(**PATH), autospec=True)
-    @patch('{src}.ThresholdNotifier'.format(**PATH), autospec=True)
-    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
-    def test_getRRDStats(t, DaemonStats, ThresholdNotifier, DerivativeTracker):
-        '''Metric reporting function
-        '''
-        t.zh._getConf = create_autospec(t.zh._getConf, name='_getConf')
-        t.zh._metric_writer = Mock(metricWriter, name='metricWriter')
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
+    def test_getRRDStats(t, MetricManager):
+        t.zh._metric_manager = MetricManager.return_value
+        t.zh._getConf = create_autospec(t.zh._getConf)
 
-        # patch to deal with internal import
-        BuiltInDS_module = MagicMock(
-            name='Products.ZenModel.BuiltInDS',
-            spec_set=['BuiltInDS'],
+        ret = t.zh.getRRDStats()
+
+        t.zh._metric_manager.get_rrd_stats.assert_called_with(
+            t.zh._getConf(), t.zh.zem.sendEvent
         )
-        BuiltInDS = MagicMock(name='BuiltInDS', spec_set=['sourcetype'])
-        BuiltInDS_module.BuiltInDS = BuiltInDS
-        modules = {'Products.ZenModel.BuiltInDS': BuiltInDS_module}
-
-        with patch.dict('sys.modules', modules):
-            ret = t.zh.getRRDStats()
-
-        rrdStats = DaemonStats.return_value
-        perfConf = t.zh._getConf.return_value
-        thresholds = perfConf.getThresholdInstances.return_value
-        threshold_notifier = ThresholdNotifier.return_value
-        derivative_tracker = DerivativeTracker.return_value
-
-        perfConf.getThresholdInstances.assert_called_with(BuiltInDS.sourcetype)
-        ThresholdNotifier.assert_called_with(t.zh.zem.sendEvent, thresholds)
-
-        rrdStats.config.assert_called_with(
-            'zenhub',
-            perfConf.id,
-            t.zh._metric_writer,
-            threshold_notifier,
-            derivative_tracker
-        )
-
-        t.assertEqual(ret, DaemonStats.return_value)
+        t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
     def test_processQueue(t):
         '''Configuration Invalidation Processing function
@@ -994,14 +852,12 @@ class ZenHubTest(TestCase):
         should be refactored to use inlineCallbacks
         '''
         t.zh.getService = create_autospec(t.zh.getService)
-        service = t.zh.getService.return_value.service
-        t.zh.workList = Mock(_ZenHubWorklist, name='_ZenHubWorklist')
+        t.zh._worklist = Mock(ZenHubWorklist, name='ZenHubWorklist')
         args = (sentinel.arg0, sentinel.arg1)
 
         ret = t.zh.deferToWorker('svcName', 'instance', 'method', args)
 
         HubWorklistItem.assert_called_with(
-            service.getMethodPriority.return_value,
             t.time.time.return_value,
             defer.Deferred.return_value,
             'svcName', 'instance', 'method',
@@ -1118,8 +974,8 @@ class ZenHubTest(TestCase):
         job = Mock(name='job', spec_set=['method', 'args'])
         job.args = [sentinel.arg0, sentinel.arg1]
         # should be set in __init__
-        t.zh.workList = _ZenHubWorklist()
-        t.zh.workList.append(job)
+        t.zh._worklist = ZenHubWorklist()
+        t.zh._worklist.push(job)
         worker = Mock(
             name='worker', spec_set=['busy', 'callRemote'], busy=False
         )
@@ -1168,7 +1024,7 @@ class ZenHubTest(TestCase):
         t.zh.totalEvents = sentinel.totalEvents
         service0 = Mock(name='service0', spec_set=['callTime'], callTime=9)
         t.zh.services = {'service0': service0}
-        t.zh.workList = [sentinel.work0, sentinel.work1]
+        t.zh._worklist = [sentinel.work0, sentinel.work1]
         t.zh.counters = collections.Counter()
 
         t.zh.heartbeat()
@@ -1192,49 +1048,8 @@ class ZenHubTest(TestCase):
         ])
         t.zh.rrdStats.gauge.assert_has_calls([
             call('services', len(t.zh.services)),
-            call('workListLength', len(t.zh.workList)),
+            call('workListLength', len(t.zh._worklist)),
         ])
-
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    @patch('{src}.os'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
-    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
-    def test_main(t, LoopingCall, TwistedMetricReporter, os, getUtility):
-        '''Daemon Entry Point
-        Execution waits at reactor.run() until the reactor stops
-        '''
-        t.zh.options = Mock(
-            name='options', spec_set=['cycle', 'monitor', 'profiling'],
-            cycle=True, profiling=True
-        )
-        # Metric Management
-        t.zh._metric_writer = sentinel.metric_writer
-        t.zh.profiler = Mock(name='profiler', spec_set=['stop'])
-
-        t.zh.main()
-
-        # convert to a looping call
-        t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
-        # sets up and starts its metric reporter
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=t.zh._metric_writer,
-            tags={
-                'zenoss_daemon': 'zenhub',
-                'zenoss_monitor': t.zh.options.monitor,
-                'internal': True
-            }
-        )
-        t.assertEqual(t.zh.metricreporter, TwistedMetricReporter.return_value)
-        t.zh.metricreporter.start.assert_called_with()
-        # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh.metricreporter.stop
-        )
-        # After the reactor stops:
-        t.zh.profiler.stop.assert_called_with()
-        # Closes IEventPublisher, which breaks old integration tests
-        getUtility.assert_called_with(IEventPublisher)
-        getUtility.return_value.close.assert_called_with()
 
     @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
@@ -1262,7 +1077,6 @@ class ZenHubTest(TestCase):
         zenPath.assert_called_with('etc', 'hubpasswd')
         t.assertEqual(t.zh.options.passwordfile, zenPath.return_value)
         t.assertEqual(t.zh.options.monitor, 'localhost')
-        t.assertEqual(t.zh.options.prioritize, False)
         t.assertEqual(t.zh.options.workersReservedForEvents, 1)
         t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
         t.assertEqual(t.zh.options.profiling, False)
@@ -1335,3 +1149,28 @@ class DefaultHubHeartBeatCheckTest(TestCase):
         zenhub = sentinel.zenhub
         default_hub_heartbeat_check = DefaultHubHeartBeatCheck(zenhub)
         default_hub_heartbeat_check.check()
+
+
+class TestModelingPaused(TestCase):
+
+    def test_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 100
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(True, actual)
+
+    def test_not_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 300
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(False, actual)
