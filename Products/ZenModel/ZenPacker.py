@@ -43,10 +43,11 @@ class ZenPacker(object):
                 else:
                     message = 'Nothing to save'
         if REQUEST:
+            path = ''
             if isinstance(pack, ZenPack):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Add To ZenPack', message)
-            path = getUtility(IVirtualRoot).ensure_virtual_root(pack.getPrimaryUrlPath())
+                path = getUtility(IVirtualRoot).ensure_virtual_root(pack.getPrimaryUrlPath())
             return REQUEST['RESPONSE'].redirect(path)
 
     def findObject(self, id):
