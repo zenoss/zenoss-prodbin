@@ -1368,6 +1368,9 @@ top: 10px;
 .dialog .dialog-custom-graph-point select[name="flavor"] {
     margin-left: 10px;
 }
+.dialog #threshNamesInput {
+    width: 100%;
+}
 
 /* IE HACKS */
 
