@@ -2,13 +2,6 @@
 <h2>Add GraphPoint</h2>
 <span id="errmsg" style="color:red;"></span>
 <div id="add_graph_point">
-<div id="dialog_buttons">
-<input id="dialog_submit" type="submit" name="manage_addDataPointGraphPoints:method" value="OK"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
-<input id="dialog_cancel" type="button" value="Cancel"
-        onclick="$('dialog').hide()"/>
-</div>
 
 <tal:block tal:condition="not: exists: here/datasources">
 <div style="text-align:left;" class="yui-skin-sam">
@@ -21,6 +14,14 @@ DataPoint Name<br />
 </div>
 <br /><br />
 </tal:block>
+
+<div id="dialog_buttons">
+    <input id="dialog_submit" type="submit" name="manage_addDataPointGraphPoints:method" value="OK"
+             tal:attributes="onclick string:return $$('dialog').submit_form(
+            '${here/absolute_url_path}')" />
+    <input id="dialog_cancel" type="button" value="Cancel"
+           onclick="$('dialog').hide()"/>
+</div>
 
 <tal:block tal:condition="exists: here/datasources">
 <span style="text-align:left;">
