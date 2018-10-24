@@ -11,6 +11,8 @@
 import Globals
 from AccessControl import ClassSecurityInfo
 from Products.ZenWidgets import messaging
+from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 
 class ZenPacker(object):
     security = ClassSecurityInfo()
@@ -44,8 +46,8 @@ class ZenPacker(object):
             if isinstance(pack, ZenPack):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Add To ZenPack', message)
-            return REQUEST['RESPONSE'].redirect('/zport/dmd/ZenPackManager' +
-                    '/packs/%s' % pack.id if pack else '')
+            path = getUtility(IVirtualRoot).ensure_virtual_root(pack.getPrimaryUrlPath())
+            return REQUEST['RESPONSE'].redirect(path)
 
     def findObject(self, id):
         "Ugly hack for inconsistent object structure accross Organizers"
