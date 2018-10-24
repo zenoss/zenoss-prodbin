@@ -333,8 +333,8 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                     ref: 'metricName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedNameTextDash,
-                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                    regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                     blankText: _t('Name is a required field')
                 }],
                 buttons: [{
@@ -409,8 +409,8 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                     ref: 'dataSourceName',
                     fieldLabel: _t('Name'),
                     allowBlank: false,
-                    regex: Zenoss.env.textMasks.allowedNameTextDash,
-                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDash,
+                    regex: Zenoss.env.textMasks.allowedNameTextDashDot,
+                    regexText: Zenoss.env.textMasks.allowedNameTextFeedbackDashDot,
                     blankText: _t('Name is a required field')
                 }, {
                     xtype: 'combo',
@@ -579,8 +579,8 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
             newId = findSubObject({name:"newId"}, config)
             if (newId) {
                 newId.inputAttrTpl = null;
-                newId.regex = Zenoss.env.textMasks.allowedNameTextDash;
-                newId.regexText = Zenoss.env.textMasks.allowedNameTextFeedbackDash;
+                newId.regex = Zenoss.env.textMasks.allowedNameTextDashDot;
+                newId.regexText = Zenoss.env.textMasks.allowedNameTextFeedbackDashDot;
             }
 
             if (isDataPoint) {
