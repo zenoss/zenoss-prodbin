@@ -83,6 +83,20 @@ class TestMailProcessor(BaseTestCase):
         # I *think* it got fixed in Python
         self.checkMsgToEvent( "utc" )
 
+    def testParseEmail(self):
+        mp = MessageProcessor(self.zem, 2)
+        cases = [
+            'more.info@test.example.com',
+            '<more.info@test.example.com>',
+            '"more.info@test.example.com"',
+            '"more.info@test.example.com"',
+            "'more.info@test.example.com'",
+            '"More Information" <more.info@test.example.com>',
+        ]
+        expected = 'more.info@test.example.com'
+        for email in cases:
+            parsed = mp.parse_email_address(email)
+            self.assertEquals(parsed, expected)
 
 
 def test_suite():
