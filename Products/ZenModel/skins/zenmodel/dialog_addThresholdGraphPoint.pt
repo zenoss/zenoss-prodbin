@@ -2,7 +2,7 @@
 <span id="errmsg" style="color:red;"></span>
 
 <tal:block tal:condition="not: exists: here/datasources">
-<div style="text-align:left;" class="yui-skin-sam">
+<div class="yui-skin-sam">
 Threshold Name<br />
 <div id="threshNamesAutoComplete" style="color: black; position: relative; width: 30em">
 <input id="threshNamesInput" type="text" name="threshNames:list" size="40" 
@@ -10,7 +10,6 @@ Threshold Name<br />
 <div id="threshNameContainer"></div>
 </div>
 </div>
-<br /><br />
 </tal:block>
 
 <tal:block tal:condition="exists: here/datasources">
