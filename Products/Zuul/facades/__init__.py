@@ -182,6 +182,10 @@ class TreeFacade(ZuulFacade):
             elif key == 'productionState':
                 qs.append(Or(*[Eq('productionState', str(state))
                              for state in value]))
+            # ZEN-30949 - stringify values from the 'priority' list if it's passed in for query criteria
+            elif key == 'priority':
+                qs.append(Or(*[Eq('priority', str(priority))
+                               for priority in value]))
             # ZEN-10057 - move filtering on indexed groups/systems/location from post-filter to query
             elif key in organizersToClass:
                 organizerQuery = self.findMatchingOrganizers(organizersToClass[key], organizersToPath[key], value)
