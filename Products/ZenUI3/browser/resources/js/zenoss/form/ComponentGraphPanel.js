@@ -378,7 +378,6 @@
             if (this.hideToolbar) {
                 this.toolbar.hide();
             }
-            // this.toggleAggregation();
         },
         aggregationOnChange: function(t, e) {
             Ext.each(this.getGraphs(), function(g) {
@@ -388,9 +387,6 @@
             this.aggregationMenu.aggregation = t.itemId;
             this.aggregationMenu.fireEvent('change');
         },
-        /*toggleAggregation: function() {
-            this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
-        },*/
 
         setContext: function (uid) {
             this.uid = uid;
@@ -619,7 +615,6 @@
             }
             this.updateStartDatePicker();
             this.updateEndDatePicker();
-            // this.toggleAggregation();
         },
         getGraphs: function () {
             return this.query('europagraph');

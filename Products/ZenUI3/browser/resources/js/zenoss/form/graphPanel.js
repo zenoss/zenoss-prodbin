@@ -285,7 +285,6 @@
             });
 
             Zenoss.EuropaGraph.superclass.constructor.call(me, config);
-            // me.toggleAggregation();
         },
         initComponent: function() {
             // the visualization library depends on our div rendering,
@@ -754,7 +753,6 @@
             };
             zenoss.visualization.chart.update(this.graphId, changes);
             this.graph_params = gp;
-            // this.toggleAggregation();
         },
         convertStartToAbsoluteTime: function(start) {
             if (Ext.isNumber(start)) {
@@ -838,14 +836,6 @@
             this.fireEvent("updatelimits", { start: start, end: end });
             this.fireEvent("updateimage", { start: start, end: end });
         }
-
-        /*toggleAggregation: function() {
-            var start = this.convertStartToAbsoluteTime(this.graph_params.start),
-                end = this.convertEndToAbsolute(this.graph_params.end),
-                state = end-start < 1000*60*60*24*2;
-
-            this.aggregationMenu.setDisabled(state);
-        }*/
     });
 
 
@@ -961,11 +951,6 @@
                 'change'
             );
         }
-
-        /*setDisabled: function(state) {
-            this.callParent(arguments);
-            this.setTooltip(state ? _t('Aggregation type for less than 48H period is disabled') : this.tooltip);
-        }*/
     });
 
 
@@ -1347,7 +1332,6 @@
             if (this.hideToolbar){
                 this.toolbar.hide();
             }
-            // this.toggleAggregation();
         },
         aggregationOnChange: function(t, e) {
             Ext.each(this.getGraphs(), function(g) {
@@ -1656,13 +1640,7 @@
                     item.enable();
                 }
             });
-
-            // this.toggleAggregation();
         }
-
-        /*toggleAggregation: function() {
-            this.aggregationMenu.setDisabled(this.end.valueOf()-this.start.valueOf() < 1000*60*60*24*2);
-        }*/
     });
 
 
