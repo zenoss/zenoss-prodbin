@@ -331,7 +331,7 @@
                     start : this.graph_params.start,
                     end : this.graph_params.end
                 },
-                aggregation: this.aggregation,
+                aggregation: this.aggregationMenu.aggregation,
                 base: this.base,
                 tags: this.tags,
                 datapoints: this.datapoints,
