@@ -15,12 +15,11 @@ import logging
 import Migrate
 import re
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 log = logging.getLogger("zen.migrate")
 
 
 class IncreaseZenHubMemory(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 4)
 
     def cutover(self, dmd):
         try:
