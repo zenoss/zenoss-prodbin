@@ -25,207 +25,11 @@ from Products.ZenHub.zenhub import (
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
     ModelingPaused,
+    HubRealm,
+    portal,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
-
-
-class AuthXmlRpcServiceTest(TestCase):
-
-    def setUp(t):
-        t.dmd = Mock(name='dmd', spec_set=['ZenEventManager'])
-        t.checker = Mock(name='checker', spec_set=['requestAvatarId'])
-
-        t.axrs = AuthXmlRpcService(t.dmd, t.checker)
-
-    @patch('{src}.XmlRpcService.__init__'.format(**PATH), autospec=True)
-    def test___init__(t, XmlRpcService__init__):
-        dmd = sentinel.dmd
-        checker = sentinel.checker
-
-        axrs = AuthXmlRpcService(dmd, checker)
-
-        XmlRpcService__init__.assert_called_with(axrs, dmd)
-        t.assertEqual(axrs.checker, checker)
-
-    def test_doRender(t):
-        '''should be refactored to call self.render,
-        instead of the parrent class directly
-        '''
-        render = create_autospec(XmlRpcService.render, name='render')
-        XmlRpcService.render = render
-        request = sentinel.request
-
-        ret = t.axrs.doRender('unused arg', request)
-
-        XmlRpcService.render.assert_called_with(t.axrs, request)
-        t.assertEqual(ret, render.return_value)
-
-    @patch('{src}.xmlrpc'.format(**PATH), name='xmlrpc', autospec=True)
-    def test_unauthorized(t, xmlrpc):
-        request = sentinel.request
-        t.axrs._cbRender = create_autospec(t.axrs._cbRender)
-
-        t.axrs.unauthorized(request)
-
-        xmlrpc.Fault.assert_called_with(t.axrs.FAILURE, 'Unauthorized')
-        t.axrs._cbRender.assert_called_with(xmlrpc.Fault.return_value, request)
-
-    @patch('{src}.server'.format(**PATH), name='server', autospec=True)
-    @patch(
-        '{src}.credentials'.format(**PATH), name='credentials', autospec=True
-    )
-    def test_render(t, credentials, server):
-        request = Mock(name='request', spec_set=['getHeader'])
-        auth = Mock(name='auth', spec_set=['split'])
-        encoded = Mock(name='encoded', spec_set=['decode'])
-        encoded.decode.return_value.split.return_value = ('user', 'password')
-        auth.split.return_value = ('Basic', encoded)
-
-        request.getHeader.return_value = auth
-
-        ret = t.axrs.render(request)
-
-        request.getHeader.assert_called_with('authorization')
-        encoded.decode.assert_called_with('base64')
-        encoded.decode.return_value.split.assert_called_with(':')
-        credentials.UsernamePassword.assert_called_with('user', 'password')
-        t.axrs.checker.requestAvatarId.assert_called_with(
-            credentials.UsernamePassword.return_value
-        )
-        deferred = t.axrs.checker.requestAvatarId.return_value
-        deferred.addCallback.assert_called_with(t.axrs.doRender, request)
-
-        t.assertEqual(ret, server.NOT_DONE_YET)
-
-
-class HubAvitarTest(TestCase):
-
-    def setUp(t):
-        t.hub = Mock(
-            name='hub',
-            spec_set=['getService', 'log', 'workers', 'updateEventWorkerCount']
-        )
-        t.avitar = HubAvitar(t.hub)
-
-    def test___init__(t):
-        t.assertEqual(t.avitar.hub, t.hub)
-
-    def test_perspective_ping(t):
-        ret = t.avitar.perspective_ping()
-        t.assertEqual(ret, 'pong')
-
-    @patch('{src}.os.environ'.format(**PATH), name='os.environ', autospec=True)
-    def test_perspective_getHubInstanceId(t, os_environ):
-        ret = t.avitar.perspective_getHubInstanceId()
-        os_environ.get.assert_called_with(
-            'CONTROLPLANE_INSTANCE_ID', 'Unknown'
-        )
-        t.assertEqual(ret, os_environ.get.return_value)
-
-    def test_perspective_getService(t):
-        service_name = 'serviceName'
-        instance = 'collector_instance_name'
-        listener = sentinel.listener
-        options = sentinel.options
-        service = t.hub.getService.return_value
-
-        ret = t.avitar.perspective_getService(
-            service_name, instance=instance,
-            listener=listener, options=options
-        )
-
-        t.hub.getService.assert_called_with(service_name, instance)
-        service.addListener.assert_called_with(listener, options)
-        t.assertEqual(ret, service)
-
-    def test_perspective_getService_raises_RemoteBadMonitor(t):
-        t.hub.getService.side_effect = RemoteBadMonitor('tb', 'msg')
-        with t.assertRaises(RemoteBadMonitor):
-            t.avitar.perspective_getService('service_name')
-
-    def test_perspective_reportingForWork(t):
-        worker = Mock(pb.RemoteReference, autospec=True)
-        workerId = 0
-        t.hub.workers = []
-
-        t.avitar.perspective_reportingForWork(worker, workerId=workerId)
-
-        t.assertFalse(worker.busy)
-        t.assertEqual(worker.workerId, workerId)
-        t.assertIn(worker, t.hub.workers)
-
-        # Ugly test for the notifyOnDisconnect method, please refactor
-        args, kwargs = worker.notifyOnDisconnect.call_args
-        removeWorker = args[0]
-
-        removeWorker(worker)
-        t.assertNotIn(worker, t.hub.workers)
-
-
-class ServiceAddedEventTest(TestCase):
-    def test___init__(t):
-        name, instance = 'name', 'instance'
-        service_added_event = ServiceAddedEvent(name, instance)
-        # the class Implements the Interface
-        t.assertTrue(IServiceAddedEvent.implementedBy(ServiceAddedEvent))
-        # the object provides the interface
-        t.assertTrue(IServiceAddedEvent.providedBy(service_added_event))
-        # Verify the object implments the interface properly
-        verifyObject(IServiceAddedEvent, service_added_event)
-
-        t.assertEqual(service_added_event.name, name)
-        t.assertEqual(service_added_event.instance, instance)
-
-
-class HubWillBeCreatedEventTest(TestCase):
-    def test__init__(t):
-        hub = sentinel.zenhub_instance
-        event = HubWillBeCreatedEvent(hub)
-        # the class Implements the Interface
-        t.assertTrue(
-            IHubWillBeCreatedEvent.implementedBy(HubWillBeCreatedEvent)
-        )
-        # the object provides the interface
-        t.assertTrue(IHubWillBeCreatedEvent.providedBy(event))
-        # Verify the object implments the interface properly
-        verifyObject(IHubWillBeCreatedEvent, event)
-
-        t.assertEqual(event.hub, hub)
-
-
-class HubCreatedEventTest(TestCase):
-    def test__init__(t):
-        hub = sentinel.zenhub_instance
-        event = HubCreatedEvent(hub)
-        # the class Implements the Interface
-        t.assertTrue(
-            IHubCreatedEvent.implementedBy(HubCreatedEvent)
-        )
-        # the object provides the interface
-        t.assertTrue(IHubCreatedEvent.providedBy(event))
-        # Verify the object implments the interface properly
-        verifyObject(IHubCreatedEvent, event)
-
-        t.assertEqual(event.hub, hub)
-
-
-class ParserReadyForOptionsEventTest(TestCase):
-    def test__init__(t):
-        parser = sentinel.parser
-        event = ParserReadyForOptionsEvent(parser)
-        # the class Implements the Interface
-        t.assertTrue(
-            IParserReadyForOptionsEvent.implementedBy(
-                ParserReadyForOptionsEvent
-            )
-        )
-        # the object provides the interface
-        t.assertTrue(IParserReadyForOptionsEvent.providedBy(event))
-        # Verify the object implments the interface properly
-        verifyObject(IParserReadyForOptionsEvent, event)
-
-        t.assertEqual(event.parser, parser)
 
 
 class ZenHubInitTest(TestCase):
@@ -382,6 +186,14 @@ class ZenHubInitTest(TestCase):
         )
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
+
+    def test_PbRegistration(t):
+        from twisted.spread.jelly import unjellyableRegistry
+        t.assertTrue('DataMaps.ObjectMap' in unjellyableRegistry)
+        t.assertTrue(
+            'Products.DataCollector.plugins.DataMaps.ObjectMap'
+            in unjellyableRegistry
+        )
 
 
 class ZenHubTest(TestCase):
@@ -927,6 +739,193 @@ class ZenHubTest(TestCase):
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
 
 
+class TestModelingPaused(TestCase):
+
+    def test_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 100
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(True, actual)
+
+    def test_not_paused(self):
+        dmd = Mock()
+        dmd.getPauseADMLife.return_value = 300
+        pause_timeout = 200
+        paused = ModelingPaused(dmd, pause_timeout)
+
+        actual = paused()
+
+        dmd.getPauseADMLife.assert_called_with()
+        self.assertEqual(False, actual)
+
+
+class HubRealmTest(TestCase):
+
+    def test_implements_IRealm(t):
+        # the class Implements the Interface
+        t.assertTrue(portal.IRealm.implementedBy(HubRealm))
+
+    @patch('{src}.HubAvitar'.format(**PATH), autospec=True)
+    def test_requestAvatar(t, HubAvitar):
+        zenhub = Mock(ZenHub, name='ZenHub')
+        hub_realm = HubRealm(zenhub)
+
+        perspective, avatar, lam = hub_realm.requestAvatar(
+            'AvitarId', 'mind', *[pb.IPerspective]
+        )
+
+        t.assertEqual(perspective, pb.IPerspective)
+        t.assertEqual(avatar, HubAvitar.return_value)
+        t.assertEqual(lam(), None)
+
+    def test_requestAvatar_raises_missing_interface(t):
+        zenhub = Mock(ZenHub, name='ZenHub')
+        hub_realm = HubRealm(zenhub)
+
+        with t.assertRaises(NotImplementedError):
+            perspective, avatar, lam = hub_realm.requestAvatar(
+                'AvitarId', 'mind', *['missing interface']
+            )
+
+
+class HubAvitarTest(TestCase):
+
+    def setUp(t):
+        t.hub = Mock(
+            name='hub',
+            spec_set=['getService', 'log', 'workers', 'updateEventWorkerCount']
+        )
+        t.avitar = HubAvitar(t.hub)
+
+    def test___init__(t):
+        t.assertEqual(t.avitar.hub, t.hub)
+
+    def test_perspective_ping(t):
+        ret = t.avitar.perspective_ping()
+        t.assertEqual(ret, 'pong')
+
+    @patch('{src}.os.environ'.format(**PATH), name='os.environ', autospec=True)
+    def test_perspective_getHubInstanceId(t, os_environ):
+        ret = t.avitar.perspective_getHubInstanceId()
+        os_environ.get.assert_called_with(
+            'CONTROLPLANE_INSTANCE_ID', 'Unknown'
+        )
+        t.assertEqual(ret, os_environ.get.return_value)
+
+    def test_perspective_getService(t):
+        service_name = 'serviceName'
+        instance = 'collector_instance_name'
+        listener = sentinel.listener
+        options = sentinel.options
+        service = t.hub.getService.return_value
+
+        ret = t.avitar.perspective_getService(
+            service_name, instance=instance,
+            listener=listener, options=options
+        )
+
+        t.hub.getService.assert_called_with(service_name, instance)
+        service.addListener.assert_called_with(listener, options)
+        t.assertEqual(ret, service)
+
+    def test_perspective_getService_raises_RemoteBadMonitor(t):
+        t.hub.getService.side_effect = RemoteBadMonitor('tb', 'msg')
+        with t.assertRaises(RemoteBadMonitor):
+            t.avitar.perspective_getService('service_name')
+
+    def test_perspective_reportingForWork(t):
+        worker = Mock(pb.RemoteReference, autospec=True)
+        workerId = 0
+        t.hub.workers = []
+
+        t.avitar.perspective_reportingForWork(worker, workerId=workerId)
+
+        t.assertFalse(worker.busy)
+        t.assertEqual(worker.workerId, workerId)
+        t.assertIn(worker, t.hub.workers)
+
+        # Ugly test for the notifyOnDisconnect method, please refactor
+        args, kwargs = worker.notifyOnDisconnect.call_args
+        removeWorker = args[0]
+
+        removeWorker(worker)
+        t.assertNotIn(worker, t.hub.workers)
+
+
+class AuthXmlRpcServiceTest(TestCase):
+
+    def setUp(t):
+        t.dmd = Mock(name='dmd', spec_set=['ZenEventManager'])
+        t.checker = Mock(name='checker', spec_set=['requestAvatarId'])
+
+        t.axrs = AuthXmlRpcService(t.dmd, t.checker)
+
+    @patch('{src}.XmlRpcService.__init__'.format(**PATH), autospec=True)
+    def test___init__(t, XmlRpcService__init__):
+        dmd = sentinel.dmd
+        checker = sentinel.checker
+
+        axrs = AuthXmlRpcService(dmd, checker)
+
+        XmlRpcService__init__.assert_called_with(axrs, dmd)
+        t.assertEqual(axrs.checker, checker)
+
+    def test_doRender(t):
+        '''should be refactored to call self.render,
+        instead of the parrent class directly
+        '''
+        render = create_autospec(XmlRpcService.render, name='render')
+        XmlRpcService.render = render
+        request = sentinel.request
+
+        ret = t.axrs.doRender('unused arg', request)
+
+        XmlRpcService.render.assert_called_with(t.axrs, request)
+        t.assertEqual(ret, render.return_value)
+
+    @patch('{src}.xmlrpc'.format(**PATH), name='xmlrpc', autospec=True)
+    def test_unauthorized(t, xmlrpc):
+        request = sentinel.request
+        t.axrs._cbRender = create_autospec(t.axrs._cbRender)
+
+        t.axrs.unauthorized(request)
+
+        xmlrpc.Fault.assert_called_with(t.axrs.FAILURE, 'Unauthorized')
+        t.axrs._cbRender.assert_called_with(xmlrpc.Fault.return_value, request)
+
+    @patch('{src}.server'.format(**PATH), name='server', autospec=True)
+    @patch(
+        '{src}.credentials'.format(**PATH), name='credentials', autospec=True
+    )
+    def test_render(t, credentials, server):
+        request = Mock(name='request', spec_set=['getHeader'])
+        auth = Mock(name='auth', spec_set=['split'])
+        encoded = Mock(name='encoded', spec_set=['decode'])
+        encoded.decode.return_value.split.return_value = ('user', 'password')
+        auth.split.return_value = ('Basic', encoded)
+
+        request.getHeader.return_value = auth
+
+        ret = t.axrs.render(request)
+
+        request.getHeader.assert_called_with('authorization')
+        encoded.decode.assert_called_with('base64')
+        encoded.decode.return_value.split.assert_called_with(':')
+        credentials.UsernamePassword.assert_called_with('user', 'password')
+        t.axrs.checker.requestAvatarId.assert_called_with(
+            credentials.UsernamePassword.return_value
+        )
+        deferred = t.axrs.checker.requestAvatarId.return_value
+        deferred.addCallback.assert_called_with(t.axrs.doRender, request)
+
+        t.assertEqual(ret, server.NOT_DONE_YET)
+
+
 class DefaultConfProviderTest(TestCase):
 
     def test_implements_IHubConfProvider(t):
@@ -993,26 +992,66 @@ class DefaultHubHeartBeatCheckTest(TestCase):
         default_hub_heartbeat_check.check()
 
 
-class TestModelingPaused(TestCase):
+class ServiceAddedEventTest(TestCase):
+    def test___init__(t):
+        name, instance = 'name', 'instance'
+        service_added_event = ServiceAddedEvent(name, instance)
+        # the class Implements the Interface
+        t.assertTrue(IServiceAddedEvent.implementedBy(ServiceAddedEvent))
+        # the object provides the interface
+        t.assertTrue(IServiceAddedEvent.providedBy(service_added_event))
+        # Verify the object implments the interface properly
+        verifyObject(IServiceAddedEvent, service_added_event)
 
-    def test_paused(self):
-        dmd = Mock()
-        dmd.getPauseADMLife.return_value = 100
-        pause_timeout = 200
-        paused = ModelingPaused(dmd, pause_timeout)
+        t.assertEqual(service_added_event.name, name)
+        t.assertEqual(service_added_event.instance, instance)
 
-        actual = paused()
 
-        dmd.getPauseADMLife.assert_called_with()
-        self.assertEqual(True, actual)
+class HubWillBeCreatedEventTest(TestCase):
+    def test__init__(t):
+        hub = sentinel.zenhub_instance
+        event = HubWillBeCreatedEvent(hub)
+        # the class Implements the Interface
+        t.assertTrue(
+            IHubWillBeCreatedEvent.implementedBy(HubWillBeCreatedEvent)
+        )
+        # the object provides the interface
+        t.assertTrue(IHubWillBeCreatedEvent.providedBy(event))
+        # Verify the object implments the interface properly
+        verifyObject(IHubWillBeCreatedEvent, event)
 
-    def test_not_paused(self):
-        dmd = Mock()
-        dmd.getPauseADMLife.return_value = 300
-        pause_timeout = 200
-        paused = ModelingPaused(dmd, pause_timeout)
+        t.assertEqual(event.hub, hub)
 
-        actual = paused()
 
-        dmd.getPauseADMLife.assert_called_with()
-        self.assertEqual(False, actual)
+class HubCreatedEventTest(TestCase):
+    def test__init__(t):
+        hub = sentinel.zenhub_instance
+        event = HubCreatedEvent(hub)
+        # the class Implements the Interface
+        t.assertTrue(
+            IHubCreatedEvent.implementedBy(HubCreatedEvent)
+        )
+        # the object provides the interface
+        t.assertTrue(IHubCreatedEvent.providedBy(event))
+        # Verify the object implments the interface properly
+        verifyObject(IHubCreatedEvent, event)
+
+        t.assertEqual(event.hub, hub)
+
+
+class ParserReadyForOptionsEventTest(TestCase):
+    def test__init__(t):
+        parser = sentinel.parser
+        event = ParserReadyForOptionsEvent(parser)
+        # the class Implements the Interface
+        t.assertTrue(
+            IParserReadyForOptionsEvent.implementedBy(
+                ParserReadyForOptionsEvent
+            )
+        )
+        # the object provides the interface
+        t.assertTrue(IParserReadyForOptionsEvent.providedBy(event))
+        # Verify the object implments the interface properly
+        verifyObject(IParserReadyForOptionsEvent, event)
+
+        t.assertEqual(event.parser, parser)

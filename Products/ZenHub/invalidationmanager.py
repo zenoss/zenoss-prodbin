@@ -206,16 +206,6 @@ def coroutine(func):
 
 
 @coroutine
-def iterate(target):
-    """iterates over the iterable, sending each produced item to the target.
-    """
-    while True:
-        iterable = (yield)
-        for item in iterable:
-            target.send(item)
-
-
-@coroutine
 def oid_to_obj(app, processor, checker):
     while True:
         oid = (yield)

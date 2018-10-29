@@ -8,7 +8,7 @@
 ##############################################################################
 
 from unittest import TestCase
-from mock import patch, Mock, create_autospec, MagicMock, sentinel, call
+from mock import patch, Mock, create_autospec, MagicMock, sentinel
 
 from mock_interface import create_interface_mock
 
@@ -23,7 +23,6 @@ from Products.ZenHub.invalidationmanager import (
     FILTER_EXCLUDE,
     POSKeyError,
     coroutine,
-    iterate,
     oid_to_obj,
     filter_obj,
     transform_obj,
@@ -201,18 +200,6 @@ class coroutine_Test(TestCase):
         output.send.assert_called_with(10)
         mag10.send(2)
         output.send.assert_called_with(20)
-
-    def test_iterate(t):
-        '''Used to feed an iterable to a coroutine/input-pipe
-        one item at a time
-        '''
-        output_pipe = Mock(set_spec=['send'])
-        input_pipe = iterate(output_pipe)
-        iterable = (i for i in range(10))
-
-        input_pipe.send(iterable)
-
-        output_pipe.send.assert_has_calls([call(i) for i in range(10)])
 
 
 class oid_to_obj_Test(TestCase):
