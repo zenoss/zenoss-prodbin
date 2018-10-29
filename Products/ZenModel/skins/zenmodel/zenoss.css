@@ -1286,10 +1286,7 @@ top: 10px;
 }
 
 #dialog_buttons {
-    padding: 1em;
-    text-align:left;
-    position: relative;
-    top: 10px;
+    margin-top: 5px;
 }
 
 #dialog_buttons input {
@@ -1361,6 +1358,18 @@ top: 10px;
 .dbox_tr, .dbox_br {
     overflow: hidden;
     padding-right: 8px;
+}
+.dialog .dialog-custom-graph-point {
+    display: flex;
+}
+.dialog .dialog-custom-graph-point #new_id_label {
+    align-self: center;
+}
+.dialog .dialog-custom-graph-point select[name="flavor"] {
+    margin-left: 10px;
+}
+.dialog #threshNamesInput {
+    width: 100%;
 }
 
 /* IE HACKS */

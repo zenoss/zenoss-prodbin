@@ -155,8 +155,106 @@ class TestRRDDataPoint(ZenModelBaseTest):
         self.assert_( len( list( dps ) ) == 0 )
         removeTemplate( self.dmd, 'template5')
 
-        
-        
+    def testGetTags(self):
+        template = createTemplate(
+            dmd=self.dmd,
+            templateName="template_testGetTags",
+            dsDpMap={"ds1": ["dp1"]})
+
+        ds1 = template.datasources.ds1
+        dp1 = ds1.datapoints.dp1
+
+        device = self.dmd.Devices.createInstance("device_testGetTags")
+        device.os.addIpInterface("eth0", userCreated=True)
+        component = device.os.interfaces.eth0
+
+        # No tags is the default configuration.
+        self.assertEqual(dp1.getTags(device), {})
+
+        # Setting store to false should result in the appropriate tag.
+        dp1.store = False
+        dp1.forward = True
+        self.assertEqual(dp1.getTags(device), {"no-store": "true"})
+
+        # Setting forward to false should result in the appropriate tag.
+        dp1.store = True
+        dp1.forward = False
+        self.assertEqual(dp1.getTags(device), {"no-forward": "true"})
+
+        # Setting both to false should result in both tags.
+        dp1.store = False
+        dp1.forward = False
+        self.assertEqual(dp1.getTags(device), {
+            "no-store": "true",
+            "no-forward": "true"})
+
+        # Reset store/forward to default values.
+        dp1.store = True
+        dp1.forward = True
+
+        # Invalid tag should result in no tags.
+        dp1.tags = ["not-a-tag-pair"]
+        self.assertEqual(dp1.getTags(device), {})
+
+        # Partially invalid tags should result in partial tags.
+        dp1.tags = ["not-a-tag-pair", "mykey:myvalue"]
+        self.assertEqual(dp1.getTags(device), {"mykey": "myvalue"})
+
+        # Tag keys and values should be stripped.
+        dp1.tags = [" mykey : myvalue "]
+        self.assertEqual(dp1.getTags(device), {"mykey": "myvalue"})
+
+        # Multiple tags should be supported.
+        dp1.tags = ["k1:v1", "k2:v2"]
+        self.assertEqual(dp1.getTags(device), {"k1": "v1", "k2": "v2"})
+
+        # Device context should be usable in tags.
+        dp1.tags = ["hereId:${here/id}", "deviceId:${device/id}"]
+        self.assertEqual(dp1.getTags(device), {
+            "hereId": "device_testGetTags",
+            "deviceId": "device_testGetTags"})
+
+        # Component context should be usable in tags.
+        dp1.tags = ["hereId:${here/id}", "deviceId:${device/id}"]
+        self.assertEqual(dp1.getTags(component), {
+            "hereId": "eth0",
+            "deviceId": "device_testGetTags"})
+
+        # Test for all other context.
+        dp1.tags = [
+            "hereId:${here/id}",
+            "contextId:${context/id}",
+            "nothing:${here/nothing}",
+            "deviceId:${device/id}",
+            "devId:${dev/id}",
+            "devname:${devname}",
+            "datasourceId:${datasource/id}",
+            "dsId:${ds/id}",
+            "datapointId:${datapoint/id}",
+            "dpId:${dp/id}",
+        ]
+
+        all_tags = {
+            "hereId": "eth0",
+            "contextId": "eth0",
+            "deviceId": "device_testGetTags",
+            "devId": "device_testGetTags",
+            "devname": "device_testGetTags",
+            "datasourceId": "ds1",
+            "dsId": "ds1",
+            "datapointId": "dp1",
+            "dpId": "dp1",
+        }
+
+        self.assertEqual(dp1.getTags(component), all_tags)
+
+        # Test store/forward tags with extra tags.
+        dp1.store = False
+        dp1.forward = False
+        all_tags.update({"no-store": "true", "no-forward": "true"})
+        self.assertEqual(dp1.getTags(component), all_tags)
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

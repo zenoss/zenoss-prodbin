@@ -340,13 +340,32 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     self._collectedOids.add(oid)
                     # An OID's data can be stored multiple times
                     for rrdMeta in self._oids[oid]:
-                        contextId, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
+                        rrdMeta_len = len(rrdMeta)
+                        if rrdMeta_len == 8:
+                            contextId, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata, tags = rrdMeta
+                        elif rrdMeta_len == 7:
+                            contextId, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
+                            tags = {}
+                        else:
+                            log.error(
+                                "unable to write metric for %s/%s: stale config (%r)",
+                                self.configId,
+                                oid,
+                                rrdMeta)
+
+                            continue
+
                         path = metadata.get('contextKey')
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
-                            yield self._dataService.writeMetricWithMetadata(metric,
-                                    value, rrdType, min=rrdMin, max=rrdMax,
-                                    metadata=metadata)
+                            yield self._dataService.writeMetricWithMetadata(
+                                metric,
+                                value,
+                                rrdType,
+                                min=rrdMin,
+                                max=rrdMax,
+                                metadata=metadata,
+                                extraTags=tags)
                         except Exception, e:
                             log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(path, e))
                             continue

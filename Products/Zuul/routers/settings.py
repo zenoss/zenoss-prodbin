@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -33,7 +33,8 @@ class SettingsRouter(DirectRouter):
         Retrieves the collection of User interface settings
         """
         settings = self._getUISettings()
-        return DirectResponse.succeed(data=Zuul.marshal(settings.getSettingsData()))
+        result = settings.getSettingsData(unrestricted=False)
+        return DirectResponse.succeed(data=Zuul.marshal(result))
 
     @require('Manage DMD')
     def setUserInterfaceSettings(self, **kwargs):
@@ -44,6 +45,9 @@ class SettingsRouter(DirectRouter):
         oldValues = {}
         newValues = {}
         for key, value in kwargs.iteritems():
+            # check if user has permissions to update setting
+            if not settings.iseditable(key):
+                continue
             oldValues[key] = str(getattr(settings, key, None))
             newValues[key] = str(value)
             setattr(settings, key, value)

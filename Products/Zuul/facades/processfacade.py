@@ -167,9 +167,7 @@ class ProcessFacade(TreeFacade):
                 zenmodelerPath = binPath(zenmodelerName)
                 monitorId = device.perfServer().id
                 if monitorId != 'localhost':
-                    zenmodelerPath = binPath(zenmodelerName)
-                    if len(zenmodelerPath) == 0:
-                        isPerfMonRemote = True
+                    isPerfMonRemote = True
                 if isPerfMonRemote:
                     cmd = 'zminion --minion-name zminion_%s run -- "%s %s"' % (device.getPerformanceServerName(), zenmodelerName, ' '.join(zenmodelerOpts))
                 else:
