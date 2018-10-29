@@ -184,23 +184,23 @@ class ModelChangePublisher(object):
 
     def addToOrganizer(self, ob, org):
         def createEvent(ob, organizer):
-            guid = self._getGUID(ob)
             event = self._createModelEventProtobuf(ob, 'ADDRELATION')
 
             org_guid = self._getGUID(organizer)
             event.add_relation.destination_uuid = org_guid
 
+        guid = self._getGUID(ob)
         self._msgs.append((createEvent, (ob, org)))
         self._events_ref.append((ob, guid, 'ADDRELATION'))
 
     def removeFromOrganizer(self, ob, org):
         def createEvent(ob, organizer):
-            guid = self._getGUID(ob)
             event = self._createModelEventProtobuf(ob, 'REMOVERELATION')
 
             org_guid = self._getGUID(organizer)
             event.remove_relation.destination_uuid = org_guid 
 
+        guid = self._getGUID(ob)
         self._msgs.append((createEvent, (ob, org)))
         self._events_ref.append((ob, guid, 'REMOVERELATION'))
 
