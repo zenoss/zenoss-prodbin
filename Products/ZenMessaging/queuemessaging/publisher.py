@@ -210,9 +210,7 @@ class ModelChangePublisher(object):
 
         def createEvent(ob, fromObj, toObj):
             event.moved.origin = self._getGUID(fromObj)
-            self.map[event.moved.origin] = fromObj
             event.moved.destination = self._getGUID(toObj)
-            self.map[event.moved.destination] = toObj
 
         self._msgs.append((createEvent, (ob, fromOb, toOb)))
         self._events_ref.append((ob, guid, 'MOVED'))
