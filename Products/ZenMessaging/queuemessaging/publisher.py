@@ -187,8 +187,8 @@ class ModelChangePublisher(object):
             guid = self._getGUID(ob)
             event = self._createModelEventProtobuf(ob, 'ADDRELATION')
 
-            guid = self._getGUID(organizer)
-            event.add_relation.destination_uuid = guid
+            org_guid = self._getGUID(organizer)
+            event.add_relation.destination_uuid = org_guid
 
         self._msgs.append((createEvent, (ob, org)))
         self._events_ref.append((ob, guid, 'ADDRELATION'))
