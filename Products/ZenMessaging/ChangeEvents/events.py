@@ -66,7 +66,7 @@ class MessagePrePublishingEvent(object):
         self.msgs = msgs
         self.refs = refs
         if self.refs is None:
-            self.refs = {}
+            self.refs = [] 
         # list of guids changed because of maintWindow (prodState only)
         self.maintWindowChanges = maintWindowChanges
 
@@ -80,7 +80,7 @@ class MessagePostPublishingEvent(object):
         self.msgs = msgs
         self.refs = refs
         if self.refs is None:
-            self.refs = {}
+            self.refs = [] 
         self.maintWindowChanges = maintWindowChanges
         self.zing_tx_state = zing_tx_state
 
