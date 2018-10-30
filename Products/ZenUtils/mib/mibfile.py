@@ -252,6 +252,8 @@ class PackageManager(object):
         """
         prl = PRL(source)
         if prl.scheme != "file":
+            if not os.path.exists(self._downloaddir):
+                os.makedirs(self._downloaddir)
             # A remote file will not have a 'file' scheme; so retrieve it.
             filepath, _ = urllib.urlretrieve(
                 prl.url, os.path.join(self._downloaddir, prl.filename)
