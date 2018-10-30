@@ -47,9 +47,11 @@ from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
+import Products.ZenMessaging.queuemessaging as queuemessaging_module
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 
 # local
+import Products.ZenHub as zenhub_module
 from Products.ZenHub import (
     XML_RPC_PORT,
     PB_PORT,
@@ -135,65 +137,46 @@ class ZenHub(ZCmdBase):
         Hook ourselves up to the Zeo database and wait for collectors
         to connect.
         """
-        # list of remote worker references
-        self.workers = []
-        self.workTracker = {}
-        # zenhub execution stats:
-        # [count, idle_total, running_total, last_called_time]
-        self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+
+        super(ZenHub, self).__init__()
+
+        load_config("hub.zcml", zenhub_module)
+        # notify must be run after load_config, before loadPlugins
+        # or zenpacks components will not be available
+        self._notify_will_be_created()
+        loadPlugins(self.dmd)
+        self._setup_pb_daemon()
+        # responsible for sending messages to the queues
+        load_config_override('twistedpublisher.zcml', queuemessaging_module)
 
         self.shutdown = False
         self.counters = collections.Counter()
+        self.services = {}
+        # Event Handler shortcut
+        self.zem = self.dmd.ZenEventManager
 
-        ZCmdBase.__init__(self)
-
+        # Worker Management
+        # list of remote worker references
+        self.workers = []
+        self.workTracker = {}
         modeling_paused = ModelingPaused(
             self.dmd, self.options.modeling_pause_timeout
         )
         self._worklist = ZenHubWorklist(modeling_paused=modeling_paused)
-
+        # zenhub worker execution stats:
+        # [count, idle_total, running_total, last_called_time]
+        self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        # Worker selection handler
+        self.workerselector = WorkerSelector(self.options)
         # configure Metrology for the worklists
         register_metrics_on_worklist(self._worklist)
-
-        import Products.ZenHub
-        load_config("hub.zcml", Products.ZenHub)
-        notify(HubWillBeCreatedEvent(self))
+        # ZEN-26671 Wait at least this duration in secs
+        # before signaling a worker process
+        self.SIGUSR_TIMEOUT = 5
 
         if self.options.profiling:
             self.profiler = ContinuousProfiler('zenhub', log=self.log)
             self.profiler.start()
-
-        # Worker selection handler
-        self.workerselector = WorkerSelector(self.options)
-
-        self.zem = self.dmd.ZenEventManager
-        loadPlugins(self.dmd)
-        self.services = {}
-
-        er = HubRealm(self)
-        checker = self.loadChecker()
-        pt = portal.Portal(er, [checker])
-        interface = '::' if ipv6_available() else ''
-        pbport = reactor.listenTCP(
-            self.options.pbport, pb.PBServerFactory(pt), interface=interface
-        )
-        self.setKeepAlive(pbport.socket)
-
-        xmlsvc = AuthXmlRpcService(self.dmd, checker)
-        reactor.listenTCP(
-            self.options.xmlrpcport, server.Site(xmlsvc), interface=interface
-        )
-
-        # responsible for sending messages to the queues
-        import Products.ZenMessaging.queuemessaging
-        load_config_override(
-            'twistedpublisher.zcml',
-            Products.ZenMessaging.queuemessaging
-        )
-        notify(HubCreatedEvent(self))
-        self.sendEvent(eventClass=App_Start,
-                       summary="%s started" % self.name,
-                       severity=0)
 
         # Invalidation Processing
         self._invalidation_manager = InvalidationManager(
@@ -217,17 +200,43 @@ class ZenHub(ZCmdBase):
             self._getConf(), self.zem.sendEvent
         )
 
+        self._notify_hub_created()
+        self.sendEvent(
+            eventClass=App_Start,
+            summary="%s started" % self.name,
+            severity=0
+        )
+
         # set up SIGUSR2 handling
         try:
+            signal.signal(signal.SIGUSR1, self.sighandler_USR1)
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
         except ValueError:
             # If we get called multiple times, this will generate an exception:
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
             pass
-        # ZEN-26671 Wait at least this duration in secs
-        # before signaling a worker process
-        self.SIGUSR_TIMEOUT = 5
+
+    def _notify_will_be_created(self):
+        notify(HubWillBeCreatedEvent(self))
+
+    def _notify_hub_created(self):
+        notify(HubCreatedEvent(self))
+
+    def _setup_pb_daemon(self):
+        er = HubRealm(self)
+        checker = self.loadChecker()
+        pt = portal.Portal(er, [checker])
+        interface = '::' if ipv6_available() else ''
+        pbport = reactor.listenTCP(
+            self.options.pbport, pb.PBServerFactory(pt), interface=interface
+        )
+        self.setKeepAlive(pbport.socket)
+
+        xmlsvc = AuthXmlRpcService(self.dmd, checker)
+        reactor.listenTCP(
+            self.options.xmlrpcport, server.Site(xmlsvc), interface=interface
+        )
 
     def main(self):
         """
@@ -276,6 +285,8 @@ class ZenHub(ZCmdBase):
         # handle it ourselves
         if self.options.profiling:
             self.profiler.dump_stats()
+        else:
+            log.info('profiling not enabled, nothing to report')
 
         super(ZenHub, self).sighandler_USR1(signum, frame)
 

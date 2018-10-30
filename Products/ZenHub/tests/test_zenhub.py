@@ -36,153 +36,136 @@ class ZenHubInitTest(TestCase):
     '''The init test is seperate from the others due to the complexity
     of the __init__ method
     '''
-    @patch('{src}.InvalidationManager'.format(**PATH))
+
+    @patch('{src}.signal'.format(**PATH), autospec=True)
+    @patch('{src}.App_Start'.format(**PATH), autospec=True)
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
-    @patch('{src}.load_config_override'.format(**PATH), spec=True)
-    @patch('{src}.signal'.format(**PATH), spec=True)
-    @patch('{src}.App_Start'.format(**PATH), spec=True)
-    @patch('{src}.HubCreatedEvent'.format(**PATH), spec=True)
-    @patch('{src}.pb'.format(**PATH), spec=True)
-    @patch('{src}.zenPath'.format(**PATH), spec=True)
-    @patch('{src}.server'.format(**PATH), spec=True)
-    @patch('{src}.AuthXmlRpcService'.format(**PATH), spec=True)
-    @patch('{src}.reactor'.format(**PATH), spec=True)
-    @patch('{src}.ipv6_available'.format(**PATH), spec=True)
-    @patch('{src}.portal'.format(**PATH), spec=True)
-    @patch('{src}.HubRealm'.format(**PATH), spec=True)
-    @patch('{src}.loadPlugins'.format(**PATH), spec=True)
-    @patch('{src}.WorkerSelector'.format(**PATH), spec=True)
-    @patch('{src}.ContinuousProfiler'.format(**PATH), spec=True)
-    @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), spec=True)
-    @patch('{src}.notify'.format(**PATH), spec=True)
-    @patch('{src}.load_config'.format(**PATH), spec=True)
-    @patch('{src}.ZenHubWorklist'.format(**PATH), spec=True)
-    @patch('{src}.ZCmdBase.__init__'.format(**PATH), spec=True)
+    @patch('{src}.InvalidationManager'.format(**PATH), autospec=True)
+    @patch('{src}.ContinuousProfiler'.format(**PATH), autospec=True)
+    @patch('{src}.register_metrics_on_worklist'.format(**PATH), autospec=True)
+    @patch('{src}.WorkerSelector'.format(**PATH), autospec=True)
+    @patch('{src}.ZenHubWorklist'.format(**PATH), autospec=True)
+    @patch('{src}.ModelingPaused'.format(**PATH), autospec=True)
+    @patch('{src}.queuemessaging_module'.format(**PATH), autospec=True)
+    @patch('{src}.load_config_override'.format(**PATH), autospec=True)
+    @patch('{src}.loadPlugins'.format(**PATH), autospec=True)
+    @patch('{src}.zenhub_module'.format(**PATH), autospec=True)
+    @patch('{src}.load_config'.format(**PATH), autospec=True)
+    @patch('{src}.super'.format(**PATH))
     def test___init__(
         t,
-        ZCmdBase___init__,
-        ZenHubWorklist,
+        super,
         load_config,
-        notify,
-        HubWillBeCreatedEvent,
-        ContinuousProfiler,
-        WorkerSelector,
+        zenhub_module,
         loadPlugins,
-        HubRealm,
-        portal,
-        ipv6_available,
-        reactor,
-        AuthXmlRpcService,
-        server,
-        zenPath,
-        pb,
-        HubCreatedEvent,
+        load_config_override,
+        queuemessaging_module,
+        ModelingPaused,
+        ZenHubWorklist,
+        WorkerSelector,
+        register_metrics_on_worklist,
+        ContinuousProfiler,
+        InvalidationManager,
+        MetricManager,
         App_Start,
         signal,
-        load_config_override,
-        MetricManager,
-        InvalidationManager,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
         t.zenhub_patchers = [
+            # Patch methods with side-effects
+            patch.object(ZenHub, '_notify_will_be_created', autospec=True),
+            patch.object(ZenHub, '_notify_hub_created', autospec=True),
+            patch.object(ZenHub, '_setup_pb_daemon', autospec=True),
+            patch.object(ZenHub, '_getConf', autospec=True),
+            patch.object(ZenHub, 'sendEvent', autospec=True),
+            # Create attributes created by parent class
             patch.object(ZenHub, 'dmd', create=True),
             patch.object(ZenHub, 'log', create=True),
             patch.object(ZenHub, 'options', create=True),
-            patch.object(ZenHub, 'loadChecker', autospec=True),
-            patch.object(ZenHub, 'getRRDStats', autospec=True),
-            patch.object(ZenHub, '_getConf', autospec=True),
-            patch.object(ZenHub, 'setKeepAlive', autospec=True),
-            patch.object(ZenHub, 'sendEvent', autospec=True),
-            patch.object(ZenHub, 'storage', create=True, set_spec=['poll_invalidations'])
+            patch.object(ZenHub, 'storage', create=True),
         ]
 
         for patcher in t.zenhub_patchers:
             patcher.start()
             t.addCleanup(patcher.stop)
 
-        ZenHub._getConf.return_value.id = 'config_id'
-        ipv6_available.return_value = False
-
-        # patch to deal with internal import
-        # import of its parent package, Projects.ZenHub
-        # import Products.ZenMessaging.queuemessaging
-        Products = MagicMock(
-            name='Products', spec_set=['ZenHub', 'ZenMessaging']
-        )
-        modules = {
-            'Products': Products,
-            'Products.ZenHub': Products.ZenHub,
-            'Products.ZenMessaging.queuemessaging':
-                Products.ZenMessaging.queuemessaging
-        }
-        with patch.dict('sys.modules', modules):
-            zh = ZenHub()
+        zh = ZenHub()
 
         t.assertIsInstance(zh, ZenHub)
+        # Run parent class __init_
+        super.assert_called_with(ZenHub, zh)
+        load_config.assert_called_with("hub.zcml", zenhub_module)
+        zh._notify_will_be_created.assert_called_with(zh)
+        loadPlugins.assert_called_with(zh.dmd)
+        # PB, and XMLRPC communication config.
+        zh._setup_pb_daemon.assert_called_with(zh)
+        load_config_override.assert_called_with(
+            'twistedpublisher.zcml', queuemessaging_module
+        )
+
+        t.assertEqual(zh.shutdown, False)
+        t.assertEqual(zh.counters, collections.Counter())
+        t.assertEqual(zh.services, {})
+        # Event Handler shortcut
+        t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
+
+        # Worker Management
+        # TODO: move worker management into its own manager class
+        ModelingPaused.assert_called_with(
+            zh.dmd, zh.options.modeling_pause_timeout
+        )
+        ZenHubWorklist.assert_called_with(
+            modeling_paused=ModelingPaused.return_value
+        )
         t.assertEqual(zh._worklist, ZenHubWorklist.return_value)
-        # Skip Metrology validation for now due to complexity
-        ZCmdBase___init__.assert_called_with(zh)
-        load_config.assert_called_with("hub.zcml", Products.ZenHub)
-        HubWillBeCreatedEvent.assert_called_with(zh)
-        notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
+        t.assertEqual(
+            zh.executionTimer,
+            collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
+        )
+        WorkerSelector.assert_called_with(zh.options)
+        t.assertEqual(zh.workerselector, WorkerSelector.return_value)
+        register_metrics_on_worklist.assert_called_with(zh._worklist)
+        t.assertEqual(zh.SIGUSR_TIMEOUT, 5)
+
         # Performance Profiling
         ContinuousProfiler.assert_called_with('zenhub', log=zh.log)
         zh.profiler.start.assert_called_with()
-        # Worklist, used to delegate jobs to workers
-        # TODO: move worker management into its own manager class
-        WorkerSelector.assert_called_with(zh.options)
-        t.assertEqual(zh.workerselector, WorkerSelector.return_value)
-
-        # Event Handler shortcut
-        t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
-        loadPlugins.assert_called_with(zh.dmd)
-        # PB, and XMLRPC communication config.
-        # TODO: move this into its own manager class
-        HubRealm.assert_called_with(zh)
-        zh.setKeepAlive.assert_called_with(
-            zh, reactor.listenTCP.return_value.socket
+        # Invalidation Processing
+        InvalidationManager.assert_called_with(
+            zh.dmd,
+            zh.log,
+            zh.async_syncdb,
+            zh.storage.poll_invalidations,
+            zh.sendEvent,
+            poll_interval=zh.options.invalidation_poll_interval,
+        )
+        t.assertEqual(
+            zh._invalidation_manager, InvalidationManager.return_value
         )
 
-        pb.PBServerFactory.assert_called_with(portal.Portal.return_value)
-        AuthXmlRpcService.assert_called_with(
-            zh.dmd, zh.loadChecker.return_value
-        )
-        server.Site.assert_called_with(AuthXmlRpcService.return_value)
-        reactor.listenTCP.assert_has_calls([
-            call(
-                zh.options.pbport,
-                pb.PBServerFactory.return_value,
-                interface=''
-            ),
-            call(
-                zh.options.xmlrpcport,
-                server.Site.return_value,
-                interface=''
-            )
-        ])
-        # Messageing config, including work and invalidations
-        # Patched internal import of Products.ZenMessaging.queuemessaging
-        load_config_override.assert_called_with(
-            'twistedpublisher.zcml',
-            Products.ZenMessaging.queuemessaging
-        )
-        HubCreatedEvent.assert_called_with(zh)
-        notify.assert_called_with(HubCreatedEvent.return_value)
-        zh.sendEvent.assert_called_with(
-            zh, eventClass=App_Start, summary='zenhub started',
-            severity=0
-        )
+        # Metric Reporting
         MetricManager.assert_called_with(
             daemon_tags={
                 'zenoss_daemon': 'zenhub',
                 'zenoss_monitor': zh.options.monitor,
                 'internal': True
-            }
-        )
+            })
         t.assertEqual(zh._metric_manager, MetricManager.return_value)
+        t.assertEqual(zh._metric_writer, zh._metric_manager.metric_writer)
+        zh._metric_manager.get_rrd_stats.assert_called_with(
+            zh._getConf.return_value, zh.zem.sendEvent
+        )
         t.assertEqual(
-            zh._invalidation_manager, InvalidationManager.return_value
+            zh.rrdStats, zh._metric_manager.get_rrd_stats.return_value
+        )
+
+        zh._notify_hub_created.assert_called_with(zh)
+        zh.sendEvent.assert_called_with(
+            zh,
+            eventClass=App_Start,
+            summary="%s started" % zh.name,
+            severity=0
         )
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
@@ -243,6 +226,60 @@ class ZenHubTest(TestCase):
             t.zh.storage.poll_invalidations,
             t.zh.sendEvent,
         )
+
+    @patch('{src}.HubWillBeCreatedEvent'.format(**PATH), autospec=True)
+    @patch('{src}.notify'.format(**PATH), autospec=True)
+    def test__notify_will_be_created(t, notify, HubWillBeCreatedEvent):
+        t.zh._notify_will_be_created()
+        notify.assert_called_with(HubWillBeCreatedEvent.return_value)
+        HubWillBeCreatedEvent.assert_called_with(t.zh)
+
+    @patch('{src}.HubCreatedEvent'.format(**PATH), autospec=True)
+    @patch('{src}.notify'.format(**PATH), autospec=True)
+    def test__notify_hub_created(t, notify, HubCreatedEvent):
+        t.zh._notify_hub_created()
+        notify.assert_called_with(HubCreatedEvent.return_value)
+        HubCreatedEvent.assert_called_with(t.zh)
+
+    @patch('{src}.ipv6_available'.format(**PATH), autospec=True)
+    @patch('{src}.AuthXmlRpcService'.format(**PATH), autospec=True)
+    @patch('{src}.server'.format(**PATH), autospec=True)
+    @patch('{src}.portal'.format(**PATH), autospec=True)
+    @patch('{src}.pb'.format(**PATH), autospec=True)
+    @patch('{src}.HubRealm'.format(**PATH), autospec=True)
+    def test__setup_pb_daemon(
+        t, HubRealm, pb, portal, server, AuthXmlRpcService, ipv6_available
+    ):
+        t.zh.options = sentinel.options
+        t.zh.options.pbport = sentinel.pbport
+        t.zh.options.xmlrpcport = sentinel.xmlrpcport
+        t.zh.loadChecker = create_autospec(t.zh.loadChecker)
+        t.zh.setKeepAlive = create_autospec(t.zh.setKeepAlive)
+        ipv6_available.return_value = False
+
+        t.zh._setup_pb_daemon()
+
+        HubRealm.assert_called_with(t.zh)
+        t.zh.setKeepAlive.assert_called_with(
+            t.reactor.listenTCP.return_value.socket
+        )
+        pb.PBServerFactory.assert_called_with(portal.Portal.return_value)
+        AuthXmlRpcService.assert_called_with(
+            t.zh.dmd, t.zh.loadChecker.return_value
+        )
+        server.Site.assert_called_with(AuthXmlRpcService.return_value)
+        t.reactor.listenTCP.assert_has_calls([
+            call(
+                t.zh.options.pbport,
+                pb.PBServerFactory.return_value,
+                interface=''
+            ),
+            call(
+                t.zh.options.xmlrpcport,
+                server.Site.return_value,
+                interface=''
+            )
+        ])
 
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
