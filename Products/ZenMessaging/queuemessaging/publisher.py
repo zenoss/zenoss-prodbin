@@ -44,6 +44,10 @@ class ModelChangePublisher(object):
 
     def __init__(self):
         self._events = []
+
+        # shortcut to object references of the events
+        self._events_ref = []
+
         self._msgs = []
         self._addedGuids = set()
         self._modifiedGuids = set()
@@ -63,6 +67,7 @@ class ModelChangePublisher(object):
 
             event = modelevents_pb2.ModelEvent()
             self._events.append(event)
+
             event.event_uuid = generate()
             event.type = getattr(event, eventType)
 
@@ -107,10 +112,14 @@ class ModelChangePublisher(object):
                 # get rid of the previously scheduled removal of this object
                 try:
                     self._msgs.remove((self._createModelEventProtobuf, (ob, 'REMOVED')))
+                    self._events_ref.remove((ob, guid, 'REMOVED'))
                 except ValueError: pass
                 self._removedGuids.remove(guid)
                 self._discarded+=1
+
             self._msgs.append((self._createModelEventProtobuf, (ob, 'ADDED')))
+            self._events_ref.append((ob, guid, 'ADDED'))
+
             self._addedGuids.add(guid)
         else:
             self._discarded+=1
@@ -139,10 +148,14 @@ class ModelChangePublisher(object):
                 # get rid of the previously scheduled add of this object
                 try:
                     self._msgs.remove((self._createModelEventProtobuf, (ob, 'ADDED')))
+                    self._events_ref.remove((ob, guid, 'ADDED'))
                 except ValueError: pass
                 self._addedGuids.remove(guid)
                 self._discarded+=1
+
             self._msgs.append((self._createModelEventProtobuf, (ob, 'REMOVED')))
+            self._events_ref.append((ob, guid, 'REMOVED'))
+
             self._removedGuids.add(guid)
         else:
             self._discarded+=1
@@ -165,27 +178,42 @@ class ModelChangePublisher(object):
         if not guid in self._addedGuids and not guid in self._modifiedGuids:
             self._msgs.append((_createModified, (ob,)))
             self._modifiedGuids.add(guid)
+            self._events_ref.append((ob, guid, 'MODIFIED'))
         else:
             self._discarded+=1
 
     def addToOrganizer(self, ob, org):
         def createEvent(ob, organizer):
             event = self._createModelEventProtobuf(ob, 'ADDRELATION')
-            event.add_relation.destination_uuid = self._getGUID(organizer)
+
+            org_guid = self._getGUID(organizer)
+            event.add_relation.destination_uuid = org_guid
+
+        guid = self._getGUID(ob)
         self._msgs.append((createEvent, (ob, org)))
+        self._events_ref.append((ob, guid, 'ADDRELATION'))
 
     def removeFromOrganizer(self, ob, org):
         def createEvent(ob, organizer):
             event = self._createModelEventProtobuf(ob, 'REMOVERELATION')
-            event.remove_relation.destination_uuid = self._getGUID(organizer)
+
+            org_guid = self._getGUID(organizer)
+            event.remove_relation.destination_uuid = org_guid 
+
+        guid = self._getGUID(ob)
         self._msgs.append((createEvent, (ob, org)))
+        self._events_ref.append((ob, guid, 'REMOVERELATION'))
 
     def moveObject(self, ob, fromOb, toOb):
+        guid = self._getGUID(ob)
         event = self._createModelEventProtobuf(ob, 'MOVED')
+
         def createEvent(ob, fromObj, toObj):
             event.moved.origin = self._getGUID(fromObj)
             event.moved.destination = self._getGUID(toObj)
+
         self._msgs.append((createEvent, (ob, fromOb, toOb)))
+        self._events_ref.append((ob, guid, 'MOVED'))
 
     @property
     def events(self):
@@ -279,9 +307,9 @@ class PublishSynchronizer(object):
             if publisher:
                 msgs = self.correlateEvents(publisher.events)
                 zing_tx_state = get_zing_tx_state()
-                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges, zing_tx_state)
+                self._postPublishingEventArgs=(msgs, publisher._maintWindowChanges, zing_tx_state, publisher._events_ref)
                 with _getPrepublishingTimer():
-                    notify(MessagePrePublishingEvent(msgs, maintWindowChanges=publisher._maintWindowChanges))
+                    notify(MessagePrePublishingEvent(msgs, maintWindowChanges=publisher._maintWindowChanges, refs=publisher._events_ref))
                 if msgs:
                     self._queuePublisher = getUtility(IQueuePublisher, 'class')()
                     dataManager = AmqpDataManager(self._queuePublisher.channel, tx._manager)
