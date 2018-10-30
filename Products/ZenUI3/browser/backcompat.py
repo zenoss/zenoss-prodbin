@@ -7,9 +7,6 @@
 #
 ##############################################################################
 
-from zope.component import getUtility
-from Products.ZenUtils.virtual_root import IVirtualRoot
-
 
 def getImmediateView(ob):
     if hasattr(ob, "factory_type_information"):
@@ -119,11 +116,8 @@ def CustomReport(ob):
             params.append('%s=%s' % (key, ob.REQUEST.form[key]))
         return ob.absolute_url_path() + '/view' + ob.meta_type + \
                 ('?' + '&'.join(params)) if params else ''
-    rid = '.'.join(ob.getPhysicalPath())
-    cz_prefix = getUtility(IVirtualRoot).get_prefix().replace('/', '.')
-    if cz_prefix and rid.startswith('.') and not rid.startswith(cz_prefix):
-        rid = cz_prefix + rid
-    return '/zport/dmd/reports#reporttree:' + rid
+    id = '.'.join(ob.getPhysicalPath())
+    return '/zport/dmd/reports#reporttree:' + id
 
 def MibNode(ob):
     id = '/'.join(ob.getPhysicalPath()).split('/nodes/')[0]
