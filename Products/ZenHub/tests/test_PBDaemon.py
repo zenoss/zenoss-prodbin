@@ -865,6 +865,7 @@ class PBDaemonTest(TestCase):
             '{src}.reactor'.format(**PATH), autospec=True
         )
         t.reactor = t.reactor_patcher.start()
+        t.addCleanup(t.reactor_patcher.stop)
 
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
@@ -873,40 +874,30 @@ class PBDaemonTest(TestCase):
             EventQueueManager, name='eventQueueManager'
         )
 
-    def tearDown(t):
-        t.reactor_patcher.stop()
-
-    @patch(
-        '{src}.task.LoopingCall'.format(**PATH),
-        name='task.LoopingCall',
-        autospec=True
-    )
+    @patch('{src}.sys'.format(**PATH), autospec=True)
+    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
     @patch('{src}.stopEvent'.format(**PATH), name='stopEvent', autospec=True)
     @patch('{src}.startEvent'.format(**PATH), name='startEvent', autospec=True)
-    @patch(
-        '{src}.DaemonStats'.format(**PATH), name='DaemonStats', autospec=True
-    )
-    @patch(
-        '{src}.EventQueueManager'.format(**PATH),
-        name='EventQueueManager',
-        autospec=True
-    )
-    @patch(
-        '{src}.ZenDaemon.__init__'.format(**PATH),
-        name='ZenDaemon.__init__',
-        autospec=True
-    )
+    @patch('{src}.DaemonStats'.format(**PATH), autospec=True)
+    @patch('{src}.EventQueueManager'.format(**PATH), autospec=True)
+    @patch('{src}.ZenDaemon.__init__'.format(**PATH), autospec=True)
     def test___init__(
         t, ZenDaemon_init, EventQueueManager, DaemonStats, startEvent,
-        stopEvent, LoopingCall
+        stopEvent, LoopingCall, sys
     ):
         noopts = 0,
         keeproot = False
-        # attributes set by parent class
-        options = Mock(name='options', spec_set=['monitor'])
-        log = Mock(name='log', spec_set=['debug'])
-        PBDaemon.options = options
-        PBDaemon.log = log
+
+        # Mock out attributes set by the parent class
+        # Because these changes are made on the class, they must be reversable
+        t.pbdaemon_patchers = [
+            patch.object(PBDaemon, 'options', create=True),
+            patch.object(PBDaemon, 'log', create=True),
+        ]
+
+        for patcher in t.pbdaemon_patchers:
+            patcher.start()
+            t.addCleanup(patcher.stop)
 
         pbd = PBDaemon(noopts=noopts, keeproot=keeproot, name=t.name)
 
@@ -917,7 +908,7 @@ class PBDaemonTest(TestCase):
         t.assertEqual(pbd.name, t.name)
         t.assertEqual(pbd.mname, t.name)
 
-        EventQueueManager.assert_called_with(options, log)
+        EventQueueManager.assert_called_with(PBDaemon.options, PBDaemon.log)
 
         # Check lots of attributes, should verify that they are needed
         t.assertEqual(pbd._thresholds, None)
@@ -931,12 +922,12 @@ class PBDaemonTest(TestCase):
         t.assertEqual(pbd.stopEvent, stopEvent.copy())
 
         # appends name and device to start, stop, and heartbeat events
-        details = {'component': t.name, 'device': options.monitor}
+        details = {'component': t.name, 'device': PBDaemon.options.monitor}
         pbd.startEvent.update.assert_called_with(details)
         pbd.stopEvent.update.assert_called_with(details)
         t.assertEqual(
             pbd.heartbeatEvent, {
-                'device': options.monitor,
+                'device': PBDaemon.options.monitor,
                 'eventClass': '/Heartbeat',
                 'component': 'pb_daemon_name'
             }
@@ -966,8 +957,12 @@ class PBDaemonTest(TestCase):
 
     @patch('{src}.ZenDaemon.__init__'.format(**PATH), side_effect=IOError)
     def test__init__exit_on_ZenDaemon_IOError(t, ZenDaemon):
-        # t.log is set by a parent class
-        PBDaemon.log = Mock(name='log')
+        # Mock out attributes set by the parent class
+        # Because these changes are made on the class, they must be reversable
+        log_patcher = patch.object(PBDaemon, 'log', create=True)
+        log_patcher.start()
+        t.addCleanup(log_patcher.stop)
+
         with t.assertRaises(SystemExit):
             PBDaemon()
 

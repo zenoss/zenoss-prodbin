@@ -21,26 +21,19 @@ import time
 import signal
 import cPickle as pickle
 import os
-import itertools
 import sys
 import logging
 
 # 3rd party
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, task
 from twisted.web import server, xmlrpc
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from zope.component import subscribers, getUtility, getUtilitiesFor, adapts
+from zope.component import getUtility, adapts
 from zope.event import notify
 from zope.interface import implements
-from ZODB.POSException import POSKeyError
-
-# zenoss
-from zenoss.protocols.protobufs.zep_pb2 import (
-    SEVERITY_CRITICAL, SEVERITY_CLEAR
-)
 
 # Import Globals before any zenhub Products
 import Globals
@@ -52,13 +45,9 @@ from Products.ZenUtils.Utils import (
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
-from Products.ZenRelations.PrimaryPathObjectManager import (
-    PrimaryPathObjectManager
-)
 
 # local
 from Products.ZenHub import (
@@ -75,22 +64,17 @@ from Products.ZenHub.worklist import (
 )
 from Products.ZenHub.XmlRpcService import XmlRpcService
 from Products.ZenHub.PBDaemon import RemoteBadMonitor
-from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.interfaces import (
-    IInvalidationProcessor,
     IServiceAddedEvent,
     IHubCreatedEvent,
     IHubWillBeCreatedEvent,
-    IInvalidationOid,
     IHubConfProvider,
     IHubHeartBeatCheck,
     IParserReadyForOptionsEvent,
-    IInvalidationFilter,
-    FILTER_INCLUDE,
-    FILTER_EXCLUDE
 )
-
 from Products.ZenHub.metricmanager import MetricManager
+from Products.ZenHub.invalidationmanager import InvalidationManager
+
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -160,7 +144,6 @@ class ZenHub(ZCmdBase):
 
         self.shutdown = False
         self.counters = collections.Counter()
-        self._invalidations_paused = False
 
         ZCmdBase.__init__(self)
 
@@ -212,10 +195,14 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
 
-        self._initialize_invalidation_filters()
-        reactor.callLater(
-            self.options.invalidation_poll_interval,
-            self.processQueue
+        # Invalidation Processing
+        self._invalidation_manager = InvalidationManager(
+            self.dmd,
+            self.log,
+            self.async_syncdb,
+            self.storage.poll_invalidations,
+            self.sendEvent,
+            poll_interval=self.options.invalidation_poll_interval,
         )
 
         # Setup Metric Reporting
@@ -255,6 +242,14 @@ class ZenHub(ZCmdBase):
             )
             # preserve legacy API
             self.metricreporter = self._metric_manager.metricreporter
+
+        # Start Processing Invalidations
+        self.process_invalidations_task = task.LoopingCall(
+            self._invalidation_manager.process_invalidations
+        )
+        self.process_invalidations_task.start(
+            self.options.invalidation_poll_interval
+        )
 
         reactor.run()
 
@@ -302,133 +297,19 @@ class ZenHub(ZCmdBase):
         if self.options.workersReservedForEvents > maxEventWorkers:
             self.options.workersReservedForEvents = maxEventWorkers
 
-    @defer.inlineCallbacks
+    # Legacy API
+    @inlineCallbacks
     def processQueue(self):
         """
         Periodically process database changes
-
         @return: None
         """
-        now = time.time()
-        try:
-            self.log.debug("[processQueue] syncing....")
-            yield self.async_syncdb()  # reads the object invalidations
-            self.log.debug("[processQueue] synced")
-        except Exception:
-            self.log.warn("Unable to poll invalidations, will try again.")
-        else:
-            try:
-                self.doProcessQueue()
-            except Exception:
-                self.log.exception("Unable to poll invalidations.")
-        reactor.callLater(
-            self.options.invalidation_poll_interval,
-            self.processQueue
-        )
-        self.totalEvents += 1
-        self.totalTime += time.time() - now
+        yield self._invalidation_manager.process_invalidations()
 
+    # Legacy API
     def _initialize_invalidation_filters(self):
-        filters = (f for n, f in getUtilitiesFor(IInvalidationFilter))
-        self._invalidation_filters = []
-        for fltr in sorted(filters, key=lambda f: getattr(f, 'weight', 100)):
-            fltr.initialize(self.dmd)
-            self._invalidation_filters.append(fltr)
-        self.log.debug('Registered %s invalidation filters.',
-                       len(self._invalidation_filters))
-
-    def _filter_oids(self, oids):
-        app = self.dmd.getPhysicalRoot()
-        i = 0
-        for oid in oids:
-            i += 1
-            try:
-                obj = app._p_jar[oid]
-            except POSKeyError:
-                # State is gone from the database. Send it along.
-                yield oid
-            else:
-                if isinstance(
-                    obj,
-                    (PrimaryPathObjectManager, DeviceComponent)
-                ):
-                    try:
-                        obj = obj.__of__(self.dmd).primaryAq()
-                    except (AttributeError, KeyError):
-                        # It's a delete. This should go through.
-                        yield oid
-                    else:
-                        included = True
-                        for fltr in self._invalidation_filters:
-                            result = fltr.include(obj)
-                            if result in (FILTER_INCLUDE, FILTER_EXCLUDE):
-                                included = (result == FILTER_INCLUDE)
-                                break
-                        if included:
-                            oids = self._transformOid(oid, obj)
-                            if oids:
-                                for oid in oids:
-                                    yield oid
-
-    def _transformOid(self, oid, obj):
-        # First, get any subscription adapters registered as transforms
-        adapters = subscribers((obj,), IInvalidationOid)
-        # Next check for an old-style (regular adapter) transform
-        try:
-            adapters = itertools.chain(adapters, (IInvalidationOid(obj),))
-        except TypeError:
-            # No old-style adapter is registered
-            pass
-        transformed = set()
-        for adapter in adapters:
-            o = adapter.transformOid(oid)
-            if isinstance(o, basestring):
-                transformed.add(o)
-            elif hasattr(o, '__iter__'):
-                # If the transform didn't give back a string, it should have
-                # given back an iterable
-                transformed.update(o)
-        # Get rid of any useless Nones
-        transformed.discard(None)
-        # Get rid of the original oid, if returned. We don't want to use it IF
-        # any transformed oid came back.
-        transformed.discard(oid)
-        return transformed or (oid,)
-
-    def doProcessQueue(self):
-        """
-        Perform one cycle of update notifications.
-
-        @return: None
-        """
-        changes_dict = self.storage.poll_invalidations()
-        if changes_dict is not None:
-            processor = getUtility(IInvalidationProcessor)
-            d = processor.processQueue(
-                tuple(set(self._filter_oids(changes_dict)))
-            )
-
-            def done(n):
-                if n == INVALIDATIONS_PAUSED:
-                    self.sendEvent({
-                        'summary': "Invalidation processing is "
-                                   "currently paused. To resume, set "
-                                   "'dmd.pauseHubNotifications = False'",
-                        'severity': SEVERITY_CRITICAL,
-                        'eventkey': INVALIDATIONS_PAUSED
-                    })
-                    self._invalidations_paused = True
-                else:
-                    msg = 'Processed %s oids' % n
-                    self.log.debug(msg)
-                    if self._invalidations_paused:
-                        self.sendEvent({
-                            'summary': msg,
-                            'severity': SEVERITY_CLEAR,
-                            'eventkey': INVALIDATIONS_PAUSED
-                        })
-                        self._invalidations_paused = False
-            d.addCallback(done)
+        self._invalidation_filters = self._invalidation_manager\
+            .initialize_invalidation_filters()
 
     def sendEvent(self, **kw):
         """
@@ -724,8 +605,10 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
         r = self.rrdStats
         totalTime = sum(s.callTime for s in self.services.values())
-        r.counter('totalTime', int(self.totalTime * 1000))
-        r.counter('totalEvents', self.totalEvents)
+        r.counter(
+            'totalTime', int(self._invalidation_manager.totalTime * 1000)
+        )
+        r.counter('totalEvents', self._invalidation_manager.totalEvents)
         r.gauge('services', len(self.services))
         r.counter('totalCallTime', totalTime)
         r.gauge('workListLength', len(self._worklist))
