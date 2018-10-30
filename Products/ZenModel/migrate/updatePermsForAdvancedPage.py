@@ -19,12 +19,11 @@ from Products.ZenModel.ZenossSecurity import (
     ZEN_MANAGE_UI_SETTINGS,
     ZEN_MANAGE_EVENT_CONFIG,
 )
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class UpdatePermsForAdvancedPage(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 4)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:
