@@ -869,6 +869,11 @@ BYE BYE BORDERS
         .z-cse .x-btn-default-toolbar-large-over button
         { background-color: transparent; }
 
+    .z-cse .x-graph-btn-pressed {
+        border-color: #9ebae1;
+        background-color: #b6cbe4 !important;
+    }
+
 
     /* popup dialog buttons */
     .z-cse .x-btn-dialog-dark-small

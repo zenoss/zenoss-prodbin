@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2018-10-15 15:15:44.800302
+    Zenoss RelationshipManager export completed on 2018-10-29 19:35:52.361765
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.0.6]" export_date="2018-10-15 15:15:44.800302" zenoss_server="5dd15d746caa" >
+<objects version="[Zenoss, version 7.0.6]" export_date="2018-10-29 19:35:52.361765" zenoss_server="9ec9d4a64a5d" >
 <object id='/zport/dmd/Monitors' module='Products.ZenModel.MonitorClass' class='MonitorClass' move='False'>
 <property type="string" id="sub_class" mode="w" >
 MonitorClass
@@ -49,12 +49,24 @@ DERIVE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -65,12 +77,24 @@ DERIVE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -81,12 +105,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -97,12 +133,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -129,12 +177,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -145,12 +205,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -161,12 +233,24 @@ COUNTER
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -193,12 +277,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -209,12 +305,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -225,12 +333,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -241,12 +361,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -273,12 +405,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -289,6 +433,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -297,12 +447,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -329,12 +491,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -345,12 +519,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -361,12 +547,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -377,12 +575,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -393,12 +603,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -425,12 +647,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -441,12 +675,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -457,12 +703,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -489,12 +747,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -505,6 +775,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -513,12 +789,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -545,12 +833,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -561,6 +861,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -569,12 +875,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -1918,12 +2236,24 @@ DERIVE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='cyclePoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -1934,12 +2264,24 @@ DERIVE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -1950,12 +2292,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -1966,12 +2320,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='schedule' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -1998,12 +2364,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2014,12 +2392,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='missedRuns' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2030,12 +2420,24 @@ COUNTER
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='timedOut' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2062,12 +2464,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2078,12 +2492,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2094,12 +2520,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2110,12 +2548,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2142,12 +2592,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2158,6 +2620,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2166,12 +2634,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2198,12 +2678,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='dataPoints' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2214,12 +2706,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='eventQueueLength' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2230,12 +2734,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='missing' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2246,12 +2762,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2262,12 +2790,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='runningTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2294,12 +2834,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='failed' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2310,12 +2862,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='queuedTasks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2326,12 +2890,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='success' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2358,12 +2934,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2374,6 +2962,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2382,12 +2976,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2414,12 +3020,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='events' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -2430,6 +3048,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='qsize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2438,12 +3062,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='totalTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 DERIVE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
