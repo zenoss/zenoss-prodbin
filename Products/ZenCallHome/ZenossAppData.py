@@ -61,7 +61,7 @@ class ZenossAppData(object):
         yield "Product Count", prodCount
 
     def user_count(self):
-        yield "User Count", len(self.dmd.ZenUsers.objectIds())
+        yield "User Count", len(self.dmd.ZenUsers.objectValues(spec="UserSettings"))
 
     def server_key(self):
         key = self.dmd.uuid or "NOT ACTIVATED"
