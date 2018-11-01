@@ -61,8 +61,10 @@ class MessagePrePublishingEvent(object):
     """
     implements(IMessagePrePublishingEvent)
 
-    def __init__(self, msgs, maintWindowChanges):
+    def __init__(self, msgs, maintWindowChanges, refs=None):
         self.msgs = msgs
+        self.refs = refs
+        if self.refs is None:
+            self.refs = [] 
         # list of guids changed because of maintWindow (prodState only)
         self.maintWindowChanges = maintWindowChanges
-
