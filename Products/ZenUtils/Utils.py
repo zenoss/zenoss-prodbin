@@ -7,12 +7,13 @@
 #
 ##############################################################################
 
-
-__doc__="""Utils
+"""Utils
 
 General utility functions module
 
 """
+
+from __future__ import absolute_import
 
 import sys
 import select
@@ -43,7 +44,6 @@ from decorator import decorator
 from itertools import chain
 from subprocess import check_call, call, PIPE, STDOUT, Popen
 from ZODB.POSException import ConflictError
-log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
 from twisted.internet import task, reactor, defer
@@ -55,70 +55,21 @@ from ZServer.HTTPServer import zhttp_channel
 from zope.i18n import translate
 from zope.interface import providedBy
 from zope.schema import getFields
-
-from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
-from Products.ZenUtils.jsonutils import unjson
 from zope.schema._field import Password
 
+from .Exceptions import ZenPathError, ZentinelException
+from .jsonutils import unjson
+from .logger import (
+    HtmlFormatter, setWebLoggingStream, clearWebLoggingStream, setLogLevel,
+)
+
+log = logging.getLogger("zen.Utils")
 DEFAULT_SOCKET_TIMEOUT = 30
+
 
 class DictAsObj(object):
     def __init__(self, **kwargs):
         for k,v in kwargs.iteritems(): setattr(self, k, v)
-
-class HtmlFormatter(logging.Formatter):
-    """
-    Formatter for the logging class
-    """
-
-    def __init__(self):
-        logging.Formatter.__init__(self,
-        """
-        %(asctime)s %(levelname)s %(name)s %(message)s
-        """,
-        "%Y-%m-%d %H:%M:%S")
-
-    def formatException(self, exc_info):
-        """
-        Format a Python exception
-
-        @param exc_info: Python exception containing a description of what went wrong
-        @type exc_info: Python exception class
-        @return: formatted exception
-        @rtype: string
-        """
-        exc = logging.Formatter.formatException(self,exc_info)
-        return """%s""" % exc
-
-
-def setWebLoggingStream(stream):
-    """
-    Setup logging to log to a browser using a request object.
-
-    @param stream: IO stream
-    @type stream: stream class
-    @return: logging handler
-    @rtype: logging handler
-    """
-    handler = logging.StreamHandler(stream)
-    handler.setFormatter(HtmlFormatter())
-    rlog = logging.getLogger()
-    rlog.addHandler(handler)
-    rlog.setLevel(logging.ERROR)
-    zlog = logging.getLogger("zen")
-    zlog.setLevel(logging.INFO)
-    return handler
-
-
-def clearWebLoggingStream(handler):
-    """
-    Clear our web logger.
-
-    @param handler: logging handler
-    @type handler: logging handler
-    """
-    rlog = logging.getLogger()
-    rlog.removeHandler(handler)
 
 
 def convToUnits(number=0, divby=1024.0, unitstr="B"):
@@ -1918,23 +1869,6 @@ def atomicWrite(filename, data, raiseException=True, createDir=False):
             raise ex
     return ex
 
-def setLogLevel(level=logging.DEBUG, loggerName=None):
-    """
-    Change the logging level to allow for more insight into the
-    in-flight mechanics of Zenoss.
-
-    @parameter level: logging level at which messages display (eg logging.INFO)
-    @type level: integer
-    """
-    #set the specified logger to level
-    if loggerName:
-        logging.getLogger(loggerName).setLevel(level)
-    log = logging.getLogger()
-    log.setLevel(level)
-    #set root handlers to be able to log at given level
-    for handler in log.handlers:
-        if isinstance(handler, logging.StreamHandler):
-            handler.setLevel(level)
 
 def isRunning(daemon):
     """

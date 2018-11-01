@@ -8,6 +8,7 @@
 ##############################################################################
 
 import enum
+import time
 
 from collections import Iterator
 from itertools import cycle, chain, count
@@ -183,6 +184,7 @@ def register_metrics_on_worklist(worklist):
             gauge = PriorityListLengthGauge(worklist, priority)
             Metrology.gauge(metricName, gauge)
 
+    # Original metric name
     if "zenhub.workList" not in metricNames:
         gauge = WorklistLengthGauge(worklist)
         Metrology.gauge("zenhub.workList", gauge)
@@ -201,6 +203,8 @@ class _PrioritySelection(Iterator):
 
     Higher priority values are produced more frequently than lower
     priority values.
+
+    This iterator behaves as if it's iterating over an infinite sequence.
     """
 
     def __init__(self, priorities):
@@ -274,6 +278,9 @@ class ZenHubWorklist(object):
         # No ApplyDataMaps priority selection
         self.__noadmjobs = _PrioritySelection(_no_adm_priorities)
 
+        # Metric for wait time in worklist
+        self.__waitTimer = Metrology.timer("zenhub.worklist.wait_time")
+
     def __len__(self):
         return sum(len(v) for v in self.__worklists.itervalues())
 
@@ -297,9 +304,12 @@ class ZenHubWorklist(object):
         """Returns the next job by priority.  If no jobs are available,
         None is returned.
         """
-        if self.__modeling_paused():
-            return self.__pop(self.__noadmjobs)
-        return self.__pop(self.__alljobs)
+        joblist = self.__alljobs \
+            if not self.__modeling_paused() else self.__noadmjobs
+        wrapped = self.__pop(joblist)
+        if wrapped:
+            self.__waitTimer.update(int(wrapped.duration * 1000))
+            return wrapped.job
 
     def push(self, job):
         """Adds job to the worklist.
@@ -307,4 +317,50 @@ class ZenHubWorklist(object):
         The job's attribute, 'method', determines the priority of the job.
         """
         priority = _message_priority_map.get(job.method)
-        self.__worklists.get(priority).append(job)
+        self.__worklists.get(priority).append(_JobWrapper(job))
+
+    def pushfront(self, job):
+        """Adds job to the front of the worklist.
+
+        Use this method to return jobs to the worklist.
+        The job's attribute, 'method', determines the priority of the job.
+        """
+        priority = _message_priority_map.get(job.method)
+        self.__worklists.get(priority).insert(0, _JobWrapper(job))
+
+
+class _JobWrapper(object):
+    """
+    """
+
+    def __init__(self, job):
+        """
+        """
+        self.__job = job
+        self.__begin = time.time()
+
+    @property
+    def job(self):
+        return self.__job
+
+    @property
+    def duration(self):
+        return time.time() - self.__begin
+
+
+class ModelingPaused(object):
+    """ModelingPaused is a simple boolean predicate that returns True if
+    modeling (i.e. applyDataMaps processing) is paused.
+    """
+
+    def __init__(self, ctx, modeling_pause_timeout):
+        """Initialize a ModelingPaused instance.
+
+        @param ctx {dmd} Reference to dmd.
+        @param modeling_pause_timeout {float} Duration of modeling pause
+        """
+        self.__ctx = ctx
+        self.__modeling_pause_timeout = modeling_pause_timeout
+
+    def __call__(self):
+        return self.__ctx.getPauseADMLife() <= self.__modeling_pause_timeout
