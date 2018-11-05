@@ -271,6 +271,23 @@ Ext.onReady(function () {
         getContentPanel: function () {
             return Ext.getCmp('man_center_panel').items.items[Ext.getCmp('nav_combo').getSelectedIndex()];
         },
+	selectByToken: function(nodeId){
+            if (nodeId) {
+                nodeId = decodeURI(nodeId);
+                var node = this.store.findRecord("id", nodeId);
+                if (node) {
+                    this.getSelectionModel().select(node);
+                } else {
+                    var me = this;
+                    this.store.on('load', function() {
+                        var node = me.store.findRecord("id", nodeId);
+                        if (node) {
+                            me.getSelectionModel().select(node);
+                        }
+                    }, this, {single:true});
+                }
+            }
+        },
         selModel: Ext.create('Zenoss.TreeSelectionModel', {
             listeners: {
                 selectionchange: function (sm, newnodes) {
