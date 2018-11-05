@@ -43,8 +43,7 @@ class _CumulativeWorkerStatsTest(TestCase):
 
 class zenhubworkerInitTest(TestCase):
 
-    @patch('{src}.metricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.credentials'.format(**PATH), autospec=True)
     @patch('{src}.reactor'.format(**PATH), autospec=True)
     @patch('{src}.ReconnectingPBClientFactory'.format(**PATH), autospec=True)
@@ -57,7 +56,7 @@ class zenhubworkerInitTest(TestCase):
     def test___init__(
         t, signal, ZCmdBase__init__, ContinuousProfiler,  Metrology,
         loadPlugins, os, ReconnectingPBClientFactory, reactor, credentials,
-        TwistedMetricReporter, metricWriter,
+        MetricManager,
     ):
         # ZCmdBase.__init__ sets options
         # Mock out attributes set by the parent class
@@ -122,27 +121,19 @@ class zenhubworkerInitTest(TestCase):
         factory.setCredentials.assert_called_with(
             credentials.UsernamePassword.return_value
         )
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=metricWriter.return_value,
-            tags={
+        MetricManager.assert_called_with(
+            daemon_tags={
                 'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workerid,
                 'zenoss_monitor': zhw.options.monitor,
                 'internal': True
             }
         )
-        metricreporter = TwistedMetricReporter.return_value
-        t.assertEqual(zhw.metricreporter, metricreporter)
-        zhw.metricreporter.start.assert_called_with()
-
-        # Stop the metric reporter before the reactor shuts down
-        # we have to pull the args from reactor.addSystemEventTrigger
-        # because stopReporter is defined within the function
-        args, kwargs = reactor.addSystemEventTrigger.call_args
-        t.assertEqual((args[0], args[1]), ('before', 'shutdown'))
-        stopReporter = args[2]
-        zhw.metricreporter.stop.assert_not_called()
-        stopReporter()
-        zhw.metricreporter.stop.assert_called_with()
+        t.assertEqual(zhw._metric_manager, MetricManager.return_value)
+        zhw._metric_manager.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhubworker exits
+        reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', zhw._metric_manager.stop
+        )
 
 
 class zenhubworkerTest(TestCase):
@@ -191,8 +182,9 @@ class zenhubworkerTest(TestCase):
 
         t.zhw.reportStats.assert_called_with()
 
+    @patch('{src}.isoDateTime'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_reportStats(t, time):
+    def test_reportStats(t, time, isoDateTime):
         '''Metric Reporting Function. Log various statistics on services
         as a general rule, do not test individual log messages, just log format
         this function is difficult to read and should be refactored
@@ -211,8 +203,11 @@ class zenhubworkerTest(TestCase):
         stats.lasttime = 555
         service.callStats = {method: stats}
         t.zhw.services = {(name, instance): service}
+        isodate = isoDateTime.return_value
 
         t.zhw.reportStats()
+
+        isoDateTime.assert_called_with(stats.lasttime)
 
         parsed_service_id = '{instance}/module_name'.format(**locals())
         average_time = stats.totaltime / stats.numoccurrences
@@ -220,7 +215,7 @@ class zenhubworkerTest(TestCase):
             'Running statistics:\n'
             ' - {parsed_service_id: <49}{method: <32}'
             '{stats.numoccurrences: 9}{stats.totaltime: 13.2f}'
-            '{average_time: 9.2f} 1970-01-01 00:09:15'.format(**locals())
+            '{average_time: 9.2f} {isodate}'.format(**locals())
         )
 
     @patch('{src}.reactor'.format(**PATH), autospec=True)

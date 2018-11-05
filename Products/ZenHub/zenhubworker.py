@@ -1,22 +1,22 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
-from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
+from Products.ZenHub.metricmanager import MetricManager
+from Products.ZenHub.zenhub import LastCallReturnValue
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused, zenPath, atomicWrite
-from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
 from Products.DataCollector.plugins import DataMaps
@@ -38,7 +38,10 @@ from metrology import Metrology
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
+
 IDLE = "None/None"
+
+
 class _CumulativeWorkerStats(object):
     """
     Internal class for maintaining cumulative stats on frequency and runtime
@@ -55,6 +58,7 @@ class _CumulativeWorkerStats(object):
         self.numoccurrences += 1
         self.totaltime += elapsed
         self.lasttime = now
+
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -96,22 +100,18 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         factory.clientConnectionLost = stop
         factory.setCredentials(c)
 
+        # Setup Metric Reporting
         self.log.debug("Creating async MetricReporter")
-        daemonTags = {
-            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workerid,
-            'zenoss_monitor': self.options.monitor,
-            'internal': True
-        }
-
-        def stopReporter():
-            if self.metricreporter:
-                return self.metricreporter.stop()
-
-        # Order of the shutdown triggers matter. Want to stop reporter first, calling metricWriter() below
-        # registers shutdown triggers for the actual metric http and redis publishers.
-        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
-        self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
-        self.metricreporter.start()
+        self._metric_manager = MetricManager(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub_worker_%s' % self.options.workerid,
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            })
+        self._metric_manager.start()
+        reactor.addSystemEventTrigger(
+            'before', 'shutdown', self._metric_manager.stop
+        )
 
     def audit(self, action):
         """
