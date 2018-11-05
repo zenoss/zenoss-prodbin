@@ -641,6 +641,9 @@ class IpNetwork(DeviceOrganizer, IpNetworkIndexable):
             self._setObject(ip_id, new_net)
             new_net = self._getOb(ip_id)
             netobj = aq_base(netobj)
+            # zenhub.log
+            log.info("Adding {} as supernet of {}".format(
+                new_net.getNetworkName(), netobj.getNetworkName()))
             new_net._setObject(ip_id, netobj)
             ips = filter(
                 lambda n: isinstance(n, IpAddress) and n.interface(), netobj.getSubObjects())
