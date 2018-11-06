@@ -296,6 +296,7 @@ class PublishSynchronizer(object):
             log.debug("ModelEventList batch size %s" % count)
         return msgs
 
+    @Metrology.utilization_timer('zen.queuepublisher.beforeCompletionHookTimer')
     def beforeCompletionHook(self, tx):
         try:
             log.debug("beforeCompletionHook on tx %s" % tx)
@@ -316,6 +317,7 @@ class PublishSynchronizer(object):
             if hasattr(tx, '_synchronizedPublisher'):
                 tx._synchronizedPublisher = None
 
+    @Metrology.utilization_timer('zen.queuepublisher.afterCompletionHookTimer')
     def afterCompletionHook(self, status, tx):
         try:
             log.debug("afterCompletionHook status:%s for tx %s" % (status, tx))
