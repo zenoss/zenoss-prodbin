@@ -68,6 +68,7 @@ class InvalidationManager(object):
         self.__poll_invalidations = poll_invalidations
         self.__send_event = send_event
         self.poll_interval = poll_interval
+        self._queue = set()
 
         self._currently_paused = False
         self.totalEvents = 0
@@ -78,7 +79,7 @@ class InvalidationManager(object):
         log.debug('got InvalidationProcessor %s' % self.processor)
         app = self.__dmd.getPhysicalRoot()
         self.invalidation_pipeline = InvalidationPipeline(
-            app, self._invalidation_filters, self.processor
+            app, self._invalidation_filters, self._queue
         )
 
     def initialize_invalidation_filters(self):
@@ -93,8 +94,11 @@ class InvalidationManager(object):
             ):
                 fltr.initialize(self.__dmd)
                 self._invalidation_filters.append(fltr)
-            self.log.debug('Registered %s invalidation filters.',
-                           len(self._invalidation_filters))
+            self.log.info('Registered %s invalidation filters.',
+                          len(self._invalidation_filters))
+            self.log.info(
+                'invalidation filters: %s', self._invalidation_filters
+            )
             return self._invalidation_filters
         except Exception:
             log.exception('error in initialize_invalidation_filters')
@@ -122,6 +126,8 @@ class InvalidationManager(object):
                 yield self.invalidation_pipeline.run(oid)
 
             self.log.debug('Processed %s raw invalidations', len(oids))
+            yield self.processor.processQueue(self._queue)
+            self._queue.clear()
 
         except Exception:
             log.exception('error in process_invalidations')
@@ -179,14 +185,13 @@ class InvalidationPipeline(object):
     to the InvalidationProcessor processQueue
     '''
 
-    def __init__(self, app, filters, processor):
+    def __init__(self, app, filters, sink):
+        sink = set_sink(sink)
         self.__pipeline = oid_to_obj(
-            app, processor,
+            app, sink,
             filter_obj(
                 filters,
-                transform_obj(
-                    processor
-                )
+                transform_obj(sink)
             )
         )
 
@@ -206,14 +211,14 @@ def coroutine(func):
 
 
 @coroutine
-def oid_to_obj(app, processor, checker):
+def oid_to_obj(app, sink, target):
     while True:
         oid = (yield)
         # Include oids that are missing from the database
         try:
             obj = app._p_jar[oid]
         except POSKeyError:
-            processor.processQueue([oid])
+            sink.send([oid])
             continue
         # Exclude any unmatched types
         if not isinstance(obj, (PrimaryPathObjectManager, DeviceComponent)):
@@ -222,10 +227,10 @@ def oid_to_obj(app, processor, checker):
         try:
             obj = obj.__of__(app.zport.dmd).primaryAq()
         except (AttributeError, KeyError):
-            processor.processQueue([oid])
+            sink.send([oid])
             continue
 
-        checker.send((oid, obj))
+        target.send((oid, obj))
 
 
 @coroutine
@@ -236,16 +241,19 @@ def filter_obj(filters, target):
         for fltr in filters:
             result = fltr.include(obj)
             if result is FILTER_INCLUDE:
+                log.debug('filter %s INCLUDE %s:%s', fltr, str(oid), obj)
                 break
             if result is FILTER_EXCLUDE:
+                log.debug('filter %s EXCLUDE %s:%s', fltr, str(oid), obj)
                 included = False
                 break
         if included:
+            log.debug('filters FALLTHROUGH: %s', obj)
             target.send((oid, obj))
 
 
 @coroutine
-def transform_obj(processor):
+def transform_obj(target):
     while True:
         oid, obj = (yield)
 
@@ -271,4 +279,11 @@ def transform_obj(processor):
         # Get rid of the original oid, if returned. We don't want to use it IF
         # any transformed oid came back.
         transformed.discard(oid)
-        processor.processQueue(transformed or (oid,))
+        target.send(transformed or (oid,))
+
+
+@coroutine
+def set_sink(output_set):
+    while True:
+        input = (yield)
+        output_set.update(input)
