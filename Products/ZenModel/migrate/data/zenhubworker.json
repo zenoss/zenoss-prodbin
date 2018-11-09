@@ -16,7 +16,7 @@
             "Filename": "/opt/zenoss/etc/zenhubworker.conf",
             "Owner": "zenoss:zenoss",
             "Permissions": "0664"
-      }
+        }
     },
     "Description": "Executes service requests on ZenHub's behalf",
     "Endpoints": [
@@ -122,6 +122,7 @@
             "Script": "/opt/zenoss/bin/healthchecks/zep_answering"
         }
     },
+    "HostPolicy": "PREFER_SEPARATE",
     "ImageID": "zenoss/zenoss5x",
     "Instances": {
         "Min": 1,
@@ -167,4 +168,4 @@
             "ResourcePath": "var-zenpacks"
         }
     ]
- }
+}
