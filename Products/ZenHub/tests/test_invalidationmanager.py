@@ -27,6 +27,7 @@ from Products.ZenHub.invalidationmanager import (
     filter_obj,
     transform_obj,
     InvalidationPipeline,
+    set_sink,
 )
 
 
@@ -45,7 +46,7 @@ class InvalidationManagerTest(TestCase):
         t.dmd = Mock(
             name='dmd', spec_set=['getPhysicalRoot', 'pauseHubNotifications']
         )
-        t.log = Mock(name='log', spec_set=['debug', 'warn'])
+        t.log = Mock(name='log', spec_set=['debug', 'warn', 'info'])
         t.syncdb = Mock(name='ZenHub.async_syncdb', spec_set=[])
         t.poll_invalidations = Mock(
             name='ZenHub.storage.poll_invalidations', spec_set=[]
@@ -101,14 +102,21 @@ class InvalidationManagerTest(TestCase):
         time.side_effect = timestamps
         t.im._paused = create_autospec(t.im._paused, return_value=False)
         t.poll_invalidations.return_value = [sentinel.oid]
+
+        def process_oid(oid):
+            t.im._queue.add(oid)
+
         invalidation_pipeline = create_autospec(t.im.invalidation_pipeline)
         t.im.invalidation_pipeline = invalidation_pipeline
+        t.im.invalidation_pipeline.side_effect = process_oid
 
         t.im.process_invalidations()
 
         t.syncdb.assert_called_with()
         t.poll_invalidations.assert_called_with()
         t.im.invalidation_pipeline.run.assert_called_with(sentinel.oid)
+        t.im.processor.processQueue.assert_called_with(t.im._queue)
+        t.assertEqual(t.im._queue, set())
 
         t.assertEqual(t.im.totalTime, timestamps[1] - timestamps[0])
         t.assertEqual(t.im.totalEvents, 1)
@@ -124,7 +132,6 @@ class InvalidationManagerTest(TestCase):
         ret = t.im._paused()
 
         t.assertEqual(ret, True)
-        print(t.send_event)
         t.send_event.assert_called_with(t.im._invalidation_paused_event)
 
     def test__paused_currently_paused(t):
@@ -159,24 +166,29 @@ class InvalidationPipelineTest(TestCase):
     before sending it to IInvalidationProcessor
     '''
 
+    @patch('{src}.subscribers'.format(**PATH), autospec=True)
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_invalidation_pipeline(t, getUtility):
+    def test_invalidation_pipeline(t, getUtility, subscribers):
         # constructor parameters
-        app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
-        filters = [sentinel.filter_a, sentinel.filter_b]
-        mIInvalidationProcessor = create_interface_mock(IInvalidationProcessor)
-        processor = mIInvalidationProcessor()
+        app = MagicMock(name='dmd.root', spec_set=['_p_jar', 'zport'])
+        filters = [Mock(name='filter_a'), Mock(name='filter_b')]
+        sink = set()
         # Environment, and args
         device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
         device_obj = sentinel.device_obj
         device.__of__.return_value.primaryAq.return_value = device_obj
+
         oid = 111
         app._p_jar = {oid: device}
+        adapter = Mock(name='transform adapter', spec_set=['transformOid'])
+        adapter.transformOid.side_effect = lambda x: x
+        adapters = [adapter]
+        subscribers.return_value = adapters
 
-        invalidation_pipeline = InvalidationPipeline(app, filters, processor)
+        invalidation_pipeline = InvalidationPipeline(app, filters, sink)
         invalidation_pipeline.run(oid)
 
-        processor.processQueue.assert_called_with([oid])
+        t.assertEqual(sink, set([oid]))
 
 
 class coroutine_Test(TestCase):
@@ -205,9 +217,7 @@ class coroutine_Test(TestCase):
 class oid_to_obj_Test(TestCase):
 
     def setUp(t):
-        t.processor = Mock(
-            name='InvalidationProcessor', spec_set=['processQueue']
-        )
+        t.sink = Mock(name='sink', spec_set=['send'])
         t.out_pipe = Mock(name='output_pipe', spec_set=['send'])
 
     def test_oid_to_obj(t):
@@ -219,36 +229,36 @@ class oid_to_obj_Test(TestCase):
         app.zport.dmd = sentinel.dmd_root
         app._p_jar = {111: device}
 
-        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe = oid_to_obj(app, t.sink, t.out_pipe)
         oid_to_obj_pipe.send(111)
 
         t.out_pipe.send.assert_called_with((111, device_obj))
 
     def test__oid_to_object_poskeyerror(t):
         '''oids not found in dmd are considered deletions,
-        and sent straight to the InvalidationProcessor
+        and sent straight to the output sink
         '''
         app = MagicMock(name='dmd.root', spec_set=['_p_jar'])
         app._p_jar.__getitem__.side_effect = POSKeyError()
 
-        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe = oid_to_obj(app, t.sink, t.out_pipe)
         oid_to_obj_pipe.send(111)
 
-        t.processor.processQueue.assert_called_with([111])
+        t.sink.send.assert_called_with([111])
 
     def test__oid_to_object_deleted_primaryaq_keyerror(t):
         '''objects without a primaryAq ar considered deletions,
-        and sent straight to the InvalidationProcessor
+        and sent straight to the output sink
         '''
         deleted = MagicMock(DeviceComponent, __of__=Mock())
         deleted.__of__.return_value.primaryAq.side_effect = KeyError
         app = sentinel.dmd_root
         app._p_jar = {111: deleted}
 
-        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe = oid_to_obj(app, t.sink, t.out_pipe)
         oid_to_obj_pipe.send(111)
 
-        t.processor.processQueue.assert_called_with([111])
+        t.sink.send.assert_called_with([111])
 
     def test__oid_to_object_exclude_unsuported_types(t):
         '''Exclude any unspecified object types
@@ -257,10 +267,10 @@ class oid_to_obj_Test(TestCase):
         app = sentinel.dmd_root
         app._p_jar = {111: unsuported}
 
-        oid_to_obj_pipe = oid_to_obj(app, t.processor, t.out_pipe)
+        oid_to_obj_pipe = oid_to_obj(app, t.sink, t.out_pipe)
         oid_to_obj_pipe.send(111)
 
-        t.processor.processQueue.assert_not_called()
+        t.sink.send.assert_not_called()
         t.out_pipe.send.assert_not_called()
 
 
@@ -278,13 +288,10 @@ class filter_obj_Test(TestCase):
 
         def include(obj):
             if obj is t.included:
-                print('include: %s' % obj)
                 return FILTER_INCLUDE
             elif obj is t.excluded:
-                print('exclude: %s' % obj)
                 return FILTER_EXCLUDE
             else:
-                print('default include: %s' % obj)
                 return "FILTER_CONTINUE"
 
         t.filter.include = include
@@ -315,9 +322,7 @@ class transform_obj_Test(TestCase):
         executes the transforms given the oid
         returns a set of oids returned by the transforms
         '''
-        processor = Mock(
-            name='InvalidationProcessor', spec_set=['processQueue']
-        )
+        target = Mock(name='target', set_attr=['send'])
         adapter_a = Mock(
             name='adapter_a', spec_set=['transformOid'],
             transformOid=lambda x: x + '0'
@@ -331,7 +336,22 @@ class transform_obj_Test(TestCase):
         oid = 'oid'
         obj = sentinel.object
 
-        transform_pipe = transform_obj(processor)
+        transform_pipe = transform_obj(target)
         transform_pipe.send((oid, obj))
 
-        processor.processQueue.assert_called_with({'oid0', 'oid1', 'oid2'})
+        target.send.assert_called_with({'oid0', 'oid1', 'oid2'})
+
+
+class set_sink_Test(TestCase):
+
+    def test_set_sink_accepts_a_set(t):
+        output = set()
+        set_sink_pipe = set_sink(output)
+        set_sink_pipe.send({'a', 'a', 'b', 'c'} or ('a',))
+        t.assertEqual(output, {'a', 'b', 'c'})
+
+    def test_set_sink_accepts_a_tuple(t):
+        output = set()
+        set_sink_pipe = set_sink(output)
+        set_sink_pipe.send(None or ('a',))
+        t.assertEqual(output, {'a'})
