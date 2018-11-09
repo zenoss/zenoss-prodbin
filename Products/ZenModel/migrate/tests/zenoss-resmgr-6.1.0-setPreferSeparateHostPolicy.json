@@ -31462,7 +31462,7 @@
                 "Filename": "/opt/zenoss/etc/zenhub.conf",
                 "Owner": "zenoss:zenoss",
                 "Permissions": "0664",
-                "Content": "#\n# Configuration file for zenhub\n#\n#  To enable a particular option, uncomment the desired entry.\n#\n# Parameter     Setting\n# ---------     -------\n#\n# Use an alternate configuration file\n#configfile /opt/zenoss/etc/zenhub.conf\n#\n# Generate an XML file containing command-line\n#  switches., default: False\n#genxmlconfigs False\n#\n# User to become when running default:zenoss,\n#  default: zenoss\n#uid zenoss\n#\n# Cycle continuously on cycleInterval\n#  from Zope, default: False\n#cycle False\n#\n# Launch into the background, default: False\n#daemon False\n#\n# Log to console and log file, default: False\n#duallog False\n#\n# Log to log file and not console, default:\n#  False\n#logfileonly False\n#\n# output log info in HTML table format,\n#  default: False\n#weblog False\n#\n# Run under a supervisor which will restart\n#  it, default: False\n#watchdog False\n#\n# The path to the watchdog reporting socket\n#watchdogPath None\n#\n# Wait seconds for initial heartbeat\n#starttimeout None\n#\n# Set listener socket options. For option\n#  details: man 7 socket, default: []\n#socketOption []\n#\n# Port to use for XML-based Remote Procedure\n#  Calls (RPC), default: 8081\n#xmlrpcport 8081\n#\n# Port to use for Twisted's pb service,\n#  default: 8789\n#pbport 8789\n#\n# File where passwords are stored, default:\n#  /opt/zenoss/etc/hubpasswd\n#passwd /opt/zenoss/etc/hubpasswd\n#\n# Name of the distributed monitor this\n#  hub runs on, default: localhost\n#monitor localhost\n#\n# Run higher priority jobs before lower\n#  priority ones, default: False\n#prioritize False\n#\n# Allow any priority job to run on any\n#  worker, default: False\n#anyworker False\n#\n# Number of worker instances to reserve\n#  for handling events, default: 1\n#workers-reserved-for-events 1\n#\n# Interval at which to poll invalidations\n#  (default: %default), default: 30\n#invalidation-poll-interval 30\n#\n# URL for posting internal metrics (default:\n#  %default), default:\n#  http://localhost:8080/api/metrics/store\n#metrics-store-url http://localhost:8080/api/metrics/store\n#\n# Username to use when publishing to metric\n#  consumer. Default is %default\n#zauth-username None\n#\n# Password to use when publishing to metric\n#  consumer. Default is %default\n#zauth-password None\n#\n# Number of workers dedicated to processing\n#  invalidations, default: 1\n#invalidationworkers 1\n#\n# The relative process priority of invalidation\n#  workers (%default), default: 10\n#invalidationworker-priority 10\n#\n# Number of invalidations each worker\n#  will deal with at a time, default: 100\n#invalidationchunksize 100\n#\n# Number of invalidations to process before\n#  shutting down, default: 5000\n#invalidationlimit 5000\n#\n# Optional override of the hub's identifier\n#  (defaults to 'host:port'). A 'random'\n#  setting changes the identifier on every\n#  startup; set in HA scenarios.\nidentifier random\n#\n# Use memcache to reduce the number of\n#  collector updates, default: True\n#no-memcache True\n#\n# Minimum period to delay configuration\n#  updates for batching, default: 30\n#min-update-delay-seconds 30\n#\n# Maximum period to delay configuration\n#  updates, default: 300\n#max-update-delay-seconds 300\n#\n# Period to delay configuration deletions\n#  for batching, default: 30\n#delete-delay-seconds 30\n#\n# The maximum number of unacknowledged\n#  messages that will be delivered to\n#  the invalidations consumer., default: 1000\n#invalidation-prefetch-count 1000\n#\n# Logging severity threshold, default: 20\n#logseverity 20\n#\n# Override the default logging path; default\n#  $ZENHOME/log, default: /opt/zenoss/log\n#logpath /opt/zenoss/log\n#\n# Max size of log file in KB; default\n#  10240, default: 10240\n#maxlogsize 10240\n#\n# Max number of back up log files; default\n#  3, default: 3\n#maxbackuplogs 3\n#\n# root object for data load (i.e. /zport/dmd),\n#  default: /zport/dmd\n#zodb-dataroot /zport/dmd\n#\n# in memory cachesize default: 1000, default:\n#  1000\n#zodb-cachesize 1000\n#\n# hostname of the MySQL server for ZODB,\n#  default: 127.0.0.1\n#zodb-host 127.0.0.1\n#\n# port of the MySQL server for ZODB, default:\n#  3306\n#zodb-port 3306\n#\n# user of the MySQL server for ZODB, default:\n#  zenoss\n#zodb-user zenoss\n#\n# password of the MySQL server for ZODB,\n#  default: zenoss\n#zodb-password zenoss\n#\n# Name of database for MySQL object store,\n#  default: zodb\n#zodb-db zodb\n#\n# Name of socket file for MySQL server\n#  connection if host is localhost\n#zodb-socket None\n#\n# memcached servers to use for object\n#  cache (eg. 127.0.0.1:11211), default:\n#  127.0.0.1:11211\n#zodb-cacheservers 127.0.0.1:11211\n#\n# Defer polling the database for the specified\n#  maximum time interval, in seconds.\n#  This will default to 60 only if --zodb-cacheservers\n#  is set.\n#zodb-poll-interval None\n#\n# Specify the number of seconds a database\n#  connection will wait to acquire a database\n#  'commit' lock before failing (defaults\n#  to 30 seconds if not specified)., default:\n#  30\n#zodb-commit-lock-timeout 30\n#\n# Heartbeat timeout, default: 900 sec.\n#heartbeattimeout 900\n#"
+                "Content": "#\n# Configuration file for zenhub\n#\n#  To enable a particular option, uncomment the desired entry.\n#\n# Parameter     Setting\n# ---------     -------\n#\n# Use an alternate configuration file\n#configfile /opt/zenoss/etc/zenhub.conf\n#\n# Generate an XML file containing command-line\n#  switches., default: False\n#genxmlconfigs False\n#\n# User to become when running default:zenoss,\n#  default: zenoss\n#uid zenoss\n#\n# Cycle continuously on cycleInterval\n#  from Zope, default: False\n#cycle False\n#\n# Launch into the background, default: False\n#daemon False\n#\n# Log to console and log file, default: False\n#duallog False\n#\n# Log to log file and not console, default:\n#  False\n#logfileonly False\n#\n# output log info in HTML table format,\n#  default: False\n#weblog False\n#\n# Run under a supervisor which will restart\n#  it, default: False\n#watchdog False\n#\n# The path to the watchdog reporting socket\n#watchdogPath None\n#\n# Wait seconds for initial heartbeat\n#starttimeout None\n#\n# Set listener socket options. For option\n#  details: man 7 socket, default: []\n#socketOption []\n#\n# Port to use for XML-based Remote Procedure\n#  Calls (RPC), default: 8081\n#xmlrpcport 8081\n#\n# Port to use for Twisted's pb service,\n#  default: 8789\n#pbport 8789\n#\n# File where passwords are stored, default:\n#  /opt/zenoss/etc/hubpasswd\n#passwd /opt/zenoss/etc/hubpasswd\n#\n# Name of the distributed monitor this\n#  hub runs on, default: localhost\n#monitor localhost\n#\n# Number of worker instances to handle\n#  requests, default: 2\n#workers 2\n#\n# Relative process priority for hub workers\n#  (%default), default: 5\n#hubworker-priority 5\n#\n# Run higher priority jobs before lower\n#  priority ones, default: False\n#prioritize False\n#\n# Allow any priority job to run on any\n#  worker, default: False\n#anyworker False\n#\n# Number of worker instances to reserve\n#  for handling events, default: 1\n#workers-reserved-for-events 1\n#\n# Maximum number of remote calls a worker\n#  can run before restarting, default: 200\n#worker-call-limit 200\n#\n# Interval at which to poll invalidations\n#  (default: %default), default: 30\n#invalidation-poll-interval 30\n#\n# URL for posting internal metrics (default:\n#  %default), default:\n#  http://localhost:8080/api/metrics/store\n#metrics-store-url http://localhost:8080/api/metrics/store\n#\n# Username to use when publishing to metric\n#  consumer. Default is %default\n#zauth-username None\n#\n# Password to use when publishing to metric\n#  consumer. Default is %default\n#zauth-password None\n#\n# Number of workers dedicated to processing\n#  invalidations, default: 1\n#invalidationworkers 1\n#\n# The relative process priority of invalidation\n#  workers (%default), default: 10\n#invalidationworker-priority 10\n#\n# Number of invalidations each worker\n#  will deal with at a time, default: 100\n#invalidationchunksize 100\n#\n# Number of invalidations to process before\n#  shutting down, default: 5000\n#invalidationlimit 5000\n#\n# Optional override of the hub's identifier\n#  (defaults to 'host:port'). A 'random'\n#  setting changes the identifier on every\n#  startup; set in HA scenarios.\nidentifier random\n#\n# Use memcache to reduce the number of\n#  collector updates, default: True\n#no-memcache True\n#\n# Minimum period to delay configuration\n#  updates for batching, default: 30\n#min-update-delay-seconds 30\n#\n# Maximum period to delay configuration\n#  updates, default: 300\n#max-update-delay-seconds 300\n#\n# Period to delay configuration deletions\n#  for batching, default: 30\n#delete-delay-seconds 30\n#\n# The maximum number of unacknowledged\n#  messages that will be delivered to\n#  the invalidations consumer., default: 1000\n#invalidation-prefetch-count 1000\n#\n# Logging severity threshold, default: 20\n#logseverity 20\n#\n# Override the default logging path; default\n#  $ZENHOME/log, default: /opt/zenoss/log\n#logpath /opt/zenoss/log\n#\n# Max size of log file in KB; default\n#  10240, default: 10240\n#maxlogsize 10240\n#\n# Max number of back up log files; default\n#  3, default: 3\n#maxbackuplogs 3\n#\n# root object for data load (i.e. /zport/dmd),\n#  default: /zport/dmd\n#zodb-dataroot /zport/dmd\n#\n# in memory cachesize default: 1000, default:\n#  1000\n#zodb-cachesize 1000\n#\n# hostname of the MySQL server for ZODB,\n#  default: 127.0.0.1\n#zodb-host 127.0.0.1\n#\n# port of the MySQL server for ZODB, default:\n#  3306\n#zodb-port 3306\n#\n# user of the MySQL server for ZODB, default:\n#  zenoss\n#zodb-user zenoss\n#\n# password of the MySQL server for ZODB,\n#  default: zenoss\n#zodb-password zenoss\n#\n# Name of database for MySQL object store,\n#  default: zodb\n#zodb-db zodb\n#\n# Name of socket file for MySQL server\n#  connection if host is localhost\n#zodb-socket None\n#\n# memcached servers to use for object\n#  cache (eg. 127.0.0.1:11211), default:\n#  127.0.0.1:11211\n#zodb-cacheservers 127.0.0.1:11211\n#\n# Defer polling the database for the specified\n#  maximum time interval, in seconds.\n#  This will default to 60 only if --zodb-cacheservers\n#  is set.\n#zodb-poll-interval None\n#\n# Specify the number of seconds a database\n#  connection will wait to acquire a database\n#  'commit' lock before failing (defaults\n#  to 30 seconds if not specified)., default:\n#  30\n#zodb-commit-lock-timeout 30\n#\n# Heartbeat timeout, default: 900 sec.\n#heartbeattimeout 900\n#"
             }
         },
         "ConfigFiles": {
@@ -31476,21 +31476,21 @@
                 "Filename": "/opt/zenoss/etc/zenhub.conf",
                 "Owner": "zenoss:zenoss",
                 "Permissions": "0664",
-                "Content": "#\n# Configuration file for zenhub\n#\n#  To enable a particular option, uncomment the desired entry.\n#\n# Parameter     Setting\n# ---------     -------\n#\n# Use an alternate configuration file\n#configfile /opt/zenoss/etc/zenhub.conf\n#\n# Generate an XML file containing command-line\n#  switches., default: False\n#genxmlconfigs False\n#\n# User to become when running default:zenoss,\n#  default: zenoss\n#uid zenoss\n#\n# Cycle continuously on cycleInterval\n#  from Zope, default: False\n#cycle False\n#\n# Launch into the background, default: False\n#daemon False\n#\n# Log to console and log file, default: False\n#duallog False\n#\n# Log to log file and not console, default:\n#  False\n#logfileonly False\n#\n# output log info in HTML table format,\n#  default: False\n#weblog False\n#\n# Run under a supervisor which will restart\n#  it, default: False\n#watchdog False\n#\n# The path to the watchdog reporting socket\n#watchdogPath None\n#\n# Wait seconds for initial heartbeat\n#starttimeout None\n#\n# Set listener socket options. For option\n#  details: man 7 socket, default: []\n#socketOption []\n#\n# Port to use for XML-based Remote Procedure\n#  Calls (RPC), default: 8081\n#xmlrpcport 8081\n#\n# Port to use for Twisted's pb service,\n#  default: 8789\n#pbport 8789\n#\n# File where passwords are stored, default:\n#  /opt/zenoss/etc/hubpasswd\n#passwd /opt/zenoss/etc/hubpasswd\n#\n# Name of the distributed monitor this\n#  hub runs on, default: localhost\n#monitor localhost\n#\n# Run higher priority jobs before lower\n#  priority ones, default: False\n#prioritize False\n#\n# Allow any priority job to run on any\n#  worker, default: False\n#anyworker False\n#\n# Number of worker instances to reserve\n#  for handling events, default: 1\n#workers-reserved-for-events 1\n#\n# Interval at which to poll invalidations\n#  (default: %default), default: 30\n#invalidation-poll-interval 30\n#\n# URL for posting internal metrics (default:\n#  %default), default:\n#  http://localhost:8080/api/metrics/store\n#metrics-store-url http://localhost:8080/api/metrics/store\n#\n# Username to use when publishing to metric\n#  consumer. Default is %default\n#zauth-username None\n#\n# Password to use when publishing to metric\n#  consumer. Default is %default\n#zauth-password None\n#\n# Number of workers dedicated to processing\n#  invalidations, default: 1\n#invalidationworkers 1\n#\n# The relative process priority of invalidation\n#  workers (%default), default: 10\n#invalidationworker-priority 10\n#\n# Number of invalidations each worker\n#  will deal with at a time, default: 100\n#invalidationchunksize 100\n#\n# Number of invalidations to process before\n#  shutting down, default: 5000\n#invalidationlimit 5000\n#\n# Optional override of the hub's identifier\n#  (defaults to 'host:port'). A 'random'\n#  setting changes the identifier on every\n#  startup; set in HA scenarios.\nidentifier random\n#\n# Use memcache to reduce the number of\n#  collector updates, default: True\n#no-memcache True\n#\n# Minimum period to delay configuration\n#  updates for batching, default: 30\n#min-update-delay-seconds 30\n#\n# Maximum period to delay configuration\n#  updates, default: 300\n#max-update-delay-seconds 300\n#\n# Period to delay configuration deletions\n#  for batching, default: 30\n#delete-delay-seconds 30\n#\n# The maximum number of unacknowledged\n#  messages that will be delivered to\n#  the invalidations consumer., default: 1000\n#invalidation-prefetch-count 1000\n#\n# Logging severity threshold, default: 20\n#logseverity 20\n#\n# Override the default logging path; default\n#  $ZENHOME/log, default: /opt/zenoss/log\n#logpath /opt/zenoss/log\n#\n# Max size of log file in KB; default\n#  10240, default: 10240\n#maxlogsize 10240\n#\n# Max number of back up log files; default\n#  3, default: 3\n#maxbackuplogs 3\n#\n# root object for data load (i.e. /zport/dmd),\n#  default: /zport/dmd\n#zodb-dataroot /zport/dmd\n#\n# in memory cachesize default: 1000, default:\n#  1000\n#zodb-cachesize 1000\n#\n# hostname of the MySQL server for ZODB,\n#  default: 127.0.0.1\n#zodb-host 127.0.0.1\n#\n# port of the MySQL server for ZODB, default:\n#  3306\n#zodb-port 3306\n#\n# user of the MySQL server for ZODB, default:\n#  zenoss\n#zodb-user zenoss\n#\n# password of the MySQL server for ZODB,\n#  default: zenoss\n#zodb-password zenoss\n#\n# Name of database for MySQL object store,\n#  default: zodb\n#zodb-db zodb\n#\n# Name of socket file for MySQL server\n#  connection if host is localhost\n#zodb-socket None\n#\n# memcached servers to use for object\n#  cache (eg. 127.0.0.1:11211), default:\n#  127.0.0.1:11211\n#zodb-cacheservers 127.0.0.1:11211\n#\n# Defer polling the database for the specified\n#  maximum time interval, in seconds.\n#  This will default to 60 only if --zodb-cacheservers\n#  is set.\n#zodb-poll-interval None\n#\n# Specify the number of seconds a database\n#  connection will wait to acquire a database\n#  'commit' lock before failing (defaults\n#  to 30 seconds if not specified)., default:\n#  30\n#zodb-commit-lock-timeout 30\n#\n# Heartbeat timeout, default: 900 sec.\n#heartbeattimeout 900\n#"
+                "Content": "#\n# Configuration file for zenhub\n#\n#  To enable a particular option, uncomment the desired entry.\n#\n# Parameter     Setting\n# ---------     -------\n#\n# Use an alternate configuration file\n#configfile /opt/zenoss/etc/zenhub.conf\n#\n# Generate an XML file containing command-line\n#  switches., default: False\n#genxmlconfigs False\n#\n# User to become when running default:zenoss,\n#  default: zenoss\n#uid zenoss\n#\n# Cycle continuously on cycleInterval\n#  from Zope, default: False\n#cycle False\n#\n# Launch into the background, default: False\n#daemon False\n#\n# Log to console and log file, default: False\n#duallog False\n#\n# Log to log file and not console, default:\n#  False\n#logfileonly False\n#\n# output log info in HTML table format,\n#  default: False\n#weblog False\n#\n# Run under a supervisor which will restart\n#  it, default: False\n#watchdog False\n#\n# The path to the watchdog reporting socket\n#watchdogPath None\n#\n# Wait seconds for initial heartbeat\n#starttimeout None\n#\n# Set listener socket options. For option\n#  details: man 7 socket, default: []\n#socketOption []\n#\n# Port to use for XML-based Remote Procedure\n#  Calls (RPC), default: 8081\n#xmlrpcport 8081\n#\n# Port to use for Twisted's pb service,\n#  default: 8789\n#pbport 8789\n#\n# File where passwords are stored, default:\n#  /opt/zenoss/etc/hubpasswd\n#passwd /opt/zenoss/etc/hubpasswd\n#\n# Name of the distributed monitor this\n#  hub runs on, default: localhost\n#monitor localhost\n#\n# Number of worker instances to handle\n#  requests, default: 2\n#workers 2\n#\n# Relative process priority for hub workers\n#  (%default), default: 5\n#hubworker-priority 5\n#\n# Run higher priority jobs before lower\n#  priority ones, default: False\n#prioritize False\n#\n# Allow any priority job to run on any\n#  worker, default: False\n#anyworker False\n#\n# Number of worker instances to reserve\n#  for handling events, default: 1\n#workers-reserved-for-events 1\n#\n# Maximum number of remote calls a worker\n#  can run before restarting, default: 200\n#worker-call-limit 200\n#\n# Interval at which to poll invalidations\n#  (default: %default), default: 30\n#invalidation-poll-interval 30\n#\n# URL for posting internal metrics (default:\n#  %default), default:\n#  http://localhost:8080/api/metrics/store\n#metrics-store-url http://localhost:8080/api/metrics/store\n#\n# Username to use when publishing to metric\n#  consumer. Default is %default\n#zauth-username None\n#\n# Password to use when publishing to metric\n#  consumer. Default is %default\n#zauth-password None\n#\n# Number of workers dedicated to processing\n#  invalidations, default: 1\n#invalidationworkers 1\n#\n# The relative process priority of invalidation\n#  workers (%default), default: 10\n#invalidationworker-priority 10\n#\n# Number of invalidations each worker\n#  will deal with at a time, default: 100\n#invalidationchunksize 100\n#\n# Number of invalidations to process before\n#  shutting down, default: 5000\n#invalidationlimit 5000\n#\n# Optional override of the hub's identifier\n#  (defaults to 'host:port'). A 'random'\n#  setting changes the identifier on every\n#  startup; set in HA scenarios.\nidentifier random\n#\n# Use memcache to reduce the number of\n#  collector updates, default: True\n#no-memcache True\n#\n# Minimum period to delay configuration\n#  updates for batching, default: 30\n#min-update-delay-seconds 30\n#\n# Maximum period to delay configuration\n#  updates, default: 300\n#max-update-delay-seconds 300\n#\n# Period to delay configuration deletions\n#  for batching, default: 30\n#delete-delay-seconds 30\n#\n# The maximum number of unacknowledged\n#  messages that will be delivered to\n#  the invalidations consumer., default: 1000\n#invalidation-prefetch-count 1000\n#\n# Logging severity threshold, default: 20\n#logseverity 20\n#\n# Override the default logging path; default\n#  $ZENHOME/log, default: /opt/zenoss/log\n#logpath /opt/zenoss/log\n#\n# Max size of log file in KB; default\n#  10240, default: 10240\n#maxlogsize 10240\n#\n# Max number of back up log files; default\n#  3, default: 3\n#maxbackuplogs 3\n#\n# root object for data load (i.e. /zport/dmd),\n#  default: /zport/dmd\n#zodb-dataroot /zport/dmd\n#\n# in memory cachesize default: 1000, default:\n#  1000\n#zodb-cachesize 1000\n#\n# hostname of the MySQL server for ZODB,\n#  default: 127.0.0.1\n#zodb-host 127.0.0.1\n#\n# port of the MySQL server for ZODB, default:\n#  3306\n#zodb-port 3306\n#\n# user of the MySQL server for ZODB, default:\n#  zenoss\n#zodb-user zenoss\n#\n# password of the MySQL server for ZODB,\n#  default: zenoss\n#zodb-password zenoss\n#\n# Name of database for MySQL object store,\n#  default: zodb\n#zodb-db zodb\n#\n# Name of socket file for MySQL server\n#  connection if host is localhost\n#zodb-socket None\n#\n# memcached servers to use for object\n#  cache (eg. 127.0.0.1:11211), default:\n#  127.0.0.1:11211\n#zodb-cacheservers 127.0.0.1:11211\n#\n# Defer polling the database for the specified\n#  maximum time interval, in seconds.\n#  This will default to 60 only if --zodb-cacheservers\n#  is set.\n#zodb-poll-interval None\n#\n# Specify the number of seconds a database\n#  connection will wait to acquire a database\n#  'commit' lock before failing (defaults\n#  to 30 seconds if not specified)., default:\n#  30\n#zodb-commit-lock-timeout 30\n#\n# Heartbeat timeout, default: 900 sec.\n#heartbeattimeout 900\n#"
             }
         },
         "Instances": 1,
         "InstanceLimits": {
             "Min": 1,
-            "Max": 1,
-            "Default": 1
+            "Max": 0,
+            "Default": 0
         },
         "ChangeOptions": null,
         "ImageID": "98iatv506a0y00il5mfrfwt0c/resmgr_6.1:latest",
         "PoolID": "default",
         "DesiredState": 1,
         "CurrentState": "started",
-        "HostPolicy": "",
+        "HostPolicy": "PREFER_SEPARATE",
         "Hostname": "",
         "Privileged": false,
         "Launch": "auto",
@@ -31850,6 +31850,18 @@
                 "Script": "curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'",
                 "Timeout": 0,
                 "Interval": 10,
+                "Tolerance": 0
+            },
+            "stable_workers": {
+                "Script": "/opt/zenoss/bin/healthchecks/zenhub/stable_workers",
+                "Timeout": 0,
+                "Interval": 5,
+                "Tolerance": 0
+            },
+            "workers_running": {
+                "Script": "pgrep -fu zenoss zenhubworker.py > /dev/null",
+                "Timeout": 0,
+                "Interval": 5,
                 "Tolerance": 0
             },
             "zep_answering": {
@@ -34489,7 +34501,7 @@
         "PoolID": "default",
         "DesiredState": 1,
         "CurrentState": "started",
-        "HostPolicy": "",
+        "HostPolicy": "PREFER_SEPARATE",
         "Hostname": "",
         "Privileged": false,
         "Launch": "auto",
@@ -43914,7 +43926,7 @@
         "PoolID": "default",
         "DesiredState": 1,
         "CurrentState": "started",
-        "HostPolicy": "",
+        "HostPolicy": "PREFER_SEPARATE",
         "Hostname": "",
         "Privileged": false,
         "Launch": "auto",
@@ -47733,290 +47745,5 @@
         "StartLevel": 0,
         "EmergencyShutdownLevel": 0,
         "EmergencyShutdown": false
-    },
-    {
-        "Actions": {
-            "debug": "su - zenoss -c '${ZENHOME:-/opt/zenoss}/bin/{{.Name}} debug'",
-            "stats": "su - zenoss -c '${ZENHOME:-/opt/zenoss}/bin/{{.Name}} stats'"
-        },
-        "CPUCommitment": 1,
-        "ChangeOptions": [],
-        "Command": "su - zenoss -c \"/opt/zenoss/bin/zenhubworker run -c --logfileonly --monitor {{(parent .).Name}} --workerid $CONTROLPLANE_INSTANCE_ID\"",
-        "Commands": {},
-        "ConfigFiles": {
-            "/opt/zenoss/etc/global.conf": {
-                "Content": "# Generated by serviced\n{{range $k,$v:=contextFilter . \"global.conf.\"}}{{$k}} {{$v}}\n{{end}}",
-                "Filename": "/opt/zenoss/etc/global.conf",
-                "Owner": "zenoss:zenoss",
-                "Permissions": "660"
-            },
-            "/opt/zenoss/etc/zenhubworker.conf": {
-                "Content": "#\n# Configuration file for zenhubworker\n#\n#  To enable a particular option, uncomment the desired entry.\n#\n# Parameter     Setting\n# ---------     -------\n#\n# Use an alternate configuration file\n#configfile /opt/zenoss/etc/zenhubworker.conf\n#\n# Generate an XML file containing command-line\n#  switches., default: False\n#genxmlconfigs False\n#\n# User to become when running default:zenoss,\n#  default: zenoss\n#uid zenoss\n#\n# Cycle continuously on cycleInterval\n#  from Zope, default: False\n#cycle False\n#\n# Launch into the background, default: False\n#daemon False\n#\n# Log to console and log file, default: False\n#duallog False\n#\n# Log to log file and not console, default:\n#  False\n#logfileonly False\n#\n# output log info in HTML table format,\n#  default: False\n#weblog False\n#\n# Run under a supervisor which will restart\n#  it, default: False\n#watchdog False\n#\n# The path to the watchdog reporting socket\n#watchdogPath None\n#\n# Wait seconds for initial heartbeat\n#starttimeout None\n#\n# Set listener socket options. For option\n#  details: man 7 socket, default: []\n#socketOption []\n#\n# Set a heartbeat timeout in seconds for\n#  a daemon, default: 900\n#heartbeattimeout 900\n#\n# Host to use for connecting to ZenHub,\n#  default: localhost\n#hubhost localhost\n#\n# Port to use for connecting to ZenHub,\n#  default: 8789\n#hubport 8789\n#\n# Login name to use when connecting to\n#  ZenHub, default: admin\n#hubusername admin\n#\n# password to use when connecting to ZenHub,\n#  default: zenoss\n#hubpassword zenoss\n#\n# Maximum number of remote calls before\n#  restarting worker, default: 200\n#call-limit 200\n#\n# Run with profiling on, default: False\n#profiling False\n#\n# Name of the distributed monitor this\n#  hub runs on, default: localhost\n#monitor localhost\n#\n# Logging severity threshold, default: 20\n#logseverity 20\n#\n# Override the default logging path; default\n#  $ZENHOME/log, default: /opt/zenoss/log\n#logpath /opt/zenoss/log\n#\n# Max size of log file in KB; default\n#  10240, default: 10240\n#maxlogsize 10240\n#\n# Max number of back up log files; default\n#  3, default: 3\n#maxbackuplogs 3\n#\n# root object for data load (i.e. /zport/dmd),\n#  default: /zport/dmd\n#zodb-dataroot /zport/dmd\n#\n# in memory cachesize default: 1000, default:\n#  1000\n#zodb-cachesize 1000\n#\n# hostname of the MySQL server for ZODB,\n#  default: 127.0.0.1\n#zodb-host 127.0.0.1\n#\n# port of the MySQL server for ZODB, default:\n#  3306\n#zodb-port 3306\n#\n# user of the MySQL server for ZODB, default:\n#  zenoss\n#zodb-user zenoss\n#\n# password of the MySQL server for ZODB,\n#  default: zenoss\n#zodb-password zenoss\n#\n# Name of database for MySQL object store,\n#  default: zodb\n#zodb-db zodb\n#\n# Name of socket file for MySQL server\n#  connection if host is localhost\n#zodb-socket None\n#\n# memcached servers to use for object\n#  cache (eg. 127.0.0.1:11211), default:\n#  127.0.0.1:11211\n#zodb-cacheservers 127.0.0.1:11211\n#\n# memcached maximum object size in bytes,\n#  default: 1048576\n#zodb-cache-max-object-size 1048576\n#\n# Specify the number of seconds a database\n#  connection will wait to acquire a database\n#  'commit' lock before failing (defaults\n#  to 30 seconds if not specified)., default:\n#  30\n#zodb-commit-lock-timeout 30\n#\n",
-                "Filename": "/opt/zenoss/etc/zenhubworker.conf",
-                "Owner": "zenoss:zenoss",
-                "Permissions": "0664"
-            }
-        },
-        "Context": {},
-        "Description": "Executes service requests on ZenHub's behalf",
-        "DesiredState": 0,
-        "EmergencyShutdownLevel": 0,
-        "Endpoints": [
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "zodb_.*",
-                "ApplicationTemplate": "",
-                "Name": "mariadb",
-                "PortList": [],
-                "PortNumber": 0,
-                "PortTemplate": "",
-                "Protocol": "",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "memcached",
-                "ApplicationTemplate": "",
-                "Name": "memcached",
-                "PortList": [],
-                "PortNumber": 11211,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "redis",
-                "ApplicationTemplate": "",
-                "Name": "redis",
-                "PortList": [],
-                "PortNumber": 6379,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "rabbitmq.*",
-                "ApplicationTemplate": "",
-                "Name": "rabbitmq",
-                "PortList": [],
-                "PortNumber": 0,
-                "PortTemplate": "",
-                "Protocol": "",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "zep",
-                "ApplicationTemplate": "",
-                "Name": "zep",
-                "PortList": [],
-                "PortNumber": 8084,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "{{(parent .).Name}}_zenhubPB",
-                "ApplicationTemplate": "",
-                "Name": "zenhub",
-                "PortList": [],
-                "PortNumber": 8789,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "{{(parent .).Name}}_zenhubXMLRpc",
-                "ApplicationTemplate": "",
-                "Name": "zenhub_rpc",
-                "PortList": [],
-                "PortNumber": 8081,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "controlplane_consumer",
-                "ApplicationTemplate": "",
-                "Name": "controlplane_consumer",
-                "PortList": [],
-                "PortNumber": 8444,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            },
-            {
-                "AddressConfig": {
-                    "Port": 0,
-                    "Protocol": ""
-                },
-                "Application": "zproxy",
-                "ApplicationTemplate": "",
-                "Name": "zproxy",
-                "PortList": [],
-                "PortNumber": 8080,
-                "PortTemplate": "",
-                "Protocol": "tcp",
-                "Purpose": "import",
-                "VHostList": [],
-                "VirtualAddress": ""
-            }
-        ],
-        "Environment": [],
-        "HealthChecks": {
-            "central_query_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/query_answering",
-                "Timeout": 0
-            },
-            "mariadb_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/mariadb_answering",
-                "Timeout": 0
-            },
-            "memcached_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/memcached_answering",
-                "Timeout": 0
-            },
-            "metric_consumer_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/metrics_answering",
-                "Timeout": 0
-            },
-            "rabbit_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/rabbit_answering {{(getContext . \"global.conf.amqpuser\")}} {{(getContext . \"global.conf.amqppassword\")}}",
-                "Timeout": 0
-            },
-            "redis_answering": {
-                "Interval": 5.0,
-                "Script": "/opt/zenoss/bin/healthchecks/redis_answering",
-                "Timeout": 0
-            },
-            "running": {
-                "Interval": 5.0,
-                "Script": "pgrep -fu zenoss zenhubworker.py > /dev/null",
-                "Timeout": 0
-            },
-            "solr_answering": {
-                "Interval": 10.0,
-                "Script": "curl -A 'Solr answering healthcheck' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'",
-                "Timeout": 0
-            },
-            "zenhub_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/zenhub_answering",
-                "Timeout": 0
-            },
-            "zep_answering": {
-                "Interval": 10.0,
-                "Script": "/opt/zenoss/bin/healthchecks/zep_answering",
-                "Timeout": 0
-            }
-        },
-        "HostPolicy": "PREFER_SEPARATE",
-        "ImageID": "98iatv506a0y00il5mfrfwt0c/resmgr_6.1:latest",
-        "Instances": {
-            "Default": 2,
-            "Max": 0,
-            "Min": 1
-        },
-        "Launch": "auto",
-        "LogConfigs": [
-            {
-                "Filters": [],
-                "IsAudit": false,
-                "LogTags": [],
-                "Path": "/opt/zenoss/log/zenhubworker.log",
-                "Type": "zenhubworker"
-            }
-        ],
-        "MonitoringProfile": {
-            "GraphConfigs": [],
-            "MetricConfigs": [],
-            "ThresholdConfigs": []
-        },
-        "Name": "zenhubworker",
-        "OriginalConfigs": {},
-        "ParentServiceID": "11y9r8leozofu6jhv04yxsz0b",
-        "Prereqs": [
-            {
-                "Name": "MariaDB connectivity",
-                "Script": "su - zenoss -c '/opt/zenoss/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb zodb --execsql=\";\"'"
-            },
-            {
-                "Name": "Solr answering",
-                "Script": "curl -A 'Solr answering prereq' -s http://localhost:8983/solr/zenoss_model/admin/ping?wt=json | grep -q '\"status\":\"OK\"'"
-            }
-        ],
-        "Privileged": false,
-        "RAMCommitment": "1G",
-        "Services": [],
-        "StartLevel": 2,
-        "Startup": "",
-        "Tags": [
-            "daemon"
-        ],
-        "Volumes": [
-            {
-                "ContainerPath": "/home/zenoss/.ssh",
-                "Owner": "zenoss:zenoss",
-                "Permission": "0755",
-                "ResourcePath": ".ssh",
-                "Type": ""
-            },
-            {
-                "ContainerPath": "/var/zenoss",
-                "Owner": "zenoss:zenoss",
-                "Permission": "0775",
-                "ResourcePath": "var-zenpacks"
-            }
-        ]
     }
 ]
