@@ -149,7 +149,7 @@ class InvalidationManager(object):
         if not self._currently_paused:
             if self.__dmd.pauseHubNotifications:
                 self._currently_paused = True
-                log.info('notifications have been paused')
+                log.info('invalidation processing has been paused')
                 self._send_event(self._invalidation_paused_event)
                 return True
             else:
@@ -157,11 +157,11 @@ class InvalidationManager(object):
 
         else:
             if self.__dmd.pauseHubNotifications:
-                log.debug('notifications are paused')
+                log.debug('invalidation processing is paused')
                 return True
             else:
                 self._currently_paused = False
-                log.info('notifications unpaused')
+                log.info('invalidation processing has been unpaused')
                 self._send_event(self._invalidation_unpaused_event)
                 return False
 
