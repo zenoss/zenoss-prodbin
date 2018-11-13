@@ -186,17 +186,28 @@ class InvalidationPipeline(object):
     '''
 
     def __init__(self, app, filters, sink):
-        sink = set_sink(sink)
-        self.__pipeline = oid_to_obj(
-            app, sink,
+        self.__app = app
+        self.__filters = filters
+        self.__sink = sink
+        self.__pipeline = self._build_pipeline()
+
+    def _build_pipeline(self):
+        sink = set_sink(self.__sink)
+        pipeline = oid_to_obj(
+            self.__app, sink,
             filter_obj(
-                filters,
+                self.__filters,
                 transform_obj(sink)
             )
         )
+        return pipeline
 
     def run(self, invalidation):
-        self.__pipeline.send(invalidation)
+        try:
+            self.__pipeline.send(invalidation)
+        except Exception:
+            log.exception('error in run')
+            self.__pipeline = self._build_pipeline()
 
 
 def coroutine(func):
