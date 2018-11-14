@@ -182,11 +182,34 @@ class ZenTableState:
         pageLabel = ""
         # do not show the page label if there is only one page
         if self.totalobjs > self.batchSize:
-            if self.batchSize:
+            if self.sortedHeader:
+                pageLabel = self._buildTextLabel(objects[index])
+            elif self.batchSize:
                 pageLabel = str(1+index/self.batchSize)
             else:
                 pageLabel = '1'
         return pageLabel
+
+
+    def _buildTextLabel(self, item):
+        startAbbr = ""
+        endAbbr = ""
+        attr = getattr(item, self.sortedHeader, self.defaultValue)
+        if callable(attr): attr = attr()
+        if isinstance(attr, DateTime) and not attr.millis():
+            label = self.defaultValue
+        else:
+            label = attr
+        if isinstance(item, dict):
+            label = item.get(self.sortedHeader, "")
+        # ensuring that we are always working with a string
+        label = str(label)
+        if len(label) > self.abbrThresh:
+            startAbbr = label[:self.abbrStartLabel]
+            if self.abbrEndLabel > 0:
+                endAbbr = label[-self.abbrEndLabel:]
+            label = "".join((startAbbr, self.abbrSeparator, endAbbr))
+        return label
 
 
     def setTableState(self, attname, value, default=None, reset=False, request=None):
