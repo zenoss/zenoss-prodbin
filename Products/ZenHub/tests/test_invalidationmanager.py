@@ -8,7 +8,7 @@
 ##############################################################################
 
 from unittest import TestCase
-from mock import patch, Mock, create_autospec, MagicMock, sentinel
+from mock import patch, Mock, create_autospec, MagicMock, sentinel, ANY
 
 from mock_interface import create_interface_mock
 
@@ -204,7 +204,8 @@ class InvalidationPipelineTest(TestCase):
 
         t.assertEqual(t.sink, set([t.oid]))
 
-    def test_run_handles_exceptions(t):
+    @patch('{src}.log'.format(**PATH), autospec=True)
+    def test_run_handles_exceptions(t, log):
         '''An exception in any of the coroutines will first raise the exception
         then cause StopIteration exceptions on subsequent runs.
         we handle the first exception and rebuild the pipeline
@@ -216,6 +217,7 @@ class InvalidationPipelineTest(TestCase):
         t.invalidation_pipeline.run(x)  # causes an exception
         t.invalidation_pipeline.run(t.oid)
 
+        log.exception.assert_called_with(ANY)
         t.assertEqual(t.sink, set([t.oid]))
         # ensure the dereferenced pipeline is cleaned up safely
         import gc
