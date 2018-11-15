@@ -16,14 +16,13 @@ import servicemigration as sm
 from servicemigration import HealthCheck
 sm.require("1.1.12")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class AddZopeDeadlockHC(Migrate.Step):
     """
     Add the deadlock healthcheck to all of the zopes.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 3, 0)
 
     def cutover(self, dmd):
         try:
