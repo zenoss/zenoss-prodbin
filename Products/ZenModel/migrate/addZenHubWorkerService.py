@@ -16,7 +16,6 @@ import sys
 import Migrate
 
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -96,7 +95,7 @@ class AddZenHubWorkerService(Migrate.Step):
     ZenHub Workers running in their own service.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 3, 0)
 
     def cutover(self, dmd):
         try:

@@ -12,13 +12,12 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class ClearPageCommand(Migrate.Step):
     "Clear default value for Page Command"
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 3, 0)
 
     def cutover(self, dmd):
 

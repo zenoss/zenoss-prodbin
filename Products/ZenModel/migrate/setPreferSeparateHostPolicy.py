@@ -11,7 +11,6 @@ import logging
 import Migrate
 import servicemigration as sm
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -23,7 +22,7 @@ class SetPreferSeparateHostPolicy(Migrate.Step):
     """Set HostPolicy to PREFER_SEPARATE for select Control Center services.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 3, 0)
 
     def cutover(self, dmd):
         try:
