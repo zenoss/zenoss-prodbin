@@ -21,7 +21,7 @@ class LimitRabbitMQInstances(Migrate.Step):
     Limit number of RabbitMQ's instances to 1.
     """
 
-    version = Migrate.Version(200, 1, 0)
+    version = Migrate.Version(200, 2, 0)
 
     def cutover(self, dmd):
         try:

@@ -87,7 +87,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     instanceIdentifier = 'Zenoss'
     zenossHostname = 'localhost:8080'
     smtpHost = ''
-    pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
+    pageCommand = ''
     smtpPort = 25
     smtpUser = ''
     smtpPass = ''
@@ -781,16 +781,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
 
     def getDocFilesInfo(self):
-        docDir = os.path.join(zenPath("Products"), 'ZenUI3', 'docs')
-        product = self.getProductName()
-        docCategories = ['admin', 'install', 'notes', 'zenpacks']
+        docDir = zenPath("docs")
         downloadable = []
 
-        for category in docCategories:
-            for root, dirs, files in os.walk(os.path.join(docDir, category, product)):
-                for file in files:
-                    if file.endswith(".pdf"):
-                        downloadable.append({"title": file, "filename": category + "/" + product + "/pdf/" + file})
+        for root, dirs, files in os.walk(docDir):
+            for filename in files:
+                if filename.endswith(".pdf"):
+                    downloadable.append({"title": filename, "filename": filename})
 
         return downloadable
 

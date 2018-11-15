@@ -561,28 +561,41 @@ class DeviceFacade(TreeFacade):
         assert isinstance(target, DeviceOrganizer)
         devs = (self._getObject(uid) for uid in uids)
         targetname = target.getOrganizerName()
-        exports = 0
+        moved_devices_count = 0
+        success = False
+        remodel_required = False
         if isinstance(target, DeviceGroup):
             for dev in devs:
                 paths = set(dev.getDeviceGroupNames())
                 paths.add(targetname)
                 dev.setGroups(list(paths))
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, System):
             for dev in devs:
                 paths = set(dev.getSystemNames())
                 paths.add(targetname)
                 dev.setSystems(list(paths))
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, Location):
             for dev in devs:
                 if dev.location():
                     notify(ObjectRemovedFromOrganizerEvent(dev, dev.location()))
                 dev.setLocation(targetname)
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, DeviceClass):
-            exports = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
-        return exports
+            moved_devices_count = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
+            success = True
+            remodel_required = True
+
+        result = {
+            'success': success,
+            'message': 'The %s devices have been moved' % moved_devices_count,
+            'remodel_required': remodel_required
+        }
+        return result
 
     def _setProductionState(self, uids, state):
         if isinstance(uids, basestring):
@@ -631,7 +644,8 @@ class DeviceFacade(TreeFacade):
 
         # find a device with the same ip on the same collector
         cat = IModelCatalogTool(self.context.Devices)
-        query = Eq('text_ipAddress', ipAddress)
+        query = And(Eq('text_ipAddress', ipAddress),
+                    Eq('objectImplements', 'Products.ZenModel.Device.Device'))
         search_results = cat.search(query=query)
 
         for brain in search_results.results:
@@ -741,7 +755,11 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        rrdTemplates = object.getRRDTemplates()
+        
+        if isinstance(object, Device):
+            rrdTemplates = object.getAvailableTemplates()
+        else:
+            rrdTemplates = object.getRRDTemplates()        
 
         # used to sort the templates
         def byTitleOrId(left, right):

@@ -470,7 +470,7 @@
         dialog.show();
     };
 
-    Zenoss.events.Exp = function(gridId, type, format){
+    Zenoss.events.Exp = function(gridId, type, format, expVisible){
         var context = Zenoss.env.device_uid || Zenoss.env.PARENT_CONTEXT;
         if (context === "/zport/dmd/Events") {
             context = location.pathname.replace('/viewEvents', '');
@@ -490,6 +490,7 @@
                 params: {
                     uid: context,
                     fields: Ext.Array.pluck(state.columns, 'id'),
+                    exportVisible: expVisible,
                     sort: state.sort.property,
                     dir: state.sort.direction,
                     params: grid.getExportParameters()
@@ -953,7 +954,7 @@
                     minWidth: 350,
                     submitHandler: function(form) {
                         var values = form.getValues();
-                        Zenoss.events.Exp(gridId, values['ftype'], values['ffmt']);
+                        Zenoss.events.Exp(gridId, values['ftype'], values['ffmt'], values['exportVisible']);
                     },
                     form: {
                         layout: 'anchor',
@@ -1023,6 +1024,12 @@
                         value: '',
                         hidden: true,
                         submitValue: false
+                    },{
+                        name: 'exportVisible',
+                        fieldLabel: 'Export visible columns',
+                        xtype: 'checkbox',
+                        checked: true,
+                        submitValue: true
                     }
                     ]
                 }

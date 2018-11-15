@@ -205,7 +205,8 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                     margin: labelmargin
                                 },{
                                     xtype: 'checkbox',
-                                    name: 'enabled'
+                                    name: 'enabled',
+                                    checked: newEntry && true
                                 }
                             ]
                         }
@@ -405,7 +406,9 @@ Ext.ns('Zenoss', 'Zenoss.devicemanagement');
                                 },
                                 listeners: {
                                     'afterrender': function(combo){
-                                        combo.setValue(combo.store.getAt(0));
+                                        if (newEntry) {
+                                            combo.setValue(combo.store.findRecord('name', 'Maintenance'));
+                                        }
                                     }
                                 },
                                 store: Ext.create('Ext.data.Store', {
@@ -829,7 +832,7 @@ Ext.define("Zenoss.devicemanagement.Administration", {
                                     uid:                    grid.uid,
                                     id:                     data.name,
                                     name:                   data.name,
-                                    startTime:              data.startdatetime,
+                                    startDateTime:          data.start,
                                     durationDays:           duration.days,
                                     durationHours:          duration.hrs,
                                     durationMinutes:        duration.mins,

@@ -1,7 +1,14 @@
 #!/bin/bash
 
 echo "Removing Catalog Service"
-CATALOG_SERVICE_EGG=`find /opt/zenoss/.ZenPacks/ -name ZenPacks.zenoss.CatalogService* | head -n 1`
+
+IS_CATALOG_SERVICE_INSTALLED=`zenpack --list | grep ZenPacks.zenoss.CatalogService*`
+if [[ -z "$IS_CATALOG_SERVICE_INSTALLED" ]]; then
+  echo "No Catalog Service zenpack installed. Exiting removal script."
+  exit
+fi
+
+CATALOG_SERVICE_EGG=`find /opt/zenoss/.ZenPacks/ -name ZenPacks.zenoss.CatalogService* | tail -1`
 if [[ -z "$CATALOG_SERVICE_EGG" ]]; then
   echo "Catalog Service egg not found.  Exiting removal script."
   exit
@@ -9,6 +16,12 @@ fi
 
 echo "Found Catalog Service egg at $CATALOG_SERVICE_EGG"
 /opt/zenoss/bin/zenpack --files-only --install $CATALOG_SERVICE_EGG
+
+
+##### ZEN-29662
+echo "Removing CatalogService OSProcessClass relations"
+/opt/zenoss/bin/zenmigrate --step=RemoveCatalogServiceBrokenRelation --dont-bump
+
 #show log only if something goes wrong
 tmp_output="/tmp/"`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32`
 /opt/zenoss/bin/zenpack --remove ZenPacks.zenoss.CatalogService  > $tmp_output 2>&1

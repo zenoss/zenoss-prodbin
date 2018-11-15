@@ -26,9 +26,9 @@ class ModelQueryFacade(ZuulFacade):
         self.model_catalog = IModelCatalogTool(self.context)
         self.model_catalog_helper = ModelCatalogToolHelper(self.model_catalog)
         self.indexed, self.stored, self.fields_by_type = self.model_catalog.model_catalog_client.get_indexes()
-         
 
-    def filterIndexes(self, indexes):      
+
+    def filterIndexes(self, indexes):
 
         # Sensitive information which may be stored as a value for zProp in SOLR is not encrypted yet
         # while that exclude it from the query.
@@ -36,7 +36,7 @@ class ModelQueryFacade(ZuulFacade):
         return [index for index in indexes if index not in filtered]
 
 
-    def getDevices(self, limit=200, params=None, fields=None):
+    def getDevices(self, start=0, limit=200, orderby=None, reverse=False, params=None, fields=None):
         """
         Retrieves a list of devices.
         @type  limit: integer
@@ -45,14 +45,14 @@ class ModelQueryFacade(ZuulFacade):
         @type  params: dictionary
         @param params: (optional) Key-value pair of filters for this search
                         e.g. params={'name': 'localhost'}
-                       
+
         @type  fields: list of strings
-        @param fields: (optional) list of indexed fields to retrieve, if None 
+        @param fields: (optional) list of indexed fields to retrieve, if None
         then attempts to retrive values for all indexes we have in SOLR.
                         e.g. fields=["name", "osModel", "productionState"]
-        
+
         """
-        
+
         if fields is None:
             indexes = self._getIndexes()
             indexes.append('events')
@@ -68,7 +68,8 @@ class ModelQueryFacade(ZuulFacade):
                 if parameter not in self.indexed:
                     params.pop(parameter)
 
-        results = self.model_catalog_helper.get_devices(limit=limit, globFilters=params, fields=indexes)
+        results = self.model_catalog_helper.get_devices(start=start, limit=limit, orderby=orderby, reverse=reverse,
+                                                        globFilters=params, fields=indexes)
         devices = [brain.to_dict(indexes) for brain in results]
 
         if 'events' in indexes:
@@ -101,7 +102,7 @@ class ModelQueryFacade(ZuulFacade):
                         indexed=index.index_field_type.indexed,
                         stored=index.index_field_type.stored
                     )
-                    
+
                     idxs.append(idx)
 
                 results.append({field[0].__name__:idxs})

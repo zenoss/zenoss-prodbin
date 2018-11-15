@@ -1,5 +1,5 @@
 <tal:block tal:define="
-	objects  python:here.getDmdRoot('Events').getSubEventClassesWithDisabledTransform();
+    objects python:here.ReportServer.plugin('disabledtransformreport', here.REQUEST);
     tableName string: disabledtransformreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                         sortedHeader='getOrganizerName');
@@ -20,6 +20,17 @@
 						tblcolspan string:4">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
+    <tr>
+       <td class="tablevalues" style="padding:10px;">
+         <input class="navcontrol" type="Submit" value="Generate" name="generate" id="generate" />
+       </td>
+    </tr>
+<script>
+    document.querySelector('#generate').onclick = function() {
+        var generateMask = new Ext.LoadMask(Ext.getBody(), {msg:"Generating report..."});
+        generateMask.show();
+    };
+</script>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getOrganizerName','Name of EventClass')" />

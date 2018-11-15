@@ -505,7 +505,7 @@ class ZenPackCmd(ZenScriptBase):
                 except OSError as e:
                     self.log.info('%s could not be installed', candidate[0])
 
-        # exlude zenpacks which requires files-only install since we've done that already.
+        #exlude zenpacks which requires files-only install since we've done that already.
         sortedPacks = [pack for pack in sortedPacks if not zpsToRestore[pack][1]]
         while len(sortedPacks) > 0:
             packListLen = len(sortedPacks)
@@ -575,7 +575,7 @@ class ZenPackCmd(ZenScriptBase):
                 # NOTE: also has groupings for 'pyver' and 'plat' if needed for
                 # later.
                 name, version = match.group('name', 'ver')
-                # formatting version to a standard
+                # formatting version to a standart
                 version = parse_version(version)
                 if name == zenpackID and (not zenpackVersion or version == zenpackVersion):
                     eggs.append(os.path.join(dirpath, f))

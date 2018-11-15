@@ -174,16 +174,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devInContext
 
     def _checkDeviceExists(self, deviceName, performanceMonitor, ip):
-        
-        if ip:
-            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
-            netroot = mon.getNetworkRoot()
-            ipobj = netroot.findIp(ip)
-            if ipobj:
-                dev = ipobj.device()
-                if dev:
-                    raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-    
         if deviceName:
             try:
                 dev = self.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
@@ -195,6 +185,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                                             deviceName, dev)
                 
         if ip:
+            mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)
@@ -229,7 +220,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         notify(DeviceClassMovedEvent(dev, dev.deviceClass().primaryAq(), target))
 
-        exported = False
 
         if dev.__class__ != targetClass:
             from Products.ZenRelations.ImportRM import NoLoginImportRM
@@ -307,7 +297,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 @rtype: string
                 """
                 o = StringIO()
-                d.exportXml(o, exportPasswords=True)
+                d.exportXml(o, exportPasswords=True, move=True)
                 return switchClass(o, module, klass)
 
             def devImport(xmlfile):
@@ -331,23 +321,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             xmlfile = devExport(dev, module, klass)
             log.debug('Removing device %s from %s', devname, source)
             source.devices._delObject(devname)
-            # doing this search will cause the deletion to commit to solr:
-            IModelCatalogTool(self.getDmd()).search(limit=0, commit_dirty=True)
             log.debug('Importing device %s to %s', devname, target)
             devImport(xmlfile)
-            exported = True
         else:
             dev._operation = 1
             source.devices._delObject(devname)
             target.devices._setObject(devname, dev)
         dev = target.devices._getOb(devname)
 
+        is_dev_moved = True
         IGlobalIdentifier(dev).guid = guid
         dev.setLastChange()
         dev.setAdminLocalRoles()
         notify(IndexingEvent(dev))
 
-        return exported
+        return is_dev_moved
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
         """
@@ -366,12 +354,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if isinstance(deviceNames, basestring): deviceNames = (deviceNames,)
         targetClass = target.getPythonDeviceClass()
-        numExports = 0
+        moved_devices_count = 0
         for devname in deviceNames:
             devicewasExported = self._moveDevice(devname, target, targetClass)
             if devicewasExported:
-                numExports += 1
-        return numExports
+                moved_devices_count += 1
+        return moved_devices_count
 
     security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False,

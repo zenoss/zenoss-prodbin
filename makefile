@@ -1,6 +1,6 @@
-VERSION  ?= 6.1.3
+VERSION  ?= 6.3.0
 BUILD_NUMBER ?= DEV
-BRANCH   ?= support-6.1.x
+BRANCH   ?= support/6.x
 ARTIFACT_TAG ?= $(shell echo $(BRANCH) | sed 's/\//-/g')
 ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 
@@ -9,8 +9,8 @@ ARTIFACT := prodbin-$(VERSION)-$(ARTIFACT_TAG).tar.gz
 # for more information about setting these values.
 # See zenoss-version.mk for more information about make targets that use these values.
 SCHEMA_MAJOR ?= 200
-SCHEMA_MINOR ?= 1
-SCHEMA_REVISION ?= 2
+SCHEMA_MINOR ?= 3
+SCHEMA_REVISION ?= 0
 
 DIST_ROOT := dist
 

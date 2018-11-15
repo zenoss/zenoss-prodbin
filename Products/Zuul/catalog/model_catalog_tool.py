@@ -19,11 +19,12 @@ from Products.AdvancedQuery import Eq, Or, Generic, And, In, MatchRegexp, MatchG
 from Products.ZenUtils.NaturalSort import natural_compare
 from Products.Zuul.catalog.interfaces import IModelCatalog
 from Products.Zuul.catalog.model_catalog import SearchResults, MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
+from zenoss.modelindex.constants import DEFAULT_SEARCH_LIMIT
 from Products.Zuul.infos import InfoBase
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.tree import StaleResultsException
 from Products.Zuul.utils import dottedname, allowedRolesAndGroups, unbrain
-from zenoss.modelindex.model_index import SearchParams
+from zenoss.modelindex.model_index import SearchParams, CursorSearchParams
 from zope.interface import implements
 from zope.component import getUtility
 
@@ -140,9 +141,9 @@ class ModelCatalogTool(object):
             for key, value in globFilters.iteritems():
                 if key in indexed:
                     if user_filters_query:
-                        user_filters_query = And(user_filters_query, MatchRegexp(key, '.*%s.*' % value))
+                        user_filters_query = And(user_filters_query, MatchRegexp(key, value))
                     else:
-                        user_filters_query = MatchRegexp(key, '.*%s.*' % value)
+                        user_filters_query = MatchRegexp(key, value)
                 else:
                     not_indexed_user_filters[key] = value
 
@@ -269,6 +270,15 @@ class ModelCatalogTool(object):
 
         return sorted((unbrain(brain) for brain in queryResults),
                       key=getValue, reverse=reverse, cmp=natural_compare)
+
+    def cursor_search(self, types=(), limit=DEFAULT_SEARCH_LIMIT, filterPermissions=False, fields=None):
+        """
+        Get all results from catalog by using solr deep pagination.
+        return generator.
+        """
+        query, _ = self._build_query(filterPermissions=filterPermissions, types=types)
+        search_params = CursorSearchParams(query, limit=limit, fields=fields)
+        return self.model_catalog_client.cursor_search(search_params, self.context)
 
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None,

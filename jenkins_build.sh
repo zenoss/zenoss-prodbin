@@ -38,9 +38,10 @@ if [ -z "${GO_VER}" ]; then GO_VER=1.7.4; fi
 # The name of the zendev environment that will be created.
 # This name will be used as the devimg tag as well.
 ZENDEV_ENV=${REPO_NAME}-${JOB_BASE_NAME}-${BUILD_ID}
+ZENDEV_ROOT=$WORKSPACE/${ZENDEV_ENV}
 # The repo that is checked out will be copied to this path
 # inside zendev.
-REPO_PATH=$WORKSPACE/${ZENDEV_ENV}/src/github.com/zenoss/${REPO_NAME}
+REPO_PATH=${ZENDEV_ROOT}/src/github.com/zenoss/${REPO_NAME}
 
 cleanup() {
     RC="$?"
@@ -101,6 +102,12 @@ cp -r $WORKSPACE/${REPO_NAME} ${REPO_PATH}
 
 echo Creating a devimg...
 zendev devimg --clean
+
+# Copy contents of the bin directory as those scripts may differ between
+# the base branch and the PR branch.  Exclude the metrics directory because
+# that directory is symlinked back into the source repo.
+echo Copying zenoss-prodbin/bin/ to zenhome/bin
+rsync -av --exclude=metrics/ ${REPO_PATH}/bin/ ${ZENDEV_ROOT}/zenhome/bin
 
 echo Running the tests...
 zendev test --no-tty -- --no-zenpacks

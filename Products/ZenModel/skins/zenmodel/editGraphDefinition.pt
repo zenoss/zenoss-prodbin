@@ -97,7 +97,7 @@
             tal:content="here/width"/>
     </tr>
     <tr>
-        <td class="tableheader">Units</td>
+        <td class="tableheader">Y Axis Units Label</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <input class="tablevalues" type="text" name="units" size="30"
             tal:attributes="value here/units" />

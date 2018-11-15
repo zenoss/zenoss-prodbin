@@ -613,7 +613,7 @@ class ZenModeler(PBDaemon):
         @type: boolean
         """
         delay = device.getSnmpLastCollection() + self.collage
-        if delay >= float(DateTime.DateTime()) or device.getSnmpStatusNumber() > 0:
+        if delay >= float(DateTime.DateTime()) and device.getSnmpStatusNumber() == 0:
             self.log.info("Skipped collection of %s" % device.id)
             return False
         return True
@@ -709,9 +709,15 @@ class ZenModeler(PBDaemon):
                 if maps:
                     deviceClass = Classifier.classifyDevice(pluginStats,
                                                 self.classCollectorPlugins)
+                    # If self.single is True, then call singleApplyDataMaps
+                    # instead of applyDataMaps.
+                    if not self.single:
+                        method = "applyDataMaps"
+                    else:
+                        method = "singleApplyDataMaps"
                     yield self.config().callRemote(
-                                                'applyDataMaps', device.id,
-                                                maps, deviceClass, True)
+                        method, device.id, maps, deviceClass, True
+                    )
 
                     if driver.next():
                         devchanged = True

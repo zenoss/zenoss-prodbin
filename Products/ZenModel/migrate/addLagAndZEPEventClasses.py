@@ -13,7 +13,7 @@ from Products.ZenEvents.EventClass import manage_addEventClass
 
 
 class AddLagAndZEPEventClasses(Migrate.Step):
-    version = Migrate.Version(200, 1, 1)
+    version = Migrate.Version(200, 2, 0)
 
     def cutover(self, dmd):
         if 'Lag' not in [i.id for i in dmd.Events.Status.Ping.getSubEventClasses()]:

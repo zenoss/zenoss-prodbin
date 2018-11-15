@@ -1,22 +1,22 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2008, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT
-from Products.ZenHub.zenhub import LastCallReturnValue, metricWriter
+from Products.ZenHub.metricmanager import MetricManager
+from Products.ZenHub.zenhub import LastCallReturnValue
 from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import unused, zenPath
-from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.Utils import unused, zenPath, atomicWrite
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 # required to allow modeling with zenhubworker
 from Products.DataCollector.plugins import DataMaps
@@ -27,8 +27,10 @@ from twisted.spread import pb
 from twisted.internet import defer, reactor, error
 from ZODB.POSException import ConflictError
 from collections import defaultdict
+from optparse import SUPPRESS_HELP
 
 import cPickle as pickle
+import logging
 import time
 import signal
 import os
@@ -36,7 +38,10 @@ from metrology import Metrology
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
+
 IDLE = "None/None"
+
+
 class _CumulativeWorkerStats(object):
     """
     Internal class for maintaining cumulative stats on frequency and runtime
@@ -53,6 +58,7 @@ class _CumulativeWorkerStats(object):
         self.numoccurrences += 1
         self.totaltime += elapsed
         self.lasttime = now
+
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -79,44 +85,53 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
 
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
-        self.pid = os.getpid()
         self.services = {}
         factory = ReconnectingPBClientFactory(pingPerspective=False)
         self.log.debug("Connecting to %s:%d",
                        self.options.hubhost,
                        self.options.hubport)
         reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
-        self.log.debug("Logging in as %s", self.options.username)
-        c = credentials.UsernamePassword(self.options.username,
-                                         self.options.password)
+        self.log.debug("Logging in as %s", self.options.hubusername)
+        c = credentials.UsernamePassword(self.options.hubusername,
+                                         self.options.hubpassword)
         factory.gotPerspective = self.gotPerspective
         def stop(*args):
             reactor.callLater(0, reactor.stop)
         factory.clientConnectionLost = stop
         factory.setCredentials(c)
 
+        # Setup Metric Reporting
         self.log.debug("Creating async MetricReporter")
-        daemonTags = {
-            'zenoss_daemon': 'zenhub_worker_%s' % self.options.workernum,
-            'zenoss_monitor': self.options.monitor,
-            'internal': True
-        }
-
-        def stopReporter():
-            if self.metricreporter:
-                return self.metricreporter.stop()
-
-        # Order of the shutdown triggers matter. Want to stop reporter first, calling metricWriter() below
-        # registers shutdown triggers for the actual metric http and redis publishers.
-        reactor.addSystemEventTrigger('before', 'shutdown', stopReporter)
-        self.metricreporter = TwistedMetricReporter(metricWriter=metricWriter(), tags=daemonTags)
-        self.metricreporter.start()
+        self._metric_manager = MetricManager(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub_worker_%s' % self.options.workerid,
+                'zenoss_monitor': self.options.monitor,
+                'internal': True
+            })
+        self._metric_manager.start()
+        reactor.addSystemEventTrigger(
+            'before', 'shutdown', self._metric_manager.stop
+        )
 
     def audit(self, action):
         """
         zenhubworkers restart all the time, it is not necessary to audit log it.
         """
         pass
+
+    def setupLogging(self):
+        """Override setupLogging to add instance id/count information to
+        all log messages.
+        """
+        super(zenhubworker, self).setupLogging()
+        instanceInfo = "(%s)" % (self.options.workerid,)
+        template = (
+            "%%(asctime)s %%(levelname)s %%(name)s: %s %%(message)s"
+        ) % instanceInfo
+        rootLog = logging.getLogger()
+        formatter = logging.Formatter(template)
+        for handler in rootLog.handlers:
+            handler.setFormatter(formatter)
 
     def sighandler_USR1(self, signum, frame):
         try:
@@ -135,12 +150,14 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
     def reportStats(self):
         now = time.time()
         if self.current != IDLE:
-            self.log.debug("(%d) Currently performing %s, elapsed %.2f s",
-                            self.pid, self.current, now-self.currentStart)
+            self.log.debug(
+                "Currently performing %s, elapsed %.2f s",
+                self.current, now-self.currentStart
+            )
         else:
-            self.log.debug("(%d) Currently IDLE", self.pid)
+            self.log.debug("Currently IDLE")
         if self.services:
-            loglines = ["(%d) Running statistics:" % self.pid]
+            loglines = ["Running statistics:"]
             for svc,svcob in sorted(self.services.iteritems(), key=lambda kvp:(kvp[0][1], kvp[0][0].rpartition('.')[-1])):
                 svc = "%s/%s" % (svc[1], svc[0].rpartition('.')[-1])
                 for method,stats in sorted(svcob.callStats.items()):
@@ -156,10 +173,27 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
 
     def gotPerspective(self, perspective):
         """Once we are connected to zenhub, register ourselves"""
-        d = perspective.callRemote('reportingForWork', self, pid=self.pid)
+        d = perspective.callRemote(
+            'reportingForWork', self, workerId=self.options.workerid
+        )
+
+        filename = 'zenhub_connected'
+        signalFilePath = zenPath('var', filename)
+
+        def reportSuccess(args):
+            self.log.debug('Writing file at %s', signalFilePath)
+            atomicWrite(signalFilePath, '')
+
         def reportProblem(why):
             self.log.error("Unable to report for work: %s", why)
+            self.log.debug('Removing file at %s', signalFilePath)
+            try:
+                os.remove(signalFilePath)
+            except Exception:
+                pass
             reactor.stop()
+
+        d.addCallback(reportSuccess)
         d.addErrback(reportProblem)
 
     def _getService(self, name, instance):
@@ -227,7 +261,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
 
         # see if this is our last call
         self.numCalls.mark()
-        lastCall = self.numCalls.count >= self.options.calllimit
+        lastCall = self.numCalls.count >= self.options.call_limit
 
         def runOnce():
             res = m(*args, **kw)
@@ -291,16 +325,16 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
                                type='int',
                                help="Port to use for connecting to ZenHub",
                                default=PB_PORT)
-        self.parser.add_option('--username',
-                               dest='username',
+        self.parser.add_option('--hubusername',
+                               dest='hubusername',
                                help="Login name to use when connecting to ZenHub",
-                               default='zenoss')
-        self.parser.add_option('--password',
-                               dest='password',
+                               default='admin')
+        self.parser.add_option('--hubpassword',
+                               dest='hubpassword',
                                help="password to use when connecting to ZenHub",
                                default='zenoss')
-        self.parser.add_option('--calllimit',
-                               dest='calllimit',
+        self.parser.add_option('--call-limit',
+                               dest='call_limit',
                                type='int',
                                help="Maximum number of remote calls before restarting worker",
                                default=200)
@@ -310,10 +344,11 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         self.parser.add_option('--monitor', dest='monitor',
                                default='localhost',
                                help='Name of the distributed monitor this hub runs on')
-        self.parser.add_option('--workernum',
-                               dest='workernum',
+        self.parser.add_option('--workerid',
+                               dest='workerid',
                                type='int',
-                               default=0)
+                               default=0,
+                               help=SUPPRESS_HELP)
 
 if __name__ == '__main__':
     zhw = zenhubworker()

@@ -15,6 +15,9 @@ class macaddress(object):
 
     def run(self, dmd, args):
         report = []
+        # ZEN-30539
+        if args.get('adapt', ''):
+            return report
         catalog = dmd.ZenLinkManager.layer2_catalog
         for brain in catalog():
             if brain.macaddress is None: # Bad catalog
