@@ -27,6 +27,7 @@ import jwt
 import logging
 import re
 import time
+import traceback
 
 log = logging.getLogger('Auth0')
 
@@ -47,6 +48,24 @@ _AUTH0_CONFIG = {
 }
 
 
+def logger(f, name=None):
+    # if logger.fhwr isn't defined and open ...
+    global log
+    if name is None:
+        name = f.func_name
+    def wrapped(*args, **kwargs):
+        if 'ruok' not in str(args):
+            log.info('*** {} {} args: {}\n\nkwargs: {}\n\n'.format(name, str(f), str(args), str(kwargs)))
+        # log.info("***"+name+" "+str(f)+"\n"\
+                # +str(args)+str(kwargs)+"\n\n")
+        result = f(*args, **kwargs)
+        if 'ruok' not in str(args):
+            log.info('*** %s completed\n\n' % (name))
+        return result
+    wrapped.__doc__ = f.__doc__
+    return wrapped
+
+
 def getAuth0Conf():
     """Return a dictionary containing Auth0 configuration or None
     """
@@ -56,6 +75,8 @@ def getAuth0Conf():
         config = getGlobalConfiguration()
         for k in _AUTH0_CONFIG:
             d[k] = config.get('auth0-' + k)
+        log.info("auth0 dict: {}".format(d))
+        log.info(traceback.format_stack())
         if not all(d.values()) and any(d.values()):
             raise Exception('Auth0 config is missing values. Expecting: %s' % ', '.join(['auth0-%s' % value for value in _AUTH0_CONFIG.keys()]))
         _AUTH0_CONFIG = d if all(d.values()) else None
@@ -159,12 +180,7 @@ class Auth0(BasePlugin):
             # if this has the optional beginning "internal:CZ0:ZenManager", match(1) is "internal:" and unused.
             return [match.group(3) for match in matches if match.group(2) == cz_prefix]
 
-        # No RBAC style roles are assigned to this user. Return the raw list of roles, which may contain RM roles. This
-        # will only be a list of RM roles for role mapping that were specifically mapped to the gsuite groups (only
-        # the zenoss-com connection will have this).  At some point the old style mappings will be removed from Auth0
-        # entirely and this list won't contain any RM roles at all -- so returning them won't have any effect at that
-        # point.
-        return roles
+        return []
 
     @staticmethod
     def storeToken(token, request, conf):
@@ -248,6 +264,7 @@ class Auth0(BasePlugin):
             response.redirect("/logout.html")
 
 
+    @logger
     def extractCredentials(self, request):
         """extractCredentials satisfies the PluggableAuthService
             IExtractionPlugin interface.
@@ -290,10 +307,16 @@ class Auth0(BasePlugin):
             # from the session.
             Auth0.removeToken(request)
             return {}
+        
+        log.info('sessionInfo.roles: {}'.format(sessionInfo.roles))
+        if len(sessionInfo.roles) < 1:
+            log.info('No roles for this CZ - redirecting ...')
+            return {'has_roles': False}
 
         return {'auth0_userid': sessionInfo.userid}
 
 
+    @logger
     def authenticateCredentials(self, credentials):
         """authenticateCredentials satisfies the PluggableAuthService
             IAuthenticationPlugin interface.
@@ -301,6 +324,9 @@ class Auth0(BasePlugin):
         """
         # Ignore credentials that are not from our extractor
         if credentials.get('extractor') != PLUGIN_ID:
+            return None
+
+        if credentials.get('has_roles') is False:
             return None
 
         userid = credentials.get('auth0_userid')
@@ -311,6 +337,7 @@ class Auth0(BasePlugin):
         return (userid, userid)
 
 
+    @logger
     def challenge(self, request, response):
         """challenge satisfies the PluggableAuthService
             IChallengePlugin interface.
@@ -337,6 +364,10 @@ class Auth0(BasePlugin):
         # sessionInfo doesn't persist the auth_expiration property when modified outside of the initial storage,
         # and a local dictionary isn't available to all zopes.
         if sessionInfo:
+            if len(sessionInfo.roles) < 1:
+                request['RESPONSE'].redirect('/;errcode=1337', lock=1)
+                return True
+
             mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
             EXPIRATION_KEY = 'auth0_{}_expiration_key'.format(sessionInfo.userid)
             auth_exp = mc.get(EXPIRATION_KEY)
