@@ -27,7 +27,6 @@ import jwt
 import logging
 import re
 import time
-import traceback
 
 log = logging.getLogger('Auth0')
 
@@ -48,24 +47,6 @@ _AUTH0_CONFIG = {
 }
 
 
-def logger(f, name=None):
-    # if logger.fhwr isn't defined and open ...
-    global log
-    if name is None:
-        name = f.func_name
-    def wrapped(*args, **kwargs):
-        if 'ruok' not in str(args):
-            log.info('*** {} {} args: {}\n\nkwargs: {}\n\n'.format(name, str(f), str(args), str(kwargs)))
-        # log.info("***"+name+" "+str(f)+"\n"\
-                # +str(args)+str(kwargs)+"\n\n")
-        result = f(*args, **kwargs)
-        if 'ruok' not in str(args):
-            log.info('*** %s completed\n\n' % (name))
-        return result
-    wrapped.__doc__ = f.__doc__
-    return wrapped
-
-
 def getAuth0Conf():
     """Return a dictionary containing Auth0 configuration or None
     """
@@ -75,8 +56,6 @@ def getAuth0Conf():
         config = getGlobalConfiguration()
         for k in _AUTH0_CONFIG:
             d[k] = config.get('auth0-' + k)
-        log.info("auth0 dict: {}".format(d))
-        log.info(traceback.format_stack())
         if not all(d.values()) and any(d.values()):
             raise Exception('Auth0 config is missing values. Expecting: %s' % ', '.join(['auth0-%s' % value for value in _AUTH0_CONFIG.keys()]))
         _AUTH0_CONFIG = d if all(d.values()) else None
@@ -264,7 +243,6 @@ class Auth0(BasePlugin):
             response.redirect("/logout.html")
 
 
-    @logger
     def extractCredentials(self, request):
         """extractCredentials satisfies the PluggableAuthService
             IExtractionPlugin interface.
@@ -316,7 +294,6 @@ class Auth0(BasePlugin):
         return {'auth0_userid': sessionInfo.userid}
 
 
-    @logger
     def authenticateCredentials(self, credentials):
         """authenticateCredentials satisfies the PluggableAuthService
             IAuthenticationPlugin interface.
@@ -327,6 +304,7 @@ class Auth0(BasePlugin):
             return None
 
         if credentials.get('has_roles') is False:
+            log.debug('authenticateCredentials: has_roles: False')
             return None
 
         userid = credentials.get('auth0_userid')
@@ -337,7 +315,6 @@ class Auth0(BasePlugin):
         return (userid, userid)
 
 
-    @logger
     def challenge(self, request, response):
         """challenge satisfies the PluggableAuthService
             IChallengePlugin interface.
@@ -365,7 +342,7 @@ class Auth0(BasePlugin):
         # and a local dictionary isn't available to all zopes.
         if sessionInfo:
             if len(sessionInfo.roles) < 1:
-                request['RESPONSE'].redirect('/;errcode=1337', lock=1)
+                request['RESPONSE'].redirect('/?errcode=1', lock=1)
                 return True
 
             mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
