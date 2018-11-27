@@ -341,10 +341,6 @@ class Auth0(BasePlugin):
         # sessionInfo doesn't persist the auth_expiration property when modified outside of the initial storage,
         # and a local dictionary isn't available to all zopes.
         if sessionInfo:
-            if len(sessionInfo.roles) < 1:
-                request['RESPONSE'].redirect('/?errcode=1', lock=1)
-                return True
-
             mc = memcache.Client(MEMCACHED_IMPORT, debug=0)
             EXPIRATION_KEY = 'auth0_{}_expiration_key'.format(sessionInfo.userid)
             auth_exp = mc.get(EXPIRATION_KEY)
@@ -357,6 +353,16 @@ class Auth0(BasePlugin):
             # store the token expiration and send them to the login.  If zing sends them back without
             # logging them in again (the same expiration), then that's a redirect loop.
             mc.set(EXPIRATION_KEY, sessionInfo.expiration)
+            
+            # ZING-1627: If a user has no CZ roles on this instance, then redirect them to the Zenoss Cloud UI with
+            # `errcode=1`, which means "Missing required permissions"
+            # See https://github.com/zenoss/zing-web/blob/feature/delegateToCZModal/packages/z-common/src/mixins/ZErrorCodes.js#L6
+            # Concurrent, with this change, the ZC UI is being updated to use a modal component
+            # that is activated when the query parameter, `errcode` is passed.
+            if len(sessionInfo.roles) < 1:
+                mc.delete(EXPIRATION_KEY)
+                request['RESPONSE'].redirect('/#/?errcode=1', lock=1)
+                return True
 
         currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
         redirect = base64.urlsafe_b64encode(currentLocation)
