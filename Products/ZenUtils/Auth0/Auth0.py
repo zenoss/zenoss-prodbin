@@ -159,12 +159,7 @@ class Auth0(BasePlugin):
             # if this has the optional beginning "internal:CZ0:ZenManager", match(1) is "internal:" and unused.
             return [match.group(3) for match in matches if match.group(2) == cz_prefix]
 
-        # No RBAC style roles are assigned to this user. Return the raw list of roles, which may contain RM roles. This
-        # will only be a list of RM roles for role mapping that were specifically mapped to the gsuite groups (only
-        # the zenoss-com connection will have this).  At some point the old style mappings will be removed from Auth0
-        # entirely and this list won't contain any RM roles at all -- so returning them won't have any effect at that
-        # point.
-        return roles
+        return []
 
     @staticmethod
     def storeToken(token, request, conf):
@@ -290,6 +285,11 @@ class Auth0(BasePlugin):
             # from the session.
             Auth0.removeToken(request)
             return {}
+        
+        log.info('sessionInfo.roles: {}'.format(sessionInfo.roles))
+        if len(sessionInfo.roles) < 1:
+            log.info('No roles for this CZ - redirecting ...')
+            return {'has_roles': False}
 
         return {'auth0_userid': sessionInfo.userid}
 
@@ -301,6 +301,10 @@ class Auth0(BasePlugin):
         """
         # Ignore credentials that are not from our extractor
         if credentials.get('extractor') != PLUGIN_ID:
+            return None
+
+        if credentials.get('has_roles') is False:
+            log.debug('authenticateCredentials: has_roles: False')
             return None
 
         userid = credentials.get('auth0_userid')
@@ -349,6 +353,16 @@ class Auth0(BasePlugin):
             # store the token expiration and send them to the login.  If zing sends them back without
             # logging them in again (the same expiration), then that's a redirect loop.
             mc.set(EXPIRATION_KEY, sessionInfo.expiration)
+            
+            # ZING-1627: If a user has no CZ roles on this instance, then redirect them to the Zenoss Cloud UI with
+            # `errcode=1`, which means "Missing required permissions"
+            # See https://github.com/zenoss/zing-web/blob/feature/delegateToCZModal/packages/z-common/src/mixins/ZErrorCodes.js#L6
+            # Concurrent, with this change, the ZC UI is being updated to use a modal component
+            # that is activated when the query parameter, `errcode` is passed.
+            if len(sessionInfo.roles) < 1:
+                mc.delete(EXPIRATION_KEY)
+                request['RESPONSE'].redirect('/#/?errcode=1', lock=1)
+                return True
 
         currentLocation = getUtility(IVirtualRoot).ensure_virtual_root(request.PATH_INFO)
         redirect = base64.urlsafe_b64encode(currentLocation)
