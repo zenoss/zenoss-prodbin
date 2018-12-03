@@ -85,9 +85,6 @@ link() {
     fi
 
     rsync -a "$zenpackPath"/ "$TARGET"/
-    # Get var path (/var/zenoss) to strip off of TARGET
-    VARPATH=$(unset TERM; echo "from Products.ZenUtils.Utils import varPath;print varPath()" | zendmd --script /dev/stdin)
-    sudo /opt/zenoss/bin/var_chown "${TARGET#$VARPATH}"
 
     shift
     zenpack --link --install "$TARGET" "$@"
