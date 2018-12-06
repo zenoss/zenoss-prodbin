@@ -94,34 +94,6 @@ class SendEventClient(TestClient):
         drive(Test).addBoth(stop, connector=self.connector)
 
 
-class RaiseExceptionClient(TestClient):
-    exception = None
-
-    def complete(self, result):
-        stop(self.connector)
-        self.tester.assertIsInstance(result, Failure)
-        self.exception = result.value
-
-    def test(self, service):
-        def Test(driver):
-            yield service.callRemote('raiseException', "an exception message")
-        drive(Test).addBoth(self.complete)
-
-
-class RaiseConflictErrorClient(TestClient):
-    exception = None
-
-    def complete(self, result):
-        stop(self.connector)
-        self.tester.assertIsInstance(result, Failure)
-        self.exception = result.value
-
-    def test(self, service):
-        def Test(driver):
-            yield service.callRemote('raiseConflictError', "an error message")
-        drive(Test).addBoth(self.complete)
-
-
 class TestZenHub(BaseTestCase):
 
     layer = ZenossTestCaseLayer
@@ -167,34 +139,12 @@ class TestZenHub(BaseTestCase):
             in unjellyableRegistry
         )
 
-    def testGetService(t):
-        client = TestClient(t, t.base + count)
-        t.assertFalse(client.success)
-        t.zenhub.main()
-        t.assertTrue(client.success)
-
     def testSendEvent(t):
         EventPublisher._publisher = DummyQueuePublisher()
         client = SendEventClient(t, t.base + count)
         t.assertFalse(client.success)
         t.zenhub.main()
         t.assertTrue(client.success)
-
-    def testRaiseRemoteException(t):
-        client = RaiseExceptionClient(t, t.base + count)
-        t.assertIs(client.exception, None)
-        t.zenhub.main()
-        t.assertIsInstance(client.exception, RemoteException)
-        t.assertIn("an exception message", str(client.exception))
-        t.assertIsNotNone(client.exception.traceback)
-
-    def testRaiseRemoteConflictError(t):
-        client = RaiseConflictErrorClient(t, t.base + count)
-        t.assertIs(client.exception, None)
-        t.zenhub.main()
-        t.assertIsInstance(client.exception, RemoteConflictError)
-        t.assertIn("an error message", str(client.exception))
-        t.assertIsNotNone(client.exception.traceback)
 
 
 def get_utility_mock(utility):

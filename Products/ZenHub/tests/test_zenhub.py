@@ -450,36 +450,15 @@ class ZenHubTest(TestCase):
         with t.assertRaises(RemoteBadMonitor):
             t.zh.getService('name', 'instance')
 
-    def test_getService_cache_miss(t):
-        name = 'module.name'
-        instance = 'collector_instance'
-        service = sentinel.service
-        t.zh.dmd.Monitors.Performance._getOb.return_value = True
-        t.zh.services = {}
-
-        # patch the internal import
-        # from Products.ZenUtils.Utils import importClass
-        Utils = MagicMock(
-            name='Products.ZenUtils.Utils', spec_set=['importClass']
-        )
-        from Products.ZenUtils.Utils import importClass
-        Utils.importClass = create_autospec(importClass, name='importClass')
-        Utils.importClass.return_value.return_value = service
-        modules = {'Products.ZenUtils.Utils': Utils}
-        with patch.dict('sys.modules', modules):
-            ret = t.zh.getService(name, instance)
-
-        t.assertEqual(ret, service)
-
     @patch('{src}.WorkerInterceptor'.format(**PATH), autospec=True)
-    def test_getService_forwarded_to_WorkerInterceptor(t, WorkerInterceptor):
+    def test_getService_cache_miss(t, WorkerInterceptor):
         name = 'module.name'
         instance = 'collector_instance'
         service = sentinel.service
         interceptor_service = sentinel.interceptor_service
+        WorkerInterceptor.return_value = interceptor_service
         t.zh.dmd.Monitors.Performance._getOb.return_value = True
         t.zh.services = {}
-        WorkerInterceptor.return_value = interceptor_service
 
         # patch the internal import
         # from Products.ZenUtils.Utils import importClass
@@ -493,8 +472,9 @@ class ZenHubTest(TestCase):
         with patch.dict('sys.modules', modules):
             ret = t.zh.getService(name, instance)
 
+        Utils.importClass.assert_called_with(name)
         WorkerInterceptor.assert_called_with(t.zh, service)
-        t.assertEqual(ret, service)
+        t.assertEqual(ret, interceptor_service)
         t.assertEqual(t.zh.services[name, instance], interceptor_service)
 
     @patch('{src}.defer'.format(**PATH), autospec=True)
