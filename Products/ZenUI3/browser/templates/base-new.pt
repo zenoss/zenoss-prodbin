@@ -54,6 +54,7 @@
         <script tal:define="container context/getPrimaryParent" tal:content="string:
             Zenoss.env.PARENT_CONTEXT = '${container/absolute_url_path}';
         " tal:on-error="string:"></script>
+
         <!-- Google Analytics -->
         <script type="text/javascript">
             window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
@@ -62,9 +63,11 @@
         </script>
         <script async src='https://www.google-analytics.com/analytics.js'></script>
         <!-- End Google Analytics -->
+
         <!-- Generic analytics wrapper -->
         <script src="/++resource++zenui/js/zenoss/Tracker.js"></script>
         <!-- End generic analytics wrapper -->
+
         <tal:block tal:content="structure provider:jssnippets"/>
 
         <tal:block tal:content="structure provider:head-extra"/>
@@ -73,6 +76,54 @@
         <!-- add name attribute to zen-cse.css link to later get and inject this styles to iframes -->
         <link tal:condition="python:True" rel="stylesheet" type="text/css"
             href="/++resource++zenui/css/zen-cse.css" name="zen_cse_css" />
+
+        <!-- Pendo integration -->
+        <script>
+            let value = window.localStorage.getItem("pendoInfo");
+            if (!value) {
+                // Either we're not running with an instance of Zing which set pendoInfo,
+                // or something unexpected has happened and this CZ page is rendering
+                // before Auth0 auth has happened. The assumption here is that Auth0
+                // authentication has happened in Zing beforehand, or in Zope before this
+                // page was served to the browser (see ZenUtils/Auth0/Auth0.py ).
+                console.log("WARNING: pendo NOT initialized");
+            } else {
+                console.log("initializing pendo");
+                (function(apiKey){
+                    (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=[];
+                    v=['initialize','identify','updateOptions','pageLoad'];for(w=0,x=v.length;w<x;++w)(function(m){
+                        o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
+                        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
+                        z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
+
+                        let pendoInfo = JSON.parse(value);
+                        const {
+                            tenant,
+                            id,
+                            name,
+                            username,
+                            locale,
+                            groups,
+                            roles
+                        } = pendoInfo;
+
+                        pendo.initialize({
+                            visitor: {
+                                id,
+                                name,
+                                username,
+                                locale,
+                                groups,
+                                roles
+                            },
+                            account: {
+                                id: tenant
+                            }
+                        });
+                        console.log("pendo initialized for id='" + id + "'");
+                })('b035a3be-ccc3-4124-68b9-e24cadd1f369');
+            }
+        </script>
 
     </head>
 
