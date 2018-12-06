@@ -13,6 +13,7 @@
 # BUILD_ID: the id of the current build job. It will be used in the name of
 #           zendev environment, which the build job will create.
 # BRANCH: the branch of the repo that the build job will use.
+# ASSEMBLY_BRANCH: the product-assembly branch used to initialize zendev
 
 set -ex
 
@@ -27,6 +28,9 @@ check_var() {
 echo Checking WORKSPACE;check_var $WORKSPACE;echo OK
 echo Checking JOB_BASE_NAME;check_var $JOB_BASE_NAME;echo OK
 echo Checking BRANCH;check_var $BRANCH;echo OK
+
+# The product-assembly branch this job will use
+if [ -z "${ASSEMBLY_BRANCH}" ]; then ASSEMBLY_BRANCH=$BRANCH; fi
 
 # The name of the repo this job will checkout
 REPO_NAME=zenoss-prodbin
@@ -60,6 +64,7 @@ echo Checking ZENDEV_REPO;check_var $ZENDEV_REPO;echo OK
 echo Checking ZENDEV_BRANCH;check_var $ZENDEV_BRANCH;echo OK
 echo Checking ZENDEV_VER;check_var $ZENDEV_VER;echo OK
 echo Checking GO_VER;check_var $GO_VER;echo OK
+echo Checking ASSEMBLY_BRANCH;check_var $ASSEMBLY_BRANCH;echo OK
 
 echo Creating a virtual env...
 if [ ! -d venv ]; then virtualenv venv; fi
@@ -91,7 +96,7 @@ source $(zendev bootstrap)
 
 echo Creating a zendev environment...
 cd $WORKSPACE
-zendev init --shallow --tag $BRANCH ${ZENDEV_ENV}
+zendev init --shallow --tag $ASSEMBLY_BRANCH ${ZENDEV_ENV}
 zendev use ${ZENDEV_ENV}
 echo Use ${ZENDEV_ENV} zendev environment
 
