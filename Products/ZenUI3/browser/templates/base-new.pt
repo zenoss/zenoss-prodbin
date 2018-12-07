@@ -90,10 +90,20 @@
             } else {
                 console.log("initializing pendo");
                 (function(apiKey){
+                    // ZEN-31143 - Note that in the URL below (src='https://cdn.pendo.io/agent/pendostatic/...''),
+                    // ths "/pendostatic/" in the path is an artificial renaming we added
+                    // to avoid conflicts with other RM urls that contain "/static/"
+                    // The existing response rewriting rules in zproxy were
+                    // rewriting the path for pendo.js in a way that would generate an invalid URL -
+                    // for example, "/agent/cz0/static/..."
+                    //
+                    // See services/Zenoss.cse/-CONFIGS-/opt/zenoss/zproxy/conf/zproxy-nginx.conf
+                    // for the response rewriting rules that will replae "/pendostatic/"
+                    // with "/static/"
                     (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=[];
                     v=['initialize','identify','updateOptions','pageLoad'];for(w=0,x=v.length;w<x;++w)(function(m){
                         o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-                        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
+                        y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/pendostatic/'+apiKey+'/pendo.js';
                         z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
 
                         let pendoInfo = JSON.parse(value);
