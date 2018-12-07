@@ -222,6 +222,9 @@ class ZenActionD(ZCmdBase):
         self.parser.add_option('--maintenance-window-batch-size',
             dest='maintenceWindowBatchSize', default=200, type="int",
             help="How many devices update per one transaction on maintenance windows execution")
+        self.parser.add_option('--strip-email-body-tags',
+            dest='stripEmailBodyTags', default=True, action="store_false",
+            help="Strip HTML/XML tags from plaintext email notifications?")
 
         self.parser.add_option("--workerid", dest='workerid', type='int', default=None,
                                help="ID of the worker instance.")
