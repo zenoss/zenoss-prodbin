@@ -1316,6 +1316,136 @@ Zenoss.util.ipv6wrap = function(string) {
 };
 
 /**
+ * Used to sanitize html that was given by the user
+ * to prevent XSS attacs. The tag blacklist and
+ * attribute whitelist was created according to owasp.
+ **/
+Zenoss.util.sanitizeHtml = function(input) {
+    // Blacklist of tags that are not allowed
+    var tagBlacklist_ = {
+        'SCRIPT': true,
+        'STYLE': true,
+    };
+    // Attributes whitelist that can be used in tags
+    var attributeWhitelist_ = {
+        'accept': true,
+        'accept-charset': true,
+        'accesskey': true,
+        'action': true,
+        'alt': true,
+        'async': true,
+        'autofocus': true,
+        'autoplay': true,
+        'checked': true,
+        'class': true,
+        'cols': true,
+        'colspan': true,
+        'controls': true,
+        'coords': true,
+        'datetime': true,
+        'default': true,
+        'defer': true,
+        'dirname': true,
+        'disabled': true,
+        'download': true,
+        'draggable': true,
+        'dropzone': true,
+        'enctype': true,
+        'for': true,
+        'form': true,
+        'headers': true,
+        'height': true,
+        'hidden': true,
+        'high': true,
+        'href': true,
+        'hreflang': true,
+        'http-equiv': true,
+        'id': true,
+        'ismap': true,
+        'kind': true,
+        'label': true,
+        'lang': true,
+        'list': true,
+        'loop': true,
+        'low': true,
+        'max': true,
+        'maxlength': true,
+        'media': true,
+        'method': true,
+        'min': true,
+        'multiple': true,
+        'muted': true,
+        'name': true,
+        'novalidate': true,
+        'open': true,
+        'optimum': true,
+        'pattern': true,
+        'placeholder': true,
+        'poster': true,
+        'preload': true,
+        'readonly': true,
+        'rel': true,
+        'required': true,
+        'reversed': true,
+        'rows': true,
+        'rowspan': true,
+        'sandbox': true,
+        'scope': true,
+        'selected': true,
+        'shape': true,
+        'spellcheck': true,
+        'start': true,
+        'step': true,
+        'tabindex': true,
+        'target': true,
+        'translate': true,
+        'usemap': true,
+        'value': true,
+        'width': true,
+        'wrap': true,
+    };
+    /*
+      Create an iframe element that will render given html code
+      and filter elements and attributes that are not allowed.
+    */
+    var iframe = document.createElement('iframe');
+    if (iframe['sandbox'] === undefined) {
+      console.log('Your browser does not support sandboxed iframes. Please upgrade to a modern browser.');
+      return '';
+    }
+    iframe['sandbox'] = 'allow-same-origin allow-scripts';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe); // necessary so the iframe contains a document
+    iframe.contentDocument.body.innerHTML = input;
+
+    function makeSanitizedCopy(node) {
+      // Loop over elements and filter them
+      if (node.nodeType == Node.TEXT_NODE) {
+        var newNode = node.cloneNode(true);
+      } else if (node.nodeType == Node.ELEMENT_NODE && !tagBlacklist_[node.tagName]) {
+        newNode = iframe.contentDocument.createElement(node.tagName);
+        for (var i = 0; i < node.attributes.length; i++) {
+          var attr = node.attributes[i];
+          if (attributeWhitelist_[attr.name]) {
+            newNode.setAttribute(attr.name, attr.value);
+          }
+        }
+        for (i = 0; i < node.childNodes.length; i++) {
+          var subCopy = makeSanitizedCopy(node.childNodes[i]);
+          newNode.appendChild(subCopy, false);
+        }
+      } else {
+        newNode = document.createDocumentFragment();
+      }
+      return newNode;
+    };
+
+    var resultElement = makeSanitizedCopy(iframe.contentDocument.body);
+    document.body.removeChild(iframe);
+    return resultElement.innerHTML;
+}
+
+/**
  * Helper fn to get Ext component by 'itemId' starting from from some target component.
  * We move up in Ext cmp hierarchy and search ('down') for cmp by it's 'itemId'.
  * @param itemId
