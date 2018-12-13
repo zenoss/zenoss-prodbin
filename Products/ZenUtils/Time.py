@@ -21,7 +21,8 @@ __version__ = "$$"[11:-2]
 import time
 import os
 import pytz
-from datetime import datetime    
+import re
+from datetime import datetime
 from hashlib import sha224
 from math import isnan
 
@@ -41,6 +42,12 @@ def LocalDateTimeFromMilli(milliseconds):
     """
     return LocalDateTime(milliseconds / 1000)
 
+def convertJsTimeFormatToPy(fmt):
+    d = {'YYYY': '%Y', 'MM': '%m', 'DD': '%d',
+         'HH': '%H', 'hh': '%I', 'mm': '%M',
+         'ss': '%S', 'a': '%p'}
+    pattern = re.compile(r'\b(' + '|'.join(d.keys()) + r')\b')
+    return pattern.sub(lambda x: d[x.group()], fmt)
 
 def convertTimestampToTimeZone(timestamp, zone_name, fmt="%Y/%m/%d %H:%M:%S"):
     """

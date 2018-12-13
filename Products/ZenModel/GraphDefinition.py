@@ -31,6 +31,7 @@ from Products.ZenUtils.deprecated import deprecated
 from Products.ZenMessaging.audit import audit
 from zope.interface import implements
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
+from Products.Zuul.decorators import memoize
 
 @deprecated
 def manage_addGraphDefinition(context, id, REQUEST = None):
@@ -149,6 +150,26 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
 
     ## Basic stuff
+
+    def __init__(self, id, title=None, buildRelations=True):
+        super(GraphDefinition , self).__init__(id, title=title, buildRelations=buildRelations)
+        self._title = title
+
+    @property
+    @memoize
+    def title(self):
+        # allow zenpacks to set a temporary title on the graph definition.
+        # once we have it remove the _v_title attribute because even though it is
+        # volatile the object might be in cache in a subsequent request
+        if hasattr(self, "_v_title"):
+            name = self._v_title
+            del self._v_title
+            return name
+        return self._title or self.getId()
+
+    @title.setter
+    def title(self, title):
+        self._title = title
 
     def getGraphPoints(self, includeThresholds=True):
         """ Return ordered list of graph points

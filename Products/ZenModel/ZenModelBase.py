@@ -23,6 +23,8 @@ from urllib import unquote
 from cgi import escape
 import zope.component
 import zope.interface
+from datetime import datetime
+import pytz
 
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
@@ -39,7 +41,7 @@ from Products.ZenUtils.Utils import getObjByPath, unpublished
 from Products.ZenUtils.csrf import get_csrf_token
 from Products.ZenUtils.Utils import prepId as globalPrepId, isXmlRpc
 from Products.ZenWidgets import messaging
-from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime
+from Products.ZenUtils.Time import convertTimestampToTimeZone, isoDateTime, convertJsTimeFormatToPy
 from Products.ZenUI3.browser.interfaces import INewPath
 from Products.ZenMessaging.audit import audit as auditFn
 from ZenossSecurity import *
@@ -507,12 +509,15 @@ class ZenModelBase(object):
         """
         user = self.zport.dmd.ZenUsers.getUserSettings()
         if user.timezone:
-            return convertTimestampToTimeZone(timestamp, user.timezone)
+            utc_dt = pytz.utc.localize(datetime.utcfromtimestamp(int(timestamp)))
+            tz = pytz.timezone(user.timezone)
+            tval = tz.normalize(utc_dt.astimezone(tz))
+            return tval.strftime(convertJsTimeFormatToPy(user.dateFormat+" "+user.timeFormat))
         return isoDateTime(timestamp)
-    
-    def getCurrentUserNowString(self):        
+
+    def getCurrentUserNowString(self):
         return self.convertToUsersTimeZone(time.time())
-    
+
     def getNowString(self):
         """
         Return the current time as a string in the format '2007/09/27 14:09:53'.

@@ -107,6 +107,7 @@
                         hidden: !Zenoss.settings.enableTreeFilters,
                         cls: 'x-hierarchy-search',
                         enableKeyEvents: true,
+                        selectOnFocus: false,
                         ref: 'searchfield'
                     },
                     {

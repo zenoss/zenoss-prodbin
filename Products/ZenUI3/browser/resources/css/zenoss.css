@@ -1751,7 +1751,7 @@ div.europagraph {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-  div.europagraph.z-hidden-footer .zenfooter {
+  div.europagraph-inner.z-hidden-footer .zenfooter {
     display: none !important;
   }
 
@@ -1771,7 +1771,7 @@ div.europagraph {
     display: none;
   }
 
-img.europaGraphGear.spinnerino {
+.europaGraphGear.spinnerino {
     animation-name: spin;
     animation-duration: 1500ms;
     animation-iteration-count: infinite;
