@@ -12,7 +12,6 @@ import logging
 import Migrate
 
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -26,7 +25,7 @@ class IncreaseZauthDefaultInstanceCount(Migrate.Step):
     less than 2.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 5)
 
     def cutover(self, dmd):
         try:
