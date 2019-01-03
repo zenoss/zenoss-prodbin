@@ -42,7 +42,7 @@ from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import (
     ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
-    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE,
+    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE,
     ZEN_MANAGE_GLOBAL_SETTINGS, MANAGER_ROLE, ZEN_MANAGE_GLOBAL_COMMANDS,
     ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
     ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
@@ -725,7 +725,12 @@ class UserSettings(ZenModelRM):
         if (currentUser.has_role(CZ_ADMIN_ROLE) and not
                 thisUser.has_role(MANAGER_ROLE)):
             return True
-
+        
+        # ZEN_MANAGERs can edit users' settings except for Managers and CZAdmins
+        if (currentUser.has_role(ZEN_MANAGER_ROLE) and not
+            (thisUser.has_role(MANAGER_ROLE) or
+            thisUser.has_role(CZ_ADMIN_ROLE))):
+            return True
 
         return False
 
@@ -1323,7 +1328,8 @@ class GroupSettings(UserSettings):
         """
         currentUser = getSecurityManager().getUser()
         return (currentUser.has_role(MANAGER_ROLE) or
-                currentUser.has_role(CZ_ADMIN_ROLE))
+                currentUser.has_role(CZ_ADMIN_ROLE) or
+                currentUser.has_role(ZEN_MANAGER_ROLE))
 
     def _getG(self):
         return self.zport.acl_users.groupManager
