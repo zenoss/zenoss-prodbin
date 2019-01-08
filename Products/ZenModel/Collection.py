@@ -13,14 +13,15 @@ Holds an assortment of devices and/or components on a multi-style report.
 """
 import sys
 
-from Globals import InitializeClass
+from Globals import InitializeClass, DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
-from Globals import DTMLFile
+from zope.component import getUtility
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import resequence
 from Products.ZenWidgets import messaging
 from Products.ZenUtils.deprecated import deprecated
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products.ZenMessaging.audit import audit
 
 @deprecated
@@ -76,6 +77,8 @@ class Collection(ZenModelRM):
         orgPath or on devId/compPath.  Returns the new item.
         '''
         from CollectionItem import CollectionItem
+        # remove cz# prefix from the component path
+        compPath = getUtility(IVirtualRoot).strip_virtual_root(compPath)
         ci = CollectionItem(self.getUnusedId('collection_items', 'Item'))
         if orgPath:
             ci.deviceOrganizer = orgPath
