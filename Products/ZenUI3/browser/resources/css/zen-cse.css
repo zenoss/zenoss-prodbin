@@ -380,7 +380,9 @@ BYE BYE BORDERS
     .z-cse #processForm-body input[type=text],
     .z-cse #processForm-body textarea,
     .z-cse #serviceForm-body input[type=text],
-    .z-cse #serviceForm-body textarea
+    .z-cse #serviceForm-body textarea,
+    .z-cse #dialog_innercontent input[type=submit],
+    .z-cse #dialog_innercontent input[type=button]
     { background-image: none; background-color: #f4f4f4; border: 0; }
 
     .z-cse #contentPaneContainer input[type=button] { /*ZEN-30221*/
@@ -866,6 +868,11 @@ BYE BYE BORDERS
         .z-cse .x-btn-default-large-over button,
         .z-cse .x-btn-default-toolbar-large-over button
         { background-color: transparent; }
+
+    .z-cse .x-graph-btn-pressed {
+        border-color: #9ebae1;
+        background-color: #b6cbe4 !important;
+    }
 
 
     /* popup dialog buttons */
@@ -1940,7 +1947,6 @@ BYE BYE BORDERS
 
     .z-cse #dialog_innercontent input[type=submit],
     .z-cse #dialog_innercontent input[type=button] {
-        background-color: #b2afaf;
         border-radius: 3px;
         font-size: 11px;
         margin: 8px 6px;
@@ -2370,6 +2376,59 @@ BYE BYE BORDERS
         margin-bottom: 6px;
     }
 
+    .z-cse .dbox_tl,
+    .z-cse .dbox_tr,
+    .z-cse .dbox_bl,
+    .z-cse .dbox_br {
+        background: none;
+    }
+
+    .z-cse .dbox_tl,
+    .z-cse .dbox_bl {
+        padding-left: 0;
+    }
+
+    .z-cse .dbox_tr,
+    .z-cse .dbox_br {
+        padding-right: 0;
+    }
+
+    .z-cse .dbox_tc {
+        background: #ccc;
+    }
+
+    .z-cse .dbox_mc,
+    .z-cse .dbox_tc h2 {
+        color: #4b4b4c;
+    }
+
+    .z-cse #dialog_innercontent td {
+        color: #4b4b4c !important;
+    }
+
+    .z-cse .dbox_ml,
+    .z-cse .dbox_mc,
+    .z-cse .dbox_mr,
+    .z-cse .dbox_bc {
+        background: #dddddd;
+    }
+
+    .z-cse .dbox_bc:empty {
+        display: none;
+    }
+
+    .z-cse .dialog_close_icon {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png");
+        background-size: contain;
+    }
+
+    .z-cse .x-grid-with-row-lines.device-type-grid .x-grid-cell-inner {
+        padding-right: 20px;
+    }
+
 /*
         =====================================================================================
         DARK THEME
@@ -2519,6 +2578,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #class_center_panel > .x-toolbar .x-form-item,
     .z-cse.z-cse-dark #contentPaneContainer input[type=button], /*ZEN-30221*/
     .z-cse.z-cse-dark #detailCardPanel > div > div > div table.x-hbox-form-item,
+    .z-cse.z-cse-dark #dialog_innercontent input[type=submit],
+    .z-cse.z-cse-dark #dialog_innercontent input[type=button],
     .z-cse.z-cse-dark #ldapConfigDropDown input[type=text],
     .z-cse.z-cse-dark #network_map_form-body textarea,
     .z-cse.z-cse-dark #NetworkDetailCardPanel > div > div > div table.x-hbox-form-item
@@ -3140,3 +3201,32 @@ BYE BYE BORDERS
         padding-left: 2px;
     }
     /*<ZEN-30423> dark theme styles for reports end*/
+
+    .z-cse.z-cse-dark .dbox_tc {
+        background: rgba(0, 0, 0, 0.85);
+    }
+
+    .z-cse.z-cse-dark .dbox_mc,
+    .z-cse.z-cse-dark .dbox_tc h2 {
+        color: #d4d4d4;
+    }
+
+    .z-cse.z-cse-dark #dialog_innercontent td {
+        color: #d4d4d4 !important;
+    }
+
+    .z-cse.z-cse-dark .dbox_ml,
+    .z-cse.z-cse-dark .dbox_mc,
+    .z-cse.z-cse-dark .dbox_mr,
+    .z-cse.z-cse-dark .dbox_bc {
+        background: #454545;
+    }
+
+    .z-cse.z-cse-dark .dialog_close_icon {
+        background-image: url("/++resource++zenui/img/xtheme-zenoss/window/close-button.png");
+    }
+
+    .z-cse.z-cse-dark #dialog_innercontent input[type=submit]:hover,
+    .z-cse.z-cse-dark #dialog_innercontent input[type=button]:hover {
+        background-color: #b6cbe4;
+    }

@@ -94,7 +94,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
     smtpHost = ''
-    pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
+    pageCommand = ''
     smtpPort = 25
     smtpUser = ''
     smtpPass = ''

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2018-09-28 17:52:50.358280
+    Zenoss RelationshipManager export completed on 2018-12-13 16:03:08.767969
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 7.0.5]" export_date="2018-09-28 17:52:50.358280" zenoss_server="7fafc7a614e2" >
+<objects version="[Zenoss, version 7.0.7]" export_date="2018-12-13 16:03:08.767969" zenoss_server="32708a3925bf" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass' move='False'>
 <property type="lines" id="devtypes" mode="w" >
 []
@@ -294,6 +294,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -357,6 +363,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -399,6 +411,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -436,6 +454,12 @@ Memory consumed by processes.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -875,6 +899,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
 </property>
@@ -922,6 +952,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 The total number of octets received on the interface, including framing characters.
@@ -975,6 +1011,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <property type="string" id="description" mode="w" >
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.
 </property>
@@ -1024,6 +1066,12 @@ RRA:MAX:0.5:288:600
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -1068,6 +1116,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
@@ -1116,6 +1170,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 The total number of octets transmitted out of the interface, including framing characters.
@@ -1168,6 +1228,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent.
@@ -1728,6 +1794,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <property type="string" id="description" mode="w" >
 The total number of octets received on the interface, including framing characters. This object is a 64-bit version of ifInOctets.
 </property>
@@ -1780,6 +1852,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <property type="string" id="description" mode="w" >
 The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer.  This object is a 64-bit version of ifInUcastPkts.
 </property>
@@ -1827,6 +1905,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 The total number of octets transmitted out of the interface, including framing characters. This object is a 64-bit version of ifHCOutOctets.
@@ -1880,6 +1964,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <property type="string" id="description" mode="w" >
 The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. This object is a 64-bit version of ifHCOutUcastPkts.
 </property>
@@ -1927,6 +2017,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character-oriented or fixed-length interfaces, the number of inbound transmission units that contained errors preventing them from being deliverable to a higher-layer protocol.
@@ -1977,6 +2073,12 @@ RRA:MAX:0.5:288:600
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -2021,6 +2123,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <property type="string" id="description" mode="w" >
 For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could not be transmitted because of errors.
@@ -2607,6 +2715,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
@@ -2653,6 +2767,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
@@ -2697,6 +2817,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -3037,6 +3163,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -3084,6 +3216,12 @@ The amount of physical memory available.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -3135,6 +3273,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -3175,6 +3319,12 @@ The amount of buffer memory.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -3224,6 +3374,12 @@ The amount of cached memory.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -3278,6 +3434,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -3330,6 +3492,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -3374,6 +3542,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
@@ -3420,6 +3594,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -3460,6 +3640,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -4308,6 +4494,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -4551,6 +4743,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -4593,6 +4791,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -4633,6 +4837,12 @@ Template for system load five minute average
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -4684,6 +4894,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -4733,6 +4949,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -4773,6 +4995,12 @@ The amount of buffer memory.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -4824,6 +5052,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -4871,6 +5105,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -4925,6 +5165,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -4967,6 +5213,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -5007,6 +5259,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -5054,6 +5312,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -5099,6 +5363,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -5139,6 +5409,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -6127,6 +6403,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 </object>
@@ -6171,6 +6453,12 @@ The Available Memory counter indicates the amount of memory that is left after n
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -6222,6 +6510,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -6262,6 +6556,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -6695,6 +6995,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -6729,6 +7035,12 @@ Auto
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -6939,6 +7251,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -6981,6 +7299,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7021,6 +7345,12 @@ Template for system load five minute average
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -7072,6 +7402,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -7121,6 +7457,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7161,6 +7503,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -7215,6 +7563,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7255,6 +7609,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -7299,6 +7659,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7339,6 +7705,12 @@ The value for total number of sectors read.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -7383,6 +7755,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7423,6 +7801,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -8332,6 +8716,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8374,6 +8764,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8414,6 +8810,12 @@ Template for system load five minute average
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -8465,6 +8867,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8507,6 +8915,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8547,6 +8961,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -8601,6 +9021,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8641,6 +9067,12 @@ Template for CPU performance
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -8685,6 +9117,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8725,6 +9163,12 @@ The value for total number of sectors read.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -8769,6 +9213,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -8809,6 +9259,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -9741,6 +10197,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='laLoadInt15' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9752,6 +10214,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9761,6 +10229,12 @@ Template for system load five minute average
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -9784,6 +10258,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
 <property type="string" id="formula" mode="w" >
@@ -9805,6 +10285,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ssCpuRawKernel' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9818,6 +10304,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 <object id='ssCpuRawNice' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
@@ -9833,6 +10325,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9846,6 +10344,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
@@ -9861,6 +10365,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9875,6 +10385,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ssRawContexts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9886,6 +10402,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ssRawInterrupts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -9896,6 +10418,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
@@ -9936,6 +10464,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='hrSwapSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9947,6 +10481,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9956,6 +10496,12 @@ The amount of physical memory available.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -9976,6 +10522,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -9985,6 +10537,12 @@ The amount of buffer memory.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -9998,12 +10556,24 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='pageSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -10046,6 +10616,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -10836,6 +11412,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='availInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -10845,6 +11427,12 @@ Inodes available.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -10858,6 +11446,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='totalInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -10869,6 +11463,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -10878,6 +11478,12 @@ Amount of blocks used.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 <tomanycont id='aliases'>
@@ -10896,6 +11502,12 @@ Inodes used.
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -11269,6 +11881,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ifInMcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -11279,6 +11897,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
@@ -11293,6 +11917,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <tomanycont id='aliases'>
 <object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
@@ -11312,6 +11942,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -11326,6 +11962,12 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint' move='False'>
 <property id='zendoc' type='string'>
@@ -11339,6 +11981,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 <tomanycont id='aliases'>
 <object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias' move='False'>
@@ -11357,6 +12005,12 @@ True
 </property>
 <property type="string" id="rrdmin" mode="w" >
 0
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
 </property>
 </object>
 </tomanycont>
@@ -11908,6 +12562,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -11944,6 +12604,12 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
+True
+</property>
 </object>
 </tomanycont>
 </object>
@@ -11978,6 +12644,12 @@ Auto
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>
@@ -12020,6 +12692,12 @@ This uses the sysUpTimeInstance object. This object is the length of time the sy
 GAUGE
 </property>
 <property type="boolean" id="isrow" mode="w" >
+True
+</property>
+<property type="boolean" id="store" mode="w" >
+True
+</property>
+<property type="boolean" id="forward" mode="w" >
 True
 </property>
 </object>

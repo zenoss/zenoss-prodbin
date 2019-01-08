@@ -1710,13 +1710,6 @@ a.z-entity:hover{
     height:auto !important;
     padding-bottom:20px;
 }
-#add_graph_point{
-    position:relative;
-}
-#add_graph_point #dialog_buttons{
-    position:absolute;
-    top:40px;
-}
 /* adjust the footer to make up for the title */
 .zenerror {
   display: block;
@@ -1758,7 +1751,7 @@ div.europagraph {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-  div.europagraph.z-hidden-footer .zenfooter {
+  div.europagraph-inner.z-hidden-footer .zenfooter {
     display: none !important;
   }
 
@@ -1778,7 +1771,7 @@ div.europagraph {
     display: none;
   }
 
-img.europaGraphGear.spinnerino {
+.europaGraphGear.spinnerino {
     animation-name: spin;
     animation-duration: 1500ms;
     animation-iteration-count: infinite;

@@ -634,17 +634,15 @@ class EventsRouter(DirectRouter):
             return True
         if params.get('excludeNonActionables'):
             return Zuul.checkPermission('ZenCommon', self.context)
-        if user.hasNoGlobalRoles():
-            try:
-                if uid is not None:
-                    organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
-                else:
-                    return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
-            except (AttributeError, KeyError):
-                return False
-            manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
-            return organizer_name in manage_events_for
-        return False
+        try:
+            if uid is not None:
+                organizer_name = self.context.dmd.Devices.getOrganizer(uid).getOrganizerName()
+            else:
+                return self._hasPermissionsForAllEvents(ZEN_MANAGE_EVENTS, evids)
+        except (AttributeError, KeyError):
+            return False
+        manage_events_for = (r.managedObjectName() for r in user.getAllAdminRoles() if r.role in READ_WRITE_ROLES)
+        return organizer_name in manage_events_for
 
     def write_event_logs(self, evid=None, message=None):
         data = self.detail(evid).data['event'][0]

@@ -15,6 +15,7 @@ from Products.ZenCallHome import (IZenossData, IDeviceResource,
 from zope.interface import implements
 from zope.component import subscribers, getAdapters
 from Products.Zuul import getFacade
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from itertools import chain
 
 import logging
@@ -45,8 +46,21 @@ class ZenossAppData(object):
                  self.zenpacks,
                  self.user_count,
                  self.product_count,
-                 self.product_name)
+                 self.product_name,
+                 self.components)
         return chain.from_iterable(map(lambda fn: fn(), stats))
+
+    def components(self):
+        brains = self._catalog.search(types=(DeviceComponent,), facets_for_field=["meta_type"])
+        if brains.facets and brains.facets.get("meta_type"):
+            facets = brains.facets["meta_type"]
+            comps = facets.get_values()      
+            for comp, count in comps.iteritems():
+                if count > 0:
+                    yield ("Components",
+                        "{}: {}".format(comp, count))
+
+        yield ("Components:", [])
 
     def product_name(self):
         yield "Product", self.dmd.getProductName()
@@ -61,7 +75,7 @@ class ZenossAppData(object):
         yield "Product Count", prodCount
 
     def user_count(self):
-        yield "User Count", len(self.dmd.ZenUsers.objectIds())
+        yield "User Count", len(self.dmd.ZenUsers.objectValues(spec="UserSettings"))
 
     def server_key(self):
         key = self.dmd.uuid or "NOT ACTIVATED"

@@ -198,12 +198,12 @@ class ZenTableState:
         if callable(attr): attr = attr()
         if isinstance(attr, DateTime) and not attr.millis():
             label = self.defaultValue
-        elif isinstance(attr, basestring):
-            label = attr
         else:
-            label = str(attr)
+            label = attr
         if isinstance(item, dict):
             label = item.get(self.sortedHeader, "")
+        # ensuring that we are always working with a string
+        label = str(label)
         if len(label) > self.abbrThresh:
             startAbbr = label[:self.abbrStartLabel]
             if self.abbrEndLabel > 0:

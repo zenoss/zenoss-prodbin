@@ -43,16 +43,7 @@ class MetricServiceGraphDefinition(MetricServiceGraph):
     implements(templateInterfaces.IMetricServiceGraphDefinition)
 
     @property
-    @memoize
     def title(self):
-        obj = self._object
-        # allow zenpacks to set a temporary title on the graph definition.
-        # once we have it remove the _v_title attribute because even though it is
-        # volatile the object might be in cache in a subsequent request
-        if hasattr(obj, "_v_title"):
-            name = obj._v_title
-            del obj._v_title
-            return name
         if self._showContextTitle:
             return self.contextTitle
         return self._object.titleOrId()
