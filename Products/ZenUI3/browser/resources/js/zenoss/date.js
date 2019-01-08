@@ -51,37 +51,6 @@ Zenoss.date.renderDateColumn = function(format) {
 };
 
 
-/**
- * @class Zenoss.DateRange
- * @extends Ext.form.field.Date
- * A DateRange
- */
-Ext.define("Zenoss.DateRange", {
-    extend: "Ext.form.field.Date",
-    alias: ['widget.DateRange'],
-    xtype: "daterange",
-    formatDate: function (date) {
-            return Ext.isDate(date) ? moment(date).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : date;
-    },
-    getErrors: function(value) {
-        var errors = new Array();
-        if (value == "") {
-            return errors;
-        }
-        //Look first for invalid characters, fail fast
-        if (/[^0-9/TOampm :-]/.test(value)) {
-            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
-            return errors;
-        }
-        if (value.indexOf("TO") === -1) {
-            if (!moment(value, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT).isValid()) {
-	        errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
-            }
-        }
-        return errors;
-    }
-});
-
 /* For UserInterfaceSettings */
 
 Zenoss.date.dateFormats = {
@@ -369,6 +338,233 @@ Ext.define('Zenoss.grid.column.DateTime', {
     renderer: function(value, metadata, record) {
         metadata.tdAttr = 'data-qtip="' + Zenoss.date.Moment.tzstring + '"';
         return Zenoss.render.date(value, this.momentFormat);
+    }
+});
+
+
+/**
+ * @class Zenoss.DateRange
+ * @extends Ext.form.field.Date
+ * A DateRange
+ */
+Ext.define("Zenoss.DateRange", {
+    extend: 'Ext.form.field.Trigger',
+    alias: ['widget.daterange'],
+    trigger1Cls : 'x-form-date-trigger',
+
+    initComponent: function() {
+        this.callParent(arguments);
+        // init format on component init to use right user data/time formats
+        this.format = Zenoss.date.Moment.fromMomentFormat(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
+    },
+
+    onTrigger1Click: function() {
+        var me = this;
+
+        // create menu with 2 datapicker and timepicker fields;
+        if (!me.picker) {
+            me.picker = Ext.create('Ext.menu.Menu', {
+                allowOtherMenus: true,
+                pickerField: me,
+                ownerCt: me.ownerCt,
+                border: false,
+                plain: true,
+                hidden: true,
+                shadow: false,
+                focusOnShow: true,
+                floating: true,
+                items: [{
+                    xtype: 'panel',
+                    frame: false,
+                    layout: 'hbox',
+                    shadow: false,
+                    border: false,
+                    bodyStyle: 'background-color: transparent;',
+                    items: [{
+                        xtype: 'container',
+                        layout: {
+                            type: 'vbox',
+                            align: 'left'
+                        },
+                        items: [{
+                            xtype: 'datepicker',
+                            itemId: 'dateFrom',
+                            listeners: {
+                                select: function (picker, date) {
+                                    this.setRange();
+                                },
+                                scope: me
+                            },
+                            margin: '0 0 2 0'
+                        },{
+                            xtype: 'timefield',
+                            itemId: 'timeFrom',
+                            editable: false,
+                            format: Zenoss.date.Moment.fromMomentFormat(Zenoss.USER_TIME_FORMAT),
+                            listeners: {
+                                change: function (fld, newVal, oldVal) {
+                                    this.setRange();
+                                },
+                                scope: me
+                            }
+                        }]
+                    },{
+                        xtype: 'container',
+                        layout: {
+                            type: 'vbox',
+                            align: 'right'
+                        },
+                        items: [{
+                            xtype: 'datepicker',
+                            itemId: 'dateTo',
+                            minDate: me.minValue,
+                            maxDate: me.maxValue,
+                            listeners: {
+                                select: function (picker, date) {
+                                    this.setRange();
+                                },
+                                scope: me
+                            },
+                            margin: '0 0 2 0'
+                        }, {
+                            xtype: 'timefield',
+                            itemId: 'timeTo',
+                            editable: false,
+                            format: Zenoss.date.Moment.fromMomentFormat(Zenoss.USER_TIME_FORMAT),
+                            listeners: {
+                                change: function (fld, newVal, oldVal) {
+                                    this.setRange();
+                                },
+                                scope: me
+                            }
+                        }]
+                    }],
+                    buttons:[{
+                        text: _t('Confirm'),
+                        iconCls: 'acknowledge',
+                        handler: function() {
+                            this.picker.hide();
+                        },
+                        scope: me
+                    }]
+                }]
+            });
+            me.dateFromField = me.picker.down('#dateFrom');
+            me.dateToField = me.picker.down('#dateTo');
+            me.timeFromField = me.picker.down('#timeFrom');
+            me.timeToField = me.picker.down('#timeTo');
+        }
+        me.picker.showBy(this.el);
+
+        // update picker value on show if something was changes manualy;
+        var initDate = me.timeFromField.initDate,
+            value = me.getValue(),
+            dateFrom = value.dateFrom,
+            dateTo = value.dateTo;
+
+        if (dateFrom) {
+            me.dateFromField.setValue(dateFrom);
+            me.timeFromField.setValue(Ext.Date.add(new Date(initDate), Ext.Date.MINUTE, (dateFrom ? dateFrom.getHours()*60+dateFrom.getMinutes() : 0)));
+        }
+        if (dateTo) {
+            me.dateToField.setValue(dateTo);
+            me.timeToField.setValue(Ext.Date.add(new Date(initDate), Ext.Date.MINUTE, (dateTo ? dateTo.getHours() * 60 + dateTo.getMinutes() : 1439)));
+        }
+    },
+
+    // menu pickers change handler;
+    setRange: function() {
+        var dtFrom = this.dateFromField.getValue(),
+            dtTo = this.dateToField.getValue(),
+            tFrom = this.timeFromField.getValue(),
+            tTo = this.timeToField.getValue()
+            initDate = this.timeFromField.initDate;
+
+        // default time for start in 00:00, for end is 23:59
+        dtFrom = this.getDateBy(dtFrom, dtTo, tFrom, 0);
+        dtTo = this.getDateBy(dtTo, dtFrom, tTo, 1439);
+        this.dateValue = {
+            dateFrom: dtFrom,
+            dateTo: dtTo
+        };
+        this.dateFromField.setValue(dtFrom);
+        this.dateToField.setValue(dtTo);
+        this.timeFromField.setValue(Ext.Date.add(new Date(initDate), Ext.Date.MINUTE, (tFrom ? tFrom.getHours()*60+tFrom.getMinutes() : 0)));
+        this.timeToField.setValue(Ext.Date.add(new Date(initDate), Ext.Date.MINUTE, (tTo ? tTo.getHours()*60+tTo.getMinutes() : 1439)));
+        this.setValue(this.dateValue);
+    },
+
+    // helper fn to get right date for date/time pickers;
+    getDateBy: function(dt1, dt2, timeDt, defaultTime) {
+        var now = new Date(), time = defaultTime;
+        if (!dt1) {
+            dt1 = dt2 || now;
+        }
+        if (timeDt) {
+            time = timeDt.getHours() * 60 + timeDt.getMinutes();
+        }
+        // clear date times and add new time based on time picker or default times;
+        dt1 = Ext.Date.add(Ext.Date.clearTime(dt1), Ext.Date.MINUTE, time);
+        return dt1;
+    },
+
+    // override to handle dates comparing and "change" event fire later;
+    isEqual: function(value1, value2) {
+        var isEqual = value1 == value2,
+            from1 = value1.dateFrom && value1.dateFrom.getTime(),
+            to1 = value1.dateTo && value1.dateTo.getTime(),
+            from2 = value1.dateFrom && value1.dateFrom.getTime(),
+            to2 = value1.dateTo && value1.dateTo.getTime();
+        return isEqual && from1 === from2 && to1 === to2;
+    },
+    dateValue: {},
+    // helper fn to parse date string from input;
+    rawToDateValue: function(value) {
+        var arr = (value || '').split(' TO ');
+        return {
+            dateFrom: Ext.Date.parse(arr[0], this.format),
+            dateTo: Ext.Date.parse(arr[1], this.format)
+        };
+    },
+    getValue: function() {
+        return this.rawToDateValue(this.callParent(arguments));
+    },
+    // override setValue fn to add time on value change;
+    setValue: function(value) {
+        var dateFrom = null, dateTo = null;
+        if (Ext.isDate(value)) {
+            dateFrom = value;
+            dateTo = Ext.Date.add(Ext.Date.clearTime(value, true), Ext.Date.MINUTE, 1439);
+        } else if (Ext.isObject(value)) {
+            dateFrom = value.dateFrom;
+            dateTo = value.dateTo;
+        }
+        this.dateValue = {
+            dateFrom: dateFrom,
+            dateTo: dateTo
+        };
+        dateFrom = Ext.isDate(dateFrom) ? moment(dateFrom).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : dateFrom;
+        dateTo = Ext.isDate(dateTo) ? moment(dateTo).format(Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT) : dateTo;
+        // display value in input in user friendly format;
+        value = dateFrom && dateTo ? dateFrom+' TO '+dateTo : '';
+        this.callParent([value]);
+    },
+    getErrors: function(value) {
+        var errors = new Array();
+        if (value == "") {
+            return errors;
+        }
+        //Look first for invalid characters, fail fast
+        if (/[^0-9/TOampm :-]/.test(value)) {
+            errors.push("Date contains invalid characters - valid characters include digits, dashes, colons, and spaces");
+            return errors;
+        }
+        if (value.indexOf("TO") === -1) {
+            if (!moment(value, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT).isValid()) {
+	        errors.push("Date is formatted incorrectly - format should be " + Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT);
+            }
+        }
+        return errors;
     }
 });
 
