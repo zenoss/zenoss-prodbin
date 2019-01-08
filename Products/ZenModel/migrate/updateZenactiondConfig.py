@@ -14,13 +14,12 @@ import Migrate
 import servicemigration as sm
 sm.require("1.0.0")
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 class UpdateZenactiondConfig(Migrate.Step):
     "Add strip-email-body-tags option"
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 5)
 
     def cutover(self, dmd):
 
