@@ -344,7 +344,7 @@
     class=".views.FileUpload"
     name="uploadfile"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.ManageDMD"
     />
 
 <browser:view
