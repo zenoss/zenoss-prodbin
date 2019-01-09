@@ -19,9 +19,9 @@ from uuid import uuid4
 
 log = logging.getLogger('extdirect')
 
+
 class DirectException(Exception):
     pass
-
 
 
 class DirectResponse(object):

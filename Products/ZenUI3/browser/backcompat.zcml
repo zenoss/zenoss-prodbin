@@ -32,7 +32,7 @@
     template="../../ZenModel/skins/zenmodel/editUserSettings.pt"
     name="editUserSettings"
     for="*"
-    permission="zenoss.View"
+    permission="zenoss.ChangeSettings"
     />
 
 <browser:defaultView

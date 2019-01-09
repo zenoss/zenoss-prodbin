@@ -8,7 +8,13 @@
 ##############################################################################
 
 import cgi
+from AccessControl import getSecurityManager
 from Products.ZenUtils.extdirect.router import DirectRouter, DirectException
+from Products.ZenModel.UserSettings import UserSettings
+from Products.ZenModel.ZenossSecurity import (
+    ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE
+)
+from zExceptions import NotFound
 
 
 class ZopeDirectRouter(DirectRouter):
@@ -17,6 +23,16 @@ class ZopeDirectRouter(DirectRouter):
         self.request = request
 
     def __call__(self):
+        if isinstance(getattr(self.request, 'PARENTS')[0], UserSettings):
+            currentUser = getSecurityManager().getUser()
+            if not(
+                currentUser.has_role(MANAGER_ROLE) or
+                currentUser.has_role(CZ_ADMIN_ROLE) or
+                currentUser.has_role(ZEN_MANAGER_ROLE) or
+                currentUser._id == self.request.PARENTS[0].id
+            ):
+                raise NotFound(self.request.URL)
+
         # Allow only requests with application/json content type as text/plain
         # content type is used for CSRF attacks.
         content_type = self.request.get_header('content-type')
