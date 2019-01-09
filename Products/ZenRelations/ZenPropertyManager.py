@@ -356,6 +356,7 @@ class ZenPropertyManager(object, PropertyManager):
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
 
+    _onlystars = re.compile("^\*+$").search
     def _updateProperty(self, id, value):
         """This method sets a property on a zope object. It overrides the
         method in PropertyManager. If Zope is upgraded you will need to check
@@ -364,6 +365,10 @@ class ZenPropertyManager(object, PropertyManager):
         Converters.py
         """
         try:
+            # Do not update property if its a password
+            # and value is secured(equals to all asterisk)
+            if self.zenPropIsPassword(id) and self._onlystars(value):
+                return
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:
             proptype = self.getPropertyType(id)
@@ -372,7 +377,6 @@ class ZenPropertyManager(object, PropertyManager):
                 "type. It should be type '%s'.", id, value, proptype
             )
 
-    _onlystars = re.compile("^\*+$").search
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'manage_editProperties')
     def manage_editProperties(self, REQUEST):
         """Edit object properties via the web.

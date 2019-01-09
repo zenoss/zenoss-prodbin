@@ -106,7 +106,7 @@ loader.insert();
       <td class="noselect tableheader" i18n:attributes="title" title="Use this only if authentication is required" i18n:translate='' align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
         <input class="tablevalues" id="smtpPass" autocomplete="off" i18n:attributes="title" title="Use this only if authentication is required" type="password" name="smtpPass"
-            tal:attributes="value here/smtpPass|string:" />
+            onfocus="this.value=''" tal:define="password_val here/smtpPass; plen python:len(password_val); secured_pass python:'*'*plen"  tal:attributes="value secured_pass" />
       </td>
     </tr>
     <tr class="odd">
