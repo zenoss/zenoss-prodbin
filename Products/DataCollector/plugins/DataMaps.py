@@ -1,35 +1,52 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007-2013, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import logging
 log = logging.getLogger("zen.plugins.DataMap")
 
 from pprint import pformat
-from pprint import pprint
 from twisted.spread import pb
 
-class PBSafe(pb.Copyable, pb.RemoteCopy): pass
+PLUGIN_NAME_ATTR = "plugin_name"
+
+
+class PBSafe(pb.Copyable, pb.RemoteCopy):
+    pass
+
 
 class RelationshipMap(PBSafe):
     parentId = ""
     relname = ""
     compname = ""
 
-    def __init__(self, relname="", compname="", modname="", objmaps=[],
-            parentId=""):
+    def __init__(
+        self,
+        relname="",
+        compname="",
+        modname="",
+        objmaps=[],
+        parentId="",
+        plugin_name=""
+    ):
         self.parentId = parentId
         self.relname = relname
         self.compname = compname
         if modname:
-            self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
+            self.maps = [
+                ObjectMap(dm, modname=modname, plugin_name=plugin_name)
+                for dm in objmaps
+            ]
         else:
-            self.maps = [ObjectMap(dm) for dm in objmaps ]
+            self.maps = [
+                ObjectMap(dm, plugin_name=plugin_name) for dm in objmaps
+            ]
+        self.plugin_name = plugin_name
 
     def __repr__(self):
         display = self.__dict__.copy()
@@ -53,15 +70,16 @@ class RelationshipMap(PBSafe):
         """
         return pformat(dict((map.id, map.asUnitTest()) for map in self.maps))
 
+
 pb.setUnjellyableForClass(RelationshipMap, RelationshipMap)
 
 
 class ObjectMap(PBSafe):
     """
     ObjectMap defines a mapping of some data to a ZenModel object.  To be valid
-    it must specify modname the full path to the module where the class to 
+    it must specify modname the full path to the module where the class to
     be created is defined.  If the class name is the same as the module
-    classname doesn't need to be defined.  
+    classname doesn't need to be defined.
     """
     compname = ""
     modname = ""
@@ -69,18 +87,25 @@ class ObjectMap(PBSafe):
     _blockattrs = ('compname', 'modname', 'classname')
     _attrs = []
 
-    def __init__(self, data={}, compname="", modname="", classname=""):
+    def __init__(
+        self, data={}, compname="", modname="", classname="", plugin_name=""
+    ):
         self._attrs = []
         self.updateFromDict(data)
-        if compname: self.compname = compname
-        if modname: self.modname = modname
-        if classname: self.classname = classname
+        if compname:
+            self.compname = compname
+        if modname:
+            self.modname = modname
+        if classname:
+            self.classname = classname
+        if plugin_name:
+            self.plugin_name = plugin_name
 
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
         self.__dict__[name] = value
-        
+
     def __repr__(self):
         map = {}
         map.update(self.__dict__)
@@ -90,8 +115,11 @@ class ObjectMap(PBSafe):
     def items(self):
         """Return the name value pairs for this ObjectMap.
         """
-        return [ (n, v) for n, v in self.__dict__.items() \
-                if n not in self._blockattrs and n in self._attrs ]
+        return [
+            (n, v) for n, v in self.__dict__.items()
+            if n not in self._blockattrs
+            and n in self._attrs
+        ]
 
     def updateFromDict(self, data):
         """Update this ObjectMap from a dictionary's values.
@@ -115,6 +143,7 @@ class ObjectMap(PBSafe):
 
 
 pb.setUnjellyableForClass(ObjectMap, ObjectMap)
+
 
 class MultiArgs(PBSafe):
     """

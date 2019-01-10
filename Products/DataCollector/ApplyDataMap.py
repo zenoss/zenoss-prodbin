@@ -1,12 +1,11 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
 
 import sys
 from collections import defaultdict
@@ -21,22 +20,28 @@ from zope.container.contained import ObjectMovedEvent
 from Acquisition import aq_base
 from metrology.registry import registry
 
+import Globals  # required to import zenoss Products
+from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.MetricReporter import QueueGauge
 from Products.ZenUtils.Utils import importClass
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.events import pausedAndOptimizedIndexing
 from Products.DataCollector.Exceptions import ObjectCreationError
-from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
+from Products.ZenEvents.ZenEventClasses import (
+    Change_Add, Change_Remove, Change_Set, Change_Add_Blocked,
+    Change_Remove_Blocked, Change_Set_Blocked
+)
 from Products.ZenModel.Lockable import Lockable
 from Products.ZenEvents import Event
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from zExceptions import NotFound
 
+unused(Globals)
+
 zenmarker = "__ZENMARKER__"
 
 CLASSIFIER_CLASS = '/Classifier'
 
-_notAscii = dict.fromkeys(range(128,256), u'?')
+_notAscii = dict.fromkeys(range(128, 256), u'?')
 
 
 def isSameData(x, y):
@@ -59,21 +64,24 @@ class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
         self.datacollector = datacollector
-        self.num_obj_changed=0
+        self.num_obj_changed = 0
         self._dmd = None
         if datacollector:
             self._dmd = getattr(datacollector, 'dmd', None)
         metricName = 'applyDataMap.updateRelationship'
         if metricName not in {x[0] for x in registry}:
-            registry.add(metricName, QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal'))
+            registry.add(
+                metricName,
+                QueueGauge('zenoss_deviceId', 'zenoss_compname', 'internal')
+            )
         self._urGauge = registry.get(metricName)
 
     def logChange(self, device, compname, eventClass, msg):
-        if not getattr(device, 'zCollectorLogChanges', True): return
+        if not getattr(device, 'zCollectorLogChanges', True):
+            return
         if isinstance(msg, unicode):
             msg = msg.translate(_notAscii)
         self.logEvent(device, compname, eventClass, msg, Event.Info)
-
 
     def logEvent(self, device, component, eventClass, msg, severity):
         ''' Used to report a change to a device model.  Logs the given msg
@@ -97,14 +105,26 @@ class ApplyDataMap(object):
             }
             self._dmd.ZenEventManager.sendEvent(eventDict)
 
-
-    def applyDataMap(self, device, datamap, relname="", compname="", modname="", parentId=""):
+    def applyDataMap(
+        self,
+        device,
+        datamap,
+        relname="",
+        compname="",
+        modname="",
+        parentId=""
+    ):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
         from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
         if relname:
-            datamap = RelationshipMap(relname=relname, compname=compname,
-                                      modname=modname, objmaps=datamap, parentId=parentId)
+            datamap = RelationshipMap(
+                relname=relname,
+                compname=compname,
+                modname=modname,
+                objmaps=datamap,
+                parentId=parentId
+            )
         else:
             datamap = ObjectMap(datamap, compname=compname, modname=modname)
         self._applyDataMap(device, datamap)
@@ -112,10 +132,11 @@ class ApplyDataMap(object):
 
     def setDeviceClass(self, device, deviceClass=None):
         """
-        If a device class has been passed and the current class is not /Classifier
-        then move the device to the newly clssified device class.
+        If a device class has been passed and the current class is not
+        /Classifier then move the device to the newly clssified device class.
         """
-        if deviceClass and device.getDeviceClassPath().startswith(CLASSIFIER_CLASS):
+        if deviceClass and device.getDeviceClassPath(
+        ).startswith(CLASSIFIER_CLASS):
             device.changeDeviceClass(deviceClass)
 
     def _applyDataMap(self, device, datamap, commit=True):
@@ -134,9 +155,9 @@ class ApplyDataMap(object):
     def _applyDataMapImpl(self, device, datamap):
         """Apply a datamap to a device.
         """
-        self.num_obj_changed=0;
-        log.debug("Started _applyDataMap for device %s",device.getId())
-        logname=""
+        self.num_obj_changed = 0
+        log.debug("Started _applyDataMap for device %s", device.getId())
+        logname = ""
         # This can cause breakage in unit testing when the device is persisted.
         if not hasattr(device.dmd, 'zport'):
             transaction.abort()
@@ -147,13 +168,17 @@ class ApplyDataMap(object):
         if not device.deviceClass():
             new_device = device.dmd.Devices.findDeviceByIdExact(device.id)
             if new_device:
-                log.debug("%s changed device class to %s during modeling",
-                    new_device.titleOrId(), new_device.getDeviceClassName())
+                log.debug(
+                    "%s changed device class to %s during modeling",
+                    new_device.titleOrId(), new_device.getDeviceClassName()
+                )
 
                 device = new_device
             else:
-                log.error("%s lost its device class during modeling",
-                    device.titleOrId())
+                log.error(
+                    "%s lost its device class during modeling",
+                    device.titleOrId()
+                )
 
                 return False
 
@@ -170,12 +195,15 @@ class ApplyDataMap(object):
                     elif len(tobj) < 1:
                         log.warn(
                             "Unable to find a matching parentId '%s'",
-                            datamap.parentId)
+                            datamap.parentId
+                        )
                         return False
                     else:
                         log.warn(
-                            "Too many object matching parentId '%s'.  Make sure all components have a unique id.",
-                            datamap.parentId)
+                            "Too many object matching parentId '%s'."
+                            "  Make sure all components have a unique id.",
+                            datamap.parentId
+                        )
                         return False
             elif datamap.compname:
                 try:
@@ -212,12 +240,10 @@ class ApplyDataMap(object):
 
         log.debug(
             "_applyDataMap for Device %s will modify %d objects for %s",
-            device.getId(),
-            self.num_obj_changed,
-            logname)
+            device.getId(), self.num_obj_changed, logname
+        )
 
         return changed
-
 
     def _updateRelationship(self, device, relmap):
         """Add/Update/Remote objects to the target relationship.
@@ -226,8 +252,10 @@ class ApplyDataMap(object):
         rname = relmap.relname
         rel = getattr(device, rname, None)
         if not rel:
-            log.warn("no relationship:%s found on:%s (%s %s)",
-                          relmap.relname, device.id, device.__class__, device.zPythonClass)
+            log.warn(
+                "no relationship:%s found on:%s (%s %s)", relmap.relname,
+                device.id, device.__class__, device.zPythonClass
+            )
             return changed
         relids = set(rel.objectIdsAll())
         seenids = defaultdict(int)
@@ -237,7 +265,9 @@ class ApplyDataMap(object):
                 objmap_id = objmap.id
                 seenids[objmap_id] += 1
                 if seenids[objmap_id] > 1:
-                    objmap_id = objmap.id = "%s_%s" % (objmap_id, seenids[objmap_id])
+                    objmap_id = objmap.id = "%s_%s" % (
+                        objmap_id, seenids[objmap_id]
+                    )
                 if objmap_id in relids:
                     obj = rel._getOb(objmap_id)
 
@@ -252,27 +282,33 @@ class ApplyDataMap(object):
                     except Exception:
                         pass
 
-                    if objmap.modname == existing_modname and \
-                        objmap.classname in ('', existing_classname):
+                    if objmap.modname == existing_modname \
+                       and objmap.classname in ('', existing_classname):
 
                         changed |= self._updateObject(obj, objmap)
                     else:
                         rel._delObject(objmap_id)
-                        objchange, obj = self._createRelObject(device, objmap, rname)
+                        objchange, obj = self._createRelObject(
+                            device, objmap, rname
+                        )
                         if obj:
                             relids.discard(obj.id)
                         changed |= objchange
 
                     relids.discard(objmap_id)
                 else:
-                    objchange, obj = self._createRelObject(device, objmap, rname)
+                    objchange, obj = self._createRelObject(
+                        device, objmap, rname
+                    )
                     changed |= objchange
                     if obj:
                         relids.discard(obj.id)
             elif isinstance(objmap, ZenModelRM):
-                self.logChange(device, objmap.id, Change_Add,
-                            "linking object %s to device %s relation %s" % (
-                            objmap.id, device.id, rname))
+                self.logChange(
+                    device, objmap.id, Change_Add,
+                    "linking object %s to device %s relation %s" %
+                    (objmap.id, device.id, rname)
+                )
                 device.addRelation(rname, objmap)
                 changed = True
             else:
@@ -285,23 +321,28 @@ class ApplyDataMap(object):
             obj = rel._getOb(id)
             if isinstance(obj, Lockable) and obj.isLockedFromDeletion():
                 objname = obj.id
-                try: objname = obj.name()
-                except Exception: pass
+                try:
+                    objname = obj.name()
+                except Exception:
+                    pass
                 msg = "Deletion Blocked: %s '%s' on %s" % (
-                        obj.meta_type, objname,obj.device().id)
+                    obj.meta_type, objname, obj.device().id
+                )
                 log.warn(msg)
                 if obj.sendEventWhenBlocked():
-                    self.logEvent(device, obj, Change_Remove_Blocked,
-                                    msg, Event.Warning)
+                    self.logEvent(
+                        device, obj, Change_Remove_Blocked, msg, Event.Warning
+                    )
                 continue
-            self.logChange(device, obj, Change_Remove,
-                    "removing object %s from rel %s on device %s" % (
-                    id, rname, device.id))
+            self.logChange(
+                device, obj, Change_Remove,
+                "removing object %s from rel %s on device %s" %
+                (id, rname, device.id)
+            )
             rel._delObject(id)
             changed = True
-        
-        return changed
 
+        return changed
 
     def _updateObject(self, obj, objmap):
         """Update an object using a objmap.
@@ -313,10 +354,9 @@ class ApplyDataMap(object):
         from Products.ZenModel.Device import Device
         if isinstance(obj, Device) and 'id' in (x[0] for x in objmap.items()):
             log.error(
-                "blocked changing %r property of %s: %r",
-                'id',
-                device.id,
-                objmap)
+                "blocked changing %r property of %s: %r", 'id', device.id,
+                objmap
+            )
 
             return False
 
@@ -325,13 +365,18 @@ class ApplyDataMap(object):
                 msg = 'Update Blocked: %s' % device.id
             else:
                 objname = obj.id
-                try: objname = obj.name()
-                except Exception: pass
+                try:
+                    objname = obj.name()
+                except Exception:
+                    pass
                 msg = "Update Blocked: %s '%s' on %s" % (
-                        obj.meta_type, objname ,device.id)
+                    obj.meta_type, objname, device.id
+                )
             log.warn(msg)
             if obj.sendEventWhenBlocked():
-                self.logEvent(device, obj,Change_Set_Blocked,msg,Event.Warning)
+                self.logEvent(
+                    device, obj, Change_Set_Blocked, msg, Event.Warning
+                )
             return changed
         for attname, value in objmap.items():
             if attname.startswith('_'):
@@ -358,23 +403,27 @@ class ApplyDataMap(object):
                     continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att is zenmarker:
-                log.warn('The attribute %s was not found on object %s from device %s',
-                              attname, obj.id, device.id)
+                log.warn(
+                    'The attribute %s was not found on object %s from device %s',
+                    attname, obj.id, device.id
+                )
                 continue
             if callable(att):
                 getter = None
                 if attname.startswith("set"):
                     getter = getattr(obj, "get" + attname[3:], None)
                 if not getter or not callable(getter):
-                    log.warn("getter for '%s' not found on obj '%s', skipping",
-                             attname, obj.id)
+                    log.warn(
+                        "getter for '%s' not found on obj '%s', skipping",
+                        attname, obj.id
+                    )
                     continue
                 from Products.DataCollector.plugins.DataMaps import MultiArgs
                 if isinstance(value, MultiArgs):
                     args = value.args
                     value_to_test = value.args
                 else:
-                    args = (value,)
+                    args = (value, )
                     value_to_test = value
                 try:
                     change = not isSameData(value_to_test, getter())
@@ -383,9 +432,11 @@ class ApplyDataMap(object):
                 if change:
                     setter = getattr(obj, attname)
                     setter(*args)
-                    self.logChange(device, obj, Change_Set,
-                                "calling function '%s' with '%s' on "
-                                "object %s" % (attname, value, obj.id))
+                    self.logChange(
+                        device, obj, Change_Set,
+                        "calling function '%s' with '%s' on "
+                        "object %s" % (attname, value, obj.id)
+                    )
                     changed = True
             else:
                 try:
@@ -394,10 +445,10 @@ class ApplyDataMap(object):
                     change = True
                 if change:
                     setattr(aq_base(obj), attname, value)
-                    self.logChange(device, obj, Change_Set,
-                                   "set attribute '%s' "
-                                   "to '%s' on object '%s'" %
-                                   (attname, value, obj.id))
+                    self.logChange(
+                        device, obj, Change_Set, "set attribute '%s' "
+                        "to '%s' on object '%s'" % (attname, value, obj.id)
+                    )
                     changed = True
         if not changed:
             changed = getattr(obj, '_p_changed', False)
@@ -410,7 +461,6 @@ class ApplyDataMap(object):
             obj._p_deactivate()
         self.num_obj_changed += 1 if changed else 0
         return changed
-
 
     def _createRelObject(self, device, objmap, relname):
         """Create an object on a relationship using its objmap.
@@ -426,40 +476,50 @@ class ApplyDataMap(object):
         id = remoteObj.id
         if not remoteObj:
             raise ObjectCreationError(
-                    "failed to create object %s in relation %s" % (id, relname))
+                "failed to create object %s in relation %s" % (id, relname)
+            )
 
         realdevice = device.device()
         if realdevice.isLockedFromUpdates():
             objtype = ""
-            try: objtype = objmap.modname.split(".")[-1]
-            except Exception: pass
-            msg = "Add Blocked: %s '%s' on %s" % (
-                    objtype, id, realdevice.id)
+            try:
+                objtype = objmap.modname.split(".")[-1]
+            except Exception:
+                pass
+            msg = "Add Blocked: %s '%s' on %s" % (objtype, id, realdevice.id)
             log.warn(msg)
             if realdevice.sendEventWhenBlocked():
-                self.logEvent(realdevice, id, Change_Add_Blocked,
-                                msg, Event.Warning)
+                self.logEvent(
+                    realdevice, id, Change_Add_Blocked, msg, Event.Warning
+                )
             return False, None
         rel = device._getOb(relname, None)
         if not rel:
             raise ObjectCreationError(
-                    "No relation %s found on object %s (%s)" % (relname, device.id, device.__class__ ))
+                "No relation %s found on object %s (%s)" %
+                (relname, device.id, device.__class__)
+            )
         changed = False
         try:
             remoteObj = rel._getOb(remoteObj.id)
         except AttributeError:
-            self.logChange(realdevice, remoteObj, Change_Add,
-                           "adding object %s to relationship %s" %
-                           (remoteObj.id, relname))
+            self.logChange(
+                realdevice, remoteObj, Change_Add,
+                "adding object %s to relationship %s" %
+                (remoteObj.id, relname)
+            )
             rel._setObject(remoteObj.id, remoteObj)
             remoteObj = rel._getOb(remoteObj.id)
             changed = True
             if not isinstance(rel, ToManyContRelationship):
-                notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
+                notify(
+                    ObjectMovedEvent(
+                        remoteObj, rel, remoteObj.id, rel, remoteObj.id
+                    )
+                )
         up_changed = self._updateObject(remoteObj, objmap)
         self.num_obj_changed += 1 if not up_changed and changed else 0
         return up_changed or changed, remoteObj
 
     def stop(self):
         pass
-
