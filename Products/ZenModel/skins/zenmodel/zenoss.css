@@ -727,27 +727,37 @@ a.tablevalues:active {
 
 .dpTD {
 	cursor: pointer;
+    padding: 2px;
+    font-size: 12px;
 	}
+.dpTDHover {
+    cursor: pointer;
+    background-color: #cccccc;
+    font-weight: bold;
+    padding: 2px;
+}
 
 .dpDayHighlightTD {
-	background-color: #CCCCCC;
-	border: 1px solid #5a6f8f;
 	cursor: pointer;
+    padding: 2px;
 	}
 
 .dpTitleTD {
 	}
 
 .dpButtonTD {
+    padding: 2px;
 	}
 
 .dpTodayButtonTD {
+    padding: 2px;
 	}
 
 .dpDayTD {
 	background-color: #CCCCCC;
 	border: 1px solid #5a6f8f;
-	color: white;
+	color: #000000;
+    font-size: 12px;
 	}
 
 .dpTitleText {
@@ -761,6 +771,9 @@ a.tablevalues:active {
 .dpDayHighlight {
 	color:  #5a6f8f;
 	font-weight: bold;
+    background-color: #CCCCCC;
+    border: 1px solid #5a6f8f;
+    font-size: 12px;
 	}
 
 .dpButton {
@@ -768,7 +781,8 @@ a.tablevalues:active {
     /*
 	font-size: 10px;
     */
-	font-size: 7pt;
+    cursor: pointer;
+	font-size: 12pt;
     color: #000000;
 	background: #CCCCCC;
 	padding: 0px;
@@ -779,7 +793,8 @@ a.tablevalues:active {
     /*
 	font-size: 10px;
     */
-	font-size: 7pt;
+    cursor: pointer;
+	font-size: 8pt;
     color: #000000;
 	background: #CCCCCC;
 	}
@@ -1286,10 +1301,7 @@ top: 10px;
 }
 
 #dialog_buttons {
-    padding: 1em;
-    text-align:left;
-    position: relative;
-    top: 10px;
+    margin-top: 5px;
 }
 
 #dialog_buttons input {
@@ -1361,6 +1373,18 @@ top: 10px;
 .dbox_tr, .dbox_br {
     overflow: hidden;
     padding-right: 8px;
+}
+.dialog .dialog-custom-graph-point {
+    display: flex;
+}
+.dialog .dialog-custom-graph-point #new_id_label {
+    align-self: center;
+}
+.dialog .dialog-custom-graph-point select[name="flavor"] {
+    margin-left: 10px;
+}
+.dialog #threshNamesInput {
+    width: 100%;
 }
 
 /* IE HACKS */

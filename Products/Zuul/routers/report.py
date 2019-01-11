@@ -180,6 +180,7 @@ class ReportRouter(TreeRouter):
            - tree: (dictionary) Object representing the new Reports tree
            - newNode: (dictionary) Object representing the moved node
         """
+        uid = getUtility(IVirtualRoot).strip_virtual_root(uid)
         self._getFacade().moveNode(uid, target)
         audit('UI.Report.Move', uid, target=target)
         return self._treeMoveUpdates(uid, target)

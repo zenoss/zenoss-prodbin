@@ -352,6 +352,10 @@ class EmailAction(IActionBase, TargetableAction):
     def __init__(self):
         super(EmailAction, self).__init__()
 
+    def configure(self, options):
+        super(EmailAction, self).configure(options)
+        self.stripBodyTags = options.get('stripEmailBodyTags', True)
+
     def getDefaultData(self, dmd):
         return dict(host=dmd.smtpHost,
                     port=dmd.smtpPort,
@@ -462,7 +466,8 @@ class EmailAction(IActionBase, TargetableAction):
             body = re.sub(r'(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}\.\d{3})',
                           r'\1 ({})'.format(target_timezone), body)
 
-            plain_body = self._encodeBody(self._stripTags(body))
+            plain_body = self._encodeBody(self._stripTags(body)) \
+                if self.stripBodyTags else self._encodeBody(body)
 
             email_message = plain_body
 

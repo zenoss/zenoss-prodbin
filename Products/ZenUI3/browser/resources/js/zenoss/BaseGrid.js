@@ -333,9 +333,6 @@
                 if (!col.isHidden() &&
                     Ext.isDefined(state[col.filterKey]) &&
                     !Ext.isEmpty(state[col.filterKey])) {
-                    if (col.filter.xtype == "daterange") {
-                        state[col.filterKey] = state[col.filterKey].replace("T", " ");
-                    }
                     col.filterField.setValue(state[col.filterKey]);
                 }
             });
@@ -450,23 +447,16 @@
             }
             var values = this.getSearchValues();
             // ZEN-23418 Convert firstSeen and/or lastSeen date filter params to UTC before making query request
-            var timeParams = ["firstTime", "lastTime"];
+            // ZEN-30565 Convert stateChange to UTC as well
+            var timeParams = ["firstTime", "lastTime", "stateChange"];
             var store = this.grid.getStore();
 
             timeParams.forEach(function (paramKey) {
-                if (values[paramKey]) {
-                    var timeParam = values[paramKey];
-                    // The param is a Date range, so convert each date to UTC
-                    // and re-build Date range string
-                    if (timeParam.indexOf(" TO ") != -1) {
-                        var dateValues = timeParam.split(" TO ");
-                        values[paramKey] = dateValues.map(function (rangeValue) {
-                            return moment.tz(rangeValue, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE).format("x")
-                        }).join(" TO ");
-                    }
-                    else {
-                        values[paramKey] = moment.tz(timeParam, Zenoss.USER_DATE_FORMAT + ' ' + Zenoss.USER_TIME_FORMAT, Zenoss.USER_TIMEZONE).format("x")
-                    }
+                var timeParam = values[paramKey];
+                if (timeParam && timeParam.dateFrom) {
+                    values[paramKey] = moment(timeParam.dateFrom).format("x") + " TO " + moment(timeParam.dateTo).format("x");
+                } else {
+                    delete values[paramKey];
                 }
             });
             if (!store.proxy.extraParams) {
@@ -1074,7 +1064,7 @@
         },
         updateRowText: function () {
             var pagingScroller = this.grid.verticalScroller;
-            if (pagingScroller) {
+            if (pagingScroller && this.view && this.view.rendered) {
                 var start = Math.max(this.getStartCount(), 0),
                     end = Math.min(this.getEndCount(start), this.totalCount),
                     currentScrollLeft = this.view.el.dom.scrollLeft;

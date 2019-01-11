@@ -127,7 +127,7 @@ loader.insert();
     <tr class="odd">
       <td class="noselect tableheader" i18n:attributes="title" title="Command to execute to send a page" i18n:translate='' align="left">Page Command</td>
       <td class="tablevalues">
-        <input class="tablevalues" i18n:attributes="title" title="Defaults to '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT" type="text" name="pageCommand"
+        <input class="tablevalues" i18n:attributes="title" title="No default value" type="text" name="pageCommand"
             tal:attributes="value here/pageCommand|string:" />
       </td>
     </tr>

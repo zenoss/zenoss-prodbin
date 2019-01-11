@@ -18,7 +18,9 @@ import logging
 log = logging.getLogger('zen.devicedumpload.router')
 
 from Products import Zuul
+from Products.Zuul.decorators import require
 from Products.ZenUtils.Ext import DirectResponse, DirectRouter
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 
 class DeviceDumpLoadRouter(DirectRouter):
@@ -31,6 +33,7 @@ class DeviceDumpLoadRouter(DirectRouter):
     def _getFacade(self):
         return Zuul.getFacade('devicedumpload', self.context)
 
+    @require(ZEN_MANAGE_DMD)
     def exportDevices(self, deviceClass='/', options={}):
         """
         Create zenbatchload format file starting from the device class.
@@ -40,6 +43,7 @@ class DeviceDumpLoadRouter(DirectRouter):
                                     options=options)
         return DirectResponse.succeed(data=data, deviceCount=dumpedCount)
 
+    @require(ZEN_MANAGE_DMD)
     def importDevices(self, data, options={}):
         """
         Create zenbatchload format file starting from the device class.

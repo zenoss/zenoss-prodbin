@@ -692,7 +692,7 @@ class TrapTask(BaseTask, CaptureReplay):
                        eventType, result['oid'], result['snmpVersion'])
 
         community = self.getCommunity(pdu)
-
+        result['zenoss.trap_source_ip'] = addr[0]
         self.sendTrapEvent(result, community, eventType,
                            startProcessTime)
 

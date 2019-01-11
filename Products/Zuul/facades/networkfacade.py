@@ -153,7 +153,7 @@ class NetworkFacade(TreeFacade):
         return SearchResults(infos, brains.total, brains.hash_)
 
     @info
-    def discoverDevices(self, uid):
+    def discoverDevices(self, uid, collector=None):
         """
         Discover devices on input subnetwork
         """
@@ -178,6 +178,14 @@ class NetworkFacade(TreeFacade):
                 cmd += ["--prefer-snmp-naming"]
         zd = binPath('zendisc')
         zendiscCmd = [zd] + cmd[1:]
+        if collector:
+            zminionPart = 'zminion --minion-name zminion_{} run --'.format(
+                collector).split()
+            zendiscCmd = zminionPart + zendiscCmd
+            if '--monitor' in zendiscCmd:
+                zendiscCmd[zendiscCmd.index('--monitor') + 1] = collector
+            else:
+                zendiscCmd += ['--monitor', collector]
         return self._dmd.JobManager.addJob(SubprocessJob,
            description="Discover devices in network %s" % organizer.getNetworkName(),
            args=(zendiscCmd,))

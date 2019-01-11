@@ -79,24 +79,34 @@ Ext.define("Zenoss.CommandWindow", {
             fbar: {
                 buttonAlign: 'left',
                 id:'window_footer_toolbar',
-                items: {
+                items: [
+                    {
+                        xtype: 'button',
+                        text: _t('Copy to clipboard'),
+                        handler: Ext.bind(function(c){
+                            this.copyToClipboard();
+                            }, this)
+                    }, '-',
+                    {
                     xtype: 'checkbox',
                     checked: true,
-                    boxLabel: '<span style="color:white">Autoscroll</span>',
+                    boxLabel: _t('Autoscroll'),
                     handler: Ext.bind(function(c){
                         if (c.checked) {
                             this.startScrolling();
                         } else {
                             this.stopScrolling();
-                        }
-                    }, this)
-                }
+                        }}, this)
+                    },
+                ]
             }
         });
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
         this.task = new Ext.util.DelayedTask(this.scrollToBottom, this);
-        this.on('afterrender', this.startScrolling, this);
-        this.on('afterrender', this.resizeOnRender, this);
+        this.on('afterrender', function(){
+            this.startScrolling();
+            this.resizeOnRender();
+        }, this);
         this.on('afterlayout', function(){this.center();}, this, {single:true});
         this.on('close', this.stopScrolling, this);
             this.on('close', function() {
@@ -134,6 +144,33 @@ Ext.define("Zenoss.CommandWindow", {
         if (Ext.get('window_footer_toolbar')) {
             Ext.get('window_footer_toolbar').focus();
             this.task.delay(250);
+        }
+    },
+    copyToClipboard: function() {
+        var body = this.getCommandPanel().getBody().innerText;
+        // maybe a better Ext-y way to do this, but the below works well.
+        var tempText = document.createElement("textarea");
+        tempText.value = body;
+        document.body.appendChild(tempText);
+
+        function afterTextareaAppending() {
+            tempText.focus();
+            tempText.select();
+            try {
+                if (document.execCommand('copy')) {
+                    Zenoss.flares.Manager.success('Copied command output to clipboard');
+                }
+            } catch (err) {
+                console.error("Failed to copy command output to clipboard", err);
+            } finally {
+                document.body.removeChild(tempText);
+            }
+        }
+
+        if (Ext.isChrome) {
+            setTimeout(afterTextareaAppending);
+        } else {
+            afterTextareaAppending();
         }
     },
     closeAndRedirect: function() {

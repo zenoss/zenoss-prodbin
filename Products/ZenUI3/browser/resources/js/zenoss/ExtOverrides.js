@@ -1108,4 +1108,19 @@ Ext.override(Ext.util.Sorter, {
         }
     });
 
+    Ext.form.field.File.override({
+        onFileChange: function (button, e, value) {
+            var newValue = value.replace(/^c:\\fakepath\\/i, '');
+            return this.callParent([button, e, newValue]);
+        }
+    });
+
+    Ext.isEdge = (function () {
+        return /edge/.test(Ext.userAgent);
+    })();
+
+    Ext.isChrome = !Ext.isEdge && (function () {
+        return /\bchrome\b/.test(Ext.userAgent);
+    })();
+
 }());

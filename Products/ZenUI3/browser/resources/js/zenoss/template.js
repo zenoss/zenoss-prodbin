@@ -98,10 +98,11 @@ beforeselectHandler = function(sm, node) {
 };
 
 updateDataSources = function(uid) {
-    var panel, treeGrid;
-    if ( ! Ext.getCmp(dataSourcesId) ) {
-        panel = Ext.getCmp('center_detail_panel');
-        panel.add({
+    var panel = Ext.getCmp('center_detail_panel'),
+        treeGrid = Zenoss.getCmp(dataSourcesId, panel);
+
+    if (!treeGrid) {
+        treeGrid = panel.add({
             xtype: 'DataSourceTreeGrid',
             uid: uid,
             root: {
@@ -109,12 +110,9 @@ updateDataSources = function(uid) {
                 uid: uid
             }
         });
-        treeGrid = Ext.getCmp(dataSourcesId);
-    } else {
-        // create a new async node since we may have had a dummy one
-        var tree = Ext.getCmp(dataSourcesId);
-        tree.setContext(uid);
     }
+    // create a new async node since we may have had a dummy one
+    treeGrid.setContext(uid);
 };
 
 updateThresholds = function(uid) {
@@ -129,16 +127,17 @@ updateThresholds = function(uid) {
 };
 
 updateGraphs = function(uid) {
-    var panel;
-    panel = Ext.getCmp('bottom_detail_panel');
-    if ( ! Ext.getCmp(graphsId) ) {
-        panel.add({
+    var panel = Ext.getCmp('bottom_detail_panel'),
+        graphGrid = Zenoss.getCmp(graphsId, panel);
+
+    if (!graphGrid ) {
+        graphGrid = panel.add({
             xtype: 'graphgrid',
-            id: graphsId
+            itemId: graphsId
         });
         panel.doLayout();
     }
-    Ext.getCmp(graphsId).setContext(uid);
+    graphGrid.setContext(uid);
 };
 
 
@@ -167,9 +166,9 @@ selectionchangeHandler = function(sm, nodes) {
     footerBar.buttonAdd.setTooltip(_t('Add a monitoring template'));
 
     // disable/enable the add buttons
-    Ext.getCmp(thresholdsId).addButton.setDisabled(!node);
-    Ext.getCmp(graphsId).addButton.setDisabled(!node);
-    Ext.getCmp(dataSourcesId).disableToolBarButtons(!node);
+    Zenoss.getCmp(thresholdsId, footerBar).addButton.setDisabled(!node);
+    Zenoss.getCmp(graphsId, footerBar).addButton.setDisabled(!node);
+    Zenoss.getCmp(dataSourcesId, footerBar).disableToolBarButtons(!node);
 };
 
 Ext.getCmp('master_panel').add({

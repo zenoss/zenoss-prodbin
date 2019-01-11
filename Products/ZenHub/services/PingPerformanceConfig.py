@@ -34,7 +34,7 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
     (for each IP address on each IP interface zenping should monitor)
     """
     def __init__(self, ip, ipVersion=4, iface='', ds=None,
-            perfServer='localhost', metadata=None):
+            perfServer='localhost', metadata=None, tags=None):
         self.ip = ipunwrap(ip)
         self.ipVersion = ipVersion
         self.iface = iface
@@ -57,7 +57,8 @@ class IpAddressProxy(pb.Copyable, pb.RemoteCopy):
                        dp.getRRDCreateCommand(perfServer).strip(),
                        dp.rrdmin,
                        dp.rrdmax,
-                       metadata)
+                       metadata,
+                       tags)
 
             self.points.append(ipdData)
 
@@ -109,11 +110,21 @@ class PingPerformanceConfig(CollectorConfigService):
                 dsList = [ds for ds in templ.getRRDDataSources('PING')
                           if ds.enabled]
                 if dsList:
+                    dps = dsList[0].getRRDDataPoints()
+                    tags = {}
+
+                    # zenping doesn't consider each datapoint's configuration.
+                    # It assumes a static list of datapoints. So we will combine
+                    # tags from all datapoints and use them for all datapoints.
+                    for dp in dps:
+                        tags.update(dp.getTags(iface))
+
                     ipVersion = getattr(ipAddress, 'version', 4)
                     ipProxy = IpAddressProxy(ip, ipVersion=ipVersion,
                                              iface=title, ds=dsList[0],
                                              perfServer=perfServer,
-                                             metadata=metadata)
+                                             metadata=metadata,
+                                             tags=tags)
                     monitoredIps.append(ipProxy)
 
     def _addManageIp(self, device, perfServer, proxy):
@@ -151,8 +162,9 @@ class PingPerformanceConfig(CollectorConfigService):
                                      perfServer=perfServer, metadata=metadata)
             proxy.monitoredIps.append(ipProxy)
 
-    def _createDeviceProxy(self, device):
-        proxy = CollectorConfigService._createDeviceProxy(self, device)
+    def _createDeviceProxy(self, device, proxy=None):
+        proxy = CollectorConfigService._createDeviceProxy(
+            self, device, proxy=proxy)
 
         proxy.name = device.id
         proxy.device = device.id

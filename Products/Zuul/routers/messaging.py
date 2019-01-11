@@ -41,6 +41,22 @@ class MessagingRouter(DirectRouter):
         if state != state_container.get('state', ''):
             state_container['state'] = state
 
+    def getBrowserState(self):
+        """
+        Retur the browser state for the current user.
+        """
+        try:
+            userSettings = self.context.dmd.ZenUsers.getUserSettings()
+        except AttributeError:
+            # We're on a backcompat page where we don't have browser state
+            # anyway. Move on.
+            return ''
+        state_container = getattr(userSettings, '_browser_state', {})
+        if isinstance(state_container, basestring):
+            state_container = {}
+        state = state_container.get('state', '{}')
+        return state
+
 
     def clearBrowserState(self, user=None):
         """

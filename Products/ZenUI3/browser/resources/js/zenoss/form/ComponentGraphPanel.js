@@ -44,14 +44,15 @@
                 graphTitle = graph.contextTitle || graph.title;
                 delete graph.title;
                 id = Ext.id();
-                graphs.push(new Zenoss.EuropaGraph(Ext.applyIf(graph, {
+                graphs.push(Ext.applyIf(graph, {
+                    xtype: 'europagraph',
                     uid: uid,
                     graphId: id,
                     allOnSame: allOnSame,
                     graphTitle: graphTitle,
                     ref: id,
                     height: 500
-                })));
+                }));
             }
             return graphs;
         });
@@ -145,10 +146,11 @@
                     displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function (self, val) {
-                            var panel = self.up("graphpanel");
+                            var panel = self.up("componentgraphpanel");
                             //update graphpanel.start with *UTC time*
                             //NOTE: panel.start should *always* be UTC!
                             panel.start = moment.utc(self.getValue());
+                            panel.refresh();
                         }
                     }
                 }, {
@@ -163,10 +165,11 @@
                     displayTZ: Zenoss.USER_TIMEZONE,
                     listeners: {
                         change: function (self, val) {
-                            var panel = self.up("graphpanel");
+                            var panel = self.up("componentgraphpanel");
                             //update graphpanel.end with *UTC time*
                             //NOTE: panel.end should *always* be UTC!
                             panel.end = moment.utc(self.getValue());
+                            panel.refresh();
                         }
                     }
                 }, {
@@ -234,13 +237,15 @@
     Ext.define("Zenoss.form.ComponentGraphPanel", {
         alias: ['widget.componentgraphpanel'],
         extend: "Ext.Panel",
-        tbar: tbarCmpGrphConfig,
+
         cls: 'compgraphpanel',
         layout: 'column',
         pan_factor: 1.25,
+
         constructor: function (config) {
             config = config || {};
-            var ZSDTR = Zenoss.settings.defaultTimeRange || 0;
+            var me = this,
+                ZSDTR = Zenoss.settings.defaultTimeRange || 0;
             // var userColumns = Zenoss.settings.graphColumns || 1;
             Ext.applyIf(config, {
                 drange: DATE_RANGES[ZSDTR][0],
@@ -248,104 +253,116 @@
                 bodyStyle: {
                     overflow: 'auto',
                     paddingTop: '15px'
-                }
-            });
-
-            Zenoss.form.ComponentGraphPanel.superclass.constructor.apply(this, arguments);
-            this.toolbar = this.getDockedItems()[0];
-
-            this.startDatePicker = this.toolbar.query("utcdatefield[cls='start_date']")[0];
-            this.endDatePicker = this.toolbar.query("utcdatefield[cls='end_date']")[0];
-            this.nowCheck = this.toolbar.query("checkbox[cls='checkbox_now']")[0];
-            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
-            // this variable stores the number of current graphs which are actively loading or refreshing
-            this.graphBusy = 0;
-
-            this.toolbar.insert(0, [
-                {
-                    xtype: 'tbtext',
-                    text: _t('Component')
                 },
-                {
+                tbar: [{
                     xtype: 'combo',
                     queryMode: 'local',
+                    fieldLabel: _t('Component'),
                     displayField: 'name',
                     valueField: 'value',
                     ref: '../component',
-                    width: 100,
+                    labelWidth: 80,
+                    width: 200,
+                    listConfig: {
+                        minWidth: 115
+                    },
+                    matchFieldWidth: false,
                     listeners: {
-                        scope: this,
-                        select: this.onSelectComponentType
+                        scope: me,
+                        select: me.onSelectComponentType
                     }
-                }, {
+                },{
                     xtype: 'combo',
                     disabled: true,
                     queryMode: 'local',
                     labelAlign: 'left',
-                    labelWidth: 40,
+                    labelWidth: 45,
                     ref: '../graphTypes',
                     fieldLabel: _t('Graph'),
                     displayField: 'name',
                     valueField: 'name',
-                    width: 140,
+                    matchFieldWidth: false,
+                    width: 200,
+                    listConfig: {
+                        minWidth: 150
+                    },
                     listeners: {
-                        scope: this,
-                        select: this.onSelectGraph
+                        scope: me,
+                        select: me.onSelectGraph
                     }
-                },
-                {
+                },{
                     xtype: 'checkbox',
                     baseCls: 'zencheckbox_allonsame',
-                    fieldLabel: _t('All on same graph'),
+                    boxLabel: _t('All on same graph'),
+                    boxLabelAlign: 'before',
                     labelAlign: 'right',
-                    width: 130,
-                    labelSeparator: '',
+                    margin: '0 10 0 20',
                     ref: '../allOnSame',
                     listeners: {
-                        change: this.updateGraphs,
-                        scope: this
+                        change: me.updateGraphs,
+                        scope: me
                     }
-                },
-                {
+                },{
                     xtype: 'button',
                     text: '&lt;',
                     width: 40,
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.panLeft();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: _t('Zoom In'),
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.zoomIn();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: _t('Zoom Out'),
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.zoomOut();
-                    }, this)
+                    },
+                    scope: me
                 }, {
                     xtype: 'button',
                     text: '&gt;',
                     width: 40,
-                    handler: Ext.bind(function (btn, e) {
+                    handler: function (btn, e) {
                         panel = btn.up("componentgraphpanel");
                         panel.panRight();
-                    }, this)
-                },
+                    },
+                    scope: me
+                }, {
+                    xtype: 'aggregationbutton',
+                    margin: '0 10 0 10',
+                    stateId: config.id,
+                    ref: '../aggregationMenu',
+                    text: _t('Avg'),
+                    aggregation: 'avg',
+                    menuHandler: me.aggregationOnChange,
+                    scope: me
+                }].concat(tbarCmpGrphConfig)
+            });
 
+            Zenoss.form.ComponentGraphPanel.superclass.constructor.call(this, config);
+            me.refreshTbarConfigs();
+        },
+        refreshTbarConfigs: function() {
+            this.toolbar = this.getDockedItems()[0];
 
-
-            ]); // toolbar inserts
+            this.startDatePicker = this.toolbar.down("utcdatefield[cls='start_date']");
+            this.endDatePicker = this.toolbar.down("utcdatefield[cls='end_date']");
+            this.nowCheck = this.toolbar.down("checkbox[cls='checkbox_now']");
+            this.startDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
+            this.endDatePicker.setDisplayTimezone(Zenoss.USER_TIMEZONE);
 
             // grab default timerange value from user settings
-            this.toolbar.query("drangeselector[cls='drange_select']")[0].setValue(this.drange);
-            this.drange = this.rangeToMilliseconds(config.drange);
+            this.toolbar.down("drangeselector[cls='drange_select']").setValue(this.drange);
+            this.drange = this.rangeToMilliseconds(this.drange);
 
             // default start and end values in UTC time
             // NOTE: do not apply timezone adjustments to these values!
@@ -358,11 +375,19 @@
 
             this.hideDatePicker();
 
-            if (config.hideToolbar) {
+            if (this.hideToolbar) {
                 this.toolbar.hide();
             }
-
         },
+        aggregationOnChange: function(t, e) {
+            Ext.each(this.getGraphs(), function(g) {
+                g.aggregationOnChange(t);
+            });
+            t.up('button').setText(t.text);
+            this.aggregationMenu.aggregation = t.itemId;
+            this.aggregationMenu.fireEvent('change');
+        },
+
         setContext: function (uid) {
             this.uid = uid;
             if (this.newwindow) {
@@ -479,14 +504,16 @@
 
                         var gp = {
                             'drange': this.rangeToMilliseconds(this.drange),
-                            'end': this.end.unix(),
-                            'start': this.start.unix()
+                            'end': this.end.valueOf(),
+                            'start': this.start.valueOf()
                         };
 
                         // push graphs into appropriate column
                         for (i = 0; i < graphs.length; i++) {
                             c = i % colCount;
                             graphs[i].graph_params = gp;
+                            graphs[i].aggregation = this.aggregationMenu.aggregation;
+                            graphs[i].aggregationText = this.aggregationMenu.getText();
                             grCols[c].items.push(graphs[i]);
                         }
 

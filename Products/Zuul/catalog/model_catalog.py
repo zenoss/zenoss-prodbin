@@ -31,7 +31,7 @@ from zenoss.modelindex import indexed, index
 from zenoss.modelindex.field_types import StringFieldType, \
      ListOfStringsFieldType, IntFieldType, DictAsStringsFieldType, LongFieldType
 from zenoss.modelindex.exceptions import IndexException, SearchException
-from zenoss.modelindex.constants import NULL_SEARCH_LIMIT
+from zenoss.modelindex.constants import NULL_SEARCH_LIMIT, DEFAULT_SEARCH_LIMIT
 from zenoss.modelindex.model_index import IndexUpdate, INDEX, UNINDEX, SearchParams
 from .indexable import MODEL_INDEX_UID_FIELD, OBJECT_UID_FIELD
 
@@ -52,6 +52,24 @@ TX_STATE_FIELD = "tx_state"
 
 MANDATORY_FIELDS = set([ TX_STATE_FIELD, OBJECT_UID_FIELD, MODEL_INDEX_UID_FIELD ])
 
+
+class IterResults(object):
+    def __init__(self, results, parse_method, context):
+        self.results = results
+        self.parse_method = parse_method
+        self.context = context
+
+    def __iter__(self):
+        # Must use next(self) to initialize the generator in the 'next' method
+        return next(self)
+
+    def next(self):
+        for results in self.results:
+            brains = self.parse_method(results, self.context)
+            for brain in brains:
+                yield brain
+
+
 class SearchResults(object):
 
     def __init__(self, results, total, hash_, areBrains=True):
@@ -69,6 +87,14 @@ class SearchResults(object):
 
     def __len__(self):
         return self.total
+
+
+class CursorSearchResults(object):
+    def __init__(self, results):
+        self.results = results
+
+    def __iter__(self):
+        return iter(self.results)
 
 
 class ModelCatalogBrain(Implicit):
@@ -164,6 +190,9 @@ class ModelCatalogClient(object):
 
     def get_object_indexes(self, obj, idxs=None):
         return self._data_manager.get_indexes(obj, idxs)
+
+    def cursor_search(self, search_params, context):
+        return self._data_manager.cursor_search(search_params, context)
 
     def search(self, search_params, context, commit_dirty=False):
         return self._data_manager.search(search_params, context, commit_dirty)
@@ -326,7 +355,9 @@ class ModelCatalogDataManager(object):
     implements(IDataManager)
 
     def __init__(self, solr_servers, context):
+        config = getGlobalConfiguration()
         self.model_index = zope.component.createObject('ModelIndex', solr_servers)
+        self.model_index.searcher.default_row_count = config.get('solr-search-limit', DEFAULT_SEARCH_LIMIT)
         self.context = context
         self._current_transactions = {} # { transaction_id : ModelCatalogTransactionState }
         # @TODO ^^ Make that an OOBTREE to avoid concurrency issues? I dont think we need it since we have one per thread
@@ -435,6 +466,18 @@ class ModelCatalogDataManager(object):
             fields = [ fields ]
         brain_fields = set(fields) if fields else set()
         return list(brain_fields | MANDATORY_FIELDS)
+
+    def cursor_search(self, search_params, context):
+        try:
+            search_params.fields = self._get_fields_to_return(search_params.fields)
+            search_params = self._add_tx_state_query(search_params, None)
+            catalog_results = self.model_index.cursor_search(search_params)
+        except SearchException as e:
+            log.error("EXCEPTION: {0}".format(e.message))
+            self.raise_model_catalog_error("Exception performing search")
+        else:
+            results = IterResults(catalog_results, self._parse_catalog_results, context)
+            return CursorSearchResults(results)
 
     def _do_search(self, search_params, context):
         """

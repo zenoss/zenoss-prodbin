@@ -83,7 +83,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     #setTitle = DTMLFile('dtml/setTitle',globals())
 
-    _rq = True
     uuid = None
     availableVersion = None
     lastVersionCheck = 0
@@ -95,7 +94,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     instanceIdentifier = 'Zenoss - %s' % cz_prefix.replace('/', '')
     zenossHostname = 'localhost:8080'
     smtpHost = ''
-    pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
+    pageCommand = ''
     smtpPort = 25
     smtpUser = ''
     smtpPass = ''
@@ -271,11 +270,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self.version = "Zenoss " + VERSION
 
     def index_html(self):
-        """
-        Override to force redirection to quickstart.
-        """
-        if not self._rq:
-            return self.unrestrictedTraverse('quickstart')()
         return self()
 
     def getEventCount(self, **kwargs):

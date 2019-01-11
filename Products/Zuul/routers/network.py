@@ -15,12 +15,14 @@ Available at:  /zport/dmd/network_router
 """
 
 import logging
+from zope.component import getUtility
 from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.IpUtil import IpAddressError
 from Products.Zuul.decorators import require
 from Products.Zuul.interfaces import ITreeNode
 from Products.ZenUtils.jsonutils import unjson
 from Products.ZenUtils.Utils import getDisplayType
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from Products import Zuul
 from Products.Zuul.decorators import serviceConnectionError
 from Products.Zuul.routers import TreeRouter
@@ -41,7 +43,7 @@ class NetworkRouter(TreeRouter):
         return Zuul.getFacade('network', self.context)
 
     @require('Manage DMD')
-    def discoverDevices(self, uid):
+    def discoverDevices(self, uid, collector=None):
         """
         Discover devices on a network.
 
@@ -51,7 +53,7 @@ class NetworkRouter(TreeRouter):
         @return:  B{Properties}:
            - jobId: (integer) The id of the discovery job
         """
-        jobStatus = self.api.discoverDevices(uid)
+        jobStatus = self.api.discoverDevices(uid, collector)
         if jobStatus:
             audit('UI.Network.DiscoverDevices', uid)
             return DirectResponse.succeed(new_jobs=Zuul.marshal([jobStatus],
@@ -77,6 +79,7 @@ class NetworkRouter(TreeRouter):
             response = DirectResponse.fail('You must include a subnet mask.')
         else:
             try:
+                contextUid = getUtility(IVirtualRoot).strip_virtual_root(contextUid)
                 netip, netmask = newSubnet.split('/')
                 netmask = int(netmask)
                 foundSubnet = self.api.findSubnet(netip, netmask, contextUid)

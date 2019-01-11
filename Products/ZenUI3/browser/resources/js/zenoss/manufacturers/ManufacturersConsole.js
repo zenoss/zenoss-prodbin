@@ -230,7 +230,7 @@ Ext.onReady(function () {
     };
 
     function getSelectedManufacturer() {
-        return Ext.getCmp('manufacturers_tree').getSelectionModel().getSelectedNode();
+        return Ext.getCmp('manufacturers_tree').getSelectionModel().getSelected();
     }
 
     /* New version of left side menu */
@@ -264,22 +264,46 @@ Ext.onReady(function () {
 
     var leftGridPanel = Ext.create('Ext.grid.Panel', {
         id: 'manufacturers_tree',
-        store: Ext.create('Zenoss.manufactures.Store', {}),
+        store: Ext.create('Zenoss.manufactures.Store', {
+            // select first record on store load;
+            listeners: {
+                load: function(store, records) {
+                    leftGridPanel.getSelectionModel().select(store.first());
+                }
+            }
+        }),
         columns: [
             {text: 'Name', dataIndex: 'text', flex: 1, sortable: false}
         ],
         getContentPanel: function () {
-            return Ext.getCmp('man_center_panel').items.items[Ext.getCmp('nav_combo').getSelectedIndex()];
+            return Ext.getCmp('man_center_panel').layout.getActiveItem();
         },
-        selModel: Ext.create('Zenoss.TreeSelectionModel', {
+	selectByToken: function(nodeId) {
+            if (nodeId) {
+                nodeId = decodeURI(nodeId);
+                var node = this.store.findRecord("id", nodeId);
+                if (node) {
+                    this.getSelectionModel().select(node);
+                } else {
+                    var me = this;
+                    this.store.on('load', function() {
+                        var node = me.store.findRecord("id", nodeId);
+                        if (node) {
+                            me.getSelectionModel().select(node);
+                        }
+                    }, this, {single:true});
+                }
+            }
+        },
+        selModel: Ext.create('Zenoss.SingleRowSelectionModel', {
             listeners: {
                 selectionchange: function (sm, newnodes) {
-                    if (newnodes.length) {
-                        var newnode = newnodes[0];
-                        var uid = newnode.data.uid;
-                        var data = newnode.data;
-                        var contentPanel = leftGridPanel.getContentPanel();
-                        var phone = "", url = "";
+                    var newnode = newnodes[0];
+                    if (newnode) {
+                        var uid = newnode.get('uid'),
+                            data = newnode.data,
+                            contentPanel = leftGridPanel.getContentPanel(),
+                            phone = "", url = "";
                         contentPanel.setContext(uid);
 
                         if (data.description !== "") {
@@ -336,7 +360,7 @@ Ext.onReady(function () {
                         var container = Ext.getCmp('man_center_panel');
                         container.layout.setActiveItem(combo.getSelectedIndex());
                         // set the context for the active item:
-                        var contentPanel = leftGridPanel.getContentPanel();
+                        var contentPanel = container.layout.getActiveItem();
                         contentPanel.setContext(Zenoss.env.contextUid);
                         Zenoss.Security.setContext(Zenoss.env.contextUid);
                     }
@@ -378,8 +402,8 @@ Ext.onReady(function () {
             id: 'man_center_panel',
             region: 'center',
             activeItem: 0,
-            tbar: {
-                cls: 'largetoolbar',
+            dockedItems:[{
+                xtype: 'largetoolbar',
                 height: 38,
                 items: [
                     {
@@ -389,7 +413,7 @@ Ext.onReady(function () {
                         id: 'manufacturer_info'
                     }
                 ]
-            },
+            }],
             items: [
                 {
                     xtype: 'productsgrid',

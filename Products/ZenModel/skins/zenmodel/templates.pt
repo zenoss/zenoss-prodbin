@@ -113,6 +113,10 @@
             });
 
         }
+
+        if (window.frameElement) {
+            window.Zenoss = window.parent.Zenoss;
+        }
         </script>
     </head>
     <body class="yui-skin-sam">
@@ -163,6 +167,12 @@
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" href="/++resource++zenui/css/zenui3.css" />
         <link type="text/css" rel="stylesheet" href="/++resource++zenui/css/backcompat.css"/>
+
+        <script tal:content="string:
+            var Zenoss = {};
+            Zenoss.env = Zenoss.env || {};
+            Zenoss.env.CSE_VIRTUAL_ROOT = '${context/zport/virtualRoot}/';
+        " tal:on-error="string:console.error('Unable to load virtual root config')"></script>
 
         <!-- load ext-all.js into a slot by default, allowing
              the slot to be overridden to prevent loading if needed -->

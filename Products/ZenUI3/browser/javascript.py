@@ -271,15 +271,16 @@ class BrowserState(JavaScriptSnippet):
     """
     Restores the browser state.
     """
+    # return the js snippet that will make a request for browser state
+    # and than set it
     def snippet(self):
-        try:
-            userSettings = self.context.ZenUsers.getUserSettings()
-        except AttributeError:
-            # We're on a backcompat page where we don't have browser state
-            # anyway. Move on.
-            return ''
-        state_container = getattr(userSettings, '_browser_state', {})
-        if isinstance(state_container, basestring):
-            state_container = {}
-        state = state_container.get('state', '{}')
-        return 'Ext.state.Manager.getProvider().setState(%r);' % state
+        snippet = """
+            Ext.onReady(function(){
+                Zenoss.remote.MessagingRouter.getBrowserState({},
+                    function(response){
+                            Ext.state.Manager.getProvider().setState(response)
+                    }
+                )
+            })
+        """
+        return snippet

@@ -62,7 +62,7 @@ class zenbuild(CmdBase):
         self.parser.add_option('--smtpport', dest="smtpport", default=25,
                 type='int', help="smtp port")
 
-        self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
+        self.parser.add_option('--pagecommand', dest="pagecommand", default="",
                 help="page command")
         # amqp stuff
         self.parser.add_option('--amqphost', dest="amqphost", default="localhost",
@@ -211,7 +211,6 @@ class zenbuild(CmdBase):
             site.dmd.smtpPort = self.options.smtpport
             site.dmd.pageCommand = self.options.pagecommand
             site.dmd.uuid = None
-            site.dmd._rq = False
             for evmgr in (site.dmd.ZenEventManager, site.dmd.ZenEventHistory):
                 evmgr.username = self.options.evtuser
                 evmgr.password = self.options.evtpass

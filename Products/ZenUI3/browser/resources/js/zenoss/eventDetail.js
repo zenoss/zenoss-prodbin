@@ -351,12 +351,13 @@ Ext.onReady(function() {
         init: function() {
             var default_renderers = {
                 device: function(value, sourceData) {
-                    var val = sourceData.device_title;
+                    var val = Ext.htmlEncode(sourceData.device_title);
                     if (sourceData.device_url) {
                         val = Zenoss.render.default_uid_renderer(
                             sourceData.device_url,
                             sourceData.device_title);
                     }
+
                     return val;
                 },
                 component: function(value, sourceData) {
