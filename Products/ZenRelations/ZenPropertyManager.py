@@ -355,6 +355,16 @@ class ZenPropertyManager(object, PropertyManager):
         else:
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
+            prop_info = self._properties[-1]
+            if (
+                prop_info['type'] is None or
+                prop_info.get('label', None) is None or
+                prop_info.get('description', None) is None
+            ):
+                if hasattr(self, 'empty_props_info'):
+                    self.empty_props_schema.append(id)
+                else:
+                    setattr(self, 'empty_props_info', (id,))
 
     _onlystars = re.compile("^\*+$").search
     def _updateProperty(self, id, value):
