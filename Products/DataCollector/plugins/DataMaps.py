@@ -86,6 +86,10 @@ class ObjectMap(PBSafe):
     classname = ""
     _blockattrs = ('compname', 'modname', 'classname')
     _attrs = []
+    __valid_directives = (
+        'remove', 'delete_locked', 'add', 'update', 'update_locked', 'rebuild',
+        'nochange', None
+    )
 
     def __init__(
         self, data={}, compname="", modname="", classname="", plugin_name=""
@@ -104,6 +108,8 @@ class ObjectMap(PBSafe):
     def __setattr__(self, name, value):
         if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
+        if name == '_directive' and value not in self.__valid_directives:
+            raise RuntimeError('invalid directive: %s' % value)
         self.__dict__[name] = value
 
     def __repr__(self):
@@ -120,6 +126,13 @@ class ObjectMap(PBSafe):
             if n not in self._blockattrs
             and n in self._attrs
         ]
+
+    def iteritems(self):
+        return (
+            (n, v) for n, v in self.__dict__.iteritems()
+            if n not in self._blockattrs
+            and n in self._attrs
+        )
 
     def updateFromDict(self, data):
         """Update this ObjectMap from a dictionary's values.
