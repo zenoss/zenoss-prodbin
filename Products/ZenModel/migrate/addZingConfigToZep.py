@@ -73,6 +73,7 @@ zep.zing.minimum_severity=INFO
 
         if not filter(lambda x: x.graphID == 'cloudEventsBytes', gcs):
             log.info("No cloudEventsBytes graph found; creating.")
+            do_commit = True
             gcs.extend(
                 [
                     GraphConfig(
@@ -236,6 +237,7 @@ zep.zing.minimum_severity=INFO
 
             if not filter(lambda x: x.ID == 'events-to-pubsub', mcs):
                 log.info("No events-to-pubsub metric config found; creating it and others.")
+                do_commit = True
                 mcs.append(
                     MetricConfig(
                         ID="events-to-pubsub",
@@ -385,8 +387,6 @@ zep.zing.minimum_severity=INFO
                         ]
                     )
                 )
-
-            do_commit = True
 
         # Commit our changes.
         if do_commit:
