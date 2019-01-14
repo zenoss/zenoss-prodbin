@@ -235,6 +235,7 @@ zep.zing.minimum_severity=INFO
             )
 
             if not filter(lambda x: x.ID == 'events-to-pubsub', mcs):
+                log.info("No events-to-pubsub metric config found; creating it and others.")
                 mcs.append(
                     MetricConfig(
                         ID="events-to-pubsub",
