@@ -808,15 +808,33 @@ class UserSettings(ZenModelRM):
         if not user:
             user = self.getPhysicalRoot().acl_users.getUser(self.id)
         if not user:
-            if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Error',
-                    'User %s not found.' % self.id,
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
+            #ZEN-31151 a temporary fix to be able to udpate user settings of auth0 users while
+            #we don't have this implemented in the cloud UI. In CZ we don't store users
+            #in acl but still store user folders. So, before quit lets check whether
+            #we have users folder in ZODB, and if so then update it otherwise quit.
+            userSettings = self.getUserSettings()
+            if userSettings:
+                settings = REQUEST.form if REQUEST.form else kw
+                self.manage_changeProperties(**settings)
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                    'Settings Saved',
+                    "Saved At: %s" % self.getCurrentUserNowString()
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    return
+
             else:
-                return
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'User %s not found.' % self.id,
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    return
 
         # update only email and page size if true
         outOfTurnUpdate = False

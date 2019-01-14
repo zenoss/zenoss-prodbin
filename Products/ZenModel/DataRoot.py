@@ -132,7 +132,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'pageCommand', 'type': 'string', 'mode':'w'},
         {'id':'smtpUser', 'type': 'string', 'mode':'w'},
-        {'id':'smtpPass', 'type': 'string', 'mode':'w'},
+        {'id':'smtpPass', 'type': 'password', 'mode':'w'},
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
