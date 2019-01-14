@@ -1370,7 +1370,8 @@ class GroupSettings(UserSettings):
                 self._getG().addGroup(self.id)
             user = self.ZenUsers.getUser(userid)
             if not user:
-                self.manage_addUser(userid)
+                # ZEN-31152: set no roles when adding users to group.
+                self.manage_addUser(userid, None, ())
             self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)
