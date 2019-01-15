@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2019, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007, 2009, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -33,17 +33,8 @@ from Products.ZenModel.ZenossSecurity import (
     ZEN_MANAGE_LDAP_SETTINGS,
     ZEN_VIEW_LICENSING,
     ZEN_MANAGE_IMPACT_SETTINGS,
-    ZEN_CHANGE_DEVICE_PRODSTATE,
-    ZEN_CHANGE_EVENT_VIEWS,
-    ZEN_MANAGE_EVENTS,
-    ZEN_VIEW
 )
 
-
-NO_ACQUIRE_PERMS = (ZEN_CHANGE_DEVICE_PRODSTATE, 
-                    ZEN_CHANGE_EVENT_VIEWS,
-                    ZEN_MANAGE_EVENTS,
-                    ZEN_VIEW)
 
 class CZAdminRole(Migrate.Step):
 
@@ -77,12 +68,8 @@ class CZAdminRole(Migrate.Step):
             roles = [entry['name']
                      for entry in zport.rolesOfPermission(perm)
                      if entry['selected']]
-            if ZEN_MANAGER_ROLE in roles:                
-                if perm not in NO_ACQUIRE_PERMS:
-                    zport.manage_permission(perm, roles + [CZ_ADMIN_ROLE], 1)
-                else:
-                    zport.manage_permission(perm, roles + [CZ_ADMIN_ROLE], 0)
-
+            if ZEN_MANAGER_ROLE in roles:
+                zport.manage_permission(perm, roles + [CZ_ADMIN_ROLE], 1)
 
         # SETTINGS #
 
