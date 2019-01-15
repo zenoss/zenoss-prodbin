@@ -444,6 +444,10 @@ class ServiceDefinition(object):
     def description(self):
         return self._data.get("Description")
 
+    @property
+    def RAMCommitment(self):
+        return self._data.get("RAMCommitment")
+
     @description.setter
     def description(self, desc):
         self._data["Description"] = desc
