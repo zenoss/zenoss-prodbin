@@ -2558,7 +2558,7 @@ BYE BYE BORDERS
         cursor: pointer;
         background-color:  #b6cbe4;
     }
-    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
+    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:active {
         cursor: pointer;
         background-color: #92b1d7;
     }
