@@ -41,6 +41,7 @@ light blue row hover           #d2e0f1
 
 gray button background         #b2afaf
 light blue button hover        #b6cbe4
+active button background       #92b1d7
 
 blue links light               #00b5c1 formerly #3b88cb
 blue links dark                #00b5c1 formerly #89c5fa
@@ -863,6 +864,11 @@ BYE BYE BORDERS
     .z-cse .x-btn.x-btn-default-large-over.over,
     .z-cse .x-btn.x-btn-default-toolbar-large-over.over
     { background-color: #b6cbe4; }
+    .z-cse .x-btn.x-btn-default-small-over.x-pressed,
+    .z-cse .x-btn.x-btn-default-toolbar-small-over.x-pressed,
+    .z-cse .x-btn.x-btn-default-large-over.x-pressed,
+    .z-cse .x-btn.x-btn-default-toolbar-large-over.x-pressed
+    { background-color: #92b1d7; }
         .z-cse .x-btn-default-small-over button,
         .z-cse .x-btn-default-toolbar-small-over button,
         .z-cse .x-btn-default-large-over button,
@@ -880,6 +886,8 @@ BYE BYE BORDERS
     {  background-image: none; background-color: #b2afaf; border: 0; border-radius: 3px; }
         .z-cse .x-btn.x-btn-dialog-dark-small-over.over
         { background-color: #b6cbe4; }
+        .z-cse .x-btn.x-btn-dialog-dark-small-over.x-pressed
+        { background-color: #92b1d7; }
         .z-cse .x-btn-dialog-dark-small span
         { color: #4b4b4c; text-transform: capitalize; }
         .z-cse .x-btn.x-btn-dialog-dark-small-over.over span
@@ -1597,6 +1605,12 @@ BYE BYE BORDERS
             .z-cse .quickstart .x-btn-over.btn.big {
                 background-color: #b6cbe4;
             }
+            .z-cse .quickstart .x-pressed.btn,
+            .z-cse .quickstart .x-pressed.btn.minor,
+            .z-cse .quickstart .x-pressed.btn.big {
+                background-color: #92b1d7;
+            }
+
 
         .z-cse .q-start #center_panel hr {
             display: none;
@@ -1882,6 +1896,9 @@ BYE BYE BORDERS
         .z-cse #controls_panel button:hover {
             background-color: #b6cbe4;
         }
+        .z-cse #controls_panel button:active {
+            background-color: #92b1d7;
+        }
 
     /* infrastructure | networks */
     .z-cse #NetworkDetailCardPanel .largetoolbar {
@@ -1956,6 +1973,10 @@ BYE BYE BORDERS
         .z-cse #dialog_innercontent input[type=button]:hover {
             background-color: #b6cbe4;
         }
+        .z-cse #dialog_innercontent input[type=submit]:active,
+        .z-cse #dialog_innercontent input[type=button]:active {
+            background-color: #92b1d7;
+        }
 
     /* advanced | settings */
     .z-cse #contentPaneContainer table td {
@@ -1999,6 +2020,10 @@ BYE BYE BORDERS
         cursor: pointer;
         background-color:  #b6cbe4;
     }
+    .z-cse #contentPaneContainer input.tableheader:active {
+        cursor: pointer;
+        background-color: #92b1d7;
+    }
 
     /* advanced | commands */
     .z-cse #DefineCommands .navcontrol {
@@ -2038,6 +2063,9 @@ BYE BYE BORDERS
     }
         .z-cse #CheckForUpdates ~ tbody input[type=submit]:hover {
             background-color:  #b6cbe4;
+        }
+        .z-cse #CheckForUpdates ~ tbody input[type=submit]:active {
+            background-color: #92b1d7;
         }
 
     /* advanced | settings | events */
@@ -2211,6 +2239,10 @@ BYE BYE BORDERS
             .z-cse #user_settings_reset_prefs_submit:hover {
                 background-color: #b6cbe4;
             }
+            .z-cse #user_settings_reset_prefs_submit:active {
+                background-color: #92b1d7;
+            }
+
 
         .z-cse #dialog_buttons input {
             font-size: 12px;
@@ -2221,6 +2253,9 @@ BYE BYE BORDERS
         }
         .z-cse #dialog_buttons input:hover {
             background-color: #b6cbe4;
+        }
+        .z-cse #dialog_buttons input:active {
+            background-color: #92b1d7;
         }
 
     /* admin pages */
@@ -2330,6 +2365,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-reports input.navcontrol:hover,
     .z-cse.z-cse-reports input[type="submit"]:hover {
         background-color: #b6cbe4 !important;
+    }
+    .z-cse.z-cse-reports input.navcontrol:active,
+    .z-cse.z-cse-reports input[type="submit"]:active {
+        background-color: #92b1d7 !important;
     }
     .z-cse.z-cse-reports select,
     .z-cse.z-cse-reports input.tablevalues,
@@ -2518,6 +2557,10 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
         cursor: pointer;
         background-color:  #b6cbe4;
+    }
+    .z-cse.z-cse-dark #contentPaneContainer input.tableheader:hover {
+        cursor: pointer;
+        background-color: #92b1d7;
     }
 
     /*ZEN-30098*/
@@ -3229,4 +3272,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark #dialog_innercontent input[type=submit]:hover,
     .z-cse.z-cse-dark #dialog_innercontent input[type=button]:hover {
         background-color: #b6cbe4;
+    }
+    .z-cse.z-cse-dark #dialog_innercontent input[type=submit]:active,
+    .z-cse.z-cse-dark #dialog_innercontent input[type=button]:active {
+        background-color: #92b1d7;
     }
