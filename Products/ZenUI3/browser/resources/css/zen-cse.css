@@ -1502,7 +1502,9 @@ BYE BYE BORDERS
     { color: #00b5c1; text-decoration: none; }
 
     .z-cse .x-btn-arrowslide-toolbar-small:hover
-    { background-color: #00b5c1 !important; }
+    { background-color: #b6cbe4 !important; }
+    .z-cse .x-btn-arrowslide-toolbar-small:active
+    { background-color: #92b1d7 !important; }
 
 
     /* light graphs */
