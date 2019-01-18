@@ -25,9 +25,6 @@ from XmlRpcService import XmlRpcService
 
 import collections
 import heapq
-from metrology import Metrology
-from metrology.registry import registry
-from metrology.instruments import Gauge
 import time
 import signal
 import cPickle as pickle
@@ -115,15 +112,19 @@ from Products.ZenHub import OPTION_STATE
 from Products.ZenHub import CONNECT_TIMEOUT
 
 from Products.ZenHub.interceptors import WorkerInterceptor
+from Products.ZenHub.worklist import (
+    ZenHubPriority, ZenHubWorklist, register_metrics_on_worklist
+)
 
 # How often we check the number of running workers in Seconds
 CHECK_WORKER_INTERVAL = 60
 
 from Products.ZenUtils.debugtools import ContinuousProfiler
 
+
 HubWorklistItem = collections.namedtuple(
     'HubWorklistItem',
-    'priority recvtime deferred servicename instance method args'
+    'recvtime deferred servicename instance method args'
 )
 WorkerStats = collections.namedtuple(
     'WorkerStats',
@@ -303,74 +304,6 @@ class HubRealm(object):
         return pb.IPerspective, self.hubAvitar, lambda: None
 
 
-class _ZenHubWorklist(object):
-
-    def __init__(self):
-        self.eventworklist = []
-        self.otherworklist = []
-        self.applyworklist = []
-
-        # priority lists for eventual task selection.
-        # All queues are appended in case any of them are empty.
-        self.eventPriorityList = [self.eventworklist, self.otherworklist, self.applyworklist]
-        self.otherPriorityList = [self.otherworklist, self.applyworklist, self.eventworklist]
-        self.applyPriorityList = [self.applyworklist, self.eventworklist, self.otherworklist]
-        self.dispatch = {
-            'sendEvents': self.eventworklist,
-            'sendEvent': self.eventworklist,
-            'applyDataMaps': self.applyworklist
-        }
-
-    def __getitem__(self, item):
-        return self.dispatch.get(item, self.otherworklist)
-
-    def __len__(self):
-        return len(self.eventworklist) + len(self.otherworklist) + len(self.applyworklist)
-
-    def pop(self, allowADM=True):
-        """
-        Select a single task to be distributed to a worker.
-        We prioritize tasks as follows:
-            sendEvents > configuration service calls > applyDataMaps
-        To prevent starving any queue in an event storm,
-        we randomize the task selection,
-        preferring tasks according to the above priority.
-
-        allowADM controls whether we should allow popping jobs from the
-        applyDataMaps list, this should be False while models are changing
-        (like during a zenpack install/upgrade/removal)
-        """
-        # the priority lists have eventworklist, otherworklist, and
-        # applyworklist when we don't want to allow ApplyDataMaps,
-        # we should exclude the possibility of popping from applyworklist
-        eventchain = filter(
-            None,
-            self.eventPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-        otherchain = filter(
-            None,
-            self.otherPriorityList if allowADM
-            else [self.otherworklist, self.eventworklist])
-        applychain = filter(
-            None,
-            self.applyPriorityList if allowADM
-            else [self.eventworklist, self.otherworklist])
-
-        # choose a job to pop based on weighted random
-        choice_list = [eventchain] * 4 + [otherchain] * 2 + [applychain]
-        chosen_list = choice(choice_list)
-        if len(chosen_list) > 0:
-            item = heapq.heappop(chosen_list[0])
-            return item
-        else:
-            return None
-
-    def push(self, job):
-        heapq.heappush(self[job.method], job)
-
-    append = push
-
-
 def publisher(username, password, url):
     return HttpPostPublisher(username, password, url)
 
@@ -460,7 +393,7 @@ class ZenHub(ZCmdBase):
         # zenhub execution stats:
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
-        self.workList = _ZenHubWorklist()
+        self.workList = ZenHubWorklist()
         # set of worker processes
         self.worker_processes = set()
         # map of worker pids -> worker processes
@@ -469,36 +402,8 @@ class ZenHub(ZCmdBase):
         self.counters = collections.Counter()
         self._invalidations_paused = False
 
-        wl = self.workList
-        metricNames = {x[0] for x in registry}
-
-        class EventWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.eventworklist)
-        if 'zenhub.eventWorkList' not in metricNames:
-            Metrology.gauge('zenhub.eventWorkList', EventWorkList())
-
-        class ADMWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.applyworklist)
-        if 'zenhub.admWorkList' not in metricNames:
-            Metrology.gauge('zenhub.admWorkList', ADMWorkList())
-
-        class OtherWorkList(Gauge):
-            @property
-            def value(self):
-                return len(wl.otherworklist)
-        if 'zenhub.otherWorkList' not in metricNames:
-            Metrology.gauge('zenhub.otherWorkList', OtherWorkList())
-
-        class WorkListTotal(Gauge):
-            @property
-            def value(self):
-                return len(wl)
-        if 'zenhub.workList' not in metricNames:
-            Metrology.gauge('zenhub.workList', WorkListTotal())
+        # configure Metrology for the worklists
+        register_metrics_on_worklist(self.workList)
 
         ZCmdBase.__init__(self)
         import Products.ZenHub
@@ -511,7 +416,6 @@ class ZenHub(ZCmdBase):
 
         # Worker selection handler
         self.workerselector = WorkerSelector(self.options)
-        self.workList.log = self.log
 
         # make sure we don't reserve more than n-1 workers for events
         maxReservedEventsWorkers = 0
@@ -876,12 +780,10 @@ class ZenHub(ZCmdBase):
         @return: a Deferred for the eventual results of the method call
         """
         d = defer.Deferred()
-        service = self.getService(svcName, instance).service
-        priority = service.getMethodPriority(method)
 
-        self.workList.append(
+        self.workList.push(
             HubWorklistItem(
-                priority, time.time(), d, svcName, instance, method,
+                time.time(), d, svcName, instance, method,
                 (svcName, instance, method, args)
             ))
 
@@ -1006,9 +908,12 @@ class ZenHub(ZCmdBase):
         now = time.time()
         lines = [
             'Worklist Stats:',
-            '\tEvents:\t%s' % len(self.workList.eventworklist),
-            '\tOther:\t%s' % len(self.workList.otherworklist),
-            '\tApplyDataMaps:\t%s' % len(self.workList.applyworklist),
+            '\tEvents:\t%s' % self.workList.length_of(ZenHubPriority.EVENTS),
+            '\tOther:\t%s' % self.workList.length_of(ZenHubPriority.OTHER),
+            '\tApplyDataMaps:\t%s' % sum(
+                self.workList.length_of(ZenHubPriority.MODELING),
+                self.workList.length_of(ZenHubPriority.SINGLE_MODELING)
+            ),
             '\tTotal:\t%s' % len(self.workList),
             '\nHub Execution Timings: [method, count, idle_total, running_total, last_called_time]'
         ]
@@ -1254,14 +1159,6 @@ class ZenHub(ZCmdBase):
             '--hubworker-priority',
             type='int', default=5,
             help="Relative process priority for hub workers (%default)")
-        self.parser.add_option(
-            '--prioritize', dest='prioritize',
-            action='store_true', default=False,
-            help="Run higher priority jobs before lower priority ones")
-        self.parser.add_option(
-            '--anyworker', dest='anyworker',
-            action='store_true', default=False,
-            help='Allow any priority job to run on any worker')
         self.parser.add_option(
             '--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,

@@ -26,7 +26,6 @@ class HubService(pb.Referenceable):
         self.listeners = []
         self.listenerOptions = {}
         self.callTime = 0
-        self.methodPriorityMap = {}
 
     def getPerformanceMonitor(self):
         return self.dmd.Monitors.getPerformanceMonitor(self.instance)
@@ -69,20 +68,6 @@ class HubService(pb.Referenceable):
             self.warning("Unable to remove listener... ignoring")
 
         self.listenerOptions.pop(listener, None)
-
-
-    def getMethodPriority(self, methodName):
-        """
-        Return a numeric priority in the range [0, 1] representing the importance
-        of this call. A method with a lower number will be prioritized above other
-        method calls, even if they occur out-of-sequence.
-
-        Note: sendEvents and applyDataMaps are prioritized separately from all
-        others.
-        """
-        if methodName in self.methodPriorityMap:
-            return self.methodPriorityMap[methodName]
-        return 1
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
