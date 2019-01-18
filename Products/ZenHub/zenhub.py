@@ -238,7 +238,7 @@ class HubAvitar(pb.Avatar):
                 service.addListener(listener, options)
             return service
 
-    def perspective_reportingForWork(self, worker, pid=None):
+    def perspective_reportingForWork(self, worker, workerId):
         """
         Allow a worker register for work.
 
@@ -247,13 +247,16 @@ class HubAvitar(pb.Avatar):
         @return None
         """
         worker.busy = False
-        if pid is not None:
-            worker.pid = pid
+        worker.workerId = workerId
+        self.hub.log.info("Worker %s reporting for work", workerId)
         self.hub.workers.append(worker)
+        self.hub.updateEventWorkerCount()
 
         def removeWorker(worker):
             if worker in self.hub.workers:
                 self.hub.workers.remove(worker)
+                self.hub.updateEventWorkerCount()
+                self.hub.log.info("Worker %s disconnected", worker.workerId)
 
         worker.notifyOnDisconnect(removeWorker)
 
@@ -429,17 +432,8 @@ class ZenHub(ZCmdBase):
 
     ZenHub does very little work in its own process, but instead dispatches
     the work to a pool of zenhubworkers, running zenhubworker.py. zenhub
-    manages these workers with 3 data structures:
+    manages these workers with 1 data structure:
     - workers - a list of remote PB instances
-    - worker_processes - a set of WorkerRunningProtocol instances
-    - workerprocessmap - a dict mapping pid to process instance created
-        by reactor.spawnprocess
-    Callbacks and handlers that detect worker shutdown update these
-    structures automatically. ONLY ONE HANDLER must take care of restarting
-    new workers, to avoid accidentally spawning too many workers. This
-    handler also verifies that zenhub is not in the process of shutting
-    down, so that callbacks triggered during daemon shutdown don't keep
-    starting new workers.
 
     TODO: document invalidation workers
     """
@@ -461,10 +455,6 @@ class ZenHub(ZCmdBase):
         # [count, idle_total, running_total, last_called_time]
         self.executionTimer = collections.defaultdict(lambda: [0, 0.0, 0.0, 0])
         self.workList = _ZenHubWorklist()
-        # set of worker processes
-        self.worker_processes = set()
-        # map of worker pids -> worker processes
-        self.workerprocessmap = {}
         self.shutdown = False
         self.counters = collections.Counter()
         self._invalidations_paused = False
@@ -513,15 +503,6 @@ class ZenHub(ZCmdBase):
         self.workerselector = WorkerSelector(self.options)
         self.workList.log = self.log
 
-        # make sure we don't reserve more than n-1 workers for events
-        maxReservedEventsWorkers = 0
-        if self.options.workers:
-            maxReservedEventsWorkers = self.options.workers - 1
-        if self.options.workersReservedForEvents > maxReservedEventsWorkers:
-            self.options.workersReservedForEvents = maxReservedEventsWorkers
-            self.log.info("reduced number of workers reserved for sending events to %d",
-                          self.options.workersReservedForEvents)
-
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
         self.services = {}
@@ -560,17 +541,6 @@ class ZenHub(ZCmdBase):
         self._metric_writer = metricWriter()
         self.rrdStats = self.getRRDStats()
 
-        if self.options.workers:
-            self.workerconfig = zenPath(
-                'var', 'zenhub', '{}_worker.conf'.format(self._getConf().id)
-            )
-            self._createWorkerConf()
-            for i in range(self.options.workers):
-                self.createWorker(i)
-
-            # start cyclic call to giveWorkToWorkers
-            reactor.callLater(2, self.giveWorkToWorkers, True)
-
         # set up SIGUSR2 handling
         try:
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
@@ -597,35 +567,12 @@ class ZenHub(ZCmdBase):
         # log zenhub's worker stats
         self._workerStats()
 
-        # send SIGUSR2 signal to all workers
-        now = time.time()
-        for worker in self.workerprocessmap.values():
-            try:
-                elapsed_since_spawn = now - worker.spawn_time
-                self.log.debug(
-                    '%s secs elapsed since this worker proc was spawned',
-                    elapsed_since_spawn
-                )
-                if elapsed_since_spawn >= self.SIGUSR_TIMEOUT:
-                    worker.signalProcess(signal.SIGUSR2)
-                time.sleep(0.5)
-            except Exception:
-                pass
-
     def sighandler_USR1(self, signum, frame):
         # handle it ourselves
         if self.options.profiling:
             self.profiler.dump_stats()
 
         super(ZenHub, self).sighandler_USR1(signum, frame)
-
-        # send SIGUSR1 signal to all workers
-        for worker in self.workerprocessmap.values():
-            try:
-                worker.signalProcess(signal.SIGUSR1)
-                time.sleep(0.5)
-            except Exception:
-                pass
 
     def stop(self):
         self.shutdown = True
@@ -651,6 +598,11 @@ class ZenHub(ZCmdBase):
                         threshold_notifier, derivative_tracker)
 
         return rrdStats
+
+    def updateEventWorkerCount(self):
+        maxEventWorkers = max(0, len(self.workers) - 1)
+        if self.options.workersReservedForEvents > maxEventWorkers:
+            self.options.workersReservedForEvents = maxEventWorkers
 
     @defer.inlineCallbacks
     def processQueue(self):
@@ -855,9 +807,7 @@ class ZenHub(ZCmdBase):
                     del sys.modules[ctor.__module__]
                 return None
             else:
-                if self.options.workers:
-                    svc = WorkerInterceptor(self, svc)
-                self.services[name, instance] = svc
+                self.services[name, instance] = WorkerInterceptor(self, svc)
                 notify(ServiceAddedEvent(name, instance))
                 return svc
 
@@ -1028,7 +978,7 @@ class ZenHub(ZCmdBase):
             linePattern = '\t%d(pid=%s):%s\t[%s%s]\t%.3fs'
             lines.append(linePattern % (
                 wId,
-                '{}'.format(worker.pid),
+                '{}'.format(worker.workerId),
                 'Busy' if worker.busy else 'Idle',
                 '%s %s' % (stat.status, stat.description) if stat
                 else 'No Stats',
@@ -1046,101 +996,6 @@ class ZenHub(ZCmdBase):
                     worker.busy, stat.status
                 )
         self.log.info('\n'.join(lines))
-
-    def _createWorkerConf(self):
-        workerconfigdir = os.path.dirname(self.workerconfig)
-        if not os.path.exists(workerconfigdir):
-            os.makedirs(workerconfigdir)
-        with open(self.workerconfig, 'w') as workerfd:
-            workerfd.write("hubport %s\n" % self.options.pbport)
-            workerfd.write("username %s\n" % self.workerUsername)
-            workerfd.write("password %s\n" % self.workerPassword)
-            workerfd.write("logseverity %s\n" % self.options.logseverity)
-            workerfd.write("zodb-cachesize %s\n" % self.options.zodb_cachesize)
-            workerfd.write("calllimit %s\n" % self.options.worker_call_limit)
-            workerfd.write("profiling %s\n" % self.options.profiling)
-            workerfd.write("monitor %s\n" % self.options.monitor)
-
-    def createWorker(self, workerNum):
-        """Start a worker subprocess
-
-        @return: None
-        """
-        # this probably can't happen, but let's make sure
-        if len(self.worker_processes) >= self.options.workers:
-            self.log.info("already at maximum number of worker processes,"
-                          " no worker will be created")
-            return
-
-        # watch for output, and generally just take notice
-        class WorkerRunningProtocol(protocol.ProcessProtocol):
-
-            def __init__(self, parent, workerNum):
-                self._pid = 0
-                self.parent = parent
-                self.log = parent.log
-                self.workerNum = workerNum
-
-            @property
-            def pid(self):
-                return self._pid
-
-            def connectionMade(self):
-                self._pid = self.transport.pid
-                reactor.callLater(1, self.parent.giveWorkToWorkers)
-
-            def outReceived(self, data):
-                self.log.debug("Worker %s (%s) reports %s",
-                               self.workerNum, self.pid, data.rstrip())
-
-            def errReceived(self, data):
-                self.log.info("Worker %s (%s) reports %s",
-                              self. workerNum, self.pid, data.rstrip())
-
-            def processEnded(self, reason):
-                try:
-                    self.parent.worker_processes.discard(self)
-                    ended_proc = self.parent.workerprocessmap.pop(
-                        self.pid, None
-                    )
-                    ended_proc_age = time.time() - ended_proc.spawn_time
-                    self.log.warning(
-                        "Worker %s (%s), age %f secs, exited with status: %s (%s)",
-                        self.workerNum,
-                        self.pid,
-                        ended_proc_age,
-                        reason.value.exitCode or -1,
-                        getExitMessage(reason.value.exitCode)
-                    )
-                    # if not shutting down, restart a new worker
-                    if not self.parent.shutdown:
-                        self.log.info("Starting new zenhubworker")
-                        self.parent.createWorker(self.workerNum)
-                except Exception:
-                    self.log.exception('Exception in zenhub worker'
-                                       ' processEnded')
-
-        try:
-            if NICE_PATH:
-                exe = NICE_PATH
-                args = (
-                    NICE_PATH,
-                    "-n", "%+d" % self.options.hubworker_priority,
-                    zenPath('bin', 'zenhubworker'), 'run',
-                    '--workernum', '%s' % workerNum,
-                    '-C', self.workerconfig
-                )
-            else:
-                exe = zenPath('bin', 'zenhubworker')
-                args = (exe, 'run', '-C', self.workerconfig)
-            self.log.debug("Starting %s", ' '.join(args))
-            prot = WorkerRunningProtocol(self, workerNum)
-            proc = reactor.spawnProcess(prot, exe, args, os.environ)
-            proc.spawn_time = time.time()
-            self.workerprocessmap[proc.pid] = proc
-            self.worker_processes.add(prot)
-        except Exception:
-            self.log.exception('Exception in createWorker')
 
     def heartbeat(self):
         """
@@ -1173,16 +1028,6 @@ class ZenHub(ZCmdBase):
         except:
             self.log.exception("Error processing heartbeat hook")
 
-    def check_workers(self):
-        try:
-            self.log.debug("ZenHub check on workers")
-            for _ in range(
-                0, len(self.worker_processes) - self.options.workers
-            ):
-                self.createWorker()
-        except Exception:
-            self.log.exception("Failure in check_workers")
-
     def main(self):
         """
         Start the main event loop.
@@ -1203,24 +1048,9 @@ class ZenHub(ZCmdBase):
                 'before', 'shutdown', self.metricreporter.stop
             )
 
-        self.check_workers_task = task.LoopingCall(self.check_workers)
-        self.check_workers_task.start(CHECK_WORKER_INTERVAL)
-
         reactor.run()
 
         self.shutdown = True
-        self.log.debug("Killing workers")
-        for proc in self.workerprocessmap.itervalues():
-            try:
-                proc.signalProcess('KILL')
-                self.log.debug("Killed worker %s", proc)
-            except ProcessExitedAlready:
-                pass
-            except Exception:
-                pass
-        workerconfig = getattr(self, 'workerconfig', None)
-        if workerconfig and os.path.exists(workerconfig):
-            os.unlink(self.workerconfig)
         getUtility(IEventPublisher).close()
         if self.options.profiling:
             self.profiler.stop()
@@ -1247,14 +1077,6 @@ class ZenHub(ZCmdBase):
             default='localhost',
             help='Name of the distributed monitor this hub runs on')
         self.parser.add_option(
-            '--workers', dest='workers',
-            type='int', default=2,
-            help="Number of worker instances to handle requests")
-        self.parser.add_option(
-            '--hubworker-priority',
-            type='int', default=5,
-            help="Relative process priority for hub workers (%default)")
-        self.parser.add_option(
             '--prioritize', dest='prioritize',
             action='store_true', default=False,
             help="Run higher priority jobs before lower priority ones")
@@ -1266,10 +1088,6 @@ class ZenHub(ZCmdBase):
             '--workers-reserved-for-events', dest='workersReservedForEvents',
             type='int', default=1,
             help="Number of worker instances to reserve for handling events")
-        self.parser.add_option(
-            '--worker-call-limit', dest='worker_call_limit',
-            type='int', default=200,
-            help="Maximum number of remote calls a worker can run before restarting")
         self.parser.add_option(
             '--invalidation-poll-interval',
             type='int', default=30,
