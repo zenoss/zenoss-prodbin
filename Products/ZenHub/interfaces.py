@@ -115,7 +115,7 @@ class IInvalidationOid(Interface):
     """
     Allows an invalidation OID to be changed to a different OID or dropped
     """
-    def tranformOid(oid):
+    def transformOid(oid):
         """
         Given an OID, return the same oid, a different one, a list of other oids or None.
         """
@@ -145,10 +145,10 @@ class IWorkerSelectionAlgorithm(Interface):
     """
     def getCandidateWorkerIds(workerlist, options):
         """
-        For a given list of workers/worker state and configured options, return a 
-        generator of valid worker id's. This will factor in concepts of priority and 
-        allocation, to accommodate methods that are short duration and high-frequency, 
-        and those of long duration and low-frequency (but may also potentially come in 
+        For a given list of workers/worker state and configured options, return a
+        generator of valid worker id's. This will factor in concepts of priority and
+        allocation, to accommodate methods that are short duration and high-frequency,
+        and those of long duration and low-frequency (but may also potentially come in
         bursts).
         """
 
