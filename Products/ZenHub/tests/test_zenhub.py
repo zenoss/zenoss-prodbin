@@ -1100,8 +1100,7 @@ class ZenHubTest(TestCase):
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
     @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
-    @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
-    def test_main(t, LoopingCall, TwistedMetricReporter, os, getUtility):
+    def test_main(t, TwistedMetricReporter, os, getUtility):
         '''Daemon Entry Point
         Execution waits at reactor.run() until the reactor stops
         '''

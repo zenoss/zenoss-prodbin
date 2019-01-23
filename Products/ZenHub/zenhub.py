@@ -14,54 +14,77 @@
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 """
-import Globals
 
-if __name__ == "__main__":
-    # Install the 'best' reactor available, BUT only if run as a script.
-    from Products.ZenHub import installReactor
-    installReactor()
-
-from XmlRpcService import XmlRpcService
-
+# std lib
 import collections
-import heapq
 import time
 import signal
 import cPickle as pickle
 import os
-import subprocess
 import itertools
-from random import choice
-from zope.component import subscribers
+import sys
+import logging
 
+# 3rd party
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
-banana.SIZE_LIMIT = 1024 * 1024 * 10
-
-from twisted.internet import reactor, protocol, defer, task
+from twisted.internet import reactor, defer
 from twisted.web import server, xmlrpc
-from twisted.internet.error import ProcessExitedAlready
 from twisted.internet.defer import inlineCallbacks, returnValue
+
+from zope.component import subscribers, getUtility, getUtilitiesFor, adapts
 from zope.event import notify
 from zope.interface import implements
-from zope.component import getUtility, getUtilitiesFor, adapts
 from ZODB.POSException import POSKeyError
 
-from Products.DataCollector.Plugins import loadPlugins
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+# zenoss
+from zenoss.protocols.protobufs.zep_pb2 import (
+    SEVERITY_CRITICAL, SEVERITY_CLEAR
+)
+
+# Import Globals before any zenhub Products
+import Globals
+
 from Products.ZenUtils.Utils import (
-    zenPath, getExitMessage, unused, load_config, load_config_override,
+    zenPath, unused, load_config, load_config_override,
     ipv6_available, wait
 )
+from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
+from Products.ZenUtils.metricwriter import (
+    MetricWriter,
+    FilteredMetricWriter,
+    AggregateMetricWriter,
+    ThresholdNotifier,
+    DerivativeTracker
+)
+from Products.DataCollector.Plugins import loadPlugins
+from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenRelations.PrimaryPathObjectManager import (
     PrimaryPathObjectManager
 )
-from Products.ZenModel.DeviceComponent import DeviceComponent
+
+
+# local
+from Products.ZenHub import (
+    XML_RPC_PORT,
+    PB_PORT,
+    OPTION_STATE,
+    CONNECT_TIMEOUT,
+)
+from Products.ZenHub.interceptors import WorkerInterceptor
+from Products.ZenHub.WorkerSelection import WorkerSelector
+from Products.ZenHub.worklist import (
+    ZenHubPriority, ZenHubWorklist, register_metrics_on_worklist
+)
+from Products.ZenHub.XmlRpcService import XmlRpcService
+from Products.ZenHub.PBDaemon import RemoteBadMonitor
+from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
 from Products.ZenHub.interfaces import (
     IInvalidationProcessor,
     IServiceAddedEvent,
@@ -75,23 +98,9 @@ from Products.ZenHub.interfaces import (
     FILTER_INCLUDE,
     FILTER_EXCLUDE
 )
-from Products.ZenHub.invalidations import INVALIDATIONS_PAUSED
-from Products.ZenHub.WorkerSelection import WorkerSelector
-from zenoss.protocols.protobufs.zep_pb2 import (
-    SEVERITY_CRITICAL, SEVERITY_CLEAR
-)
-from Products.ZenUtils.metricwriter import (
-    MetricWriter,
-    FilteredMetricWriter,
-    AggregateMetricWriter,
-    ThresholdNotifier,
-    DerivativeTracker
-)
 from Products.ZenHub.metricpublisher.publisher import (
     HttpPostPublisher, RedisListPublisher
 )
-from Products.ZenHub.PBDaemon import RemoteBadMonitor
-pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
@@ -101,245 +110,16 @@ pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 #  1st: get Products.DataCollector.plugins.DataMaps.ObjectMap
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 #  2nd: get DataMaps.ObjectMap
-import sys
 sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
-unused(DataMaps, ObjectMap)
 
-from Products.ZenHub import XML_RPC_PORT
-from Products.ZenHub import PB_PORT
-from Products.ZenHub import OPTION_STATE
-from Products.ZenHub import CONNECT_TIMEOUT
+unused(Globals, DataMaps, ObjectMap)
 
-from Products.ZenHub.interceptors import WorkerInterceptor
-from Products.ZenHub.worklist import (
-    ZenHubPriority, ZenHubWorklist, register_metrics_on_worklist
-)
-
-# How often we check the number of running workers in Seconds
-CHECK_WORKER_INTERVAL = 60
-
-from Products.ZenUtils.debugtools import ContinuousProfiler
+banana.SIZE_LIMIT = 1024 * 1024 * 10
+pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 
-HubWorklistItem = collections.namedtuple(
-    'HubWorklistItem',
-    'recvtime deferred servicename instance method args'
-)
-WorkerStats = collections.namedtuple(
-    'WorkerStats',
-    'status description lastupdate previdle'
-)
-LastCallReturnValue = collections.namedtuple(
-    'LastCallReturnValue', 'returnvalue'
-)
-
-try:
-    NICE_PATH = subprocess.check_output('which nice', shell=True).strip()
-except Exception:
-    NICE_PATH = None
-
-
-class AuthXmlRpcService(XmlRpcService):
-    """Provide some level of authentication for XML/RPC calls"""
-
-    def __init__(self, dmd, checker):
-        XmlRpcService.__init__(self, dmd)
-        self.checker = checker
-
-    def doRender(self, unused, request):
-        """
-        Call the inherited render engine after authentication succeeds.
-        See @L{XmlRpcService.XmlRpcService.Render}.
-        """
-        return XmlRpcService.render(self, request)
-
-    def unauthorized(self, request):
-        """
-        Render an XMLRPC error indicating an authentication failure.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: None
-        """
-        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-
-    def render(self, request):
-        """
-        Unpack the authorization header and check the credentials.
-        @type request: HTTPRequest
-        @param request: the request for this xmlrpc call.
-        @return: NOT_DONE_YET
-        """
-        auth = request.getHeader('authorization')
-        if not auth:
-            self.unauthorized(request)
-        else:
-            try:
-                type, encoded = auth.split()
-                if type not in ('Basic',):
-                    self.unauthorized(request)
-                else:
-                    user, passwd = encoded.decode('base64').split(':')
-                    c = credentials.UsernamePassword(user, passwd)
-                    d = self.checker.requestAvatarId(c)
-                    d.addCallback(self.doRender, request)
-
-                    def error(unused, request):
-                        self.unauthorized(request)
-
-                    d.addErrback(error, request)
-            except Exception:
-                self.unauthorized(request)
-        return server.NOT_DONE_YET
-
-
-class HubAvitar(pb.Avatar):
-    """
-    Connect collectors to their configuration Services
-    """
-
-    def __init__(self, hub):
-        self.hub = hub
-
-    def perspective_ping(self):
-        return 'pong'
-
-    def perspective_getHubInstanceId(self):
-        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
-
-    def perspective_getService(self,
-                               serviceName,
-                               instance=None,
-                               listener=None,
-                               options=None):
-        """
-        Allow a collector to find a Hub service by name.  It also
-        associates the service with a collector so that changes can be
-        pushed back out to collectors.
-
-        @type serviceName: string
-        @param serviceName: a name, like 'EventService'
-        @type instance: string
-        @param instance: the collector's instance name, like 'localhost'
-        @type listener: a remote reference to the collector
-        @param listener: the callback interface to the collector
-        @return a remote reference to a service
-        """
-        try:
-            service = self.hub.getService(serviceName, instance)
-        except RemoteBadMonitor:
-            # This is a valid remote exception, so let it go through
-            # to the collector daemon to handle
-            raise
-        except Exception:
-            self.hub.log.exception("Failed to get service '%s'", serviceName)
-            return None
-        else:
-            if service is not None and listener:
-                service.addListener(listener, options)
-            return service
-
-    def perspective_reportingForWork(self, worker, workerId):
-        """
-        Allow a worker register for work.
-
-        @type worker: a pb.RemoteReference
-        @param worker: a reference to zenhubworker
-        @return None
-        """
-        worker.busy = False
-        worker.workerId = workerId
-        self.hub.log.info("Worker %s reporting for work", workerId)
-        self.hub.workers.append(worker)
-        self.hub.updateEventWorkerCount()
-
-        def removeWorker(worker):
-            if worker in self.hub.workers:
-                self.hub.workers.remove(worker)
-                self.hub.updateEventWorkerCount()
-                self.hub.log.info("Worker %s disconnected", worker.workerId)
-
-        worker.notifyOnDisconnect(removeWorker)
-
-
-class ServiceAddedEvent(object):
-    implements(IServiceAddedEvent)
-
-    def __init__(self, name, instance):
-        self.name = name
-        self.instance = instance
-
-
-class HubWillBeCreatedEvent(object):
-    implements(IHubWillBeCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class HubCreatedEvent(object):
-    implements(IHubCreatedEvent)
-
-    def __init__(self, hub):
-        self.hub = hub
-
-
-class ParserReadyForOptionsEvent(object):
-    implements(IParserReadyForOptionsEvent)
-
-    def __init__(self, parser):
-        self.parser = parser
-
-
-class HubRealm(object):
-    """
-    Following the Twisted authentication framework.
-    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
-    """
-    implements(portal.IRealm)
-
-    def __init__(self, hub):
-        self.hubAvitar = HubAvitar(hub)
-
-    def requestAvatar(self, collName, mind, *interfaces):
-        if pb.IPerspective not in interfaces:
-            raise NotImplementedError
-        return pb.IPerspective, self.hubAvitar, lambda: None
-
-
-def publisher(username, password, url):
-    return HttpPostPublisher(username, password, url)
-
-
-def redisPublisher():
-    return RedisListPublisher()
-
-
-def metricWriter():
-    metric_writer = MetricWriter(redisPublisher())
-    if os.environ.get("CONTROLPLANE", "0") == "1":
-        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
-        internal_username = os.environ.get(
-            "CONTROLPLANE_CONSUMER_USERNAME", ""
-        )
-        internal_password = os.environ.get(
-            "CONTROLPLANE_CONSUMER_PASSWORD", ""
-        )
-
-        if internal_url:
-            internal_publisher = publisher(
-                internal_username, internal_password, internal_url
-            )
-            internal_metric_filter = lambda metric, value, timestamp, tags:\
-                tags and tags.get("internal", False)
-            internal_metric_writer = FilteredMetricWriter(
-                internal_publisher, internal_metric_filter
-            )
-            return AggregateMetricWriter(
-                [metric_writer, internal_metric_writer]
-            )
-
-    return metric_writer
+log = logging.getLogger('zen.ZenHub')
 
 
 class ZenHub(ZCmdBase):
@@ -869,7 +649,9 @@ class ZenHub(ZCmdBase):
         ]
 
         statline = " - %-32s %8d %12.2f %8.2f  %s"
-        for method, stats in sorted(self.executionTimer.iteritems(), key=lambda v: -v[1][2]):
+        for method, stats in sorted(
+            self.executionTimer.iteritems(), key=lambda v: -v[1][2]
+        ):
             lines.append(statline % (
                 method, stats[0], stats[1], stats[2],
                 time.strftime(
@@ -930,7 +712,7 @@ class ZenHub(ZCmdBase):
         try:
             hbcheck = IHubHeartBeatCheck(self)
             hbcheck.check()
-        except:
+        except Exception:
             self.log.exception("Error processing heartbeat hook")
 
     def main(self):
@@ -996,9 +778,194 @@ class ZenHub(ZCmdBase):
         self.parser.add_option(
             '--modeling-pause-timeout',
             type='int', default=3600,
-            help="Maximum number of seconds to pause modeling during ZenPack install/upgrade/removal (default: %default)")
+            help='Maximum number of seconds to pause modeling during ZenPack'
+                 ' install/upgrade/removal (default: %default)')
 
         notify(ParserReadyForOptionsEvent(self.parser))
+
+
+class HubRealm(object):
+    """
+    Following the Twisted authentication framework.
+    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
+    """
+    implements(portal.IRealm)
+
+    def __init__(self, hub):
+        self.hubAvitar = HubAvitar(hub)
+
+    def requestAvatar(self, collName, mind, *interfaces):
+        if pb.IPerspective not in interfaces:
+            raise NotImplementedError
+        return pb.IPerspective, self.hubAvitar, lambda: None
+
+
+class HubAvitar(pb.Avatar):
+    """
+    Connect collectors to their configuration Services
+    """
+
+    def __init__(self, hub):
+        self.hub = hub
+
+    def perspective_ping(self):
+        return 'pong'
+
+    def perspective_getHubInstanceId(self):
+        return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
+
+    def perspective_getService(self,
+                               serviceName,
+                               instance=None,
+                               listener=None,
+                               options=None):
+        """
+        Allow a collector to find a Hub service by name.  It also
+        associates the service with a collector so that changes can be
+        pushed back out to collectors.
+        @type serviceName: string
+        @param serviceName: a name, like 'EventService'
+        @type instance: string
+        @param instance: the collector's instance name, like 'localhost'
+        @type listener: a remote reference to the collector
+        @param listener: the callback interface to the collector
+        @return a remote reference to a service
+        """
+        try:
+            service = self.hub.getService(serviceName, instance)
+        except RemoteBadMonitor:
+            # This is a valid remote exception, so let it go through
+            # to the collector daemon to handle
+            raise
+        except Exception:
+            self.hub.log.exception("Failed to get service '%s'", serviceName)
+            return None
+        else:
+            if service is not None and listener:
+                service.addListener(listener, options)
+            return service
+
+    def perspective_reportingForWork(self, worker, workerId):
+        """
+        Allow a worker register for work.
+        @type worker: a pb.RemoteReference
+        @param worker: a reference to zenhubworker
+        @return None
+        """
+        worker.busy = False
+        worker.workerId = workerId
+        self.hub.log.info("Worker %s reporting for work", workerId)
+        self.hub.workers.append(worker)
+        self.hub.updateEventWorkerCount()
+
+        def removeWorker(worker):
+            if worker in self.hub.workers:
+                self.hub.workers.remove(worker)
+                self.hub.updateEventWorkerCount()
+                self.hub.log.info("Worker %s disconnected", worker.workerId)
+
+        worker.notifyOnDisconnect(removeWorker)
+
+
+HubWorklistItem = collections.namedtuple(
+    'HubWorklistItem',
+    'recvtime deferred servicename instance method args'
+)
+WorkerStats = collections.namedtuple(
+    'WorkerStats',
+    'status description lastupdate previdle'
+)
+LastCallReturnValue = collections.namedtuple(
+    'LastCallReturnValue', 'returnvalue'
+)
+
+
+class AuthXmlRpcService(XmlRpcService):
+    """Provide some level of authentication for XML/RPC calls"""
+
+    def __init__(self, dmd, checker):
+        XmlRpcService.__init__(self, dmd)
+        self.checker = checker
+
+    def doRender(self, unused, request):
+        """
+        Call the inherited render engine after authentication succeeds.
+        See @L{XmlRpcService.XmlRpcService.Render}.
+        """
+        return XmlRpcService.render(self, request)
+
+    def unauthorized(self, request):
+        """
+        Render an XMLRPC error indicating an authentication failure.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: None
+        """
+        self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
+
+    def render(self, request):
+        """
+        Unpack the authorization header and check the credentials.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: NOT_DONE_YET
+        """
+        auth = request.getHeader('authorization')
+        if not auth:
+            self.unauthorized(request)
+        else:
+            try:
+                type, encoded = auth.split()
+                if type not in ('Basic',):
+                    self.unauthorized(request)
+                else:
+                    user, passwd = encoded.decode('base64').split(':')
+                    c = credentials.UsernamePassword(user, passwd)
+                    d = self.checker.requestAvatarId(c)
+                    d.addCallback(self.doRender, request)
+
+                    def error(unused, request):
+                        self.unauthorized(request)
+
+                    d.addErrback(error, request)
+            except Exception:
+                self.unauthorized(request)
+        return server.NOT_DONE_YET
+
+
+def publisher(username, password, url):
+    return HttpPostPublisher(username, password, url)
+
+
+def redisPublisher():
+    return RedisListPublisher()
+
+
+def metricWriter():
+    metric_writer = MetricWriter(redisPublisher())
+    if os.environ.get("CONTROLPLANE", "0") == "1":
+        internal_url = os.environ.get("CONTROLPLANE_CONSUMER_URL", None)
+        internal_username = os.environ.get(
+            "CONTROLPLANE_CONSUMER_USERNAME", ""
+        )
+        internal_password = os.environ.get(
+            "CONTROLPLANE_CONSUMER_PASSWORD", ""
+        )
+
+        if internal_url:
+            internal_publisher = publisher(
+                internal_username, internal_password, internal_url
+            )
+            internal_metric_filter = lambda metric, value, timestamp, tags:\
+                tags and tags.get("internal", False)
+            internal_metric_writer = FilteredMetricWriter(
+                internal_publisher, internal_metric_filter
+            )
+            return AggregateMetricWriter(
+                [metric_writer, internal_metric_writer]
+            )
+
+    return metric_writer
 
 
 class DefaultConfProvider(object):
@@ -1024,6 +991,35 @@ class DefaultHubHeartBeatCheck(object):
 
     def check(self):
         pass
+
+
+class ServiceAddedEvent(object):
+    implements(IServiceAddedEvent)
+
+    def __init__(self, name, instance):
+        self.name = name
+        self.instance = instance
+
+
+class HubWillBeCreatedEvent(object):
+    implements(IHubWillBeCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class HubCreatedEvent(object):
+    implements(IHubCreatedEvent)
+
+    def __init__(self, hub):
+        self.hub = hub
+
+
+class ParserReadyForOptionsEvent(object):
+    implements(IParserReadyForOptionsEvent)
+
+    def __init__(self, parser):
+        self.parser = parser
 
 
 if __name__ == '__main__':
