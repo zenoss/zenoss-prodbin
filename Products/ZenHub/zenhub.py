@@ -386,7 +386,6 @@ class ZenHub(ZCmdBase):
                     del sys.modules[ctor.__module__]
                 return None
             else:
-                print "LOL"
                 svc = WorkerInterceptor(self, svc)
                 self.services[name, instance] = svc
                 notify(ServiceAddedEvent(name, instance))
