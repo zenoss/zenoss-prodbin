@@ -25521,7 +25521,7 @@
               "Timeout": 0
           }
       },
-      "HostPolicy": "",
+      "HostPolicy": "PREFER_SEPARATE",
       "ImageID": "7wt1zuwbdoop8jv3p5bq7vhr4/cse_7.0:latest",
       "Instances": {
           "Default": 2,
