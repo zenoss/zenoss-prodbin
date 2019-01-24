@@ -43,7 +43,7 @@ class Organizer(ZenModelRM, EventView):
     _relations = ZenModelRM._relations
 
     security = ClassSecurityInfo()
-    security.declareObjectProtected(ZEN_VIEW)
+    security.declareObjectProtected(ZEN_COMMON)
 
     def __init__(self, id, description = ''):
         """
