@@ -166,29 +166,60 @@ class InvalidationPipelineTest(TestCase):
     before sending it to IInvalidationProcessor
     '''
 
-    @patch('{src}.subscribers'.format(**PATH), autospec=True)
-    @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_invalidation_pipeline(t, getUtility, subscribers):
-        # constructor parameters
-        app = MagicMock(name='dmd.root', spec_set=['_p_jar', 'zport'])
-        filters = [Mock(name='filter_a'), Mock(name='filter_b')]
-        sink = set()
-        # Environment, and args
-        device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
-        device_obj = sentinel.device_obj
-        device.__of__.return_value.primaryAq.return_value = device_obj
+    def setUp(t):
+        t.mocks = {}
+        for obj in ['subscribers', 'getUtility']:
+            patcher = patch('{src}.{}'.format(obj, **PATH), autospec=True)
+            t.mocks[obj] = patcher.start()
+            t.addCleanup(patcher.stop)
 
-        oid = 111
-        app._p_jar = {oid: device}
+        # constructor parameters
+        t.app = MagicMock(name='dmd.root', spec_set=['_p_jar', 'zport'])
+        t.filters = [Mock(name='filter_a'), Mock(name='filter_b')]
+        t.sink = set()
+        # Environment, and args
+        t.device = MagicMock(PrimaryPathObjectManager, __of__=Mock())
+        t.device_obj = sentinel.device_obj
+        t.device.__of__.return_value.primaryAq.return_value = t.device_obj
+
+        t.oid = 111
+        t.app._p_jar = {t.oid: t.device}
         adapter = Mock(name='transform adapter', spec_set=['transformOid'])
         adapter.transformOid.side_effect = lambda x: x
         adapters = [adapter]
-        subscribers.return_value = adapters
+        t.mocks['subscribers'].return_value = adapters
 
-        invalidation_pipeline = InvalidationPipeline(app, filters, sink)
-        invalidation_pipeline.run(oid)
+        t.invalidation_pipeline = InvalidationPipeline(
+            t.app, t.filters, t.sink
+        )
 
-        t.assertEqual(sink, set([oid]))
+    def test_invalidation_pipeline(t):
+        t.invalidation_pipeline.run(t.oid)
+
+        t.assertEqual(t.sink, set([t.oid]))
+
+    def test__build_pipeline(t):
+        __pipeline = t.invalidation_pipeline._build_pipeline()
+        __pipeline.send(t.oid)
+
+        t.assertEqual(t.sink, set([t.oid]))
+
+    def test_run_handles_exceptions(t):
+        '''An exception in any of the coroutines will first raise the exception
+        then cause StopIteration exceptions on subsequent runs.
+        we handle the first exception and rebuild the pipeline
+        '''
+        x = 'invalid key'
+        with t.assertRaises(KeyError):
+            t.invalidation_pipeline._InvalidationPipeline__pipeline.send(x)
+
+        t.invalidation_pipeline.run(x)  # causes an exception
+        t.invalidation_pipeline.run(t.oid)
+
+        t.assertEqual(t.sink, set([t.oid]))
+        # ensure the dereferenced pipeline is cleaned up safely
+        import gc
+        gc.collect()
 
 
 class coroutine_Test(TestCase):
