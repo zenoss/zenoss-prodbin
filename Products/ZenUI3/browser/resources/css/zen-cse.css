@@ -2429,6 +2429,16 @@ BYE BYE BORDERS
         padding-right: 20px;
     }
 
+    .z-cse .x-boundlist-scrollable .x-boundlist-item {
+        display: table-row;
+        text-indent: 0;
+    }
+
+    .z-cse .x-boundlist-scrollable .x-boundlist-item-inner {
+        padding: 2px 8px;
+    }
+
+
 /*
         =====================================================================================
         DARK THEME
