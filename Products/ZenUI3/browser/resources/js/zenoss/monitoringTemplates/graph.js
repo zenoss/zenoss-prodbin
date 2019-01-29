@@ -144,11 +144,13 @@ Ext.define("Zenoss.GraphPointGrid", {
                                         },
                                         tpl: Ext.create(
                                             'Ext.XTemplate',
-                                            '<tpl for=".">',
-                                                '<div class="x-boundlist-item">',
-                                                    '<div class="x-boundlist-item-inner">{name}</div>',
-                                                '</div>',
-                                            '</tpl>'
+                                            '<ul class="x-boundlist-list-ct-inner">',
+                                                '<tpl for=".">',
+                                                    '<li class="x-boundlist-item">',
+                                                        '<div class="x-boundlist-item-inner">{name}</div>',
+                                                    '</li>',
+                                                '</tpl>',
+                                            '</ul>'
                                         ),
                                         fieldLabel: _t('Data Point'),
                                         valueField: 'uid',
