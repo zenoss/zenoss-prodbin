@@ -1,27 +1,37 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
 import logging
 from zope.interface import implements, providedBy
 from zope.component import adapter, getGlobalSiteManager
-from twisted.internet import defer, reactor, task
+from twisted.internet import defer
 from BTrees.IIBTree import IITreeSet
 from ZODB.utils import u64
-from Products.ZenRelations.PrimaryPathObjectManager import PrimaryPathObjectManager
+
+import Globals  # required to import zenoss Products
+from Products.ZenUtils.Utils import unused
+
+from Products.ZenRelations.PrimaryPathObjectManager import (
+    PrimaryPathObjectManager,
+)
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenUtils.Utils import giveTimeToReactor
 from .interfaces import IInvalidationProcessor, IHubCreatedEvent
 from .zodb import UpdateEvent, DeletionEvent
 
+unused(Globals)
+
+
 log = logging.getLogger('zen.ZenHub')
 INVALIDATIONS_PAUSED = 'PAUSED'
+
 
 @defer.inlineCallbacks
 def betterObjectEventNotify(event):
@@ -31,21 +41,26 @@ def betterObjectEventNotify(event):
     the same for our specific use case.
     """
     gsm = getGlobalSiteManager()
-    subscriptions = gsm.adapters.subscriptions(map(providedBy, (event.object, event)), None)
+    subscriptions = gsm.adapters.subscriptions(
+        map(providedBy, (event.object, event)), None
+    )
     for subscription in subscriptions:
         yield giveTimeToReactor(subscription, event.object, event)
+
 
 def handle_oid(dmd, oid):
     # Go pull the object out of the database
     obj = dmd._p_jar[oid]
     # Don't bother with all the catalog stuff; we're depending on primaryAq
     # existing anyway, so only deal with it if it actually has primaryAq.
-    if (isinstance(obj, PrimaryPathObjectManager)
-          or isinstance(obj, DeviceComponent)):
+    if (
+        isinstance(obj, PrimaryPathObjectManager)
+        or isinstance(obj, DeviceComponent)
+    ):
         try:
             # Try to get the object
             obj = obj.__of__(dmd).primaryAq()
-        except (AttributeError, KeyError), ex:
+        except (AttributeError, KeyError) as ex:
             # Object has been removed from its primary path (i.e. was
             # deleted), so make a DeletionEvent
             log.debug("Notifying services that %r has been deleted" % obj)
@@ -56,7 +71,6 @@ def handle_oid(dmd, oid):
             event = UpdateEvent(obj, oid)
         # Fire the event for all interested services to pick up
         return betterObjectEventNotify(event)
-
 
 
 class InvalidationProcessor(object):
@@ -91,8 +105,8 @@ class InvalidationProcessor(object):
             defer.returnValue(INVALIDATIONS_PAUSED)
         for i, oid in enumerate(oids):
             ioid = u64(oid)
-            # Try pushing it into the queue, which is an IITreeSet. If it inserted
-            # successfully it returns 1, else 0.
+            # Try pushing it into the queue, which is an IITreeSet.
+            # If it inserted successfully it returns 1, else 0.
             if queue.insert(ioid):
                 # Get the deferred that does the notification
                 d = self._dispatch(self._hub.dmd, oid, ioid, queue)
