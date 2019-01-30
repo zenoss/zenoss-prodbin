@@ -151,14 +151,10 @@ class invalidationsTest(TestCase):
 class InvalidationProcessorTest(TestCase):
 
     def setUp(self):
-        self.patch_reactor = patch(
-            'Products.ZenHub.invalidations.reactor', autospec=True
-        )
         self.patch_getGlobalSiteManager = patch(
             'Products.ZenHub.invalidations.getGlobalSiteManager', autospec=True
         )
         self.getGlobalSiteManager = self.patch_getGlobalSiteManager.start()
-        self.reactor = self.patch_reactor.start()
 
         self.ip = InvalidationProcessor()
         self.ip._hub = Mock(name='zenhub', spec_set=['dmd'])
@@ -167,7 +163,6 @@ class InvalidationProcessorTest(TestCase):
 
     def tearDown(self):
         self.patch_getGlobalSiteManager.stop()
-        self.patch_reactor.stop()
 
     def test_init(self):
         IInvalidationProcessor.implementedBy(InvalidationProcessor)
