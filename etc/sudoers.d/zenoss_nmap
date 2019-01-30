@@ -1,4 +1,6 @@
 # Allows Zenoss to use nmap for pinging
-%zenoss ALL=(ALL) NOPASSWD: /usr/bin/nmap !(*—script*) !(*-sC*)
+Cmnd_Alias NMAP_CMD_DENY=/usr/bin/nmap *-script* , /usr/bin/nmap *-sC*
+Cmnd_Alias NMAP_CMD=/usr/bin/nmap
+%zenoss ALL=(ALL) NOPASSWD: NMAP_CMD, !NMAP_CMD_DENY
 Defaults:zenoss !requiretty
 
