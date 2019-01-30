@@ -43,8 +43,7 @@ class _CumulativeWorkerStatsTest(TestCase):
 
 class zenhubworkerInitTest(TestCase):
 
-    @patch('{src}.metricWriter'.format(**PATH), autospec=True)
-    @patch('{src}.TwistedMetricReporter'.format(**PATH), autospec=True)
+    @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.credentials'.format(**PATH), autospec=True)
     @patch('{src}.reactor'.format(**PATH), autospec=True)
     @patch('{src}.ReconnectingPBClientFactory'.format(**PATH), autospec=True)
@@ -57,7 +56,7 @@ class zenhubworkerInitTest(TestCase):
     def test___init__(
         t, signal, ZCmdBase__init__, ContinuousProfiler,  Metrology,
         loadPlugins, os, ReconnectingPBClientFactory, reactor, credentials,
-        TwistedMetricReporter, metricWriter,
+        MetricManager,
     ):
         # ZCmdBase.__init__ sets options
         # Mock out attributes set by the parent class
@@ -76,9 +75,9 @@ class zenhubworkerInitTest(TestCase):
         zenhubworker.options.profiling = True
         zenhubworker.options.hubhost = sentinel.hubhost
         zenhubworker.options.hubport = sentinel.hubport
-        zenhubworker.options.username = sentinel.username
-        zenhubworker.options.password = sentinel.password
-        zenhubworker.options.workernum = sentinel.workernum
+        zenhubworker.options.hubusername = sentinel.hubusername
+        zenhubworker.options.hubpassword = sentinel.hubpassword
+        zenhubworker.options.workerid = sentinel.workerid
         zenhubworker.options.monitor = sentinel.monitor
 
         zhw = zenhubworker()
@@ -111,7 +110,7 @@ class zenhubworkerInitTest(TestCase):
             factory
         )
         credentials.UsernamePassword.assert_called_with(
-            zhw.options.username, zhw.options.password
+            zhw.options.hubusername, zhw.options.hubpassword
         )
         t.assertEqual(factory.gotPerspective, zhw.gotPerspective)
         # The reactor will be stopped if the client looses its connection
@@ -122,27 +121,19 @@ class zenhubworkerInitTest(TestCase):
         factory.setCredentials.assert_called_with(
             credentials.UsernamePassword.return_value
         )
-        TwistedMetricReporter.assert_called_with(
-            metricWriter=metricWriter.return_value,
-            tags={
-                'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workernum,
+        MetricManager.assert_called_with(
+            daemon_tags={
+                'zenoss_daemon': 'zenhub_worker_%s' % zhw.options.workerid,
                 'zenoss_monitor': zhw.options.monitor,
                 'internal': True
             }
         )
-        metricreporter = TwistedMetricReporter.return_value
-        t.assertEqual(zhw.metricreporter, metricreporter)
-        zhw.metricreporter.start.assert_called_with()
-
-        # Stop the metric reporter before the reactor shuts down
-        # we have to pull the args from reactor.addSystemEventTrigger
-        # because stopReporter is defined within the function
-        args, kwargs = reactor.addSystemEventTrigger.call_args
-        t.assertEqual((args[0], args[1]), ('before', 'shutdown'))
-        stopReporter = args[2]
-        zhw.metricreporter.stop.assert_not_called()
-        stopReporter()
-        zhw.metricreporter.stop.assert_called_with()
+        t.assertEqual(zhw._metric_manager, MetricManager.return_value)
+        zhw._metric_manager.start.assert_called_with()
+        # trigger to shut down metric reporter before zenhubworker exits
+        reactor.addSystemEventTrigger.assert_called_with(
+            'before', 'shutdown', zhw._metric_manager.stop
+        )
 
 
 class zenhubworkerTest(TestCase):
@@ -156,7 +147,13 @@ class zenhubworkerTest(TestCase):
         t.addCleanup(t.init_patcher.stop)
 
         t.zhw = zenhubworker()
-        t.zhw.options = sentinel.options
+        t.zhw.options = Mock(
+            name='options',
+            spec_set=[
+                'profiling', 'hubhost', 'hubport', 'hubusername',
+                'hubpassword', 'workerid', 'monitor', 'call_limit'
+            ]
+        )
         t.zhw.log = Mock(name='log', spec_set=['error', 'debug', 'info'])
 
     def test_audit(t):
@@ -185,14 +182,15 @@ class zenhubworkerTest(TestCase):
 
         t.zhw.reportStats.assert_called_with()
 
+    @patch('{src}.isoDateTime'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
-    def test_reportStats(t, time):
+    def test_reportStats(t, time, isoDateTime):
         '''Metric Reporting Function. Log various statistics on services
         as a general rule, do not test individual log messages, just log format
         this function is difficult to read and should be refactored
         '''
         t.zhw.current = sentinel.current_job
-        t.zhw.pid = 1001
+        t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
         time.time.return_value = 7
         name = 'module.module_name'
@@ -205,29 +203,32 @@ class zenhubworkerTest(TestCase):
         stats.lasttime = 555
         service.callStats = {method: stats}
         t.zhw.services = {(name, instance): service}
+        isodate = isoDateTime.return_value
 
         t.zhw.reportStats()
+
+        isoDateTime.assert_called_with(stats.lasttime)
 
         parsed_service_id = '{instance}/module_name'.format(**locals())
         average_time = stats.totaltime / stats.numoccurrences
         t.zhw.log.debug.assert_called_with(
-            '({t.zhw.pid}) Running statistics:\n'
+            'Running statistics:\n'
             ' - {parsed_service_id: <49}{method: <32}'
             '{stats.numoccurrences: 9}{stats.totaltime: 13.2f}'
-            '{average_time: 9.2f} 1970-01-01 00:09:15'.format(**locals())
+            '{average_time: 9.2f} {isodate}'.format(**locals())
         )
 
     @patch('{src}.reactor'.format(**PATH), autospec=True)
     def test_gotPerspective(t, reactor):
         '''register the worker with zenhub
         '''
-        t.zhw.pid = sentinel.pid
+        t.zhw.options.workerid = sentinel.workerId
         perspective = Mock(name='perspective', spec_set=['callRemote'])
 
         t.zhw.gotPerspective(perspective)
 
         perspective.callRemote.assert_called_with(
-            'reportingForWork', t.zhw, pid=t.zhw.pid
+            'reportingForWork', t.zhw, workerId=t.zhw.options.workerid
         )
         # pull the internally defined function out of the return value
         deferred = perspective.callRemote.return_value
@@ -293,7 +294,7 @@ class zenhubworkerTest(TestCase):
         t.zhw.async_syncdb = create_autospec(t.zhw.async_syncdb)
         t.zhw.numCalls = Mock(name='numCalls', spec_set=['count', 'mark'])
         t.zhw.numCalls.count = 0
-        t.zhw.options.calllimit = 10
+        t.zhw.options.call_limit = 10
 
         ret = t.zhw.remote_execute(
             service_fullname, instance, method, pickled_args
@@ -327,7 +328,7 @@ class zenhubworkerTest(TestCase):
         kwargs = {'kwarg0': 'sentinel.kwarg0', 'kwarg1': 'sentinel.kwarg1'}
         pickled_args = pickle.dumps((args, kwargs))
         t.zhw.numCalls.count = 10
-        t.zhw.options.calllimit = 10
+        t.zhw.options.call_limit = 10
 
         ret = t.zhw.remote_execute(
             service_fullname, instance, method, pickled_args
@@ -373,9 +374,9 @@ class zenhubworkerTest(TestCase):
         ZCmdBase.buildOptions.assert_called_with(t.zhw)
         t.assertEqual(t.zhw.options.hubhost, 'localhost')
         t.assertEqual(t.zhw.options.hubport, PB_PORT)
-        t.assertEqual(t.zhw.options.username, 'zenoss')
-        t.assertEqual(t.zhw.options.password, 'zenoss')
-        t.assertEqual(t.zhw.options.calllimit, 200)
+        t.assertEqual(t.zhw.options.hubusername, 'admin')
+        t.assertEqual(t.zhw.options.hubpassword, 'zenoss')
+        t.assertEqual(t.zhw.options.call_limit, 200)
         t.assertEqual(t.zhw.options.profiling, False)
         t.assertEqual(t.zhw.options.monitor, 'localhost')
-        t.assertEqual(t.zhw.options.workernum, 0)
+        t.assertEqual(t.zhw.options.workerid, 0)
