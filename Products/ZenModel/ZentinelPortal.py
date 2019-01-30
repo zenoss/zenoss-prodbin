@@ -281,7 +281,7 @@ class PortalGenerator:
             [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, CZ_ADMIN_ROLE, MANAGER_ROLE], 1)
 
         mp(ZEN_DEFINE_COMMANDS_EDIT,
-            [MANAGER_ROLE], 1)
+            [MANAGER_ROLE, CZ_ADMIN_ROLE], 1)
 
         # Triggers
         mp(MANAGE_TRIGGER,                      role_owner_manager, 1)
