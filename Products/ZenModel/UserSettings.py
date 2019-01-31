@@ -42,9 +42,9 @@ from Products.ZenUtils.deprecated import deprecated
 
 from ZenossSecurity import (
     ZEN_MANAGE_DMD, ZEN_CHANGE_SETTINGS, ZEN_CHANGE_ADMIN_OBJECTS,
-    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE,
+    ZEN_CHANGE_ALERTING_RULES, ZEN_CHANGE_EVENT_VIEWS, CZ_ADMIN_ROLE, ZEN_MANAGER_ROLE,
     ZEN_MANAGE_GLOBAL_SETTINGS, MANAGER_ROLE, ZEN_MANAGE_GLOBAL_COMMANDS,
-    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS, ZEN_MANAGE_GROUPS,
     ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
 )
 from ZenModelRM import ZenModelRM
@@ -103,7 +103,7 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'manageUserFolder'
-                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, ZEN_MANAGE_GROUPS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
@@ -726,7 +726,6 @@ class UserSettings(ZenModelRM):
                 thisUser.has_role(MANAGER_ROLE)):
             return True
 
-
         return False
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_resetPassword')
@@ -1341,7 +1340,8 @@ class GroupSettings(UserSettings):
         """
         currentUser = getSecurityManager().getUser()
         return (currentUser.has_role(MANAGER_ROLE) or
-                currentUser.has_role(CZ_ADMIN_ROLE))
+                currentUser.has_role(CZ_ADMIN_ROLE) or
+                currentUser.has_role(ZEN_MANAGER_ROLE))
 
     def _getG(self):
         return self.zport.acl_users.groupManager
@@ -1370,7 +1370,8 @@ class GroupSettings(UserSettings):
                 self._getG().addGroup(self.id)
             user = self.ZenUsers.getUser(userid)
             if not user:
-                self.manage_addUser(userid)
+                # ZEN-31152: set no roles when adding users to group.
+                self.manage_addUser(userid, None, ())
             self._getG().addPrincipalToGroup(userid, self.id)
             if REQUEST:
                 audit('UI.User.AddToGroup', username=userid, group=self.id)

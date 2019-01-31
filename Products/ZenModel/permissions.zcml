@@ -218,6 +218,11 @@
       />
 
   <permission
+      id="zenoss.ManageGroups"
+      title="Manage Groups"
+      />
+
+  <permission
       id="zenoss.ManageZenPacks"
       title="Manage ZenPacks"
       />
