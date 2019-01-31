@@ -26,7 +26,7 @@ import logging
 
 from ZenossSecurity import (
     ZEN_MANAGE_DMD, ZEN_MANAGE_GLOBAL_SETTINGS, ZEN_MANAGE_GLOBAL_COMMANDS,
-    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS,
+    ZEN_MANAGE_USERS, ZEN_VIEW_USERS, ZEN_MANAGE_ZENPACKS, ZEN_MANAGE_GROUPS,
     ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG, ZEN_MANAGE_UI_SETTINGS
 )
 
@@ -76,7 +76,7 @@ class ZenPackManager(ZenModelRM):
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : '../ZenUsers/manageUserFolder'
-                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, )
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, ZEN_MANAGE_GROUPS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
