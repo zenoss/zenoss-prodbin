@@ -2337,8 +2337,12 @@ BYE BYE BORDERS
         border: 1px solid #d6d6d6;
         background-color: #f4f4f4;
         color: #444;
-        height: 22px;
         padding-left: 2px;
+    }
+    .z-cse.z-cse-reports select:not([multiple]),
+    .z-cse.z-cse-reports input.tablevalues,
+    .z-cse.z-cse-reports input[type="text"] {
+        height: 22px;
     }
     /*<ZEN-30423> white theme styles for reports end*/
 
@@ -3197,8 +3201,6 @@ BYE BYE BORDERS
         border: 0;
         background-color: #505050;
         color: #fafafa;
-        height: 22px;
-        padding-left: 2px;
     }
     /*<ZEN-30423> dark theme styles for reports end*/
 
