@@ -131,12 +131,27 @@ Ext.define("Zenoss.GraphPointGrid", {
                                     //id: 'addDataPointToGraphDialog',
                                     title: _t('Add Data Point'),
                                     closeAction: 'hide',
+                                    width: 600,
                                     items:[{
                                         xtype: 'combo',
                                         ref: 'comboBox',
+                                        anchor: '100%',
+                                        listConfig: {
+                                            cls: 'x-boundlist-scrollable',
+                                        },
                                         getInnerTpl: function() {
                                             return '<tpl for="."><div ext:qtip="{name}" class="x-combo-list-item">{name}</div></tpl>';
                                         },
+                                        tpl: Ext.create(
+                                            'Ext.XTemplate',
+                                            '<ul class="x-boundlist-list-ct-inner">',
+                                                '<tpl for=".">',
+                                                    '<li class="x-boundlist-item">',
+                                                        '<div class="x-boundlist-item-inner">{name}</div>',
+                                                    '</li>',
+                                                '</tpl>',
+                                            '</ul>'
+                                        ),
                                         fieldLabel: _t('Data Point'),
                                         valueField: 'uid',
                                         displayField: 'name',
@@ -163,7 +178,8 @@ Ext.define("Zenoss.GraphPointGrid", {
                                         name: 'include_related_thresholds',
                                         ref: 'includeRelatedThresholds',
                                         fieldLabel: _t('Include Related Thresholds'),
-                                        checked: true
+                                        checked: true,
+                                        anchor: '100%',
                                     }],
                                     listeners: {
                                         show: function() {

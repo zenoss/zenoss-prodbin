@@ -27,9 +27,6 @@ Ext.onReady(function(){
             hasMenu: false,
         }));
         document.title = graph.graphTitle;
-
-        // remove "open in new tab" button
-        graph.newtab.destroy();
     }
 
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),

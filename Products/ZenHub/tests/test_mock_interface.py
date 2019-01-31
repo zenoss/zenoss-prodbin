@@ -1,4 +1,4 @@
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from unittest import TestCase
 from mock_interface import create_interface_mock
 
 from mock import Mock, create_autospec
@@ -7,7 +7,7 @@ from zope.interface import Attribute
 from zope.interface.verify import verifyObject
 
 
-class MockInterfaceTest(BaseTestCase):
+class MockInterfaceTest(TestCase):
 
     class ITestInterface(Interface):
         atrib = Attribute("Interface requires an attribute")
