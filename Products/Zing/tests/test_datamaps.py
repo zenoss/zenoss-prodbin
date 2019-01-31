@@ -384,7 +384,6 @@ class ObjectMapContextProvider1(object):
         }
 
     def get_metadata(self, obj):
-        print('ObjectMapContextProvider1.get_metadata')
         return {
             "metadata1": obj.metadata1,
             "metadata2": obj.metadata2,
