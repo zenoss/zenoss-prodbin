@@ -8,6 +8,7 @@
 ##############################################################################
 
 import unittest
+from datetime import datetime
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 from Products.Zuul.infos.triggers import NotificationWindowInfo
@@ -26,15 +27,21 @@ class NotificationWindowInfoTest(BaseTestCase):
         returns the attributes expected by the UI
         '''
 
+        expected_start_ts = 1506243600
+        dttm = datetime.fromtimestamp(expected_start_ts)
+        expected_dt = dttm.date().strftime("%m/%d/%Y")
+        expected_tm = dttm.time().strftime("%H:%M")
+
         window = NotificationSubscriptionWindow('window_id')
-        setattr(window, 'start', 1506243600)
+        setattr(window, 'start', expected_start_ts)
 
         window_info = NotificationWindowInfo(window)
 
-        self.assertEqual(window_info.start_ts, 1506243600)
+        self.assertEqual(window_info.start_ts, expected_start_ts)
+
         # ensure original date/time behavior for backwards compatibility
-        self.assertEqual(window_info.start, "09/24/2017")
-        self.assertEqual(window_info.starttime, "09:00")
+        self.assertEqual(window_info.start, expected_dt)
+        self.assertEqual(window_info.starttime, expected_tm)
 
 
 def test_suite():

@@ -11,6 +11,8 @@
 import json
 from itertools import count, islice
 
+from mock import patch
+
 #import operator
 #af = lambda x:x>1 and reduce(operator.add, xrange(1, x+1)) or x
 #numpairs = lambda x: ((x*(x-1))*0.5) - (af(x%10)) - (af(10)*((x/10)-1))
@@ -82,7 +84,8 @@ class TestLayer3Linking(ZenModelBaseTest):
             iface = dev.os.interfaces._getOb('eth%d'%iid)
             iface.addIpAddress(subnet.next())
 
-    def testzDrawMapLinksProperty(self):
+    @patch("Products.ZenModel.LinkManager.getFacade")
+    def testzDrawMapLinksProperty(self, getFacade):
         devs = self._makeDevices(6)
 
         devs[0].setLocation('/A')
@@ -121,8 +124,8 @@ class TestLayer3Linking(ZenModelBaseTest):
         links = json.loads(links)
         self.assertEqual(len(links), 2)
 
-
-    def testSlash30Nets(self):
+    @patch("Products.ZenModel.LinkManager.getFacade")
+    def testSlash30Nets(self, getFacade):
         devs = self._makeDevices(6)
 
         devs[0].setLocation('/A')
@@ -175,7 +178,8 @@ class TestLayer3Linking(ZenModelBaseTest):
         self.assertSameObs(getLinkDevs(devs[1]), [devs[0], devs[1], devs[2]])
         self.assertSameObs(getLinkDevs(devs[2]), bteam.values())
 
-    def testGetChildLinks(self):
+    @patch("Products.ZenModel.LinkManager.getFacade")
+    def testGetChildLinks(self, getFacade):
         numDevices = 36
         devs = self._makeDevices(numDevices)
         self._linkDevices(devs)
@@ -188,7 +192,8 @@ class TestLayer3Linking(ZenModelBaseTest):
         locs = json.loads(locs)
         self.assertEqual(len(locs), 15) # (n!)/(k!(n-k)!), n=6, k=2
 
-    def testLinkStatus(self):
+    @patch("Products.ZenModel.LinkManager.getFacade")
+    def testLinkStatus(self, getFacade):
         devs = self._makeDevices(3)
 
         devs[0].setLocation('/A')

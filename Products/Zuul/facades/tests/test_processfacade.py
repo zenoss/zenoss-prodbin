@@ -10,6 +10,7 @@
 
 import unittest
 
+from mock import patch
 from zope.interface.verify import verifyClass
 
 from Products import Zuul
@@ -82,7 +83,8 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         Zuul.unmarshal(data, obj)
         self.assertEqual('barbar', obj.name)
 
-    def test_getDevices(self):
+    @patch("Products.Zuul.facades.processfacade.getFacade")
+    def test_getDevices(self, getFacade):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
         device.os.addOSProcess(uid, 'bar', True)
@@ -92,10 +94,13 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
 
         self.assertEqual('quux', deviceInfo.getDevice())
 
-    def test_getInstances(self):
+    @patch("Products.ZenModel.EventView.EventView.getStatus")
+    def test_getInstances(self, getStatus):
         device = self.dmd.Devices.createInstance('quux')
         uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
         device.os.addOSProcess(uid, 'bar', True)
+        getStatus.return_value = 0
+
         instanceInfos = list(self.facade.getInstances(uid))
         self.assertEqual(1, len(instanceInfos))
         instanceInfo = instanceInfos[0]
