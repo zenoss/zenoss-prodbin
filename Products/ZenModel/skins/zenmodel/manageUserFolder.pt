@@ -129,10 +129,10 @@ function ConfirmPagerTest() {
         tal:attributes="class python:odd and 'odd' or 'even'">
         <td class="tablevalues">
             <input type="checkbox" name="groupids:list"
-               tal:condition="group/iseditable"
+               tal:condition="python:group.isCustomerAdmin() and group.iseditable()"
                tal:attributes="value group/getId" />
             <a tal:attributes="href group/getPrimaryUrlPath"
-               tal:condition="group/iseditable"
+               tal:condition="python:group.isCustomerAdmin() and group.iseditable()"
                tal:content="group/getId">edahl</a>
             <span tal:condition="not: group/iseditable"
                   tal:content="group/getId"/>
