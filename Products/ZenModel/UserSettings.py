@@ -1312,6 +1312,22 @@ class UserSettings(ZenModelRM):
             obj = role.managedObject().primaryAq()
             obj.manage_deleteAdministrativeRole(self.id)
 
+
+def attribute_getter(self, name):
+    if isinstance(object.__getattribute__(self, name), UserSettings):
+        currentUser = getSecurityManager().getUser()
+        if not(
+            currentUser.has_role(MANAGER_ROLE) or
+            currentUser.has_role(CZ_ADMIN_ROLE) or
+            currentUser.has_role(ZEN_MANAGER_ROLE) or
+            currentUser._id == name
+        ):
+            raise NotFound
+    return object.__getattribute__(self, name)
+
+UserSettingsManager.__getattribute__ = attribute_getter
+
+
 class GroupSettings(UserSettings):
     implements(IProvidesEmailAddresses, IProvidesPagerAddresses)
     meta_type = 'GroupSettings'
