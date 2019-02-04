@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+import logging
+
 from unittest import TestCase
 from mock import patch, Mock, create_autospec, MagicMock, sentinel, ANY
 
@@ -37,6 +39,8 @@ PATH = {'src': 'Products.ZenHub.invalidationmanager'}
 class InvalidationManagerTest(TestCase):
 
     def setUp(t):
+        logging.disable(logging.CRITICAL)
+
         t.get_utility_patcher = patch(
             '{src}.getUtility'.format(**PATH), autospec=True
         )

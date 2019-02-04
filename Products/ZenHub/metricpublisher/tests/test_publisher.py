@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+import logging
+
 from unittest import TestCase
 from mock import Mock, MagicMock, create_autospec, patch
 from zope.interface.verify import verifyObject
@@ -41,20 +43,35 @@ BUFFER_LEN = 10
 PUBLISHER_FREQ = 10
 SCHEDULED = True
 
+PATH = {"src": "Products.ZenHub.metricpublisher.publisher"}
+
+
+class DisableLoggingLayer(object):
+
+    @classmethod
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
 
 class BasePublisherTest(TestCase):
+
+    layer = DisableLoggingLayer
 
     def setUp(self):
         self.pub = BasePublisher(BUFFER_LEN, PUBLISHER_FREQ)
         self.metric = {'metric': 'm', 'value': 1.0, 'timestamp': 1, 'tags': {}}
-        self.metric_builded = [
-            '{"timestamp":1535460634.26479,"metric":"eventQueueLength",\
-            "value":0.0,"tags":{\
-                 "instance":"0","daemon":"zenpython","monitor":"localhost",\
-                 "metricType":"GAUGE","tenantId":"b0e4t72hrole5z1xv88djc1hb"\
-                 }\
-            }'
-        ]        
+        self.metric_builded = [str({
+            "timestamp": 1535460634.26479,
+            "metric": "eventQueueLength",
+            "value": 0.0,
+            "tags": {
+                "instance": "0",
+                "daemon": "zenpython",
+                "monitor": "localhost",
+                "metricType": "GAUGE",
+                "tenantId": "b0e4t72hrole5z1xv88djc1hb"
+            }
+        })]
 
     def test___init__(self):
         metric_queue = deque(maxlen=BUFFER_LEN)
@@ -80,7 +97,7 @@ class BasePublisherTest(TestCase):
         result = self.pub._publish_failed(
             reason=PublishError,
             metrics=self.metric_builded
-        ) 
+        )
         self.assertEqual(result, len(self.metric_builded))
         self.assertEqual(len(self.pub._mq), len(self.metric_builded))
 
@@ -116,6 +133,8 @@ class BasePublisherTest(TestCase):
 
 
 class RedisPublisherTest(TestCase):
+
+    layer = DisableLoggingLayer
 
     def setUp(self):
         self.pub = RedisListPublisher()
@@ -264,6 +283,9 @@ class RedisPublisherTest(TestCase):
 
 
 class HttpPostPublisherTest(TestCase):
+
+    layer = DisableLoggingLayer
+
     def setUp(self):
         self.username = 'root'
         self.password = 'root'
@@ -428,4 +450,3 @@ class ResponseReceiverTest(TestCase):
         self.res_receiver._deferred.callback.asser_called_with(
             self.res_receiver._buffer
         )
-

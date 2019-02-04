@@ -1,3 +1,6 @@
+
+import logging
+
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call
 
@@ -32,8 +35,8 @@ PATH = {'src': 'Products.ZenHub.PBDaemon'}
 
 
 class RemoteExceptionsTest(TestCase):
-    '''These excpetions can probably be moved into their own moduel
-        '''
+    '''These exceptions can probably be moved into their own module
+    '''
 
     def test_raise_RemoteException(t):
         with t.assertRaises(RemoteException):
@@ -456,7 +459,7 @@ class DeDupingEventQueueTest(TestCase):
         t.assertEqual(
             list(t.ddeq),
             # This should work
-            #[{'rcvtime': 0, 'name': 'event_a'}]
+            # [{'rcvtime': 0, 'name': 'event_a'}]
             # current behavior
             [{'name': 'event_a'}, {'name': 'event_b'}]
         )
@@ -842,13 +845,17 @@ class PBDaemonClassTest(TestCase):
         t.assertEqual(PBDaemon.name, 'pbdaemon')
         t.assertEqual(PBDaemon.initialServices, ['EventService'])
         # this is the problem line, heartbeatEvent differs
-        # /opt/zenoss/bin/runtests --type=unit --name Products.ZenHub.tests.test_PBDaemon
+        # /opt/zenoss/bin/runtests \
+        #     --type=unit --name Products.ZenHub.tests.test_PBDaemon
         # t.assertEqual(PBDaemon.heartbeatEvent, {'eventClass': '/Heartbeat'})
         # /opt/zenoss/bin/runtests --type=unit --name Products.ZenHub
         # t.assertEqual(
-        #    PBDaemon.heartbeatEvent,
-        #    {'device': 'localhost', 'eventClass': '/Heartbeat', 'component': 'pbdaemon'}
-        #)
+        #    PBDaemon.heartbeatEvent, {
+        #        'device': 'localhost',
+        #        'eventClass': '/Heartbeat',
+        #        'component': 'pbdaemon'
+        #    }
+        # )
         t.assertEqual(PBDaemon.heartbeatTimeout, 60 * 3)
         t.assertEqual(PBDaemon._customexitcode, 0)
         t.assertEqual(PBDaemon._pushEventsDeferred, None)
@@ -859,8 +866,7 @@ class PBDaemonClassTest(TestCase):
 class PBDaemonTest(TestCase):
 
     def setUp(t):
-        # Patch external dependencies
-        # current version touches the reactor directly
+        # Patch external dependencies; e.g. twisted.internet.reactor
         t.reactor_patcher = patch(
             '{src}.reactor'.format(**PATH), autospec=True
         )
@@ -869,6 +875,9 @@ class PBDaemonTest(TestCase):
 
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
+
+        # Mock out 'log' to prevent spurious output to stdout.
+        t.pbd.log = Mock(spec=logging.getLoggerClass())
 
         t.pbd.eventQueueManager = Mock(
             EventQueueManager, name='eventQueueManager'
@@ -1518,8 +1527,8 @@ class PBDaemonTest(TestCase):
         used exclusively by Products.DataCollector.zenmodeler.ZenModeler
         '''
         pass
-        #ret = t.pbd.remote_updateThresholdClasses(['class_a', 'class_b'])
-        #t.assertEqual(ret, 'something')
+        # ret = t.pbd.remote_updateThresholdClasses(['class_a', 'class_b'])
+        # t.assertEqual(ret, 'something')
 
     def test__checkZenHub(t):
         t.pbd._signalZenHubAnswering = create_autospec(

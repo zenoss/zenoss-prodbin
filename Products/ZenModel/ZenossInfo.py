@@ -166,7 +166,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             try:
                 # Note the port given below is not used when getting the version, but overrides the
                 # SERVICED_UI_PORT env variable that can cause it to fail cli parameter validation.
-                output = subprocess.check_output(['/serviced/serviced', '--uiport', ':1', 'version'])
+                output = subprocess.check_output([
+                    '/serviced/serviced', '--uiport', ':1', 'version'
+                ], stderr=subprocess.STDOUT)
                 for line in output.split('\n'):
                     splitLine = line.split()
                     if splitLine[0] == 'Version:':
