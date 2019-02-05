@@ -431,6 +431,11 @@ BYE BYE BORDERS
         background-position: 2px 6px !important;
         background-color: #f4f4f4;
     }
+    /* <ZEN-31091> */
+    .z-cse .x-form-trigger-wrap .x-form-spinner-down,
+    .z-cse .x-form-trigger-wrap .x-form-spinner-up {
+        background-position: 0 0;
+    }
 
     /* zebra striping light */
     .z-cse .yui-skin-sam tr.yui-dt-odd,
