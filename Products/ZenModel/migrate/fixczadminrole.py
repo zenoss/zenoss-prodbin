@@ -19,7 +19,6 @@ import logging
 
 from Products.Zuul.catalog.model_catalog_init import reindex_model_catalog
 from Products.Zuul.catalog.indexable import DeviceIndexable
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 from Products.ZenModel.ZenossSecurity import (
@@ -39,7 +38,7 @@ log = logging.getLogger("zen.migrate")
 
 class FixCZAdminRole(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     def cutover(self, dmd):
         zport = dmd.zport
