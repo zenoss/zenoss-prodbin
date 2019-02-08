@@ -11,19 +11,22 @@
 """
 Zenoss JSON API
 """
+import base64
+import hashlib
+import logging
+import zlib
 
+from Products.ZenMessaging.audit import audit
+from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.System import System
 from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Utils import getDisplayType
+from Products import Zuul
 from Products.Zuul.decorators import contextRequire
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 from Products.Zuul.marshalling import Marshaller
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.System import System
-from Products.ZenMessaging.audit import audit
-from Products.ZenUtils.Utils import getDisplayType
-from Products import Zuul
-import logging
-import zlib
-import base64
+from Products.Zuul.utils import RedisGraphLinksTool
+
 log = logging.getLogger(__name__)
 
 
@@ -31,6 +34,8 @@ class TreeRouter(DirectRouter):
     """
     A common base class for routers that have a hierarchical tree structure.
     """
+
+    redis_tool = RedisGraphLinksTool()
 
     @contextRequire("Manage DMD", 'contextUid')
     def addNode(self, type, contextUid, id, description=None):
@@ -135,20 +140,15 @@ class TreeRouter(DirectRouter):
         """
         gzip an arbitrary string, base64 encode it, and return it
         """
-        try:
-            compressed = base64.urlsafe_b64encode(zlib.compress(string))
-        except Exception as e:
-            log.exception(e)
-            return DirectResponse.exception(e, 'Unable to compress data')
-        return DirectResponse.succeed(data=Zuul.marshal({'data': compressed}))
+        return base64.urlsafe_b64encode(zlib.compress(string))
 
     def gunzip_b64(self, string):
         """
         Base 64 decode a string, then gunzip it and return the result as JSON.
-        The input to this method should be gzipped, base 64 encoded JSON.  Base
-        64 encoded strings are allowed to have up to 2 '='s of padding.  The zenoss
-        Ext router eats these, so there is some logic to try padding them back into
-        the string should initial decoding fail.
+        The input to this method should be gzipped, base 64 encoded JSON. Base
+        64 encoded strings are allowed to have up to 2 '='s of padding. The
+        zenoss Ext router eats these, so there is some logic to try padding
+        them back into the string should initial decoding fail.
         """
         data = ''
         for pad in ('', '=', '=='):
@@ -157,8 +157,39 @@ class TreeRouter(DirectRouter):
                 break
             except Exception as e:
                 if pad == '==':
-                    log.exception(e)
-                    return DirectResponse.exception(e, 'Unable to decompress data')
+                    raise e
+        return data
+
+    def getGraphLink(self, data, maxDataLength):
+        """
+        Try to compress config, if it longer then maxDataLengt save config in
+        Redis
+        """
+        isLong = 0
+        try:
+            graphData = self.gzip_b64(data)
+            if len(graphData) > maxDataLength:
+                isLong = 1
+                graphData = hashlib.sha224(data).hexdigest()
+                if not self.redis_tool.push_to_redis(graphData, data):
+                    graphData = None
+        except Exception as e:
+            log.exception(e)
+            return DirectResponse.exception(e, 'Unable to process graph data')
+        return DirectResponse.succeed(data=Zuul.marshal({
+            'data': graphData,
+            'isLong': isLong
+            }))
+
+    def getGraphConfig(self, string, isLong=False):
+        if isLong:
+            data = self.redis_tool.load_from_redis(string)
+        else:
+            try:
+                data = self.gunzip_b64(string)
+            except Exception as e:
+                log.exception(e)
+                return DirectResponse.exception(e, 'Unable to decompress data')
         return DirectResponse.succeed(data=Zuul.marshal({'data': data}))
 
     def _getFacade(self):

@@ -1,33 +1,40 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2009, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+import logging
+import redis
+import time
 import transaction
 from copy import deepcopy
 from types import ClassType
+
+from AccessControl import getSecurityManager
+from AccessControl.PermissionRole import rolesForPermissionOn
 from Acquisition import aq_base, aq_chain
-from zope.interface import Interface
 from BTrees.OOBTree import OOBTree
 from BTrees.IOBTree import IOBTree
-from AccessControl import getSecurityManager
-from zope.i18nmessageid import MessageFactory
-from Products.ZCatalog.interfaces import ICatalogBrain
-from AccessControl.PermissionRole import rolesForPermissionOn
-from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
 from OFS.PropertyManager import PropertyManager
 from zope.component import getUtility
+from zope.interface import Interface
+from zope.i18nmessageid import MessageFactory
+
+from Products.ZCatalog.interfaces import ICatalogBrain
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.RedisUtils import parseRedisUrl
 from Products.ZenUtils.virtual_root import IVirtualRoot
 
-import logging
 log = logging.getLogger('zen.Zuul')
 
 # Translations
 ZuulMessageFactory = MessageFactory('zenoss')
+
 
 def resolve_context(context, default=None, dmd=None):
     """
@@ -53,6 +60,7 @@ def resolve_context(context, default=None, dmd=None):
     if context is None:
         context = default
     return context
+
 
 def _mergedLocalRoles(object):
     """
@@ -90,7 +98,7 @@ def allowedRolesAndUsers(context):
             for x in r:
                 allowed.add(x)
         else:
-            allowed.add(r)        
+            allowed.add(r)
     for user, roles in _mergedLocalRoles(context).iteritems():
         for role in roles:
             if role in allowed:
@@ -378,4 +386,72 @@ class PathIndexCache(object):
         tree = PathIndexCache(results, instances, 'devices')
         print tree
 
-        
+
+class RedisGraphLinksTool(object):
+    """
+    Connect to Redis, put graph config and get it by hash
+    """
+    DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
+    REDIS_RECONNECTION_INTERVAL = 3
+    EXPIRATION_TIME = 60 * 60 * 24 * 90
+
+    def __init__(self):
+        self.redis_url = getGlobalConfiguration().get(
+            'redis-url', self.DEFAULT_REDIS_URL
+        )
+        self._redis_client = None
+        self._redis_last_connection_attemp = 0
+
+    def create_redis_client(self, redis_url):
+        client = None
+        try:
+            client = redis.StrictRedis(**parseRedisUrl(redis_url))
+            client.config_get()  # test the connection
+        except Exception as e:
+            client = None
+        return client
+
+    def _connected_to_redis(self):
+        """ Ensures we have a connection to redis """
+        if self._redis_client is None:
+            now = time.time()
+            if (now - self._redis_last_connection_attemp >
+                    self.REDIS_RECONNECTION_INTERVAL):
+                log.debug("Trying to reconnect to redis")
+                self._redis_last_connection_attemp = now
+                self._redis_client = self.create_redis_client(self.redis_url)
+                if self._redis_client:
+                    log.debug("Connected to redis")
+                else:
+                    log.warning("Could not connect to redis")
+        return self._redis_client is not None
+
+    def push_to_redis(self, string, data):
+        key = "graphLink:" + string
+        if not self._connected_to_redis():
+            return False
+        try:
+            self._redis_client.set(key, data)
+            self._redis_client.expire(key, self.EXPIRATION_TIME)
+            log.debug("Success pushed to Redis")
+            return True
+        except Exception as e:
+            log.warning(
+                "Exception trying to push metric to redis: {0}".format(e)
+            )
+            self._redis_client = None
+            return False
+
+    def load_from_redis(self, string):
+        key = "graphLink:" + string
+        if not self._connected_to_redis():
+            return None
+        try:
+            log.debug("Success recived data from Redis")
+            self._redis_client.expire("graphLink:" + key, self.EXPIRATION_TIME)
+            return self._redis_client.get(key)
+        except Exception as e:
+            log.warning(
+                "Exception trying to recive data from redis: {0}".format(e))
+            self._redis_client = None
+            return None
