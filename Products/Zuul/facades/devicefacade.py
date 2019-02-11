@@ -1113,8 +1113,8 @@ class DeviceFacade(TreeFacade):
             props[prop] = prop
         for org in self.context.dmd.Devices.getSubOrganizers():
             for prop in org.zCredentialsZProperties:
-                props[prop] = prop
-        return props.keys()
+                props[prop] = (prop, org.exportZProperty(prop)['type'])
+        return props.values()
 
     def maskPropertyPassword(self, inst, propname):
         prop = getattr(inst, propname)
