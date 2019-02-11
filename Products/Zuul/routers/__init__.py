@@ -136,12 +136,6 @@ class TreeRouter(DirectRouter):
         data = facade.moveOrganizer(targetUid, organizerUid)
         return DirectResponse.succeed(data=Zuul.marshal(data))
 
-    def gzip_b64(self, string):
-        """
-        gzip an arbitrary string, base64 encode it, and return it
-        """
-        return base64.urlsafe_b64encode(zlib.compress(string))
-
     def gunzip_b64(self, string):
         """
         Base 64 decode a string, then gunzip it and return the result as JSON.
@@ -160,29 +154,22 @@ class TreeRouter(DirectRouter):
                     raise e
         return data
 
-    def getGraphLink(self, data, maxDataLength):
+    def getGraphLink(self, data):
         """
         Try to compress config, if it longer then maxDataLengt save config in
         Redis
         """
-        isLong = 0
         try:
-            graphData = self.gzip_b64(data)
-            if len(graphData) > maxDataLength:
-                isLong = 1
-                graphData = hashlib.sha224(data).hexdigest()
-                if not self.redis_tool.push_to_redis(graphData, data):
-                    graphData = None
+            dataHash = hashlib.sha224(data).hexdigest()
+            if not self.redis_tool.push_to_redis(dataHash, data):
+                dataHash = None
         except Exception as e:
             log.exception(e)
             return DirectResponse.exception(e, 'Unable to process graph data')
-        return DirectResponse.succeed(data=Zuul.marshal({
-            'data': graphData,
-            'isLong': isLong
-            }))
+        return DirectResponse.succeed(data=Zuul.marshal({'data': dataHash}))
 
-    def getGraphConfig(self, string, isLong=False):
-        if isLong:
+    def getGraphConfig(self, string, newAPI):
+        if newAPI:
             data = self.redis_tool.load_from_redis(string)
         else:
             try:

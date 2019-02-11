@@ -30,14 +30,14 @@ Ext.onReady(function(){
     }
 
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
-        isLong = parseInt(decodedUrl.isLong),
         drange = decodedUrl.drange,
-        data = decodedUrl.data;
+        data = decodedUrl.data,
+        newAPI = 'newAPI' in decodedUrl;
 
     if (data) {
         Zenoss.remote.DeviceRouter.getGraphConfig({
             string: data,
-            isLong: isLong
+            newAPI: newAPI
         }, function(resp) {
             if (resp.success && resp.data && resp.data.data) {
                 buildGraph(resp.data.data, drange);

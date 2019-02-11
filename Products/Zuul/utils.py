@@ -402,12 +402,14 @@ class RedisGraphLinksTool(object):
         self._redis_client = None
         self._redis_last_connection_attemp = 0
 
-    def create_redis_client(self, redis_url):
+    @staticmethod
+    def create_redis_client(redis_url):
         client = None
         try:
             client = redis.StrictRedis(**parseRedisUrl(redis_url))
             client.config_get()  # test the connection
         except Exception as e:
+            log.warning("Exception trying to connect to redis: {0}".format(e))
             client = None
         return client
 
@@ -422,8 +424,6 @@ class RedisGraphLinksTool(object):
                 self._redis_client = self.create_redis_client(self.redis_url)
                 if self._redis_client:
                     log.debug("Connected to redis")
-                else:
-                    log.warning("Could not connect to redis")
         return self._redis_client is not None
 
     def push_to_redis(self, string, data):
@@ -437,7 +437,7 @@ class RedisGraphLinksTool(object):
             return True
         except Exception as e:
             log.warning(
-                "Exception trying to push metric to redis: {0}".format(e)
+                "Exception trying to push data to redis: {0}".format(e)
             )
             self._redis_client = None
             return False
@@ -447,11 +447,12 @@ class RedisGraphLinksTool(object):
         if not self._connected_to_redis():
             return None
         try:
-            log.debug("Success recived data from Redis")
             self._redis_client.expire("graphLink:" + key, self.EXPIRATION_TIME)
-            return self._redis_client.get(key)
+            data = self._redis_client.get(key)
+            log.debug("Success received data for key %s from Redis", key)
+            return data
         except Exception as e:
             log.warning(
-                "Exception trying to recive data from redis: {0}".format(e))
+                "Exception trying to receive data from redis: {0}".format(e))
             self._redis_client = None
             return None

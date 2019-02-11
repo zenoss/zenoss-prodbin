@@ -486,17 +486,15 @@
                 drange = graphPanel.drange;
             }*/
             drange = this.graph_params.drange;
+
             // get the processed config from the server
-            var baseLink = Ext.String.format(
-                "/zport/dmd/viewGraph?isLong=0&drange=${0}&data=", drange);
             router.getGraphLink({
-                data: Ext.JSON.encode(config),
-                maxDataLength: this.maxLinkLength - baseLink.length
+                data: Ext.JSON.encode(config)
             }, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
                     link = Ext.String.format(
-                        "/zport/dmd/viewGraph?isLong={0}&drange={1}&data={2}",
-                        resp.data.isLong, drange, resp.data.data
+                        "/zport/dmd/viewGraph?newAPI=1&drange={0}&data={1}",
+                        drange, resp.data.data
                     );
                     new Zenoss.dialog.ErrorDialog({
                         message: Ext.String.format(_t(
@@ -798,16 +796,13 @@
             var redirect = window.open("", "_blank");
 
             // get the processed config from the server
-            var baseLink = Ext.String.format(
-                "/zport/dmd/viewGraph?isLong=0&drange=${0}&data=", drange);
             router.getGraphLink({
                 data: Ext.JSON.encode(config),
-                maxDataLength: this.maxLinkLength - baseLink.length
             }, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
                     link = Ext.String.format(
-                        "/zport/dmd/viewGraph?isLong={0}&drange={1}&data={2}",
-                        resp.data.isLong, drange, resp.data.data
+                        "/zport/dmd/viewGraph?newAPI=1&drange={0}&data={1}",
+                        drange, resp.data.data
                     );
                     redirect.location = link;
                 }
