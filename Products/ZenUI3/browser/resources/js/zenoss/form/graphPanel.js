@@ -486,19 +486,23 @@
                 drange = graphPanel.drange;
             }*/
             drange = this.graph_params.drange;
-            // get the zipped + encoded config from the server
-            router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
+
+            // get the processed config from the server
+            router.getGraphLink({
+                data: Ext.JSON.encode(config)
+            }, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
-                    link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
-                    if (link.length > this.maxLinkLength) {
-                        Zenoss.message.error('Unable to generate link, length is too great');
-                    } else {
-                        new Zenoss.dialog.ErrorDialog({
-                            message: Ext.String.format(_t('<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
-                                '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>')),
-                            title: _t('Link to this Graph')
-                        });
-                    }
+                    link = Ext.String.format(
+                        "/zport/dmd/viewGraph?saved=1&drange={0}&data={1}",
+                        drange, resp.data.data
+                    );
+                    new Zenoss.dialog.ErrorDialog({
+                        message: Ext.String.format(_t(
+                            '<div>' + Ext.String.format(_t('Drag this link to your bookmark bar to link directly to this graph. {0}'),
+                            '<br/><br/><a href="' + link + '">Graph: ' + this.graphTitle +  ' </a>') + '</div>'
+                            )),
+                        title: _t('Link to this Graph')
+                    });
                 }
             },
             this);
@@ -791,18 +795,18 @@
             // NOTE: this circumvents popup blocking
             var redirect = window.open("", "_blank");
 
-            // get the zipped + encoded config from the server
-            router.gzip_b64({string: Ext.JSON.encode(config)}, function(resp) {
+            // get the processed config from the server
+            router.getGraphLink({
+                data: Ext.JSON.encode(config),
+            }, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
-                    link = Ext.String.format("/zport/dmd/viewGraph?drange={0}&data={1}", drange, resp.data.data);
-                    if (link.length > this.maxLinkLength) {
-                        Zenoss.message.error('Unable to generate link, length is too great');
-                    } else {
-                        redirect.location = link;
-                    }
+                    link = Ext.String.format(
+                        "/zport/dmd/viewGraph?saved=1&drange={0}&data={1}",
+                        drange, resp.data.data
+                    );
+                    redirect.location = link;
                 }
             });
-
         },
         onPanLeft: function(graph) {
             var gp = this.graph_params;

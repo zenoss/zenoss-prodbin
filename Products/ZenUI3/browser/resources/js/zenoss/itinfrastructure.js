@@ -992,7 +992,7 @@ Ext.onReady(function () {
                             };
                             REMOTE.moveDevices(opts, function (data) {
                                 if (data.success) {
-                                    if (data.exports) {
+                                    if (data.remodel_required) {
                                         new Zenoss.dialog.ErrorDialog({
                                             title: _t('Remodel Required'),
                                             message: Ext.String.format(_t("Not all of the configuration could be preserved, so a remodel of the device(s)" +
