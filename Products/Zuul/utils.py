@@ -393,6 +393,7 @@ class RedisGraphLinksTool(object):
     """
     DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
     REDIS_RECONNECTION_INTERVAL = 3
+    # config of graph will be deleted after 90 days without calling
     EXPIRATION_TIME = 60 * 60 * 24 * 90
 
     def __init__(self):

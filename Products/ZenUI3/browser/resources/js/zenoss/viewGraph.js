@@ -32,19 +32,24 @@ Ext.onReady(function(){
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
         drange = decodedUrl.drange,
         data = decodedUrl.data,
-        newAPI = 'newAPI' in decodedUrl;
+        saved = 'saved' in decodedUrl;
 
     if (data) {
-        Zenoss.remote.DeviceRouter.getGraphConfig({
-            string: data,
-            newAPI: newAPI
-        }, function(resp) {
-            if (resp.success && resp.data && resp.data.data) {
-                buildGraph(resp.data.data, drange);
-            } else {
-                Zenoss.message.error("This graph link expired or never existed");
-            }
-        });
+        if (saved) {
+            Zenoss.remote.DeviceRouter.getGraphConfig({string: data}, function(resp) {
+                if (resp.success && resp.data && resp.data.data) {
+                    buildGraph(resp.data.data, drange);
+                } else {
+                    Zenoss.message.error("This graph link expired or never existed");
+                }
+            });
+        } else {
+            Zenoss.remote.DeviceRouter.gunzip_b64({string: data}, function(resp) {
+                if (resp.success && resp.data && resp.data.data) {
+                    buildGraph(resp.data.data, drange);
+                }
+            });
+        }
     } else {
         Ext.DomHelper.append("graphView", {
             tag: 'h1',

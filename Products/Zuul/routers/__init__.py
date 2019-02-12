@@ -151,8 +151,9 @@ class TreeRouter(DirectRouter):
                 break
             except Exception as e:
                 if pad == '==':
-                    raise e
-        return data
+                    log.exception(e)
+                    return DirectResponse.exception(e, 'Unable to decompress data')
+        return DirectResponse.succeed(data=Zuul.marshal({'data': data}))
 
     def getGraphLink(self, data):
         """
@@ -168,15 +169,11 @@ class TreeRouter(DirectRouter):
             return DirectResponse.exception(e, 'Unable to process graph data')
         return DirectResponse.succeed(data=Zuul.marshal({'data': dataHash}))
 
-    def getGraphConfig(self, string, newAPI):
-        if newAPI:
-            data = self.redis_tool.load_from_redis(string)
-        else:
-            try:
-                data = self.gunzip_b64(string)
-            except Exception as e:
-                log.exception(e)
-                return DirectResponse.exception(e, 'Unable to decompress data')
+    def getGraphConfig(self, string):
+        """
+        Get graph config from Redis by it's hash
+        """
+        data = self.redis_tool.load_from_redis(string)
         return DirectResponse.succeed(data=Zuul.marshal({'data': data}))
 
     def _getFacade(self):
