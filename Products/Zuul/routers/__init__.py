@@ -157,8 +157,8 @@ class TreeRouter(DirectRouter):
 
     def getGraphLink(self, data):
         """
-        Try to compress config, if it longer then maxDataLengt save config in
-        Redis
+        Make hash from graph config, and save this config in Redis using
+        the hash for the key
         """
         try:
             dataHash = hashlib.sha224(data).hexdigest()

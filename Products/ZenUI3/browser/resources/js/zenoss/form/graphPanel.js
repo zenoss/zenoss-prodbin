@@ -801,7 +801,7 @@
             }, function(resp) {
                 if (resp.success && resp.data && resp.data.data !== undefined) {
                     link = Ext.String.format(
-                        "/zport/dmd/viewGraph?newAPI=1&drange={0}&data={1}",
+                        "/zport/dmd/viewGraph?saved=1&drange={0}&data={1}",
                         drange, resp.data.data
                     );
                     redirect.location = link;
