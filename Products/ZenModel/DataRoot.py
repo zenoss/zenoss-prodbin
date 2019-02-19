@@ -52,7 +52,7 @@ from Products.ZenEvents.Exceptions import (
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import (
     ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW, ZEN_MANAGE_GLOBAL_SETTINGS,
-    ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_VIEW_USERS, ZEN_MANAGE_USERS,
+    ZEN_MANAGE_GLOBAL_COMMANDS, ZEN_VIEW_USERS, ZEN_MANAGE_USERS, ZEN_MANAGE_GROUPS,
     ZEN_MANAGE_ZENPACKS, ZEN_VIEW_SOFTWARE_VERSIONS, ZEN_MANAGE_EVENT_CONFIG,
     ZEN_MANAGE_UI_SETTINGS,
 )
@@ -132,7 +132,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
         {'id':'pageCommand', 'type': 'string', 'mode':'w'},
         {'id':'smtpUser', 'type': 'string', 'mode':'w'},
-        {'id':'smtpPass', 'type': 'string', 'mode':'w'},
+        {'id':'smtpPass', 'type': 'password', 'mode':'w'},
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
         {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
@@ -178,7 +178,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'ZenUsers/manageUserFolder'
-                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS,)
+                , 'permissions'   : (ZEN_VIEW_USERS, ZEN_MANAGE_USERS, ZEN_MANAGE_GROUPS,)
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'

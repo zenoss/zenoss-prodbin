@@ -125,7 +125,7 @@ class EventClassesFacade(TreeFacade):
         resequences a list of sequenced instances
         """
         for i, uid in enumerate(uids):
-            obj = self._getObject(uid)
+            obj = self._getObject(uid.replace("%20", " "))
             obj.sequence = i
 
     def setTransform(self, uid, transform):

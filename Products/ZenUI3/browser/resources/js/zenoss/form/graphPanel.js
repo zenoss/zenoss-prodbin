@@ -469,7 +469,7 @@
                 encodedConfig, link,
                 drange="null",
                 // keys to exclude when cloning config object
-                exclusions = ["dockedItems", 'html', 'id', 'tbar'];
+                exclusions = ["dockedItems", 'html', 'id', 'tbar', 'listeners'];
 
             // shallow clone initialConfig object as long as the
             // key being copied is not in the exclusions list.
