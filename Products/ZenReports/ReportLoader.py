@@ -107,7 +107,8 @@ class ReportLoader(ZCmdBase):
             for orgpath, fid, fullname in self.reports(repdir):
                 rorg = reproot.createOrganizer(orgpath)
                 if getattr(rorg, fid, False):
-                    if self.options.force:
+                    # Do not rewrite reports that were changed by zenpack
+                    if self.options.force and not getattr(rorg, fid).pack():
                         rorg._delObject(fid)
                     else:
                         continue

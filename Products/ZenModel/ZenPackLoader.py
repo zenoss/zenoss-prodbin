@@ -17,6 +17,7 @@ from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.guid.interfaces import IGUIDManager
 from Products.ZenUtils.config import ConfigFile
 from Products.Zuul import getFacade
+from Products.Zuul.utils import CatalogLoggingFilter
 
 from zenoss.protocols.jsonformat import from_dict
 from zenoss.protocols.protobufs.zep_pb2 import EventDetailItemSet, EventDetailItem
@@ -158,6 +159,31 @@ class ZPLReport(ZPLObject):
                 rpt = ReportLoader.loadFile(self, root, id, fullname)
                 rpt.addRelation('pack', pack)
                 return rpt
+
+            def loadDirectory(self, repdir):
+                self.log.info("Loading reports from %s", repdir)
+                # If zencatalog hasn't finished yet, we get ugly messages that don't
+                # mean anything. Hide them.
+                logFilter = None
+                if not getattr(self.dmd.zport, '_zencatalog_completed', False):
+                    logFilter = CatalogLoggingFilter()
+                    logging.getLogger('Zope.ZCatalog').addFilter(logFilter)
+                try:
+                    reproot = self.dmd.Reports
+                    for orgpath, fid, fullname in self.reports(repdir):
+                        rorg = reproot.createOrganizer(orgpath)
+                        if getattr(rorg, fid, False):
+                            if self.options.force:
+                                rorg._delObject(fid)
+                            else:
+                                continue
+                        self.log.info("loading: %s/%s", orgpath, fid)
+                        self.loadFile(rorg, fid, fullname)
+                finally:
+                    # Remove our logging filter so we don't hide anything important
+                    if logFilter is not None:
+                        logging.getLogger('Zope.ZCatalog').removeFilter(logFilter)
+
         rl = HookReportLoader(noopts=True, app=app)
         rl.options.force = True
         rl.loadDirectory(pack.path('reports'))
