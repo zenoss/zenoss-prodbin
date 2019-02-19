@@ -12,7 +12,6 @@ log = logging.getLogger("zen.migrate")
 
 import re
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 import servicemigration as sm
 sm.require("1.1.11")
 
@@ -21,7 +20,7 @@ class updateMemcachedMaxConn(Migrate.Step):
     Update memcached service def to change default MaxConn value from 1024 to 4096
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     def _update_config(self, config):
 
