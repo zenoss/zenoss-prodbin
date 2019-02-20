@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from unittest import TestCase
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from mock import Mock, MagicMock, create_autospec, patch
 
 from Products.ZenReports.ReportLoader import (
@@ -19,7 +19,7 @@ from Products.ZenReports.ReportLoader import (
 )
 
 
-class ReportLoaderTest(TestCase):
+class ReportLoaderTest(BaseTestCase):
 
     def setUp(self):
         self.rp_load = ReportLoader()       
