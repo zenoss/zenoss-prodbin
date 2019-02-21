@@ -9,7 +9,9 @@
 
 
 Ext.onReady(function(){
-
+var stateProvider = Ext.state.Manager.getProvider();
+// wait until state is ready;
+stateProvider.onStateReady(function() {
 var router, treeId, dataSourcesId, thresholdsId, graphsId,
     beforeselectHandler, updateDataSources, updateThresholds, updateGraphs,
     selectionchangeHandler, selModel, footerBar, override, overrideHtml1,
@@ -551,29 +553,24 @@ footerBar.add([{
     xtype: 'button',
     enableToggle: true,
     toggleGroup: 'templateView',
+    allowDepress: false,
     pressed: getCurrentView() === Zenoss.templates.templateView,
     text: _t('Template'),
     toggleHandler: function(button, state) {
         if (state) {
             setDefaultView(Zenoss.templates.templateView);
-        } else {
-            // stay pressed, but don't do anything
-            this.toggle(true, true);
         }
-
     }
 },{
     xtype: 'button',
     enableToggle: true,
     pressed: getCurrentView() === Zenoss.templates.deviceClassView,
+    allowDepress: false,
     toggleGroup: 'templateView',
     text: _t('Device Class'),
     toggleHandler: function(button, state) {
         if (state) {
             setDefaultView(Zenoss.templates.deviceClassView);
-        } else {
-            // stay pressed, but don't do anything
-            this.toggle(true, true);
         }
     }
 }]);
@@ -593,4 +590,5 @@ footerBar.add([{
         cls: 'x-tree-node-icon tree-template-icon-component-span'
     }]);
 
+}); // stateProvider.onStateReady
 }); // Ext.onReady

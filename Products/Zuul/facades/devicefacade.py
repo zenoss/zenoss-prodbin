@@ -558,30 +558,38 @@ class DeviceFacade(TreeFacade):
         devs = (self._getObject(uid) for uid in uids)
         targetname = target.getOrganizerName()
         moved_devices_count = 0
+        success = False
+        remodel_required = False
         if isinstance(target, DeviceGroup):
             for dev in devs:
                 paths = set(dev.getDeviceGroupNames())
                 paths.add(targetname)
                 dev.setGroups(list(paths))
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, System):
             for dev in devs:
                 paths = set(dev.getSystemNames())
                 paths.add(targetname)
                 dev.setSystems(list(paths))
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, Location):
             for dev in devs:
                 if dev.location():
                     notify(ObjectRemovedFromOrganizerEvent(dev, dev.location()))
                 dev.setLocation(targetname)
                 notify(ObjectAddedToOrganizerEvent(dev, target))
+            success = True
         elif isinstance(target, DeviceClass):
             moved_devices_count = self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
+            success = True
+            remodel_required = True
 
         result = {
-            'success': bool(moved_devices_count),
-            'message': 'The %s devices have been moved' % moved_devices_count
+            'success': success,
+            'message': 'The %s devices have been moved' % moved_devices_count,
+            'remodel_required': remodel_required
         }
         return result
 
@@ -1113,8 +1121,8 @@ class DeviceFacade(TreeFacade):
             props[prop] = prop
         for org in self.context.dmd.Devices.getSubOrganizers():
             for prop in org.zCredentialsZProperties:
-                props[prop] = prop
-        return props.keys()
+                props[prop] = (prop, org.exportZProperty(prop)['type'])
+        return props.values()
 
     def maskPropertyPassword(self, inst, propname):
         prop = getattr(inst, propname)
