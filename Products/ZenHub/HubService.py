@@ -7,7 +7,6 @@
 #
 ##############################################################################
 
-
 from twisted.spread import pb
 
 import logging
@@ -40,7 +39,9 @@ class HubService(pb.Referenceable):
         self.log.debug("Servicing %s in %s", message, self.name())
         now = time.time()
         try:
-            return pb.Referenceable.remoteMessageReceived(self, broker, message, args, kw)
+            return pb.Referenceable.remoteMessageReceived(
+                self, broker, message, args, kw
+            )
         finally:
             secs = time.time() - now
             self.log.debug("Time in %s: %.2f", message, secs)
@@ -61,13 +62,17 @@ class HubService(pb.Referenceable):
 
     def addListener(self, remote, options=None):
         remote.notifyOnDisconnect(self.removeListener)
-        self.log.debug("adding listener for %s:%s", self.instance, self.name())
+        self.log.debug(
+            "adding listener for %s:%s", self.instance, self.name()
+        )
         self.listeners.append(remote)
         if options:
-            self.listenerOptions[remote]= options
+            self.listenerOptions[remote] = options
 
     def removeListener(self, listener):
-        self.log.debug("removing listener for %s:%s", self.instance, self.name())
+        self.log.debug(
+            "removing listener for %s:%s", self.instance, self.name()
+        )
         try:
             self.listeners.remove(listener)
         except ValueError:
