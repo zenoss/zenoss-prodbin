@@ -104,8 +104,8 @@ class ReportLoader(ZCmdBase):
                     rorg._delObject(fid)
                 else:
                     continue
-                self.log.info("loading: %s/%s", orgpath, fid)
-                self.loadFile(rorg, fid, fullname)
+            self.log.info("loading: %s/%s", orgpath, fid)
+            self.loadFile(rorg, fid, fullname)
 
     def loadFile(self, root, id, fullname):
         fdata = file(fullname).read()

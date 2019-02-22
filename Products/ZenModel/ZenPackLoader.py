@@ -169,8 +169,8 @@ class ZPLReport(ZPLObject):
                             rorg._delObject(fid)
                         else:
                             continue
-                        self.log.info("loading: %s/%s", orgpath, fid)
-                        self.loadFile(rorg, fid, fullname)
+                    self.log.info("loading: %s/%s", orgpath, fid)
+                    self.loadFile(rorg, fid, fullname)
 
         rl = HookReportLoader(noopts=True, app=app)
         rl.options.force = True
