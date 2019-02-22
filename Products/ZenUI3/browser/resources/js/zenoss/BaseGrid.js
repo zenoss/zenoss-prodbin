@@ -733,6 +733,7 @@
             this.headerCt.on('columnshow', this.onColumnChange, this);
 
             this.refresh_in_progress = 0;
+            this.isSuccessResponse = true;
 
             if (this.getStore().buffered) {
                 this.getStore().on('beforeprefetch', this.before_request, this);
@@ -802,7 +803,8 @@
             this.saveSelection();
             var store = this.getStore();
 
-            if (!store.buffered || store.totalCount < store.pageSize) {
+            if (!store.buffered || store.totalCount < store.pageSize || !this.isSuccessResponse) {
+                this.isSuccessResponse = true;
                 this._previousScrollPosition = this.getViewScrollPosition();
                 store.load({
                     callback: callback,
