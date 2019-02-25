@@ -880,6 +880,17 @@ BYE BYE BORDERS
         background-color: #b6cbe4 !important;
     }
 
+    /* <ZEN-31356> - mark pressed buttons */
+    .z-cse .x-btn-pressed {
+        background-color: #d6d6d6 !important;
+        background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #b9b9b9), color-stop(100%, #f1f1f1));
+        background-image: -webkit-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -moz-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -o-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -ms-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: linear-gradient(top, #b9b9b9, #f1f1f1);
+    }
+
 
     /* popup dialog buttons */
     .z-cse .x-btn-dialog-dark-small

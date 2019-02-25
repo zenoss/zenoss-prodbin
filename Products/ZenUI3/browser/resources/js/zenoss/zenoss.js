@@ -219,6 +219,9 @@ Zenoss.env.isDarkTheme = (function () {
 Ext.define('Zenoss.state.PersistentProvider', {
     extend: 'Ext.state.Provider',
     directFn: Zenoss.remote.MessagingRouter.setBrowserState,
+    // state ready functionality
+    stateReady: false,
+    stateReadyListeners: [],
     constructor: function() {
         this.callParent(arguments);
         this.on('statechange', this.onStateChange, this);
@@ -229,6 +232,32 @@ Ext.define('Zenoss.state.PersistentProvider', {
     setState: function(stateString) {
         var state = Ext.decode(stateString);
         this.state = Ext.isObject(state) ? state : {};
+        this.stateReady = true;
+        this.triggerReady();
+    },
+
+    // wait until state is loaded and trigger all listeners <ZEN-30886>
+    onStateReady: function(callbackFn, scope) {
+        if (this.stateReady) {
+            this.triggerReady();
+            callbackFn.call(scope);
+        } else {
+            this.stateReadyListeners.push({
+                fn: callbackFn,
+                scope: scope
+            });
+        }
+    },
+
+    triggerReady: function() {
+        var listener;
+
+        if (this.stateReady) {
+            while (this.stateReadyListeners.length) {
+                listener = this.stateReadyListeners.shift();
+                listener.fn.call(listener.scope);
+            }
+        }
     },
 
     onStateChange: function(me, key, val){
