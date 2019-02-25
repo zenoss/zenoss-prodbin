@@ -1,5 +1,5 @@
 from itertools import chain
-from mock import patch, call, MagicMock
+from mock import patch, call, MagicMock, sentinel
 from unittest import TestCase
 
 from Products.ZenHub.worklist import (
@@ -38,11 +38,11 @@ class MetrologySupportTest(TestCase):
     @patch("{src}.WorklistLengthGauge".format(**PATH))
     def test_metrology_registration(self, wgauge, pgauge, metro):
 
-        eventGauge = MagicMock()
-        admGauge = MagicMock()
-        singleAdmGauge = MagicMock()
-        otherGauge = MagicMock()
-        totalGauge = MagicMock()
+        eventGauge = sentinel.eventGauge
+        admGauge = sentinel.admGauge
+        singleAdmGauge = sentinel.singleAdmGauge
+        otherGauge = sentinel.otherGauge
+        totalGauge = wgauge.return_value
 
         def map_gauge_to_inputs(worklist, priority):
             return {
