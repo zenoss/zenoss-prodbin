@@ -18,6 +18,7 @@ import logging
 from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
+from zope.component import getUtility
 from zope.component import getUtilitiesFor
 
 from pynetsnmp import netsnmp
@@ -56,7 +57,6 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_CLEAR, SEVERITY_INFO, SEVERITY_DEBUG,
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
 )
-
 
 log = logging.getLogger("zen.actions")
 
@@ -170,7 +170,7 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
 def _getBaseUrl(zopeurl):
     if not zopeurl:
         zopeurl = Utils.getDefaultZopeUrl()
-    return '%s/zport/dmd' % zopeurl
+    return zopeurl + getUtility(IVirtualRoot).ensure_virtual_root('/zport/dmd')
 
 
 def _getBaseEventUrl(zopeurl):

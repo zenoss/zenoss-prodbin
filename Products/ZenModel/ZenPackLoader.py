@@ -158,6 +158,20 @@ class ZPLReport(ZPLObject):
                 rpt = ReportLoader.loadFile(self, root, id, fullname)
                 rpt.addRelation('pack', pack)
                 return rpt
+
+            def loadDirectory(self, repdir):
+                self.log.info("Loading reports from %s", repdir)
+                reproot = self.dmd.Reports
+                for orgpath, fid, fullname in self.reports(repdir):
+                    rorg = reproot.createOrganizer(orgpath)
+                    if getattr(rorg, fid, False):
+                        if self.options.force:
+                            rorg._delObject(fid)
+                        else:
+                            continue
+                    self.log.info("loading: %s/%s", orgpath, fid)
+                    self.loadFile(rorg, fid, fullname)
+
         rl = HookReportLoader(noopts=True, app=app)
         rl.options.force = True
         rl.loadDirectory(pack.path('reports'))
