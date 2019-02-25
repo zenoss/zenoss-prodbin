@@ -410,7 +410,7 @@ class CollectorDaemon(RRDDaemon):
         """
         Tracer implementation - use this function to indicate whether a given
         metric/contextkey combination is to be traced.
-        :param metric: name of the metric in question 
+        :param metric: name of the metric in question
         :param contextkey: context key of the metric in question
         :return: boolean indicating whether to trace this metric/key
         """
@@ -832,53 +832,51 @@ class CollectorDaemon(RRDDaemon):
         maintenanceCycle = MaintenanceCycle(interval, heartbeatSender, self._maintenanceCycle)
         maintenanceCycle.start()
 
+    @defer.inlineCallbacks
     def _maintenanceCycle(self, ignored=None):
         """
         Perform daemon maintenance processing on a periodic schedule. Initially
-        called after the daemon configuration loader task is added, but afterward
-        will self-schedule each run.
+        called after the daemon configuration loader task is added,
+        but afterward will self-schedule each run.
         """
-        self.log.debug("Performing periodic maintenance")
-
-        def _processDeviceIssues(result):
-            self.log.debug("deviceIssues=%r", result)
-            if result is None:
-                return result  # exception or some other problem
-
-            # Device ping issues returns as a tuple of (deviceId, count, total)
-            # and we just want the device id
-            newUnresponsiveDevices = set(i[0] for i in result)
-
-            clearedDevices = self._unresponsiveDevices.difference(newUnresponsiveDevices)
-            for devId in clearedDevices:
-                self.log.debug("Resuming tasks for device %s", devId)
-                self._scheduler.resumeTasksForConfig(devId)
-
-            self._unresponsiveDevices = newUnresponsiveDevices
-            for devId in self._unresponsiveDevices:
-                self.log.debug("Pausing tasks for device %s", devId)
-                self._scheduler.pauseTasksForConfig(devId)
-
-            return result
-
-        def _getDeviceIssues():
-            # TODO: handle different types of device issues, such as WMI issues
-            d = self.getDevicePingIssues()
-            return d
-
-        def _maintenance():
-            if self.options.cycle:
-                if getattr(self.preferences, 'pauseUnreachableDevices', True):
-                    d = defer.maybeDeferred(_getDeviceIssues)
-                    d.addCallback(_processDeviceIssues)
-                else:
-                    d = defer.succeed(None)
+        try:
+            self.log.debug("Performing periodic maintenance")
+            if not self.options.cycle:
+                ret = "No maintenance required"
+            elif getattr(self.preferences, 'pauseUnreachableDevices', True):
+                # TODO: handle different types of device issues
+                ret = yield self._pauseUnreachableDevices()
             else:
-                d = defer.succeed("No maintenance required")
-            return d
+                ret = None
+            defer.returnValue(ret)
+        except Exception:
+            self.log.exception('failure in _maintenanceCycle')
+            raise
 
-        d = _maintenance()
-        return d
+    @defer.inlineCallbacks
+    def _pauseUnreachableDevices(self):
+        issues = yield self.getDevicePingIssues()
+        self.log.debug("deviceIssues=%r", issues)
+        if issues is None:
+            defer.returnValue(issues)  # exception or some other problem
+
+        # Device ping issues returns as a tuple of (deviceId, count, total)
+        # and we just want the device id
+        newUnresponsiveDevices = set(i[0] for i in issues)
+
+        clearedDevices = self._unresponsiveDevices.difference(
+            newUnresponsiveDevices
+        )
+        for devId in clearedDevices:
+            self.log.debug("Resuming tasks for device %s", devId)
+            self._scheduler.resumeTasksForConfig(devId)
+
+        self._unresponsiveDevices = newUnresponsiveDevices
+        for devId in self._unresponsiveDevices:
+            self.log.debug("Pausing tasks for device %s", devId)
+            self._scheduler.pauseTasksForConfig(devId)
+
+        defer.returnValue(issues)
 
     def runPostConfigTasks(self, result=None):
         """
