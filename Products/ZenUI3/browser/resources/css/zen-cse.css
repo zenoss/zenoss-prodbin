@@ -2335,6 +2335,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-reports body {
         color: #333;
     }
+    .z-cse.z-cse-reports .zentable td {
+        padding: 3px;
+    }
+    .z-cse.z-cse-reports .zentable select.tablevalues {
+        min-width: 100px;
+    }
     .z-cse.z-cse-reports .navbar-default {
         background-color: transparent;
         background-image: none !important;
