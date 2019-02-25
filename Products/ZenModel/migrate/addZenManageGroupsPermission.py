@@ -15,7 +15,6 @@ This migration script adds the ZEN_MANAGE_GROUPS permission.
 
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 from Products.ZenModel.ZenossSecurity import (
     ZEN_MANAGER_ROLE,
@@ -28,7 +27,7 @@ from Products.ZenModel.ZenossSecurity import (
 
 class AddZenManageGroupsPermission(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:
