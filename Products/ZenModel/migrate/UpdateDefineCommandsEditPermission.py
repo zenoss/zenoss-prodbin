@@ -20,11 +20,10 @@ from Products.ZenModel.ZenossSecurity import (
     MANAGER_ROLE,
     ZEN_DEFINE_COMMANDS_EDIT
 )
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class UpdateDefineCommandsEditPermission(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:

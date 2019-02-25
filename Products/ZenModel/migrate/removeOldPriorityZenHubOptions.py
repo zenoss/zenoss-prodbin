@@ -13,7 +13,6 @@ import re
 import Migrate
 
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -51,7 +50,7 @@ class RemoveOldPriorityZenHubOptions(Migrate.Step):
     and anyworker configuration options.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     def cutover(self, dmd):
         try:
