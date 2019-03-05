@@ -49,7 +49,9 @@ class ZProxyMetricGatherer(MetricGatherer):
             for name in ["VmData", "VmExe", "VmHWM", "VmLck", "VmLib", "VmPTE",
                          "VmPeak", "VmPin", "VmRSS", "VmSize", "VmStk", "VmSwap",
                          "activeSessions", "freeThreads", "request1m",
-                         "requestTimeAvg1m", "requestTotal", "totalThreads",]:
+                         "requestTimeAvg1m", "requestTotal", "totalThreads",
+                         "slowRequestTotal", "slowRequest1m", 
+                         "slowRequestTimeAvg1m","slowRequestPercent"]:
                 metric_name = '%s.zope.%s' % (prefix, name)
                 metric_value = zope_data.get(name)
                 log.debug("Adding metric '%s': '%s'", metric_name, metric_value)
