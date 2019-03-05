@@ -23,11 +23,17 @@ from twisted.web.http_headers import Headers
 from httplib import UNAUTHORIZED
 from zope.interface import implements
 from txredis import RedisClientFactory
+
+# Import Globals before any Zenoss Products
+import Globals
+
 from Products.ZenUtils.MetricServiceRequest import getPool
+from Products.ZenUtils.Utils import unused
 
 import json as _stdlib_json
 from .compat import json
 
+unused(Globals)
 
 defaultMetricsChannel = "metrics"
 defaultMetricBufferSize = 65536

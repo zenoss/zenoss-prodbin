@@ -20,7 +20,6 @@ from servicemigration.graphconfig import GraphConfig
 from servicemigration.metricconfig import MetricConfig
 from servicemigration.graphdatapoint import GraphDatapoint
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.12")
 
@@ -28,7 +27,7 @@ sm.require("1.1.12")
 class AddZingConfigToZep(Migrate.Step):
     "Add reasonable defaults to zeneventserver to enable sending events to Zenoss cloud"
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 6)
 
     CLOUD_CONFIG_BLOCK = """
 
