@@ -24,22 +24,24 @@ class AddZingEndpointsToZenhubworker(Migrate.Step):
             return
 
 
-        endpoint_map = {
-            'zing-connector': Endpoint(
+        new_endpoints = [
+            Endpoint(
                 name="zing-connector",
                 purpose="import",
                 application="zing-connector",
+                applicationtemplate="zing-connector",
                 portnumber=9237,
                 protocol="tcp"
             ),
-            'zing-connector-admin': Endpoint(
+            Endpoint(
                 name="zing-connector-admin",
                 purpose="import",
                 application="zing-connector-admin",
+                applicationtemplate="zing-connector-admin",
                 portnumber=9000,
                 protocol="tcp"
             )
-        }
+        ]
 
 
         log.info("Looking for zenhubworkers services to migrate")
@@ -49,13 +51,14 @@ class AddZingEndpointsToZenhubworker(Migrate.Step):
             log.info("No 'zenhubworker' services found to migrate")
             return
 
-        for service, endpoint_key in itertools.product(services, endpoint_map.keys()):
-            if not filter(lambda endpoint: endpoint.purpose == "import" and endpoint.application == endpoint_key, service.endpoints):
-                log.info("Adding '%s' endpoint import to service '%s'", endpoint_key, service.name)
-                service.endpoints.append(
-                    endpoint_map[endpoint_key]
-                )
+        changed = False
+        for service, new_endpoint in itertools.product(services, new_endpoints):
+            if not filter(lambda endpoint: endpoint.purpose == new_endpoint.purpose and endpoint.application == new_endpoint.application, service.endpoints):
+                log.info("Adding '%s' endpoint import to service '%s'", new_endpoint.name, service.name)
+                service.endpoints.append(new_endpoint)
+                changed = True
 
-        ctx.commit()
+        if changed:
+            ctx.commit()
 
 AddZingEndpointsToZenhubworker()
