@@ -5,7 +5,7 @@ import unittest
 import common
 
 
-class Test_MakeTuningParamsIntoVariables(
+class test_addZingEndpointsToZenhubworker(
         unittest.TestCase, common.ServiceMigrationTestCase):
     """
     """
@@ -16,4 +16,4 @@ class Test_MakeTuningParamsIntoVariables(
 
 
 if __name__ == '__main__':
-unittest.main()
+    unittest.main()
