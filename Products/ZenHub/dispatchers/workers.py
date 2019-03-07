@@ -18,7 +18,7 @@ from twisted.internet import defer
 from twisted.spread import pb
 from zope.interface import implementer
 
-from Products.ZenUtils.logger import getLogger
+from Products.ZenUtils.Logger import getLogger
 from Products.ZenHub.PBDaemon import RemoteException
 
 from .base import IAsyncDispatch
