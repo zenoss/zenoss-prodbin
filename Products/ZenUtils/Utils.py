@@ -59,7 +59,7 @@ from zope.schema._field import Password
 
 from .Exceptions import ZenPathError, ZentinelException
 from .jsonutils import unjson
-from .logger import (
+from .Logger import (
     HtmlFormatter, setWebLoggingStream, clearWebLoggingStream, setLogLevel,
 )
 

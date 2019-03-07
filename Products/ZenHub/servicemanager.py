@@ -23,7 +23,7 @@ from zope.event import notify
 from zope.interface import implementer
 
 from Products.ZenHub import OPTION_STATE, CONNECT_TIMEOUT
-from Products.ZenUtils.logger import getLogger
+from Products.ZenUtils.Logger import getLogger
 from Products.ZenUtils.Utils import importClass, ipv6_available
 
 from .PBDaemon import RemoteBadMonitor, RemoteException
