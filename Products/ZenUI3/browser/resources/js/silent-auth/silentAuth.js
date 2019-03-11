@@ -36,7 +36,7 @@ var silentAuthNS = {
         return false
     },
     authenticateSilently: function () {
-        this.auth0_cz.checkSession({}, (err, result) => {
+        this.auth0_cz.checkSession({ timeout: 5000 }, (err, result) => {
             if (err) {
                 console.log(err);
             } else if (result) {
