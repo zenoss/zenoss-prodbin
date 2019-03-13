@@ -17,7 +17,6 @@ from Products.ZenHub.zenhubworker import (
     PingZenHub,
     ServiceReferenceFactory,
     ServiceReference,
-    RemoteConflictError,
     ZCmdBase,
     IDLE,
     ContinuousProfiler,
@@ -747,126 +746,7 @@ class ServiceReferenceTest(TestCase):
                 broker, message, args, kwargs
             )
 
-    def test_remoteMessageReceived_one_conflict(t):
-        broker = sentinel.broker
-        method = sentinel.method
-        args = sentinel.args
-        kwargs = sentinel.kwargs
-
-        mesg = sentinel.mesg
-        tb = sentinel.tb
-        error = RemoteConflictError(mesg, tb)
-        t.worker.async_syncdb.side_effect = [error]
-
-        expected = t.service.remoteMessageReceived.return_value
-
-        with patch.object(t.ref, "_ServiceReference__update_stats") as p:
-            d = t.ref.remoteMessageReceived(broker, method, args, kwargs)
-
-            t.assertEqual(expected, d.result)
-            p.assert_called_once_with(method)
-            t.worker.async_syncdb.assert_called_once_with()
-            t.service.remoteMessageReceived.assert_called_once_with(
-                broker, method, args, kwargs
-            )
-
-    def test_remoteMessageReceived_three_conflicts(t):
-        broker = sentinel.broker
-        method = sentinel.method
-        args = sentinel.args
-        kwargs = sentinel.kwargs
-
-        mesg = sentinel.mesg
-        tb = sentinel.tb
-        error = RemoteConflictError(mesg, tb)
-        t.worker.async_syncdb.side_effect = [error, error]
-
-        expected = sentinel.expected
-        t.service.remoteMessageReceived.side_effect = [error, expected]
-
-        with patch.object(t.ref, "_ServiceReference__update_stats") as p:
-            t.ref.debug = True
-            d = t.ref.remoteMessageReceived(broker, method, args, kwargs)
-
-            t.assertEqual(expected, d.result)
-            p.assert_called_once_with(method)
-            t.worker.async_syncdb.assert_has_calls([call(), call()])
-            t.service.remoteMessageReceived.assert_has_calls([
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-            ])
-
-    def test_remoteMessageReceived_last_retry(t):
-        broker = sentinel.broker
-        method = sentinel.method
-        args = sentinel.args
-        kwargs = sentinel.kwargs
-
-        mesg = sentinel.mesg
-        tb = sentinel.tb
-        error = RemoteConflictError(mesg, tb)
-        expected = sentinel.expected
-        t.service.remoteMessageReceived.side_effect = [
-            error, error, error, error, expected
-        ]
-
-        with patch.object(t.ref, "_ServiceReference__update_stats") as p:
-            t.ref.debug = True
-            d = t.ref.remoteMessageReceived(broker, method, args, kwargs)
-
-            t.assertEqual(expected, d.result)
-            p.assert_called_once_with(method)
-            t.worker.async_syncdb.assert_has_calls([
-                call(), call(), call(), call()
-            ])
-            t.service.remoteMessageReceived.assert_has_calls([
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-            ])
-
-    def test_remoteMessageReceived_raises_RemoteConflictError(t):
-        broker = sentinel.broker
-        method = sentinel.method
-        args = sentinel.args
-        kwargs = sentinel.kwargs
-
-        mesg = sentinel.mesg
-        tb = sentinel.tb
-        error = RemoteConflictError(mesg, tb)
-        t.service.remoteMessageReceived.side_effect = [
-            error, error, error, error, error
-        ]
-
-        class Capture(object):
-            result = None
-
-            def err(self, err):
-                self.result = err.trap(RemoteConflictError)
-
-        with patch.object(t.ref, "_ServiceReference__update_stats") as p:
-            t.ref.debug = True
-
-            handler = Capture()
-            d = t.ref.remoteMessageReceived(broker, method, args, kwargs)
-            d.addErrback(handler.err)
-
-            p.assert_called_once_with(method)
-            t.worker.async_syncdb.assert_has_calls([
-                call(), call(), call(), call()
-            ])
-            t.service.remoteMessageReceived.assert_has_calls([
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-                call(broker, method, args, kwargs),
-            ])
-            t.assertEqual(RemoteConflictError, handler.result)
-
-    def test_remoteMessageReceived_raises_other_exception(t):
+    def test_remoteMessageReceived_raises_exception(t):
         broker = sentinel.broker
         method = sentinel.method
         args = sentinel.args
