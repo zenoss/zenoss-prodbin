@@ -152,19 +152,26 @@ class WorkerPoolDispatcher(object):
                 self.__reactor.callLater(0, asyncjob.failure, ex)
             except ServiceCallError as ex:
                 if worker in self.__workers:
-                    self.__log.exception(
-                        "(worker %s) %s", worker.workerId, ex
+                    self.__log.error(
+                        "(worker %s) %s: %s", worker.workerId, ex, ex.source
                     )
                     self.__reactor.callLater(
                         0, asyncjob.failure,
                         pb.Error("Internal ZenHub error: %s" % (ex,))
                     )
                 else:
-                    self.__log.error(
+                    self.__log.warn(
                         "(worker %s) Bad worker ref: %s", worker.workerId, ex
                     )
                     # Bad worker reference, so retry the call
                     self.__worklist.pushfront(asyncjob)
+            except pb.PBConnectionLost as ex:
+                self.__log.warn(
+                    "(worker %s) Worker no longer accepting work: %s",
+                    worker.workerId, ex
+                )
+                # Worker went away, so retry the call
+                self.__worklist.pushfront(asyncjob)
             else:
                 self.__reactor.callLater(0, asyncjob.success, result)
 

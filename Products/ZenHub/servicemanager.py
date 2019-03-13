@@ -32,7 +32,7 @@ from .dispatchers import (
     DispatchingExecutor, EventDispatcher, WorkerPoolDispatcher,
     WorkerPool, ServiceCallJob, StatsMonitor
 )
-from .interfaces import IServiceAddedEvent
+from .interfaces import IServiceAddedEvent, IServiceReferenceFactory
 from .worklist import (
     ZenHubWorklist, ZenHubPriority, ModelingPaused,
     register_metrics_on_worklist, get_worklist_metrics
@@ -323,8 +323,8 @@ class HubServiceRegistry(Mapping):
         """Initialize a HubServiceRegistry instance.
 
         @param dmd {dmd} The ZODB dmd object.
-        @param factory {WorkerInterceptorFactory}
-            Builds WorkerInterceptor objects.
+        @param factory {IServiceReferenceFactory}
+            Builds IServiceReference objects.
         """
         self.__dmd = dmd
         self.__factory = factory
@@ -418,6 +418,7 @@ class UnknownServiceError(pb.Error):
     """
 
 
+@implementer(IServiceReferenceFactory)
 class WorkerInterceptorFactory(object):
     """This is a factory that builds WorkerInterceptor objects.
     """

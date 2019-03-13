@@ -237,7 +237,7 @@ class WorkerPoolDispatcherTest(TestCase):
         job = ServiceCallJob("service", "localhost", "method", [], {})
         ajob = AsyncServiceCallJob(job)
         worker = Mock(spec=WorkerRef, workerId=1)
-        error = ServiceCallError("boom")
+        error = ServiceCallError("boom", TypeError("original boom"))
         worker.run.side_effect = error
         cm = MagicMock(spec=("__exit__", "__enter__"))
         cm.__enter__.return_value = worker
@@ -247,9 +247,9 @@ class WorkerPoolDispatcherTest(TestCase):
         self.dispatcher._call_service(ajob)
 
         worker.run.assert_called_once_with(job)
-        self.assertTrue(self.logger.exception.called)
-        self.assertEqual(self.logger.exception.call_count, 1)
-        self.logger.error.assert_not_called()
+        self.logger.exception.assert_not_called()
+        self.assertTrue(self.logger.error.called)
+        self.assertEqual(self.logger.error.call_count, 1)
 
         self.assertTrue(self.reactor.callLater.called)
         self.assertEqual(self.reactor.callLater.call_count, 1)
@@ -266,7 +266,7 @@ class WorkerPoolDispatcherTest(TestCase):
         job = ServiceCallJob("service", "localhost", "method", [], {})
         ajob = AsyncServiceCallJob(job)
         worker = Mock(spec=WorkerRef, workerId=1)
-        error = ServiceCallError("boom")
+        error = ServiceCallError("boom", ValueError("original boom"))
         worker.run.side_effect = error
         cm = MagicMock(spec=("__exit__", "__enter__"))
         cm.__enter__.return_value = worker
@@ -276,7 +276,29 @@ class WorkerPoolDispatcherTest(TestCase):
         self.dispatcher._call_service(ajob)
 
         worker.run.assert_called_once_with(job)
-        self.logger.error.assert_called_once_with(ANY, worker.workerId, error)
+        self.logger.warn.assert_called_once_with(ANY, worker.workerId, error)
+        self.logger.error.assert_not_called()
+        self.logger.exception.assert_not_called()
+        self.reactor.callLater.assert_not_called()
+        self.worklist.pushfront.assert_called_once_with(ajob)
+        self.worklist.push.assert_not_called()
+
+    def test__call_service_PBConnectionLost(self):
+        job = ServiceCallJob("service", "localhost", "method", [], {})
+        ajob = AsyncServiceCallJob(job)
+        worker = Mock(spec=WorkerRef, workerId=1)
+        error = pb.PBConnectionLost("boom")
+        worker.run.side_effect = error
+        cm = MagicMock(spec=("__exit__", "__enter__"))
+        cm.__enter__.return_value = worker
+        self.workers.borrow.return_value = cm
+        self.workers.__contains__.return_value = False
+
+        self.dispatcher._call_service(ajob)
+
+        worker.run.assert_called_once_with(job)
+        self.logger.warn.assert_called_once_with(ANY, worker.workerId, error)
+        self.logger.error.assert_not_called()
         self.logger.exception.assert_not_called()
         self.reactor.callLater.assert_not_called()
         self.worklist.pushfront.assert_called_once_with(ajob)

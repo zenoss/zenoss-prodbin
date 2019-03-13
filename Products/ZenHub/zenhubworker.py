@@ -24,17 +24,19 @@ from twisted.cred.credentials import UsernamePassword
 from twisted.internet.endpoints import clientFromString
 from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
+from zope.interface import implementer
 
 import Globals
 
 from Products.DataCollector.plugins import DataMaps
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT, OPTION_STATE, CONNECT_TIMEOUT
+from Products.ZenHub.interfaces import IServiceReferenceFactory
 from Products.ZenHub.metricmanager import MetricManager
 from Products.ZenHub.servicemanager import (
     HubServiceRegistry, UnknownServiceError
 )
-from Products.ZenHub.PBDaemon import RemoteConflictError, RemoteBadMonitor
+from Products.ZenHub.PBDaemon import RemoteBadMonitor
 from Products.ZenUtils.debugtools import ContinuousProfiler
 from Products.ZenUtils.Time import isoDateTime
 from Products.ZenUtils.Utils import unused, zenPath, atomicWrite
@@ -173,6 +175,11 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.current = IDLE
         self.currentStart = 0
         if self.numCalls.count >= self.options.call_limit:
+            self.log.info(
+                "Call limit of %s reached, "
+                "proceeding to shutdown (and restart)",
+                self.options.call_limit
+            )
             self.__reactor.callLater(0, self._shutdown)
 
     def reportStats(self):
@@ -224,7 +231,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         try:
             return self.__registry.getService(name, monitor)
         except RemoteBadMonitor:
-            # Catch and rethrow this Exception dervived exception.
+            # Catch and rethrow this Exception derived exception.
             raise
         except UnknownServiceError:
             self.log.error("Service '%s' not found", name)
@@ -461,6 +468,7 @@ class ConnectedToZenHubSignalFile(object):
         self.__log.debug("Removed file '%s'", self.__signalFilePath)
 
 
+@implementer(IServiceReferenceFactory)
 class ServiceReferenceFactory(object):
     """This is a factory that builds ServiceReference objects.
     """
@@ -509,24 +517,16 @@ class ServiceReference(pb.Referenceable):
         """
         """
         with self.__update_stats(message):
-            for i in range(4):
-                try:
-                    yield self.__worker.async_syncdb()
-                except RemoteConflictError:
-                    pass
+            # Synchronize local ZODB cache with database
+            yield self.__worker.async_syncdb()
 
-                try:
-                    result = yield self.__service.remoteMessageReceived(
-                        broker, message, args, kw
-                    )
-                    defer.returnValue(result)
-                except RemoteConflictError:
-                    pass  # continue
-            else:
-                result = yield self.__service.remoteMessageReceived(
-                    broker, message, args, kw
-                )
-                defer.returnValue(result)
+            # Execute the request
+            result = yield self.__service.remoteMessageReceived(
+                broker, message, args, kw
+            )
+
+            # Return the result
+            defer.returnValue(result)
 
     @contextmanager
     def __update_stats(self, method):
