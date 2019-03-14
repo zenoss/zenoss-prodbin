@@ -99,7 +99,7 @@ class IInvalidationFilter(Interface):
     Filters invalidations before they're pushed to workers.
     """
     weight = Attribute(
-        "Where this filter should be in the process. Lower is earlier."
+        "Where this filter should be in the process. Lower is earlier.",
     )
 
     def initialize(context):
@@ -166,7 +166,7 @@ class ICollectorEventFingerprintGenerator(Interface):
 
     weight = Attribute(
         "The priority of the fingerprint generator. Generators are executed "
-        "in ascending order until the first non-None fingerprint is returned"
+        "in ascending order until the first non-None fingerprint is returned",
     )
 
     def generate(event):
@@ -201,7 +201,7 @@ class ICollectorEventTransformer(Interface):
 
     weight = Attribute(
         "The priority of the event transformer (the transformers are "
-        "executed in ascending order using the weight of each filter)"
+        "executed in ascending order using the weight of each filter)",
     )
 
     def transform(event):

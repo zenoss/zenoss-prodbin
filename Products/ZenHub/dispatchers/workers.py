@@ -66,8 +66,8 @@ class WorkerPoolDispatcher(object):
             dfr.addErrback(
                 lambda ex: self.__log.error(
                     "Failed to report status (%s): %s",
-                    worker.workerId, ex
-                )
+                    worker.workerId, ex,
+                ),
             )
             deferreds.append(dfr)
         return defer.DeferredList(deferreds)
@@ -82,7 +82,7 @@ class WorkerPoolDispatcher(object):
         # Schedule a call to _execute to process this newly submitted job.
         self.__reactor.callLater(0, self._execute)
         self.__log.info(
-            "Job submitted: (%s) %s.%s", job.monitor, job.service, job.method
+            "Job submitted: (%s) %s.%s", job.monitor, job.service, job.method,
         )
         return ajob.deferred
 
@@ -104,7 +104,7 @@ class WorkerPoolDispatcher(object):
                 defer.returnValue(None)
 
             self.__log.info(
-                "There are %s workers available", self.__workers.available
+                "There are %s workers available", self.__workers.available,
             )
             self.__log.info("Worklist has %s jobs", len(self.__worklist))
             asyncjob = self.__worklist.pop()
@@ -136,8 +136,8 @@ class WorkerPoolDispatcher(object):
         dfr = defer.maybeDeferred(listener, job)
         dfr.addErrback(
             lambda x: self.__log.error(
-                "Error in listener %r: %s", listener, x
-            )
+                "Error in listener %r: %s", listener, x,
+            ),
         )
         return dfr
 
@@ -153,22 +153,22 @@ class WorkerPoolDispatcher(object):
             except ServiceCallError as ex:
                 if worker in self.__workers:
                     self.__log.error(
-                        "(worker %s) %s: %s", worker.workerId, ex, ex.source
+                        "(worker %s) %s: %s", worker.workerId, ex, ex.source,
                     )
                     self.__reactor.callLater(
                         0, asyncjob.failure,
-                        pb.Error("Internal ZenHub error: %s" % (ex,))
+                        pb.Error("Internal ZenHub error: %s" % (ex,)),
                     )
                 else:
                     self.__log.warn(
-                        "(worker %s) Bad worker ref: %s", worker.workerId, ex
+                        "(worker %s) Bad worker ref: %s", worker.workerId, ex,
                     )
                     # Bad worker reference, so retry the call
                     self.__worklist.pushfront(asyncjob)
             except pb.PBConnectionLost as ex:
                 self.__log.warn(
                     "(worker %s) Worker no longer accepting work: %s",
-                    worker.workerId, ex
+                    worker.workerId, ex,
                 )
                 # Worker went away, so retry the call
                 self.__worklist.pushfront(asyncjob)
@@ -237,12 +237,12 @@ class StatsMonitor(object):
 
         self.__log.info(
             "(worker %s) Finished work job=%s elapsed=%0.3f",
-            wid, jobDesc, elapsed
+            wid, jobDesc, elapsed,
         )
         lifetime = finish - asyncjob.recvtime
         self.__log.info(
             "Job %s.%s (%s) lifetime was %0.3f seconds",
-            job.service, job.method, job.monitor, lifetime
+            job.service, job.method, job.monitor, lifetime,
         )
 
 
@@ -269,7 +269,7 @@ class JobStats(object):
 
 
 ServiceCallJob = collections.namedtuple(
-    "ServiceCallJob", "service monitor method args kwargs"
+    "ServiceCallJob", "service monitor method args kwargs",
 )
 
 
