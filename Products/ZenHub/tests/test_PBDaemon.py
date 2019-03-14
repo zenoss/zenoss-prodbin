@@ -867,17 +867,14 @@ class PBDaemonClassTest(TestCase):
 class PBDaemonTest(TestCase):
 
     def setUp(t):
-        # Patch external dependencies; e.g. twisted.internet.reactor
-        t.reactor_patcher = patch(
-            '{src}.reactor'.format(**PATH), autospec=True
-        )
-        t.reactor = t.reactor_patcher.start()
-        t.addCleanup(t.reactor_patcher.stop)
-        t.publisher_patcher = patch(
-            '{src}.publisher'.format(**PATH), autospec=True,
-        )
-        t.publisher = t.publisher_patcher.start()
-        t.addCleanup(t.publisher_patcher.stop)
+        # Patch external dependencies
+        # current version touches the reactor directly
+        patches = ['publisher', 'reactor']
+
+        for target in patches:
+            patcher = patch('{src}.{}'.format(target, **PATH), autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
 
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
@@ -898,7 +895,7 @@ class PBDaemonTest(TestCase):
     @patch('{src}.ZenDaemon.__init__'.format(**PATH), autospec=True)
     def test___init__(
         t, ZenDaemon_init, EventQueueManager, DaemonStats, startEvent,
-        stopEvent, LoopingCall, sys
+        stopEvent, LoopingCall, sys,
     ):
         noopts = 0,
         keeproot = False
@@ -1605,7 +1602,26 @@ class PBDaemonTest(TestCase):
         '''After initialization, the InvalidationWorker instance should have
         options parsed from its buildOptions method
         assertions based on default options
+
+        Patch ZenDaemon's init, because CmdBase will override config
+        settings with values from the global.conf file
         '''
+        t.init_patcher = patch.object(
+            PBDaemon, '__init__', autospec=True, return_value=None
+        )
+        t.init_patcher.start()
+        t.addCleanup(t.init_patcher.stop)
+
+
+        t.pbd = PBDaemon()
+        t.pbd.parser = None
+        t.pbd.usage = "%prog [options]"
+        t.pbd.noopts = True
+        t.pbd.inputArgs = None
+
+        t.pbd.buildOptions()
+        t.pbd.parseOptions()
+
         from Products.ZenHub.PBDaemon import (
             DEFAULT_HUB_HOST, DEFAULT_HUB_PORT, DEFAULT_HUB_USERNAME,
             DEFAULT_HUB_PASSWORD, DEFAULT_HUB_MONITOR
@@ -1635,15 +1651,20 @@ class PBDaemonTest(TestCase):
         t.assertEqual(t.pbd.options.redisUrl, expected_redisurl)
 
         t.assertEqual(
-            t.pbd.options.metricBufferSize,
-            t.publisher.defaultMetricBufferSize,
+            t.pbd.options.redisUrl,
+            'redis://localhost:{default}/0'.format(
+                default=t.publisher.defaultRedisPort
+            )
         )
         t.assertEqual(
-            t.pbd.options.metricsChannel, t.publisher.defaultMetricsChannel,
+            t.pbd.options.metricBufferSize, t.publisher.defaultMetricBufferSize
+        )
+        t.assertEqual(
+            t.pbd.options.metricsChannel, t.publisher.defaultMetricsChannel
         )
         t.assertEqual(
             t.pbd.options.maxOutstandingMetrics,
-            t.publisher.defaultMaxOutstandingMetrics,
+            t.publisher.defaultMaxOutstandingMetrics
         )
         t.assertEqual(t.pbd.options.pingPerspective, True)
         t.assertEqual(t.pbd.options.writeStatistics, 30)

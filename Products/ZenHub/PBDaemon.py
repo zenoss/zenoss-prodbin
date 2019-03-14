@@ -1140,6 +1140,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def buildOptions(self):
+        ZenDaemon.buildOptions(self)
+
         self.parser.add_option('--hubhost',
                                 dest='hubhost',
                                 default=DEFAULT_HUB_HOST,
@@ -1256,5 +1258,3 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                default=30,
                                help='How often to write internal statistics value in seconds')
-
-        ZenDaemon.buildOptions(self)
