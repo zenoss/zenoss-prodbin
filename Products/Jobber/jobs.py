@@ -1,38 +1,45 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2019 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
+from __future__ import absolute_import
 
-import sys
-import os
-import time
-import logging
-import Queue
 import errno
+import logging
+import os
+import Queue
 import signal
 import six
-import subprocess
 import socket
-from datetime import datetime
-
+import subprocess
+import sys
+import time
 import transaction
+
 from AccessControl.SecurityManagement import (
-        newSecurityManager, noSecurityManager
-    )
+    newSecurityManager,
+    noSecurityManager,
+)
+from datetime import datetime
 from Products.CMFCore.utils import getToolByName
 from ZODB.transact import transact
 
 from Products.ZenUtils.Utils import (
-        InterruptableThread, ThreadInterrupt, LineReader
-    )
+    InterruptableThread,
+    ThreadInterrupt,
+    LineReader,
+)
 from Products.ZenUtils.celeryintegration import (
-        current_app, Task, states, get_task_logger
-    )
+    current_app,
+    Task,
+    states,
+    get_task_logger,
+)
 from Products.ZenEvents import Event
 
 from .exceptions import NoSuchJobException, SubprocessJobFailed
@@ -41,19 +48,18 @@ _MARKER = object()
 
 
 class JobAborted(ThreadInterrupt):
-    """
-    The job has been aborted.
-    """
+    """The job has been aborted."""
 
 
 class SubJob(object):
-    """
-    Container for a job invocation.  Use the Job.makeSubJob method to create
-    instances of this class.
+    """Container for a job invocation.
+
+    Use the Job.makeSubJob method to create instances of this class.
     """
 
-    def __init__(self, job,
-            args=None, kwargs=None, description=None, options={}):
+    def __init__(
+        self, job, args=None, kwargs=None, description=None, options={},
+    ):
         """
         Initialize an instance of SubJob.
 
@@ -75,9 +81,8 @@ class SubJob(object):
 
 
 class Job(Task):
-    """
-    Base class for jobs.
-    """
+    """Base class for jobs."""
+
     abstract = True  # Job class itself is not registered.
     initialize_timeout = 30  # seconds
     _runner_thread = None
@@ -90,32 +95,42 @@ class Job(Task):
 
     @classmethod
     def getJobType(cls):
-        """
+        """Return a general, but brief, description of the job.
+
+        By default, the class type name is returned.
         """
         return cls.name
 
     @classmethod
     def getJobDescription(cls, *args, **kwargs):
-        """
-        This is expected to be overridden in subclasses for nice descriptions.
+        """Return a description of the job.
+
+        The description can be specific to the job instance.
+        This must be overridden by subclasses.
         """
         raise NotImplementedError
 
     @classmethod
     def makeSubJob(cls, args=None, kwargs=None, description=None, **options):
-        """
-        Return a SubJob instance that wraps the given job and its arguments
-        and options.
+        """Return a SubJob instance.
+
+        The SubJob instance wraps the given job, its arguments, and options.
         """
         job = current_app.tasks[cls.name]
-        return SubJob(job, args=args, kwargs=kwargs,
-                description=description, options=options)
+        return SubJob(
+            job,
+            args=args,
+            kwargs=kwargs,
+            description=description,
+            options=options,
+        )
 
     def setProperties(self, **properties):
+        """Apply key/value pairs to the JobRecord."""
         self.app.backend.update(self.request.id, **properties)
 
     def _get_config(self, key, default=_MARKER):
-        opts = getattr(self.app, 'db_options', None)
+        opts = getattr(self.app, "db_options", None)
         sanitized_key = key.replace("-", "_")
         value = getattr(opts, sanitized_key, _MARKER)
         if value is _MARKER:
@@ -124,9 +139,10 @@ class Job(Task):
 
     @property
     def log(self):
+        """Return the logger for this job."""
         if self._log is None:
             # Get log directory, ensure it exists
-            logdir = self._get_config('job-log-path')
+            logdir = self._get_config("job-log-path")
             try:
                 os.makedirs(logdir)
             except OSError as e:
@@ -134,21 +150,20 @@ class Job(Task):
                     raise
             # Make the logfile path and store it in the backend for later
             # retrieval
-            logfile = os.path.join(logdir, '%s.log' % self.request.id)
+            logfile = os.path.join(logdir, "%s.log" % self.request.id)
             self.setProperties(logfile=logfile)
             self._log = get_task_logger(self.request.id)
-            self._log.setLevel(self._get_config('logseverity'))
+            self._log.setLevel(self._get_config("logseverity"))
             handler = logging.FileHandler(logfile)
             handler.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s zen.Job: %(message)s"))
+                "%(asctime)s %(levelname)s zen.Job: %(message)s",
+            ))
             self._log.handlers = [handler]
         return self._log
 
     @property
     def dmd(self):
-        """
-        Gets the dmd object from the backend
-        """
+        """Return current dmd instance."""
         return self.app.backend.dmd
 
     def _wait_for_pending_job(self, job_id):
@@ -173,8 +188,10 @@ class Job(Task):
                     status = self.app.backend.get_status(job_id)
                 except NoSuchJobException:
                     status = states.ABORTED
-                if status == states.ABORTED and \
-                        self._runner_thread is not None:
+                if (
+                    status == states.ABORTED
+                    and self._runner_thread is not None
+                ):
                     self.log.info("Job %s is aborted", job_id)
                     # Sometimes the thread is about to commit before it
                     # can get interrupted.  self._aborted_tasks is an
@@ -197,7 +214,7 @@ class Job(Task):
         job_record = self.dmd.JobManager.getJob(job_id)
         # Log in as the job's user
         self.log.debug("Logging in as %s", job_record.user)
-        utool = getToolByName(self.dmd.getPhysicalRoot(), 'acl_users')
+        utool = getToolByName(self.dmd.getPhysicalRoot(), "acl_users")
         user = utool.getUserById(job_record.user)
         if user is None:
             user = self.dmd.zport.acl_users.getUserById(job_record.user)
@@ -219,9 +236,7 @@ class Job(Task):
             self.request_stack.push(request)
             try:
                 result = _runjob()
-                self.log.info(
-                    "Job %s finished with result %s", job_id, result
-                )
+                self.log.info("Job %s finished with result %s", job_id, result)
                 self._result_queue.put(result)
             except JobAborted:
                 self.log.warning("Job %s aborted.", job_id)
@@ -245,6 +260,7 @@ class Job(Task):
             self.backend.reset()
 
     def run(self, *args, **kwargs):
+        """Execute the job."""
         job_id = self.request.id
         self.log.info("Job %s (%s) received", job_id, self.name)
         self.log.debug("Waiting for job %s to appear in database", job_id)
@@ -263,21 +279,22 @@ class Job(Task):
         self.log.debug("Job %s found in database", job_id)
 
         self._aborter_thread = InterruptableThread(
-                target=self._check_aborted, args=(job_id,)
-            )
+            target=self._check_aborted, args=(job_id,),
+        )
         # Forward the request to the thread because the self.request
         # property is a thread-local value.
         self._runner_thread = InterruptableThread(
-                target=self._do_run, args=(self.request,),
-                kwargs={'args': args, 'kwargs': kwargs}
-            )
+            target=self._do_run,
+            args=(self.request,),
+            kwargs={"args": args, "kwargs": kwargs},
+        )
 
         try:
             # Install a SIGTERM handler so that the 'runner_thread' can be
             # interrupted/aborted when the TERM signal is received.
             self._origsigtermhandler = signal.signal(
-                    signal.SIGTERM, self._sigtermhandler
-                )
+                signal.SIGTERM, self._sigtermhandler,
+            )
 
             self._runner_thread.start()
             self._aborter_thread.start()
@@ -303,13 +320,12 @@ class Job(Task):
                         links.extend(callback.flatten_links())
                 for link in links:
                     link.type.update_state(
-                        task_id=link.options['task_id'],
-                        state=states.ABORTED
+                        task_id=link.options["task_id"], state=states.ABORTED,
                     )
                 if links:
                     self.log.info(
                         "Dependent job(s) %s aborted",
-                        ', '.join(link.options['task_id'] for link in links)
+                        ", ".join(link.options["task_id"] for link in links),
                     )
                 raise six.reraise(cls, instance, exc_traceback=tb)
 
@@ -336,6 +352,7 @@ class Job(Task):
             self._log = None
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Call to handle job failures."""
         # Because JobAborted is an exception, celery will change the state to
         # FAILURE once the task completes. Since we want it to remain ABORTED,
         # we'll set it back here.
@@ -359,14 +376,17 @@ class Job(Task):
 
 
 class SubprocessJob(Job):
+    """Use this job to execute shell commands."""
 
     @classmethod
     def getJobType(cls):
+        """Return a general, but brief, description of the job."""
         return "Shell Command"
 
     @classmethod
     def getJobDescription(cls, cmd, environ=None):
-        return cmd if isinstance(cmd, basestring) else ' '.join(cmd)
+        """Return a description of the job."""
+        return cmd if isinstance(cmd, basestring) else " ".join(cmd)
 
     def _run(self, cmd, environ=None):
         self.log.debug("Running Job %s %s", self.getJobType(), self.name)
@@ -376,15 +396,22 @@ class SubprocessJob(Job):
             environ = newenviron
         process = None
         exitcode = None
-        output = ''
+        output = ""
         handler = self.log.handlers[0]
         originalFormatter = handler.formatter
-        lineFormatter = logging.Formatter('%(message)s')
+        lineFormatter = logging.Formatter("%(message)s")
         try:
-            self.log.info("Spawning subprocess: %s", SubprocessJob.getJobDescription(cmd))
-            process = subprocess.Popen(cmd, bufsize=1, env=environ,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
+            self.log.info(
+                "Spawning subprocess: %s",
+                SubprocessJob.getJobDescription(cmd),
+            )
+            process = subprocess.Popen(
+                cmd,
+                bufsize=1,
+                env=environ,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
 
             # Since process.stdout.readline() is a blocking call, it stops
             # the injected exception from being raised until it unblocks.
@@ -417,31 +444,37 @@ class SubprocessJob(Job):
             job_record = self.dmd.JobManager.getJob(self.request.id)
             description = job_record.job_description
             summary = 'Job "%s" finished with failure result.' % description
-            message = "exit code %s for %s; %s" % (exitcode, SubprocessJob.getJobDescription(cmd), output)
+            message = "exit code %s for %s; %s" % (
+                exitcode,
+                SubprocessJob.getJobDescription(cmd),
+                output,
+            )
 
             self.dmd.ZenEventManager.sendEvent({
-                'device': device,
-                'severity': Event.Error,
-                'component': 'zenjobs',
-                'eventClass': '/App/Job/Fail',
-                'message': message,
-                'summary': summary,
+                "device": device,
+                "severity": Event.Error,
+                "component": "zenjobs",
+                "eventClass": "/App/Job/Fail",
+                "message": message,
+                "summary": summary,
             })
-            
+
             raise SubprocessJobFailed(exitcode)
         return exitcode
 
+
 class PruneJob(Job):
-    """
-    Prune old jobs in the job catalog.
-    """
+    """Prune old jobs in the job catalog."""
+
     @classmethod
     def getJobType(cls):
+        """Return a general, but brief, description of the job."""
         return "Prune Job"
 
     @classmethod
     def getJobDescription(cls, **kwargs):
-        return "Prune jobs older than %s" % kwargs['untiltime']
+        """Return a description of the job."""
+        return "Prune jobs older than %s" % kwargs["untiltime"]
 
     def _run(self, untiltime, *args, **kwargs):
         self.args = args
