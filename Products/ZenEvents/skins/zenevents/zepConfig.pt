@@ -33,6 +33,7 @@
         <div id="clearHeartbeat"></div>
         <script tal:condition="here/isManager">
             Ext.onReady(function () {
+                var router = Zenoss.remote.EventsRouter;
                 new Ext.Panel({
                     renderTo: 'clearHeartbeat',
                     layout: 'anchor',
