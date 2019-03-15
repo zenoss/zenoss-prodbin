@@ -30,12 +30,12 @@ from .PBDaemon import RemoteBadMonitor, RemoteException
 from .XmlRpcService import XmlRpcService
 from .dispatchers import (
     DispatchingExecutor, EventDispatcher, WorkerPoolDispatcher,
-    WorkerPool, ServiceCallJob, StatsMonitor
+    WorkerPool, ServiceCallJob, StatsMonitor,
 )
-from .interfaces import IServiceAddedEvent
+from .interfaces import IServiceAddedEvent, IServiceReferenceFactory
 from .worklist import (
     ZenHubWorklist, ZenHubPriority, ModelingPaused,
-    register_metrics_on_worklist, get_worklist_metrics
+    register_metrics_on_worklist, get_worklist_metrics,
 )
 
 banana.SIZE_LIMIT = 1024 * 1024 * 10
@@ -95,11 +95,11 @@ class HubServiceManager(object):
         self.__workers = WorkerPool()
         self.__stats = StatsMonitor()
         self.__workerdispatcher = WorkerPoolDispatcher(
-            reactor, self.__worklist, self.__workers, self.__stats
+            reactor, self.__worklist, self.__workers, self.__stats,
         )
         events = EventDispatcher(dmd.ZenEventManager)
         executor = DispatchingExecutor(
-            [events], default=self.__workerdispatcher
+            [events], default=self.__workerdispatcher,
         )
         service_factory = WorkerInterceptorFactory(executor)
         self.__services = HubServiceRegistry(dmd, service_factory)
@@ -166,27 +166,27 @@ class HubServiceManager(object):
             "Hub Execution Timings:",
             "   {:<32} {:>8} {:>12} {:>13}  {} ".format(
                 "method", "count", "idle_total",
-                "running_total", "last_called_time"
-            )
+                "running_total", "last_called_time",
+            ),
         ])
 
         statline = " - {:<32} {:>8} {:>12} {:>13}  {:%Y-%m-%d %H:%M:%S}"
         sorted_by_running_total = sorted(
-            execTimer.iteritems(), key=lambda e: -(e[1].running_total)
+            execTimer.iteritems(), key=lambda e: -(e[1].running_total),
         )
         lines.extend(
             statline.format(
                 method, stats.count,
                 timedelta(seconds=round(stats.idle_total)),
                 timedelta(seconds=round(stats.running_total)),
-                datetime.fromtimestamp(stats.last_called_time)
+                datetime.fromtimestamp(stats.last_called_time),
             )
             for method, stats in sorted_by_running_total
         )
 
         lines.extend([
             "",
-            "Worker Stats:"
+            "Worker Stats:",
         ])
         nostatsFmt = "    {:>2}:Idle [] No jobs run"
         statsFmt = "    {:>2}:{} [{}  Idle: {}] {}"
@@ -194,7 +194,7 @@ class HubServiceManager(object):
             statsFmt.format(
                 workerId, stats.status, stats.description,
                 timedelta(seconds=round(stats.previdle)),
-                timedelta(seconds=round(now - stats.lastupdate))
+                timedelta(seconds=round(now - stats.lastupdate)),
             )
             if stats else nostatsFmt.format(workerId)
             for workerId, stats in sorted(workTracker.iteritems())
@@ -210,14 +210,14 @@ class HubServiceManager(object):
         sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
         self.__log.debug(
             "set socket%s  CONNECT_TIMEOUT:%d  TCP_KEEPINTVL:%d",
-            sock.getsockname(), CONNECT_TIMEOUT, interval
+            sock.getsockname(), CONNECT_TIMEOUT, interval,
         )
 
     def __raiseMissingKeywordError(self, name):
         raise TypeError(
             "%s.__init__ missing expected keyword argument: %s" % (
-                type(self).__name__, name
-            )
+                type(self).__name__, name,
+            ),
         )
 
 
@@ -301,7 +301,7 @@ class HubAvatar(pb.Avatar):
         except Exception as ex:
             self.__log.exception("Failed to add worker %s", workerId)
             raise pb.Error(
-                "Internal ZenHub error: %s: %s" % (ex.__class__, ex)
+                "Internal ZenHub error: %s: %s" % (ex.__class__, ex),
             )
 
         def removeWorker(worker):
@@ -323,8 +323,8 @@ class HubServiceRegistry(Mapping):
         """Initialize a HubServiceRegistry instance.
 
         @param dmd {dmd} The ZODB dmd object.
-        @param factory {WorkerInterceptorFactory}
-            Builds WorkerInterceptor objects.
+        @param factory {IServiceReferenceFactory}
+            Builds IServiceReference objects.
         """
         self.__dmd = dmd
         self.__factory = factory
@@ -369,7 +369,7 @@ class HubServiceRegistry(Mapping):
         # Sanity check the names given to us
         if not self.__dmd.Monitors.Performance._getOb(monitor, False):
             raise RemoteBadMonitor(
-                "Unknown performance monitor: '%s'" % (monitor,), None
+                "Unknown performance monitor: '%s'" % (monitor,), None,
             )
 
         svc = self.__services.get((name, monitor))
@@ -418,6 +418,7 @@ class UnknownServiceError(pb.Error):
     """
 
 
+@implementer(IServiceReferenceFactory)
 class WorkerInterceptorFactory(object):
     """This is a factory that builds WorkerInterceptor objects.
     """
@@ -471,10 +472,10 @@ class WorkerInterceptor(pb.Referenceable):
             args = broker.unserialize(args)
             kw = broker.unserialize(kw)
             job = ServiceCallJob(
-                self.__name, self.__monitor, message, args, kw
+                self.__name, self.__monitor, message, args, kw,
             )
             self.__log.info(
-                "Calling %s.%s from %s", self.__name, message, self.__monitor
+                "Calling %s.%s from %s", self.__name, message, self.__monitor,
             )
             state = yield self.__executor.submit(job)
             response = broker.serialize(state, self.perspective)
@@ -482,7 +483,7 @@ class WorkerInterceptor(pb.Referenceable):
         except (pb.Error, pb.RemoteError, RemoteException):
             self.__log.info(
                 "Called  %s.%s from %s [failure]",
-                self.__name, message, self.__monitor
+                self.__name, message, self.__monitor,
             )
             raise  # propagate these exceptions
         except Exception as ex:
@@ -492,7 +493,7 @@ class WorkerInterceptor(pb.Referenceable):
             end = time.time()
             self.callTime += (end - begin)
             self.__log.info(
-                "Called  %s.%s from %s", self.__name, message, self.__monitor
+                "Called  %s.%s from %s", self.__name, message, self.__monitor,
             )
 
     def __getattr__(self, attr):
@@ -547,8 +548,8 @@ class AuthXmlRpcService(XmlRpcService):
             self.unauthorized(request)
         else:
             try:
-                type, encoded = auth.split()
-                if type not in ('Basic',):
+                authtype, encoded = auth.split()
+                if authtype not in ('Basic',):
                     self.unauthorized(request)
                 else:
                     user, passwd = encoded.decode('base64').split(':')
