@@ -1,44 +1,46 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2009-2019 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
+from __future__ import absolute_import
 
 import os
+import transaction
 
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-import transaction
-
-from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, getSecurityManager
+from AccessControl.class_init import InitializeClass
 from Acquisition import aq_base
-from AccessControl import getSecurityManager
 from OFS.ObjectManager import ObjectManager
 from Products.PluginIndexes.DateIndex.DateIndex import DateIndex
 from Products.Five.browser import BrowserView
+from ZODB.POSException import ConflictError
+
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.celeryintegration import current_app, states, chain
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
-from ZODB.POSException import ConflictError
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD, ZEN_ADD
 
 from .exceptions import NoSuchJobException
 from .jobs import Job, PruneJob
 
 from logging import getLogger
+
 log = getLogger("zen.JobManager")
 
 CATALOG_NAME = "job_catalog"
 
 
 def _dispatchTask(task, **kwargs):
-    """
+    """Dispatch the task when the transaction commits successfully.
+
     Delay the actual scheduling of the job until the transaction manages
     to get itself committed. This prevents Celery from getting a new task
     for every retry in the event of ConflictErrors. See ZEN-2704.
@@ -46,26 +48,31 @@ def _dispatchTask(task, **kwargs):
     opts = dict(kwargs)
     # Have to use a closure because of Celery's funky signature inspection
     # and because of the status argument transaction passes
+
     def hook(status, **kw):
         log.debug("Commit hook status: %s args: %s", status, kw)
         if status:
             log.info("Dispatching %s job to zenjobs", type(task))
             # Push the task out to AMQP (ignore returned object).
             task.apply_async(**opts)
+
     transaction.get().addAfterCommitHook(hook)
 
 
-def manage_addJobManager(context, id="JobManager"):
-    jm = JobManager(id)
-    context._setObject(id, jm)
-    return getattr(context, id)
+def manage_addJobManager(context, oid="JobManager"):
+    """Add the JobManager class to dmd."""
+    jm = JobManager(oid)
+    context._setObject(oid, jm)
+    return getattr(context, oid)
 
 
 class JobRecord(ObjectManager):
+    """A record of a single Job's metadata."""
 
     errors = ""
-    
+
     def __init__(self, *args, **kwargs):
+        """Initialize a JobRecord instance."""
         ObjectManager.__init__(self, *args)
         self.user = None
         self.job_name = None
@@ -79,6 +86,10 @@ class JobRecord(ObjectManager):
         self.update(kwargs)
 
     def __getitem__(self, key):
+        """Return the value associated with the given attribute name.
+
+        KeyError is raised if the attribute doesn't exist.
+        """
         try:
             return getattr(self, key)
         except AttributeError:
@@ -94,18 +105,24 @@ class JobRecord(ObjectManager):
                     break
             else:
                 raise AttributeError(
-                        "No job class associated with job %s" % self.id
-                    )
+                    "No job class associated with job %s" % self.id,
+                )
         return current_app.tasks[self.job_name].AsyncResult(self.getId())
 
     def abort(self):
+        """Abort the job."""
         # This will occur immediately.
         return self._async_result.abort()
 
     def wait(self):
+        """Wait for the job to complete.
+
+        This call will block until the job has completed.
+        """
         return self._async_result.wait()
 
     def update(self, d):
+        """Update attributes on the JobRecord object."""
         for k, v in d.iteritems():
             setattr(self, k, v)
         if self.isFinished():
@@ -115,52 +132,64 @@ class JobRecord(ObjectManager):
         if not hasattr(self, "logfile"):
             return ""
         try:
-            with open(self.logfile, 'r') as f:
-                buffer = f.readlines()
+            with open(self.logfile, "r") as f:
+                buf = f.readlines()
                 # look for error level log lines
-                return "\n".join([ line for line in buffer if "ERROR zen." in line])
+                return "\n".join(
+                    line for line in buf if "ERROR zen." in line
+                )
         except (IOError, AttributeError, TypeError):
             return ""
 
     def isFinished(self):
-        return getattr(self, 'status', None) in states.READY_STATES
+        """Return True if the job has completed."""
+        return getattr(self, "status", None) in states.READY_STATES
 
     def getId(self):
-        return getattr(aq_base(self), 'id', None)
+        """Return the ID of the JobRecord."""
+        return getattr(aq_base(self), "id", None)
 
     @property
     def uuid(self):
+        """Return the ID of the JobRecord."""
         return self.getId()
 
     @property
     def description(self):
+        """Return the description found in the JobRecord."""
         return self.job_description
 
-    @property
+    @property  # noqa: A003
     def type(self):
+        """Return the summary found in the JobRecord."""
         return self.job_type
 
     @property
     def scheduled(self):
+        """Return the timestamp when the job was created."""
         return self.date_scheduled
 
     @property
     def started(self):
+        """Return the timestamp when the job was started."""
         return self.date_started
 
     @property
     def finished(self):
+        """Return the timestamp when the job completed."""
         return self.date_done
 
 
 class JobManager(ZenModelRM):
+    """Manages Jobs and JobRecords."""
 
     security = ClassSecurityInfo()
-    meta_type = portal_type = 'JobManager'
+    meta_type = portal_type = "JobManager"
     lastPruneJobAddTime = datetime.now()
     lastPruneTime = lastPruneJobAddTime
 
     def getCatalog(self):
+        """Return the ZCatalog for JobRecords."""
         try:
             return self._getOb(CATALOG_NAME)
         except AttributeError:
@@ -170,15 +199,15 @@ class JobManager(ZenModelRM):
             manage_addZCatalog(self, CATALOG_NAME, CATALOG_NAME)
             zcat = self._getOb(CATALOG_NAME)
             cat = zcat._catalog
-            for idxname in ['status', 'type', 'user']:
+            for idxname in ["status", "type", "user"]:
                 cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
-            for idxname in ['scheduled', 'started', 'finished']:
+            for idxname in ["scheduled", "started", "finished"]:
                 cat.addIndex(idxname, DateIndex(idxname))
             return zcat
 
     def _addJobChain(self, *joblist, **options):
-        """
-        Submit a list of SubJob objects that will execute in list order.
+        """Submit a list of SubJob objects that will execute in list order.
+
         If options are specified, they are applied to each subjob; options
         that were specified directly on the subjob are not overridden.
 
@@ -200,12 +229,17 @@ class JobManager(ZenModelRM):
             opts = dict(task_id=task_id, **options)
             opts.update(subjob.options)
             subtask = subjob.job.subtask(
-                    args=subjob.args, kwargs=subjob.kwargs, **opts
-                )
-            records.append(self._savejobrecord(
-                task_id, subjob.job, subjob.description,
-                subjob.args, subjob.kwargs
-            ))
+                args=subjob.args, kwargs=subjob.kwargs, **opts
+            )
+            records.append(
+                self._savejobrecord(
+                    task_id,
+                    subjob.job,
+                    subjob.description,
+                    subjob.args,
+                    subjob.kwargs,
+                ),
+            )
             subtasks.append(subtask)
         task = chain(*subtasks)
 
@@ -214,17 +248,22 @@ class JobManager(ZenModelRM):
 
         return records
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'addJobChain')
+    security.declareProtected(ZEN_MANAGE_DMD, "addJobChain")
+
     def addJobChain(self, *joblist, **options):
-
+        """Add a chain of jobs."""
         records = self._addJobChain(*joblist, **options)
-
         self.pruneOldJobs()
-
         return records
 
-    def _addJob(self, jobclass,
-            description=None, args=None, kwargs=None, properties=None):
+    def _addJob(
+        self,
+        jobclass,
+        description=None,
+        args=None,
+        kwargs=None,
+        properties=None,
+    ):
         """
         Schedule a new L{Job} from the class specified.
 
@@ -246,19 +285,32 @@ class JobManager(ZenModelRM):
 
         # Create a job record
         jobrecord = self._savejobrecord(
-                job_id, job, description, args, kwargs, **properties
-            )
+            job_id, job, description, args, kwargs, **properties
+        )
 
         # Dispatch job to zenjobs queue
         _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
 
         return jobrecord
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'addJob')
-    def addJob(self, jobclass,
-            description=None, args=None, kwargs=None, properties=None):
+    security.declareProtected(ZEN_MANAGE_DMD, "addJob")
 
-        jobrecord = self._addJob(jobclass, description=description, args=args, kwargs=kwargs, properties=properties)
+    def addJob(
+        self,
+        jobclass,
+        description=None,
+        args=None,
+        kwargs=None,
+        properties=None,
+    ):
+        """Schedule a new job."""
+        jobrecord = self._addJob(
+            jobclass,
+            description=description,
+            args=args,
+            kwargs=kwargs,
+            properties=properties,
+        )
 
         self.pruneOldJobs()
 
@@ -278,33 +330,36 @@ class JobManager(ZenModelRM):
 
         # Add job metadata to the database
         meta = JobRecord(
-                id=job_id,
-                user=user,
-                job_name=job.name,
-                job_type=job.getJobType(),
-                job_description=desc,
-                date_scheduled=datetime.utcnow(),
-            )
+            id=job_id,
+            user=user,
+            job_name=job.name,
+            job_type=job.getJobType(),
+            job_description=desc,
+            date_scheduled=datetime.utcnow(),
+        )
         for prop, propval in properties.iteritems():
             setattr(meta, prop, propval)
         self._setOb(job_id, meta)
         jobrecord = self._getOb(job_id)
         self.getCatalog().catalog_object(jobrecord)
-        log.info("Created job %s: %s, description: %s", job, jobrecord.id, desc)
+        log.info(
+            "Created job %s: %s, description: %s", job, jobrecord.id, desc,
+        )
         return jobrecord
 
     def wait(self, job_id):
+        """Wait for the job identified by job_id to complete."""
         return self.getJob(job_id).wait()
 
     def update(self, job_id, **kwargs):
+        """Update the jobrecord identified by job_id with the given values."""
         log.debug("Updating job %s with %s", job_id, kwargs)
         jobrecord = self.getJob(job_id)
         jobrecord.update(kwargs)
         self.getCatalog().catalog_object(jobrecord)
 
     def getJob(self, jobid):
-        """
-        Return a L{JobRecord} object that matches the id specified.
+        """Return a L{JobRecord} object that matches the id specified.
 
         @param jobid: id of the L{JobRecord}.
         @type jobid: str
@@ -320,23 +375,27 @@ class JobManager(ZenModelRM):
             raise NoSuchJobException(jobid)
 
     def deleteJob(self, jobid):
+        """Delete the job.
+
+        @param jobid {str} Identifies the job.
+        """
         job = self.getJob(jobid)
         if not job.isFinished():
             job.abort()
         # Clean up the log file
-        if getattr(job, 'logfile', None) is not None:
+        if getattr(job, "logfile", None) is not None:
             try:
                 os.remove(job.logfile)
             except (OSError, IOError):
                 # Did our best!
                 pass
-        self.getCatalog().uncatalog_object('/'.join(job.getPhysicalPath()))
+        self.getCatalog().uncatalog_object("/".join(job.getPhysicalPath()))
         return self._delObject(jobid)
 
     def _getByStatus(self, statuses, jobtype=None):
         def _normalizeJobType(typ):
             if typ is not None and isinstance(typ, type):
-                if hasattr(typ, 'getJobType'):
+                if hasattr(typ, "getJobType"):
                     return typ.getJobType()
                 else:
                     return typ.__name__
@@ -345,15 +404,15 @@ class JobManager(ZenModelRM):
         # build additional query qualifiers based on named args
         query = {}
         if jobtype is not None:
-            query['type'] = _normalizeJobType(jobtype)
+            query["type"] = _normalizeJobType(jobtype)
 
         for b in self.getCatalog()(status=list(statuses), **query):
             yield b.getObject()
 
     def getUnfinishedJobs(self, type_=None):
-        """
-        Return JobRecord objects that have not yet completed, including those
-        that have not yet started.
+        """Return jobs that are not completed.
+
+        Includes jobs that have not started.
 
         @return: All jobs in the requested state.
         @rtype: generator
@@ -361,8 +420,7 @@ class JobManager(ZenModelRM):
         return self._getByStatus(states.UNREADY_STATES, type_)
 
     def getRunningJobs(self, type_=None):
-        """
-        Return JobRecord objects that have started but not finished.
+        """Return JobRecord objects that have started but not finished.
 
         @return: All jobs in the requested state.
         @rtype: generator
@@ -370,8 +428,7 @@ class JobManager(ZenModelRM):
         return self._getByStatus((states.STARTED, states.RETRY), type_)
 
     def getPendingJobs(self, type_=None):
-        """
-        Return JobRecord objects that have not yet started.
+        """Return JobRecord objects that have not yet started.
 
         @return: All jobs in the requested state.
         @rtype: generator
@@ -379,8 +436,7 @@ class JobManager(ZenModelRM):
         return self._getByStatus((states.RECEIVED, states.PENDING), type_)
 
     def getFinishedJobs(self, type_=None):
-        """
-        Return JobRecord objects that have finished.
+        """Return JobRecord objects that have finished.
 
         @return: All jobs in the requested state.
         @rtype: generator
@@ -388,69 +444,77 @@ class JobManager(ZenModelRM):
         return self._getByStatus(states.READY_STATES, type_)
 
     def getAllJobs(self, type_=None):
-        """
-        Return all .
+        """Return all jobs.
 
         @return: All jobs in the requested state.
         @rtype: generator
         """
         return self._getByStatus(states.ALL_STATES, type_)
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'deleteUntil')
+    security.declareProtected(ZEN_MANAGE_DMD, "deleteUntil")
+
     def deleteUntil(self, untiltime):
-        """
-        Delete all jobs older than untiltime.
-        """
+        """Delete all jobs older than untiltime."""
         for b in self.getCatalog()()[:]:
             try:
                 ob = b.getObject()
-                if ob.finished != None and ob.finished < untiltime:
+                if ob.finished is not None and ob.finished < untiltime:
                     self.deleteJob(ob.getId())
-                elif ob.status == states.ABORTED and (ob.started is None or ob.started < untiltime):
+                elif ob.status == states.ABORTED and (
+                    ob.started is None or ob.started < untiltime
+                ):
                     self.deleteJob(ob.getId())
             except ConflictError:
                 pass
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'clearJobs')
+    security.declareProtected(ZEN_MANAGE_DMD, "clearJobs")
+
     def clearJobs(self):
-        """
-        Clear out all finished jobs.
-        """
+        """Clear out all finished jobs."""
         for b in self.getCatalog()():
             self.deleteJob(b.getObject().getId())
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'killRunning')
+    security.declareProtected(ZEN_MANAGE_DMD, "killRunning")
+
     def killRunning(self):
-        """
-        Abort running jobs.
-        """
+        """Abort running jobs."""
         for job in self.getUnfinishedJobs():
             job.abort()
 
-    security.declareProtected(ZEN_MANAGE_DMD, 'pruneOldJobs')
+    security.declareProtected(ZEN_MANAGE_DMD, "pruneOldJobs")
+
     def pruneOldJobs(self):
-        if (datetime.now() - self.lastPruneTime > timedelta(hours=1)
-                and datetime.now() - self.lastPruneJobAddTime > timedelta(hours=1)):
+        """Schedule a job to delete old jobs."""
+        if (
+            datetime.now() - self.lastPruneTime > timedelta(hours=1)
+            and datetime.now() - self.lastPruneJobAddTime > timedelta(hours=1)
+        ):
             self.lastPruneJobAddTime = datetime.now()
             self._addJob(
                 PruneJob,
-                kwargs=dict(untiltime=datetime.now()-timedelta(weeks=1))
-        )
+                kwargs={"untiltime": datetime.now() - timedelta(weeks=1)},
+            )
+
 
 class JobLogDownload(BrowserView):
+    """A view for downloading job logs."""
 
     def __call__(self):
+        """Return the contents of a job log."""
         response = self.request.response
         try:
-            jobid = self.request.get('job')
+            jobid = self.request.get("job")
             jobrecord = self.context.JobManager.getJob(jobid)
             logfile = jobrecord.logfile
         except (KeyError, AttributeError, NoSuchJobException):
             response.setStatus(404)
         else:
-            response.setHeader('Content-Type', 'text/plain')
-            response.setHeader('Content-Disposition', 'attachment;filename=%s' % os.path.basename(logfile))
-            with open(logfile, 'r') as f:
+            response.setHeader("Content-Type", "text/plain")
+            response.setHeader(
+                "Content-Disposition",
+                "attachment;filename=%s" % os.path.basename(logfile),
+            )
+            with open(logfile, "r") as f:
                 return f.read()
 
 

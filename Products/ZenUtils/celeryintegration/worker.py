@@ -7,14 +7,17 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import, print_function
 
-from celery.apps.worker import Worker
 import signal
+from celery.apps.worker import Worker
+
 
 class CeleryZenWorker(Worker):
-    """
-    Extends Celery's Worker class to adjust some of the output
-    during startup and to take control of signal handling.
+    """Extends Celery's Worker class.
+
+    This class adjusts some of the output during startup and to take
+    control of signal handling.
     """
 
     # Create aliases to Worker's startup_info and extra_info so we can
@@ -25,20 +28,29 @@ class CeleryZenWorker(Worker):
 
     # Override to disable base classes output
     def extra_info(self):
+        """Override base class method."""
         pass
 
     # Override to disable base classes output
     def startup_info(self):
-        return ''
+        """Override base class method."""
+        return ""
 
     def on_consumer_ready(self, consumer):
-        print ''.join([
-                "Starting %s\n" % type(self).__name__,
-                self._startupinfo(), (self._extrainfo() or '')
-            ])
+        """Call when the consumer is ready."""
+        print(
+            "".join(
+                [
+                    "Starting %s\n" % type(self).__name__,
+                    self._startupinfo(),
+                    (self._extrainfo() or ""),
+                ],
+            ),
+        )
         super(CeleryZenWorker, self).on_consumer_ready(consumer)
 
     def install_platform_tweaks(self, worker):
+        """Override base class method."""
         # This method installs the Celery's signal handling which conflicts
         # with Zenoss's signal handling.  Override it with so that the zenoss
         # USR1 handler is used

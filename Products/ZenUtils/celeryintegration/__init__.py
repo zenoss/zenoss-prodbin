@@ -7,16 +7,17 @@
 #
 ##############################################################################
 
-"""
-Import celery classes from this package exclusively, as it ensures the
-environment has been set up first.
-"""
+from __future__ import absolute_import
+
+# Import celery classes from this package exclusively.
+# Doing so ensures the environment has been set up first.
+
+import os
 
 # NOTE: the order of statements in this module is important.
 
 LOADER_FQCN = "Products.ZenUtils.celeryintegration.ZenossLoader"
 
-import os
 # Set the 'loader' class the default celery app will use.  This setting
 # must be made at this point before any other celery-related import.
 os.environ.setdefault("CELERY_LOADER", LOADER_FQCN)
@@ -36,15 +37,24 @@ from celery.contrib.abortable import AbortableTask as Task
 
 def _patchstate():
     from celery.contrib.abortable import ABORTED
+
     groupings = (
-            'PROPAGATE_STATES', 'EXCEPTION_STATES',
-            'READY_STATES', 'ALL_STATES'
-        )
+        "PROPAGATE_STATES",
+        "EXCEPTION_STATES",
+        "READY_STATES",
+        "ALL_STATES",
+    )
     for attr in groupings:
         setattr(
-            states, attr,
-            frozenset(set((ABORTED,)) | getattr(states, attr))
+            states, attr, frozenset({ABORTED} | getattr(states, attr)),
         )
-    setattr(states, 'ABORTED', ABORTED)
+    setattr(states, "ABORTED", ABORTED)
+
+
 _patchstate()
 del _patchstate
+
+__all__ = (
+    "current_app", "states", "chain", "get_task_logger", "Task",
+    "ZenossLoader", "ZODBBackend",
+)
