@@ -7,32 +7,34 @@
 #
 ##############################################################################
 
-import Globals
-import time
-import threading
-import Queue
-import transaction
-import logging
-import traceback
+from __future__ import absolute_import
 
-from zope.component import getUtility
-from ZODB.transact import transact
+import logging
+import Queue
+import threading
+import time
+import traceback
+import transaction
+
 from datetime import datetime
 
+import AccessControl.User
+import Globals
+
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
 from celery.backends.base import BaseDictBackend
 from celery.exceptions import TimeoutError
-
-import AccessControl.User
+from ZODB.transact import transact
+from zope.component import getUtility
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
+from ZPublisher.BaseRequest import RequestContainer
 
 from Products.Jobber.exceptions import NoSuchJobException
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenUtils.celeryintegration import states
 from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
-from AccessControl.SecurityManagement import newSecurityManager
-from AccessControl.SecurityManagement import noSecurityManager
-from ZPublisher.HTTPRequest import HTTPRequest
-from ZPublisher.HTTPResponse import HTTPResponse
-from ZPublisher.BaseRequest import RequestContainer
 
 log = logging.getLogger("zen.celeryintegration")
 
@@ -43,20 +45,24 @@ def _getContext(app):
     request = HTTPRequest(
         None,
         {
-            'SERVER_NAME': 'localhost',
-            'SERVER_PORT': '8080',
-            'REQUEST_METHOD': 'GET'
+            "SERVER_NAME": "localhost",
+            "SERVER_PORT": "8080",
+            "REQUEST_METHOD": "GET",
         },
-        HTTPResponse(stdout=None)
+        HTTPResponse(stdout=None),
     )
     return app.__of__(RequestContainer(REQUEST=request))
 
 
 class ConnectionCloser(object):
+    """Closes database connection when deleted."""
+
     def __init__(self, connection):
+        """Initialize a ConnectionCloser instance."""
         self.connection = connection
 
     def __del__(self):
+        """Abort the transaction, logout, and close the connection."""
         try:
             transaction.abort()
         except Exception:
@@ -69,18 +75,19 @@ class ConnectionCloser(object):
 
 
 class ZODBBackend(BaseDictBackend):
-    """
-    ZODB result backend for Celery.
-    """
-    CONN_MARKER = 'ZODBBackendConnection'
+    """ZODB result backend for Celery."""
+
+    CONN_MARKER = "ZODBBackendConnection"
     _db = None
 
     def __init__(self, *args, **kwargs):
+        """Initialize a ZODBBackend instance."""
         super(ZODBBackend, self).__init__(*args, **kwargs)
         self._db_lock = threading.Lock()
 
     def get_db_options(self):
-        options = getattr(self.app, 'db_options', None)
+        """Return the global configuration options."""
+        options = getattr(self.app, "db_options", None)
         if options is not None:
             return options.__dict__
         # This path should never be hit except in testing, because
@@ -89,19 +96,18 @@ class ZODBBackend(BaseDictBackend):
         # process, if we comment out getting the database from Globals in
         # db() below.
         from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+
         return getGlobalConfiguration()
 
     @property
     def db(self):
-        """
-        Get a handle to the database by whatever means necessary
-        """
+        """Get a handle to the database by whatever means necessary."""
         with self._db_lock:
             # Get the current database
             db = self._db
             if db is None:
                 # Try to get the database off Globals (Zope, zendmd)
-                db = getattr(Globals, 'DB', None)
+                db = getattr(Globals, "DB", None)
                 if db is None:
                     # Open a connection (CmdBase)
                     connectionFactory = getUtility(IZodbFactoryLookup).get()
@@ -112,37 +118,35 @@ class ZODBBackend(BaseDictBackend):
 
     @property
     def dmd(self):
-        """
-        Use a well-known connection to get a reliable dmd object.
-        """
+        """Use a well-known connection to get a reliable dmd object."""
         closer = getattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER, None)
 
         if closer is None:
             conn = self.db.open()
-            setattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER,
-                    ConnectionCloser(conn))
+            setattr(
+                CONNECTION_ENVIRONMENT,
+                self.CONN_MARKER,
+                ConnectionCloser(conn),
+            )
             newSecurityManager(None, AccessControl.User.system)
-            app = conn.root()['Application']
+            app = conn.root()["Application"]
             # Configure zProperty descriptors
             setDescriptors(app.zport.dmd)
         else:
-            app = closer.connection.root()['Application']
+            app = closer.connection.root()["Application"]
 
         return _getContext(app).zport.dmd
 
     @property
     def jobmgr(self):
+        """Return the JobManager instance."""
         return self.dmd.JobManager
 
     def update(self, task_id, **properties):
-        """
-        Store properties on a JobRecord.
-        """
+        """Store properties on a JobRecord."""
+        log.debug("Updating job %s with %s", task_id, properties)
+
         def _update():
-            """
-            Give the database time to sync incase a job record update
-            was received before the job was created
-            """
 
             @transact
             def _doupdate():
@@ -151,14 +155,15 @@ class ZODBBackend(BaseDictBackend):
             try:
                 for i in range(5):
                     try:
-                        log.debug("Updating job %s - Pass %d", task_id, i+1)
+                        log.debug("Updating job %s - Pass %d", task_id, i + 1)
                         _doupdate()
                         log.debug("Job %s updated", task_id)
                         break
                     except NoSuchJobException:
                         log.debug(
                             "Unable to find Job %s, retrying \n%s",
-                            task_id, traceback.format_exc()
+                            task_id,
+                            traceback.format_exc(),
                         )
                         # Race condition. Wait.
                         time.sleep(0.25)
@@ -167,39 +172,41 @@ class ZODBBackend(BaseDictBackend):
                     # only runs if the for loop completes without breaking
                     log.warn(
                         "Job not updated.  Unable to save properties "
-                        "%s to job %s", properties, task_id
+                        "%s to job %s",
+                        properties,
+                        task_id,
                     )
             finally:
                 self.reset()
 
-        log.debug("Updating job %s with %s", task_id, properties)
         t = threading.Thread(target=_update)
         t.start()
         t.join()
 
-# ----- BaseDictBackend Overrides -----------------------------------------
+    # ----- BaseDictBackend Overrides -----------------------------------------
 
     def _store_result(self, task_id, result, status, traceback=None):
-        """
-        Store return value and status of an executed task.
+        """Store return value and status of an executed task.
 
         This runs in a separate thread with a short-lived connection, thereby
         guaranteeing isolation from the current transaction.
         """
         log.debug("[_store_result] %s %s %s", task_id, result, status)
-        self.update(task_id, result=result, status=status,
-                    date_done=datetime.utcnow(), traceback=traceback)
+        self.update(
+            task_id,
+            result=result,
+            status=status,
+            date_done=datetime.utcnow(),
+            traceback=traceback,
+        )
         return result
 
     def _get_task_meta_for(self, task_id):
-        """
-        Get task metadata for a task by id.
-        """
+        """Get task metadata for a task by id."""
         return self.jobmgr.getJob(task_id)
 
     def wait_for(self, task_id, timeout=None, propagate=True, interval=0.5):
-        """
-        Check status of a task and return its result when complete.
+        """Check status of a task and return its result when complete.
 
         This runs in a separate thread with a short-lived connection, thereby
         guaranteeing isolation from the current transaction.
@@ -243,25 +250,23 @@ class ZODBBackend(BaseDictBackend):
             return result
 
     def _forget(self, task_id):
-        """
-        Forget about a result.
-        """
+        """Forget about a result."""
         # TODO: implement
         raise NotImplementedError("ZODBBackend does not support forget")
 
     def cleanup(self):
-        """
-        Delete expired metadata.
-        """
+        """Delete expired metadata."""
         # TODO: implement
         raise NotImplementedError("ZODBBackend does not support cleanup")
 
     def reset(self):
+        """Reset the backend."""
         try:
             delattr(CONNECTION_ENVIRONMENT, self.CONN_MARKER)
         except AttributeError:
             pass
 
     def process_cleanup(self):
+        """Clean up and reset the backend."""
         self._db = None
         self.reset()
