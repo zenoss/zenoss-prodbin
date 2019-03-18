@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2009-2019 all rights reserved.
+# Copyright (C) Zenoss, Inc. 2019, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -15,9 +15,7 @@ import os
 import Queue
 import signal
 import six
-import socket
 import traceback
-import subprocess
 import sys
 import time
 import transaction
@@ -26,59 +24,20 @@ from AccessControl.SecurityManagement import (
     newSecurityManager,
     noSecurityManager,
 )
-from datetime import datetime
 from Products.CMFCore.utils import getToolByName
 from ZODB.transact import transact
 
-from Products.ZenUtils.Utils import (
-    InterruptableThread,
-    ThreadInterrupt,
-    LineReader,
-)
+from Products.ZenUtils.Utils import InterruptableThread
 from Products.ZenUtils.celeryintegration import (
     current_app,
     Task,
     states,
     get_task_logger,
 )
-from Products.ZenEvents import Event
 
-from .exceptions import NoSuchJobException, SubprocessJobFailed
+from ..exceptions import NoSuchJobException, JobAborted
 
 _MARKER = object()
-
-
-class JobAborted(ThreadInterrupt):
-    """The job has been aborted."""
-
-
-class SubJob(object):
-    """Container for a job invocation.
-
-    Use the Job.makeSubJob method to create instances of this class.
-    """
-
-    def __init__(
-        self, job, args=None, kwargs=None, description=None, options={},
-    ):
-        """
-        Initialize an instance of SubJob.
-
-        The supported options are:
-            immutable - {bool} Set True to 'freeze' the job's arguments.
-            ignoreresult - {bool} Set True to drop the result of the job.
-
-        @param job {Job} The job instance to execute.
-        @param args {sequence} Arguments to pass to the job.
-        @param kwargs {dict} Keyword/value arguments to pass to the job.
-        @param description {str} Description of job (for JobRecord)
-        @options {dict} Options to control the job.
-        """
-        self.job = job
-        self.args = args or ()
-        self.kwargs = kwargs or {}
-        self.description = description
-        self.options = options.copy()
 
 
 class Job(Task):
@@ -381,110 +340,30 @@ class Job(Task):
         os.kill(os.getpid(), signal.SIGTERM)
 
 
-class SubprocessJob(Job):
-    """Use this job to execute shell commands."""
+class SubJob(object):
+    """Container for a job invocation.
 
-    @classmethod
-    def getJobType(cls):
-        """Return a general, but brief, description of the job."""
-        return "Shell Command"
+    Use the Job.makeSubJob method to create instances of this class.
+    """
 
-    @classmethod
-    def getJobDescription(cls, cmd, environ=None):
-        """Return a description of the job."""
-        return cmd if isinstance(cmd, basestring) else " ".join(cmd)
+    def __init__(
+        self, job, args=None, kwargs=None, description=None, options={},
+    ):
+        """
+        Initialize an instance of SubJob.
 
-    def _run(self, cmd, environ=None):
-        self.log.debug("Running Job %s %s", self.getJobType(), self.name)
-        if environ is not None:
-            newenviron = os.environ.copy()
-            newenviron.update(environ)
-            environ = newenviron
-        process = None
-        exitcode = None
-        output = ""
-        handler = self.log.handlers[0]
-        originalFormatter = handler.formatter
-        lineFormatter = logging.Formatter("%(message)s")
-        try:
-            self.log.info(
-                "Spawning subprocess: %s",
-                SubprocessJob.getJobDescription(cmd),
-            )
-            process = subprocess.Popen(
-                cmd,
-                bufsize=1,
-                env=environ,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
+        The supported options are:
+            immutable - {bool} Set True to 'freeze' the job's arguments.
+            ignoreresult - {bool} Set True to drop the result of the job.
 
-            # Since process.stdout.readline() is a blocking call, it stops
-            # the injected exception from being raised until it unblocks.
-            # The LineReader object allows non-blocking readline()
-            # behavior to avoid delaying the injected exception.
-            reader = LineReader(process.stdout)
-            reader.start()
-            # Reset the log message formatter (restored later)
-            while exitcode is None:
-                line = reader.readline()
-                if line:
-                    try:
-                        handler.setFormatter(lineFormatter)
-                        self.log.info(line.strip())
-                        output += line.strip()
-                    finally:
-                        handler.setFormatter(originalFormatter)
-                else:
-                    exitcode = process.poll()
-                    time.sleep(0.1)
-        except JobAborted:
-            if process:
-                self.log.warn("Job aborted. Killing subprocess...")
-                process.kill()
-                process.wait()  # clean up the <defunct> process
-                self.log.info("Subprocess killed.")
-            raise
-        if exitcode != 0:
-            device = socket.getfqdn()
-            job_record = self.dmd.JobManager.getJob(self.request.id)
-            description = job_record.job_description
-            summary = 'Job "%s" finished with failure result.' % description
-            message = "exit code %s for %s; %s" % (
-                exitcode,
-                SubprocessJob.getJobDescription(cmd),
-                output,
-            )
-
-            self.dmd.ZenEventManager.sendEvent({
-                "device": device,
-                "severity": Event.Error,
-                "component": "zenjobs",
-                "eventClass": "/App/Job/Fail",
-                "message": message,
-                "summary": summary,
-            })
-
-            raise SubprocessJobFailed(exitcode)
-        return exitcode
-
-
-class PruneJob(Job):
-    """Prune old jobs in the job catalog."""
-
-    @classmethod
-    def getJobType(cls):
-        """Return a general, but brief, description of the job."""
-        return "Prune Job"
-
-    @classmethod
-    def getJobDescription(cls, **kwargs):
-        """Return a description of the job."""
-        return "Prune jobs older than %s" % kwargs["untiltime"]
-
-    def _run(self, untiltime, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        self.log.info("Prune jobs older than %s " % untiltime)
-        self.dmd.JobManager.deleteUntil(untiltime)
-        self.dmd.JobManager.lastPruneTime = datetime.now()
+        @param job {Job} The job instance to execute.
+        @param args {sequence} Arguments to pass to the job.
+        @param kwargs {dict} Keyword/value arguments to pass to the job.
+        @param description {str} Description of job (for JobRecord)
+        @options {dict} Options to control the job.
+        """
+        self.job = job
+        self.args = args or ()
+        self.kwargs = kwargs or {}
+        self.description = description
+        self.options = options.copy()

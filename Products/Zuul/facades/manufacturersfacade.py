@@ -18,7 +18,7 @@ from Products.Zuul.interfaces import IManufacturersFacade, IManufacturersInfo, I
 from Products.ZenEvents import EventClass
 from Acquisition import aq_parent
 from Products.ZenModel.Manufacturer import manage_addManufacturer
-from Products.Jobber.facade import FacadeMethodJob
+from Products.Jobber.jobs import FacadeMethodJob
 
 class ManufacturersFacade(TreeFacade):
     implements(IManufacturersFacade)
