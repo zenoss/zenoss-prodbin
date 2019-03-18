@@ -35,7 +35,7 @@ from ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD, ZEN_COMMON, ZEN_CHANGE_DEVI
 from Products.ZenUtils.Utils import unused, getObjectsFromModelCatalog
 from Products.ZenUtils.guid.interfaces import IGloballyIdentifiable
 from Products.ZenWidgets import messaging
-from Products.Jobber.zenmodel import DeviceSetLocalRolesJob
+from Products.Jobber.jobs import DeviceSetLocalRolesJob
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
