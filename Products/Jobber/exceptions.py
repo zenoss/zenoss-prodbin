@@ -9,6 +9,12 @@
 
 from __future__ import absolute_import
 
+from Products.ZenUtils.Utils import ThreadInterrupt
+
+
+class JobAborted(ThreadInterrupt):
+    """The job has been aborted."""
+
 
 class NoSuchJobException(Exception):
     """No such job exists."""

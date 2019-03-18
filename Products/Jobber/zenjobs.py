@@ -23,8 +23,7 @@ from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.ZenUtils.celeryintegration import constants, states, current_app
 from Products.ZenUtils.celeryintegration.worker import CeleryZenWorker
 
-from Products.Jobber.exceptions import NoSuchJobException
-from Products.Jobber.jobs import JobAborted
+from Products.Jobber.exceptions import NoSuchJobException, JobAborted
 
 
 class CeleryZenJobs(ZenDaemon):

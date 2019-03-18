@@ -9,11 +9,7 @@
 
 from __future__ import absolute_import
 
-import logging
-
-from .jobs import Job
-
-log = logging.getLogger("zen.jobs.zenmodel")
+from .job import Job
 
 
 class DeviceSetLocalRolesJob(Job):
@@ -22,6 +18,8 @@ class DeviceSetLocalRolesJob(Job):
     When someone updates a role on an organizer this is necessary to make
     sure that user has permission on each of the devices in that organizer.
     """
+
+    name = "Products.Jobber.DeviceSetLocalRolesJob"
 
     @classmethod
     def getJobType(cls):
@@ -36,6 +34,6 @@ class DeviceSetLocalRolesJob(Job):
     def _run(self, organizerUid, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        log.info("About to set local roles for uid: %s " % organizerUid)
+        self.log.info("About to set local roles for uid: %s " % organizerUid)
         organizer = self.dmd.unrestrictedTraverse(organizerUid)
         organizer._setDeviceLocalRoles()

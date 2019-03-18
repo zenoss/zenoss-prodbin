@@ -14,15 +14,18 @@ import errno
 import logging
 
 from celery.utils import fun_takes_kwargs
-from Products.ZenUtils.celeryintegration import get_task_logger
 from zope.dottedname.resolve import resolve
 
-from .jobs import Job
-from .exceptions import FacadeMethodJobFailed
+from Products.ZenUtils.celeryintegration import get_task_logger
+
+from ..exceptions import FacadeMethodJobFailed
+from .job import Job
 
 
 class FacadeMethodJob(Job):
     """Use this job to execute a method on a facade."""
+
+    name = "Products.Jobber.FacadeMethodJob"
 
     @classmethod
     def getJobType(cls):
