@@ -11,8 +11,7 @@ from __future__ import absolute_import
 
 from .job import Job  # noqa: F401
 from .facade import FacadeMethodJob  # noqa: F401
-from .misc import DeviceListJob, PausingJob  # noqa: F401
-from .prune import PruneJob  # noqa: F401
+from .misc import DeviceListJob, PausingJob, DelayedFailure  # noqa: F401
 from .roles import DeviceSetLocalRolesJob  # noqa: F401
 from .subprocess import SubprocessJob  # noqa: F401
 
@@ -20,7 +19,7 @@ from .subprocess import SubprocessJob  # noqa: F401
 def _get_all():
     # Return the names of all the celery Task classes
     import inspect
-    from .job import Task
+    from celery import Task
     return tuple(
         n for n, j in globals().items()
         if inspect.isclass(j) and issubclass(j, Task)
