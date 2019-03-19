@@ -31,6 +31,7 @@ class PruneJob(Job):
     def _run(self, untiltime, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.log.info("Prune jobs older than %s " % untiltime)
-        self.dmd.JobManager.deleteUntil(untiltime)
+        until = datetime.fromtimestamp(untiltime)
+        self.log.info("Prune jobs older than %s " % until)
+        self.dmd.JobManager.deleteUntil(until)
         self.dmd.JobManager.lastPruneTime = datetime.now()

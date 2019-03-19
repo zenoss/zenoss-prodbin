@@ -7,13 +7,20 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
-from celery.registry import tasks
+from celery import signals
 
 
 def job(_context, class_, name=None):
-    """Register the given class as a Celery task."""
-    if name is not None:
-        class_.name = name
-    tasks.register(class_)
+    """Hold place for unused job directive."""
+    pass
+
+
+def signal(_context, name, handler):
+    """Register a Celery signal handler."""
+    signal = getattr(signals, name, None)
+    if signal is None:
+        raise AttributeError("Unknown signal name '%s'" % name)
+    handler_fn = _context.resolve(handler)
+    signal.connect(handler_fn)

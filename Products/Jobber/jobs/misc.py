@@ -11,13 +11,16 @@ from __future__ import absolute_import
 
 import threading
 
+from ..task import requires, DMD, Abortable
+from ..zenjobs import app
 from .job import Job
 
 
 class DeviceListJob(Job):
     """Return the names of Server/Linux devices."""
 
-    name = "Products.Jobber.DeviceListJob"
+    name = "zen.zenjobs.test.DeviceListJob"
+    ignore_result = False
 
     @classmethod
     def getJobDescription(cls, *args, **kwargs):
@@ -35,7 +38,7 @@ class DeviceListJob(Job):
 class PausingJob(Job):
     """Waits for some interval of time before finishing successfully."""
 
-    name = "Products.Jobber.PausingJob"
+    name = "zen.zenjobs.test.PausingJob"
 
     @classmethod
     def getJobDescription(cls, *args, **kw):
@@ -49,7 +52,7 @@ class PausingJob(Job):
 class DelayedFailure(Job):
     """Waits for some interval of time before failing."""
 
-    name = "Products.Jobber.DelayedFailure"
+    name = "zen.zenjobs.test.DelayedFailure"
 
     @classmethod
     def getJobDescription(cls, *args, **kw):
@@ -58,4 +61,16 @@ class DelayedFailure(Job):
     def _run(self, seconds, *args, **kw):
         self.log.info("Sleeping for %s seconds", seconds)
         threading.Event().wait(seconds)
-        raise ValueError("ka-boom!")
+        raise ValueError("slept for %s seconds" % seconds)
+
+
+@app.task(
+    bind=True,
+    base=requires(DMD, Abortable),
+    name="zen.zenjobs.test.pause",
+    summary="Wait Task",
+    description="Wait for {0} seconds, then exit.",
+)
+def pause(self, seconds):
+    self.log.info("Sleeping for %s seconds", seconds)
+    threading.Event().wait(seconds)

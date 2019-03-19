@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from zope.interface import Interface
 from zope.configuration.fields import GlobalObject
@@ -26,4 +26,18 @@ class IJob(Interface):
         title=u"Name",
         description=u"Optional name of the job",
         required=False,
+    )
+
+
+class ICelerySignal(Interface):
+    """Registers a Celery signal handler."""
+
+    name = TextLine(
+        title=u"Name",
+        description=u"The signal receiving a handler",
+    )
+
+    handler = TextLine(
+        title=u"Handler",
+        description=u"Classpath to the function handling the signal",
     )
