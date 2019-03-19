@@ -8,10 +8,13 @@
    <include package="Products.ZenModel" file="permissions.zcml"/>
 
    <browser:page
-      class=".manager.JobLogDownload"
+      class=".views.JobLogDownload"
       name="joblog"
       for="*"
       permission="zenoss.Common"
       />
+
+   <include file="meta.zcml"/>
+   <include file="signals.zcml"/>
 
 </configure>

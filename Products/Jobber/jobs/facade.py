@@ -9,14 +9,8 @@
 
 from __future__ import absolute_import
 
-import os
-import errno
-import logging
-
 from celery.utils import fun_takes_kwargs
 from zope.dottedname.resolve import resolve
-
-from Products.ZenUtils.celeryintegration import get_task_logger
 
 from ..exceptions import FacadeMethodJobFailed
 from .job import Job
@@ -28,6 +22,8 @@ class FacadeMethodJob(Job):
     """Use this job to execute a method on a facade."""
 
     name = "Products.Jobber.FacadeMethodJob"
+    ignore_result = False
+    throws = Job.throws + (FacadeMethodJobFailed,)
 
     @classmethod
     def getJobType(cls):
@@ -39,30 +35,6 @@ class FacadeMethodJob(Job):
         """Return a description of the job."""
         facade = facadefqdn.split(".")[-1]
         return "%s.%s %s" % (facade, method, args[0] if args else "")
-
-    @property
-    def log(self):
-        """Return the logger for this job."""
-        if self._log is None:
-            # Get log directory, ensure it exists
-            logdir = self._get_config("job-log-path")
-            try:
-                os.makedirs(logdir)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-            # Make the logfile path and store it in the backend for later
-            # retrieval
-            logfile = os.path.join(logdir, "%s.log" % self.request.id)
-            self.setProperties(logfile=logfile)
-            self._log = get_task_logger(self.request.id)
-            self._log.setLevel(self._get_config("logseverity"))
-            handler = logging.FileHandler(logfile)
-            handler.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s zen.Job: %(message)s",
-            ))
-            self._log.handlers = [handler]
-        return self._log
 
     def _run(self, facadefqdn, method, *args, **kwargs):
         """Execute a facade's method.

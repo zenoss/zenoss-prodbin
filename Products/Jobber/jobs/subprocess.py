@@ -14,9 +14,12 @@ import os
 import subprocess
 import threading
 
+from contextlib import contextmanager
+
 from Products.ZenUtils.Threading import LineReader
 
 from ..exceptions import SubprocessJobFailed, JobAborted
+from ..utils.log import TaskLogFileHandler
 from .job import Job
 
 
@@ -24,6 +27,7 @@ class SubprocessJob(Job):
     """Use this job to execute shell commands."""
 
     name = "Products.Jobber.SubprocessJob"
+    throws = Job.throws + (SubprocessJobFailed,)
 
     @classmethod
     def getJobType(cls):
@@ -91,24 +95,57 @@ class SubprocessJob(Job):
         # from receiving a JobAborted exception in a timely manner.
         _sleeper = threading.Event()
 
+        formatting_context = getLogFormattingContext()
         exitcode = None
         output = ""
-        handler = self.log.handlers[0]
-        originalFormatter = handler.formatter
-        lineFormatter = logging.Formatter("%(message)s")
         while exitcode is None:
             line = reader.readline()
             if line:
-                try:
-                    # Set the alternate formatter when writing the
-                    # subprocess output to the log.
-                    handler.setFormatter(lineFormatter)
+                with formatting_context:
                     self.log.info(line.strip())
                     output += line.strip()
-                finally:
-                    # Reset the handler to original formatter now that
-                    # we're done writing subprocess output to the log.
-                    handler.setFormatter(originalFormatter)
             else:
                 exitcode = process.poll()
                 _sleeper.wait(0.1)
+        return exitcode, output
+
+
+@contextmanager
+def null_context():
+    """Do nothing context manager."""
+    yield
+
+
+class LogFormatterContext(object):
+    """Context manager that changes log formatter temporarily."""
+
+    def __init__(self, handler, formatter):
+        self.__handler = handler
+        self.__original = handler.formatter
+        self.__alternate = formatter
+
+    def __enter__(self):
+        self.__handler.setFormatter(self.__alternate)
+
+    def __exit__(self, *ignored):
+        self.__handler.setFormatter(self.__original)
+
+
+def getLogFormattingContext():
+    """Returns a context manager."""
+    zenlog = logging.getLogger("zen")
+    handler = next((
+        h for h in zenlog.handlers if isinstance(h, TaskLogFileHandler)
+    ), None)
+    if handler:
+        return LogFormatterContext(handler, logging.Formatter("%(message)s"))
+    return null_context
+
+
+def _getLogHandler(log):
+    # Retrieve the formatter from the handler.
+    # However, the current logger may not have any handlers, so traverse
+    # the parent loggers until a logger with handlers is found.
+    while log and not log.handlers:
+        log = log.parent
+    return log.handlers[0]
