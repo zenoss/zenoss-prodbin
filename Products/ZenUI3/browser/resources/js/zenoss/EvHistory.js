@@ -12,7 +12,9 @@
 Ext.ns('Zenoss.ui.EvHistory');
 
 Ext.onReady(function(){
-
+var stateProvider = Ext.state.Manager.getProvider();
+// wait until state is ready;
+stateProvider.onStateReady(function() {
     Zenoss.ui.EvHistory.Exp = function(type, format){
         var grid = Ext.getCmp('events_grid'),
             state = grid.getState(),
@@ -463,4 +465,5 @@ Ext.onReady(function(){
     if (window.location.search) {
         grid.restoreURLState();
     }
+}); // stateProvider.onStateReady
 });

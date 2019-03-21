@@ -20,13 +20,4 @@
     <adapter factory=".zenhub.DefaultConfProvider"/>
     <adapter factory=".zenhub.DefaultHubHeartBeatCheck"/>
 
-    <utility factory=".WorkerSelection.InOrderSelection"
-             provides=".interfaces.IWorkerSelectionAlgorithm"
-             name="sendEvents"/>
-    <utility factory=".WorkerSelection.ReversedReservationAwareSelection"
-             provides=".interfaces.IWorkerSelectionAlgorithm"
-             name="applyDataMaps"/>
-    <utility factory=".WorkerSelection.ReservationAwareSelection"
-             provides=".interfaces.IWorkerSelectionAlgorithm"/>
-
 </configure>

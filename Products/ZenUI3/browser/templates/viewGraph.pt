@@ -8,26 +8,11 @@
 # 
 ##############################################################################
 -->
-<html>
-<link rel="icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-<link rel="shortcut icon" href="/zport/dmd/favicon.ico" type="image/x-icon"/>
-<link rel="stylesheet" type="text/css"
-      tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/xtheme-zenoss.css')"
-      />
-<link rel="stylesheet" type="text/css"
-      tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenoss.css')"
-      />
-<link rel="stylesheet" type="text/css"
-      tal:attributes="href python: context.zport.getVersionedResourcePath('/++resource++zenui/css/zenui3.css')"
-      />
-<tal:block tal:content="structure provider:js-security"/>
-<tal:block tal:content="structure provider:all-js"/>
-
-
-<div id="graphView"></div>
-
-<script
-    tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/viewGraph.js')"
->
-</script>
-</html>
+<tal:block metal:use-macro="context/page_macros/base-new">
+<tal:block metal:fill-slot="script_layout">
+    <div id="graphView"></div>
+    <script
+        tal:attributes="src python: context.zport.getVersionedResourcePath('/++resource++zenui/js/zenoss/viewGraph.js')">
+    </script>
+</tal:block>
+</tal:block>

@@ -880,6 +880,17 @@ BYE BYE BORDERS
         background-color: #b6cbe4 !important;
     }
 
+    /* <ZEN-31356> - mark pressed buttons */
+    .z-cse .x-btn-pressed {
+        background-color: #d6d6d6 !important;
+        background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #b9b9b9), color-stop(100%, #f1f1f1));
+        background-image: -webkit-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -moz-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -o-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: -ms-linear-gradient(top, #b9b9b9, #f1f1f1);
+        background-image: linear-gradient(top, #b9b9b9, #f1f1f1);
+    }
+
 
     /* popup dialog buttons */
     .z-cse .x-btn-dialog-dark-small
@@ -1350,6 +1361,8 @@ BYE BYE BORDERS
     .z-cse .x-body,
     .z-cse .x-fieldset-header,
     .z-cse .x-form-display-field,
+    .z-cse .x-form-display-field-jumbo,
+    .z-cse .x-form-display-field-note,
     .z-cse .x-form-field,
     .z-cse .x-panel-body-default,
     .z-cse .x-panel-body-default-framed,
@@ -2322,6 +2335,12 @@ BYE BYE BORDERS
     .z-cse.z-cse-reports body {
         color: #333;
     }
+    .z-cse.z-cse-reports .zentable td {
+        padding: 3px;
+    }
+    .z-cse.z-cse-reports .zentable select.tablevalues {
+        min-width: 100px;
+    }
     .z-cse.z-cse-reports .navbar-default {
         background-color: transparent;
         background-image: none !important;
@@ -2762,6 +2781,8 @@ BYE BYE BORDERS
     .z-cse.z-cse-dark .x-body,
     .z-cse.z-cse-dark .x-fieldset-header,
     .z-cse.z-cse-dark .x-form-display-field,
+    .z-cse.z-cse-dark .x-form-display-field-jumbo,
+    .z-cse.z-cse-dark .x-form-display-field-note,
     .z-cse.z-cse-dark .x-grid .x-column-header-text,
     .z-cse.z-cse-dark .x-grid-empty,
     .z-cse.z-cse-dark .x-grid-group-title,
