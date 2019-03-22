@@ -3,6 +3,7 @@
    xmlns="http://namespaces.zope.org/zope"
    xmlns:five="http://namespaces.zope.org/five"
    xmlns:browser="http://namespaces.zope.org/browser"
+   xmlns:celery="http://namespaces.zope.org/celery"
    i18n_domain="Products.Jobber">
 
    <include package="Products.ZenModel" file="permissions.zcml"/>
@@ -15,6 +16,22 @@
       />
 
    <include file="meta.zcml"/>
-   <include file="signals.zcml"/>
+
+   <celery:signal
+      name="before_task_publish"
+      handler=".model.save_jobrecord"
+      />
+
+   <adapter
+      provides="Products.Zuul.interfaces.IMarshaller"
+      for=".interfaces.IJobRecord"
+      factory=".model.JobRecordMarshaller"
+      />
+
+   <utility
+      provides=".interfaces.IJobStore"
+      factory=".storage.makeJobStore"
+      name="redis"
+      />
 
 </configure>

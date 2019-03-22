@@ -26,8 +26,8 @@ _default_configs = {
     "zodb-config-file": "/opt/zenoss/etc/zodb.conf",
     "zodb-max-retries": 5,
     "max-jobs-per-worker": "100",
-    "concurrent-jobs": "2",
-    "task-result-expires": 86400,
+    "concurrent-jobs": "1",
+    "job-expires": 604800,  # 7 days
 }
 
 
@@ -83,10 +83,10 @@ class Celery(object):
         "Products.Jobber.jobs",
     )
 
-    # Result backend (ZODB)
+    # Result backend (redis)
     CELERY_RESULT_BACKEND = "redis://localhost/0"
     CELERY_RESULT_SERIALIZER = "json"
-    CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("task-result-expires"))
+    CELERY_TASK_RESULT_EXPIRES = int(ZenJobs.get("job-expires"))
 
     # Worker configuration
     CELERYD_CONCURRENCY = int(ZenJobs.get("concurrent-jobs"))

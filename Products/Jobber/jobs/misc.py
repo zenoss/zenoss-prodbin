@@ -69,7 +69,7 @@ class DelayedFailure(Job):
     base=requires(DMD, Abortable),
     name="zen.zenjobs.test.pause",
     summary="Wait Task",
-    description="Wait for {0} seconds, then exit.",
+    description_template="Wait for {0} seconds, then exit.",
 )
 def pause(self, seconds):
     self.log.info("Sleeping for %s seconds", seconds)

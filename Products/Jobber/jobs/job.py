@@ -11,8 +11,15 @@ from __future__ import absolute_import
 
 import six
 
+from zope.component import getUtility
+
+import Products.ZenUtils.guid as guid
+
+from Products.ZenEvents import Event
+from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
+
 from ..config import ZenJobs
-from ..exceptions import NoSuchJobException
+from ..exceptions import NoSuchJobException, TaskAborted
 from ..task import Abortable, DMD, ZenTask
 from ..zenjobs import app
 
@@ -20,13 +27,9 @@ _MARKER = object()
 
 
 class Job(Abortable, DMD, ZenTask):
-    """Base class for jobs."""
+    """Base class for legacy jobs."""
 
     abstract = True  # Job class itself is not registered.
-
-    def __new__(cls, *args, **kwargs):
-        cls.summary = cls.getJobType()
-        return super(Job, cls).__new__(cls, *args, **kwargs)
 
     @classmethod
     def getJobType(cls):
@@ -35,6 +38,16 @@ class Job(Abortable, DMD, ZenTask):
         By default, the class type name is returned.
         """
         return cls.name
+
+    @classmethod
+    def getJobDescription(cls, *args, **kwargs):
+        """Return the description of the task instance."""
+        raise NotImplementedError
+
+    @classmethod
+    def description_from(cls, *args, **kwargs):
+        """Alias for getJobDescription."""
+        return cls.getJobDescription(*args, **kwargs)
 
     @classmethod
     def makeSubJob(cls, args=None, kwargs=None, description=None, **options):
@@ -64,15 +77,41 @@ class Job(Abortable, DMD, ZenTask):
         return super(Job, self).__call__(*args, **kwargs)
 
     def setProperties(self, **properties):
-        pass
+        jobid = self.request.id
+        if not jobid:
+            return
+        record = self.dmd.JobManager.getJob(jobid)
+        details = record.details or {}
+        details.update(**properties)
+        self.dmd.JobManager.update(jobid, **details)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        result = super(Job, self).on_failure(
+            exc, task_id, args, kwargs, einfo,
+        )
+        # Don't send an event when a job is aborted.
+        if not isinstance(exc, TaskAborted):
+            # Send an event about the job failure.
+            publisher = getUtility(IEventPublisher)
+            event = Event.buildEventFromDict({
+                "device": self.getJobType(),
+                "severity": Event.Error,
+                "component": "zenjobs",
+                "eventClass": "/App/Job/Fail",
+                "message": self.getJobDescription(*args, **kwargs),
+                "summary": repr(exc),
+                "jobid": str(task_id),
+            })
+            event.evid = guid.generate(1)
+            publisher.publish(event)
+
+        return result
 
     def _get_config(self, key, default=_MARKER):
-        if key in ZenJobs:
-            return ZenJobs.get(key)
-        elif default is not _MARKER:
-            return default
-        else:
+        value = ZenJobs.get(key, default=default)
+        if value is _MARKER:
             raise KeyError("Config option '{}' is not defined".format(key))
+        return value
 
     def _run(self, *args, **kw):
         raise NotImplementedError(

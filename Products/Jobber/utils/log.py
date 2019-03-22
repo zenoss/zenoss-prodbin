@@ -86,9 +86,10 @@ class FormatStringAdapter(logging.LoggerAdapter):
     def __init__(self, logger, extra=None):
         """Initialize an instance of FormatStringAdapter.
 
-        @param logger {Logger} The logger to adapt.
-        @param extra {dict} Additional context variables to appy to the
+        :param Logger logger: The logger to adapt.
+        :param extra: Additional context variables to appy to the
             message template string (not the message itself).
+        :type extra: Mapping[str, Any]
         """
         super(FormatStringAdapter, self).__init__(logger, extra or {})
 
