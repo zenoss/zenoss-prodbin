@@ -261,11 +261,6 @@
              factory="Products.Zuul.infos.report.ReportNode"
              />
 
-    <!--adapter provides="Products.Zuul.interfaces.IJobInfo"
-             for="Products.Jobber.manager.JobRecord"
-             factory="Products.Zuul.infos.jobs.JobInfo"
-             /-->
-
     <adapter factory=".software.SoftwareInfo"
              for="Products.ZenModel.Software.Software"
              provides="..interfaces.ISoftwareInfo"/>

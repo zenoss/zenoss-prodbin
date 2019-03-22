@@ -39,7 +39,7 @@ Ext.getCmp('center_panel').add({
             root: 'jobs',
             autoLoad: true,
             pageSize: Zenoss.settings.zenjobsGridBufferSize,
-            initialSortColumn: 'scheduled',
+            initialSortColumn: 'created',
             initialSortDirection: 'DESC',
             totalProperty: 'totalCount',
             model: 'Zenoss.model.Job',
@@ -87,7 +87,7 @@ Ext.getCmp('center_panel').add({
             }
         },{
             id: 'scheduled',
-            dataIndex: 'scheduled',
+            dataIndex: 'created',
             header: _t('Scheduled'),
             width: 150,
             sortable: true,
@@ -107,7 +107,7 @@ Ext.getCmp('center_panel').add({
             sortable: true,
             renderer: renderDate
         },{
-            dataIndex: 'user',
+            dataIndex: 'userid',
             header: _t('Created By'),
             width: 150,
             sortable: true
@@ -143,7 +143,7 @@ Ext.getCmp('center_panel').add({
                     var grid = Ext.getCmp('jobs'),
                     jobids = [];
                     Ext.each(grid.getSelectionModel().getSelection(), function(row) {
-                        jobids.push(row.data.uuid);
+                        jobids.push(row.data.jobid);
                     });
 
                     REMOTE.deleteJobs({jobids:jobids}, function() {
@@ -165,7 +165,7 @@ Ext.getCmp('center_panel').add({
                         switch (row.data.status) {
                             case 'STARTED':
                             case 'PENDING':
-                                jobids.push(row.data.uuid);
+                                jobids.push(row.data.jobid);
                         }
 
                     });
@@ -212,7 +212,7 @@ Ext.getCmp('center_panel').add({
 
                 if (selected.length===1) {
                     detail_panel.setJob.call(detail_panel, selected[0]);
-                    Ext.History.add('jobs:' + selected[0].data.uuid);
+                    Ext.History.add('jobs:' + selected[0].data.jobid);
                 } else {
                     detail_panel.update('');
                     if (detail_panel.updateTask) {
@@ -316,7 +316,7 @@ Ext.getCmp('center_panel').add({
         },
         setJob: function(job) {
             this.job = job;
-            this.jobid = job.get('uuid');
+            this.jobid = job.get('jobid');
             this.poll();
         }
     }]

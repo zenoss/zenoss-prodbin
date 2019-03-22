@@ -1,10 +1,24 @@
 <?xml version="1.0"?>
 <configure xmlns:celery="http://namespaces.zope.org/celery">
 
+   <!-- worker configuration -->
+
    <celery:signal
       name="setup_logging"
       handler=".log.configure_logging"
       />
+
+   <celery:signal
+      name="worker_process_init"
+      handler=".worker.setup_zodb"
+      />
+
+   <celery:signal
+      name="worker_process_shutdown"
+      handler=".worker.teardown_zodb"
+      />
+
+   <!-- task log handling -->
 
    <celery:signal
       name="task_prerun"
@@ -16,14 +30,16 @@
       handler=".log.teardown_job_instance_logger"
       />
 
+   <!-- job record handling -->
+
    <celery:signal
-      name="worker_process_init"
-      handler=".worker.setup_zodb"
+      name="task_prerun"
+      handler=".model.update_job_status"
       />
 
    <celery:signal
-      name="worker_process_shutdown"
-      handler=".worker.teardown_zodb"
+      name="task_postrun"
+      handler=".model.update_job_status"
       />
 
 </configure>

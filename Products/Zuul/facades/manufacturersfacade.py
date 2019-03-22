@@ -7,6 +7,7 @@
 #
 ##############################################################################
 
+import inspect
 import re
 import sre_constants
 import logging
@@ -97,24 +98,27 @@ class ManufacturersFacade(TreeFacade):
         manufacturer = self._getObject(params['uid'])
         prodName = params['oldname']
         prod = manufacturer.products._getOb(prodName, None)
+        if not prod:
+            return False
         scheduled = False
-        if prod:
-            result = prod._find_instances_in_catalog()
-            if params['oldname'] != params['prodname'] and result.total > 0:
-                instances_uids = [i.uid for i in result.results]
-                self._dmd.JobManager.addJob(
-                    FacadeMethodJob,
-                    description="Updating product class for %s instances" % params['prodname'],
-                    kwargs=dict(
-                        facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
-                        method="_editProduct",
-                        params=params,
-                        instances_uids=instances_uids
-                    )
-                )
-                scheduled = True
-            else:
-                self._editProduct(params)
+        result = prod._find_instances_in_catalog()
+        if params['oldname'] != params['prodname'] and result.total > 0:
+            instances_uids = [i.uid for i in result.results]
+            self._dmd.JobManager.addJob(
+                FacadeMethodJob,
+                description=(
+                    "Updating product class for %s instances"
+                ) % params['prodname'],
+                kwargs={
+                    "facadefqdn": FacadeMethodJob.getClassPathOf(self),
+                    "method": "_editProduct",
+                    "params": params,
+                    "instances_uids": instances_uids,
+                }
+            )
+            scheduled = True
+        else:
+            self._editProduct(params)
         return scheduled
 
     def _removeProducts(self, products):
@@ -136,13 +140,15 @@ class ManufacturersFacade(TreeFacade):
         """
         self._dmd.JobManager.addJob(
             FacadeMethodJob,
-            description="Removing %d products and clearing product class for their instances"
-                        % len(products),
-            kwargs=dict(
-                facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
-                method="_removeProducts",
-                products=products
-            )
+            description=(
+                "Removing %d products and clearing product class "
+                "for their instances"
+            ) % len(products),
+            kwargs={
+                "facadefqdn": FacadeMethodJob.getClassPathOf(self),
+                "method": "_removeProducts",
+                "products": products,
+            },
         )
 
     def getProductsByManufacturer(self, uid, params={}):
@@ -285,15 +291,17 @@ class ManufacturersFacade(TreeFacade):
         """
         self._dmd.JobManager.addJob(
             FacadeMethodJob,
-            description="Moving %d products and updating product class for their instances"
-                        % len(ids),
-            kwargs=dict(
-                facadefqdn="Products.Zuul.facades.manufacturersfacade.ManufacturersFacade",
-                method="_moveProduct",
-                moveFrom=moveFrom,
-                moveTarget=moveTarget,
-                ids=ids
-            )
+            description=(
+                "Moving %d products and updating product "
+                "class for their instances"
+            ) % len(ids),
+            kwargs={
+                "facadefqdn": FacadeMethodJob.getClassPathOf(self),
+                "method": "_moveProduct",
+                "moveFrom": moveFrom,
+                "moveTarget": moveTarget,
+                "ids": ids,
+            },
         )
 
     def getManufacturerList(self):
@@ -312,3 +320,9 @@ class ManufacturersFacade(TreeFacade):
                     'uid':"/zport/dmd/Manufacturers/"+sub.id
                 })
         return data
+
+
+def _get_classfqdn(obj):
+    name = obj.__class__.__name__
+    module = inspect.getmodule(obj)
+    return "%s.%s" % (module.__name__, name)

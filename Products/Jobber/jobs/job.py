@@ -18,7 +18,13 @@ _MARKER = object()
 
 
 class Job(Abortable, DMD, ZenTask):
-    """Base class for jobs."""
+    """Base class for legacy jobs.
+
+    Notes:
+    * The summary property is rewritten in terms of getJobType
+    * The __call__ method is overridden to handle _run method impl
+
+    """
 
     abstract = True  # Job class itself is not registered.
 
@@ -62,15 +68,19 @@ class Job(Abortable, DMD, ZenTask):
         return super(Job, self).__call__(*args, **kwargs)
 
     def setProperties(self, **properties):
-        pass
+        jobid = self.request.id
+        if not jobid:
+            return
+        record = self.dmd.JobManager.getJob(jobid)
+        details = record.details or {}
+        details.update(**properties)
+        self.dmd.JobManager.update(jobid, details=details)
 
     def _get_config(self, key, default=_MARKER):
-        if key in ZenJobs:
-            return ZenJobs.get(key)
-        elif default is not _MARKER:
-            return default
-        else:
+        value = ZenJobs.get(key, default=default)
+        if value is _MARKER:
             raise KeyError("Config option '{}' is not defined".format(key))
+        return value
 
     def _run(self, *args, **kw):
         raise NotImplementedError(
