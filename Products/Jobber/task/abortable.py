@@ -18,11 +18,25 @@ import threading
 from celery import states
 from celery.app import push_current_task, pop_current_task
 from celery.exceptions import Ignore
-from celery.contrib.abortable import AbortableTask
+from celery.contrib.abortable import (
+    AbortableTask, AbortableAsyncResult, ABORTED,
+)
+from zope.component import getUtility
 
 from Products.ZenUtils.Threading import inject_exception_into_thread
 
 from ..exceptions import JobAborted, TaskAborted
+from ..interfaces import IJobStore
+
+
+class AbortableResult(AbortableAsyncResult):
+    """The result of an Abortable."""
+
+    def abort(self):
+        """Abort the job."""
+        jobstore = getUtility(IJobStore, "redis")
+        jobstore.update(self.id, status=ABORTED)
+        return super(AbortableResult, self).abort()
 
 
 class Abortable(AbortableTask):
@@ -30,6 +44,10 @@ class Abortable(AbortableTask):
 
     abstract = True
     throws = (TaskAborted,)
+
+    def AsyncResult(self, task_id):
+        """Return the accompanying AbortableResult instance."""
+        return AbortableResult(task_id, backend=self.backend)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         result = super(Abortable, self).on_failure(
@@ -51,8 +69,9 @@ class Abortable(AbortableTask):
     def __call__(self, *args, **kwargs):
         """Execute the task."""
         # Ignore this task if it's already aborted.
-        task_result = self.AsyncResult(self.request.id)
-        if task_result.is_aborted():
+        jobstore = getUtility(IJobStore, "redis")
+        status = jobstore.getfield(self.request.id, "status")
+        if status == ABORTED:
             self.log.info("Ignoring aborted job: %s", self.request.id)
             raise Ignore()
         try:

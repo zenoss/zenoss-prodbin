@@ -17,9 +17,12 @@ import logging.handlers
 import os
 import sys
 
+from zope.component import getUtility
+
 from Products.ZenUtils.Utils import zenPath
 
 from .config import ZenJobs
+from .interfaces import IJobStore
 from .utils.log import (
     FormatStringAdapter,
     get_logger,
@@ -143,13 +146,14 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     """Create and configure the job instance logger."""
     log.debug("Adding a logger for job instance {}[{}]", task.name, task_id)
     try:
-        logdir = ZenJobs.get("job-log-path")
+        storage = getUtility(IJobStore, "redis")
+        logfile = storage.getfield(task_id, "logfile")
+        logdir = os.path.dirname(logfile)
         try:
             os.makedirs(logdir)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
-        logfile = os.path.join(logdir, "%s.log" % task_id)
         handler = TaskLogFileHandler(logfile)
         for logger in (logging.getLogger("zen"), get_task_logger()):
             logger.addHandler(handler)

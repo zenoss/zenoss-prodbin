@@ -179,9 +179,7 @@ class JobDeviceLoader(BaseDeviceLoader):
 
 
 class CreateDeviceJob(Job):
-    """
-    Create a new device object.
-    """
+    """Create a new device object."""
 
     @classmethod
     def getJobType(cls):

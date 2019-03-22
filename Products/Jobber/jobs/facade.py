@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+import inspect
+
 from celery.utils import fun_takes_kwargs
 from zope.dottedname.resolve import resolve
 
@@ -36,6 +38,12 @@ class FacadeMethodJob(Job):
         facade = facadefqdn.split(".")[-1]
         return "%s.%s %s" % (facade, method, args[0] if args else "")
 
+    @staticmethod
+    def getClassPathOf(obj):
+        name = obj.__class__.__name__
+        module = inspect.getmodule(obj)
+        return "%s.%s" % (module.__name__, name)
+
     def _run(self, facadefqdn, method, *args, **kwargs):
         """Execute a facade's method.
 
@@ -58,6 +66,10 @@ class FacadeMethodJob(Job):
                 "Not a callable method: %s.%s" % (facadeclass, method),
             )
         accepted = fun_takes_kwargs(bound_method, kwargs)
+        if "joblog" in accepted:
+            # Some facade methods were written to accept a 'joblog'
+            # argument provided by this task.
+            kwargs["joblog"] = self.log
         kwargs = {
             k: v
             for k, v in kwargs.iteritems()
@@ -72,10 +84,8 @@ class FacadeMethodJob(Job):
                 if not result["success"]:
                     raise FacadeMethodJobFailed(str(result))
                 return result["message"]
-            except FacadeMethodJobFailed:
-                raise
             except (TypeError, KeyError):
                 self.log.error(
-                    "The output from job %s is not in the right format.",
-                    self.request.id,
+                    "The output from job %s is not in the right format: %s",
+                    self.request.id, result,
                 )
