@@ -58,6 +58,14 @@ from zenoss.protocols.protobufs.zep_pb2 import (
     SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_CRITICAL,
 )
 
+
+try:
+    from Products.ZenUtils.virtual_root import IVirtualRoot
+    add_virtual_root = getUtility(IVirtualRoot).ensure_virtual_root
+except Exception:
+    add_virtual_root = lambda path: path
+
+
 log = logging.getLogger("zen.actions")
 
 
@@ -170,7 +178,7 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
 def _getBaseUrl(zopeurl):
     if not zopeurl:
         zopeurl = Utils.getDefaultZopeUrl()
-    return zopeurl + getUtility(IVirtualRoot).ensure_virtual_root('/zport/dmd')
+    return zopeurl + add_virtual_root('/zport/dmd')
 
 
 def _getBaseEventUrl(zopeurl):
