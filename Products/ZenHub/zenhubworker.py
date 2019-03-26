@@ -198,7 +198,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         if self.current != IDLE:
             self.log.info(
                 "Currently performing %s, elapsed %.2f s",
-                self.current, now-self.currentStart,
+                self.current, now - self.currentStart,
             )
         else:
             self.log.info("Currently IDLE")
@@ -216,7 +216,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
                             svc, method,
                             stats.numoccurrences,
                             stats.totaltime,
-                            stats.totaltime/stats.numoccurrences
+                            stats.totaltime / stats.numoccurrences
                             if stats.numoccurrences else 0.0,
                             isoDateTime(stats.lasttime),
                         ),
