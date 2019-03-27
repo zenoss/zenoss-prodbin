@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import time
 
 from unittest import TestCase, skip
@@ -122,7 +124,7 @@ class HubServiceManagerTest(TestCase):
     @patch("{src}.HubRealm".format(**PATH), autospec=True)
     @patch("{src}.getCredentialCheckers".format(**PATH), autospec=True)
     @patch("{src}.portal.Portal".format(**PATH), autospec=True)
-    @patch("{src}.pb.PBServerFactory".format(**PATH), autospec=True)
+    @patch("{src}.ZenPBServerFactory".format(**PATH), autospec=True)
     @patch("{src}.ipv6_available".format(**PATH), autospec=True)
     @patch("{src}.serverFromString".format(**PATH), autospec=True)
     @patch("{src}.AuthXmlRpcService".format(**PATH))
