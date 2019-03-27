@@ -16,7 +16,7 @@ import servicemigration as sm
 sm.require("1.1.11")
 
 CURRENT_MEMORY_PATTERN = re.compile('maxmemory[ ]*1gb')
-NEW_MEMORY = 'maxmemory {{percentScale .RAMCommitment 0.9 | bytesToMB}}'
+NEW_MEMORY = 'maxmemory {{percentScale .RAMCommitment 0.9}}'
 
 class setRedisMemory(Migrate.Step):
     """
