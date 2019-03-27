@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import os
 import socket
 import sys
@@ -28,6 +30,7 @@ from Products.ZenUtils.Utils import importClass, ipv6_available
 
 from .PBDaemon import RemoteBadMonitor, RemoteException
 from .XmlRpcService import XmlRpcService
+from .broker import ZenPBServerFactory
 from .dispatchers import (
     DispatchingExecutor, EventDispatcher, WorkerPoolDispatcher,
     WorkerPool, ServiceCallJob, StatsMonitor,
@@ -107,7 +110,7 @@ class HubServiceManager(object):
         realm = HubRealm(avatar)
         checkers = getCredentialCheckers(self.__passwdfile)
         hubportal = portal.Portal(realm, checkers)
-        hubserver_factory = pb.PBServerFactory(hubportal)
+        hubserver_factory = ZenPBServerFactory(hubportal)
         tcp_version = "tcp6" if ipv6_available() else "tcp"
         pb_descriptor = "%s:port=%s" % (tcp_version, self.__pbport)
         pb_server = serverFromString(reactor, pb_descriptor)

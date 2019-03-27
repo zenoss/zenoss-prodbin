@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 from unittest import TestCase
 from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
 
@@ -360,7 +362,7 @@ class ZenHubClientTest(TestCase):
 
         # Patch external dependencies
         needs_patching = [
-            'pb.PBClientFactory',
+            'ZenPBClientFactory',
             'clientFromString',
             'ClientService',
             'ConnectedToZenHubSignalFile',
@@ -409,7 +411,7 @@ class ZenHubClientTest(TestCase):
         t.assertFalse(t.zhc._ZenHubClient__stopping)
         t.backoffPolicy.assert_called_once_with(initialDelay=0.5, factor=3.0)
         t.ClientService.assert_called_once_with(
-            t.endpoint, t.PBClientFactory.return_value,
+            t.endpoint, t.ZenPBClientFactory.return_value,
             retryPolicy=t.backoffPolicy.return_value,
         )
         service = t.ClientService.return_value
