@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 from unittest import TestCase
 from mock import patch, sentinel, call, Mock, create_autospec, ANY, MagicMock
 
@@ -32,6 +34,7 @@ PATH = {'src': 'Products.ZenHub.zenhubworker'}
 
 
 class ZenHubWorkerTest(TestCase):
+    """Test the ZenHubWorker class."""
 
     def setUp(t):
         # Patch out the ZCmdBase __init__ method
@@ -51,7 +54,7 @@ class ZenHubWorkerTest(TestCase):
             setattr(t, name, patcher.start())
             t.addCleanup(patcher.stop)
 
-        # ZenHubWorker.options = sentinel.options
+        # Set ZenHubWorker's options to some real and mock values
         t.options.profiling = True
         t.options.hubhost = "localhost"
         t.options.hubport = 8765
@@ -154,8 +157,7 @@ class ZenHubWorkerTest(TestCase):
         ])
 
     def test_audit(t):
-        '''does nothing
-        '''
+        # Verifies the API exists, although it does nothing.
         action = sentinel.action
         t.zhw.audit(action)
 
@@ -216,10 +218,12 @@ class ZenHubWorkerTest(TestCase):
     @patch('{src}.isoDateTime'.format(**PATH), autospec=True)
     @patch('{src}.time'.format(**PATH), autospec=True)
     def test_reportStats(t, time, isoDateTime):
-        '''Metric Reporting Function. Log various statistics on services
-        as a general rule, do not test individual log messages, just log format
-        this function is difficult to read and should be refactored
-        '''
+        """Test the metric reporting function.
+
+        Log various statistics on services as a general rule, do not test
+        individual log messages, just log format this function is difficult
+        to read and should be refactored.
+        """
         t.zhw.current = sentinel.current_job
         t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
@@ -320,10 +324,12 @@ class ZenHubWorkerTest(TestCase):
 
     @patch('{src}.ZCmdBase'.format(**PATH))
     def test_buildOptions(t, ZCmdBase):
-        '''After initialization, the ZenHubWorker instance should have
-        options parsed from its buildOptions method
-        assertions based on default options
-        '''
+        """Test the result of the buildOptions method.
+
+        In this isolated test, after argument parsing, the ZenHubWorker
+        instance options object should have values matching the default
+        values specified for the options.
+        """
         # this should call buildOptions on parent classes, up the tree
         # currently calls an ancestor class directly
         # parser expected to be added by CmdBase.buildParser
@@ -345,6 +351,7 @@ class ZenHubWorkerTest(TestCase):
 
 
 class ZenHubClientTest(TestCase):
+    """Test the ZenHubClient class."""
 
     def setUp(t):
         # t.reactor = Mock()
@@ -355,7 +362,7 @@ class ZenHubClientTest(TestCase):
 
         # Patch external dependencies
         needs_patching = [
-            'pb.PBClientFactory',
+            'ZenPBClientFactory',
             'clientFromString',
             'ClientService',
             'ConnectedToZenHubSignalFile',
@@ -404,7 +411,7 @@ class ZenHubClientTest(TestCase):
         t.assertFalse(t.zhc._ZenHubClient__stopping)
         t.backoffPolicy.assert_called_once_with(initialDelay=0.5, factor=3.0)
         t.ClientService.assert_called_once_with(
-            t.endpoint, t.PBClientFactory.return_value,
+            t.endpoint, t.ZenPBClientFactory.return_value,
             retryPolicy=t.backoffPolicy.return_value,
         )
         service = t.ClientService.return_value
@@ -639,6 +646,7 @@ class ZenHubClientTest(TestCase):
 
 
 class PingZenHubTest(TestCase):
+    """Test the PingZenHub class."""
 
     def setUp(t):
         t.zenhub = Mock()
@@ -684,6 +692,7 @@ class PingZenHubTest(TestCase):
 
 
 class ServiceReferenceFactoryTest(TestCase):
+    """Test the ServiceReferenceFactory class."""
 
     @patch("{src}.ServiceReference".format(**PATH), autospec=True)
     def test_build(t, ServiceReference):
@@ -702,6 +711,7 @@ class ServiceReferenceFactoryTest(TestCase):
 
 
 class ServiceReferenceTest(TestCase):
+    """Test the ServiceReference class."""
 
     def setUp(t):
         t._CumulativeWorkerStats_patcher = patch(
@@ -797,6 +807,7 @@ class ServiceReferenceTest(TestCase):
 
 
 class _CumulativeWorkerStatsTest(TestCase):
+    """Test the _CumulativeWorkerStats class."""
 
     def test___init__(t):
         cws = _CumulativeWorkerStats()
