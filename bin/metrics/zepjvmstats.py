@@ -10,9 +10,12 @@
 import argparse
 import json
 import logging
+import os
 import requests
+import sys
 import time
 
+from pprint import pprint
 from gather import ServiceMetrics, MetricGatherer
 
 log = logging.getLogger('zenoss.zepjvmmetrics')
@@ -80,7 +83,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--interval", dest="interval", type=float,
                         default=30, help="polling interval in seconds")
+    parser.add_argument("-v", "--verbose", dest="verbose", action='store_true',
+                        help="Run metrics collection once in full debug and dump to stdout.")
     args = parser.parse_args()
 
-    zepjvmm = ZepJvmMetrics(options=args)
-    zepjvmm.run()
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
+        stdout = logging.StreamHandler(sys.stdout)
+        log.addHandler(stdout)
+
+        zepjvmm = ZepJvmMetrics(options=args)
+        gatherer = zepjvmm.build_gatherer()
+        metrics = gatherer.get_metrics()
+        pprint(metrics)
+    else:
+        zepjvmm = ZepJvmMetrics(options=args)
+        zepjvmm.run()
