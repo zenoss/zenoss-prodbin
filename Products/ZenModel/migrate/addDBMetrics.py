@@ -27,7 +27,7 @@ cfg_name = '/etc/mariadb/mariadb_supervisor.conf'
 databases = {'mariadb-model': 'zodb', 'mariadb-events': 'zep'}
 
 class addDBMetrics(Migrate.Step):
-    version = Migrate.Version(300, 0, 9)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
         try:
