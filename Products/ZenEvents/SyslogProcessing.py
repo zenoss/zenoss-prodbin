@@ -160,9 +160,9 @@ class SyslogProcessor(object):
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
             if 'summary' in evt:
-                evt['summary'] = unicode(evt['summary'])
+                evt['summary'] = unicode(evt['summary'] )
             if 'message' in evt:
-                evt['message'] = unicode(evt['message'])
+                evt['message'] = unicode(evt['message'] )
             else: 
                 evt['message'] = unicode(msg)
             self.sendEvent(evt)
