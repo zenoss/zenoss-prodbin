@@ -159,13 +159,14 @@ class SyslogProcessor(object):
             #rest of msg now in summary of event
             evt = self.buildEventClassKey(evt)
             evt['monitor'] = self.monitor
-           if 'message' in evt:
+            if 'summary' in evt:
+                evt['summary'] = unicode(evt['summary'])
+            if 'message' in evt:
                 evt['message'] = unicode(evt['message'])
-            elif 'summary' in evt:
-                evt['message'] = unicode(evt['summary'])
             else: 
                 evt['message'] = unicode(msg)
             self.sendEvent(evt)
+
 
     def parsePRI(self, evt, msg):
         """
