@@ -15,7 +15,6 @@ import servicemigration as sm
 
 import re
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.12")
 
@@ -33,7 +32,7 @@ NEW_ZOPE_SECRET = 'session.secret          {{ getContext . "global.conf.zope-ses
 class MakeTuningParamsIntoVariables(Migrate.Step):
     """Make Tuning Parameters Into Context Variables"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 7)
 
     def cutover(self, dmd):
         try:

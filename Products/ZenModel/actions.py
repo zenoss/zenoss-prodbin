@@ -19,6 +19,7 @@ from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
 from zope.component import getUtility
+from Products.ZenUtils.virtual_root import IVirtualRoot
 from zope.component import getUtilitiesFor
 
 from pynetsnmp import netsnmp
