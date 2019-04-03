@@ -24895,7 +24895,7 @@
     "Version": "",
     "Context": null,
     "Environment": null,
-    "Startup": "su - zenoss -c \"cd /opt/zenoss && /bin/supervisord -n -c /opt/zenoss/etc/zeneventserver_supervisord.conf\"",
+    "Startup": "su - zenoss -c \"export DEFAULT_ZEP_JVM_ARGS='-server -Xmx{{.RAMCommitment}}' \u0026\u0026 /opt/zenoss/bin/zeneventserver run_quiet \"",
     "Description": "Stores and retrieves events from its database",
     "Tags": [
       "daemon"
@@ -24962,13 +24962,7 @@
         "Owner": "zenoss:zenoss",
         "Permissions": "0600",
         "Content": "\u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e\n\u003c!--\n##############################################################################\n#\n# Copyright (C) Zenoss, Inc. 2016, all rights reserved.\n# \n# This content is made available according to terms specified in\n# License.zenoss under the directory where your Zenoss product is installed.\n#\n##############################################################################\n--\u003e\n\n\n\u003cconfiguration scan=\"true\"\u003e\n    \u003cstatusListener class=\"ch.qos.logback.core.status.OnConsoleStatusListener\" /\u003e\n\n    \u003cif condition='isNull(\"ZENOSS_DAEMON\")'\u003e\n        \u003cthen\u003e\n            \u003cappender name=\"APPENDER\" class=\"ch.qos.logback.core.ConsoleAppender\"\u003e\n                \u003cencoder\u003e\n                    \u003cpattern\u003e%date{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n\u003c/pattern\u003e\n                \u003c/encoder\u003e\n            \u003c/appender\u003e\n        \u003c/then\u003e\n        \u003celse\u003e\n            \u003cappender name=\"APPENDER\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\"\u003e\n                \u003cfile\u003e${ZENHOME:-.}/log/zeneventserver.log\u003c/file\u003e\n                \u003crollingPolicy class=\"ch.qos.logback.core.rolling.FixedWindowRollingPolicy\"\u003e\n                    \u003c!-- daily rollover --\u003e\n                    \u003cfileNamePattern\u003e${ZENHOME:-.}/log/zeneventserver.log.%i\u003c/fileNamePattern\u003e\n                    \u003c!-- keep up to 3 logs by default --\u003e\n                    \u003cminIndex\u003e1\u003c/minIndex\u003e\n                    \u003cmaxIndex\u003e3\u003c/maxIndex\u003e\n                \u003c/rollingPolicy\u003e\n                \u003ctriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy\"\u003e\n                    \u003cmaxFileSize\u003e10MB\u003c/maxFileSize\u003e\n                \u003c/triggeringPolicy\u003e\n                \u003cencoder\u003e\n                    \u003cpattern\u003e%date{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n\u003c/pattern\u003e\n                \u003c/encoder\u003e\n            \u003c/appender\u003e\n        \u003c/else\u003e\n    \u003c/if\u003e\n\n    \u003ccontextName\u003ezeneventserver\u003c/contextName\u003e\n    \u003cjmxConfigurator /\u003e\n    \u003clogger name=\"org.springframework\" level=\"WARN\"/\u003e\n    \u003clogger name=\"ch.qos.logback\" level=\"WARN\"/\u003e\n    \u003clogger name=\"com.zenoss\" level=\"${ZENOSS_LOG_LEVEL:-INFO}\" /\u003e\n    \u003clogger name=\"org.zenoss\" level=\"${ZENOSS_LOG_LEVEL:-INFO}\" /\u003e\n    \u003croot level=\"INFO\"\u003e\n        \u003cappender-ref ref=\"APPENDER\"/\u003e\n    \u003c/root\u003e\n\u003c/configuration\u003e\n"
-      },
-     "/opt/zenoss/etc/zeneventserver_supervisord.conf": {
-       "Filename": "/opt/zenoss/etc/zeneventserver_supervisord.conf",
-       "Owner": "zenoss:zenoss",
-       "Permissions": "0664",
-       "Content": "[supervisord]\nnodaemon=true\nlogfile = log/supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:zeneventserver]\ncommand=bin/zeneventserver run_quiet\npriority=1\nautorestart=true\nautostart=true\nstartsecs=5\nenvironment=DEFAULT_ZEP_JVM_ARGS=\"-server -Xmx{{.RAMCommitment}}\"\n\n[program:zeneventserver_metrics]\ncommand=/usr/bin/python bin/metrics/zepjvmstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=log/%(program_name)s.log\n"
-     }
+      }
     },
     "Instances": 1,
     "InstanceLimits": {
