@@ -158,7 +158,9 @@ class HubServiceManagerTest(TestCase):
         services = hubServiceRegistry.return_value
         avatar = hubAvatar.return_value
         realm = hubRealm.return_value
-        checkers = getCredentialCheckers.return_value
+        checker = Mock()
+        checkers = [checker]
+        getCredentialCheckers.return_value = checkers
         portalObj = portal.return_value
         pb_factory = pBServerFactory.return_value
         xmlrpc_site = authXmlRpcService.makeSite.return_value
@@ -215,7 +217,7 @@ class HubServiceManagerTest(TestCase):
         dfr.addCallback.assert_called_once_with(
             manager._HubServiceManager__setKeepAlive
         )
-        authXmlRpcService.makeSite.assert_called_once_with(dmd, checkers)
+        authXmlRpcService.makeSite.assert_called_once_with(dmd, checker)
         xmlrpc_server.listen.assert_called_once_with(xmlrpc_site)
 
     @skip("Not testing string formatting")
