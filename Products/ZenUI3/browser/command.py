@@ -1,10 +1,10 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2010, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
@@ -31,7 +31,9 @@ class CommandView(StreamingView):
     """
     def stream(self):
         data = unjson(self.request.get('data'))
-        command = self.context.getUserCommands(asDict=True).get(data['command'], None)
+        command = self.context.getUserCommands(asDict=True).get(
+            data['command'],
+            None)
         if command:
             for uid in data['uids']:
                 target = self.context.unrestrictedTraverse(uid)
@@ -72,7 +74,8 @@ class CommandView(StreamingView):
                               self.context.defaultTimeout)
             end = time.time() + timeout
             self.write('==== %s ====' % target.titleOrId())
-            printable_command = self._get_printable_command(cmd.command, compiled, target)
+            printable_command = self._get_printable_command(cmd.command,
+                                                            compiled, target)
             self.write(printable_command)
 
             audit('UI.Command.Invoke', cmd.id, target=target.id)
@@ -118,41 +121,47 @@ class BackupView(StreamingView):
             timeout = int(timeoutString)
         except ValueError:
             timeout = 120
-        self.context.zport.dmd.manage_createBackup(includeEvents,
-                includeMysqlLogin, timeout, self.request, self.write)
+        self.context.zport.dmd.manage_createBackup(
+            includeEvents,
+            includeMysqlLogin,
+            timeout,
+            self.request,
+            self.write)
 
 
-class TestDataSourceView(StreamingView):
+class MonitorDatasource(StreamingView):
     """
-    Accepts a post with data in of the command to be tested against a device
+    Get device by id. Accepts datasource object to device model.
     """
 
     def stream(self):
-        """
-        Called by the parent class, this method asks the datasource
-        to test itself.
-        """
         try:
-            request = self.request
-            data = unjson(request.form['data'])
-            # datasource expect the request object, so set the attributes
-            # from the request (so the user can test without saving the datasource)
-            for key in data:
-                request[key] = data[key]
+            data = unjson(self.request.form['data'])
+            testDevice = data.get('testDevice')
+            device = None
+            if testDevice:
+                # Try to get specified device
+                device = self.context.findDevice(testDevice)
+                if not device:
+                    self.reportError(
+                        'No device found',
+                        'Cannot find device matching %s.' % testDevice)
+                    return self.context.callZenScreen(self.request)
+            elif hasattr(self.context, 'device'):
+                # ds defined on a device, use that device
+                device = self.context.device()
+            if not device:
+                self.reportError(
+                    'No Testable Device',
+                    'Cannot determine a device against which to test.')
+                return self.context.callZenScreen(self.request)
 
-            self.write("Preparing Command...")
-            request['renderTemplate'] = False
-            results = self.context.testDataSourceAgainstDevice(
-                data.get('testDevice'),
-                request,
-                self.write,
-                self.reportError)
-            return results
+            device.monitorPerDatasource(self.context, self.request, self.write)
         except Exception:
             self.write('Exception while performing command: <br />')
             self.write('<pre>%s</pre>' % (traceback.format_exc()))
 
-    def reportError(self, title, body, priority=None, image=None):
+    def reportError(self, title, body):
         """
         If something goes wrong, just display it in the command output
         (as opposed to a browser message)
@@ -182,7 +191,8 @@ class ModelDebugView(StreamingView):
         uids = data['uids']
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
-            device.collectDevice(REQUEST=self.request, write=self.write, debug=True)
+            device.collectDevice(REQUEST=self.request, write=self.write,
+                                 debug=True)
 
 
 class MonitorView(StreamingView):

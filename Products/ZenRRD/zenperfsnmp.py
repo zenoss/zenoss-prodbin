@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, 2010, 2011, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 
-__doc__="""zenperfsnmp
+__doc__ = """zenperfsnmp
 
 Gets SNMP performance data and stores it in RRD files.
 
@@ -64,8 +64,8 @@ class SnmpPerformanceCollectionPreferences(object):
         provides default values for needed attributes.
         """
         self.collectorName = COLLECTOR_NAME
-        self.configCycleInterval = 20 # minutes
-        self.cycleInterval = 5 * 60 # seconds
+        self.configCycleInterval = 20  # minutes
+        self.cycleInterval = 5 * 60  # seconds
 
         # The configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
@@ -79,7 +79,8 @@ class SnmpPerformanceCollectionPreferences(object):
                           dest='showrawresults',
                           action="store_true",
                           default=False,
-                          help="Show the raw RRD values. For debugging purposes only.")
+                          help="Show the raw RRD values. "
+                               "For debugging purposes only.")
 
         parser.add_option('--maxbackoffminutes',
                           dest='maxbackoffminutes',
@@ -91,15 +92,22 @@ class SnmpPerformanceCollectionPreferences(object):
                           dest='triesPerCycle',
                           default=2,
                           type='int',
-                          help="How many attempts per cycle should be made to get data for an OID from a "\
-                                "non-responsive device. Minimum of 2")
+                          help="How many attempts per cycle should be made "
+                               "to get data for an OID from a non-responsive "
+                               "device. Minimum of 2")
 
         parser.add_option('--maxtimeouts',
                           dest='maxTimeouts',
                           default=3,
                           type='int',
-                          help="How many consecutive time outs per cycle before stopping attempts to collect")
+                          help="How many consecutive time outs per cycle "
+                               "before stopping attempts to collect")
 
+        parser.add_option('--oid',
+                          dest='oid',
+                          type='string',
+                          default=None,
+                          help="Collect just for one oid (datasource)")
 
     def postStartup(self):
         pass
@@ -170,18 +178,19 @@ class SnmpPerformanceCollectionTask(BaseTask):
         self._oids = self._device.oids
         self._oidDeque = deque(self._oids.keys())
         self._good_oids = set()
-        #oids not returning data
+        # oids not returning data
         self._bad_oids = set()
         self._snmpPort = snmpprotocol.port()
         self.triesPerCycle = max(2, self._preferences.options.triesPerCycle)
         self._maxTimeouts = self._preferences.options.maxTimeouts
+        self._choosenOid = self._preferences.options.oid
 
         self._lastErrorMsg = ''
         self._cycleExceededCount = 0
         self._stoppedTaskCount = 0
         self._snmpV3ErrorCount = 0
 
-        #whether or not we got a response during a collection interval
+        # whether or not we got a response during a collection interval
         self._responseReceived = False
 
     def _failure(self, reason):
@@ -221,15 +230,21 @@ class SnmpPerformanceCollectionTask(BaseTask):
         if elapsed >= timedelta(seconds=self._device.cycleInterval):
             raise CycleExceeded(
                 "Elapsed time %s seconds greater than %s seconds" % (elapsed.total_seconds(), self._device.cycleInterval))
-            #check to to see if we are about to run out of time, if so stop task
+            # check to to see if we are about to run out of time, if so stop task
         if elapsed >= timedelta(seconds=self._device.cycleInterval*.99):
             raise StopTask("Elapsed time %s sec" % elapsed.total_seconds())
 
+    def getOidsSet(self):
+        if self._choosenOid:
+            return set(oid for oid in self._oids if self._choosenOid in oid)
+        else:
+            return set(self._oids)
+
     def _untestedOids(self):
-        return set(self._oids) - self._bad_oids - self._good_oids
+        return self.getOidsSet() - self._bad_oids - self._good_oids
 
     def _uncollectedOids(self):
-        return set(self._oids) - self._bad_oids - self._collectedOids
+        return self.getOidsSet() - self._bad_oids - self._collectedOids
 
     @defer.inlineCallbacks
     def _fetchPerf(self):
@@ -277,8 +292,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
             # run with a smaller chunk size to identify bad oid. Can also have uncollected good oids because of timeouts
             oids_to_test = list(self._uncollectedOids())
             chunk_size = 1
-    
-
 
     @defer.inlineCallbacks
     def _fetchPerfChunk(self, oid_chunk):
@@ -290,7 +303,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
             raise
         except Exception, e:
             log.exception('Failed to collect on {0} ({1.__class__.__name__}: {1})'.format(self.configId, e))
-            #something happened, not sure what.
+            # something happened, not sure what.
             raise
         finally:
             self.state = TaskStates.STATE_RUNNING
@@ -298,7 +311,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
 
         # we got a response
         self._responseReceived = True
-        #remove leading and trailing dots
+        # remove leading and trailing dots
         for oid, value in dict(update_x).items():
             update[oid.strip('.')] = value
 
@@ -356,6 +369,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
                             continue
 
                         path = metadata.get('contextKey')
+                        if self._choosenOid:
+                            log.info("OID: %s >> Component: %s >> "
+                                     "DataPoint: %s %s", oid, path, metric,
+                                     value)
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
                             yield self._dataService.writeMetricWithMetadata(
@@ -382,9 +399,9 @@ class SnmpPerformanceCollectionTask(BaseTask):
             while num_checked < max_bad_check and oids_to_test:
                 self._checkTaskTime()
                 # using deque as a rotating list so that next time we start where we left off
-                oid = self._oidDeque[0] # get the first one
-                self._oidDeque.rotate(1) # move it to the end
-                if oid in oids_to_test: # fetch if we care
+                oid = self._oidDeque[0]  # get the first one
+                self._oidDeque.rotate(1)  # move it to the end
+                if oid in oids_to_test:  # fetch if we care
                     oids_to_test.remove(oid)
                     num_checked += 1
                     try:
@@ -432,13 +449,12 @@ class SnmpPerformanceCollectionTask(BaseTask):
             self._sendStatusEvent('Collection run time restored below interval', eventKey='interval_exceeded',
                                   severity=Event.Clear)
 
-
             if self._responseReceived:
                 # clear down event
                 self._sendStatusEvent('SNMP agent up', eventKey='agent_down',
                                       severity=Event.Clear)
                 if not self._collectedOids:
-                    #send event if no oids collected - all oids seem to be bad
+                    # send event if no oids collected - all oids seem to be bad
                     oidSample = self._oids.keys()[:self._maxOidsPerRequest]
                     oidDetails = {'oids_configured': "%s oids configured for device" % len(self._oids),
                                   'oid_sample': "Subset of oids requested %s" % oidSample}
@@ -459,9 +475,8 @@ class SnmpPerformanceCollectionTask(BaseTask):
                                               severity=Event.Warning)
 
             else:
-                #send event if no response received - all timeouts or other errors
+                # send event if no response received - all timeouts or other errors
                 self._sendStatusEvent('SNMP agent down - no response received', eventKey='agent_down')
-
 
         except CycleExceeded as e:
             self._cycleExceededCount += 1
@@ -527,7 +542,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
             log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % (
                 self.configId, duration.total_seconds(), self._device.cycleInterval))
 
-
         # Return the result so the framework can track success/failure
         return result
 
@@ -556,7 +570,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
         # Wait until the Deferred actually completes
         return d
 
-
     def _logTaskOidInfo(self, previous_bad_oids):
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Device %s [%s] %d of %d OIDs scanned successfully",
@@ -575,7 +588,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
         oidsNotCollected = self._uncollectedOids()
         if oidsNotCollected:
             log.debug("%s Oids not collected because %s - %s" % (self.name, reason, str(oidsNotCollected)))
-
 
     def _connect(self):
         """
@@ -599,7 +611,6 @@ class SnmpPerformanceCollectionTask(BaseTask):
                 self._snmpProxy.close()
             finally:
                 self._snmpProxy = None
-
 
     def displayStatistics(self):
         """
