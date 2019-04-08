@@ -318,6 +318,16 @@ class Writer(BaseApiView):
         writers += super(Writer, self)._getServices('writer-bigtable')
         return writers
 
+class ImpactDaemons(BaseApiView):
+    """
+    This view emits the Impact daemon services
+    """
+    @property
+    def _services(self):
+        return (
+            ('impacts', 'Impact'),
+            ('zenimpactstates', 'zenimpactstate'),
+        )
 
 class ZingConnector(BaseApiView):
     """
