@@ -61,3 +61,16 @@ class IImpactRelationshipsFactProvider(Interface):
         Return an impact relationship fact for the passed uuid, if the object
         does not belong in the impact graph it returns None
         """
+
+
+class IObjectMapContextProvider(Interface):
+    """Interface for providers of ObjectMapContext data."""
+
+    def __init__(self, obj):
+        """Initialize adapter with obj."""
+
+    def get_dimensions(self, obj):
+        """Return dict of dimensions for obj."""
+
+    def get_metadata(self, obj):
+        """Return dict of metadata for obj."""
