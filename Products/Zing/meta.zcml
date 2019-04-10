@@ -1,3 +1,4 @@
 <configure xmlns="http://namespaces.zope.org/meta">
     <provides feature="zingConnector" />
+    <provides feature="IObjectMapContextProvider" />
 </configure>
