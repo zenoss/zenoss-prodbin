@@ -509,11 +509,28 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-    def collectDevice(self, REQUEST=None):
+    def collectDevice(self, REQUEST=None, write=None, debug=False):
         """model all devices in this Organizer.
         """
-        [ d.collectDevice() for d in self.getSubDevices() ]
-        if REQUEST:
+        subDevices = [d for d in self.getSubDevices()]
+        if not subDevices and write:
+            write("Not found devices in organizer")
+        else:
+            [d.collectDevice(REQUEST=REQUEST, write=write, debug=debug)
+             for d in subDevices]
+        if (not write and REQUEST):
+            return self.callZenScreen(REQUEST)
+
+    def runDeviceMonitor(self, REQUEST=None, write=None, debug=False):
+        """run monitoring for all devices in this Organizer.
+        """
+        subDevices = [d for d in self.getSubDevices()]
+        if not subDevices and write:
+            write("Not found devices in organizer")
+        else:
+            [d.runDeviceMonitor(REQUEST=REQUEST, write=write, debug=debug)
+             for d in subDevices]
+        if (not write and REQUEST):
             return self.callZenScreen(REQUEST)
 
     def _status(self, type, devrel="devices"):
