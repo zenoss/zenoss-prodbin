@@ -155,6 +155,33 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource, Commandable):
         return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
+    def testDataSourceAgainstDevice(self, testDevice, REQUEST, write, errorLog):
+        """
+        Does the majority of the logic for testing a datasource against the device
+        @param string testDevice The id of the device we are testing
+        @param Dict REQUEST the browers request
+        @param Function write The output method we are using to stream the result of the command
+        @parma Function errorLog The output method we are using to report errors
+        """
+        device = None
+        if testDevice:
+            # Try to get specified device
+            device = self.findDevice(testDevice)
+            if not device:
+                errorLog(
+                    'No device found',
+                    'Cannot find device matching %s.' % testDevice)
+                return self.callZenScreen(REQUEST)
+        elif hasattr(self, 'device'):
+            # ds defined on a device, use that device
+            device = self.device()
+        if not device:
+            errorLog(
+                'No Testable Device',
+                'Cannot determine a device against which to test.')
+            return self.callZenScreen(REQUEST)
+        device.monitorPerDatasource(self, REQUEST, write)
+
     security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_testDataSource')
     def manage_testDataSource(self, testDevice, REQUEST):
         ''' Test the datasource by executing the command and outputting the

@@ -136,32 +136,23 @@ class MonitorDatasource(StreamingView):
 
     def stream(self):
         try:
-            data = unjson(self.request.form['data'])
-            testDevice = data.get('testDevice')
-            device = None
-            if testDevice:
-                # Try to get specified device
-                device = self.context.findDevice(testDevice)
-                if not device:
-                    self.reportError(
-                        'No device found',
-                        'Cannot find device matching %s.' % testDevice)
-                    return self.context.callZenScreen(self.request)
-            elif hasattr(self.context, 'device'):
-                # ds defined on a device, use that device
-                device = self.context.device()
-            if not device:
-                self.reportError(
-                    'No Testable Device',
-                    'Cannot determine a device against which to test.')
-                return self.context.callZenScreen(self.request)
-
-            device.monitorPerDatasource(self.context, self.request, self.write)
+            request = self.request
+            data = unjson(request.form['data'])
+            for key in data:
+                request[key] = data[key]
+            self.write("Preparing Command...")
+            request['renderTemplate'] = False
+            results = self.context.testDataSourceAgainstDevice(
+                data.get('testDevice'),
+                request,
+                self.write,
+                self.reportError)
+            return results
         except Exception:
             self.write('Exception while performing command: <br />')
             self.write('<pre>%s</pre>' % (traceback.format_exc()))
 
-    def reportError(self, title, body):
+    def reportError(self, title, body, priority=None, image=None):
         """
         If something goes wrong, just display it in the command output
         (as opposed to a browser message)
