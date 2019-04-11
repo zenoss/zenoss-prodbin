@@ -326,7 +326,7 @@ class ImpactDaemons(BaseApiView):
     def _services(self):
         return (
             ('impacts', 'Impact'),
-            ('zenimpactstates', 'zenimpactstate'),
+            ('zenImpactStates', 'zenimpactstate'),
         )
 
 class ZingConnector(BaseApiView):
