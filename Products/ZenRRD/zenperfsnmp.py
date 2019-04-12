@@ -183,7 +183,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         self._snmpPort = snmpprotocol.port()
         self.triesPerCycle = max(2, self._preferences.options.triesPerCycle)
         self._maxTimeouts = self._preferences.options.maxTimeouts
-        self._choosenOid = self._preferences.options.oid
+        self._chosenOid = self._preferences.options.oid
 
         self._lastErrorMsg = ''
         self._cycleExceededCount = 0
@@ -235,8 +235,8 @@ class SnmpPerformanceCollectionTask(BaseTask):
             raise StopTask("Elapsed time %s sec" % elapsed.total_seconds())
 
     def getOidsSet(self):
-        if self._choosenOid:
-            return set(oid for oid in self._oids if self._choosenOid in oid)
+        if self._chosenOid:
+            return set(oid for oid in self._oids if self._chosenOid in oid)
         else:
             return set(self._oids)
 
@@ -369,7 +369,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
                             continue
 
                         path = metadata.get('contextKey')
-                        if self._choosenOid:
+                        if self._chosenOid:
                             log.info("OID: %s >> Component: %s >> "
                                      "DataPoint: %s %s", oid, path, metric,
                                      value)

@@ -384,7 +384,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                                   COLLECTOR_NAME)
         self._maxbackoffseconds = preferences.options.maxbackoffminutes * 60
         self._showfullcommand = preferences.options.showfullcommand
-        self._choosenDatasource = preferences.options.datasource
+        self._chosenDatasource = preferences.options.datasource
 
         self._executor = TwistedExecutor(taskConfig.zSshConcurrentSessions)
 
@@ -449,8 +449,8 @@ class SshPerformanceCollectionTask(BaseTask):
             self._returnToNormalSchedule()
 
     def getDatasources(self):
-        if self._choosenDatasource:
-            return [ds for ds in self._datasources if ds.name == self._choosenDatasource]
+        if self._chosenDatasource:
+            return [ds for ds in self._datasources if ds.name == self._chosenDatasource]
         else:
             return self._datasources
 
@@ -637,9 +637,9 @@ class SshPerformanceCollectionTask(BaseTask):
         """
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
 
-        if self._choosenDatasource:
+        if self._chosenDatasource:
             log.info("Values would be stored for datasource %s",
-                     self._choosenDatasource)
+                     self._chosenDatasource)
         for datasource, results in resultList:
             for dp, value in results.values:
                 threshData = {
@@ -647,7 +647,7 @@ class SshPerformanceCollectionTask(BaseTask):
                     'component': dp.component,
                 }
                 try:
-                    if self._choosenDatasource:
+                    if self._chosenDatasource:
                         log.info("Component: %s >> DataPoint: %s %s",
                                  dp.metadata['contextKey'], dp.dpName, value)
                     yield self._dataService.writeMetricWithMetadata(
