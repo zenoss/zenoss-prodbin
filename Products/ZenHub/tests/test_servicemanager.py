@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import time
 
 from unittest import TestCase, skip
@@ -16,7 +18,7 @@ from zope.interface.verify import verifyObject
 
 from Products.ZenHub.dispatchers.workers import JobStats, WorkerStats
 from Products.ZenHub.servicemanager import (
-    AuthXmlRpcService, XmlRpcService,
+    AuthXmlRpcService,
     DispatchingExecutor,
     getCredentialCheckers,
     HubAvatar,
@@ -28,7 +30,7 @@ from Products.ZenHub.servicemanager import (
     RemoteBadMonitor, UnknownServiceError, RemoteException,
     ServiceAddedEvent, IServiceAddedEvent,
     ZenHubPriority,
-    pb, defer
+    pb, defer,
 )
 
 PATH = {'src': 'Products.ZenHub.servicemanager'}
@@ -50,13 +52,16 @@ class Callback(object):
     """
 
     def __init__(self):
+        """Initialize a Callback instance."""
         self.result = None
 
     def __call__(self, r):
+        """Save the result."""
         self.result = r
 
 
 class HubServiceManagerTest(TestCase):
+    """Test the HubServiceManager class."""
 
     def setUp(self):
         self.modeling_pause_timeout = 1.0
@@ -70,7 +75,7 @@ class HubServiceManagerTest(TestCase):
             modeling_pause_timeout=self.modeling_pause_timeout,
             passwordfile=self.passwordfile,
             pbport=self.pbport,
-            xmlrpcport=self.xmlrpcport
+            xmlrpcport=self.xmlrpcport,
         )
 
     def test_init_missing_modeling_pause_timeout(self):
@@ -78,7 +83,7 @@ class HubServiceManagerTest(TestCase):
             HubServiceManager(
                 passwordfile=self.passwordfile,
                 pbport=self.pbport,
-                xmlrpcport=self.xmlrpcport
+                xmlrpcport=self.xmlrpcport,
             )
 
     def test_init_missing_passwordfile(self):
@@ -86,7 +91,7 @@ class HubServiceManagerTest(TestCase):
             HubServiceManager(
                 modeling_pause_timeout=self.modeling_pause_timeout,
                 pbport=self.pbport,
-                xmlrpcport=self.xmlrpcport
+                xmlrpcport=self.xmlrpcport,
             )
 
     def test_init_missing_pbport(self):
@@ -94,7 +99,7 @@ class HubServiceManagerTest(TestCase):
             HubServiceManager(
                 modeling_pause_timeout=self.modeling_pause_timeout,
                 passwordfile=self.passwordfile,
-                xmlrpcport=self.xmlrpcport
+                xmlrpcport=self.xmlrpcport,
             )
 
     def test_init_missing_xmlrpcport(self):
@@ -119,7 +124,7 @@ class HubServiceManagerTest(TestCase):
     @patch("{src}.HubRealm".format(**PATH), autospec=True)
     @patch("{src}.getCredentialCheckers".format(**PATH), autospec=True)
     @patch("{src}.portal.Portal".format(**PATH), autospec=True)
-    @patch("{src}.pb.PBServerFactory".format(**PATH), autospec=True)
+    @patch("{src}.ZenPBServerFactory".format(**PATH), autospec=True)
     @patch("{src}.ipv6_available".format(**PATH), autospec=True)
     @patch("{src}.serverFromString".format(**PATH), autospec=True)
     @patch("{src}.AuthXmlRpcService".format(**PATH))
@@ -128,7 +133,7 @@ class HubServiceManagerTest(TestCase):
         authXmlRpcService,
         serverFromString,
         ipv6_available,
-        pBServerFactory,
+        pbServerFactory,
         portal,
         getCredentialCheckers,
         hubRealm,
@@ -142,7 +147,7 @@ class HubServiceManagerTest(TestCase):
         workerPoolDispatcher,
         register_metrics_on_worklist,
         zenHubWorklist,
-        modelingPaused
+        modelingPaused,
     ):
         dmd = Mock("dmd", spec_set=["ZenEventManager"])
         reactor = Mock()
@@ -162,7 +167,7 @@ class HubServiceManagerTest(TestCase):
         checkers = [checker]
         getCredentialCheckers.return_value = checkers
         portalObj = portal.return_value
-        pb_factory = pBServerFactory.return_value
+        pb_factory = pbServerFactory.return_value
         xmlrpc_site = authXmlRpcService.makeSite.return_value
 
         ipv6_available.side_effect = lambda: True
@@ -186,17 +191,17 @@ class HubServiceManagerTest(TestCase):
             modeling_pause_timeout=self.modeling_pause_timeout,
             passwordfile=self.passwordfile,
             pbport=self.pbport,
-            xmlrpcport=self.xmlrpcport
+            xmlrpcport=self.xmlrpcport,
         )
         manager.start(dmd, reactor)
 
         modelingPaused.assert_called_once_with(
-            dmd, self.modeling_pause_timeout
+            dmd, self.modeling_pause_timeout,
         )
         zenHubWorklist.assert_called_once_with(modeling_paused=paused)
         register_metrics_on_worklist.assert_called_once_with(worklist)
         workerPoolDispatcher.assert_called_once_with(
-            reactor, worklist, pool, stats
+            reactor, worklist, pool, stats,
         )
         eventDispatcher.assert_called_once_with(dmd.ZenEventManager)
         dispatchingExecutor.assert_called_once_with([events], default=workers)
@@ -206,16 +211,16 @@ class HubServiceManagerTest(TestCase):
         hubRealm.assert_called_once_with(avatar)
         getCredentialCheckers.assert_called_once_with(self.passwordfile)
         portal.assert_called_once_with(realm, checkers)
-        pBServerFactory.assert_called_once_with(portalObj)
+        pbServerFactory.assert_called_once_with(portalObj)
 
         serverFromString.assert_has_calls([
             call(reactor, pb_descriptor),
-            call(reactor, xmlrpc_descriptor)
+            call(reactor, xmlrpc_descriptor),
         ])
 
         pb_server.listen.assert_called_once_with(pb_factory)
         dfr.addCallback.assert_called_once_with(
-            manager._HubServiceManager__setKeepAlive
+            manager._HubServiceManager__setKeepAlive,
         )
         authXmlRpcService.makeSite.assert_called_once_with(dmd, checker)
         xmlrpc_server.listen.assert_called_once_with(xmlrpc_site)
@@ -233,10 +238,10 @@ class HubServiceManagerTest(TestCase):
         now = time.time() - (1350)
         workTracker = {
             0: WorkerStats(
-                "Busy", "localhost:EventServer:sendEvent", now, 34.8
+                "Busy", "localhost:EventServer:sendEvent", now, 34.8,
             ),
             1: WorkerStats(
-                "Idle", "localhost:SomeService:someMethod", now, 4054.3
+                "Idle", "localhost:SomeService:someMethod", now, 4054.3,
             ),
             2: None,
         }
@@ -244,28 +249,28 @@ class HubServiceManagerTest(TestCase):
             "sendEvent": Mock(
                 JobStats,
                 count=2953, idle_total=3422.3, running_total=35.12,
-                last_called_time=now
+                last_called_time=now,
             ),
             "sendEvents": Mock(
                 JobStats,
                 count=451, idle_total=3632.5, running_total=20.5,
-                last_called_time=now
+                last_called_time=now,
             ),
             "applyDataMaps": Mock(
                 JobStats,
                 count=169, idle_total=620.83, running_total=3297.248,
-                last_called_time=now
+                last_called_time=now,
             ),
             "singleApplyDataMaps": Mock(
                 JobStats,
                 count=23, idle_total=1237.345, running_total=936.85,
-                last_called_time=now
+                last_called_time=now,
             ),
             "someMethod": Mock(
                 JobStats,
                 count=276, idle_total=7384.3, running_total=83.3,
-                last_called_time=now
-            )
+                last_called_time=now,
+            ),
         }
         getWorklistMetrics.return_value = gauges
         stats = statsMonitor.return_value
@@ -275,12 +280,13 @@ class HubServiceManagerTest(TestCase):
             modeling_pause_timeout=self.modeling_pause_timeout,
             passwordfile=self.passwordfile,
             pbport=self.pbport,
-            xmlrpcport=self.xmlrpcport
+            xmlrpcport=self.xmlrpcport,
         )
         print manager.getStatusReport()
 
 
 class HubRealmTest(TestCase):
+    """Test the HubRealm class."""
 
     def setUp(self):
         self.avatar = Mock(HubAvatar)
@@ -301,8 +307,13 @@ class HubRealmTest(TestCase):
 
 
 class MockWorker(object):
+    """Mock zenhubworker reference.
+
+    Used to implement the notifyOnDisconnect event handler.
+    """
 
     def __init__(self):
+        """Initialize a MockWorker instance."""
         self.__cb = None
 
     def notifyOnDisconnect(self, cb):
@@ -313,15 +324,16 @@ class MockWorker(object):
 
 
 class HubAvatarTest(TestCase):
+    """Test the HubAvatar class."""
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True
+            "{src}.getLogger".format(**PATH), autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
         self.services = create_autospec(HubServiceRegistry)
-        self.workers = set([])  # only __contains__, add, and remove needed
+        self.workers = set()  # only __contains__, add, and remove needed
         self.avatar = HubAvatar(self.services, self.workers)
 
     def test_perspective_ping(self):
@@ -369,7 +381,7 @@ class HubAvatarTest(TestCase):
 
         expected = self.services.getService.return_value
         actual = self.avatar.perspective_getService(
-            service_name, monitor, listener=listener, options=options
+            service_name, monitor, listener=listener, options=options,
         )
 
         self.services.getService.assert_called_with(service_name, monitor)
@@ -391,7 +403,7 @@ class HubAvatarTest(TestCase):
         with self.assertRaises(pb.Error):
             self.avatar.perspective_getService(service_name)
             logger.exception.assert_called_once_with(
-                "Failed to get service '%s'", service_name
+                "Failed to get service '%s'", service_name,
             )
 
     def test_perspective_reportingForWork(self):
@@ -413,10 +425,11 @@ class HubAvatarTest(TestCase):
 
 
 class HubServiceRegistryTest(TestCase):
+    """Test the HubServiceRegistry class."""
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True
+            "{src}.getLogger".format(**PATH), autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
@@ -469,7 +482,7 @@ class HubServiceRegistryTest(TestCase):
 
         importClass.assert_has_calls([
             call(name),
-            call("Products.ZenHub.services.%s" % name, name)
+            call("Products.ZenHub.services.%s" % name, name),
         ])
         self.factory.build.assert_not_called()
 
@@ -494,6 +507,7 @@ class HubServiceRegistryTest(TestCase):
 
 
 class WorkerInterceptorFactoryTest(TestCase):
+    """Test the WorkerInterceptorFactory class."""
 
     def setUp(self):
         self.dispatcher = Mock()
@@ -513,10 +527,11 @@ class WorkerInterceptorFactoryTest(TestCase):
 
 
 class WorkerInterceptorTest(TestCase):
+    """Test the WorkerInterceptor class."""
 
     def setUp(self):
         self.getLogger_patcher = patch(
-            "{src}.getLogger".format(**PATH), autospec=True
+            "{src}.getLogger".format(**PATH), autospec=True,
         )
         self.getLogger = self.getLogger_patcher.start()
         self.addCleanup(self.getLogger_patcher.stop)
@@ -526,7 +541,7 @@ class WorkerInterceptorTest(TestCase):
         self.service = Mock()
         self.executor = MagicMock(DispatchingExecutor)
         self.reference = WorkerInterceptor(
-            self.service, self.name, self.monitor, self.executor
+            self.service, self.name, self.monitor, self.executor,
         )
         self.reference.perspective = sentinel.perspective
 
@@ -548,19 +563,19 @@ class WorkerInterceptorTest(TestCase):
         job = serviceJob.return_value
 
         dfr = self.reference.remoteMessageReceived(
-            self.broker, method, args, kwargs
+            self.broker, method, args, kwargs,
         )
 
         self.assertEqual(dfr.result, state)
         self.executor.submit.assert_called_once_with(job)
         serviceJob.assert_called_once_with(
-            self.name, self.monitor, method, args, kwargs
+            self.name, self.monitor, method, args, kwargs,
         )
         self.broker.unserialize.assert_has_calls([
-            call(args), call(kwargs)
+            call(args), call(kwargs),
         ])
         self.broker.serialize.assert_called_once_with(
-            state, self.reference.perspective
+            state, self.reference.perspective,
         )
 
     def test_remoteMessageReceived_raise_external_error(self):
@@ -570,7 +585,7 @@ class WorkerInterceptorTest(TestCase):
         exceptions = [
             pb.Error(ValueError("boom")),
             pb.RemoteError("ValueError", "boom", "[no traceback]"),
-            RemoteException("boom", "tb")
+            RemoteException("boom", "tb"),
         ]
         for expected_ex in exceptions:
             self.executor.submit.side_effect = \
@@ -578,13 +593,13 @@ class WorkerInterceptorTest(TestCase):
 
             cb = Callback()
             dfr = self.reference.remoteMessageReceived(
-                self.broker, "method", args, kwargs
+                self.broker, "method", args, kwargs,
             )
             dfr.addErrback(cb)
 
             try:
                 self.broker.unserialize.assert_has_calls([
-                    call(args), call(kwargs)
+                    call(args), call(kwargs),
                 ])
                 self.broker.serialize.assert_not_called()
                 self.assertEqual(cb.result.value, expected_ex)
@@ -599,13 +614,13 @@ class WorkerInterceptorTest(TestCase):
         self.executor.submit.side_effect = lambda j: defer.fail(ex)
 
         dfr = self.reference.remoteMessageReceived(
-            self.broker, "method", args, kwargs
+            self.broker, "method", args, kwargs,
         )
         dfr.addErrback(lambda f: (f.trap(pb.Error), f))
         exType, failure = dfr.result
 
         self.broker.unserialize.assert_has_calls([
-            call(args), call(kwargs)
+            call(args), call(kwargs),
         ])
         self.broker.serialize.assert_not_called()
         self.assertIs(exType, pb.Error)
@@ -613,6 +628,8 @@ class WorkerInterceptorTest(TestCase):
 
 
 class ServiceAddedEventTest(TestCase):
+    """Test the ServiceAddedEvent class."""
+
     def test___init__(t):
         name, instance = 'name', 'instance'
         service_added_event = ServiceAddedEvent(name, instance)
@@ -628,6 +645,7 @@ class ServiceAddedEventTest(TestCase):
 
 
 class AuthXmlRpcServiceTest(TestCase):
+    """Test the AuthXmlRpcService class."""
 
     def setUp(t):
         t.dmd = Mock(name='dmd', spec_set=['ZenEventManager'])
@@ -645,18 +663,14 @@ class AuthXmlRpcServiceTest(TestCase):
         XmlRpcService__init__.assert_called_with(axrs, dmd)
         t.assertEqual(axrs.checker, checker)
 
-    def test_doRender(t):
-        '''should be refactored to call self.render,
-        instead of the parrent class directly
-        '''
-        render = create_autospec(XmlRpcService.render, name='render')
-        XmlRpcService.render = render
+    @patch("{src}.XmlRpcService.render".format(**PATH), autospec=True)
+    def test_doRender(t, render):
         request = sentinel.request
 
-        ret = t.axrs.doRender('unused arg', request)
+        result = t.axrs.doRender('unused arg', request)
 
-        XmlRpcService.render.assert_called_with(t.axrs, request)
-        t.assertEqual(ret, render.return_value)
+        render.assert_called_with(t.axrs, request)
+        t.assertEqual(result, render.return_value)
 
     @patch('{src}.xmlrpc'.format(**PATH), name='xmlrpc', autospec=True)
     def test_unauthorized(t, xmlrpc):
@@ -670,7 +684,7 @@ class AuthXmlRpcServiceTest(TestCase):
 
     @patch('{src}.server'.format(**PATH), name='server', autospec=True)
     @patch(
-        '{src}.credentials'.format(**PATH), name='credentials', autospec=True
+        '{src}.credentials'.format(**PATH), name='credentials', autospec=True,
     )
     def test_render(t, credentials, server):
         request = Mock(name='request', spec_set=['getHeader'])
@@ -688,7 +702,7 @@ class AuthXmlRpcServiceTest(TestCase):
         encoded.decode.return_value.split.assert_called_with(':')
         credentials.UsernamePassword.assert_called_with('user', 'password')
         t.axrs.checker.requestAvatarId.assert_called_with(
-            credentials.UsernamePassword.return_value
+            credentials.UsernamePassword.return_value,
         )
         deferred = t.axrs.checker.requestAvatarId.return_value
         deferred.addCallback.assert_called_with(t.axrs.doRender, request)
@@ -697,6 +711,7 @@ class AuthXmlRpcServiceTest(TestCase):
 
 
 class LoadCheckersTest(TestCase):
+    """Test the LoadCheckers class."""
 
     @patch('{src}.checkers'.format(**PATH), spec=True)
     def test_getCredentialCheckers(self, checkers):

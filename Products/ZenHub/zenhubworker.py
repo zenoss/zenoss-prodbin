@@ -32,6 +32,7 @@ import Globals  # noqa: F401
 
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT, OPTION_STATE, CONNECT_TIMEOUT
+from Products.ZenHub.broker import ZenPBClientFactory
 from Products.ZenHub.interfaces import IServiceReferenceFactory
 from Products.ZenHub.metricmanager import MetricManager
 from Products.ZenHub.servicemanager import (
@@ -198,7 +199,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         if self.current != IDLE:
             self.log.info(
                 "Currently performing %s, elapsed %.2f s",
-                self.current, now-self.currentStart,
+                self.current, now - self.currentStart,
             )
         else:
             self.log.info("Currently IDLE")
@@ -216,7 +217,7 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
                             svc, method,
                             stats.numoccurrences,
                             stats.totaltime,
-                            stats.totaltime/stats.numoccurrences
+                            stats.totaltime / stats.numoccurrences
                             if stats.numoccurrences else 0.0,
                             isoDateTime(stats.lasttime),
                         ),
@@ -332,7 +333,7 @@ class ZenHubClient(object):
     def start(self):
         """Start connecting to ZenHub."""
         self.__stopping = False
-        factory = pb.PBClientFactory()
+        factory = ZenPBClientFactory()
         self.__service = ClientService(
             self.__endpoint, factory,
             retryPolicy=backoffPolicy(initialDelay=0.5, factor=3.0),

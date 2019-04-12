@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import os
 import socket
 import sys
@@ -28,6 +30,7 @@ from Products.ZenUtils.Utils import importClass, ipv6_available
 
 from .PBDaemon import RemoteBadMonitor, RemoteException
 from .XmlRpcService import XmlRpcService
+from .broker import ZenPBServerFactory
 from .dispatchers import (
     DispatchingExecutor, EventDispatcher, WorkerPoolDispatcher,
     WorkerPool, ServiceCallJob, StatsMonitor,
@@ -44,9 +47,7 @@ pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 
 class HubServiceManager(object):
-    """Responsible for initializing and starting the ZenHub services and
-    XMLRPC servers.
-    """
+    """Initializes and starts the ZenHub services and XMLRPC servers."""
 
     def __init__(
             self, modeling_pause_timeout=None, passwordfile=None,
@@ -109,7 +110,7 @@ class HubServiceManager(object):
         realm = HubRealm(avatar)
         checkers = getCredentialCheckers(self.__passwdfile)
         hubportal = portal.Portal(realm, checkers)
-        hubserver_factory = pb.PBServerFactory(hubportal)
+        hubserver_factory = ZenPBServerFactory(hubportal)
         tcp_version = "tcp6" if ipv6_available() else "tcp"
         pb_descriptor = "%s:port=%s" % (tcp_version, self.__pbport)
         pb_server = serverFromString(reactor, pb_descriptor)
@@ -125,15 +126,16 @@ class HubServiceManager(object):
 
     @property
     def services(self):
+        """Return the ZenHub services."""
         return self.__services
 
     @property
     def worklist(self):
+        """Return the job worklist."""
         return self.__worklist
 
     def onExecute(self, listener):
-        """Register a listener that will be called prior the execution of
-        a job on a worker.
+        """Register a callable to be invoked before a job is executed.
 
         @param listener {callable}
         """
@@ -141,9 +143,11 @@ class HubServiceManager(object):
 
     @defer.inlineCallbacks
     def reportWorkerStatus(self):
+        """Return the status of workers."""
         yield self.__workerdispatcher.reportWorkerStatus()
 
     def getStatusReport(self):
+        """Return a report on the services."""
         now = time.time()
 
         gauges = get_worklist_metrics(self.__worklist)
@@ -223,23 +227,29 @@ class HubServiceManager(object):
 
 @implementer(portal.IRealm)
 class HubRealm(object):
-    """
-    Following the Twisted authentication framework.
-    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
-    """
+    """Defines realm from which avatars are retrieved."""
 
     def __init__(self, avatar):
+        """Initialize an instance of HubRealm.
+
+        All avatar requests are given the same avatar.  That avatar is
+        passed into the realm upon initialization.
+        """
         self.__avatar = avatar
 
     def requestAvatar(self, name, mind, *interfaces):
+        """Return an avatar.
+
+        Raises NotImplementedError if interfaces does not include
+        pb.IPerspective.
+        """
         if pb.IPerspective not in interfaces:
             raise NotImplementedError
         return pb.IPerspective, self.__avatar, lambda: None
 
 
 class HubAvatar(pb.Avatar):
-    """Manages the connection between clients and ZenHub.
-    """
+    """Manages the connection between clients and ZenHub."""
 
     def __init__(self, services, workers):
         """Initialize an instance of HubAvatar.
@@ -252,16 +262,18 @@ class HubAvatar(pb.Avatar):
         self.__log = getLogger("zenhub", self)
 
     def perspective_ping(self):
+        """Return 'pong'."""
         return 'pong'
 
     def perspective_getHubInstanceId(self):
+        """Return the Control Center instance ID the running service."""
         return os.environ.get('CONTROLPLANE_INSTANCE_ID', 'Unknown')
 
     def perspective_getService(
             self, name, monitor=None, listener=None, options=None):
-        """
-        Allow a collector to find a Hub service by name.  It also
-        associates the service with a collector so that changes can be
+        """Return a reference to a Hub service.
+
+        It also associates the service with a collector so that changes can be
         pushed back out to collectors.
 
         @param name {string} The name of the service, e.g. "EventService"
@@ -287,8 +299,7 @@ class HubAvatar(pb.Avatar):
             return service
 
     def perspective_reportingForWork(self, worker, workerId):
-        """
-        Allow a worker register for work.
+        """Allow a worker register for work.
 
         @param worker {RemoteReference} Reference to zenhubworker
         @return None
@@ -340,7 +351,7 @@ class HubServiceRegistry(Mapping):
         return self.__services[key]
 
     def getService(self, name, monitor):
-        """Returns (a Referenceable to) the named service.
+        """Return (a Referenceable to) the named service.
 
         The name of the service should be the fully qualified module path
         containing the class implementing the service.  For example,
@@ -402,6 +413,7 @@ class HubServiceRegistry(Mapping):
 
 @implementer(IServiceAddedEvent)
 class ServiceAddedEvent(object):
+    """An event class dispatched when a service is first loaded."""
 
     def __init__(self, name, instance):
         """Initialize a ServiceAddedEvent instance.
@@ -414,17 +426,15 @@ class ServiceAddedEvent(object):
 
 
 class UnknownServiceError(pb.Error):
-    """Raised if the requested service doesn't exist.
-    """
+    """Raised if the requested service doesn't exist."""
 
 
 @implementer(IServiceReferenceFactory)
 class WorkerInterceptorFactory(object):
-    """This is a factory that builds WorkerInterceptor objects.
-    """
+    """This is a factory that builds WorkerInterceptor objects."""
 
     def __init__(self, dispatcher):
-        """Initializes an instance of WorkerInterceptorFactory.
+        """Initialize an instance of WorkerInterceptorFactory.
 
         @param dispatcher {IAsyncDispatch} Executes service calls
         """
@@ -442,12 +452,10 @@ class WorkerInterceptorFactory(object):
 # Note: The name 'WorkerInterceptor' is required to remain compatible with
 # the EnterpriseCollector zenpack.
 class WorkerInterceptor(pb.Referenceable):
-    """The WorkerInterceptor extends a Referenceable to delegate message
-    handling to an executor.
-    """
+    """Delegates message handling to an executor."""
 
     def __init__(self, service, name, monitor, executor):
-        """Initializes an instance of WorkerInterceptor.
+        """Initialize an instance of WorkerInterceptor.
 
         @param service {HubService subclass} The service object.
         @param name {str} Name of the service.
@@ -463,10 +471,12 @@ class WorkerInterceptor(pb.Referenceable):
 
     @property
     def service(self):
+        """Return the service handled by this interceptor."""
         return self.__service
 
     @defer.inlineCallbacks
     def remoteMessageReceived(self, broker, message, args, kw):
+        """Defer execution of the message to an executor."""
         begin = time.time()
         try:
             args = broker.unserialize(args)
@@ -497,22 +507,21 @@ class WorkerInterceptor(pb.Referenceable):
             )
 
     def __getattr__(self, attr):
-        """Forward calls to the service object.
-        """
+        """Forward calls to the service object."""
         return getattr(self.__service, attr)
 
 
 class AuthXmlRpcService(XmlRpcService):
-    """Extends XmlRpcService to provide authentication.
-    """
+    """Extends XmlRpcService to provide authentication."""
 
     @classmethod
     def makeSite(cls, dmd, checker):
+        """Create and return Site object."""
         service = cls(dmd, checker)
         return server.Site(service)
 
     def __init__(self, dmd, checker):
-        """Initializes an AuthXmlRpcService instance.
+        """Initialize an AuthXmlRpcService instance.
 
         @param dmd {DMD} A /zport/dmd reference
         @param checker {ICredentialsChecker} Used to authenticate clients.
@@ -522,15 +531,12 @@ class AuthXmlRpcService(XmlRpcService):
         self.__log = getLogger("zenhub", self)
 
     def doRender(self, unused, request):
-        """
-        Call the inherited render engine after authentication succeeds.
-        See @L{XmlRpcService.XmlRpcService.Render}.
-        """
+        """Call the inherited render engine after authentication succeeds."""
         return XmlRpcService.render(self, request)
 
     def unauthorized(self, request):
-        """
-        Render an XMLRPC error indicating an authentication failure.
+        """Render an XMLRPC error indicating an authentication failure.
+
         @type request: HTTPRequest
         @param request: the request for this xmlrpc call.
         @return: None
@@ -538,8 +544,8 @@ class AuthXmlRpcService(XmlRpcService):
         self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
 
     def render(self, request):
-        """
-        Unpack the authorization header and check the credentials.
+        """Unpack the authorization header and check the credentials.
+
         @type request: HTTPRequest
         @param request: the request for this xmlrpc call.
         @return: NOT_DONE_YET
@@ -571,8 +577,7 @@ class AuthXmlRpcService(XmlRpcService):
 
 
 def getCredentialCheckers(pwdfile):
-    """
-    Load the password file
+    """Load the password file.
 
     @return: an object satisfying the ICredentialsChecker
     interface using a password file or an empty list if the file
