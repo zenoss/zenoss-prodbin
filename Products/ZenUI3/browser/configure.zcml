@@ -435,5 +435,6 @@
 <include package=".eventconsole"/>
 <include package=".search"/>
 <include package=".stats"/>
+<include package=".modelapi"/>
 
 </configure>

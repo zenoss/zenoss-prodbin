@@ -21,8 +21,9 @@ class ServiceCallError(Exception):
     This is an internal use only exception and not part of the public API.
     """
 
-    def __init__(self, mesg):
+    def __init__(self, mesg, source):
         super(ServiceCallError, self).__init__(mesg)
+        self.source = source
 
 
 class WorkerPool(
@@ -187,7 +188,7 @@ class WorkerRef(object):
             _, _, tb = sys.exc_info()
             error = ServiceCallError(
                 "Failed to retrieve service '%s': (%s) %s"
-                % (job.service, type(ex).__name__, ex)
+                % (job.service, type(ex).__name__, ex), ex
             )
             raise ServiceCallError, error, tb
 
@@ -200,6 +201,6 @@ class WorkerRef(object):
             _, _, tb = sys.exc_info()
             error = ServiceCallError(
                 "Failed to execute %s.%s: (%s) %s"
-                % (job.service, job.method, type(ex).__name__, ex)
+                % (job.service, job.method, type(ex).__name__, ex), ex
             )
             raise ServiceCallError, error, tb
