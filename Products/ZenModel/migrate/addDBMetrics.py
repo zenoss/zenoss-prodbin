@@ -32,7 +32,7 @@ class addDBMetrics(Migrate.Step):
     def cutover(self, dmd):
         try:
             ctx = sm.ServiceContext()
-        except ServiceMigrationError:
+        except sm.ServiceMigrationError:
             log.info("Couldn't generate service context, skipping.")
             return
 
