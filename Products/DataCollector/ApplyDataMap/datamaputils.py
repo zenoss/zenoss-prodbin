@@ -170,6 +170,7 @@ def _update_object(obj, diff):
         pass
 
     notify(IndexingEvent(obj))
+
     obj.setLastChange()
 
     return True
@@ -180,8 +181,10 @@ def _update_callable_attribute(attr, value):
         try:
             attr(*value) if isinstance(value, tuple) else attr(value)
         except ValueError:
-            value = (value,)
-            attr(*value)
+            '''This is to handle legacy zenpacks that use the signature pattern
+            def func(*args): (arg1, arg2, ...) = args[0]
+            '''
+            attr(*(value,))
     except Exception:
         log.exception(
             'Error in _update_callable_attribute. failed to set %s.%s%s',
