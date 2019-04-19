@@ -1,14 +1,16 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
+import inspect
+import sys
 from importlib import import_module
 
 from zope.event import notify
 
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 from Products.DataCollector.Exceptions import ObjectCreationError
+from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenUtils.Utils import NotFound
-
 
 from .datamaputils import (
     _check_the_locks,
@@ -32,8 +34,9 @@ class IncrementalDataMap(object):
 
     _target = NOTSET
     _parent = None
-    _relationship = None
+    _relationship = NOTSET
     __diff = None
+    __directive = None
     changed = False
 
     def __init__(self, base, object_map):
@@ -46,11 +49,8 @@ class IncrementalDataMap(object):
         object_map = _evaluate_legacy_directive(object_map)
 
         self._process_objectmap(object_map)
-        if not self._target_id:
-            raise InvalidIncrementalDataMapError()
-        self.id = self._target_id
 
-        self._directive = getattr(object_map, '_directive', None)
+        self.id = self._target_id
 
     def __repr__(self):
         return '<%s %s>' % (self.__class__.__name__, self.__dict__)
@@ -69,8 +69,7 @@ class IncrementalDataMap(object):
         }
 
     def apply(self):
-        ret = self._directive_map[self.directive]()
-        return ret
+        return self._directive_map[self.directive]()
 
     @property
     def _directive_map(self):
@@ -79,6 +78,7 @@ class IncrementalDataMap(object):
             'update': self._update,
             'remove': self._remove,
             'nochange': self._nochange,
+            'rebuild': self._rebuild,
         }
 
     @property
@@ -104,8 +104,15 @@ class IncrementalDataMap(object):
 
     @property
     def relationship(self):
-        if not self._relationship:
-            self._relationship = getattr(self.parent, self.relname)
+        if self._relationship is NOTSET:
+            try:
+                self._relationship = getattr(self.parent, self.relname)
+            except TypeError as err:
+                msg = (
+                    'Directive={} requires relationship, no relname given'
+                    ''.format(self.directive)
+                )
+                raise InvalidIncrementalDataMapError, msg, sys.exc_info()[2]
 
         return self._relationship
 
@@ -144,12 +151,19 @@ class IncrementalDataMap(object):
     @property
     def directive(self):
         if not self.__directive:
-            if self.target is None:
+            legacy_directive = getattr(
+                self.__original_object_map, '_directive', None
+            )
+            if legacy_directive:
+                self.directive = legacy_directive
+            elif self.target is None:
                 self.directive = 'add'
-            elif not self._diff:
-                self.directive = 'nochange'
-            else:
+            elif _class_changed(self.modname, self.classname, self.target):
+                self.directive = 'rebuild'
+            elif self._diff and self._valid_id():
                 self.directive = 'update'
+            else:
+                self.directive = 'nochange'
 
         return self.__directive
 
@@ -164,15 +178,7 @@ class IncrementalDataMap(object):
                 raise InvalidIncrementalDataMapError(
                     'adding an object requires modname'  # pragma: no mutate
                 )
-            if not self.relationship:
-                raise ObjectCreationError(
-                    'relationship not found:'  # pragma: no mutate
-                    'device=%s, class=%s relationship=%s'  # pragma: no mutate
-                    % (
-                        self.parent.id, self.parent.__class__,
-                        self.relationship,
-                    )
-                )
+            assert(self.relationship)  # relationship is required for add
 
     @property
     def _directive(self):
@@ -183,6 +189,21 @@ class IncrementalDataMap(object):
     @_directive.setter
     def _directive(self, value):
         self.directive = value
+
+    def _valid_id(self):
+        '''assert that the ObjectMap's target ID matches the target's ID
+        '''
+        if not self._target_id:
+            return True
+
+        if self._target_id == self.target.id:
+            return True
+
+        log.warning(
+            'ObjectMap.id does not match target.id,'
+            ' changes will not be applied'
+        )
+        return False
 
     @property
     def _diff(self):
@@ -246,7 +267,23 @@ class IncrementalDataMap(object):
         # either use device.addRelation(relname, object_map)
         # or create the object, then relationship._setObject(obj.id, obj)
         self.relationship._setObject(self._target_id, self.target)
+
+        if not isinstance(self.relationship, ToManyContRelationship):
+            from zope.container.contained import ObjectMovedEvent
+            notify(ObjectMovedEvent(
+                self.target, self.relationship, self.id, self.relationship, self.id
+            ))
+
         return True
+
+    def _rebuild(self):
+        log.debug(
+            '_rebuild: parent=%s, relationship=%s, target=%s',  # pragma: no mutate
+            self.parent, self.relname, self.target
+        )
+        self._remove()
+        self._add()
+        self.changed = True
 
     def _nochange(self):
         '''make no change if the directive is nochange
@@ -255,3 +292,27 @@ class IncrementalDataMap(object):
             'object unchanged: parent=%s, relationship=%s, obj=%s',  # pragma: no mutate
             self.parent.id, self.relname, self._target_id
         )
+
+
+def _class_changed(modname, classname, target):
+    '''Handle the possibility of objects changing class by
+    recreating them. Ticket #5598.
+    no classname indicates no change
+    '''
+    if not classname:
+        return False
+
+    existing_modname, existing_classname = '', ''
+    try:
+        existing_modname = inspect.getmodule(target).__name__
+        existing_classname = target.__class__.__name__
+    except Exception:
+        pass
+
+    # object class has not changed
+    if (modname == existing_modname and classname == existing_classname):
+        log.debug('_om_class_changed: object map matches')  # pragma: no mutate
+        return False
+
+    log.debug('_om_class_changed: object_map class changed')  # pragma: no mutate
+    return True

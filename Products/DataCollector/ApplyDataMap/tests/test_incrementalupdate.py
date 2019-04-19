@@ -7,9 +7,10 @@ from Products.ZenModel.Device import Device
 from ..incrementalupdate import (
     IncrementalDataMap,
     InvalidIncrementalDataMapError,
-    ObjectCreationError,
     ObjectMap,
     log,
+    _class_changed,
+    NotFound,
 )
 
 '''
@@ -84,10 +85,9 @@ class TestIncrementalDataMap(TestCase):
         with t.assertRaises(InvalidIncrementalDataMapError):
             IncrementalDataMap('parent device', 'not object_map')
 
-    def test___init__raises_exception_if_object_map_missing_id(t):
+    def test___init__blank_map_is_valid(t):
         object_map = ObjectMap({})
-        with t.assertRaises(InvalidIncrementalDataMapError):
-            IncrementalDataMap('parent device', object_map)
+        IncrementalDataMap('parent device', object_map)
 
     def test___init__captures_object_map_directive(t):
         object_map = ObjectMap({'id': 'target_id', '_directive': 'update'})
@@ -145,6 +145,27 @@ class TestIncrementalDataMap(TestCase):
         t.assertEqual(idm.modname, module_name)
         t.assertEqual(idm.classname, 'classname')
 
+    def test_parent_is_from_path(t):
+        base = Device(id='base_id')
+        getObjByPath = create_autospec(base.getObjByPath)
+        base.getObjByPath = getObjByPath
+        object_map = ObjectMap({'id': 'os_id', 'compname': 'os'})
+
+        idm = IncrementalDataMap(base, object_map)
+
+        t.assertEqual(idm.path, 'os')
+        t.assertEqual(idm.parent, base.getObjByPath.return_value)
+        getObjByPath.assert_called_with(idm.path)
+
+    def test_parent_is_NotFound(t):
+        base = Device(id='base_id')
+        base.getObjByPath = Mock(side_effect=NotFound())
+        object_map = ObjectMap({'id': 'os_id', 'compname': 'os'})
+
+        idm = IncrementalDataMap(base, object_map)
+
+        t.assertEqual(idm.parent, base)
+
     def test_target_is_base(t):
         '''target is the parent if component and relname are undefined
         '''
@@ -189,8 +210,8 @@ class TestIncrementalDataMap(TestCase):
 
         idm = IncrementalDataMap(parent, object_map)
 
-        relationship._getOb.assert_called_with(target.id)
         t.assertEqual(idm.target, target)
+        relationship._getOb.assert_called_with(target.id)
 
     def test_target_is_component_relationship(t):
         '''the target may be in a relationship on a component/path
@@ -198,14 +219,22 @@ class TestIncrementalDataMap(TestCase):
         the compname may be a long path of nested components
         provided getObjByPath can find it
         '''
-        t.assertEqual(t.idm._target, t.target)
+        t.assertEqual(t.idm.target, t.target)
 
         t.relationship._getOb.assert_called_with(t.target.id)
         t.base.getObjByPath.assert_called_with(t.compname)
-        t.assertEqual(t.idm.target, t.target)
 
     def test__relname(t):
         t.assertEqual(t.idm._relname, t.relname)
+
+    def test_relationship(t):
+        t.assertEqual(t.idm.relationship, t.relationship)
+
+    def test_relationship_requires_relname(t):
+        delattr(t.object_map, 'relname')
+        idm = IncrementalDataMap(t.base, t.object_map)
+        with t.assertRaises(InvalidIncrementalDataMapError):
+            t.assertEqual(idm.relationship, t.relationship)
 
     def test_directive_add(t):
         '''add the target if it does not exist
@@ -219,15 +248,16 @@ class TestIncrementalDataMap(TestCase):
     def test_directive_add_requires_modname(t):
         t.object_map.modname = None
         t.object_map._directive = 'add'
-        with t.assertRaises(InvalidIncrementalDataMapError):
-            IncrementalDataMap(t.base, t.object_map)
 
-    def test_directive_add_requires_relationship(t):
-        t.object_map.modname = 'OK'
-        t.object_map._directive = 'add'
-        setattr(t.parent, t.relname, None)
-        with t.assertRaises(ObjectCreationError):
-            IncrementalDataMap(t.base, t.object_map)
+        with t.assertRaises(InvalidIncrementalDataMapError):
+            t.idm.directive
+
+    def test_directive_add_requires_relname(t):
+        t.object_map.modname = 'module_name'
+        delattr(t.object_map, 'relname')
+        idm = IncrementalDataMap(t.base, t.object_map)
+        with t.assertRaises(InvalidIncrementalDataMapError):
+            idm.directive = 'add'
 
     def test_directive_remove(t):
         '''remove the target if specified by the object_map
@@ -235,6 +265,13 @@ class TestIncrementalDataMap(TestCase):
         t.object_map._directive = 'remove'
         idm = IncrementalDataMap(t.base, t.object_map)
         t.assertEqual(idm.directive, 'remove')
+
+    def test_directive_rebuild(t):
+        '''rebuild the target, if class name changed
+        '''
+        t.object_map.classname = 'NewClass'
+        idm = IncrementalDataMap(t.base, t.object_map)
+        t.assertEqual(idm.directive, 'rebuild')
 
     def test_directive_delete_locked(t):
         '''do not delete locked targets
@@ -278,6 +315,21 @@ class TestIncrementalDataMap(TestCase):
         '''
         t.idm.directive = 'update'
         t.assertEqual(t.idm._directive, 'update')
+
+    def test__valid_id(t):
+        t.object_map.id = t.target.id
+        ret = t.idm._valid_id()
+        t.assertEqual(ret, True)
+
+    def test__valid_id_mismatch(t):
+        t.object_map.id = 'mismatch'
+        idm = IncrementalDataMap(t.base, t.object_map)
+        t.assertEqual(idm._valid_id(), False)
+
+    def test__valid_id_not_specified_in_objectmap(t):
+        delattr(t.object_map, 'id')
+        idm = IncrementalDataMap(t.base, t.object_map)
+        t.assertEqual(idm._valid_id(), True)
 
     def test__diff(t):
         t.target = Mock(
@@ -335,6 +387,12 @@ class TestIncrementalDataMap(TestCase):
         t.idm.directive = 'nochange'
         t.idm.apply()
         t.idm._nochange.assert_called_with()
+
+    def test_apply_rebuild(t):
+        t.idm._rebuild = create_autospec(t.idm._rebuild)
+        t.idm.directive = 'rebuild'
+        t.idm.apply()
+        t.idm._rebuild.assert_called_with()
 
     def test__add(t):
         '''creates, updates, and adds the new object to the relationship
@@ -412,7 +470,7 @@ class TestIncrementalDataMap(TestCase):
         t.assertEqual(attrs, map_attrs)
 
     @patch('{src}.import_module'.format(**PATH), autospec=True)
-    def test_create_target(t, import_module):
+    def test__create_target(t, import_module):
         module = Mock(name='module')
         import_module.return_value = module
         t.idm.modname = 'module.path'
@@ -423,3 +481,84 @@ class TestIncrementalDataMap(TestCase):
         import_module.assert_called_with(t.idm.modname)
         module.ConstructorName.assert_called_with(t.idm._target_id)
         t.assertEqual(t.idm.target, module.ConstructorName.return_value)
+
+    def test__rebuild(t):
+        t.idm._remove = create_autospec(t.idm._remove)
+        t.idm._add = create_autospec(t.idm._add)
+
+        t.idm._rebuild()
+
+        t.idm._remove.assert_called_with()
+        t.idm._add.assert_called_with()
+        t.assertEqual(t.idm.changed, True)
+
+    def test_do_not_update_target_id(t):
+        '''Modeling should never change the id of a device. (ZEN-14518)
+        in this scenario the given base device is the target
+        and the ObjectMap's ID does not match the devices.
+        '''
+        target = Mock(
+            name='target',
+            spec_set=[
+                'id', 'a1', 'isLockedFromUpdates', 'isLockedFromDeletion',
+                'setLastChange', 'getObjByPath',
+            ],
+            id='target_id',
+            a1='attribute 1',
+            isLockedFromUpdates=Mock(return_value=False),
+            isLockedFromDeletion=Mock(return_value=False),
+            getObjByPath=Mock(side_effect=NotFound())
+        )
+        object_map = ObjectMap({'id': 'different_id', 'a1': 'attr changed', })
+        idm = IncrementalDataMap(target, object_map)
+
+        idm.apply()
+
+        t.assertEqual(idm.directive, 'nochange')
+        t.assertEqual(target.id, 'target_id')
+        t.assertEqual(idm.changed, False)
+
+    def test_target_class_change(t):
+        '''changing the target's class triggers a rebuild of the target
+        '''
+        t.object_map.modname = 'new.module'
+        t.object_map.classname = 'NewClass'
+        idm = IncrementalDataMap(t.base, t.object_map)
+        idm._rebuild = create_autospec(idm._rebuild)
+
+        idm.apply()
+
+        idm._rebuild.assert_called_with()
+
+
+class Test__class_changed(TestCase):
+
+    def setUp(t):
+        t.obj = Device('oid')
+        t.modname = 'Products.ZenModel.Device'
+        t.classname = 'Device'
+
+    def test_unchanged(t):
+        ret = _class_changed(t.modname, t.classname, t.obj)
+        t.assertEqual(ret, False)
+
+    def test_class_changed(t):
+        t.classname = 'NewDevice'
+        ret = _class_changed(t.modname, t.classname, t.obj)
+        t.assertEqual(ret, True)
+
+    def test_class_is_nullstr(t):
+        t.classname = ''
+        ret = _class_changed(t.modname, t.classname, t.obj)
+        t.assertEqual(ret, False)
+
+    @patch('{src}.inspect'.format(**PATH), autospec=True)
+    def test_handles_exception_getting_obj_class(t, inspect):
+        inspect.getmodule.side_effect = Exception()
+        ret = _class_changed(t.modname, t.classname, t.obj)
+        t.assertEqual(ret, True)
+
+    def test_module_changed(t):
+        t.modname = 'Products.ZenModel.NewDevice'
+        ret = _class_changed(t.modname, t.classname, t.obj)
+        t.assertEqual(ret, True)

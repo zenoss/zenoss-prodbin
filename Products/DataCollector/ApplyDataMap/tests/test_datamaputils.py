@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import Mock, MagicMock, sentinel, patch
+from mock import Mock, sentinel, patch
 
 from base64 import b64encode
 
@@ -483,3 +483,19 @@ class Test_update_callable_attribute(TestCase):
             'Error in _update_callable_attribute. failed to set %s.%s%s',
             obj.setAttr.__module__, obj.setAttr.__name__, value
         )
+
+    def test_retry_for_manual_signature_unpacking(t):
+        '''some callable attributes use a manual singature unpacking pattern
+        '''
+        value = ('a', 'b')
+        container = Mock()
+
+        def callable(*args):
+            arg1, arg2 = args[0]
+            container.arg1 = arg1
+            container.arg2 = arg2
+
+        _update_callable_attribute(callable, value)
+
+        t.assertEqual(container.arg1, 'a')
+        t.assertEqual(container.arg2, 'b')
