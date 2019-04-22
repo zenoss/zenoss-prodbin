@@ -69,10 +69,16 @@ from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
 from zope.component import subscribers
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED, SEVERITY_CRITICAL,
+    SEVERITY_ERROR, SEVERITY_WARNING
+)
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
+from Products.ZenEvents.events2.proxy import EventProxy
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.indexable import DeviceIndexable
@@ -2344,9 +2350,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if not self.monitorDevice():
             return None
 
-        from Products.ZenEvents.ZenEventClasses import Status_Ping
-        from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-            STATUS_SUPPRESSED, SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
         if statusclass is None:
             statusclass = self.zStatusEventClass
             zep = getFacade('zep', self)
@@ -2355,7 +2358,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     tags=[self.getUUID()],
                     element_sub_identifier=[""],
                     severity=[SEVERITY_CRITICAL],
-                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED],
+                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED],
                     event_class=filter(None, [self.zStatusEventClass]))
 
                 result = zep.getEventSummaries(0, filter=event_filter, limit=0)
@@ -2370,8 +2373,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def _getPingStatus(self, statusclass):
         if not self.zPingMonitorIgnore and self.getManageIp():
-            from Products.Zuul import getFacade
-            from Products.ZenEvents.events2.proxy import EventProxy
             # Override normal behavior - we only care if the manage IP is down
 
             # need to add the ipinterface component id to search since we may be
