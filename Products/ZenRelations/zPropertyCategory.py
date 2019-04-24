@@ -60,6 +60,7 @@ MAPPINGS = {
 'zProdStateThreshold': 'Misc',
 'zPythonClass': 'Misc',
 'zStatusConnectTimeout': 'Misc',
+'zStatusEventClass': 'Misc',
 
 # SNMP
 # ----------
