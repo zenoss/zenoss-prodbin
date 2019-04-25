@@ -9,7 +9,7 @@ sm.require("1.1.11")
 cfg_content = """\
 [supervisord]
 nodaemon=true
-logfile = /opt/zenoss/log/mariadb-model_supervisord.log
+logfile = /opt/zenoss/log/memcached_supervisord.log
 
 [unix_http_server]
 file=/tmp/supervisor.sock
