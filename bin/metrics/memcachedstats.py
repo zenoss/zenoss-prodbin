@@ -47,6 +47,16 @@ class MemcachedMetricGatherer(MetricGatherer):
         metrics = []
         tags = {'controlplane_service_id': self.service_id}
         timestamp = time.time()
+        """
+        Creates two match groups: variable value
+        Matches:
+        STAT time 1556231795
+        STAT rusage_system 2.020000
+        Does not match:
+        STAT version 1.4.15
+        ERROR
+        END
+        """
         r = re.compile(r"\bSTAT\b\s(\w*)\s[+-]?([0-9]*[.]?[0-9]+)$")
 
         results = data.split('\r\n')
