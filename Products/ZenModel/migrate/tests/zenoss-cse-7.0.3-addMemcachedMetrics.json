@@ -695,7 +695,7 @@
         "Filename": "/etc/memcached/memcached_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0664",
-        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/mariadb-model_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached-session]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-session-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/memcached_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached-session]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-session-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
       },
       "/etc/sysconfig/memcached": {
         "Filename": "/etc/sysconfig/memcached",
@@ -709,7 +709,7 @@
         "Filename": "/etc/memcached/memcached_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0664",
-        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/mariadb-model_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached-session]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-session-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/memcached_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached-session]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-session-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
       },
       "/etc/sysconfig/memcached": {
         "Filename": "/etc/sysconfig/memcached",
@@ -4018,7 +4018,7 @@
         "Filename": "/etc/memcached/memcached_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0664",
-        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/mariadb-model_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/memcached_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
       },
       "/etc/sysconfig/memcached": {
         "Filename": "/etc/sysconfig/memcached",
@@ -4032,7 +4032,7 @@
         "Filename": "/etc/memcached/memcached_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0664",
-        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/mariadb-model_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
+        "Content": "[supervisord]\nnodaemon=true\nlogfile = /opt/zenoss/log/memcached_supervisord.log\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n\n[program:memcached]\ncommand=/opt/zenoss/bin/zenmemcached\nautorestart=true\nautostart=true\nstartsecs=5\n\n[program:memcached-metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/memcachedstats.py\nautorestart=true\nautostart=true\nstartsecs=5\n\n; logging\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n"
       },
       "/etc/sysconfig/memcached": {
         "Filename": "/etc/sysconfig/memcached",
