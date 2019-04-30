@@ -365,7 +365,7 @@ class DeviceInfo(InfoBase, HasEventsInfoMixin, LockableMixin):
 
     @property
     def status(self):
-        status = self._object.getPingStatus()
+        status = self._object.getDeviceStatus()
         return None if status is None else status < 1
 
     @property

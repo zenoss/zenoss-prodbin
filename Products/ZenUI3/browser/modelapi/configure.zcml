@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
+    >
+
+    <!-- views that our RM modeler plugins need to get data from -->
+    <browser:view
+        class=".modelapi.RabbitQueues"
+        name="RabbitQueues"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.ZenossRMDevice"
+        name="ZenossRMDevice"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.CollectorInfo"
+        name="CollectorInfo"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.EventDaemons"
+        name="EventDaemons"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.MetricServices"
+        name="MetricServices"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.Zope"
+        name="Zope"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.ZODB"
+        name="ZODB"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.Solr"
+        name="Solr"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.RegionServer"
+        name="RegionServer"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.ZenModeler"
+        name="ZenModeler"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.Reader"
+        name="Reader"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        class=".modelapi.Writer"
+        name="Writer"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        zcml:condition="installed ZenPacks.zenoss.Impact"
+        class=".modelapi.ImpactDaemons"
+        name="ImpactDaemons"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+    <browser:view
+        zcml:condition="have zingConnector"
+        class=".modelapi.ZingConnector"
+        name="ZingConnector"
+        for="Products.ZenModel.interfaces.IDataRoot"
+        permission="zenoss.Common"
+        />
+
+</configure>

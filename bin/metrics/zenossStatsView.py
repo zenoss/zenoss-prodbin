@@ -49,7 +49,9 @@ class ZProxyMetricGatherer(MetricGatherer):
             for name in ["VmData", "VmExe", "VmHWM", "VmLck", "VmLib", "VmPTE",
                          "VmPeak", "VmPin", "VmRSS", "VmSize", "VmStk", "VmSwap",
                          "activeSessions", "freeThreads", "request1m",
-                         "requestTimeAvg1m", "requestTotal", "totalThreads",]:
+                         "requestTimeAvg1m", "requestTotal", "totalThreads",
+                         "slowRequestTotal", "slowRequest1m", 
+                         "slowRequestTimeAvg1m","slowRequestPercent"]:
                 metric_name = '%s.zope.%s' % (prefix, name)
                 metric_value = zope_data.get(name)
                 log.debug("Adding metric '%s': '%s'", metric_name, metric_value)
@@ -124,7 +126,7 @@ class ZProxyMetricGatherer(MetricGatherer):
         for id_, zope in zopes.iteritems():
             try:
                 s = requests.Session()
-                result = s.get(self.ZPROXY_STATS_URL % zope)
+                result = s.get(self.ZPROXY_STATS_URL % zope, timeout=10)
                 if result.status_code == 200:
                     data = result.json()
                     now = time.time()

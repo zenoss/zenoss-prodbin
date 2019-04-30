@@ -861,11 +861,12 @@ class PBDaemonTest(TestCase):
     def setUp(t):
         # Patch external dependencies
         # current version touches the reactor directly
-        t.reactor_patcher = patch(
-            '{src}.reactor'.format(**PATH), autospec=True
-        )
-        t.reactor = t.reactor_patcher.start()
-        t.addCleanup(t.reactor_patcher.stop)
+        patches = ['publisher', 'reactor']
+
+        for target in patches:
+            patcher = patch('{src}.{}'.format(target, **PATH), autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
 
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
@@ -883,7 +884,7 @@ class PBDaemonTest(TestCase):
     @patch('{src}.ZenDaemon.__init__'.format(**PATH), autospec=True)
     def test___init__(
         t, ZenDaemon_init, EventQueueManager, DaemonStats, startEvent,
-        stopEvent, LoopingCall, sys
+        stopEvent, LoopingCall, sys,
     ):
         noopts = 0,
         keeproot = False
@@ -967,8 +968,7 @@ class PBDaemonTest(TestCase):
             PBDaemon()
 
     # this should be a property
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
-    def test_publisher(t, publisher):
+    def test_publisher(t):
         pbd = PBDaemon(name=t.name)
         host = 'localhost'
         port = 9999
@@ -976,8 +976,8 @@ class PBDaemonTest(TestCase):
 
         ret = pbd.publisher()
 
-        t.assertEqual(ret, publisher.RedisListPublisher.return_value)
-        publisher.RedisListPublisher.assert_called_with(
+        t.assertEqual(ret, t.publisher.RedisListPublisher.return_value)
+        t.publisher.RedisListPublisher.assert_called_with(
             host,
             port,
             pbd.options.metricBufferSize,
@@ -985,9 +985,8 @@ class PBDaemonTest(TestCase):
             maxOutstandingMetrics=pbd.options.maxOutstandingMetrics,
         )
 
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
     @patch('{src}.os'.format(**PATH), autospec=True)
-    def test_internalPublisher(t, os, publisher):
+    def test_internalPublisher(t, os):
         # All the methods with this pattern need to be converted to properties
         t.assertEqual(t.pbd._internal_publisher, None)
         url = Mock(name='url', spec_set=[])
@@ -1001,8 +1000,8 @@ class PBDaemonTest(TestCase):
 
         ret = t.pbd.internalPublisher()
 
-        t.assertEqual(ret, publisher.HttpPostPublisher.return_value)
-        publisher.HttpPostPublisher.assert_called_with(username, password, url)
+        t.assertEqual(ret, t.publisher.HttpPostPublisher.return_value)
+        t.publisher.HttpPostPublisher.assert_called_with(username, password, url)
 
         t.assertEqual(t.pbd._internal_publisher, ret)
 
@@ -1591,14 +1590,30 @@ class PBDaemonTest(TestCase):
         zenPath.assert_called_with('var', filename)
         os.remove.assert_called_with(zenPath.return_value)
 
-    @patch('{src}.publisher'.format(**PATH), autospec=True)
-    def test_buildOptions(t, publisher):
+    def test_buildOptions(t):
         '''After initialization, the InvalidationWorker instance should have
         options parsed from its buildOptions method
         assertions based on default options
+
+        Patch ZenDaemon's init, because CmdBase will override config
+        settings with values from the global.conf file
         '''
-        # rebuild pbd with patched publisher
+        t.init_patcher = patch.object(
+            PBDaemon, '__init__', autospec=True, return_value=None
+        )
+        t.init_patcher.start()
+        t.addCleanup(t.init_patcher.stop)
+
+
         t.pbd = PBDaemon()
+        t.pbd.parser = None
+        t.pbd.usage = "%prog [options]"
+        t.pbd.noopts = True
+        t.pbd.inputArgs = None
+
+        t.pbd.buildOptions()
+        t.pbd.parseOptions()
+
         from Products.ZenHub.PBDaemon import (
             DEFAULT_HUB_HOST, DEFAULT_HUB_PORT, DEFAULT_HUB_USERNAME,
             DEFAULT_HUB_PASSWORD, DEFAULT_HUB_MONITOR
@@ -1621,18 +1636,18 @@ class PBDaemonTest(TestCase):
         t.assertEqual(
             t.pbd.options.redisUrl,
             'redis://localhost:{default}/0'.format(
-                default=publisher.defaultRedisPort
+                default=t.publisher.defaultRedisPort
             )
         )
         t.assertEqual(
-            t.pbd.options.metricBufferSize, publisher.defaultMetricBufferSize
+            t.pbd.options.metricBufferSize, t.publisher.defaultMetricBufferSize
         )
         t.assertEqual(
-            t.pbd.options.metricsChannel, publisher.defaultMetricsChannel
+            t.pbd.options.metricsChannel, t.publisher.defaultMetricsChannel
         )
         t.assertEqual(
             t.pbd.options.maxOutstandingMetrics,
-            publisher.defaultMaxOutstandingMetrics
+            t.publisher.defaultMaxOutstandingMetrics
         )
         t.assertEqual(t.pbd.options.pingPerspective, True)
         t.assertEqual(t.pbd.options.writeStatistics, 30)

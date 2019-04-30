@@ -8,7 +8,7 @@
 ##############################################################################
 
 
-from AccessControl import getSecurityManager
+from AccessControl import getSecurityManager, Unauthorized
 import sys
 from Products.Five.browser import BrowserView, pagetemplatefile
 from zope.viewlet.interfaces import IViewletManager
@@ -24,21 +24,22 @@ class ErrorMessage(BrowserView):
 
     def _get_viewlets(self, provider, role="_ZenCommon_Permission"):
         """
-        In the case of a NotFound, there is no authenticated user available, so
-        we just have to use the lowest common denominator, specified as
-        C{role}. In the case of another exception type, we have the user, but
-        security isn't entirely set up correctly, so we have to make this view
+        In the case of a NotFound, there is no authenticated user available,
+        as a lasts resort check if session is updated with auth0 and if not
+        raise Unauthorize. In the case of another exception type, we have the user, 
+        but security isn't entirely set up correctly, so we have to make this view
         appear to be in the context (it actually has none, not being an
         Acquisition.Implicit).
 
-        The upshot of all this is that for exceptions, nav will appear as it
-        normally would for the user. For NotFound, it'll appear as it would for
-        any user with ZenCommon permission.
+        The upshot of all this is that for exceptions, nav will appear only 
+        for authenticated users.
         """
         # Check to see if we're authenticated
         userid = getSecurityManager().getUser().getId()
         if userid is None:
-            # Not authenticated, force some local roles for the Anonymous user
+            # Not authenticated, check session for auth0 record
+            if not self.request.SESSION.get('auth0'):
+                raise Unauthorized
             self.__ac_local_roles__ = {userid:[role]}
         else:
             # Authenticated, force this view to be in a working context

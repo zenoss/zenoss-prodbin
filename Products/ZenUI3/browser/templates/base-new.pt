@@ -42,6 +42,9 @@
             document.getElementsByTagName('html')[0].classList.remove("z-cse-dark");
         }
         </script>
+        <script type="text/javascript" src="https://cdn.auth0.com/js/auth0/9.10.0/auth0.min.js"></script>
+        <script src="/++resource++zenui/js/silent-auth/cookies.js"></script>
+        <script src="/++resource++zenui/js/silent-auth/silentAuth.js"></script>
         <script src="/++resource++zenui/js/codemirror/codemirror.js"></script>
         <script src="/++resource++zenui/js/codemirror/mode/python/python.js"></script>
         <tal:block tal:content="structure provider:js-security"/>
@@ -78,7 +81,7 @@
                 console.log("initializing pendo");
                 (function(apiKey){
                     // ZEN-31143 - Note that in the URL below (src='https://content.pendo.zenoss.cloud/agent/pendostatic/...''),
-                    // ths "/pendostatic/" in the path is an artificial renaming we added
+                    // the "/pendostatic/" in the path is an artificial renaming we added
                     // to avoid conflicts with other RM urls that contain "/static/"
                     // The existing response rewriting rules in zproxy were
                     // rewriting the path for pendo.js in a way that would generate an invalid URL -
