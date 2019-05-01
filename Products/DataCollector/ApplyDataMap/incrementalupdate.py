@@ -38,13 +38,16 @@ class IncrementalDataMap(object):
     __diff = None
     __directive = None
     changed = False
+    _logstr = None
 
     def __init__(self, base, object_map):
         self._base = base
         self.__original_object_map = object_map
 
         if not isinstance(object_map, ObjectMap):
-            raise InvalidIncrementalDataMapError()
+            raise InvalidIncrementalDataMapError(
+                'Expected ObjectMap, recieved: %s' % object_map
+            )
 
         object_map = _evaluate_legacy_directive(object_map)
 
@@ -67,6 +70,14 @@ class IncrementalDataMap(object):
             k: v for k, v in object_map.iteritems()
             if k not in ['parentId', 'relname', 'id']
         }
+
+    @property
+    def logstr(self):
+        if not self._logstr:
+            self._logstr = '[base={}, parent={}, target={}]'.format(
+                self._base, self._parent, self._target
+            )
+        return self._logstr
 
     def apply(self):
         return self._directive_map[self.directive]()
@@ -122,11 +133,11 @@ class IncrementalDataMap(object):
             target = self.parent
 
             if self.relname:
-                log.debug('target: relationship=%s', self.relationship)  # pragma: no mutate
+                log.debug('%s target: relationship=%s', self.logstr, self.relationship)  # pragma: no mutate
                 try:
                     target = self.relationship._getOb(self._target_id)
                 except Exception:
-                    log.warn('related object NOT FOUND')  # pragma: no mutate
+                    log.warn('%s related object NOT FOUND', self.logstr)  # pragma: no mutate
                     target = None
 
             self._target = target
@@ -200,8 +211,8 @@ class IncrementalDataMap(object):
             return True
 
         log.warning(
-            'ObjectMap.id does not match target.id,'
-            ' changes will not be applied'
+            '%s ObjectMap.id does not match target.id,'
+            ' changes will not be applied', self.logstr
         )
         return False
 
@@ -261,8 +272,8 @@ class IncrementalDataMap(object):
             return True
 
         log.debug(
-            'add related object: parent=%s, relationship=%s, obj=%s',  # pragma: no mutate
-            self.parent.id, self.relname, self._target_id
+            '%s add related object: parent=%s, relationship=%s, obj=%s',  # pragma: no mutate
+            self.logstr, self.parent.id, self.relname, self._target_id
         )
         # either use device.addRelation(relname, object_map)
         # or create the object, then relationship._setObject(obj.id, obj)
@@ -278,8 +289,8 @@ class IncrementalDataMap(object):
 
     def _rebuild(self):
         log.debug(
-            '_rebuild: parent=%s, relationship=%s, target=%s',  # pragma: no mutate
-            self.parent, self.relname, self.target
+            '%s _rebuild: parent=%s, relationship=%s, target=%s',  # pragma: no mutate
+            self.logstr, self.parent, self.relname, self.target
         )
         self._remove()
         self._add()
@@ -289,8 +300,8 @@ class IncrementalDataMap(object):
         '''make no change if the directive is nochange
         '''
         log.debug(
-            'object unchanged: parent=%s, relationship=%s, obj=%s',  # pragma: no mutate
-            self.parent.id, self.relname, self._target_id
+            '%s object unchanged: parent=%s, relationship=%s, obj=%s',  # pragma: no mutate
+            self.logstr, self.parent.id, self.relname, self._target_id
         )
 
 
