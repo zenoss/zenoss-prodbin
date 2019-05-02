@@ -11,7 +11,10 @@
 
 import Globals
 
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
+from Products.DataCollector.ApplyDataMap import (
+    ApplyDataMap,
+)
+from Products.ZenModel.Device import Device
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
@@ -34,18 +37,6 @@ class _obj(object):
     def _p_deactivate(self): pass
     _p_changed = False
 
-ascii_objmap =  ObjectMap({ 'a': 'abcdefg', 'b': 'hijklmn', 'c': 'opqrstu' })
-utf8_objmap =   ObjectMap({ 'a': u'\xe0'.encode('utf-8'),
-                  'b': u'\xe0'.encode('utf-8'),
-                  'c': u'\xe0'.encode('utf-8') })
-latin1_objmap = ObjectMap({ 'a': u'\xe0'.encode('latin-1'),
-                  'b': u'\xe0'.encode('latin-1'),
-                  'c': u'\xe0'.encode('latin-1') })
-utf16_objmap =  ObjectMap({ 'a': u'\xff\xfeabcdef'.encode('utf-16'),
-                  'b': u'\xff\xfexyzwow'.encode('utf-16'),
-                  # "水z𝄞" (water, z, G clef), UTF-16 encoded,
-                  # little-endian with BOM
-                  'c': '\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd' })
 
 class ApplyDataMapTest(BaseTestCase):
 
@@ -53,51 +44,15 @@ class ApplyDataMapTest(BaseTestCase):
         super(ApplyDataMapTest, self).afterSetUp()
         self.adm = ApplyDataMap()
 
-    def test_updateObject_encoding(self):
-        for enc in ('ascii', 'latin-1', 'utf-8', 'utf-16'):
-            obj = _obj()
-            obj.zCollectorDecoding = enc
-            objmap = eval(enc.replace('-','')+'_objmap')
-            self.adm._updateObject(obj, objmap)
-            for key, val in objmap.items():
-                self.assertEqual(getattr(obj, key), val.decode(enc))
-
     def test_applyDataMap_relmap(self):
-        dmd = self.dmd
-        class datamap(list):
-            compname = "a/b"
-            relname  = "c"
+        compname = "module/component"
+        relname = "relationship"
 
-        class Device(object):
+        datamap = RelationshipMap()
+        device = Device(id='test_device')
+        device.dmd = self.dmd
 
-            def deviceClass(self):
-                return dmd.Devices
-
-            def getPrimaryId(self):
-                return "{}/{}".format(self.deviceClass().getPrimaryId(), self.getId())
-
-            class dmd:
-                "Used for faking sync()"
-                class _p_jar:
-                    @staticmethod
-                    def sync():
-                        pass
-
-            def getObjByPath(self, path):
-                return reduce(getattr, path.split("/"), self)
-
-            def getId(self):
-                return "testDevice"
-
-            class a:
-                class b:
-                    class c:
-                        "The relationship to populate"
-                        @staticmethod
-                        def objectIdsAll():
-                            "returns the list of object ids in this relationship"
-                            return []
-        self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
+        self.adm.applyDataMap(device, datamap, datamap.relname, datamap.compname)
 
     def test_applyDataMap_relmapException(self):
     	'''test_applyDataMap_exception is mostly the same as test_applyDataMap_relmap
@@ -132,7 +87,7 @@ class ApplyDataMapTest(BaseTestCase):
                         def objectIdsAll():
                             "returns the list of object ids in this relationship"
                             return []
- 
+
         with self.assertRaises(AttributeError) as theException:
             self.adm.applyDataMap(Device(), datamap(), datamap.relname, datamap.compname)
 
