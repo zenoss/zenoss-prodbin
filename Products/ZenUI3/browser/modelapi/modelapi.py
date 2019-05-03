@@ -338,3 +338,33 @@ class ZingConnector(BaseApiView):
         return (
             ('zingConnectors', 'zing-connector'),
         )
+
+class Memcached(BaseApiView):
+
+    @property
+    def _services(self):
+        return (
+            ('memcacheds', 'memcacheds'),
+        )
+
+    def _getServiceInstances(self, name):
+        idFormat = '{}'
+        titleFormat = '{}'
+        services = self._appfacade.query(name)
+        if not services:
+            return []
+        svc = services[0]
+        data = [dict(id=idFormat.format(name),
+                     title=titleFormat.format(name),
+                     controlplaneServiceId=svc.id,
+                     instanceCount=svc.instances,
+                     RAMCommitment=getattr(svc, 'RAMCommitment', None),
+                     lastModeledState=str(svc.state).lower()
+                     )
+                for i in range(svc.instances)]
+        return data
+
+    def _getServices(self, svcName):
+        memcacheds = self._getServiceInstances('memcached')
+        memcacheds += self._getServiceInstances('memcached-session')
+        return memcacheds
