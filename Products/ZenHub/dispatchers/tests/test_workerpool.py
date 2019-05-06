@@ -16,7 +16,7 @@ from twisted.python.failure import Failure
 
 from ..workers import ServiceCallJob
 from ..workerpool import (
-    WorkerPool, WorkerRef, ServiceRegistry, ServiceCallError
+    WorkerPool, WorkerRef, ServiceRegistry,
 )
 
 PATH = {'src': 'Products.ZenHub.dispatchers.workerpool'}
@@ -201,6 +201,12 @@ class WorkerRefTest(TestCase):
     """
 
     def setUp(self):
+        self.getLogger_patcher = patch(
+            "{src}.getLogger".format(**PATH), autospec=True,
+        )
+        self.getLogger = self.getLogger_patcher.start()
+        self.addCleanup(self.getLogger_patcher.stop)
+
         self.worker = Mock(workerId=1)
         self.services = Mock(spec=ServiceRegistry)
         self.ref = WorkerRef(self.worker, self.services)
@@ -258,17 +264,7 @@ class WorkerRefTest(TestCase):
         failure = result[0]
         self.assertIsInstance(failure, Failure)
         actual_error = failure.value
-        self.assertIsInstance(actual_error, ServiceCallError)
-
-        # Assert that the name of the service is present in the error message
-        service_name_regex = r"\b%s\b" % job.service
-        self.assertRegexpMatches(str(actual_error), service_name_regex)
-
-        # Assert that information about the original error is present
-        original_error_regex = r"\(%s\) \b%s\b" % (
-            type(original_error).__name__, str(original_error)
-        )
-        self.assertRegexpMatches(str(actual_error), original_error_regex)
+        self.assertIs(actual_error, original_error)
 
     def test_run_callremote_failure(self):
         service = Mock(spec=["callRemote"])
@@ -287,14 +283,4 @@ class WorkerRefTest(TestCase):
         failure = result[0]
         self.assertIsInstance(failure, Failure)
         actual_error = failure.value
-        self.assertIsInstance(actual_error, ServiceCallError)
-
-        # Assert that the name of the service is present in the error message
-        method_name_regex = r"\b%s.%s\b" % (job.service, job.method)
-        self.assertRegexpMatches(str(actual_error), method_name_regex)
-
-        # Assert that information about the original error is present
-        original_error_regex = r"\(%s\) \b%s\b" % (
-            type(original_error).__name__, str(original_error)
-        )
-        self.assertRegexpMatches(str(actual_error), original_error_regex)
+        self.assertIs(actual_error, original_error)

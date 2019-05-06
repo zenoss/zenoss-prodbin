@@ -43,8 +43,6 @@ from DateTime import DateTime
 from ZODB.POSException import POSError
 from BTrees.OOBTree import OOSet
 
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
-
 from Products.ZenRelations.RelSchema import ToManyCont, ToMany, ToOne
 from Commandable import Commandable
 from Lockable import Lockable
@@ -473,6 +471,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
+        from Products.DataCollector.ApplyDataMap import ApplyDataMap
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
                          compname=compname, modname=modname, parentId="")
@@ -619,7 +618,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             query['meta_type'] = type
 
         return list(getObjectsFromCatalog(self.componentSearch, query, log))
-
 
     def getDeviceComponentsNoIndexGen(self):
         """
