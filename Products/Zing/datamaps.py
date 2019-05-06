@@ -1,20 +1,27 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2018, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import logging
 
 from collections import defaultdict
 from zope.interface import implements
-from zope.component import subscribers
+from zope.component import subscribers, adapter
 from zope.component.factory import Factory
 
-from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+from Products.DataCollector.plugins.DataMaps import (
+    RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+)
+from Products.DataCollector.ApplyDataMap import (
+    IDatamapUpdateEvent,
+    IDatamapAddEvent,
+)
+
 from Products.Zing import fact as ZFact
 
 from Products.Zing.interfaces import (
@@ -27,6 +34,20 @@ from Products.Zing.tx_state import ZingTxStateManager
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
+
+
+@adapter(IDatamapUpdateEvent)
+def zing_add_datamap_context(event):
+    log.debug('zing_add_datamap_context handeling event=%s', event)
+    zing_datamap_handler = ZingDatamapHandler(event.dmd)
+    zing_datamap_handler.add_context(event.objectmap, event.target)
+
+
+@adapter(IDatamapAddEvent)
+def zing_add_datamap(event):
+    log.debug('zing_add_datamap_context handeling event=%s', event)
+    zing_datamap_handler = ZingDatamapHandler(event.dmd)
+    zing_datamap_handler.add_datamap(event.target, event.objectmap)
 
 
 class ObjectMapContext(object):
