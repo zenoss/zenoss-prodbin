@@ -8,6 +8,7 @@
 ##############################################################################
 
 import logging
+from collections import defaultdict
 
 from ZODB.transact import transact
 from zope.event import notify
@@ -379,13 +380,18 @@ def _process_relationshipmap(relmap, base_device):
         )
         return False
 
-    relmap._relname = relmap.relname
+    relmap._relname = relname
+
+    seenids = defaultdict(int)
+    for object_map in relmap:
+        seenids[object_map.id] += 1
+        object_map.relname = relname
+        if seenids[object_map.id] > 1:
+            object_map.id = "%s_%s" % (object_map.id, seenids[object_map.id])
+
     # remove any objects no longer included in the relationshipmap
     # to be deleted (device, relationship_name, object/id)
     relmap._diff = _get_relationshipmap_diff(relmap._parent, relmap)
-
-    for object_map in relmap:
-        object_map.relname = relmap.relname
 
     new_maps = [
         _validate_datamap(parent, object_map)
