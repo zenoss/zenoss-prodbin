@@ -298,6 +298,20 @@
     />
 
 <browser:page
+    class=".command.MonitorView"
+    name="run_monitor"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.MonitorDebugView"
+    name="run_monitor_debug"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
     class=".command.TestDataSourceView"
     name="test_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"
