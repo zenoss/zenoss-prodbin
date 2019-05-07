@@ -1,13 +1,15 @@
 ##############################################################################
-# 
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
+# Copyright (C) Zenoss, Inc. 2019, all rights reserved.
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import Globals
 
-def initialize(registrar):
-    pass
+from .applydatamap import (
+    ApplyDataMap, notify, isSameData
+)
+from .events import IDatamapUpdateEvent, IDatamapAddEvent

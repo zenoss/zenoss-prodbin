@@ -15,14 +15,17 @@ import time
 from contextlib import contextmanager
 
 from twisted.internet import defer
-from twisted.spread import pb
+from twisted.spread import pb, banana, jelly
 from zope.interface import implementer
 
 from Products.ZenUtils.Logger import getLogger
 from Products.ZenHub.PBDaemon import RemoteException
 
 from .base import IAsyncDispatch
-from .workerpool import ServiceCallError
+
+_InternalErrors = (
+    pb.ProtocolError, banana.BananaError, jelly.InsecureJelly,
+)
 
 
 @implementer(IAsyncDispatch)
@@ -150,21 +153,15 @@ class WorkerPoolDispatcher(object):
                 result = yield worker.run(job)
             except (RemoteException, pb.RemoteError) as ex:
                 self.__reactor.callLater(0, asyncjob.failure, ex)
-            except ServiceCallError as ex:
-                if worker in self.__workers:
-                    self.__log.error(
-                        "(worker %s) %s: %s", worker.workerId, ex, ex.source,
-                    )
-                    self.__reactor.callLater(
-                        0, asyncjob.failure,
-                        pb.Error("Internal ZenHub error: %s" % (ex,)),
-                    )
-                else:
-                    self.__log.warn(
-                        "(worker %s) Bad worker ref: %s", worker.workerId, ex,
-                    )
-                    # Bad worker reference, so retry the call
-                    self.__worklist.pushfront(asyncjob)
+            except _InternalErrors as ex:
+                self.__log.error(
+                    "(worker %s) %s: %s", worker.workerId,
+                    ex.__class__.__name__, ex,
+                )
+                self.__reactor.callLater(
+                    0, asyncjob.failure,
+                    pb.Error("Internal ZenHub error: %s" % (ex,)),
+                )
             except pb.PBConnectionLost as ex:
                 self.__log.warn(
                     "(worker %s) Worker no longer accepting work: %s",
