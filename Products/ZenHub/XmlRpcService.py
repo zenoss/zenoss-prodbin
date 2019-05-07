@@ -1,22 +1,16 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
-
-
-# Hide a SyntaxWarning that is raised in twisted.web.microdom under Python>=2.5
-# TODO in 3.1: Remove when twisted is upgraded
-import warnings
-warnings.filterwarnings('ignore', 'assertion is always true', SyntaxWarning)
-
-from twisted.web import xmlrpc
 
 import types
 import DateTime
+
+from twisted.web import xmlrpc
 
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.Zuul import getFacade
@@ -25,18 +19,18 @@ from Products.ZenUtils.ZenTales import talesEval
 
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
-    PRIMITIVES = [types.IntType, types.StringType, types.BooleanType,
-                  types.DictType, types.FloatType, types.LongType,
-                  types.NoneType]
+    PRIMITIVES = [
+        types.IntType, types.StringType, types.BooleanType,
+        types.DictType, types.FloatType, types.LongType, types.NoneType
+    ]
 
     def __init__(self, dmd):
         xmlrpc.XMLRPC.__init__(self)
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
 
-
     def xmlrpc_sendEvent(self, data):
-        'XMLRPC requests are processed asynchronously in a thread'
+        """XMLRPC requests are processed asynchronously in a thread"""
         result = self.zem.sendEvent(data)
         if result is None:
             result = "none"
@@ -48,14 +42,14 @@ class XmlRpcService(xmlrpc.XMLRPC):
     def xmlrpc_getDevicePingIssues(self, *unused):
         zep = getFacade('zep')
         return zep.getDevicePingIssues()
-    
+
     def xmlrpc_getDeviceWinInfo(self, *args):
         return self.dmd.Devices.Server.Windows.getDeviceWinInfo(*args)
 
     def xmlrpc_getWinServices(self, *args):
         return self.dmd.Devices.Server.Windows.getWinServices(*args)
 
-    def xmlrpc_applyDataMap(self, devName, datamap, 
+    def xmlrpc_applyDataMap(self, devName, datamap,
                             relname="", compname="", modname=""):
         """Apply a datamap passed as a list of dicts through XML-RPC.
         """
@@ -63,7 +57,6 @@ class XmlRpcService(xmlrpc.XMLRPC):
         adm = ApplyDataMap()
         adm.applyDataMap(dev, datamap, relname=relname,
                          compname=compname, modname=modname)
-
 
     def xmlrpc_getConfigs(self, monitor, dstype):
         '''Return the performance configurations for the monitor name and data
@@ -102,9 +95,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
             return vals
 
-
         result = []
-        
+
         # get the performance conf (if it exists)
         conf = getattr(self.dmd.Monitors.Performance, monitor, None)
         if conf is None:
@@ -120,18 +112,22 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
         return result
 
-
     def xmlrpc_writeRRD(self, devId, compType, compId, dpName, value):
-        raise NotImplementedError("ZenHub can no longer write RRD values. Please use the MetricFacade")
-
+        raise NotImplementedError(
+            "ZenHub can no longer write RRD values. "
+            "Please use the MetricFacade"
+        )
 
     def xmlrpc_getPerformanceConfig(self, monitor):
-        ''' returns the performance configuration for the monitor provided, or
-        {} if no collector with the name provided is located.'''
+        """Returns the performance configuration for the monitor provided,
+        or {} if no collector with the name provided is located.
+        """
 
         result = {}
-        fields = ['configCycleInterval', 'statusCycleInterval', 
-                  'eventlogCycleInterval', 'winCycleInterval']
+        fields = [
+            'configCycleInterval', 'statusCycleInterval',
+            'eventlogCycleInterval', 'winCycleInterval'
+        ]
 
         # get the performance conf (if it exists)
         conf = getattr(self.dmd.Monitors.Performance, monitor, None)
@@ -140,5 +136,5 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
         for field in fields:
             result[field] = getattr(conf, field, None)
-            
+
         return result
