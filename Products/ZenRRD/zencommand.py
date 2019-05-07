@@ -117,6 +117,13 @@ class SshPerformanceCollectionPreferences(object):
                           help="Display the entire command and command-line arguments, " \
                                " including any passwords.")
 
+        parser.add_option('--datasource',
+                          dest='datasource',
+                          type='string',
+                          default=None,
+                          help="Collect just for one datasource. "\
+                               "Write in format 'template/datasource'")
+
     def postStartup(self):
         pass
 
@@ -378,6 +385,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                                   COLLECTOR_NAME)
         self._maxbackoffseconds = preferences.options.maxbackoffminutes * 60
         self._showfullcommand = preferences.options.showfullcommand
+        self._chosenDatasource = preferences.options.datasource
 
         self._executor = TwistedExecutor(taskConfig.zSshConcurrentSessions)
 
@@ -441,6 +449,12 @@ class SshPerformanceCollectionTask(BaseTask):
         else:
             self._returnToNormalSchedule()
 
+    def getDatasources(self):
+        if self._chosenDatasource:
+            return [ds for ds in self._datasources if ds.name == self._chosenDatasource]
+        else:
+            return self._datasources
+
     def _addDatasource(self, datasource):
         """
         Add a new instantiation of ProcessRunner or SshRunner
@@ -471,7 +485,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
         # Bundle up the list of tasks
         deferredCmds = []
-        for datasource in self._datasources:
+        for datasource in self.getDatasources():
             datasource.deviceConfig = self._device
             if datasource.command in cacheableDS:
                 cacheableDS[datasource.command].append(datasource)
@@ -622,6 +636,10 @@ class SshPerformanceCollectionTask(BaseTask):
         @type resultList: array of (datasource, dictionary)
         """
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
+
+        if self._chosenDatasource:
+            log.info("Values would be stored for datasource %s",
+                        self._chosenDatasource)
         for datasource, results in resultList:
             for dp, value in results.values:
                 threshData = {
@@ -629,6 +647,9 @@ class SshPerformanceCollectionTask(BaseTask):
                     'component': dp.component,
                 }
                 try:
+                    if self._chosenDatasource:
+                        log.info("Component: %s >> DataPoint: %s %s",
+                                 dp.metadata['contextKey'], dp.dpName, value)
                     yield self._dataService.writeMetricWithMetadata(
                         dp.dpName,
                         value,
