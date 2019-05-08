@@ -189,7 +189,7 @@ def _update_callable_attribute(attr, value):
     try:
         try:
             attr(*value) if isinstance(value, tuple) else attr(value)
-        except ValueError:
+        except (TypeError, ValueError):
             '''This is to handle legacy zenpacks that use the signature pattern
             def func(*args): (arg1, arg2, ...) = args[0]
             '''
