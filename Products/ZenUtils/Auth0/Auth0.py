@@ -194,13 +194,15 @@ class Auth0(BasePlugin):
             # + The tenantkey is used to lookup the tenant from the jwt.
             tenantkey = conf.get('tenantkey', 'https://dev.zing.ninja/tenant')
             tenant = payload.get(tenantkey, None) # ie: "https://dev.zing.ninja/tenant": "alphacorp", in jwt
-            if not tenant:
+            # Check the jwt for the globalkey setting.
+            is_global_key = payload.get('https://dev.zing.ninja/globalkey', None)
+            if not is_global_key and not tenant:
                 log.warn('No auth0 tenant specified in jwt for tenantkey: {}'.format(tenantkey))
                 Auth0.removeToken(request)
                 return None
             # + Get the whitelist from global.conf and verify that it's in the list.
             whitelist = conf.get('whitelist', [])
-            if not tenant in whitelist:
+            if not is_global_key and tenant not in whitelist:
                 log.warn('Tenant {} is invalid. Not in whitelist: {}'.format(tenant, whitelist))
                 Auth0.removeToken(request)
                 return None
