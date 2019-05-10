@@ -13,6 +13,7 @@ import logging
 import inspect
 import sys
 from importlib import import_module
+from time import time
 
 from zope.event import notify
 
@@ -27,7 +28,7 @@ from .datamaputils import (
     _objectmap_to_device_diff,
     _update_object,
 )
-from .events import DatamapUpdateEvent
+from .events import DatamapUpdateEvent, DatamapAppliedEvent
 
 
 log = logging.getLogger('zen.IncrementalDataMap')  # pragma: no mutate
@@ -89,7 +90,10 @@ class IncrementalDataMap(object):
         return self._logstr
 
     def apply(self):
-        return self._directive_map[self.directive]()
+        self.start_time = time()
+        ret = self._directive_map[self.directive]()
+        self.end_time = time()
+        notify(DatamapAppliedEvent(self))
 
     @property
     def _directive_map(self):

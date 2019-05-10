@@ -27,6 +27,7 @@ from twisted.internet.endpoints import clientFromString
 from twisted.internet import defer, reactor, error, task
 from twisted.spread import pb
 from zope.interface import implementer
+from zope.component import getGlobalSiteManager
 
 import Globals  # noqa: F401
 
@@ -34,7 +35,7 @@ from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub import PB_PORT, OPTION_STATE, CONNECT_TIMEOUT
 from Products.ZenHub.broker import ZenPBClientFactory
 from Products.ZenHub.interfaces import IServiceReferenceFactory
-from Products.ZenHub.metricmanager import MetricManager
+from Products.ZenHub.metricmanager import MetricManager, IMetricManager
 from Products.ZenHub.servicemanager import (
     HubServiceRegistry, UnknownServiceError,
 )
@@ -110,6 +111,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
                 'zenoss_monitor': self.options.monitor,
                 'internal': True,
             },
+        )
+        # Make the metric manager available via zope.component.getUtility
+        getGlobalSiteManager().registerUtility(
+            self._metric_manager,
+            IMetricManager,
+            name='zenhub_worker_metricmanager'
         )
 
     def start(self):
