@@ -23,9 +23,9 @@ from ..workers import (
     WorkerPoolDispatcher,
     ServiceCallJob, AsyncServiceCallJob,
     StatsMonitor, WorkerStats, JobStats,
-    RemoteException
+    RemoteException, banana, jelly,
 )
-from ..workerpool import WorkerPool, WorkerRef, ServiceCallError
+from ..workerpool import WorkerPool, WorkerRef
 
 PATH = {'src': 'Products.ZenHub.dispatchers.workers'}
 
@@ -199,74 +199,102 @@ class WorkerPoolDispatcherTest(TestCase):
         self.worklist.pushfront.assert_not_called()
         self.worklist.push.assert_not_called()
 
-    def test__call_service_pbRemoteError(self):
+    def test__call_service_remote_errors(self):
         job = ServiceCallJob("service", "localhost", "method", [], {})
         ajob = AsyncServiceCallJob(job)
         worker = Mock(spec=WorkerRef)
-        error = pb.RemoteError("type", "boom", "tb")
-        worker.run.side_effect = error
         cm = MagicMock(spec=("__exit__", "__enter__"))
         cm.__enter__.return_value = worker
         self.workers.borrow.return_value = cm
 
-        self.dispatcher._call_service(ajob)
+        exc = ValueError("boom")
+        errors = (
+            RemoteException("ExceptionalRemoteBoom", None),
+            pb.RemoteError(ValueError, exc, None),
+        )
+        for error in errors:
+            worker.run.side_effect = error
 
-        worker.run.assert_called_once_with(job)
-        self.reactor.callLater.assert_called_once_with(0, ajob.failure, error)
-        self.worklist.pushfront.assert_not_called()
-        self.worklist.push.assert_not_called()
+            self.dispatcher._call_service(ajob)
 
-    def test__call_service_RemoteException(self):
-        job = ServiceCallJob("service", "localhost", "method", [], {})
-        ajob = AsyncServiceCallJob(job)
-        worker = Mock(spec=WorkerRef)
-        error = RemoteException("boom", sentinel.traceback)
-        worker.run.side_effect = error
-        cm = MagicMock(spec=("__exit__", "__enter__"))
-        cm.__enter__.return_value = worker
-        self.workers.borrow.return_value = cm
+            self.reactor.callLater.assert_called_once_with(
+                0, ajob.failure, error,
+            )
+            self.logger.info.assert_not_called()
+            self.logger.warn.assert_not_called()
+            self.logger.error.assert_not_called()
+            self.logger.exception.assert_not_called()
 
-        self.dispatcher._call_service(ajob)
+            # reset the mocks for the next iteration
+            self.reactor.reset_mock()
 
-        worker.run.assert_called_once_with(job)
-        self.reactor.callLater.assert_called_once_with(0, ajob.failure, error)
-        self.worklist.pushfront.assert_not_called()
-        self.worklist.push.assert_not_called()
-
-    def test__call_service_internal_error(self):
+    @patch("{src}.pb.Error".format(**PATH))
+    def test__call_service_internal_error(self, _pberror):
         job = ServiceCallJob("service", "localhost", "method", [], {})
         ajob = AsyncServiceCallJob(job)
         worker = Mock(spec=WorkerRef, workerId=1)
-        error = ServiceCallError("boom")
+        error = TypeError("original boom")
         worker.run.side_effect = error
         cm = MagicMock(spec=("__exit__", "__enter__"))
         cm.__enter__.return_value = worker
         self.workers.borrow.return_value = cm
         self.workers.__contains__.return_value = True
 
-        self.dispatcher._call_service(ajob)
+        errors = (
+            pb.ProtocolError("protocol boom"),
+            banana.BananaError("banana boom"),
+            jelly.InsecureJelly("jelly boom"),
+        )
+        for error in errors:
+            worker.run.side_effect = error
 
-        worker.run.assert_called_once_with(job)
-        self.assertTrue(self.logger.exception.called)
-        self.assertEqual(self.logger.exception.call_count, 1)
-        self.logger.error.assert_not_called()
+            self.dispatcher._call_service(ajob)
 
-        self.assertTrue(self.reactor.callLater.called)
-        self.assertEqual(self.reactor.callLater.call_count, 1)
-        args = self.reactor.callLater.call_args[0]
-        self.assertEqual(len(args), 3)
-        self.assertEqual(args[0], 0)
-        self.assertEqual(args[1], ajob.failure)
-        self.assertIsInstance(args[2], pb.Error)
+            self.reactor.callLater.assert_called_once_with(
+                0, ajob.failure, _pberror.return_value,
+            )
+            self.logger.info.assert_not_called()
+            self.logger.warn.assert_not_called()
+            self.logger.error.assert_called_once_with(
+                ANY, worker.workerId, type(error).__name__, error,
+            )
+            self.logger.exception.assert_not_called()
+            self.worklist.pushfront.assert_not_called()
+            self.worklist.push.assert_not_called()
 
-        self.worklist.pushfront.assert_not_called()
-        self.worklist.push.assert_not_called()
+            # reset the mocks for the next iteration
+            self.logger.error.reset_mock()
+            self.reactor.reset_mock()
 
-    def test__call_service_bad_worker(self):
+    def test__call_service_unhandled_error(self):
         job = ServiceCallJob("service", "localhost", "method", [], {})
         ajob = AsyncServiceCallJob(job)
         worker = Mock(spec=WorkerRef, workerId=1)
-        error = ServiceCallError("boom")
+        error = ValueError("original boom")
+        worker.run.side_effect = error
+        cm = MagicMock(spec=("__exit__", "__enter__"))
+        cm.__enter__.return_value = worker
+        self.workers.borrow.return_value = cm
+        self.workers.__contains__.return_value = False
+
+        handler = Mock()
+        dfr = self.dispatcher._call_service(ajob)
+        dfr.addErrback(handler)
+
+        self.assertEqual(1, handler.call_count)
+        worker.run.assert_called_once_with(job)
+        self.logger.warn.assert_not_called()
+        self.logger.error.assert_not_called()
+        self.logger.exception.assert_not_called()
+        self.reactor.callLater.assert_not_called()
+        self.worklist.pushfront.assert_not_called()
+        self.worklist.push.assert_not_called()
+
+    def test__call_service_PBConnectionLost(self):
+        job = ServiceCallJob("service", "localhost", "method", [], {})
+        ajob = AsyncServiceCallJob(job)
+        worker = Mock(spec=WorkerRef, workerId=1)
+        error = pb.PBConnectionLost("boom")
         worker.run.side_effect = error
         cm = MagicMock(spec=("__exit__", "__enter__"))
         cm.__enter__.return_value = worker
@@ -276,7 +304,8 @@ class WorkerPoolDispatcherTest(TestCase):
         self.dispatcher._call_service(ajob)
 
         worker.run.assert_called_once_with(job)
-        self.logger.error.assert_called_once_with(ANY, worker.workerId, error)
+        self.logger.warn.assert_called_once_with(ANY, worker.workerId, error)
+        self.logger.error.assert_not_called()
         self.logger.exception.assert_not_called()
         self.reactor.callLater.assert_not_called()
         self.worklist.pushfront.assert_called_once_with(ajob)

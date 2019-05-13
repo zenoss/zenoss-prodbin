@@ -8,21 +8,11 @@
 ##############################################################################
 
 import collections
-import sys
 
 from contextlib import contextmanager
 from twisted.internet import defer
 
-
-class ServiceCallError(Exception):
-    """This exception is raised when there's an issue while attempting
-    to execute a remote call on a worker.
-
-    This is an internal use only exception and not part of the public API.
-    """
-
-    def __init__(self, mesg):
-        super(ServiceCallError, self).__init__(mesg)
+from Products.ZenUtils.Logger import getLogger
 
 
 class WorkerPool(
@@ -159,6 +149,7 @@ class WorkerRef(object):
         """
         self.__worker = worker
         self.__services = services
+        self.__log = getLogger("zenhub", self)
 
     @property
     def ref(self):
@@ -176,7 +167,7 @@ class WorkerRef(object):
         """Execute the job.
 
         @param job {ServiceCallJob} Details on the RPC method to invoke.
-        @raises ServiceCallError if an error occurs while attempting to
+        @raises Exception if an error occurs while attempting to
             execute a remote procedure call.  An RPC error may occur while
             retrieving the remote service reference or when invoking the
             job specified method on the remote service reference.
@@ -184,12 +175,11 @@ class WorkerRef(object):
         try:
             service = yield self.__services.lookup(job.service, job.monitor)
         except Exception as ex:
-            _, _, tb = sys.exc_info()
-            error = ServiceCallError(
-                "Failed to retrieve service '%s': (%s) %s"
-                % (job.service, type(ex).__name__, ex)
+            self.__log.error(
+                "(worker %s) Failed to retrieve service '%s': %s",
+                self.__worker.workerId, job.service, ex,
             )
-            raise ServiceCallError, error, tb
+            raise
 
         try:
             result = yield service.callRemote(
@@ -197,9 +187,8 @@ class WorkerRef(object):
             )
             defer.returnValue(result)
         except Exception as ex:
-            _, _, tb = sys.exc_info()
-            error = ServiceCallError(
-                "Failed to execute %s.%s: (%s) %s"
-                % (job.service, job.method, type(ex).__name__, ex)
+            self.__log.error(
+                "(worker %s) Failed to execute %s.%s: %s",
+                self.__worker.workerId, job.service, job.method, ex,
             )
-            raise ServiceCallError, error, tb
+            raise
