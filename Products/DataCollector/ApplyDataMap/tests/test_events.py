@@ -7,6 +7,8 @@
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 from unittest import TestCase
 
 from zope.interface.verify import verifyObject
@@ -15,6 +17,7 @@ from ..events import (
     IDatamapEvent,
     IDatamapAddEvent, DatamapAddEvent,
     IDatamapUpdateEvent, DatamapUpdateEvent,
+    IDatamapAppliedEvent, DatamapAppliedEvent,
 )
 
 
@@ -50,3 +53,17 @@ class TestDatamapUpdateEvent(TestCase):
         t.assertEqual(datamap_update_event.dmd, 'dmd')
         t.assertEqual(datamap_update_event.objectmap, 'objectmap')
         t.assertEqual(datamap_update_event.target, 'target')
+
+
+class TestDatamapAppliedEvent(TestCase):
+
+    def test_implements_IDatamapUpdateEvent(t):
+        datamap_applied_event = DatamapAppliedEvent('datamap')
+
+        verifyObject(IDatamapAppliedEvent, datamap_applied_event)
+
+        # the class implements the interface
+        t.assertTrue(IDatamapAppliedEvent.implementedBy(DatamapAppliedEvent))
+        # the object provides the interface
+        t.assertTrue(IDatamapAppliedEvent.providedBy(datamap_applied_event))
+        t.assertEqual(datamap_applied_event.datamap, 'datamap')
