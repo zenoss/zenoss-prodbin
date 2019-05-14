@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- * Copyright (C) Zenoss, Inc. 2013, 2019 all rights reserved.
+ * Copyright (C) Zenoss, Inc. 2013, all rights reserved.
  *
  * This content is made available according to terms specified in
  * License.zenoss under the directory where your Zenoss product is installed.
@@ -27,38 +27,6 @@ Ext.onReady(function(){
             hasMenu: false,
         }));
         document.title = graph.graphTitle;
-
-        // check if this graph is inside iframe
-        // which is inside the Site Window Portlet
-        var iframe = checkSiteWindowPortlet();
-        if (iframe !== null) {
-            var header = iframe.contentDocument.getElementById('header');
-            if (header !== null) {
-                header.style.display = 'none';
-            }
-        }
-    }
-
-    function checkSiteWindowPortlet() {
-        var iframes = parent.document.getElementsByTagName('iframe');
-        var thisIFrame;
-        if (iframes.length > 0) {
-            for (var i=0; i<iframes.length; i++) {
-                var currentIFrame = iframes[i];
-                if (currentIFrame.contentDocument === document) {
-                    thisIFrame = currentIFrame;
-                    break;
-                }
-            }
-            var prnt = thisIFrame.parentElement;
-            while(prnt) {
-                if (prnt.id.search('sitewindowportlet') > -1) {
-                    return thisIFrame;
-                }
-                prnt = prnt.parentElement;
-            }
-        }
-        return null;
     }
 
     var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
