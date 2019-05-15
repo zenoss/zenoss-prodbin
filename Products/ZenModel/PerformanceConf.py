@@ -593,6 +593,55 @@ class PerformanceConf(Monitor, StatusColor):
         result = executeCommand(remoteCommand, REQUEST, write)
         return result
 
+    def runDeviceMonitor(
+            self, device=None, REQUEST=None, write=None,
+            collection_daemons=None, debug=False):
+        """
+        Run collection daemons against specific device
+        """
+        xmlrpc = isXmlRpc(REQUEST)
+        result = self._executeMonitoringCommands(device.id, self.id, write,
+                                                 REQUEST, collection_daemons,
+                                                 debug)
+        if result and xmlrpc:
+            return result
+        log.info('configuration collected')
+
+        if xmlrpc:
+            return 0
+
+    def _executeMonitoringCommands(
+            self, deviceName, performanceMonitor="localhost",
+            write=None, REQUEST=None, collection_daemons=None, debug=False):
+        """
+        Execure monitoring daemon command
+        """
+        for daemon in collection_daemons:
+            monitoringCmd = self._getMonitoringCommand(deviceName,
+                                                       performanceMonitor,
+                                                       write, daemon)
+            if debug:
+                monitoringCmd.append('-v10')
+            result = self._executeCommand(monitoringCmd, REQUEST, write)
+        return result
+
+    def _getMonitoringCommand(
+            self, deviceName, performanceMonitor, write=None, daemon=None):
+        """
+        Get monitoring command and create command to run
+        """
+        cmd = [binPath(daemon)]
+        deviceName = self._escapeParentheses(deviceName)
+        options = [
+            'run', '-d', deviceName, '--monitor', performanceMonitor
+        ]
+        cmd.extend(options)
+        log_message = 'local monitoring cmd is "%s"\n' % ' '.join(cmd)
+        if write:
+            write(log_message)
+        log.info(log_message)
+        return cmd
+
     def _escapeParentheses(self, string):
         """
         Escape unascaped parentheses.
