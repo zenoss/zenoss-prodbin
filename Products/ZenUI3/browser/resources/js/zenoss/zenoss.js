@@ -1276,8 +1276,174 @@ Zenoss.util.ipv6wrap = function(string) {
     return string;
 };
 
+/**
+ * Used to sanitize html that was given by the user
+ * to prevent XSS attacs. The tag blacklist and
+ * attribute whitelist was created according to owasp.
+ **/
+Zenoss.util.sanitizeHtml = function(input) {
+    // Blacklist of tags that are not allowed
+    var tagBlacklist_ = {
+        'SCRIPT': true,
+        'EMBED': true,
+        'IFRAME': true
+    };
+    // Attributes whitelist that can be used in tags
+    var attributeBlacklist_ = {
+        'FSCommand': true,
+        'onbeforecopy': true,
+        'onbeforecut': true,
+        'onbeforepaste': true,
+        'oncopy': true,
+        'oncut': true,
+        'oninput': true,
+        'onkeydown': true,
+        'onkeypress': true,
+        'onkeyup': true,
+        'onpaste': true,
+        'textInput': true,
+        'onabort': true,
+        'onbeforeunload': true,
+        'onhashchange': true,
+        'onload': true,
+        'ononline': true,
+        'onreadystatechange': true,
+        'onstop': true,
+        'onunload': true,
+        'onreset': true,
+        'onsubmit': true,
+        'onclick': true,
+        'oncontextmenu': true,
+        'ondblclick': true,
+        'onlosecapture': true,
+        'onmouseenter': true,
+        'onmousedown': true,
+        'onmouseleave': true,
+        'onmousemove': true,
+        'onmouseout': true,
+        'onmouseover': true,
+        'onmouseup': true,
+        'onmousewheel': true,
+        'onscroll': true,
+        'onmove': true,
+        'onmoveend': true,
+        'onmovestart': true,
+        'ondrag': true,
+        'ondragend': true,
+        'ondragenter': true,
+        'ondragleave': true,
+        'ondragover': true,
+        'ondragstart': true,
+        'ondrop': true,
+        'onresize': true,
+        'onresizeend': true,
+        'onresizestart': true,
+        'onactivate': true,
+        'onbeforeactivate': true,
+        'onbeforedeactivate': true,
+        'onbeforeeditfocus': true,
+        'onblur': true,
+        'ondeactivate': true,
+        'onfocus': true,
+        'onfocusin': true,
+        'onfocusout': true,
+        'oncontrolselect': true,
+        'onselect': true,
+        'onselectionchange': true,
+        'onselectstart': true,
+        'onafterprint': true,
+        'onbeforeprint': true,
+        'onhelp': true,
+        'onerror': true,
+        'onerrorupdate': true,
+        'onafterupdate': true,
+        'onbeforeupdate': true,
+        'oncellchange': true,
+        'ondataavailable': true,
+        'ondatasetchanged': true,
+        'ondatasetcomplete': true,
+        'onrowenter': true,
+        'onrowexit': true,
+        'onrowsdelete': true,
+        'onrowsinserted': true,
+        'onbounce': true,
+        'onfinish': true,
+        'onstart': true,
+        'onchange': true,
+        'onfilterchange': true,
+        'onpropertychange': true,
+        'onsearch': true,
+        'onmessage': true,
+        'onbegin': true,
+        'ondragdrop': true,
+        'onlayoutcomplete': true,
+        'onmediacomplete': true,
+        'onmediaerror': true,
+        'onoutofsync': true,
+        'onpause': true,
+        'onpopstate': true,
+        'onprogress': true,
+        'onredo': true,
+        'onrepeat': true,
+        'onresume': true,
+        'onreverse': true,
+        'onrowinserted': true,
+        'onrowdelete': true,
+        'onseek': true,
+        'onstorage': true,
+        'onsyncrestored': true,
+        'ontimeerror': true,
+        'ontrackchange': true,
+        'onundo': true,
+        'onunload': true,
+        'onURLFlip': true,
+        'seekSegmentTime': true
+    };
+    /*
+      Create an iframe element that will render given html code
+      and filter elements and attributes that are not allowed.
+    */
+    var iframe = document.createElement('iframe');
+    if (iframe['sandbox'] === undefined) {
+      console.log('Your browser does not support sandboxed iframes. Please upgrade to a modern browser.');
+      return '';
+    }
+    iframe['sandbox'] = 'allow-same-origin allow-scripts';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe); // necessary so the iframe contains a document
+    iframe.contentDocument.body.innerHTML = input;
 
+    function makeSanitizedCopy(node) {
+      // Loop over elements and filter them
+      if (node.nodeType == Node.TEXT_NODE) {
+        var newNode = node.cloneNode(true);
+      } else if (node.nodeType == Node.ELEMENT_NODE && !tagBlacklist_[node.tagName]) {
+        newNode = iframe.contentDocument.createElement(node.tagName);
+        for (var i = 0; i < node.attributes.length; i++) {
+          var attr = node.attributes[i];
+          if (!attributeBlacklist_[attr.name]) {
+            try {
+              newNode.setAttribute(attr.name, attr.value);
+            }
+            catch(InvalidCharacterError){
+              continue;
+            }
+          }
+        }
+        for (i = 0; i < node.childNodes.length; i++) {
+          var subCopy = makeSanitizedCopy(node.childNodes[i]);
+          newNode.appendChild(subCopy, false);
+        }
+      } else {
+        newNode = document.createDocumentFragment();
+      }
+      return newNode;
+    };
 
+    var resultElement = makeSanitizedCopy(iframe.contentDocument.body);
+    document.body.removeChild(iframe);
+    return resultElement.innerHTML;
+}
 
 // Force checkbox to fire valid
 var oldcbsetvalue = Ext.form.Checkbox.prototype.setValue;
