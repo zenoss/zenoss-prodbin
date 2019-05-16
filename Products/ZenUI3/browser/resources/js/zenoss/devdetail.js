@@ -930,6 +930,22 @@ function modelDeviceDebug() {
         modelDevice(true);
 }
 
+function monitorDevice(debugging){
+    var target = 'run_monitor';
+    if (debugging == true) {
+        target = 'run_monitor_debug';
+    }
+    var win = new Zenoss.CommandWindow({
+        uids: [UID],
+        target: target,
+        title: _t('Monitor Device')
+    });
+    win.show();
+}
+
+function monitorDeviceDebug() {
+        monitorDevice(true);
+}
 
 function resumeCollection() {
     Zenoss.remote.DeviceRouter.resumeCollection(UID, function(data) {
@@ -1195,23 +1211,45 @@ Ext.getCmp('footer_bar').add([{
         text: _t('Modeling'),
         iconCls: '',
         listeners: {
-        render: function(){
-            this.setContext(UID);
-        }
-    },
-    menuItems: [
-        {
-            xtype: 'menuitem',
-            text: _t('Model Device'),
-            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-            handler: modelDevice
-        }, {
-            xtype: 'menuitem',
-            text: _t('Model Device (Debug)'),
-            hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
-            handler: modelDeviceDebug
-        }
-    ]}
+            render: function(){
+                this.setContext(UID);
+            }
+        },
+        menuItems: [
+            {
+                xtype: 'menuitem',
+                text: _t('Model Device'),
+                hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: modelDevice
+            }, {
+                xtype: 'menuitem',
+                text: _t('Model Device (Debug)'),
+                hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: modelDeviceDebug
+            }
+        ]
+    }, '-', {
+        xtype: 'ContextConfigureMenu',
+        text: _t('Monitoring'),
+        iconCls: '',
+        listeners: {
+            render: function(){
+                this.setContext(UID);
+            }
+        },
+        menuItems: [
+            {
+                xtype: 'menuitem',
+                text: _t('Collect Device data'),
+                hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: monitorDevice
+            }, {
+                xtype: 'menuitem',
+                text: _t('Collect Device data (Debug)'),
+                hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                handler: monitorDeviceDebug
+            }
+        ]}
 ]);
     if (Ext.isIE) {
         // work around a rendering bug in ExtJs see ticket ZEN-3054

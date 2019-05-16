@@ -12,7 +12,9 @@
 Ext.ns('Zenoss.ui.EvConsole');
 
 Ext.onReady(function(){
-
+var stateProvider = Ext.state.Manager.getProvider();
+// wait until state is ready;
+stateProvider.onStateReady(function() {
     // Get references to the panels
     var detail_panel = Ext.getCmp('detail_panel');
     var master_panel = Ext.getCmp('master_panel');
@@ -248,5 +250,5 @@ Ext.onReady(function(){
     }
 
     startInactive();
-
+}); // stateProvider.onStateReady
 });
