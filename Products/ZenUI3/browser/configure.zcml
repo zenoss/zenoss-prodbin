@@ -418,6 +418,13 @@
     />
 
 <browser:page
+    template="templates/viewGraphPortlet.pt"
+    name="viewGraphPortlet"
+    for="*"
+    permission="zenoss.Common"
+    />    
+
+<browser:page
     class=".views.GetDaemonLogs"
     name="getDaemonLogs"
     for="Products.ZenModel.interfaces.IDataRoot"
