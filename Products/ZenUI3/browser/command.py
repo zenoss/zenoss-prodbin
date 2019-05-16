@@ -183,3 +183,27 @@ class ModelDebugView(StreamingView):
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
             device.collectDevice(REQUEST=self.request, write=self.write, debug=True)
+
+
+class MonitorView(StreamingView):
+    """
+    Accepts a list of uids to model.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for device in imap(facade._getObject, uids):
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write)
+
+
+class MonitorDebugView(StreamingView):
+    """
+    Accepts a list of uids to model.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for device in imap(facade._getObject, uids):
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write, debug=True)

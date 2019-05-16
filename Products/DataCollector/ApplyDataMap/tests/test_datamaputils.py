@@ -494,13 +494,31 @@ class Test_update_callable_attribute(TestCase):
         )
 
     def test_retry_for_manual_signature_unpacking(t):
-        '''some callable attributes use a manual singature unpacking pattern
+        '''some callable attributes use a manual signature unpacking pattern
+        ValueError: need more than 1 value to unpack
         '''
         value = ('a', 'b')
         container = Mock()
 
         def callable(*args):
             arg1, arg2 = args[0]
+            container.arg1 = arg1
+            container.arg2 = arg2
+
+        _update_callable_attribute(callable, value)
+
+        t.assertEqual(container.arg1, 'a')
+        t.assertEqual(container.arg2, 'b')
+
+    def test_retry_for_manual_signature_unpacking_nosplat(t):
+        '''A variant of signature unpacking, without *args
+        TypeError: callable() takes exactly 1 argument (2 given)
+        '''
+        value = ('a', 'b')
+        container = Mock()
+
+        def callable(args):
+            arg1, arg2 = args
             container.arg1 = arg1
             container.arg2 = arg2
 

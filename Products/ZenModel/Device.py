@@ -19,6 +19,7 @@ import shutil
 import time
 import socket
 import logging
+import itertools
 log = logging.getLogger("zen.Device")
 
 from urllib import quote as urlquote
