@@ -43,3 +43,14 @@ class DatamapUpdateEvent(object):
         self.dmd = dmd
         self.objectmap = objectmap
         self.target = target
+
+
+class IDatamapAppliedEvent(Interface):
+    datamap = Attribute('a completed datamap')
+
+
+class DatamapAppliedEvent(object):
+    implements(IDatamapAppliedEvent)
+
+    def __init__(self, datamap):
+        self.datamap = datamap
