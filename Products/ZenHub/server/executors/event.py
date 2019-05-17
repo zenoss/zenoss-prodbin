@@ -9,10 +9,18 @@
 
 from __future__ import absolute_import
 
+import time
+
 from twisted.internet import defer
 from zope.component import getUtility
+from zope.event import notify
 
 from Products.Zuul.interfaces import IDataRootFactory
+
+from ..events import (
+    ServiceCallReceived, ServiceCallStarted, ServiceCallCompleted,
+)
+from ..priority import servicecall_priority_map
 
 
 class SendEventExecutor(object):
@@ -54,9 +62,33 @@ class SendEventExecutor(object):
                 % (self.__zem.__class__.__name__, call.method),
             ))
 
+        # Build args for events
+        ctx = dict(call)
+        ctx.update({
+            "queue": self.__name,
+            "priority":
+                servicecall_priority_map.get((call.service, call.method)),
+        })
+
+        _notify_listeners(ctx, ServiceCallReceived)
+
         try:
+            ctx.update({"worker": "zenhub", "attempts": 1})
+            _notify_listeners(ctx, ServiceCallStarted)
+
             state = method(*call.args, **call.kwargs)
         except Exception as ex:
+            ctx.update({"attempts": 1, "error": ex})
+            _notify_listeners(ctx, ServiceCallCompleted)
             return defer.fail(ex)
         else:
+            ctx.update({"attempts": 1, "result": state})
+            _notify_listeners(ctx, ServiceCallCompleted)
             return defer.succeed(state)
+
+
+def _notify_listeners(ctx, event_class):
+    args = dict(ctx)
+    args["timestamp"] = time.time()
+    event = event_class(**args)
+    notify(event)

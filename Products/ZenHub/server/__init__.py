@@ -11,12 +11,15 @@ from __future__ import absolute_import
 
 from .auth import getCredentialCheckers
 from .broker import ZenPBClientFactory
+from .events import ReportWorkerStatus
 from .exceptions import UnknownServiceError
 from .interface import IHubServerConfig
 from .main import (
     make_server_factory, start_server, make_pools, make_service_manager,
 )
-from .metrics import StatsMonitor, ZenHubStatusReporter
+from .metrics import (
+    StatsMonitor, ZenHubStatusReporter, register_legacy_worklist_metrics,
+)
 from .service import ServiceRegistry, ServiceManager, ServiceLoader
 from .xmlrpc import XmlRpcManager
 from . import config
@@ -29,6 +32,8 @@ __all__ = (
     "make_pools",
     "make_server_factory",
     "make_service_manager",
+    "register_legacy_worklist_metrics",
+    "ReportWorkerStatus",
     "ServiceLoader",
     "ServiceManager",
     "ServiceRegistry",

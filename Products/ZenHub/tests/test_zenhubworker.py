@@ -21,6 +21,7 @@ from Products.ZenHub.zenhubworker import (
     ServiceReference,
     ZCmdBase,
     IDLE,
+    IMetricManager,
     ContinuousProfiler,
     PB_PORT,
     RemoteBadMonitor,
@@ -66,6 +67,7 @@ class ZenHubWorkerTest(TestCase):
         # Patch external dependencies
         needs_patching = [
             'clientFromString',
+            'getGlobalSiteManager',
             'loadPlugins',
             'reactor',
             'ContinuousProfiler',
@@ -150,6 +152,13 @@ class ZenHubWorkerTest(TestCase):
             },
         )
         t.assertEqual(t.zhw._metric_manager, t.MetricManager.return_value)
+        t.getGlobalSiteManager.assert_called_once_with()
+        gsm = t.getGlobalSiteManager.return_value
+        gsm.registerUtility.assert_called_once_with(
+            t.zhw._metric_manager,
+            IMetricManager,
+            name='zenhub_worker_metricmanager',
+        )
 
     @patch("{src}.signal".format(**PATH), autospec=True)
     def test_start(t, signal):

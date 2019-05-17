@@ -19,7 +19,6 @@ from .auth import HubRealm
 from .avatar import HubAvatar
 from .broker import ZenPBServerFactory
 from .interface import IHubServerConfig
-from .metrics import register_metrics_on_worklist
 from .priority import ModelingPaused, PrioritySelection, ServiceCallPriority
 from .router import ServiceCallRouter
 from .service import (
@@ -83,7 +82,7 @@ def make_server_factory(pools, manager, authenticators):
     return ZenPBServerFactory(hubportal)
 
 
-def make_service_manager(pools, monitor):
+def make_service_manager(pools):
     # Retrieve the server config object.
     config = getUtility(IHubServerConfig)
 
@@ -95,7 +94,6 @@ def make_service_manager(pools, monitor):
     executors = make_executors(
         config.executors,
         pools,
-        monitor,
         config.priorities["modeling"],
         config.modeling_pause_timeout,
     )
@@ -114,14 +112,13 @@ def make_pools():
     return {name: WorkerPool(name) for name in config.pools.keys()}
 
 
-def make_executors(executors, pools, monitor, modeling_priority, timeout):
+def make_executors(executors, pools, modeling_priority, timeout):
     global _executors
     _executors.update({
         "event": make_executor(executors.get("event"), "event"),
         "default": make_default_executor(
             executors.get("default"),
             pools["default"],
-            monitor,
             modeling_priority,
             timeout,
         ),
@@ -129,12 +126,11 @@ def make_executors(executors, pools, monitor, modeling_priority, timeout):
     return _executors
 
 
-def make_default_executor(spec, pool, monitor, modeling_priority, timeout):
+def make_default_executor(spec, pool, modeling_priority, timeout):
     modeling_paused = ModelingPaused(modeling_priority, timeout)
     selection = PrioritySelection(ServiceCallPriority, exclude=modeling_paused)
     worklist = ZenHubWorklist(selection)
-    register_metrics_on_worklist(worklist)
-    return make_executor(spec, "default", worklist, pool, monitor)
+    return make_executor(spec, "default", worklist, pool)
 
 
 def make_executor(spec, *args, **kw):

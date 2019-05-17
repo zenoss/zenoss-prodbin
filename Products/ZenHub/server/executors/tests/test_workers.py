@@ -17,7 +17,6 @@ from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from twisted.spread import pb
 
-from Products.ZenHub.server.metrics import StatsMonitor
 from Products.ZenHub.server.service import ServiceCall
 from Products.ZenHub.server.worklist import ZenHubWorklist
 from Products.ZenHub.server.workerpool import WorkerPool
@@ -51,11 +50,10 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         self.reactor = Mock(spec=reactor)
         self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
         self.workers = NonCallableMagicMock(spec=WorkerPool)
-        self.monitor = NonCallableMagicMock(spec=StatsMonitor)
 
         self.name = "default"
         self.executor = WorkerPoolExecutor(
-            self.name, self.worklist, self.workers, self.monitor,
+            self.name, self.worklist, self.workers,
         )
         self.logger = self.getLogger(self.executor)
 
@@ -73,7 +71,7 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         self.assertIsInstance(f.value, pb.Error)
         self.assertEqual("ZenHub not ready.", str(f.value))
         self._Running.assert_called_once_with(
-            self.name, self.worklist, self.workers, self.monitor, self.logger,
+            self.name, self.worklist, self.workers, self.logger,
         )
 
     def test_start(self):
@@ -110,10 +108,9 @@ class BaseRunning(object):
         self.logger = self.getLogger.return_value
         self.workers = NonCallableMagicMock(spec=WorkerPool)
         self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
-        self.monitor = NonCallableMagicMock(spec=StatsMonitor)
         self.name = "default"
         self.running = _Running(
-            self.name, self.worklist, self.workers, self.monitor, self.logger,
+            self.name, self.worklist, self.workers, self.logger,
         )
         self.reactor = Mock(spec=reactor)
 
@@ -730,7 +727,7 @@ class ServiceCallTaskTest(TestCase):
         expected_attrs = tuple(sorted((
             "call", "deferred", "desc", "attempt", "priority",
             "received_tm", "started_tm", "completed_tm",
-            "error", "retryable", "workerId",
+            "error", "retryable", "workerId", "event_data",
             "received", "started", "completed",
             "failure", "success",
         )))

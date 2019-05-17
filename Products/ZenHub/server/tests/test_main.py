@@ -110,16 +110,15 @@ class MakeServiceManagerTest(TestCase):
         _ServiceManager,
     ):
         pools = NonCallableMock()
-        monitor = NonCallableMock()
         config = _getUtility.return_value
 
-        result = make_service_manager(pools, monitor)
+        result = make_service_manager(pools)
 
         _getUtility.assert_called_once_with(IHubServerConfig)
         _ServiceRegistry.assert_called_once_with()
         _ServiceCallRouter.from_config.assert_called_once_with(config.routes)
         _make_executors.assert_called_once_with(
-            config.executors, pools, monitor,
+            config.executors, pools,
             config.priorities["modeling"],
             config.modeling_pause_timeout,
         )

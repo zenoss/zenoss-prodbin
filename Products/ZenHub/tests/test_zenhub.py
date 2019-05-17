@@ -31,6 +31,8 @@ PATH = {'src': 'Products.ZenHub.zenhub'}
 class ZenHubInitTest(TestCase):
     """Test zenhub.ZenHub.__init__ method."""
 
+    @patch('{src}.register_legacy_worklist_metrics'.format(**PATH))
+    @patch('{src}.provideUtility'.format(**PATH))
     @patch('{src}.InvalidationManager'.format(**PATH))
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
     @patch('{src}.StatsMonitor'.format(**PATH), autospec=True)
@@ -73,6 +75,8 @@ class ZenHubInitTest(TestCase):
         StatsMonitor,
         MetricManager,
         InvalidationManager,
+        provideUtility,
+        register_legacy_worklist_metrics,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -117,6 +121,7 @@ class ZenHubInitTest(TestCase):
         t.assertIs(zh._service_manager, make_service_manager.return_value)
         t.assertIs(zh._server_factory, make_server_factory.return_value)
         t.assertIs(zh._xmlrpc_manager, XmlRpcManager.return_value)
+        register_legacy_worklist_metrics.assert_called_once_with()
 
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
@@ -139,9 +144,7 @@ class ZenHubInitTest(TestCase):
             StatsMonitor.return_value,
         )
         make_pools.assert_called_once_with()
-        make_service_manager.assert_called_once_with(
-            make_pools.return_value, StatsMonitor.return_value,
-        )
+        make_service_manager.assert_called_once_with(make_pools.return_value)
         getCredentialCheckers.assert_called_once_with(
             zh.options.passwordfile,
         )
@@ -165,6 +168,7 @@ class ZenHubInitTest(TestCase):
         t.assertEqual(
             zh._invalidation_manager, InvalidationManager.return_value,
         )
+        provideUtility.assert_called_once_with(zh._metric_manager)
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
@@ -220,6 +224,8 @@ class ZenHubTest(TestCase):
             "load_config_override",
             "load_config",
             "IHubConfProvider",
+            "provideUtility",
+            "register_legacy_worklist_metrics",
         ]
         t.patchers = {}
         for target in needs_patching:
@@ -274,20 +280,18 @@ class ZenHubTest(TestCase):
         getUtility.assert_called_with(IEventPublisher)
         getUtility.return_value.close.assert_called_with()
 
-    @patch('{src}.reactor'.format(**PATH))
-    def test_sighandler_USR2(t, reactor):
+    @patch("{src}.ReportWorkerStatus".format(**PATH), autospec=True)
+    @patch("{src}.notify".format(**PATH), autospec=True)
+    def test_sighandler_USR2(t, _notify, _ReportWorkerStatus):
         ZenHub.sighandler_USR2(t.zh, signum='unused', frame='unused')
-        reactor.callLater.assert_called_once_with(0, t.zh._ZenHub__dumpStats)
 
-    def test___dumpStats(t):
-        ZenHub._ZenHub__dumpStats(t.zh)
-
-        t.zh._service_manager.getStatusReport.assert_called_once_with()
+        t.zh._status_reporter.getReport.assert_called_once_with()
         t.zh.log.info.assert_called_once_with(
             "\n%s\n",
             t.zh._status_reporter.getReport.return_value,
         )
-        t.zh._pools.reportWorkerStatus.assert_called_once_with()
+        _notify.assert_called_once_with(_ReportWorkerStatus.return_value)
+        _ReportWorkerStatus.assert_called_once_with()
 
     @patch('{src}.super'.format(**PATH))
     @patch('{src}.signal'.format(**PATH), autospec=True)

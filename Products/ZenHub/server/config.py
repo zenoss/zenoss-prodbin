@@ -23,8 +23,8 @@ class ModuleObjectConfig(object):
         self.__config = config
 
     @property
-    def metric_priority_map(self):
-        return self.__config.metric_priority_map
+    def legacy_metric_priority_map(self):
+        return self.__config.legacy_metric_priority_map
 
     @property
     def priorities(self):
@@ -114,7 +114,7 @@ priorities = {
 }
 
 
-metric_priority_map = {
+legacy_metric_priority_map = {
     "zenhub.eventWorkList": "EVENTS",
     "zenhub.admWorkList": "MODELING",
     "zenhub.otherWorkList": "OTHER",

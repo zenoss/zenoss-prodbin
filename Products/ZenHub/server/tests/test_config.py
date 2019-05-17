@@ -22,9 +22,10 @@ class ModuleObjectConfigTest(TestCase):
         self.source = Mock()
         self.config = ModuleObjectConfig(self.source)
 
-    def test_metric_priority_map(self):
+    def test_legacy_metric_priority_map(self):
         self.assertIs(
-            self.source.metric_priority_map, self.config.metric_priority_map,
+            self.source.legacy_metric_priority_map,
+            self.config.legacy_metric_priority_map,
         )
 
     def test_priorities(self):
