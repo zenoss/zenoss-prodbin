@@ -182,7 +182,9 @@ class ModelDebugView(StreamingView):
         uids = data['uids']
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
-            device.collectDevice(REQUEST=self.request, write=self.write, debug=True)
+            device.collectDevice(REQUEST=self.request, write=self.write,
+                                 debug=True)
+
 
 class GroupModelView(StreamingView):
     """
@@ -208,3 +210,53 @@ class GroupModelDebugView(StreamingView):
         for deviceOrganizer in imap(facade._getObject, uids):
             deviceOrganizer.collectDevice(REQUEST=self.request,
                                           write=self.write, debug=True)
+
+
+class MonitorView(StreamingView):
+    """
+    Accepts a list of uids to monitor.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for device in imap(facade._getObject, uids):
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write)
+
+
+class MonitorDebugView(StreamingView):
+    """
+    Accepts a list of uids to monitor.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for device in imap(facade._getObject, uids):
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write, debug=True)
+
+
+class GroupMonitorView(StreamingView):
+    """
+    Accepts a list of organizer uids to monitor devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.runDeviceMonitor(REQUEST=self.request,
+                                             write=self.write)
+
+
+class GroupMonitorDebugView(StreamingView):
+    """
+    Accepts a list of organizer uids to monitor devices they contain.
+    """
+    def stream(self):
+        data = unjson(self.request.get('data'))
+        uids = data['uids']
+        facade = getFacade('device', self.context)
+        for deviceOrganizer in imap(facade._getObject, uids):
+            deviceOrganizer.runDeviceMonitor(REQUEST=self.request,
+                                             write=self.write, debug=True)

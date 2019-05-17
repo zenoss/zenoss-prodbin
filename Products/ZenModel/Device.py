@@ -19,6 +19,7 @@ import shutil
 import time
 import socket
 import logging
+import itertools
 log = logging.getLogger("zen.Device")
 
 from urllib import quote as urlquote
@@ -1830,6 +1831,61 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                background, write, collectPlugins='',
                                debug=debug)
 
+        if REQUEST:
+            audit('UI.Device.Remodel', self)
+        if xmlrpc: return 0
+
+
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    def runDeviceMonitor(self, REQUEST=None, write=None, debug=False):
+        """
+        Run monitoring daemon agains the device ones
+        """
+        # Datasource source type and  collection daemon to run
+        data_collector = {
+            'Python': 'zenpython',
+            'SNMP': 'zenperfsnmp',
+            'COMMAND': 'zencommand'
+        }
+        # Daemons to run against the device
+        collection_daemons = []
+        xmlrpc = isXmlRpc(REQUEST)
+        perfConf = self.getPerformanceServer()
+        if perfConf is None:
+            msg = "Device %s in unknown state -- remove and remodel" % self.titleOrId()
+            if write is not None:
+                write(msg)
+            log.error("Unable to get collector info: %s", msg)
+            if xmlrpc: return 1
+            return
+
+        # Getting all the datasources from template signed to that
+        # device for determining which daemon to run
+        templates = self.getRRDTemplates()
+        datasources = itertools.chain.from_iterable([
+                          template.getRRDDataSources() for
+                          template in templates
+        ])
+        ds_src_types = set()
+        for datasource in datasources:
+            # BasicDataSource contain the info about the source type
+            if datasource.__class__.__name__ == 'BasicDataSource':
+                ds_src_types.add(datasource.sourcetype)
+            else:
+            # We need parent class sourcetype since datasources inherited
+            # from PythonDatasource do not have "Python" as a sourcetype
+                ds_src_types.add(datasource.__class__.__base__.sourcetype)
+        for source in data_collector:
+            if source in ds_src_types:
+                collection_daemons.append(data_collector[source])
+        # We support only core collection daemons
+        # zenpython; zenperfsnmp; zencommand
+        if not collection_daemons and write:
+            write('Modeling through UI only support COMMAND, '
+                'SNMP and ZenPython type of datasources')
+            if xmlrpc: return 1
+            return
+        perfConf.runDeviceMonitor(self, REQUEST, write, collection_daemons, debug=debug)
         if REQUEST:
             audit('UI.Device.Remodel', self)
         if xmlrpc: return 0
