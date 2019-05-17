@@ -7,7 +7,7 @@
 #
 ##############################################################################
 
-# from contextlib import contextmanager
+from __future__ import absolute_import
 
 import time
 
@@ -15,73 +15,280 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 from metrology import Metrology
 from metrology.registry import registry
-from metrology.instruments import Gauge
+from zope.component import adapter, getUtility, provideHandler
 
-from Products.ZenUtils.Logger import getLogger
-
+from ..metricmanager import IMetricManager
+from .events import (
+    ServiceCallReceived,
+    ServiceCallStarted,
+    ServiceCallCompleted,
+)
+from .interface import IHubServerConfig
 from .priority import ServiceCallPriority
+from .utils import getLogger
+
+log = getLogger("metrics")
+
+_legacy_metric_worklist_total = "zenhub.workList"
+
+# Dict[Union[str, ServiceCallPriority], Metrology.counter]
+_legacy_worklist_counters = {}
 
 
-class PriorityListLengthGauge(Gauge):
-    """Metrology gauge for priority queues."""
+def register_legacy_worklist_metrics():
+    """Create the Metrology counters for tracking worklist statistics."""
+    config = getUtility(IHubServerConfig)
 
-    def __init__(self, worklist, priority):
-        self.__worklist = worklist
-        self.__priority = priority
+    for metricName, priorityName in config.legacy_metric_priority_map.items():
+        counter = registry.metrics.get(metricName)
+        if not counter:
+            counter = Metrology.counter(metricName)
+        priority = ServiceCallPriority[priorityName]
+        _legacy_worklist_counters[priority] = counter
 
-    @property
-    def value(self):
-        return self.__worklist.length_of(self.__priority)
-
-
-class WorklistLengthGauge(Gauge):
-    """Metrology gauge over all the queues."""
-
-    def __init__(self, worklist):
-        self.__worklist = worklist
-
-    @property
-    def value(self):
-        return len(self.__worklist)
+    counter = registry.metrics.get(_legacy_metric_worklist_total)
+    if not counter:
+        counter = Metrology.counter(_legacy_metric_worklist_total)
+    _legacy_worklist_counters["total"] = counter
 
 
-_gauge_priority_map = {
-    "zenhub.eventWorkList": ServiceCallPriority.EVENTS,
-    "zenhub.admWorkList": ServiceCallPriority.MODELING,
-    "zenhub.otherWorkList": ServiceCallPriority.OTHER,
-    "zenhub.singleADMWorkList": ServiceCallPriority.SINGLE_MODELING,
-}
-_metricname_worklist = "zenhub.workList"
+@adapter(ServiceCallReceived)
+def incrementLegacyMetricCounters(event):
+    """Update the legacy metric counters."""
+    _legacy_worklist_counters[event.priority].increment()
+    _legacy_worklist_counters["total"].increment()
 
 
-def register_metrics_on_worklist(worklist):
-    metricNames = {x[0] for x in registry}
+@adapter(ServiceCallCompleted)
+def decrementLegacyMetricCounters(event):
+    """Update the legacy metric counters."""
+    # When 'retry' is not None, the service call has not left the worklist.
+    if event.retry is not None:
+        return
+    for key in (event.priority, "total"):
+        instrument = _legacy_worklist_counters[key]
+        instrument.decrement()
+        # If the count falls below zero, there's a bug and should be logged.
+        if instrument.count < 0:
+            # The name of the metric must be looked up since the
+            # Metrology instrument doesn't know its own name.
+            metric = next((
+                _name
+                for _name, _i in dict(registry).items()
+                if _i is instrument
+            ), None)
+            if metric:
+                log.warn(
+                    "Metric is negative metric=%s value=%s",
+                    metric, instrument.count,
+                )
 
-    for metricName, priority in _gauge_priority_map.iteritems():
-        if metricName not in metricNames:
-            gauge = PriorityListLengthGauge(worklist, priority)
-            Metrology.gauge(metricName, gauge)
 
-    # Original metric name
-    if _metricname_worklist not in metricNames:
-        gauge = WorklistLengthGauge(worklist)
-        Metrology.gauge(_metricname_worklist, gauge)
+# Metrics
+# -------
+# zenhub.servicecall.count  -- Count of current service calls
+#   + queue
+#   + priority
+#   + method
+#   + service
+# zenhub.servicecall.wip  -- Count of service calls currently executing
+#   + queue
+#   + priority
+#   + method
+#   + service
+# zenhub.servicecall.leadtime  -- Amount of time call existed
+#   + queue
+#   + priority
+#   + method
+#   + service
+# zenhub.servicecall.cycletime  -- How long call took to execute
+#   + queue
+#   + priority
+#   + method
+#   + service
+#   + status  ["success", "failure", "retry"]
 
 
-def _get_worklist_metrics():
-    instruments = dict(registry)
+def _toMillis(seconds):
+    return int(seconds * 1000)
 
-    gauges = {
-        priority: instruments[metricName].value
-        for metricName, priority in _gauge_priority_map.items()
-        if metricName in instruments
+
+class _CallStats(object):
+
+    __slots__ = ("received", "started")
+
+    def __init__(self):
+        self.received = 0.0
+        self.started = 0.0
+
+
+# Track the arrival and start times for individual service calls
+# Key: The service call's unique ID
+# Value: _CallStats instance
+# Dict[str, _CallStats]
+_task_stats = defaultdict(_CallStats)
+
+# Count of current service calls
+# Key: _CountKey instance
+# Value: int
+# Dict[_CountKey, int]
+_servicecall_count = defaultdict(int)
+
+# Count of service calls currently executing
+# Key: _CountKey instance
+# Value: int
+# Dict[_CountKey, int]
+_servicecall_wip = defaultdict(int)
+
+
+class _CountKey(object):
+    """Uniquely identify a service, method, priority, queue combination."""
+
+    __slots__ = ("_hash",)
+
+    def __init__(self, event):
+        self._hash = hash((
+            event.service, event.method, event.priority, event.queue,
+        ))
+
+    def __hash__(self):
+        return self._hash
+
+    def __eq__(self, other):
+        if not isinstance(other, _CountKey):
+            return NotImplemented
+        return self._hash == other._hash
+
+
+def _make_tags(event):
+    return {
+        "queue": event.queue,
+        "priority": event.priority.name,
+        "service": event.service,
+        "method": event.method,
     }
-    if _metricname_worklist in instruments:
-        gauges["total"] = instruments[_metricname_worklist].value
-    return gauges
+
+
+def _get_cycle_status(event):
+    if event.error:
+        return "failure"
+    elif event.retry:
+        return "retry"
+    else:
+        return "success"
+
+
+@adapter(ServiceCallReceived)
+def handleServiceCallReceived(event):
+    """Update statistics and metrics using the ServiceCallReceived event."""
+    # Record when the task was received
+    _task_stats[event.id].received = event.timestamp
+
+    # Increment the count
+    writer = getUtility(IMetricManager).metric_writer
+    key = _CountKey(event)
+    _servicecall_count[key] += 1
+    writer.write_metric(
+        "zenhub.servicecall.count",
+        _servicecall_count[key],
+        _toMillis(event.timestamp),
+        _make_tags(event),
+    )
+
+
+@adapter(ServiceCallStarted)
+def handleServiceCallStarted(event):
+    """Update statistics and metrics using ServiceCallStarted events."""
+    # Record when the task was started
+    _task_stats[event.id].started = event.timestamp
+
+    # Update the work-in-progress (wip) metric;
+    # Work-in-progress is the count of service calls currently executing.
+    writer = getUtility(IMetricManager).metric_writer
+    key = _CountKey(event)
+    _servicecall_wip[key] += 1
+    writer.write_metric(
+        "zenhub.servicecall.wip",
+        _servicecall_wip[key],
+        _toMillis(event.timestamp),
+        _make_tags(event),
+    )
+
+
+@adapter(ServiceCallCompleted)
+def handleServiceCallCompleted(event):
+    """Update statistics and metrics using the ServiceCallReceived event."""
+    writer = getUtility(IMetricManager).metric_writer
+    milliseconds = _toMillis(event.timestamp)
+    key = _CountKey(event)
+    tags = _make_tags(event)
+
+    # Update the cycletime metric;
+    # Cycletime is the duration of a servicecall.
+    started_tm = _task_stats[event.id].started
+    duration = _toMillis(event.timestamp - started_tm)
+    cycletags = dict(tags)
+    cycletags["status"] = _get_cycle_status(event)
+    writer.write_metric(
+        "zenhub.servicecall.cycletime",
+        duration,
+        milliseconds,
+        cycletags,
+    )
+
+    # Update the work-in-progress (wip) metric;
+    # Work-in-progress is the count of service calls currently executing.
+    _servicecall_wip[key] -= 1
+    if _servicecall_wip[key] < 0:
+        log.warn(
+            "Invalid value "
+            "value=%s metric=%s service=%s method=%s priority=%s queue=%s",
+            _servicecall_wip[key], "zenhub.servicecall.wip",
+            event.service, event.method, event.priority.name, event.queue,
+        )
+    writer.write_metric(
+        "zenhub.servicecall.wip",
+        _servicecall_wip[key],
+        milliseconds,
+        tags,
+    )
+
+    # When event.retry is None, the service call is not re-executed
+    # and the leadtime and count metrics can be updated.
+    if event.retry is None:
+        # Decrement the count because the call has left the queue.
+        _servicecall_count[key] -= 1
+        if _servicecall_count[key] < 0:
+            log.warn(
+                "Invalid value "
+                "value=%s metric=%s service=%s method=%s priority=%s queue=%s",
+                _servicecall_count[key], "zenhub.servicecall.count",
+                event.service, event.method, event.priority.name, event.queue,
+            )
+        writer.write_metric(
+            "zenhub.servicecall.count",
+            _servicecall_count[key],
+            milliseconds,
+            tags,
+        )
+        # Update the leadtime metric;
+        # Leadtime is the total time the call existed, including the time
+        # it spent waiting to be executed and the time spent executing the
+        # call (or multiple executions if the call was retried).
+        received_tm = _task_stats[event.id].received
+        leadtime = _toMillis(event.timestamp - received_tm)
+        writer.write_metric(
+            "zenhub.servicecall.leadtime",
+            leadtime,
+            milliseconds,
+            tags,
+        )
+        # Remove the completed call from the task_* maps.
+        del _task_stats[event.id]
 
 
 def make_status_reporter():
+    """Return an instance of ZenHubStatusReporter."""
     monitor = StatsMonitor()
     return ZenHubStatusReporter(monitor)
 
@@ -107,17 +314,20 @@ class ZenHubStatusReporter(object):
         """Return a report on the services."""
         now = time.time()
 
-        worklist_metrics = _get_worklist_metrics()
         lines = ["Worklist Stats:"]
         lines.extend(
-            "   {:<22}: {}".format(priority, worklist_metrics[key])
-            for priority, key in self._heading_priority_seq
+            "   {:<22}: {}".format(
+                priority, _legacy_worklist_counters[key].count,
+            )
+            for priority, key in self.__heading_priority_seq
         )
         lines.extend([
-            "   {:<22}: {}".format("Total", worklist_metrics["total"]),
+            "   {:<22}: {}".format(
+                "Total", _legacy_worklist_counters["total"].count,
+            ),
             "",
             "Service Call Statistics:",
-            "   {:<32} {:>8} {:>12}  {}".format(
+            "   {:<32} {:>8} {:>12} {} ".format(
                 "method", "count",
                 "running_total", "last_called_time",
             ),
@@ -175,7 +385,11 @@ class StatsMonitor(object):
         self.__counters = Counter()
         self.__worker_stats = defaultdict(_WorkerStats)
         self.__task_stats = defaultdict(_TaskStats)
-        self.__log = getLogger("zenhub", self)
+        provideHandler(self._updateWorkerItems)
+        provideHandler(self._incrementWorkListCount)
+        provideHandler(self._decrementWorkListCount)
+        provideHandler(self._handleServiceCallStarted)
+        provideHandler(self._handleServiceCallCompleted)
 
     @property
     def counters(self):
@@ -197,44 +411,59 @@ class StatsMonitor(object):
         rrdstats.counter('totalCallTime', totalTime)
 
         instruments = dict(registry)
-        if _metricname_worklist in instruments:
+        if _legacy_metric_worklist_total in instruments:
             rrdstats.gauge(
                 'workListLength',
-                instruments[_metricname_worklist].value,
+                instruments[_legacy_metric_worklist_total].value,
             )
 
         for name, value in self.__counters.items():
             rrdstats.counter(name, value)
 
-    def handleReceived(self):
+    @adapter(ServiceCallReceived)
+    def _updateWorkerItems(self, event):
         self.__counters["workerItems"] += 1
 
-    def handleStarted(self, workerId, call):
-        """Update stats from the call."""
-        now = time.time()
-        ws = self.__worker_stats[workerId]
-        ts = self.__task_stats[call.method]
+    @adapter(ServiceCallReceived)
+    def _incrementWorkListCount(self, event):
+        self.__counters[event.queue] += 1
+
+    @adapter(ServiceCallCompleted)
+    def _decrementWorkListCount(self, event):
+        if event.retry is None:
+            self.__counters[event.queue] -= 1
+            if self.__counters[event.queue] < 0:
+                log.warn(
+                    "Worklist counter is negative count=%s worklist=%s",
+                    self.__counters[event.queue], event.queue,
+                )
+
+    @adapter(ServiceCallStarted)
+    def _handleServiceCallStarted(self, event):
+        """Update stats from the ServiceCallStarted event."""
+        ws = self.__worker_stats[event.worker]
+        ts = self.__task_stats[event.method]
 
         ws.status = "Busy"
-        if ws.last_task_completed:
-            ws.idle += now - ws.last_task.completed
+        if ws.last_task:
+            ws.idle += event.timestamp - ws.last_task.completed
 
         ws.current_task = _TaskInfo()
-        ws.current_task.description = "%s.%s" % (call.service, call.method)
-        ws.current_task.started = now
+        ws.current_task.description = "%s.%s" % (event.service, event.method)
+        ws.current_task.started = event.timestamp
         ts.count += 1
 
-    def handleCompleted(self, workerId, call):
+    @adapter(ServiceCallCompleted)
+    def _handleServiceCallCompleted(self, event):
         """Update stats from the ServiceCallCompleted event."""
-        now = time.time()
-        ws = self.__worker_stats[workerId]
-        ts = self.__task_stats[call.method]
+        ws = self.__worker_stats[event.worker]
+        ts = self.__task_stats[event.method]
 
-        ts.last_completed = now
-        ts.running_total += now - ws.current_task.started
+        ts.last_completed = event.timestamp
+        ts.running_total += event.timestamp - ws.current_task.started
 
         ws.last_task = ws.current_task
-        ws.last_task.completed = now
+        ws.last_task.completed = event.timestamp
         ws.current_task = None
         ws.status = "Idle"
 

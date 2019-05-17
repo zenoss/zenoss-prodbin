@@ -42,9 +42,6 @@ class ZenHubWorklist(object):
     def __len__(self):
         return sum(len(v) for v in self.__queues.itervalues())
 
-    def length_of(self, priority):
-        return len(self.__queues[priority])
-
     def pop(self):
         """Return the next item by priority.
 

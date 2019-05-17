@@ -14,9 +14,11 @@ import logging
 
 from twisted.internet import defer
 from twisted.spread import pb
+from zope.component import adapter, provideHandler
 
 from Products.ZenHub.PBDaemon import RemoteException
 
+from .events import ReportWorkerStatus
 from .utils import getLogger
 
 
@@ -37,6 +39,8 @@ class WorkerPool(
         self.__services = {}  # Service refs by worker
         self.__name = name
         self.__log = getLogger(self)
+        # Declare a handler for ReportWorkerStatus events
+        provideHandler(self.handleReportStatus)
 
     @property
     def name(self):
@@ -106,6 +110,25 @@ class WorkerPool(
             for wId, worker in self.__workers.iteritems()
             if worker is not None
         )
+
+    @adapter(ReportWorkerStatus)
+    def handleReportStatus(self, event):
+        """Instructs workers to report their status.
+
+        Returns a DeferredList that fires when all the workers have
+        completed reporting their status.
+        """
+        deferreds = []
+        for worker in self.__workers.values():
+            dfr = worker.callRemote("reportStatus")
+            dfr.addErrback(
+                lambda ex: self.__log.error(
+                    "Failed to report status (%s): %s",
+                    worker.workerId, ex,
+                ),
+            )
+            deferreds.append(dfr)
+        return defer.DeferredList(deferreds)
 
     @property
     def available(self):

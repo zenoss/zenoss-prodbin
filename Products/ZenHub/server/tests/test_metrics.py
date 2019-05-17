@@ -9,290 +9,454 @@
 
 from __future__ import absolute_import
 
-from unittest import TestCase, skip
-from mock import Mock, patch, sentinel
+from collections import defaultdict
+from unittest import TestCase
+from mock import call, Mock, patch, sentinel
 
-# from ..metrics import (
-#     register_metrics_on_worklist,
-#     PriorityListLengthGauge, WorklistLengthGauge,
-# )
+from ..config import legacy_metric_priority_map
+from ..metrics import (
+    _CallStats,
+    _CountKey,
+    _legacy_metric_worklist_total,
+    decrementLegacyMetricCounters,
+    handleServiceCallCompleted,
+    handleServiceCallReceived,
+    handleServiceCallStarted,
+    IHubServerConfig,
+    IMetricManager,
+    incrementLegacyMetricCounters,
+    register_legacy_worklist_metrics,
+    ServiceCallPriority,
+    ServiceCallCompleted,
+    ServiceCallReceived,
+    ServiceCallStarted,
+)
 
-PATH = {"src": "Products.ZenHub.server"}
-
-
-class JunkTest(TestCase):
-    """Junk."""
-
-    @skip("Not testing string formatting")
-    @patch("{src}.StatsMonitor".format(**PATH), autospec=True)
-    @patch("{src}.get_worklist_metrics".format(**PATH), autospec=True)
-    def test_getStatusReport(self, getWorklistMetrics, statsMonitor):
-        gauges = {
-            ZenHubPriority.EVENTS: 3404,
-            ZenHubPriority.OTHER: 276,
-            ZenHubPriority.MODELING: 169,
-            ZenHubPriority.SINGLE_MODELING: 23,
-        }
-        now = time.time() - (1350)
-        workTracker = {
-            0: WorkerStats(
-                "Busy", "localhost:EventServer:sendEvent", now, 34.8,
-            ),
-            1: WorkerStats(
-                "Idle", "localhost:SomeService:someMethod", now, 4054.3,
-            ),
-            2: None,
-        }
-        execTimer = {
-            "sendEvent": Mock(
-                JobStats,
-                count=2953, idle_total=3422.3, running_total=35.12,
-                last_called_time=now,
-            ),
-            "sendEvents": Mock(
-                JobStats,
-                count=451, idle_total=3632.5, running_total=20.5,
-                last_called_time=now,
-            ),
-            "applyDataMaps": Mock(
-                JobStats,
-                count=169, idle_total=620.83, running_total=3297.248,
-                last_called_time=now,
-            ),
-            "singleApplyDataMaps": Mock(
-                JobStats,
-                count=23, idle_total=1237.345, running_total=936.85,
-                last_called_time=now,
-            ),
-            "someMethod": Mock(
-                JobStats,
-                count=276, idle_total=7384.3, running_total=83.3,
-                last_called_time=now,
-            ),
-        }
-        getWorklistMetrics.return_value = gauges
-        stats = statsMonitor.return_value
-        stats.workers = workTracker
-        stats.jobs = execTimer
-        manager = HubServiceManager(
-            modeling_pause_timeout=self.modeling_pause_timeout,
-            passwordfile=self.passwordfile,
-            pbport=self.pbport,
-            xmlrpcport=self.xmlrpcport,
-        )
-        print manager.getStatusReport()
+PATH = {"src": "Products.ZenHub.server.metrics"}
 
 
-# class StatsMonitorTest(TestCase):  # noqa: D101
-#
-#     def setUp(self):
-#         self.getLogger_patcher = patch(
-#             "{src}.getLogger".format(**PATH), autospec=True,
-#         )
-#         self.getLogger = self.getLogger_patcher.start()
-#         self.addCleanup(self.getLogger_patcher.stop)
-#         self.stats = StatsMonitor()
-#         self.logger = self.getLogger("zenhub", WorkerPoolExecutor)
-#
-#     def test_workers(self):
-#         self.assertIsInstance(self.stats.workers, dict)
-#         self.assertEqual(len(self.stats.workers), 0)
-#
-#     def test_jobs(self):
-#         self.assertIsInstance(self.stats.jobs, dict)
-#         self.assertEqual(len(self.stats.jobs), 0)
-#
-#     @patch("{src}.time".format(**PATH))
-#     def test_monitor_first_time(self, time):
-#         call = ServiceCall("service", "localhost", "method", [], {})
-#         task = ServiceCallTask("queue", call)
-#         worker = Mock(spec=WorkerRef, workerId=1)
-#
-#         start = 100
-#         finish = 200
-#         time.time.side_effect = (start, finish)
-#
-#         with self.stats.monitor(worker, task) as stats:
-#             self.assertIs(stats, self.stats)
-#
-#             self.assertEqual(len(stats.workers), 1)
-#             self.assertEqual(len(stats.jobs), 1)
-#
-#             ws = stats.workers[worker.workerId]
-#             self.assertEqual(ws.status, "Busy")
-#             self.assertEqual(ws.previdle, 0)
-#             self.assertGreater(len(ws.description), 0)
-#             self.assertEqual(ws.lastupdate, start)
-#
-#             js = stats.jobs[call.method]
-#             self.assertEqual(js.count, 1)
-#             self.assertEqual(js.last_called_time, start)
-#             self.assertEqual(js.idle_total, 0.0)
-#             self.assertEqual(js.running_total, 0.0)
-#
-#         self.assertEqual(len(self.stats.workers), 1)
-#         self.assertEqual(len(self.stats.jobs), 1)
-#
-#         ws = self.stats.workers[worker.workerId]
-#         self.assertEqual(ws.status, "Idle")
-#         self.assertEqual(ws.previdle, 0)
-#         self.assertGreater(len(ws.description), 0)
-#         self.assertEqual(ws.lastupdate, finish)
-#
-#         js = self.stats.jobs[call.method]
-#         self.assertEqual(js.count, 1)
-#         self.assertEqual(js.last_called_time, finish)
-#         self.assertEqual(js.idle_total, 0.0)
-#         self.assertEqual(js.running_total, finish - start)
-#
-#     @patch("{src}.time".format(**PATH))
-#     def test_monitor_some_time_later(self, time):
-#         call = ServiceCall("service", "localhost", "method", [], {})
-#         task = ServiceCallTask("queue", call)
-#         worker = Mock(spec=WorkerRef, workerId=1)
-#
-#         ws = WorkerStats()
-#         ws.status = "Idle"
-#         ws.description = "ignored"
-#         ws.previdle = 0
-#         ws.lastupdate = 200.0
-#         self.stats.workers[worker.workerId] = ws
-#
-#         js = JobStats()
-#         js.count = 3
-#         js.last_called_time = 400.0
-#         js.idle_total = 150.0
-#         js.running_total = 300.0
-#         self.stats.jobs[call.method] = js
-#
-#         start = 1000
-#         finish = 1100
-#         time.time.side_effect = (start, finish)
-#
-#         with self.stats.monitor(worker, task) as stats:
-#             self.assertIs(stats, self.stats)
-#             self.assertEqual(len(stats.workers), 1)
-#             self.assertEqual(len(stats.jobs), 1)
-#
-#             ws = stats.workers[worker.workerId]
-#             self.assertEqual(ws.status, "Busy")
-#             self.assertEqual(ws.previdle, 800.0)
-#             self.assertGreater(len(ws.description), 0)
-#             self.assertEqual(ws.lastupdate, start)
-#
-#             js = stats.jobs[call.method]
-#             self.assertEqual(js.count, 4)
-#             self.assertEqual(js.last_called_time, start)
-#             self.assertEqual(js.idle_total, 750.0)
-#             self.assertEqual(js.running_total, 300.0)
-#
-#         self.assertEqual(len(self.stats.workers), 1)
-#         self.assertEqual(len(self.stats.jobs), 1)
-#
-#         ws = self.stats.workers[worker.workerId]
-#         self.assertEqual(ws.status, "Idle")
-#         self.assertEqual(ws.previdle, 800.0)
-#         self.assertGreater(len(ws.description) > 0)
-#         self.assertEqual(ws.lastupdate, finish)
-#
-#         js = self.stats.jobs[call.method]
-#         self.assertEqual(js.count, 4)
-#         self.assertEqual(js.last_called_time, finish)
-#         self.assertEqual(js.idle_total, 750.0)
-#         self.assertEqual(js.running_total, 300.0 + finish - start)
+class LegacyMetricsTest(TestCase):
+    """Test for legacy metrics."""
 
-
-class MetrologySupportTest(TestCase):
-    """Test Metrology support."""
-
-    @skip("needs priority fix")
-    def test_has_required_metric_mapping(self):
-        expected_mapping = {
-            "zenhub.eventWorkList": ZenHubPriority.EVENTS,
-            "zenhub.admWorkList": ZenHubPriority.MODELING,
-            "zenhub.otherWorkList": ZenHubPriority.OTHER,
-            "zenhub.singleADMWorkList": ZenHubPriority.SINGLE_MODELING,
-        }
-        for metric, actual in _gauge_priority_map.iteritems():
-            expected = expected_mapping.get(metric)
-            self.assertEqual(
-                actual, expected,
-                "Metric '%s' should map to %s, not %s" % (
-                    metric, expected.name, actual.name
-                )
-            )
-
-    @skip("needs priority fix")
-    @patch("{src}.registry".format(**PATH), {})
+    @patch("{src}.registry".format(**PATH), autospec=True)
     @patch("{src}.Metrology".format(**PATH), autospec=True)
-    @patch("{src}.PriorityListLengthGauge".format(**PATH))
-    @patch("{src}.WorklistLengthGauge".format(**PATH))
-    def test_metrology_registration(self, wgauge, pgauge, metro):
+    @patch("{src}.getUtility".format(**PATH), autospec=True)
+    @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    def test_metrology_registration(
+        self, _counters, _getUtility, _Metrology, _registry,
+    ):
+        config = Mock()
+        config.legacy_metric_priority_map = legacy_metric_priority_map
+        _getUtility.return_value = config
+        counter = _Metrology.counter
+        metrics = {}
+        _registry.metrics = metrics
 
-        eventGauge = sentinel.eventGauge
-        admGauge = sentinel.admGauge
-        singleAdmGauge = sentinel.singleAdmGauge
-        otherGauge = sentinel.otherGauge
-        totalGauge = wgauge.return_value
+        eventCounter = sentinel.eventCounter
+        admCounter = sentinel.admCounter
+        singleAdmCounter = sentinel.singleAdmCounter
+        otherCounter = sentinel.otherCounter
+        totalCounter = sentinel.totalCounter
 
-        def map_gauge_to_inputs(worklist, priority):
+        def map_gauge_to_inputs(key):
             return {
-                ZenHubPriority.EVENTS: eventGauge,
-                ZenHubPriority.MODELING: admGauge,
-                ZenHubPriority.OTHER: otherGauge,
-                ZenHubPriority.SINGLE_MODELING: singleAdmGauge,
-            }[priority]
+                "zenhub.eventWorkList": eventCounter,
+                "zenhub.admWorkList": admCounter,
+                "zenhub.otherWorkList": otherCounter,
+                "zenhub.singleADMWorkList": singleAdmCounter,
+                _legacy_metric_worklist_total: totalCounter,
+            }[key]
 
-        pgauge.side_effect = map_gauge_to_inputs
-        wgauge.return_value = totalGauge
+        counter.side_effect = map_gauge_to_inputs
 
-        worklist = ZenHubWorklist()
-        register_metrics_on_worklist(worklist)
-
-        expected_pgauge_calls = [
-            call(worklist, ZenHubPriority.EVENTS),
-            call(worklist, ZenHubPriority.MODELING),
-            call(worklist, ZenHubPriority.SINGLE_MODELING),
-            call(worklist, ZenHubPriority.OTHER),
+        expected_counter_calls = [
+            call("zenhub.eventWorkList"),
+            call("zenhub.admWorkList"),
+            call("zenhub.otherWorkList"),
+            call("zenhub.singleADMWorkList"),
+            call(_legacy_metric_worklist_total),
         ]
-        self.assertEqual(len(expected_pgauge_calls), len(pgauge.mock_calls))
-        pgauge.assert_has_calls(expected_pgauge_calls, any_order=True)
-        wgauge.assert_called_once_with(worklist)
 
-        metro_gauge_calls = [
-            call("zenhub.eventWorkList", eventGauge),
-            call("zenhub.admWorkList", admGauge),
-            call("zenhub.singleADMWorkList", singleAdmGauge),
-            call("zenhub.otherWorkList", otherGauge),
-            call("zenhub.workList", totalGauge),
-        ]
-        self.assertEqual(len(metro_gauge_calls), len(metro.gauge.mock_calls))
-        metro.gauge.assert_has_calls(metro_gauge_calls, any_order=True)
+        expected_counter_contents = {
+            ServiceCallPriority.EVENTS: eventCounter,
+            ServiceCallPriority.MODELING: admCounter,
+            ServiceCallPriority.OTHER: otherCounter,
+            ServiceCallPriority.SINGLE_MODELING: singleAdmCounter,
+            "total": totalCounter,
+        }
 
-    @skip("needs priority fix")
-    def test_gauges(self):
-        worklist = ZenHubWorklist()
+        register_legacy_worklist_metrics()
 
-        pg1 = PriorityListLengthGauge(worklist, ZenHubPriority.EVENTS)
-        pg2 = PriorityListLengthGauge(worklist, ZenHubPriority.MODELING)
-        pg3 = PriorityListLengthGauge(worklist, ZenHubPriority.OTHER)
-        wg = WorklistLengthGauge(worklist)
+        _getUtility.assert_called_once_with(IHubServerConfig)
+        self.assertEqual(len(expected_counter_calls), len(counter.mock_calls))
+        counter.assert_has_calls(expected_counter_calls, any_order=True)
 
-        eventJob1 = MockJob("sendEvent")
-        eventJob2 = MockJob("sendEvent")
-        eventJob3 = MockJob("sendEvent")
-        admJob = MockJob("applyDataMaps")
-        otherJob1 = MockJob("doThis")
-        otherJob2 = MockJob("doThat")
+        self.assertEqual(len(expected_counter_calls), len(_counters))
+        self.assertDictEqual(expected_counter_contents, _counters)
 
-        worklist.push(eventJob1)
-        worklist.push(eventJob2)
-        worklist.push(eventJob3)
-        worklist.push(admJob)
-        worklist.push(otherJob1)
-        worklist.push(otherJob2)
+    @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    def test_incrementCounters(self, _counters):
+        event = Mock(spec=["priority"])
+        pcounter = Mock(spec=["increment"])
+        tcounter = Mock(spec=["increment"])
+        _counters[event.priority] = pcounter
+        _counters["total"] = tcounter
 
-        self.assertEqual(pg1.value, 3)
-        self.assertEqual(pg2.value, 1)
-        self.assertEqual(pg3.value, 2)
-        self.assertEqual(wg.value, 6)
+        incrementLegacyMetricCounters(event)
+
+        pcounter.increment.assert_called_once_with()
+        tcounter.increment.assert_called_once_with()
+        self.assertListEqual(
+            sorted([event.priority, "total"]),
+            sorted(_counters.keys()),
+        )
+
+    @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    def test_skip_decrement(self, _counters):
+        event = Mock(spec=["retry"])
+        event.retry = object()
+
+        decrementLegacyMetricCounters(event)
+
+        self.assertDictEqual({}, _counters)
+
+    @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    def test_decrementCounters(self, _counters):
+        event = Mock(spec=["priority", "retry"])
+        event.retry = None
+        pcounter = Mock(spec=["decrement", "count"])
+        tcounter = Mock(spec=["decrement", "count"])
+        pcounter.count = 0
+        tcounter.count = 0
+        _counters[event.priority] = pcounter
+        _counters["total"] = tcounter
+
+        decrementLegacyMetricCounters(event)
+
+        pcounter.decrement.assert_called_once_with()
+        tcounter.decrement.assert_called_once_with()
+        self.assertListEqual(
+            sorted([event.priority, "total"]),
+            sorted(_counters.keys()),
+        )
+
+
+class ServiceCallMetricsTest(TestCase):
+    """Test the ServiceCall metrics handling."""
+
+    def setUp(self):
+        _patchables = (
+            ("_task_stats", defaultdict(_CallStats)),
+            ("_servicecall_count", defaultdict(int)),
+            ("_servicecall_wip", defaultdict(int)),
+            ("getUtility", Mock(spec=[])),
+        )
+        for name, value in _patchables:
+            patcher = patch(
+                "{src}.{name}".format(src=PATH["src"], name=name),
+                new=value,
+            )
+            setattr(self, name, patcher.start())
+            self.addCleanup(patcher.stop)
+
+    def test_handleServiceCallReceived(self):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallReceived)
+        event.timestamp = 100.0
+        key = _CountKey(event)
+
+        handleServiceCallReceived(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(event.timestamp, self._task_stats[event.id].received)
+        self.assertEqual(0.0, self._task_stats[event.id].started)
+        self.assertEqual(1, len(self._servicecall_count))
+        self.assertEqual(1, self._servicecall_count[key])
+        self.assertEqual(0, len(self._servicecall_wip))
+        writer.write_metric.assert_called_once_with(
+            "zenhub.servicecall.count",
+            1,
+            event.timestamp * 1000,
+            {
+                "queue": event.queue,
+                "priority": event.priority.name,
+                "service": event.service,
+                "method": event.method,
+            },
+        )
+
+    def test_handleServiceCallStarted(self):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallStarted)
+        event.timestamp = 100.0
+        key = _CountKey(event)
+
+        handleServiceCallStarted(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(0.0, self._task_stats[event.id].received)
+        self.assertEqual(event.timestamp, self._task_stats[event.id].started)
+        self.assertEqual(0, len(self._servicecall_count))
+        self.assertEqual(1, len(self._servicecall_wip))
+        self.assertEqual(1, self._servicecall_wip[key])
+        writer.write_metric.assert_called_once_with(
+            "zenhub.servicecall.wip",
+            1,
+            event.timestamp * 1000,
+            {
+                "queue": event.queue,
+                "priority": event.priority.name,
+                "service": event.service,
+                "method": event.method,
+            },
+        )
+
+    def test_handleServiceCallCompleted_success(self):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallCompleted)
+        event.timestamp = 160.0
+        event.error = None
+        event.retry = None
+        key = _CountKey(event)
+        self._task_stats[event.id].received = 100.0
+        self._task_stats[event.id].started = 150.0
+        self._servicecall_count[key] += 1
+        self._servicecall_wip[key] += 1
+
+        handleServiceCallCompleted(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(0, len(self._task_stats))
+        self.assertEqual(1, len(self._servicecall_count))
+        self.assertEqual(1, len(self._servicecall_wip))
+        self.assertEqual(0, self._servicecall_count[key])
+        self.assertEqual(0, self._servicecall_wip[key])
+        writer.write_metric.assert_has_calls((
+            call(
+                "zenhub.servicecall.wip",
+                0,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.cycletime",
+                10000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                    "status": "success",
+                },
+            ),
+            call(
+                "zenhub.servicecall.count",
+                0,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.leadtime",
+                60000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+        ), any_order=True)
+
+    def test_handleServiceCallCompleted_retry(self):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallCompleted)
+        event.timestamp = 160.0
+        event.error = None
+        event.retry = object()
+        key = _CountKey(event)
+        self._task_stats[event.id].received = 100.0
+        self._task_stats[event.id].started = 150.0
+        self._servicecall_count[key] += 1
+        self._servicecall_wip[key] += 1
+
+        handleServiceCallCompleted(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(1, len(self._task_stats))
+        self.assertEqual(1, len(self._servicecall_count))
+        self.assertEqual(1, len(self._servicecall_wip))
+        self.assertEqual(1, self._servicecall_count[key])
+        self.assertEqual(0, self._servicecall_wip[key])
+        writer.write_metric.assert_has_calls((
+            call(
+                "zenhub.servicecall.wip",
+                0,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.cycletime",
+                10000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                    "status": "retry",
+                },
+            ),
+        ), any_order=True)
+
+    def test_handleServiceCallCompleted_failure(self):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallCompleted)
+        event.timestamp = 160.0
+        event.error = object()
+        event.retry = None
+        key = _CountKey(event)
+        self._task_stats[event.id].received = 100.0
+        self._task_stats[event.id].started = 150.0
+        self._servicecall_count[key] += 1
+        self._servicecall_wip[key] += 1
+
+        handleServiceCallCompleted(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(0, len(self._task_stats))
+        self.assertEqual(1, len(self._servicecall_count))
+        self.assertEqual(1, len(self._servicecall_wip))
+        self.assertEqual(0, self._servicecall_count[key])
+        self.assertEqual(0, self._servicecall_wip[key])
+        writer.write_metric.assert_has_calls((
+            call(
+                "zenhub.servicecall.wip",
+                0,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.cycletime",
+                10000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                    "status": "failure",
+                },
+            ),
+            call(
+                "zenhub.servicecall.count",
+                0,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.leadtime",
+                60000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+        ), any_order=True)
+
+    @patch("{src}.log".format(**PATH), autospec=True)
+    def test_negative_values(self, _log):
+        writer = self.getUtility.return_value.metric_writer
+        event = Mock(spec=ServiceCallCompleted)
+        event.timestamp = 160.0
+        event.error = None
+        event.retry = None
+        key = _CountKey(event)
+        self._task_stats[event.id].received = 100.0
+        self._task_stats[event.id].started = 150.0
+
+        handleServiceCallCompleted(event)
+
+        self.getUtility.assert_called_once_with(IMetricManager)
+        self.assertEqual(0, len(self._task_stats))
+        self.assertEqual(1, len(self._servicecall_count))
+        self.assertEqual(1, len(self._servicecall_wip))
+        self.assertEqual(-1, self._servicecall_count[key])
+        self.assertEqual(-1, self._servicecall_wip[key])
+        writer.write_metric.assert_has_calls((
+            call(
+                "zenhub.servicecall.wip",
+                -1,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.cycletime",
+                10000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                    "status": "success",
+                },
+            ),
+            call(
+                "zenhub.servicecall.count",
+                -1,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+            call(
+                "zenhub.servicecall.leadtime",
+                60000,
+                160000,
+                {
+                    "queue": event.queue,
+                    "priority": event.priority.name,
+                    "service": event.service,
+                    "method": event.method,
+                },
+            ),
+        ), any_order=True)
+        self.assertEqual(2, _log.warn.call_count)

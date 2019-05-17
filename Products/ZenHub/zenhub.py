@@ -54,8 +54,10 @@ from Products.ZenHub.server import (
     make_pools,
     make_server_factory,
     make_service_manager,
-    StatsMonitor,
     start_server,
+    register_legacy_worklist_metrics,
+    ReportWorkerStatus,
+    StatsMonitor,
     XmlRpcManager,
     ZenHubStatusReporter,
 )
@@ -80,6 +82,9 @@ log = logging.getLogger('zen.zenhub')
 
 class ZenHub(ZCmdBase):
     """A server managing access to the Model and Event databases.
+
+    Listen for changes to objects in the Zeo database and update the
+    collectors' configuration.
 
     The remote collectors connect the ZenHub and request configuration
     information and stay connected.  When changes are detected in the
@@ -135,14 +140,13 @@ class ZenHub(ZCmdBase):
         self._monitor = StatsMonitor()
         self._status_reporter = ZenHubStatusReporter(self._monitor)
         self._pools = make_pools()
-        self._service_manager = make_service_manager(
-            self._pools, self._monitor,
-        )
+        self._service_manager = make_service_manager(self._pools)
         authenticators = getCredentialCheckers(self.options.passwordfile)
         self._server_factory = make_server_factory(
             self._pools, self._service_manager, authenticators,
         )
         self._xmlrpc_manager = XmlRpcManager(self.dmd, authenticators[0])
+        register_legacy_worklist_metrics()
 
         # Invalidation Processing
         self._invalidation_manager = InvalidationManager(
@@ -161,6 +165,7 @@ class ZenHub(ZCmdBase):
                 'zenoss_monitor': self.options.monitor,
                 'internal': True,
             })
+        provideUtility(self._metric_manager)
         self._metric_writer = self._metric_manager.metric_writer
         self.rrdStats = self._metric_manager.get_rrd_stats(
             self._getConf(), self.zem.sendEvent,
@@ -169,7 +174,8 @@ class ZenHub(ZCmdBase):
         # set up SIGUSR2 handling
         try:
             signal.signal(signal.SIGUSR2, self.sighandler_USR2)
-        except ValueError:
+        except ValueError as ex:
+            log.warn("Exception registering USR2 signal handler: %s", ex)
             # If we get called multiple times, this will generate an exception:
             # ValueError: signal only works in main thread
             # Ignore it as we've already set up the signal handler.
@@ -216,13 +222,9 @@ class ZenHub(ZCmdBase):
         return self._monitor.counters
 
     def sighandler_USR2(self, signum, frame):
-        reactor.callLater(0, self.__dumpStats)
-
-    @inlineCallbacks
-    def __dumpStats(self):
         try:
             self.log.info("\n%s\n", self._status_reporter.getReport())
-            yield self._pools.reportWorkerStatus()
+            notify(ReportWorkerStatus())
         except Exception:
             self.log.exception("Failed to produce report")
 
@@ -277,7 +279,7 @@ class ZenHub(ZCmdBase):
     def heartbeat(self):
         """Send Heartbeat events.
 
-        Also updates metrics.
+        Also used to update legacy metrics/statistics data.
         """
         seconds = 30
         evt = EventHeartbeat(

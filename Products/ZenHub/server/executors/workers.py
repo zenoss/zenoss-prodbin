@@ -14,9 +14,15 @@ import time
 from twisted.internet import defer
 from twisted.spread import pb, banana, jelly
 from zope.component import getUtility
+from zope.event import notify
 
 from Products.ZenHub.PBDaemon import RemoteException
 
+from ..events import (
+    ServiceCallReceived,
+    ServiceCallStarted,
+    ServiceCallCompleted,
+)
 from ..interface import IHubServerConfig
 from ..priority import servicecall_priority_map
 from ..utils import UNSPECIFIED as _UNSPECIFIED, getLogger
@@ -30,14 +36,14 @@ _RemoteErrors = (RemoteException, pb.RemoteError)
 class WorkerPoolExecutor(object):
     """An executor that executes service calls using remote workers."""
 
-    def __init__(self, name, worklist, pool, monitor):
+    def __init__(self, name, worklist, pool):
         """Initialize a WorkerPoolExecutor instance."""
         self.__name = name
         self.__worklist = worklist
         self.__workers = pool
         self.__log = getLogger(self)
         self.__states = {
-            "running": _Running(name, worklist, pool, monitor, self.__log),
+            "running": _Running(name, worklist, pool, self.__log),
             "stopped": _Stopped(),
         }
         self.__state = self.__states["stopped"]
@@ -78,11 +84,10 @@ class _Stopped(object):
 class _Running(object):
     """WorkerPoolExecutor in running state."""
 
-    def __init__(self, name, worklist, pool, monitor, log):
+    def __init__(self, name, worklist, pool, log):
         self.name = name
         self.worklist = worklist
         self.workers = pool
-        self.monitor = monitor
         self.log = log
         config = getUtility(IHubServerConfig)
         self.task_max_retries = config.task_max_retries
@@ -92,8 +97,7 @@ class _Running(object):
 
     def submit(self, call):
         task = ServiceCallTask(self.name, call)
-        task.received()
-        self.monitor.handleReceived()
+        notify(task.received())
         self.worklist.push(task.priority, task)
         # Schedule a call to execute to process the new task.
         self.reactor.callLater(0, self.execute)
@@ -191,8 +195,7 @@ class _Running(object):
 
     def _handle_start(self, task, workerId):
         task.attempt += 1
-        task.started(workerId)
-        self.monitor.handleStarted(workerId, task.call)
+        notify(task.started(workerId))
         if task.attempt == 1:
             self._log_initial_start(task)
         else:
@@ -215,24 +218,21 @@ class _Running(object):
             self._handle_retry(task, exception)
 
     def _handle_retry(self, task, exception):
-        task.completed(retry=exception)
-        self.monitor.handleCompleted(task.workerId, task.call)
+        notify(task.completed(retry=exception))
         self._log_incomplete(task)
 
     def _handle_success(self, task, result):
         # Send the result back to the submitter
         self.reactor.callLater(0, task.success, result)
         # Notify listeners of call completion (and success)
-        task.completed(result=result)
-        self.monitor.handleCompleted(task.workerId, task.call)
+        notify(task.completed(result=result))
         self._log_completed(task)
 
     def _handle_failure(self, task, exception):
         # Send failure back to the submitter
         self.reactor.callLater(0, task.failure, exception)
         # Notify listeners of call completion (and failure)
-        task.completed(error=exception)
-        self.monitor.handleCompleted(task.workerId, task.call)
+        notify(task.completed(error=exception))
         self._log_completed(task)
 
     def _log_initial_start(self, task):
@@ -282,7 +282,7 @@ class ServiceCallTask(object):
     __slots__ = (
         "call", "deferred", "desc", "attempt", "priority",
         "received_tm", "started_tm", "completed_tm",
-        "error", "retryable", "workerId",
+        "error", "retryable", "workerId", "event_data",
     )
 
     def __init__(self, name, call):
@@ -299,34 +299,59 @@ class ServiceCallTask(object):
         self.error = None
         self.retryable = True
         self.workerId = None
+        self.event_data = dict(call)
+        self.event_data.update({
+            "queue": name,
+            "priority": self.priority,
+        })
 
     def received(self):
-        """Update task when receiving a call."""
+        """Return a ServiceCallReceived object."""
         self.received_tm = time.time()
+        data = dict(self.event_data)
+        data["timestamp"] = self.received_tm
+        return ServiceCallReceived(**data)
 
     def started(self, workerId):
-        """Update task when starting a call."""
+        """Return a ServiceCallStarted object."""
         self.started_tm = time.time()
         self.workerId = workerId
+        self.event_data["worker"] = workerId
+        data = dict(self.event_data)
+        data.update({
+            "timestamp": self.started_tm,
+            "attempts": self.attempt,
+        })
+        return ServiceCallStarted(**data)
 
     def completed(
         self, result=_UNSPECIFIED, error=_UNSPECIFIED, retry=_UNSPECIFIED,
     ):
-        """Update task when completing a call."""
+        """Return a ServiceCallCompleted object."""
         self.completed_tm = time.time()
         if result is not _UNSPECIFIED:
+            key, value = ("result", result)
             self.error = None
             self.retryable = False
         elif error is not _UNSPECIFIED:
+            key, value = ("error", error)
             self.error = error
             self.retryable = False
         elif retry is not _UNSPECIFIED:
+            key, value = ("retry", retry)
             self.error = retry
             self.retryable = True
         else:
             raise TypeError(
                 "Require one of 'result', 'error', or 'retry' parameters",
             )
+        data = dict(self.event_data)
+        data.update({
+            "timestamp": self.completed_tm,
+            "attempts": self.attempt,
+            key: value,
+        })
+        return ServiceCallCompleted(**data)
 
     def failure(self, error):
         self.deferred.errback(error)
