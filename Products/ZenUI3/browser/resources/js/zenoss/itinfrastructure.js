@@ -2055,6 +2055,84 @@ Ext.onReady(function () {
         }
     );
 
+    footerBar.add([
+        {
+            xtype: 'button',
+            text: _t('Modeling'),
+            iconCls: '',
+            id: "context-model-menu",
+            setContext: function(contextUid) {
+                Ext.each(this.menu.items.items, function(i) {
+                    i.contextUid = contextUid;
+                });
+            },
+            menu: [
+                {
+                    xtype: 'menuitem',
+                    text: _t('Model Devices'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_model',
+                            title: _t('Model Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }, {
+                    xtype: 'menuitem',
+                    text: _t('Model Devices (Debug)'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_model_debug',
+                            title: _t('Model Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }
+            ]
+        }, '-', {
+            xtype: 'button',
+            text: _t('Monitoring'),
+            iconCls: '',
+            id: "context-monitor-menu",
+            setContext: function(contextUid) {
+                Ext.each(this.menu.items.items, function(i) {
+                    i.contextUid = contextUid;
+                });
+            },
+            menu: [
+                {
+                    xtype: 'menuitem',
+                    text: _t('Collect Devices data'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_monitor',
+                            title: _t('Monitor Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }, {
+                    xtype: 'menuitem',
+                    text: _t('Collect Devices data (Debug)'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_monitor_debug',
+                            title: _t('Monitor Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }
+            ]
+        }
+    ]);
+
     footerBar.on('buttonClick', function (actionName, id, values) {
         var tree = getSelectionModel().getSelectedNode().getOwnerTree();
         switch (actionName) {
