@@ -312,6 +312,34 @@
     />
 
 <browser:page
+    class=".command.GroupModelView"
+    name="group_model"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupModelDebugView"
+    name="group_model_debug"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupMonitorView"
+    name="group_monitor"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
+    class=".command.GroupMonitorDebugView"
+    name="group_monitor_debug"
+    for="*"
+    permission="zenoss.ManageDevice"
+    />
+
+<browser:page
     class=".command.TestDataSourceView"
     name="test_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"
