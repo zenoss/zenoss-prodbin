@@ -383,15 +383,20 @@ class RedisGraphLinksTool(object):
     """
     Connect to Redis, put graph config and get it by hash
     """
-    DEFAULT_REDIS_URL = 'redis://localhost:6379/0'
-    REDIS_RECONNECTION_INTERVAL = 3
-    # config of graph will be deleted after 90 days without calling
-    EXPIRATION_TIME = 60 * 60 * 24 * 90
 
     def __init__(self):
-        self.redis_url = getGlobalConfiguration().get(
-            'redis-url', self.DEFAULT_REDIS_URL
+        global_conf = getGlobalConfiguration()
+        import pdb; pdb.set_trace()
+        self.redis_url = global_conf.get(
+            'redis-url', 'redis://localhost:6379/0'
         )
+        self.redis_reconnection_interval = int(global_conf.get(
+            'redis-reconnection-interval', 3
+        ))
+        # we store time in hours in the configuration file
+        self.expiration_time = 3600 * int(global_conf.get(
+            'redis-graph-link-expiration', 2160
+        ))
         self._redis_client = None
         self._redis_last_connection_attemp = 0
 
@@ -411,7 +416,7 @@ class RedisGraphLinksTool(object):
         if self._redis_client is None:
             now = time.time()
             if (now - self._redis_last_connection_attemp >
-                    self.REDIS_RECONNECTION_INTERVAL):
+                    self.redis_reconnection_interval):
                 log.debug("Trying to reconnect to redis")
                 self._redis_last_connection_attemp = now
                 self._redis_client = self.create_redis_client(self.redis_url)
@@ -425,7 +430,7 @@ class RedisGraphLinksTool(object):
             return False
         try:
             self._redis_client.set(key, data)
-            self._redis_client.expire(key, self.EXPIRATION_TIME)
+            self._redis_client.expire(key, self.expiration_time)
             log.debug("Success pushed to Redis")
             return True
         except Exception as e:
@@ -440,7 +445,7 @@ class RedisGraphLinksTool(object):
         if not self._connected_to_redis():
             return None
         try:
-            self._redis_client.expire("graphLink:" + key, self.EXPIRATION_TIME)
+            self._redis_client.expire("graphLink:" + key, self.expiration_time)
             data = self._redis_client.get(key)
             log.debug("Success received data for key %s from Redis", key)
             return data
