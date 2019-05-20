@@ -711,6 +711,31 @@ class Test_process_relationshipmap(TestCase):
             t.assertEqual(omap.parent, relmap._parent)
         t.assertEqual(relmap._diff, _get_relationshipmap_diff.return_value)
 
+    @patch('{src}._get_relationshipmap_diff'.format(**PATH), autospec=True)
+    def test_handles_duplicate_ids(t, _get_relationshipmap_diff):
+        '''If a relationshipmap contains objects with duplicate ID's
+        those subsequent objects are given id = id_n
+        '''
+        device = Mock(name='device')
+        relmap = RelationshipMap(
+            relname="interfaces",
+            modname="Products.ZenModel.IpInterface",
+        )
+        om1 = ObjectMap({'id': 'eth0'})
+        om2 = ObjectMap({'id': 'eth0'})
+        om3 = ObjectMap({'id': 'eth0'})
+        relmap.maps = [om1, om2, om3, ]
+
+        _process_relationshipmap(relmap, device)
+
+        t.assertEqual(len(relmap.maps), 3)
+        t.assertEqual(om1.id, 'eth0')
+        t.assertEqual(relmap.maps[0].id, 'eth0')
+        t.assertEqual(om2.id, 'eth0_2')
+        t.assertEqual(relmap.maps[1].id, 'eth0_2')
+        t.assertEqual(om3.id, 'eth0_3')
+        t.assertEqual(relmap.maps[2].id, 'eth0_3')
+
 
 class Test__get_relationshipmap_diff(TestCase):
 

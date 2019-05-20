@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<configure xmlns="http://namespaces.zope.org/zope">
+
+    <subscriber handler=".metrics.datamap_applied_time_tsdb_reporter" />
+    <subscriber handler=".metrics.datamap_applied_time_logger" />
+
+</configure>

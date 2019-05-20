@@ -19,6 +19,7 @@ import shutil
 import time
 import socket
 import logging
+import itertools
 log = logging.getLogger("zen.Device")
 
 from urllib import quote as urlquote
@@ -1832,6 +1833,36 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if REQUEST:
             audit('UI.Device.Remodel', self)
+        if xmlrpc: return 0
+
+
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    def monitorPerDatasource(self, dsObj, REQUEST=None, write=None):
+        """
+        Run monitoring daemon against one device and one datasource ones
+        """
+        parameter = '--datasource'
+        value = '%s/%s' % (dsObj.rrdTemplate.obj.id, dsObj.id)
+        if dsObj.sourcetype == 'COMMAND':
+            collection_daemon = 'zencommand'
+        elif dsObj.__class__.__base__.sourcetype == 'Python':
+            collection_daemon = 'zenpython'
+        elif dsObj.sourcetype == 'SNMP':
+            collection_daemon = 'zenperfsnmp'
+            parameter = '--oid'
+            value = dsObj.oid
+
+        xmlrpc = isXmlRpc(REQUEST)
+        perfConf = self.getPerformanceServer()
+        if not collection_daemon and write:
+            write('Modeling through UI only support COMMAND, '
+                  'SNMP and ZenPython type of datasources')
+            if xmlrpc: return 1
+            return
+
+        perfConf.runDeviceMonitorPerDatasource(self, REQUEST, write,
+                                               collection_daemon, parameter,
+                                               value)
         if xmlrpc: return 0
 
 
