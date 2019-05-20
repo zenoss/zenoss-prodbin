@@ -386,7 +386,6 @@ class RedisGraphLinksTool(object):
 
     def __init__(self):
         global_conf = getGlobalConfiguration()
-        import pdb; pdb.set_trace()
         self.redis_url = global_conf.get(
             'redis-url', 'redis://localhost:6379/0'
         )
