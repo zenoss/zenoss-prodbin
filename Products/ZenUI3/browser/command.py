@@ -122,7 +122,7 @@ class BackupView(StreamingView):
                 includeMysqlLogin, timeout, self.request, self.write)
 
 
-class TestDataSourceView(StreamingView):
+class MonitorDatasource(StreamingView):
     """
     Accepts a post with data in of the command to be tested against a device
     """
