@@ -1625,12 +1625,7 @@ class PBDaemonTest(TestCase):
         t.assertEqual(t.pbd.options.queueHighWaterMark, 0.75)
         t.assertEqual(t.pbd.options.zhPingInterval, 120)
         t.assertEqual(t.pbd.options.deduplicate_events, True)
-        t.assertEqual(
-            t.pbd.options.redisUrl,
-            'redis://localhost:{default}/0'.format(
-                default=publisher.defaultRedisPort
-            )
-        )
+        t.assertEqual(t.pbd.options.redisUrl, 'redis://localhost:6379/0')
         t.assertEqual(
             t.pbd.options.metricBufferSize, publisher.defaultMetricBufferSize
         )
