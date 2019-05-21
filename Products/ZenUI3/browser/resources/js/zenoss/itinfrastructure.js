@@ -26,6 +26,7 @@ Ext.onReady(function () {
     Zenoss.env.initProductionStates();
     Zenoss.env.initPriorities();
 
+    // get pairs [<zProperty name>, <zProperty type>]
     REMOTE.getAllCredentialsProps({}, function (data) {
         Zenoss.env.allCredentialsProps = data['data'];
     });
@@ -148,14 +149,14 @@ Ext.onReady(function () {
             REMOTE.getCredentialsProps({ deviceClass: this.getValue() }, function (data) {
                 var credsProps = data['data'],
                     unusedCreds = Zenoss.env.allCredentialsProps.filter(function (prop) {
-                        return credsProps[prop] === undefined;
+                        return credsProps[prop[0]] === undefined;
                     });
                 for (prop in credsProps) {
                     Ext.getCmp(prop).setValue(credsProps[prop]);
                     Ext.getCmp(prop).show();
                 }
                 unusedCreds.forEach(function (prop) {
-                    Ext.getCmp(prop).hide();
+                    Ext.getCmp(prop[0]).hide();
                 });
             });
         }
@@ -547,75 +548,75 @@ Ext.onReady(function () {
 
                 // usernames go in the first column.
                 usernamesCollection = propsCollection.filter(function (value) {
-                    return (value.toLowerCase().endswith('user') || value.toLowerCase().endswith('username'));
+                    return (value[0].toLowerCase().endswith('user') || value[0].toLowerCase().endswith('username'));
                 });
                 usernamesCollection.forEach(function (value) {
                     snmpAndRackItems.push({
                         xtype: 'textfield',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160
                     });
                 });
                 propsCollection = propsCollection.filter(function (value) {
                     return usernamesCollection.every(function (prop) {
-                        return prop !== value;
+                        return prop[0] !== value[0];
                     });
                 });
 
                 // passwords go in the second column.
                 passwordsCollection = propsCollection.filter(function (value) {
-                    return value.toLowerCase().endswith('password');
+                    return value[1] == 'password';
                 });
                 passwordsCollection.forEach(function (value) {
                     manufacturersAndProductsItems.push({
                         xtype: 'textfield',
                         inputType: 'password',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160
                     });
                 });
                 propsCollection = propsCollection.filter(function (value) {
                     return passwordsCollection.every(function (prop) {
-                        return prop !== value;
+                        return prop[0] !== value[0];
                     });
                 });
 
                 // hosts go in the third column.
                 hostsCollection = propsCollection.filter(function (value) {
-                    return (value.toLowerCase().endswith('host') || value.toLowerCase().endswith('hostname'));
+                    return (value[0].toLowerCase().endswith('host') || value[0].toLowerCase().endswith('hostname'));
                 });
                 hostsCollection.forEach(function (value) {
                     organizersItems.push({
                         xtype: 'textfield',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160
                     });
                 });
                 propsCollection = propsCollection.filter(function (value) {
                     return hostsCollection.every(function (prop) {
-                        return prop !== value;
+                        return prop[0] !== value[0];
                     });
                 });
 
                 // ssl goes in the third column.
                 sslCollection = propsCollection.filter(function (value) {
-                    return value.toLowerCase().endswith('ssl');
+                    return value[0].toLowerCase().endswith('ssl') && value[1] === 'boolean';
                 });
                 sslCollection.forEach(function (value) {
                     organizersItems.push({
                         xtype: 'checkbox',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160,
                         checked: true
@@ -623,20 +624,20 @@ Ext.onReady(function () {
                 });
                 propsCollection = propsCollection.filter(function (value) {
                     return sslCollection.every(function (prop) {
-                        return prop !== value;
+                        return prop[0] !== value[0];
                     });
                 });
 
                 // ports go in the first column.
                 portsCollection = propsCollection.filter(function (value) {
-                    return value.toLowerCase().endswith('port');
+                    return value[0].toLowerCase().endswith('port') && value[1] === 'int';
                 });
                 portsCollection.forEach(function (value) {
                     snmpAndRackItems.push({
                         xtype: 'numberfield',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160,
                         value: 443,
@@ -648,7 +649,7 @@ Ext.onReady(function () {
                 });
                 propsCollection = propsCollection.filter(function (value) {
                     return portsCollection.every(function (prop) {
-                        return prop !== value;
+                        return prop[0] !== value[0];
                     });
                 });
 
@@ -656,9 +657,9 @@ Ext.onReady(function () {
                 propsCollection.forEach(function (value) {
                     organizersItems.push({
                         xtype: 'textfield',
-                        id: value,
-                        name: value,
-                        fieldLabel: _t(value),
+                        id: value[0],
+                        name: value[0],
+                        fieldLabel: _t(value[0]),
                         hidden: true,
                         width: 160
                     });
@@ -684,7 +685,7 @@ Ext.onReady(function () {
                                     zProps[prop] = opts[prop];
                                 }
                                 Zenoss.env.allCredentialsProps.forEach(function (prop) {
-                                    delete opts[prop];
+                                    delete opts[prop[0]];
                                 });
                                 opts.zProperties = zProps;
                                 Zenoss.remote.DeviceRouter.addDevice(opts, function (response) {
@@ -2053,6 +2054,84 @@ Ext.onReady(function () {
             }
         }
     );
+
+    footerBar.add([
+        {
+            xtype: 'button',
+            text: _t('Modeling'),
+            iconCls: '',
+            id: "context-model-menu",
+            setContext: function(contextUid) {
+                Ext.each(this.menu.items.items, function(i) {
+                    i.contextUid = contextUid;
+                });
+            },
+            menu: [
+                {
+                    xtype: 'menuitem',
+                    text: _t('Model Devices'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_model',
+                            title: _t('Model Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }, {
+                    xtype: 'menuitem',
+                    text: _t('Model Devices (Debug)'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_model_debug',
+                            title: _t('Model Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }
+            ]
+        }, '-', {
+            xtype: 'button',
+            text: _t('Monitoring'),
+            iconCls: '',
+            id: "context-monitor-menu",
+            setContext: function(contextUid) {
+                Ext.each(this.menu.items.items, function(i) {
+                    i.contextUid = contextUid;
+                });
+            },
+            menu: [
+                {
+                    xtype: 'menuitem',
+                    text: _t('Collect Devices data'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_monitor',
+                            title: _t('Monitor Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }, {
+                    xtype: 'menuitem',
+                    text: _t('Collect Devices data (Debug)'),
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Device'),
+                    handler: function () {
+                        var win = new Zenoss.CommandWindow({
+                            uids: [this.contextUid],
+                            target: 'group_monitor_debug',
+                            title: _t('Monitor Devices in Organizer')
+                        });
+                        win.show();
+                    }
+                }
+            ]
+        }
+    ]);
 
     footerBar.on('buttonClick', function (actionName, id, values) {
         var tree = getSelectionModel().getSelectedNode().getOwnerTree();

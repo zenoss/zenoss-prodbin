@@ -100,6 +100,12 @@ class SnmpPerformanceCollectionPreferences(object):
                           type='int',
                           help="How many consecutive time outs per cycle before stopping attempts to collect")
 
+        parser.add_option('--oid',
+                          dest='oid',
+                          type='string',
+                          default=None,
+                          help="Collect just for one oid (datasource)")
+
 
     def postStartup(self):
         pass
@@ -175,6 +181,7 @@ class SnmpPerformanceCollectionTask(BaseTask):
         self._snmpPort = snmpprotocol.port()
         self.triesPerCycle = max(2, self._preferences.options.triesPerCycle)
         self._maxTimeouts = self._preferences.options.maxTimeouts
+        self._chosenOid = self._preferences.options.oid
 
         self._lastErrorMsg = ''
         self._cycleExceededCount = 0
@@ -225,11 +232,17 @@ class SnmpPerformanceCollectionTask(BaseTask):
         if elapsed >= timedelta(seconds=self._device.cycleInterval*.99):
             raise StopTask("Elapsed time %s sec" % elapsed.total_seconds())
 
+    def getOidsSet(self):
+        if self._chosenOid:
+            return set(oid for oid in self._oids if self._chosenOid in oid)
+        else:
+            return set(self._oids)
+
     def _untestedOids(self):
-        return set(self._oids) - self._bad_oids - self._good_oids
+        return self.getOidsSet() - self._bad_oids - self._good_oids
 
     def _uncollectedOids(self):
-        return set(self._oids) - self._bad_oids - self._collectedOids
+        return self.getOidsSet() - self._bad_oids - self._collectedOids
 
     @defer.inlineCallbacks
     def _fetchPerf(self):
@@ -342,6 +355,10 @@ class SnmpPerformanceCollectionTask(BaseTask):
                     for rrdMeta in self._oids[oid]:
                         contextId, metric, rrdType, rrdCommand, rrdMin, rrdMax, metadata = rrdMeta
                         path = metadata.get('contextKey')
+                        if self._chosenOid:
+                            log.info("OID: %s >> Component: %s >> "
+                                     "DataPoint: %s %s", oid, path, metric,
+                                     value)
                         try:
                             # see SnmpPerformanceConfig line _getComponentConfig
                             yield self._dataService.writeMetricWithMetadata(metric,

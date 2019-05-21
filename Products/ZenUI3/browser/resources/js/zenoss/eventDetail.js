@@ -371,7 +371,7 @@ Ext.onReady(function() {
                             sourceData.device_url,
                             sourceData.device_title);
                     }
-                    return val;
+                    return Ext.htmlEncode(val);
                 },
                 component: function(value, sourceData) {
                     var val = Ext.htmlEncode(sourceData.component_title);
