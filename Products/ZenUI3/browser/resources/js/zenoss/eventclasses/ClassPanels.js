@@ -777,6 +777,7 @@ Ext.onReady(function(){
     Ext.define('Zenoss.eventclass.XformMasterPanel', {
         extend: 'Ext.panel.Panel',
         alias: 'widget.xformmasterpanel',
+        autoScroll: true,
         initComponent: function() {
             this.callParent(arguments);
         },
@@ -911,7 +912,6 @@ Ext.onReady(function(){
                         Zenoss.remote.EventClassesRouter.setTransform({'uid':uid, 'transform':value}, function(response){
                             if(response.success){
                                 Zenoss.message.info(_t('One Transform compiled and saved'));
-                                me.items.items[0].setValue(value);
                                 var isTrans = (value !== "");
                                 Ext.getCmp('classes').setTransIcon(isTrans);
                             }
