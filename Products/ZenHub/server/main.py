@@ -116,7 +116,15 @@ def make_executors(executors, pools, modeling_priority, timeout):
     global _executors
     _executors.update({
         "event": make_executor(executors.get("event"), "event"),
-        "default": make_default_executor(
+        "adm": make_workerpool_executor(
+            "adm",
+            executors.get("adm"),
+            pools["adm"],
+            modeling_priority,
+            timeout,
+        ),
+        "default": make_workerpool_executor(
+            "default",
             executors.get("default"),
             pools["default"],
             modeling_priority,
@@ -126,11 +134,11 @@ def make_executors(executors, pools, modeling_priority, timeout):
     return _executors
 
 
-def make_default_executor(spec, pool, modeling_priority, timeout):
+def make_workerpool_executor(name, spec, pool, modeling_priority, timeout):
     modeling_paused = ModelingPaused(modeling_priority, timeout)
     selection = PrioritySelection(ServiceCallPriority, exclude=modeling_paused)
     worklist = ZenHubWorklist(selection)
-    return make_executor(spec, "default", worklist, pool)
+    return make_executor(spec, name, worklist, pool)
 
 
 def make_executor(spec, *args, **kw):
