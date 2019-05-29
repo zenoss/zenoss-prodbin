@@ -587,14 +587,15 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                 config.title = _t('Edit Data Point');
                 config.directFn = me.submitDataPointForm;
                 config.singleColumn = true;
-            } else if (Zenoss.Security.hasPermission('Change Device')){
+            } else if (config.record.testable &&
+                       Zenoss.Security.hasPermission('Change Device')){
                 // add the test against device panel
                 config.items.items.push({
                     xtype:'panel',
                     columnWidth: 0.5,
                     baseCls: 'test-against-device',
                     hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
-                    title: _t('Monitor Against a Device'),
+                    title: _t('Test Against a Device'),
                     items:[{
                         xtype: 'textfield',
                         fieldLabel: _t('Device Name'),
@@ -607,9 +608,9 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                         value: response.record.id
                     },{
                         xtype: 'button',
-                        text: _t('Monitor'),
+                        text: _t('Test'),
                         ref: '../testDeviceButton',
-                        handler: me.monitorDataSource
+                        handler: me.testDataSource
                     }]});
 
             }
@@ -672,7 +673,7 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
      * Event handler for when a user wants to test a datasource
      * against a specific device.
      **/
-    monitorDataSource: function() {
+    testDataSource: function() {
         var cmp = Ext.getCmp(editDataSourcesId),
             values = cmp.editForm.form.getValues(),
             win, testDevice;
@@ -681,9 +682,9 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
 
         win = new Zenoss.CommandWindow({
             uids: testDevice,
-            title: _t('Monitor Data Source'),
+            title: _t('Test Data Source'),
             data: values,
-            target: Zenoss.render.link(null, values.uid) + '/monitor_datasource'
+            target: Zenoss.render.link(null, values.uid) + '/test_datasource'
         });
 
         win.show();

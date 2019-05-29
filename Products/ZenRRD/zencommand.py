@@ -1,10 +1,10 @@
 ##############################################################################
-#
+# 
 # Copyright (C) Zenoss, Inc. 2007, 2009, 2010, 2012,  all rights reserved.
-#
+# 
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-#
+# 
 ##############################################################################
 
 
@@ -117,13 +117,6 @@ class SshPerformanceCollectionPreferences(object):
                           help="Display the entire command and command-line arguments, " \
                                " including any passwords.")
 
-        parser.add_option('--datasource',
-                          dest='datasource',
-                          type='string',
-                          default=None,
-                          help="Collect just for one datasource. "\
-                               "Write in format 'template/datasource'")
-
     def postStartup(self):
         pass
 
@@ -183,8 +176,8 @@ class MySshClient(SshClient):
         # member variable for zenmodeler
         d = self.command_defers.pop(command, None)
         if d is None:
-            log.error("Internal error where deferred object not in dictionary for %s. "
-                      "Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
+            log.error("Internal error where deferred object not in dictionary for %s." \
+                      " Command = '%s' Data = '%s' Code = '%s' Stderr = '%s'",
                       self.description, command.split()[0], data, code, stderr)
         elif not d.called:
             d.callback((data, code, stderr))
@@ -198,6 +191,8 @@ class MySshClient(SshClient):
             self.connect_defer.errback(reason)
         if self.close_defer and not self.close_defer.called:
             self.close_defer.callback(msg)
+
+
 
     def check(self, ip, timeout=2):
         """
@@ -384,7 +379,6 @@ class SshPerformanceCollectionTask(BaseTask):
                                                   COLLECTOR_NAME)
         self._maxbackoffseconds = preferences.options.maxbackoffminutes * 60
         self._showfullcommand = preferences.options.showfullcommand
-        self._chosenDatasource = preferences.options.datasource
 
         self._executor = TwistedExecutor(taskConfig.zSshConcurrentSessions)
 
@@ -396,7 +390,7 @@ class SshPerformanceCollectionTask(BaseTask):
             'device': self._devId,
             'summary': 'IP address not set, collection will be attempted\
                         with host name',
-            'component': COLLECTOR_NAME,
+            'component' : COLLECTOR_NAME,
             'eventKey': 'Empty_IP_address'
         }
 
@@ -448,12 +442,6 @@ class SshPerformanceCollectionTask(BaseTask):
         else:
             self._returnToNormalSchedule()
 
-    def getDatasources(self):
-        if self._chosenDatasource:
-            return [ds for ds in self._datasources if ds.name == self._chosenDatasource]
-        else:
-            return self._datasources
-
     def _addDatasource(self, datasource):
         """
         Add a new instantiation of ProcessRunner or SshRunner
@@ -484,7 +472,7 @@ class SshPerformanceCollectionTask(BaseTask):
 
         # Bundle up the list of tasks
         deferredCmds = []
-        for datasource in self.getDatasources():
+        for datasource in self._datasources:
             datasource.deviceConfig = self._device
             if datasource.command in cacheableDS:
                 cacheableDS[datasource.command].append(datasource)
@@ -518,7 +506,7 @@ class SshPerformanceCollectionTask(BaseTask):
             self._processDatasourceResults(datasource, results)
             already_matched = datasource.already_matched_cmdAndArgs[:]
             del datasource.already_matched_cmdAndArgs
-            process_parseable_results.append((datasource, results))
+            process_parseable_results.append( (datasource, results) )
 
         return process_parseable_results
 
@@ -536,7 +524,7 @@ class SshPerformanceCollectionTask(BaseTask):
         results = []
         for success, datasource in resultList:
             parsedResults = ParsedResults()
-
+            
             if not success:
                 # In this case, our datasource is actually a defer.Failure
                 reason = datasource
@@ -554,8 +542,7 @@ class SshPerformanceCollectionTask(BaseTask):
                     # avoid more than one OSProcess matching the same process
                     process_datasources = [datasource]
                     process_datasources.extend(cache)
-                    process_parseable_results = self._process_os_processes_results_in_sequence(
-                        process_datasources, datasource.result)
+                    process_parseable_results = self._process_os_processes_results_in_sequence(process_datasources, datasource.result)
                     results.extend(process_parseable_results)
                     continue
                 for ds in cache:
@@ -581,7 +568,7 @@ class SshPerformanceCollectionTask(BaseTask):
         exitCode = datasource.result.exitCode
         output = datasource.result.output.strip()
         stderr = datasource.result.stderr.strip()
-
+        
         if exitCode == 0 and not output:
             msg = "No data returned for command"
             if self._showfullcommand:
@@ -636,10 +623,6 @@ class SshPerformanceCollectionTask(BaseTask):
         @type resultList: array of (datasource, dictionary)
         """
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
-
-        if self._chosenDatasource:
-            log.info("Values would be stored for datasource %s",
-                     self._chosenDatasource)
         for datasource, results in resultList:
             for dp, value in results.values:
                 threshData = {
@@ -647,9 +630,6 @@ class SshPerformanceCollectionTask(BaseTask):
                     'component': dp.component,
                 }
                 try:
-                    if self._chosenDatasource:
-                        log.info("Component: %s >> DataPoint: %s %s",
-                                 dp.metadata['contextKey'], dp.dpName, value)
                     yield self._dataService.writeMetricWithMetadata(
                         dp.dpName,
                         value,
@@ -660,9 +640,7 @@ class SshPerformanceCollectionTask(BaseTask):
                         metadata=dp.metadata,
                         extraTags=getattr(dp, "tags", {}))
                 except Exception, e:
-                    log.exception("Failed to write to metric service: "
-                                  "{0} {1.__class__.__name__} {1}"
-                                  .format(dp.metadata, e))
+                    log.exception("Failed to write to metric service: {0} {1.__class__.__name__} {1}".format(dp.metadata, e))
 
 
             eventList = results.events
@@ -690,7 +668,7 @@ class SshPerformanceCollectionTask(BaseTask):
             log.warn("Collection for %s took %s seconds; cycle interval is %s seconds." % (
                 self.configId, duration.total_seconds(), self.interval))
         else:
-            log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % (
+            log.debug("Collection time for %s was %s seconds; cycle interval is %s seconds." % ( 
                 self.configId, duration.total_seconds(), self.interval))
 
     def _makeCmdEvent(self, datasource, msg, severity=None, event_key=None):
