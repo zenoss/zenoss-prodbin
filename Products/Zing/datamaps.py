@@ -1,26 +1,53 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2018, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
 import logging
 
 from collections import defaultdict
 from zope.interface import implements
+from zope.component import subscribers, adapter
 from zope.component.factory import Factory
 
-from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+from Products.DataCollector.plugins.DataMaps import (
+    RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
+)
+from Products.DataCollector.ApplyDataMap import (
+    IDatamapUpdateEvent,
+    IDatamapAddEvent,
+)
+
 from Products.Zing import fact as ZFact
-from Products.Zing.interfaces import IZingDatamapHandler
+
+from Products.Zing.interfaces import (
+    IObjectMapContextProvider,
+    IZingDatamapHandler,
+)
+
 from Products.Zing.tx_state import ZingTxStateManager
 
 
 logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
+
+
+@adapter(IDatamapUpdateEvent)
+def zing_add_datamap_context(event):
+    log.debug('zing_add_datamap_context handeling event=%s', event)
+    zing_datamap_handler = ZingDatamapHandler(event.dmd)
+    zing_datamap_handler.add_context(event.objectmap, event.target)
+
+
+@adapter(IDatamapAddEvent)
+def zing_add_datamap(event):
+    log.debug('zing_add_datamap_context handeling event=%s', event)
+    zing_datamap_handler = ZingDatamapHandler(event.dmd)
+    zing_datamap_handler.add_datamap(event.target, event.objectmap)
 
 
 class ObjectMapContext(object):
@@ -30,9 +57,12 @@ class ObjectMapContext(object):
         self.name = None
         self.mem_capacity = None
         self.is_device = False
+        self.dimensions = {}
+        self.metadata = {}
         self._extract_relevant_fields(obj)
 
     def _extract_relevant_fields(self, obj):
+        """Extract fields that will be used to construct a fact."""
         try:
             self.uuid = obj.getUUID()
         except:
@@ -53,6 +83,44 @@ class ObjectMapContext(object):
                 self.mem_capacity = obj.hw.totalMemory
             except Exception:
                 pass
+
+        # Get extra context from IObjectMapContextProvider adapters.
+        for provider in subscribers([obj], IObjectMapContextProvider):
+            try:
+                merge_fields(self.dimensions, provider.get_dimensions(obj))
+            except Exception as e:
+                log.error(
+                    "%s failed to get dimensions for %s: %s",
+                    provider, obj, e)
+
+            try:
+                merge_fields(self.metadata, provider.get_metadata(obj))
+            except Exception as e:
+                log.error(
+                    "%s failed to get metadata for %s: %s",
+                    provider, obj, e)
+
+
+def merge_fields(d, new):
+    """Merge fields from new (dict) into d (dict).
+
+    Top-level list values will be concatenated, and top-level dict
+    values will be shallow-merged. All other cases of conflicting keys
+    will result in values from ndict overwriting those in odict.
+
+    """
+    if not new:
+        return
+
+    for k, v in new.iteritems():
+        if k not in d:
+            d[k] = v
+        elif isinstance(v, list) and isinstance(d[k], list):
+            d[k].extend(v)
+        elif isinstance(v, dict) and isinstance(d[k], dict):
+            d[k].update(v)
+        else:
+            d[k] = v
 
 
 class ZingDatamapHandler(object):
@@ -190,11 +258,11 @@ class ZingDatamapHandler(object):
         return facts
 
     def apply_extra_fields(self, om_context, f):
-        """
-        A simple (temporary) hook to add extra information to a fact that isn't
-        found in the datamap that triggered this serialization. This needs a proper
-        event subscriber framework to be maintainable, so this will only work so
-        long as the number of fields is pretty small.
+        """Add information from the ObjectMap context to the fact.
+
+        This is where dimensions and metadata from IObjectMapContextProvider
+        adapters are added to facts.
+
         """
         f.metadata[ZFact.FactKeys.CONTEXT_UUID_KEY] = om_context.uuid
         f.metadata[ZFact.FactKeys.META_TYPE_KEY] = om_context.meta_type
@@ -203,5 +271,12 @@ class ZingDatamapHandler(object):
         if om_context.is_device:
             if om_context.mem_capacity is not None:
                 f.data[ZFact.FactKeys.MEM_CAPACITY_KEY] = om_context.mem_capacity
+
+        if om_context.dimensions:
+            f.metadata.update(om_context.dimensions)
+
+        if om_context.metadata:
+            f.data.update(om_context.metadata)
+
 
 DATAMAP_HANDLER_FACTORY = Factory(ZingDatamapHandler)

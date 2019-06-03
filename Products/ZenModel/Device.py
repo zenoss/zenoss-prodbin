@@ -44,8 +44,6 @@ from DateTime import DateTime
 from ZODB.POSException import POSError
 from BTrees.OOBTree import OOSet
 
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
-
 from Products.ZenRelations.RelSchema import ToManyCont, ToMany, ToOne
 from Commandable import Commandable
 from Lockable import Lockable
@@ -69,10 +67,16 @@ from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
 from zope.component import subscribers
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED, SEVERITY_CRITICAL,
+    SEVERITY_ERROR, SEVERITY_WARNING
+)
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
+from Products.ZenEvents.events2.proxy import EventProxy
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.indexable import DeviceIndexable
@@ -468,6 +472,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
+        from Products.DataCollector.ApplyDataMap import ApplyDataMap
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
                          compname=compname, modname=modname, parentId="")
@@ -614,7 +619,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             query['meta_type'] = type
 
         return list(getObjectsFromCatalog(self.componentSearch, query, log))
-
 
     def getDeviceComponentsNoIndexGen(self):
         """
@@ -2309,11 +2313,27 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def getStatus(self, statusclass=None, **kwargs):
         """
         Return the status number for this device of class statClass.
+        If statusclass not set, search by zStatusEventClass.
         """
         if not self.monitorDevice():
             return None
 
-        from Products.ZenEvents.ZenEventClasses import Status_Ping
+        if statusclass is None:
+            statusclass = self.zStatusEventClass
+            zep = getFacade('zep', self)
+            try:
+                event_filter = zep.createEventFilter(
+                    tags=[self.getUUID()],
+                    element_sub_identifier=[""],
+                    severity=[SEVERITY_CRITICAL],
+                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED],
+                    event_class=filter(None, [self.zStatusEventClass]))
+
+                result = zep.getEventSummaries(0, filter=event_filter, limit=0)
+                return int(result['total'])
+            except Exception:
+                return None
+
         if statusclass == Status_Ping:
             return self._getPingStatus(statusclass)
 
@@ -2321,10 +2341,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def _getPingStatus(self, statusclass):
         if not self.zPingMonitorIgnore and self.getManageIp():
-            from Products.Zuul import getFacade
-            from Products.ZenEvents.events2.proxy import EventProxy
-            from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-                STATUS_SUPPRESSED, SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
             # Override normal behavior - we only care if the manage IP is down
 
             # need to add the ipinterface component id to search since we may be

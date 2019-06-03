@@ -29,7 +29,12 @@ Ext.onReady(function(){
         document.title = graph.graphTitle;
     }
 
-    var decodedUrl = Ext.urlDecode(location.search.substring(1, location.search.length)),
+    function replaceAll(str, find, replace) {
+        return str.replace(new RegExp(find, 'g'), replace);
+    }
+
+    var locationSearch = replaceAll(location.search, '&amp;', '&')
+    var decodedUrl = Ext.urlDecode(locationSearch.substring(1, locationSearch.length)),
         drange = decodedUrl.drange,
         data = decodedUrl.data,
         saved = 'saved' in decodedUrl;

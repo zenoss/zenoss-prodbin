@@ -119,7 +119,7 @@ class HubServiceManager(object):
         dfr.addCallback(self.__setKeepAlive)
 
         # Initialize and start the XMLRPC server
-        self.__xmlrpc_site = AuthXmlRpcService.makeSite(dmd, checkers)
+        self.__xmlrpc_site = AuthXmlRpcService.makeSite(dmd, checkers[0])
         xmlrpc_descriptor = "%s:port=%s" % (tcp_version, self.__xmlrpcport)
         xmlrpc_server = serverFromString(reactor, xmlrpc_descriptor)
         xmlrpc_server.listen(self.__xmlrpc_site)
@@ -528,6 +528,7 @@ class AuthXmlRpcService(XmlRpcService):
         """
         XmlRpcService.__init__(self, dmd)
         self.checker = checker
+        self.__log = getLogger("zenhub", self)
 
     def doRender(self, unused, request):
         """Call the inherited render engine after authentication succeeds."""
@@ -568,6 +569,9 @@ class AuthXmlRpcService(XmlRpcService):
 
                     d.addErrback(error, request)
             except Exception:
+                self.__log.exception(
+                    "[render] Exception caught; assuming unauthorized",
+                )
                 self.unauthorized(request)
         return server.NOT_DONE_YET
 
