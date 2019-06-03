@@ -10,7 +10,6 @@
 
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 """
 Add zStatusEventClass z property. That allows you to choose what event class
@@ -19,7 +18,7 @@ will affect on device status(change Up/Down status).
 
 
 class AddzStatusEventClass(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 9)
 
     def cutover(self, dmd):
         if not hasattr(dmd.Devices, 'zStatusEventClass'):
