@@ -15,6 +15,7 @@ from zope.event import notify
 
 import Globals  # noqa. required to import zenoss Products
 from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.deprecated import deprecated
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.ZenModel.ZenModelRM import ZenModelRM
 
@@ -229,26 +230,27 @@ class ApplyDataMap(object):
     def _report_objectmap_changes(self, objectmap, obj):
         self._reporter.report_directive(obj, objectmap)
 
+    @deprecated
     def _updateRelationship(self, device, relmap):
         '''This stub is left to satisfy backwards compatability requirements
         for the monkeypatch in ZenPacks.zenoss.PythonCollector
         ZenPacks/zenoss/PythonCollector/patches/platform.py
         '''
-        log.warning('_updateRelationship is Deprecated')
         self.applyDataMap(device=device, datamap=relmap)
 
+    @deprecated
     def _removeRelObject(self, device, objmap, relname):
         '''This stub is left to satisfy backwards compatability requirements
         for the monkeypatch in ZenPacks.zenoss.PythonCollector
         ZenPacks/zenoss/PythonCollector/patches/platform.py
         '''
-        log.warning('_removeRelObject is Deprecated')
+        pass
 
+    @deprecated
     def _createRelObject(self, device, objmap, relname):
         '''This stub is left to satisfy backwards compatability
         some zenpacks call this method directly
         '''
-        log.warning('_createRelObject is Deprecated')
         objmap.relname = relname
         idm = IncrementalDataMap(device, objmap)
         changed = self.applyDataMap(device=device, datamap=idm)

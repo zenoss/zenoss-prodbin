@@ -636,7 +636,6 @@ class SshPerformanceCollectionTask(BaseTask):
         @type resultList: array of (datasource, dictionary)
         """
         self.state = SshPerformanceCollectionTask.STATE_STORE_PERF
-
         if self._chosenDatasource:
             log.info("Values would be stored for datasource %s",
                      self._chosenDatasource)
@@ -663,7 +662,6 @@ class SshPerformanceCollectionTask(BaseTask):
                     log.exception("Failed to write to metric service: "
                                   "{0} {1.__class__.__name__} {1}"
                                   .format(dp.metadata, e))
-
 
             eventList = results.events
             exitCode = getattr(datasource.result, 'exitCode', -1)

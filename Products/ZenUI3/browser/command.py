@@ -32,8 +32,7 @@ class CommandView(StreamingView):
     def stream(self):
         data = unjson(self.request.get('data'))
         command = self.context.getUserCommands(asDict=True).get(
-            data['command'],
-            None)
+            data['command'], None)
         if command:
             for uid in data['uids']:
                 target = self.context.unrestrictedTraverse(uid)
@@ -121,12 +120,8 @@ class BackupView(StreamingView):
             timeout = int(timeoutString)
         except ValueError:
             timeout = 120
-        self.context.zport.dmd.manage_createBackup(
-            includeEvents,
-            includeMysqlLogin,
-            timeout,
-            self.request,
-            self.write)
+        self.context.zport.dmd.manage_createBackup(includeEvents,
+                includeMysqlLogin, timeout, self.request, self.write)
 
 
 class MonitorDatasource(StreamingView):
@@ -233,7 +228,8 @@ class MonitorDebugView(StreamingView):
         uids = data['uids']
         facade = getFacade('device', self.context)
         for device in imap(facade._getObject, uids):
-            device.runDeviceMonitor(REQUEST=self.request, write=self.write, debug=True)
+            device.runDeviceMonitor(REQUEST=self.request, write=self.write,
+                                    debug=True)
 
 
 class GroupMonitorView(StreamingView):
