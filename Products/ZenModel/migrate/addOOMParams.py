@@ -11,6 +11,7 @@ import logging
 import Migrate
 import servicemigration as sm
 
+from pkg_resources import parse_version
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from Products.ZenUtils.controlplane.client import getCCVersion
 
@@ -24,6 +25,11 @@ class AddOOMParams(Migrate.Step):
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
+        cc_version = parse_version(getCCVersion())
+        if cc_version < parse_version("1.6.5"):
+            log.info("Require CC version >= 1.6.5, skipping")
+            return
+
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
@@ -33,12 +39,7 @@ class AddOOMParams(Migrate.Step):
         service_names = ['mariadb-model', 'redis', 'RegionServer', 'ZooKeeper',
                          'HMaster', 'Impact', 'Solr', 'mariadb-events']
         services = filter(lambda s: s.name in service_names, ctx.services)
-        log.info("Found %i services" % len(services))
-
-        cc_version = getCCVersion().split('.')
-        if int(cc_version[1]) < 6 and int(cc_version[2]) < 5:
-            log.info("Require CC version >= 1.6.5, skipping")
-            return
+        log.info("Found %i services", len(services))
 
         for service in services:
             service.oomKillDisable = True
