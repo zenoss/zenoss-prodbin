@@ -593,7 +593,6 @@ class PerformanceConf(Monitor, StatusColor):
         result = executeCommand(remoteCommand, REQUEST, write)
         return result
 
-
     def runDeviceMonitor(
             self, device=None, REQUEST=None, write=None,
             collection_daemons=None, debug=False):
@@ -604,6 +603,24 @@ class PerformanceConf(Monitor, StatusColor):
         result = self._executeMonitoringCommands(device.id, self.id, write,
                                                  REQUEST, collection_daemons,
                                                  debug)
+        if result and xmlrpc:
+            return result
+        log.info('configuration collected')
+
+        if xmlrpc:
+            return 0
+
+    def runDeviceMonitorPerDatasource(
+            self, device=None, REQUEST=None, write=None,
+            collection_daemon=None, parameter='', value=''):
+        """
+        Run collection daemon against specific datasource
+        """
+        xmlrpc = isXmlRpc(REQUEST)
+        monitoringCmd = self._getMonitoringCommand(device.id, self.id, write,
+                                                   collection_daemon,
+                                                   parameter, value)
+        result = self._executeCommand(monitoringCmd, REQUEST, write)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
@@ -627,14 +644,16 @@ class PerformanceConf(Monitor, StatusColor):
         return result
 
     def _getMonitoringCommand(
-            self, deviceName, performanceMonitor, write=None, daemon=None):
+            self, deviceName, performanceMonitor, write=None, daemon=None,
+            parameter='', value=''):
         """
         Get monitoring command and create command to run
         """
         cmd = [binPath(daemon)]
         deviceName = self._escapeParentheses(deviceName)
         options = [
-            'run', '-d', deviceName, '--monitor', performanceMonitor
+            'run', '-d', deviceName, '--monitor', performanceMonitor,
+            parameter, value
         ]
         cmd.extend(options)
         log_message = 'local monitoring cmd is "%s"\n' % ' '.join(cmd)
