@@ -11,13 +11,11 @@ import logging
 import Migrate
 import servicemigration as sm
 
-from Products.ZenModel.ZMigrateVersion import (
-    SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-)
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from Products.ZenUtils.controlplane.client import getCCVersion
 
 log = logging.getLogger("zen.migrate")
-sm.require("1.0.0")
+sm.require("1.1.13")
 
 
 class AddOOMParams(Migrate.Step):
@@ -43,10 +41,8 @@ class AddOOMParams(Migrate.Step):
             return
 
         for service in services:
-            if service._Service__data.get('OomKillDisable') is not None:
-                service._Service__data['OomKillDisable'] = True
-            if service._Service__data.get('OomScoreAdj') is not None:
-                service._Service__data['OomScoreAdj'] = 0
+            service.oomKillDisable = True
+            service.oomScoreAdj = 0
         ctx.commit()
 
 AddOOMParams()
