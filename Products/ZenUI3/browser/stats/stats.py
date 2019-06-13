@@ -30,6 +30,9 @@ _LOG = logging.getLogger('zen.stats')
 from Products.ZenUtils.requestlogging.ZopeRequestLogger import ZopeRequestLogger
 _request_logger = ZopeRequestLogger()
 
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+_request_threshold = float(getGlobalConfiguration().get('zope-request-threshold', 5.0))
+
 # hook in to Web Server's Request Events so that
 # fine grained monitoring can be done
 @component.adapter(ZPublisher.interfaces.IPubStart)
@@ -48,11 +51,17 @@ def logRequestStartAfterTraversal(event):
 @component.adapter(ZPublisher.interfaces.IPubEnd)
 def logRequestEnd(event):
     global _REQUEST_TOTAL, _REQUEST_COUNT, _REQUEST_TIME
+    global _SLOW_REQUEST_COUNT, _SLOW_REQUEST_TIME, _SLOW_REQUEST_TOTAL
     ts = time.time()
     elapsed = ts - event.request._start
     _REQUEST_TOTAL += 1
     _REQUEST_COUNT.save(1, ts)
     _REQUEST_TIME.save(elapsed, ts)
+
+    if elapsed >= _request_threshold:
+        _SLOW_REQUEST_TOTAL += 1
+        _SLOW_REQUEST_COUNT.save(1, ts)
+        _SLOW_REQUEST_TIME.save(elapsed, ts)
 
     try:
         _request_logger.log_request(event.request, finished=True)
@@ -63,6 +72,9 @@ _STATS_PERIOD = 60 * 15   # keep in-memory stats for 15 minutes
 _REQUEST_TOTAL = 0        # running total of http requests
 _REQUEST_COUNT = CStat(_STATS_PERIOD) # CStat of request count
 _REQUEST_TIME = CStat(_STATS_PERIOD)  # Cstat of request service times
+_SLOW_REQUEST_TOTAL = 0
+_SLOW_REQUEST_COUNT = CStat(_STATS_PERIOD)
+_SLOW_REQUEST_TIME = CStat(_STATS_PERIOD)
 
 _BYTES_MAP = {
     'b': 1, 
@@ -153,7 +165,21 @@ class ZopeMetrics(object):
         metrics["requestTotal"] = _REQUEST_TOTAL
         metrics["request1m"] = max(_REQUEST_COUNT.query(60), 1)
         metrics["requestTimeAvg1m"] = _REQUEST_TIME.query(60) / float(metrics["request1m"])
-        
+
+        # Number of requests exceeding zope-request-threshold
+        global _SLOW_REQUEST_COUNT, _SLOW_REQUEST_TIME, _SLOW_REQUEST_TOTAL
+        metrics["slowRequestTotal"] = _SLOW_REQUEST_TOTAL
+        metrics["slowRequest1m"] = _SLOW_REQUEST_COUNT.query(60)
+
+        try:
+            metrics["slowRequestTimeAvg1m"] = _SLOW_REQUEST_TIME.query(60) / float(metrics["slowRequest1m"])
+        except ZeroDivisionError:
+            # No slow requests
+            metrics["slowRequestTimeAvg1m"] = 0.0
+
+        # request1m is always 1 or greater
+        metrics["slowRequestPercent"] = (float(metrics["slowRequest1m"]) / metrics["request1m"]) * 100
+
         for key, value in self._getVmStats():
             metrics[key] = value
             
