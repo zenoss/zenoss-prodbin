@@ -21,6 +21,7 @@ from Products.Zuul import getFacade
 from Products.ZenWidgets import messaging
 from zenoss.protocols.services import ServiceResponseError
 from zenoss.protocols.services.zep import ZepConnectionError
+from urllib3.exceptions import ProtocolError
 from zenoss.protocols.protobufs.zep_pb2 import (STATUS_NEW, STATUS_ACKNOWLEDGED, SEVERITY_CRITICAL,
                                                 SEVERITY_ERROR, SEVERITY_WARNING, SEVERITY_INFO,
                                                 SEVERITY_DEBUG)
@@ -42,6 +43,13 @@ def zepConnectionError(retval=None):
                                                         priority=messaging.CRITICAL,
                                                         sticky=True)
                 log.warn("Could not connect to ZEP")
+            except ProtocolError, e:
+                msg = '"No status line received before ZEP closed the http connection". Check zeneventserver status on <a href="/zport/dmd/daemons">Services</a>'
+                messaging.IMessageSender(self).sendToBrowser("ZEP closed the connection before sending a status line",
+                                                        msg,
+                                                        priority=messaging.CRITICAL,
+                                                        sticky=True)
+                log.warn("ZEP closed the connection before sending a status line.")
             return deepcopy(retval)    # don't return the mutable retval
         return decorator(inner, func)  # for URL's through Zope we must use the same arguments as the original function
     return outer
