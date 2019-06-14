@@ -173,7 +173,7 @@ YAHOO.namespace('zenoss.geomap');
                     _overlay.constructMarker(address);
                 }else if(status == "ZERO_RESULTS"){
                         _utils.statusDialog("Stopping! There was a problem with the location address: "+nodedata[index][0]);
-                        return true;
+                        _overlay.constructMarker(address);
                 }else if(status == "OVER_QUERY_LIMIT") {
                     var delay = 1200;
                     if(_overlay.lastStatus == "OVER_QUERY_LIMIT"){
