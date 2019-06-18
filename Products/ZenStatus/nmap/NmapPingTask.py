@@ -87,8 +87,10 @@ class NmapPingCollectionPreferences(PingCollectionPreferences):
         # introduce a small delay to can have a chance to load some config
         task.startDelay = 5
         daemon._scheduler.addTask(task)
-        correlationBackend = daemon.options.correlationBackend
-        task._correlate = component.getUtility(IPingTaskCorrelator, correlationBackend)
+        if not daemon.options.disableCorrelator:
+            correlationBackend = daemon.options.correlationBackend
+            task._correlate = component.getUtility(IPingTaskCorrelator, correlationBackend)
+        task.disable_correlate = daemon.options.disableCorrelator
 
     def buildOptions(self, parser):
         super(NmapPingCollectionPreferences, self).buildOptions(parser)
@@ -407,13 +409,14 @@ class NmapPingTask(BaseTask):
                 if i % _SENDEVENT_YIELD_INTERVAL:
                     yield twistedTask.deferLater(reactor, 0, lambda: None)
 
-            try:
-                yield defer.maybeDeferred(self._correlate, ipTasks)
-            except Exception as ex:
-                self._correlationExecution(ex)
-                log.critical("There was a problem performing correlation: %s", ex)
-            else:
-                self._correlationExecution()  # send clear
+            if not self.disable_correlate:
+                try:
+                    yield defer.maybeDeferred(self._correlate, ipTasks)
+                except Exception as ex:
+                    self._correlationExecution(ex)
+                    log.critical("There was a problem performing correlation: %s", ex)
+                else:
+                    self._correlationExecution()  # send clear
             self._nmapExecution()
 
     def _cleanupDownCounts(self):
