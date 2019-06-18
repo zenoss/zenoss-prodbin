@@ -26,7 +26,7 @@ from ipaddr import IPAddress
 from struct import unpack
 
 from pynetsnmp import netsnmp, twistedsnmp
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from zope.component import queryUtility, getUtility, provideUtility
 from zope.interface import implementer
@@ -935,7 +935,8 @@ class TrapDaemon(CollectorDaemon):
             d.addCallback(self._createUsers)
 
     def remote_createUser(self, user):
-        self._createUsers([user])
+        reactor.callInThread(self._createUsers, [user])
+        reactor.run()
 
     def _createUsers(self, users):
         fmt = 'TrapDaemon._createUsers {0} users'
