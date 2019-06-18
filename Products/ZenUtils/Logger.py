@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2007, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2007-2019 all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
@@ -98,18 +98,24 @@ def setLogLevel(level=logging.DEBUG, loggerName=None):
             handler.setLevel(level)
 
 
-def getLogger(app, cls):
-    """Returns the logger object named "zen.<app>.<cls name>".
+def getLogger(app, cls=None):
+    """Return the logger object named "zen.<app>.<cls name>".
+
     E.g. given,
         logger = getLogger("zenhub", Products.ZenHub.services.ModelerService)
     then 'logger' will have the name "zen.zenhub.ModelerService".
     If an object is passed in rather than a class, the object's class is used.
+    Modules are handled as if a class were passed in.
     """
-    if hasattr(cls, "__class__"):
-        if isinstance(cls, types.InstanceType):
-            cls = cls.__class__
-        elif not isinstance(cls, types.TypeType):
-            cls = type(cls)
-    clsname = cls.__name__
-    name = "zen.%s.%s" % (app, clsname)
+    segments = ["zen", app]
+    if cls is not None:
+        if hasattr(cls, "__class__"):
+            if isinstance(cls, types.InstanceType):
+                cls = cls.__class__
+            elif isinstance(cls, types.ModuleType):
+                pass  # Avoid matching the next elif statement.
+            elif not isinstance(cls, types.TypeType):
+                cls = type(cls)
+        segments.append(cls.__name__.split(".")[-1])
+    name = ".".join(segments)
     return logging.getLogger(name)
