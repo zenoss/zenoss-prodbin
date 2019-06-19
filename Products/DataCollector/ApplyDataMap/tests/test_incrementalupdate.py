@@ -403,6 +403,18 @@ class TestIncrementalDataMap(TestCase):
         t.idm.apply()
         t.idm._rebuild.assert_called_with()
 
+    def test_apply_update_locked(t):
+        t.idm._nochange = create_autospec(t.idm._nochange)
+        t.idm.directive = 'update_locked'
+        t.idm.apply()
+        t.idm._nochange.assert_called_with()
+
+    def test_apply_delete_locked(t):
+        t.idm._nochange = create_autospec(t.idm._nochange)
+        t.idm.directive = 'delete_locked'
+        t.idm.apply()
+        t.idm._nochange.assert_called_with()
+
     def test__add(t):
         '''creates, updates, and adds the new object to the relationship
         Requires modname
