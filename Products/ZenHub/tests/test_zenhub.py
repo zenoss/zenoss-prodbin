@@ -1,32 +1,47 @@
+##############################################################################
+#
+# Copyright (C) Zenoss, Inc. 2018, 2019, all rights reserved.
+#
+# This content is made available according to terms specified in
+# License.zenoss under the directory where your Zenoss product is installed.
+#
+##############################################################################
+
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
 
+from Products.ZenHub import XML_RPC_PORT, PB_PORT
 from Products.ZenHub.zenhub import (
     HubWillBeCreatedEvent, IHubWillBeCreatedEvent,
     HubCreatedEvent, IHubCreatedEvent,
     ParserReadyForOptionsEvent, IParserReadyForOptionsEvent,
     ZenHub, ZCmdBase,
     ZENHUB_MODULE, QUEUEMESSAGING_MODULE,
-    XML_RPC_PORT, PB_PORT,
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
-    collections,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
 
 
 class ZenHubInitTest(TestCase):
-    '''The init test is seperate from the others due to the complexity
-    of the __init__ method
-    '''
+    """Test zenhub.ZenHub.__init__ method."""
+
+    @patch('{src}.register_legacy_worklist_metrics'.format(**PATH))
+    @patch('{src}.provideUtility'.format(**PATH))
     @patch('{src}.InvalidationManager'.format(**PATH))
     @patch('{src}.MetricManager'.format(**PATH), autospec=True)
-    @patch('{src}.HubServiceManager'.format(**PATH), autospec=True)
+    @patch('{src}.StatsMonitor'.format(**PATH), autospec=True)
+    @patch('{src}.ZenHubStatusReporter'.format(**PATH), autospec=True)
+    @patch('{src}.make_pools'.format(**PATH), autospec=True)
+    @patch('{src}.make_service_manager'.format(**PATH), autospec=True)
+    @patch('{src}.getCredentialCheckers'.format(**PATH), autospec=True)
+    @patch('{src}.make_server_factory'.format(**PATH), autospec=True)
+    @patch('{src}.XmlRpcManager'.format(**PATH), autospec=True)
     @patch('{src}.load_config_override'.format(**PATH), spec=True)
     @patch('{src}.signal'.format(**PATH), spec=True)
     @patch('{src}.App_Start'.format(**PATH), spec=True)
@@ -40,7 +55,7 @@ class ZenHubInitTest(TestCase):
     @patch('__builtin__.super'.format(**PATH), autospec=True)
     def test___init__(
         t,
-        super,
+        _super,
         load_config,
         notify,
         HubWillBeCreatedEvent,
@@ -51,9 +66,17 @@ class ZenHubInitTest(TestCase):
         App_Start,
         signal,
         load_config_override,
-        HubServiceManager,
+        XmlRpcManager,
+        make_server_factory,
+        getCredentialCheckers,
+        make_service_manager,
+        make_pools,
+        ZenHubStatusReporter,
+        StatsMonitor,
         MetricManager,
         InvalidationManager,
+        provideUtility,
+        register_legacy_worklist_metrics,
     ):
         # Mock out attributes set by the parent class
         # Because these changes are made on the class, they must be reversable
@@ -78,7 +101,7 @@ class ZenHubInitTest(TestCase):
 
         t.assertIsInstance(zh, ZenHub)
         # Skip Metrology validation for now due to complexity
-        super.return_value.__init__assert_called_with(ZenHub, zh)
+        _super.return_value.__init__assert_called_with(ZenHub, zh)
         load_config.assert_called_with("hub.zcml", ZENHUB_MODULE)
         HubWillBeCreatedEvent.assert_called_with(zh)
         notify.assert_has_calls([call(HubWillBeCreatedEvent.return_value)])
@@ -87,13 +110,18 @@ class ZenHubInitTest(TestCase):
         zh.profiler.start.assert_called_with()
 
         # 'counters' is a ZenHub API.
-        t.assertIsInstance(zh.counters, collections.Counter)
+        t.assertIs(zh.counters, StatsMonitor.return_value.counters)
 
         t.assertIsInstance(zh.shutdown, bool)
         t.assertFalse(zh.shutdown)
 
-        expected_services = HubServiceManager.return_value.services
-        t.assertEqual(expected_services, zh.services)
+        t.assertIs(zh._monitor, StatsMonitor.return_value)
+        t.assertIs(zh._status_reporter, ZenHubStatusReporter.return_value)
+        t.assertIs(zh._pools, make_pools.return_value)
+        t.assertIs(zh._service_manager, make_service_manager.return_value)
+        t.assertIs(zh._server_factory, make_server_factory.return_value)
+        t.assertIs(zh._xmlrpc_manager, XmlRpcManager.return_value)
+        register_legacy_worklist_metrics.assert_called_once_with()
 
         # Event Handler shortcut
         t.assertEqual(zh.zem, zh.dmd.ZenEventManager)
@@ -102,51 +130,64 @@ class ZenHubInitTest(TestCase):
         # Patched internal import of Products.ZenMessaging.queuemessaging
         load_config_override.assert_called_with(
             'twistedpublisher.zcml',
-            QUEUEMESSAGING_MODULE
+            QUEUEMESSAGING_MODULE,
         )
         HubCreatedEvent.assert_called_with(zh)
         notify.assert_called_with(HubCreatedEvent.return_value)
         zh.sendEvent.assert_called_with(
             zh, eventClass=App_Start, summary='zenhub started',
-            severity=0
+            severity=0,
         )
 
-        HubServiceManager.assert_called_once_with(
-            modeling_pause_timeout=zh.options.modeling_pause_timeout,
-            passwordfile=zh.options.passwordfile,
-            pbport=zh.options.pbport,
-            xmlrpcport=zh.options.xmlrpcport,
+        StatsMonitor.assert_called_once_with()
+        ZenHubStatusReporter.assert_called_once_with(
+            StatsMonitor.return_value,
+        )
+        make_pools.assert_called_once_with()
+        make_service_manager.assert_called_once_with(make_pools.return_value)
+        getCredentialCheckers.assert_called_once_with(
+            zh.options.passwordfile,
+        )
+        make_server_factory.assert_called_once_with(
+            make_pools.return_value,
+            make_service_manager.return_value,
+            getCredentialCheckers.return_value,
+        )
+        XmlRpcManager.assert_called_once_with(
+            zh.dmd, getCredentialCheckers.return_value[0],
         )
 
         MetricManager.assert_called_with(
             daemon_tags={
                 'zenoss_daemon': 'zenhub',
                 'zenoss_monitor': zh.options.monitor,
-                'internal': True
-            }
+                'internal': True,
+            },
         )
         t.assertEqual(zh._metric_manager, MetricManager.return_value)
         t.assertEqual(
-            zh._invalidation_manager, InvalidationManager.return_value
+            zh._invalidation_manager, InvalidationManager.return_value,
         )
+        provideUtility.assert_called_once_with(zh._metric_manager)
 
         signal.signal.assert_called_with(signal.SIGUSR2, zh.sighandler_USR2)
 
     def test_PbRegistration(t):
         from twisted.spread.jelly import unjellyableRegistry
-        t.assertTrue('DataMaps.ObjectMap' in unjellyableRegistry)
-        t.assertTrue(
-            'Products.DataCollector.plugins.DataMaps.ObjectMap'
-            in unjellyableRegistry
+        t.assertIn('DataMaps.ObjectMap', unjellyableRegistry)
+        t.assertIn(
+            'Products.DataCollector.plugins.DataMaps.ObjectMap',
+            unjellyableRegistry,
         )
 
 
 class ZenHubTest(TestCase):
+    """Test the zenhub.ZenHub class."""
 
     def setUp(t):
         # Patch out the ZenHub __init__ method, due to excessive side-effects
         t.init_patcher = patch.object(
-            ZCmdBase, '__init__', autospec=True, return_value=None
+            ZCmdBase, '__init__', autospec=True, return_value=None,
         )
         t.init_patcher.start()
         t.addCleanup(t.init_patcher.stop)
@@ -159,7 +200,7 @@ class ZenHubTest(TestCase):
             patch.object(ZenHub, 'niceDoggie', create=True),
             patch.object(
                 ZenHub, 'storage', create=True,
-                set_spec=['poll_invalidations']
+                set_spec=['poll_invalidations'],
             ),
         ]
         for patcher in t.zcmdbase_patchers:
@@ -169,7 +210,13 @@ class ZenHubTest(TestCase):
         # Patch external dependencies
         needs_patching = [
             "reactor",
-            "HubServiceManager",
+            "XmlRpcManager",
+            "make_server_factory",
+            "getCredentialCheckers",
+            "make_service_manager",
+            "make_pools",
+            "ZenHubStatusReporter",
+            "StatsMonitor",
             "InvalidationManager",
             "MetricManager",
             "notify",
@@ -177,11 +224,13 @@ class ZenHubTest(TestCase):
             "load_config_override",
             "load_config",
             "IHubConfProvider",
+            "provideUtility",
+            "register_legacy_worklist_metrics",
         ]
         t.patchers = {}
         for target in needs_patching:
             patched = patch(
-                "{src}.{target}".format(target=target, **PATH), autospec=True
+                "{src}.{target}".format(target=target, **PATH), autospec=True,
             )
             t.patchers[target] = patched
             setattr(t, target, patched.start())
@@ -189,12 +238,10 @@ class ZenHubTest(TestCase):
 
         t.zh = ZenHub()
 
+    @patch('{src}.start_server'.format(**PATH), autospec=True)
     @patch('{src}.task.LoopingCall'.format(**PATH), autospec=True)
     @patch('{src}.getUtility'.format(**PATH), autospec=True)
-    def test_main(t, getUtility, LoopingCall):
-        '''Daemon Entry Point
-        Execution waits at reactor.run() until the reactor stops
-        '''
+    def test_main(t, getUtility, LoopingCall, start_server):
         t.zh.options = sentinel.options
         t.zh.options.monitor = 'localhost'
         t.zh.options.cycle = True
@@ -210,22 +257,22 @@ class ZenHubTest(TestCase):
         # convert to a looping call
         t.reactor.callLater.assert_called_with(0, t.zh.heartbeat)
 
-        t.zh._service_manager.start.assert_called_once_with(
-            t.zh.dmd, t.reactor
+        start_server.assert_called_once_with(
+            t.reactor, t.make_server_factory.return_value,
         )
 
         LoopingCall.assert_called_once_with(
-            t.zh._invalidation_manager.process_invalidations
+            t.zh._invalidation_manager.process_invalidations,
         )
         t.assertEqual(
-            LoopingCall.return_value, t.zh.process_invalidations_task
+            LoopingCall.return_value, t.zh.process_invalidations_task,
         )
 
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
         t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh._metric_manager.stop
+            'before', 'shutdown', t.zh._metric_manager.stop,
         )
         # After the reactor stops:
         t.zh.profiler.stop.assert_called_with()
@@ -233,30 +280,22 @@ class ZenHubTest(TestCase):
         getUtility.assert_called_with(IEventPublisher)
         getUtility.return_value.close.assert_called_with()
 
-    @patch('{src}.reactor'.format(**PATH))
-    def test_sighandler_USR2(t, reactor):
-        '''Daemon function
-        when signal USR2 is recieved, broadcast it to all worker processes
-        '''
+    @patch("{src}.ReportWorkerStatus".format(**PATH), autospec=True)
+    @patch("{src}.notify".format(**PATH), autospec=True)
+    def test_sighandler_USR2(t, _notify, _ReportWorkerStatus):
         ZenHub.sighandler_USR2(t.zh, signum='unused', frame='unused')
-        reactor.callLater.assert_called_once_with(0, t.zh._ZenHub__dumpStats)
 
-    def test___dumpStats(t):
-        ZenHub._ZenHub__dumpStats(t.zh)
-
-        t.zh._service_manager.getStatusReport.assert_called_once_with()
+        t.zh._status_reporter.getReport.assert_called_once_with()
         t.zh.log.info.assert_called_once_with(
             "\n%s\n",
-            t.zh._service_manager.getStatusReport.return_value
+            t.zh._status_reporter.getReport.return_value,
         )
-        t.zh._service_manager.reportWorkerStatus.assert_called_once_with()
+        _notify.assert_called_once_with(_ReportWorkerStatus.return_value)
+        _ReportWorkerStatus.assert_called_once_with()
 
     @patch('{src}.super'.format(**PATH))
     @patch('{src}.signal'.format(**PATH), autospec=True)
-    def test_sighandler_USR1(t, signal, super):
-        '''Daemon function
-        when signal USR1 is recieved, broadcast it to all worker processes
-        '''
+    def test_sighandler_USR1(t, signal, _super):
         t.zh.profiler = Mock(name='profiler', spec_set=['dump_stats'])
         t.zh.options = Mock(name='options', profiling=True)
         signum = sentinel.signum
@@ -265,10 +304,8 @@ class ZenHubTest(TestCase):
         ZenHub.sighandler_USR1(t.zh, signum=signum, frame=frame)
 
         t.zh.profiler.dump_stats.assert_called_with()
-        super.assert_called_with(ZenHub, t.zh)
-        super.return_value.sighandler_USR1.assert_called_with(
-            signum, frame
-        )
+        _super.assert_called_with(ZenHub, t.zh)
+        _super.return_value.sighandler_USR1.assert_called_with(signum, frame)
 
     def test_stop(t):
         t.assertFalse(t.zh.shutdown)
@@ -283,13 +320,14 @@ class ZenHubTest(TestCase):
     def test_getService(t):
         service = "service"
         monitor = "localhost"
-        services = t.zh._service_manager.services
-        expected = services.getService.return_value
+        expected = t.zh._service_manager.getService.return_value
 
         result = t.zh.getService(service, monitor)
 
         t.assertEqual(expected, result)
-        services.getService.assert_called_once_with(service, monitor)
+        t.zh._service_manager.getService.assert_called_once_with(
+            service, monitor,
+        )
 
     def test_getRRDStats(t):
         t.zh._metric_manager = t.MetricManager.return_value
@@ -298,7 +336,7 @@ class ZenHubTest(TestCase):
         ret = t.zh.getRRDStats()
 
         t.zh._metric_manager.get_rrd_stats.assert_called_with(
-            t.zh._getConf(), t.zh.zem.sendEvent
+            t.zh._getConf(), t.zh.zem.sendEvent,
         )
         t.assertEqual(ret, t.zh._metric_manager.get_rrd_stats.return_value)
 
@@ -313,8 +351,6 @@ class ZenHubTest(TestCase):
 
     @patch('{src}.Event'.format(**PATH), autospec=True)
     def test_sendEvent(t, Event):
-        '''Event Management.  send events to the EventManager
-        '''
         event = {'device': 'x', 'component': 'y', 'summary': 'msg'}
 
         t.zh.sendEvent(**event)
@@ -340,9 +376,6 @@ class ZenHubTest(TestCase):
     @patch('{src}.IHubHeartBeatCheck'.format(**PATH), autospec=True)
     @patch('{src}.EventHeartbeat'.format(**PATH), autospec=True)
     def test_heartbeat(t, EventHeartbeat, IHubHeartBeatCheck):
-        '''Event Management / Daemon Function
-        Also, some Metrics Reporting stuff for fun
-        '''
         t.zh.options = Mock(
             name='options', spec_set=['monitor', 'name', 'heartbeatTimeout'],
         )
@@ -352,13 +385,12 @@ class ZenHubTest(TestCase):
         seconds = 30
         # Metrics reporting portion needs to be factored out
         service0 = Mock(name='service0', spec_set=['callTime'], callTime=9)
-        t.zh._service_manager.services = {'service0': service0}
-        t.zh._service_manager.worklist = [sentinel.work0, sentinel.work1]
+        t.zh._service_manager.getService.return_value = service0
 
         t.zh.heartbeat()
 
         EventHeartbeat.assert_called_with(
-            t.zh.options.monitor, t.zh.name, t.zh.options.heartbeatTimeout
+            t.zh.options.monitor, t.zh.name, t.zh.options.heartbeatTimeout,
         )
         t.zh.zem.sendEvent.assert_called_with(EventHeartbeat.return_value)
         t.zh.niceDoggie.assert_called_with(seconds)
@@ -369,26 +401,18 @@ class ZenHubTest(TestCase):
         t.zh.rrdStats.counter.has_calls([
             call('totalTime', int(t.zh.totalTime * 1000)),
             call('totalEvents', t.zh.totalEvents),
-            call('totalCallTime', sum(
-                s.callTime for s in t.zh._service_manager.services.values()
-            )),
         ])
-        t.zh.rrdStats.gauge.assert_has_calls([
-            call('services', len(t.zh._service_manager.services)),
-            call('workListLength', len(t.zh._service_manager.worklist)),
-        ])
+        t.zh._monitor.update_rrd_stats.assert_called_once_with(
+            t.zh.rrdStats, t.zh._service_manager,
+        )
 
     @patch('{src}.ParserReadyForOptionsEvent'.format(**PATH), autospec=True)
     @patch('{src}.notify'.format(**PATH), autospec=True)
     @patch('{src}.zenPath'.format(**PATH))
     @patch('{src}.ZCmdBase'.format(**PATH))
     def test_buildOptions(
-        t, ZCmdBase, zenPath, notify, ParserReadyForOptionsEvent
+        t, ZCmdBase, zenPath, notify, ParserReadyForOptionsEvent,
     ):
-        '''After initialization, the ZenHub instance should have
-        options parsed from its buildOptions method
-        assertions based on default options
-        '''
         # this should call buildOptions on parent classes, up the tree
         # currently calls an ancestor class directly
         # parser expected to be added by CmdBase.buildParser
@@ -406,13 +430,14 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.monitor, 'localhost')
         t.assertEqual(t.zh.options.workersReservedForEvents, 1)
         t.assertEqual(t.zh.options.invalidation_poll_interval, 30)
-        t.assertEqual(t.zh.options.profiling, False)
+        t.assertFalse(t.zh.options.profiling)
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
 
 
 class DefaultConfProviderTest(TestCase):
+    """Test the DefaultConfProvider class."""
 
     def test_implements_IHubConfProvider(t):
         # the class Implements the Interface
@@ -420,7 +445,7 @@ class DefaultConfProviderTest(TestCase):
 
     def test_adapts_ZenHub(t):
         t.assertEqual(
-            adaptedBy(DefaultConfProvider), (ZenHub, )
+            adaptedBy(DefaultConfProvider), (ZenHub,),
         )
         t.assertIn(ZenHub, adaptedBy(DefaultConfProvider))
 
@@ -442,17 +467,18 @@ class DefaultConfProviderTest(TestCase):
         ret = default_conf_provider.getHubConf()
 
         zenhub.dmd.Monitors.Performance._getOb.assert_called_with(
-            zenhub.options.monitor, None
+            zenhub.options.monitor, None,
         )
         t.assertEqual(ret, zenhub.dmd.Monitors.Performance._getOb.return_value)
 
 
 class DefaultHubHeartBeatCheckTest(TestCase):
+    """Test the DefaultHubHeartBeatCheck class."""
 
     def test_implements_IHubHeartBeatCheck(t):
         # the class Implements the Interface
         t.assertTrue(
-            IHubHeartBeatCheck.implementedBy(DefaultHubHeartBeatCheck)
+            IHubHeartBeatCheck.implementedBy(DefaultHubHeartBeatCheck),
         )
 
     def test_adapts_ZenHub(t):
@@ -465,7 +491,7 @@ class DefaultHubHeartBeatCheckTest(TestCase):
 
         # the object provides the interface
         t.assertTrue(
-            IHubHeartBeatCheck.providedBy(default_hub_heartbeat_check)
+            IHubHeartBeatCheck.providedBy(default_hub_heartbeat_check),
         )
         # Verify the object implments the interface properly
         verifyObject(IHubHeartBeatCheck, default_hub_heartbeat_check)
@@ -479,12 +505,14 @@ class DefaultHubHeartBeatCheckTest(TestCase):
 
 
 class HubWillBeCreatedEventTest(TestCase):
+    """Test the HubWillBeCreatedEvent class."""
+
     def test__init__(t):
         hub = sentinel.zenhub_instance
         event = HubWillBeCreatedEvent(hub)
         # the class Implements the Interface
         t.assertTrue(
-            IHubWillBeCreatedEvent.implementedBy(HubWillBeCreatedEvent)
+            IHubWillBeCreatedEvent.implementedBy(HubWillBeCreatedEvent),
         )
         # the object provides the interface
         t.assertTrue(IHubWillBeCreatedEvent.providedBy(event))
@@ -495,12 +523,14 @@ class HubWillBeCreatedEventTest(TestCase):
 
 
 class HubCreatedEventTest(TestCase):
+    """Test the HubCreatedEvent class."""
+
     def test__init__(t):
         hub = sentinel.zenhub_instance
         event = HubCreatedEvent(hub)
         # the class Implements the Interface
         t.assertTrue(
-            IHubCreatedEvent.implementedBy(HubCreatedEvent)
+            IHubCreatedEvent.implementedBy(HubCreatedEvent),
         )
         # the object provides the interface
         t.assertTrue(IHubCreatedEvent.providedBy(event))
@@ -511,14 +541,16 @@ class HubCreatedEventTest(TestCase):
 
 
 class ParserReadyForOptionsEventTest(TestCase):
+    """Test the ParserReadyForOptionsEvent class."""
+
     def test__init__(t):
         parser = sentinel.parser
         event = ParserReadyForOptionsEvent(parser)
         # the class Implements the Interface
         t.assertTrue(
             IParserReadyForOptionsEvent.implementedBy(
-                ParserReadyForOptionsEvent
-            )
+                ParserReadyForOptionsEvent,
+            ),
         )
         # the object provides the interface
         t.assertTrue(IParserReadyForOptionsEvent.providedBy(event))
