@@ -13,6 +13,7 @@ import os
 
 import Globals  # noqa: required to import zenoss Products
 
+from zope.interface import implementer
 from zope.component.interfaces import Interface, Attribute
 
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
@@ -37,6 +38,7 @@ class IMetricManager(Interface):
     metric_writer = Attribute('metric writer instance')
 
 
+@implementer(IMetricManager)
 class MetricManager(object):
     '''General interface for storing and reporting metrics
     metric publisher: publishes metrics to an external system (redis, http)
