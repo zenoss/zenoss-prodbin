@@ -936,7 +936,6 @@ class TrapDaemon(CollectorDaemon):
 
     def remote_createUser(self, user):
         reactor.callInThread(self._createUsers, [user])
-        reactor.run()
 
     def _createUsers(self, users):
         fmt = 'TrapDaemon._createUsers {0} users'
