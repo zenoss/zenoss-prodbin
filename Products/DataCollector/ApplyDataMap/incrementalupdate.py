@@ -150,7 +150,7 @@ class IncrementalDataMap(object):
                 try:
                     target = self.relationship._getOb(self._target_id)
                 except Exception:
-                    log.warn('%s related object NOT FOUND', self.logstr)  # pragma: no mutate
+                    log.debug('%s related object NOT FOUND', self.logstr)  # pragma: no mutate
                     target = None
 
             self._target = target
