@@ -14,7 +14,6 @@ Operations for Events.
 Available at:  /zport/dmd/evconsole_router
 """
 
-import cgi
 import logging
 import re
 import time
@@ -918,13 +917,6 @@ class EventsRouter(DirectRouter):
         """
         device = device.strip()  # ZEN-2479: support entries like "localhost "
         try:
-            # Fix for ZEN-28005 to thwart XSS attacks from incoming events
-            summary = cgi.escape(summary)
-            device = cgi.escape(device)
-            component = cgi.escape(component)
-            evclasskey = cgi.escape(evclasskey)
-            if evclass is not None and len(evclass) > 0:
-                evclass = cgi.escape(evclass)
             self.zep.create(summary, severity, device, component,
                             eventClassKey=evclasskey, eventClass=evclass,
                             monitor=monitor, **kwargs)
