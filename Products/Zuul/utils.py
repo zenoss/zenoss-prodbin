@@ -24,6 +24,9 @@ from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
 from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
 from Products.ZenUtils.RedisUtils import parseRedisUrl
 from OFS.PropertyManager import PropertyManager
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
+from ZPublisher.BaseRequest import RequestContainer
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -116,18 +119,26 @@ def severityString(severityId):
     if severityId in range(0,6):
         return _sevs[severityId]
 
+
 def get_dmd():
-    """
-    Retrieve the DMD object.
-    """
+    """Retrieve the DMD object."""
     connections = transaction.get()._synchronizers.data.values()[:]
     connections.reverse()
     # Make sure we don't get the temporary connection
     for cxn in connections:
         db = getattr(cxn, '_db', None)
         if db and db.database_name != 'temporary':
+            resp = HTTPResponse(stdout=None)
+            env = {
+                'SERVER_NAME': 'localhost',
+                'SERVER_PORT': '8080',
+                'REQUEST_METHOD': 'GET',
+            }
+            req = HTTPRequest(None, env, resp)
             app = cxn.root()['Application']
+            app = app.__of__(RequestContainer(REQUEST=req))
             return app.zport.dmd
+
 
 _MARKER = object()
 def safe_hasattr(object, name):

@@ -89,6 +89,7 @@ pb.setUnjellyableForClass(RemoteConflictError, RemoteConflictError)
 
 # Invalid monitor specified
 class RemoteBadMonitor(RemoteException): pass
+pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
 
 
 def translateError(callable):
