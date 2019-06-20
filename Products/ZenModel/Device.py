@@ -1881,13 +1881,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         # We support only core collection daemons
         # zenpython; zenperfsnmp; zencommand
         if not collection_daemons and write:
-            write('Modeling through UI only support COMMAND, '
-                'SNMP and ZenPython type of datasources')
+            write('Monitoring through UI only support COMMAND, '
+                  'SNMP and ZenPython type of datasources')
             if xmlrpc: return 1
             return
         perfConf.runDeviceMonitor(self, REQUEST, write, collection_daemons, debug=debug)
         if REQUEST:
-            audit('UI.Device.Remodel', self)
+            audit('UI.Device.Monitor', self)
         if xmlrpc: return 0
 
 
