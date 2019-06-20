@@ -13,7 +13,7 @@ import types
 from unittest import TestCase
 from zope.interface import implementer
 
-from Products.ZenHub.broker import (
+from ..broker import (
     IUnjellyable,
     ZenBroker,
     ZenPBClientFactory,
