@@ -41562,7 +41562,7 @@
             "deadlock_check": {
               "Script": "curl -A 'zenreports deadlock healthcheck' --max-time 15 -s http://localhost:9290/zport/ruok",
               "Timeout": 0,
-              "Interval": 30,
+              "Interval": 60,
               "KillCountLimit": 3,
               "KillExitCodes": [
                 28
@@ -42469,7 +42469,7 @@
             "deadlock_check": {
               "Script": "curl -A 'zauth deadlock healthcheck' --max-time 15 -s http://localhost:9180/zport/ruok",
               "Timeout": 0,
-              "Interval": 30,
+              "Interval": 60,
               "KillCountLimit": 3,
               "KillExitCodes": [
                 28
@@ -44477,7 +44477,7 @@
             "deadlock_check": {
               "Script": "curl -A 'Zope deadlock healthcheck' --max-time 15 -s http://localhost:9080/zport/ruok",
               "Timeout": 0,
-              "Interval": 30,
+              "Interval": 60,
               "KillCountLimit": 3,
               "KillExitCodes": [
                 28
@@ -45570,7 +45570,7 @@
             "deadlock_check": {
               "Script": "curl -A 'zenapi deadlock healthcheck' --max-time 15 -s http://localhost:9320/zport/ruok",
               "Timeout": 0,
-              "Interval": 30,
+              "Interval": 60,
               "KillCountLimit": 3,
               "KillExitCodes": [
                 28
