@@ -16,7 +16,7 @@ import Queue
 import signal
 import six
 import sys
-import time
+import threading
 import transaction
 
 from AccessControl.SecurityManagement import (
@@ -130,17 +130,19 @@ class Job(Task):
         # Exactly one job executes at a time, so it's fine to block waiting
         # for the database to get the pending job.
         jmgr = self.dmd.JobManager
+        _sleep = threading.Event()
         while i < self.initialize_timeout:
             try:
                 jmgr._p_jar.sync()
                 return jmgr.getJob(job_id)
             except NoSuchJobException:
                 i += 1
-                time.sleep(1)
+                _sleep.wait(1)
         raise NoSuchJobException(job_id)
 
     def _check_aborted(self, job_id):
         try:
+            _sleep = threading.Event()
             while True:
                 self.dmd._p_jar.sync()
                 try:
@@ -159,7 +161,7 @@ class Job(Task):
                     self._aborted_tasks.add(job_id)
                     self._runner_thread.interrupt(JobAborted)
                     break
-                time.sleep(0.25)
+                _sleep.wait(0.25)
         finally:
             # release database connection acquired by the self.dmd
             # reference ealier in this method.
@@ -326,8 +328,9 @@ class Job(Task):
         # Interrupt the runner_thread.
         self._runner_thread.interrupt(JobAborted)
         # Wait for the runner_thread to exit.
+        _sleep = threading.Event()
         while self._runner_thread.is_alive():
-            time.sleep(0.01)
+            _sleep.wait(0.01)
         # Install the original SIGTERM handler
         signal.signal(signal.SIGTERM, self._origsigtermhandler)
         # Send this process a SIGTERM signal
