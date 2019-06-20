@@ -13,7 +13,7 @@ import logging
 import os
 import socket
 import subprocess
-import time
+import threading
 
 from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import LineReader
@@ -73,6 +73,7 @@ class SubprocessJob(Job):
             reader = LineReader(process.stdout)
             reader.start()
             # Reset the log message formatter (restored later)
+            _sleep = threading.Event()
             while exitcode is None:
                 line = reader.readline()
                 if line:
@@ -84,7 +85,7 @@ class SubprocessJob(Job):
                         handler.setFormatter(originalFormatter)
                 else:
                     exitcode = process.poll()
-                    time.sleep(0.1)
+                    _sleep.wait(0.1)
         except JobAborted:
             if process:
                 self.log.warn("Job aborted. Killing subprocess...")
