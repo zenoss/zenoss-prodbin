@@ -195,6 +195,22 @@ class ApplyDataMapTests(TestCase):
         t.adm._report_changes.assert_called_with(relmap, device)
         t.assertEqual(ret, t.adm._report_changes.return_value)
 
+    def test_applyDataMap_RelationshipMap_contains_IncrementalDataMap(t):
+        '''A relationshipMap may contain IncrementalDataMaps
+        in addition to ObjectMaps
+        '''
+        base = Device(id='owner')
+        device = Device(id='related_device')
+        device.dmd = Mock(name='dmd')
+        relmap = RelationshipMap()
+        relmap.append(
+            IncrementalDataMap(device, ObjectMap({'comments': 'ok'}))
+        )
+
+        t.adm.applyDataMap(base, relmap)
+
+        t.assertEqual(device.comments, 'ok')
+
     @patch('{src}._validate_datamap'.format(**PATH), autospec=True)
     @patch('{src}.transact'.format(**PATH), autospec=True)
     def test_applyDataMap_ObjectMap(t, transact, _validate_datamap):
