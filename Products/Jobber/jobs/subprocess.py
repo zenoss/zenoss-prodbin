@@ -11,12 +11,10 @@ from __future__ import absolute_import
 
 import logging
 import os
-import socket
 import subprocess
 import threading
 
-from Products.ZenEvents import Event
-from Products.ZenUtils.Utils import LineReader
+from Products.ZenUtils.Threading import LineReader
 
 from ..exceptions import SubprocessJobFailed, JobAborted
 from .job import Job
@@ -38,54 +36,39 @@ class SubprocessJob(Job):
         return cmd if isinstance(cmd, basestring) else " ".join(cmd)
 
     def _run(self, cmd, environ=None):
-        self.log.debug("Running Job %s %s", self.getJobType(), self.name)
-        if environ is not None:
-            try:
-                newenviron = os.environ.copy()
-                newenviron.update(environ)
-                environ = newenviron
-            except Exception:
-                self.log.exception("environ is %s", environ)
-                environ = None
+        self.log.debug("Running Job %s %s", self.getJobType(), cmd)
+        if environ is not None and isinstance(environ, dict):
+            newenviron = os.environ.copy()
+            newenviron.update(environ)
+            environ = newenviron
+        else:
+            environ = None
         process = None
-        exitcode = None
-        output = ""
-        handler = self.log.handlers[0]
-        originalFormatter = handler.formatter
-        lineFormatter = logging.Formatter("%(message)s")
         try:
-            self.log.info(
-                "Spawning subprocess: %s",
-                SubprocessJob.getJobDescription(cmd),
-            )
-            process = subprocess.Popen(
-                cmd,
-                bufsize=1,
-                env=environ,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
-
-            # Since process.stdout.readline() is a blocking call, it stops
-            # the injected exception from being raised until it unblocks.
-            # The LineReader object allows non-blocking readline()
-            # behavior to avoid delaying the injected exception.
-            reader = LineReader(process.stdout)
-            reader.start()
-            # Reset the log message formatter (restored later)
-            _sleep = threading.Event()
-            while exitcode is None:
-                line = reader.readline()
-                if line:
-                    try:
-                        handler.setFormatter(lineFormatter)
-                        self.log.info(line.strip())
-                        output += line.strip()
-                    finally:
-                        handler.setFormatter(originalFormatter)
-                else:
-                    exitcode = process.poll()
-                    _sleep.wait(0.1)
+            try:
+                self.log.info(
+                    "Spawning subprocess: %s", self.getJobDescription(cmd),
+                )
+                process = subprocess.Popen(
+                    cmd,
+                    bufsize=1,
+                    env=environ,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+            except Exception as ex:
+                summary = str(ex)
+                message = "Error executing command %s: %s" % (
+                    self.getJobDescription(cmd), ex,
+                )
+            else:
+                exitcode, output = self._handle_process(process)
+                if exitcode == 0:
+                    return
+                summary = "Command failed with exit code %s" % exitcode
+                message = "Exit code %s for command %s; %s" % (
+                    exitcode, self.getJobDescription(cmd), output,
+                )
         except JobAborted:
             if process:
                 self.log.warn("Job aborted. Killing subprocess...")
@@ -93,25 +76,39 @@ class SubprocessJob(Job):
                 process.wait()  # clean up the <defunct> process
                 self.log.info("Subprocess killed.")
             raise
-        if exitcode != 0:
-            device = socket.getfqdn()
-            job_record = self.dmd.JobManager.getJob(self.request.id)
-            description = job_record.job_description
-            summary = 'Job "%s" finished with failure result.' % description
-            message = "exit code %s for %s; %s" % (
-                exitcode,
-                SubprocessJob.getJobDescription(cmd),
-                output,
-            )
+        self.log.error(message)
+        raise SubprocessJobFailed(summary)
 
-            self.dmd.ZenEventManager.sendEvent({
-                "device": device,
-                "severity": Event.Error,
-                "component": "zenjobs",
-                "eventClass": "/App/Job/Fail",
-                "message": message,
-                "summary": summary,
-            })
+    def _handle_process(self, process):
+        # Since process.stdout.readline() is a blocking call, it stops
+        # asynchronous actions from occurring until it unblocks.
+        # The LineReader object allows non-blocking readline().
+        reader = LineReader(process.stdout)
+        reader.start()
 
-            raise SubprocessJobFailed(exitcode)
-        return exitcode
+        # Use threading.Event for temporarily pausing the thread
+        # because time.sleep blocks the current thread preventing it
+        # from receiving a JobAborted exception in a timely manner.
+        _sleeper = threading.Event()
+
+        exitcode = None
+        output = ""
+        handler = self.log.handlers[0]
+        originalFormatter = handler.formatter
+        lineFormatter = logging.Formatter("%(message)s")
+        while exitcode is None:
+            line = reader.readline()
+            if line:
+                try:
+                    # Set the alternate formatter when writing the
+                    # subprocess output to the log.
+                    handler.setFormatter(lineFormatter)
+                    self.log.info(line.strip())
+                    output += line.strip()
+                finally:
+                    # Reset the handler to original formatter now that
+                    # we're done writing subprocess output to the log.
+                    handler.setFormatter(originalFormatter)
+            else:
+                exitcode = process.poll()
+                _sleeper.wait(0.1)

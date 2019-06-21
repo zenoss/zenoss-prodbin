@@ -9,11 +9,31 @@
 
 from __future__ import absolute_import
 
-from Products.ZenUtils.Utils import ThreadInterrupt
+from Products.ZenUtils.Threading import ThreadInterrupt
 
 
 class JobAborted(ThreadInterrupt):
-    """The job has been aborted."""
+    """The job has been aborted.
+
+    This exception derives from ThreadInterrupt which itself is derived
+    from BaseException.  Using BaseException is useful to increase the
+    chance of bypassing exception handlers within a job implementation
+    which could prevent the job execution from stopping.
+    """
+
+
+class TaskAborted(Exception):
+    """The task has been aborted.
+
+    This is similiar to JobAborted, but derives from Exception instead of
+    BaseException.
+
+    The TaskAborted exception is used to communicate to Celery to 'fail' the
+    job.  The JobAborted exception cannot be used; since its base is
+    BaseException, it will cause the Celery worker to exit.  So when
+    JobAborted is raised, it is converted to a TaskAborted exception and
+    then raised for Celery to handle.
+    """
 
 
 class NoSuchJobException(Exception):
@@ -26,10 +46,6 @@ class JobAlreadyExistsException(Exception):
 
 class SubprocessJobFailed(Exception):
     """A subprocess job exited with a non-zero return code."""
-
-    def __init__(self, exitcode):
-        """Initialize a SubprocessJobFailed exception."""
-        self.exitcode = exitcode
 
 
 class FacadeMethodJobFailed(Exception):

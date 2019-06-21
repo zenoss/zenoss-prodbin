@@ -38,27 +38,6 @@ log = getLogger("zen.JobManager")
 CATALOG_NAME = "job_catalog"
 
 
-def _dispatchTask(task, **kwargs):
-    """Dispatch the task when the transaction commits successfully.
-
-    Delay the actual scheduling of the job until the transaction manages
-    to get itself committed. This prevents Celery from getting a new task
-    for every retry in the event of ConflictErrors. See ZEN-2704.
-    """
-    opts = dict(kwargs)
-    # Have to use a closure because of Celery's funky signature inspection
-    # and because of the status argument transaction passes
-
-    def hook(status, **kw):
-        log.debug("Commit hook status: %s args: %s", status, kw)
-        if status:
-            log.info("Dispatching %s job to zenjobs", type(task))
-            # Push the task out to AMQP (ignore returned object).
-            task.apply_async(**opts)
-
-    transaction.get().addAfterCommitHook(hook)
-
-
 def manage_addJobManager(context, oid="JobManager"):
     """Add the JobManager class to dmd."""
     jm = JobManager(oid)
@@ -206,7 +185,7 @@ class JobManager(ZenModelRM):
             return zcat
 
     def _addJobChain(self, *joblist, **options):
-        """Submit a list of SubJob objects that will execute in list order.
+        """Submit a list of Signature objects that will execute in list order.
 
         If options are specified, they are applied to each subjob; options
         that were specified directly on the subjob are not overridden.
@@ -222,30 +201,28 @@ class JobManager(ZenModelRM):
 
         @returns A list of JobRecord objects.
         """
-        subtasks = []
+        signatures = []
         records = []
-        for subjob in joblist:
+        for signature in joblist:
             task_id = str(uuid4())
             opts = dict(task_id=task_id, **options)
-            opts.update(subjob.options)
-            subtask = subjob.job.subtask(
-                args=subjob.args, kwargs=subjob.kwargs, **opts
-            )
+            signature = signature.set(**opts)
+            opts.update(signature.options)
             records.append(
                 self._savejobrecord(
-                    task_id,
-                    subjob.job,
-                    subjob.description,
-                    subjob.args,
-                    subjob.kwargs,
+                    signature.id,
+                    current_app.tasks[signature.task],
+                    signature.options.get("description"),
+                    signature.args,
+                    signature.kwargs,
                 ),
             )
-            subtasks.append(subtask)
-        task = chain(*subtasks)
+            signatures.append(signature)
+        job = chain(*signatures)
 
-        # Dispatch job to zenjobs queue
-        _dispatchTask(task)
-
+        # Defer sending the job until the transaction has been committed.
+        send = _SendTask(job)
+        transaction.get().addAfterCommitHook(send)
         return records
 
     security.declareProtected(ZEN_MANAGE_DMD, "addJobChain")
@@ -288,8 +265,15 @@ class JobManager(ZenModelRM):
             job_id, job, description, args, kwargs, **properties
         )
 
-        # Dispatch job to zenjobs queue
-        _dispatchTask(job, args=args, kwargs=kwargs, task_id=job_id)
+        properties = dict(task_id=job_id, **properties)
+
+        # Build the signature to call the task
+        signature = job.s(*args, **kwargs).set(**properties)
+
+        # Defer sending the job (signature) until the transaction has
+        # been committed.
+        send = _SendTask(signature)
+        transaction.get().addAfterCommitHook(send)
 
         return jobrecord
 
@@ -494,6 +478,21 @@ class JobManager(ZenModelRM):
                 PruneJob,
                 kwargs={"untiltime": datetime.now() - timedelta(weeks=1)},
             )
+
+
+class _SendTask(object):
+    """Sends the task to Celery when invoked."""
+
+    def __init__(self, signature):
+        self.__s = signature
+
+    def __call__(self, status, **kw):
+        if status:
+            log.info("Sending job")
+            r = self.__s.apply_async()
+            log.info("Result of sending job: %r", r)
+        else:
+            log.info("Not sending job")
 
 
 class JobLogDownload(BrowserView):
