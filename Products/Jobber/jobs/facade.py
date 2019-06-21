@@ -21,6 +21,8 @@ from Products.ZenUtils.celeryintegration import get_task_logger
 from ..exceptions import FacadeMethodJobFailed
 from .job import Job
 
+_notfound = object()
+
 
 class FacadeMethodJob(Job):
     """Use this job to execute a method on a facade."""
@@ -63,14 +65,26 @@ class FacadeMethodJob(Job):
         return self._log
 
     def _run(self, facadefqdn, method, *args, **kwargs):
-        # Pass the job log to the facade method so that it can log to
-        # the job log.
-        kwargs["joblog"] = self.log
-        self.args = args
-        self.kwargs = kwargs
+        """Execute a facade's method.
+
+        :param str facadefqdn: classpath to facade class.
+        :param str method: name of method on facade class.
+        :param *args: positional arguments to method.
+        :param **kwargs: keyword arguments to method.
+        :return: The return value from the method.
+        :raise FacadeMethodJobFailed: method did not succeed.
+        """
         facadeclass = resolve(facadefqdn)
         facade = facadeclass(self.dmd)
-        bound_method = getattr(facade, method)
+        bound_method = getattr(facade, method, _notfound)
+        if bound_method is _notfound:
+            raise FacadeMethodJobFailed(
+                "No such attribute on %s: %s" % (facadeclass, method),
+            )
+        if not callable(bound_method):
+            raise FacadeMethodJobFailed(
+                "Not a callable method: %s.%s" % (facadeclass, method),
+            )
         accepted = fun_takes_kwargs(bound_method, kwargs)
         kwargs = {
             k: v
@@ -84,7 +98,7 @@ class FacadeMethodJob(Job):
         if result:
             try:
                 if not result["success"]:
-                    raise FacadeMethodJobFailed
+                    raise FacadeMethodJobFailed(str(result))
                 return result["message"]
             except FacadeMethodJobFailed:
                 raise

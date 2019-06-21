@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 from .job import Job  # noqa: F401
 from .facade import FacadeMethodJob  # noqa: F401
-from .misc import DeviceListJob  # noqa: F401
+from .misc import DeviceListJob, PausingJob  # noqa: F401
 from .prune import PruneJob  # noqa: F401
 from .roles import DeviceSetLocalRolesJob  # noqa: F401
 from .subprocess import SubprocessJob  # noqa: F401
