@@ -23,7 +23,7 @@ from Products.ZenUtils.ZodbFactory import IZodbFactoryLookup
 from Products.ZenUtils.celeryintegration import constants, states, current_app
 from Products.ZenUtils.celeryintegration.worker import CeleryZenWorker
 
-from Products.Jobber.exceptions import NoSuchJobException, JobAborted
+from Products.Jobber.exceptions import NoSuchJobException, TaskAborted
 
 
 class CeleryZenJobs(ZenDaemon):
@@ -96,11 +96,11 @@ class CeleryZenJobs(ZenDaemon):
         connectionFactory.buildOptions(self.parser)
 
 
-# Replace the _log_error implementation to ignore JobAborted exceptions.
+# Replace the _log_error implementation to ignore TaskAborted exceptions.
 # This avoids writing exception tracebacks into the log for aborted jobs.
 @monkeypatch("celery.worker.job.Request")
 def _log_error(self, exc_info):
-    if not isinstance(exc_info.exception, JobAborted):
+    if not isinstance(exc_info.exception, TaskAborted):
         original(self, exc_info)  # noqa: F821
 
 

@@ -9,6 +9,8 @@
 
 from __future__ import absolute_import
 
+import threading
+
 from .job import Job
 
 
@@ -28,3 +30,32 @@ class DeviceListJob(Job):
         # attrs = ", ".join(dir(self))
         self.log.info("device names: %s", deviceNames)
         return deviceNames
+
+
+class PausingJob(Job):
+    """Waits for some interval of time before finishing successfully."""
+
+    name = "Products.Jobber.PausingJob"
+
+    @classmethod
+    def getJobDescription(cls, *args, **kw):
+        return "Runs for %s seconds" % args[0]
+
+    def _run(self, seconds, *args, **kw):
+        self.log.info("Sleeping for %s seconds", seconds)
+        threading.Event().wait(seconds)
+
+
+class DelayedFailure(Job):
+    """Waits for some interval of time before failing."""
+
+    name = "Products.Jobber.DelayedFailure"
+
+    @classmethod
+    def getJobDescription(cls, *args, **kw):
+        return "Runs for %s seconds before failing" % args[0]
+
+    def _run(self, seconds, *args, **kw):
+        self.log.info("Sleeping for %s seconds", seconds)
+        threading.Event().wait(seconds)
+        raise ValueError("ka-boom!")
