@@ -261,7 +261,9 @@ class ApplyDataMap(object):
 # Preproce, diff and set directives
 ##############################################################################
 
-def _validate_datamap(device, datamap, relname, compname, modname, parentId):
+def _validate_datamap(
+    device, datamap, relname=None, compname=None, modname=None, parentId=None
+):
     if isinstance(datamap, RelationshipMap):
         log.debug('_validate_datamap: got valid RelationshipMap')
     elif relname:
@@ -394,7 +396,7 @@ def _process_relationshipmap(relmap, base_device):
     relmap._diff = _get_relationshipmap_diff(relmap._parent, relmap)
 
     new_maps = [
-        IncrementalDataMap(parent, object_map)
+        _validate_datamap(parent, object_map)
         for object_map in relmap.maps
     ]
     relmap.maps = new_maps
