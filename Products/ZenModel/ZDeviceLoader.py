@@ -529,7 +529,7 @@ class ZDeviceLoader(ZenModelItem, SimpleItem):
         Add new performance monitor to the database.
         """
         try:
-            self.getDmdRoot("Monitors").getPerformanceMonitor(
+            self.getDmdRoot("Monitors").setPerformanceMonitor(
                 newPerformanceMonitor)
         except BadRequest, e:
             if REQUEST:
