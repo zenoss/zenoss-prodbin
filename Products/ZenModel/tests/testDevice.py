@@ -229,9 +229,9 @@ class TestDevice(ZenModelBaseTest):
 
     def testSetPerformanceMonitor(self):
         self.dev.setPerformanceMonitor('perfMon')
-        self.assertEqual(self.dev.getPerformanceServerName(), 'perfMon')
+        self.assertEqual(self.dev.getPerformanceServerName(), 'localhost')
         self.dev.setPerformanceMonitor('perfMon', 'nextMon')
-        self.assertEqual(self.dev.getPerformanceServerName(), 'nextMon')
+        self.assertEqual(self.dev.getPerformanceServerName(), 'localhost')
 
 
     def testSetProdState(self):
@@ -334,7 +334,7 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
+        self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, "testTitle")
 
 
@@ -641,7 +641,7 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon") # test value
+        self.assertEqual(self.dev.getPerformanceServerName(), "localhost") # test value
         self.assertEqual(self.dev.title, '')
 
         self.dev.updateDevice(title='testTitle') # set value
@@ -662,7 +662,7 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
+        self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
         self.assertEqual(self.dev.title, "testTitle") # test value
 
         # we should not set title to None

@@ -108,7 +108,16 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         return 'Collectors'
 
     def getPerformanceMonitor(self, monitorName):
-        """get or create the performance monitor name"""
+        """get the performance monitor name"""
+        perfServerObj = self.getDmdRoot("Monitors").Performance
+        perfMonitors = {n: perfServerObj._getOb(n)
+             for n in self.getPerformanceMonitorNames()}
+        if monitorName not in perfMonitors.keys():
+            return perfMonitors.get('localhost')
+        return perfMonitors.get(monitorName)
+
+    def setPerformanceMonitor(self, monitorName):
+        """create the performance monitor name"""
         from Products.ZenModel.PerformanceConf \
             import manage_addPerformanceConf
         perfServerObj = self.getDmdRoot("Monitors").Performance

@@ -1556,17 +1556,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             oldPerformanceMonitor = self.getPerformanceServer().getId()
             self.getDmdRoot("Monitors").setPreviousCollectorForDevice(self.getId(), oldPerformanceMonitor)
 
+        collectorNotFound = False
+        warning = None
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
+        if obj.viewName() != performanceMonitor:
+            collectorNotFound = True
+            warning = ('Collector {} is not found. Performance monitor has been set to {}.'.format(
+                performanceMonitor, obj.viewName()))
+            log.warn(warning)
         self.addRelation("perfServer", obj)
         self.setLastChange()
         notify(IndexingEvent(self))
 
         if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Monitor Changed',
-                'Performance monitor has been set to %s.' % performanceMonitor
-            )
+            message = 'Performance monitor has been set to {}.'.format(performanceMonitor)
+            if collectorNotFound:
+                message = warning
+            messaging.IMessageSender(self).sendToBrowser('Monitor Changed', message)
             audit('UI.Device.SetPerformanceMonitor', self,
                   performancemonitor=performanceMonitor)
             return self.callZenScreen(REQUEST)
