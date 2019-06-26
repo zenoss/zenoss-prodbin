@@ -27,26 +27,18 @@ class UpdateZopeUrl(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        targets = ['zenactiond']
-        # if IncMan ZP is installed also set zopeurl in zope zenactiond.conf
-        try:
-            pack = dmd.ZenPackManager.packs._getOb('ZenPacks.zenoss.IncidentManagement')
-            targets.append('Zope')
-        except:
-            log.info("Skipping setting zopeurl in zenactiond.conf in zope since IncidentManagement ZP is not installed")
+        # The three known places the zopeurl is defined are:
+        # - zenactiond in zenactiond.conf
+        # - Zope in zenactiond.conf if IncidentManagement ZP is installed
+        # - zenNotify in zennotify.conf if QFramework ZP is installed
+        targets = ['zenactiond','Zope','zenNotify']
+        targetConfigFiles = ['/opt/zenoss/etc/zenactiond.conf','/opt/zenoss/etc/zennotify.conf']
 
-        # if QFramework ZP is installed also set zopeurl in zenNotify zennotify.conf
-        try:
-            pack = dmd.ZenPackManager.packs._getOb('ZenPacks.zenoss.PS.QFramework')
-            targets.append('zenNotify')
-        except:
-            log.info("Skipping setting zopeurl in zennotify.conf in zenNotify since QFramework ZP is not installed")
-
-	# Set zopeurl in zenactiond.conf and zennotify.conf if present in target services
+	# Get list of services
         services = filter(lambda s: s.name in targets, ctx.services)
 
         for service in services:
-            for config in filter(lambda f: f.name == '/opt/zenoss/etc/zenactiond.conf' or f.name == '/opt/zenoss/etc/zennotify.conf',service.configFiles):
+            for config in filter(lambda f: f.name in targetConfigFiles,service.configFiles):
                log.info("Updating zopeurl in %s for %s", config.name, service.name)
                lines = config.content.split('\n')
                newLines = []
