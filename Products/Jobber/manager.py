@@ -28,6 +28,8 @@ from .zenjobs import app
 
 log = logging.getLogger("zen.zenjobs.JobManager")
 
+JOBMANAGER_VERSION = 2
+
 
 def manage_addJobManager(context, oid="JobManager"):
     """Add the JobManager class to dmd."""
@@ -40,8 +42,16 @@ def manage_addJobManager(context, oid="JobManager"):
 class JobManager(ZenModelRM):
     """Manages Jobs."""
 
+    # Attribute that allows a migration script to determine whether this
+    # object should be replaced.
+    _jobmanager_version = None
+
     security = ZClassSecurityInfo()
     meta_type = portal_type = "JobManager"
+
+    def __init__(self, *args, **kw):
+        ZenModelRM.__init__(self, *args, **kw)
+        self._jobmanager_version = JOBMANAGER_VERSION
 
     @security.protected(ZEN_MANAGE_DMD)
     def addJobChain(self, *joblist, **options):
