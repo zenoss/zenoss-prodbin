@@ -4,6 +4,16 @@
    <!-- worker configuration -->
 
    <celery:signal
+      name="worker_ready"
+      handler=".log.setup_loglevel_monitor"
+      />
+
+   <celery:signal
+      name="worker_shutdown"
+      handler=".log.teardown_loglevel_monitor"
+      />
+
+   <celery:signal
       name="setup_logging"
       handler=".log.configure_logging"
       />
@@ -16,6 +26,16 @@
    <celery:signal
       name="worker_process_shutdown"
       handler=".worker.teardown_zodb"
+      />
+
+   <celery:signal
+      name="worker_process_init"
+      handler=".log.setup_loglevel_monitor"
+      />
+
+   <celery:signal
+      name="worker_process_shutdown"
+      handler=".log.teardown_loglevel_monitor"
       />
 
    <!-- task log handling -->
