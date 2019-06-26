@@ -9,6 +9,7 @@
 
 from __future__ import absolute_import, print_function
 
+import contextlib
 import csv
 import errno
 import logging
@@ -16,7 +17,9 @@ import logging.config
 import logging.handlers
 import os
 import sys
+import threading
 
+from inotify_simple import INotify, flags as Flags
 from zope.component import getUtility
 
 from Products.ZenUtils.Utils import zenPath
@@ -93,23 +96,32 @@ _default_config = {
 }
 
 
-def _get_default_config():
+_loglevelconf_filepath = zenPath("etc", "zenjobs_log_levels.conf")
+
+
+def _get_logger(name=None):
+    if name:
+        name = ".".join(("zen", "zenjobs", "log", name))
+    else:
+        name = "zen.zenjobs.log"
+    return get_logger(name)
+
+
+def get_default_config():
+    """Return the default logging configuration.
+
+    :rtype: dict
+    """
     return _default_config
 
 
 def configure_logging(**ignore):
     """Configure logging for zenjobs."""
-    logging.config.dictConfig(_get_default_config())
+    logging.config.dictConfig(get_default_config())
 
-    loglevel_configfile = zenPath("etc", "zenjobs_log_levels.conf")
-    if os.path.exists(loglevel_configfile):
-        with open(loglevel_configfile, 'r') as fd:
-            reader = csv.reader(
-                fd, delimiter=' ',
-                quoting=csv.QUOTE_NONE, skipinitialspace=True,
-            )
-            levelconfig = dict(row for row in reader)
-        _apply_levels(levelconfig)
+    if os.path.exists(_loglevelconf_filepath):
+        levelconfig = load_log_level_config(_loglevelconf_filepath)
+        apply_levels(levelconfig)
 
     stdout = logging.getLogger("STDOUT")
     outproxy = LoggingProxy(stdout, logging.INFO)
@@ -121,12 +133,31 @@ def configure_logging(**ignore):
     sys.__stderr__ = errproxy
     sys.stderr = errproxy
 
-    log = FormatStringAdapter(get_logger())
-    log.debug("configure_logging: Logging configured")
+    log = FormatStringAdapter(_get_logger())
+    log.info("configure_logging: Logging configured")
 
 
-def _apply_levels(loggerlevels):
+def load_log_level_config(configfile):
+    """Return the log level configuration data.
+
+    The data maps the log name to the log level name.
+
+    :rtype: dict
+    """
+    with open(configfile, 'r') as fd:
+        reader = csv.reader(
+            fd, delimiter=' ',
+            quoting=csv.QUOTE_NONE, skipinitialspace=True,
+        )
+        return dict(row[:2] for row in reader)
+
+
+def apply_levels(loggerlevels):
     """Apply the log levels specified in loggerlevels."""
+    # If no data is given, then do nothing.
+    if not loggerlevels:
+        return
+
     # 'Special' logger names are recognized and are retrieved using
     # logging.getLogger rather than get_logger.  These special logger names
     # are STDOUT, STDERR, and any log names starting with 'zen' or 'celery'.
@@ -139,9 +170,29 @@ def _apply_levels(loggerlevels):
         else:
             logger = get_logger(name)
         logger.setLevel(level)
+    _get_logger().debug(
+        "Updated log level of logger(s) %s", ", ".join(loggerlevels),
+    )
+
+    # Set the level of all loggers not given in the loglevel config file
+    # to NOTSET.
+    rlog = logging.getLogger()
+    loggers = {
+        name: logger
+        for name, logger in rlog.manager.loggerDict.iteritems()
+        if not isinstance(logger, logging.PlaceHolder)
+        and logger.level > logging.NOTSET
+        and name not in loggerlevels
+    }
+    for logger in loggers.values():
+        logger.setLevel(logging.NOTSET)
+    if loggers:
+        _get_logger().debug(
+            "Reset log level of loggers %s", ", ".join(loggers),
+        )
 
 
-@inject_logger(log=get_logger, adapter=FormatStringAdapter)
+@inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
     """Create and configure the job instance logger."""
     log.debug("Adding a logger for job instance {}[{}]", task.name, task_id)
@@ -163,7 +214,7 @@ def setup_job_instance_logger(log, task_id=None, task=None, **kwargs):
         log.debug("Job instance logger added")
 
 
-@inject_logger(log=get_logger, adapter=FormatStringAdapter)
+@inject_logger(log=_get_logger, adapter=FormatStringAdapter)
 def teardown_job_instance_logger(log, task=None, **kwargs):
     """Tear down and delete the job instance logger."""
     log.debug("Removing job instance logger from {}", task.name)
@@ -180,3 +231,109 @@ def teardown_job_instance_logger(log, task=None, **kwargs):
         log.exception("Failed to remove job instance logger")
     finally:
         log.debug("Job instance logger removed")
+
+
+@inject_logger(log=_get_logger, adapter=FormatStringAdapter)
+def setup_loglevel_monitor(log, *args, **kwargs):
+    LogLevelUpdater.start()
+    log.debug("Started log levels config monitoring thread")
+
+
+@inject_logger(log=_get_logger, adapter=FormatStringAdapter)
+def teardown_loglevel_monitor(log, *args, **kwargs):
+    LogLevelUpdater.stop()
+    log.debug("Stopped log levels config monitoring thread")
+
+
+class LogLevelUpdater(object):
+    """Manages the log levels updater."""
+
+    instance = None
+
+    @classmethod
+    def start(cls):
+        if cls.instance is None:
+            cls.instance = _LogLevelUpdaterThread(_loglevelconf_filepath)
+            cls.instance.start()
+        elif not cls.instance.is_alive():
+            cls.instance = None
+            cls.start()
+
+    @classmethod
+    def stop(cls):
+        if cls.instance is not None:
+            cls.instance.stop()
+
+
+class _LogLevelUpdaterThread(threading.Thread):
+
+    def __init__(self, filepath):
+        self.__filepath = filepath
+        self.__stop = threading.Event()
+        super(_LogLevelUpdaterThread, self).__init__()
+        self.daemon = True
+
+    def _log(self):
+        return _get_logger("loglevelupdater")
+
+    def stop(self):
+        self.__stop.set()
+
+    def run(self):
+        try:
+            with file_watcher(self.__filepath) as watcher:
+                while not self.__stop.wait(0.1):
+                    if not watcher.changed:
+                        continue
+                    log = self._log()
+                    log.info("log levels config has changed")
+                    try:
+                        levelconfig = load_log_level_config(self.__filepath)
+                        apply_levels(levelconfig)
+                    except Exception as ex:
+                        log.error("config file bad format: %s", ex)
+                    else:
+                        log.info("log levels config changes applied")
+        finally:
+            self._log().info("stopping")
+
+
+@contextlib.contextmanager
+def file_watcher(filepath):
+    watcher = FileChangeWatcher(filepath)
+    try:
+        yield watcher
+    finally:
+        watcher.close()
+
+
+class FileChangeWatcher(object):
+    """Monitors for changes in a given file."""
+
+    def __init__(self, filepath):
+        self.__path, self.__name = filepath.rsplit("/", 1)
+        self.__inotify = INotify()
+        watch_flags = \
+            Flags.MODIFY \
+            | Flags.CLOSE_WRITE \
+            | Flags.MOVED_TO \
+            | Flags.EXCL_UNLINK
+        self.__wd = self.__inotify.add_watch(self.__path, watch_flags)
+
+    def close(self):
+        self.__inotify.rm_watch(self.__wd)
+
+    @property
+    def changed(self):
+        modified = saved = False
+        events = self.__inotify.read()
+        events = (e for e in events if e.name == self.__name)
+        flags = (f for e in events for f in Flags.from_mask(e.mask))
+        for flag in flags:
+            if flag == Flags.MODIFY:
+                modified = True
+            elif flag == Flags.CLOSE_WRITE:
+                saved = True
+            elif flag == Flags.MOVED_TO:
+                modified = saved = True
+        return modified and saved
