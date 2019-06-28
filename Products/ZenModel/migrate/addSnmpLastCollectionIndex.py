@@ -36,6 +36,6 @@ class AddSnmpLastCollectionIndex(Migrate.Step):
                 idxs=("snmpLastCollection"),
                 types=DeviceIndexable)
         else:
-            log.info("Index for last model time already exist, skipping.")
+            log.info("Index for last model time already exists, skipping.")
 
 AddSnmpLastCollectionIndex()
