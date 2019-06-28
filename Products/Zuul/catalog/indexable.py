@@ -77,6 +77,7 @@ OBJECT_UID_FIELD = "uid"                    # this will transalate to "uid" in s
             |  idx_hwModel               |  hwModel                |              |     Y   |    Y    |   str     |     N     |
             |  idx_hwManufacturer        |  hwManufacturer         |              |     Y   |    Y    |   str     |     N     |
             |  idx_serialNumber          |  serialNumber           |              |     Y   |    Y    |   str     |     N     |
+            |  idx_snmpLastCollection    |  snmpLastCollection     |              |     Y   |    Y    |   str     |     N     |
             -------------------------------------------------------------------------------------------------------------------
 
 
@@ -375,7 +376,10 @@ class DeviceIndexable(object):   # Device inherits from this class
     def idx_serialNumber(self):
         return self.hw.serialNumber
 
-
+    @indexed(StringFieldType(indexed=True, stored=True), attr_query_name="snmpLastCollection")
+    def idx_snmpLastCollection(self):
+        return self.snmpLastCollection
+    
 class ComponentIndexable(object):     # DeviceComponent inherits from this class
 
     @indexed(StringFieldType(stored=True), attr_query_name="deviceId")
