@@ -265,7 +265,7 @@ class IncrementalDataMap(object):
     def _remove(self):
         '''Remove the target object from the relationship
         '''
-        if not self.target:
+        if not self.target or not self.relname:
             self.changed = False
             return
 
