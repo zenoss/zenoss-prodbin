@@ -474,6 +474,13 @@ class TestIncrementalDataMap(TestCase):
         t.idm._remove()
         t.assertIs(False, t.idm.changed)
 
+    def test__remove_without_relname(t):
+        '''changed is false, if remove is called without relname
+        '''
+        t.idm.relname = None
+        t.idm._remove()
+        t.assertIs(False, t.idm.changed)
+
     def test__remove_handles_attribute_error(t):
         t.parent.removeRelation.side_effect = AttributeError()
         t.idm._remove()
