@@ -6,12 +6,3 @@
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
-
-import Globals
-
-from .applydatamap import (
-    ApplyDataMap, notify, isSameData, IncrementalDataMap,
-)
-from .events import (
-    IDatamapUpdateEvent, IDatamapAddEvent, IDatamapProcessedEvent,
-)

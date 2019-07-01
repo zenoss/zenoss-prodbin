@@ -27,6 +27,10 @@ class IDatamapUpdateEvent(IDatamapEvent):
     pass
 
 
+class IDatamapProcessedEvent(IDatamapEvent):
+    pass
+
+
 class DatamapAddEvent(object):
     implements(IDatamapAddEvent)
 
@@ -38,6 +42,15 @@ class DatamapAddEvent(object):
 
 class DatamapUpdateEvent(object):
     implements(IDatamapUpdateEvent)
+
+    def __init__(self, dmd, objectmap, target):
+        self.dmd = dmd
+        self.objectmap = objectmap
+        self.target = target
+
+
+class DatamapProcessedEvent(object):
+    implements(IDatamapProcessedEvent)
 
     def __init__(self, dmd, objectmap, target):
         self.dmd = dmd
