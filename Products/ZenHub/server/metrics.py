@@ -414,7 +414,7 @@ class StatsMonitor(object):
         if _legacy_metric_worklist_total in instruments:
             rrdstats.gauge(
                 'workListLength',
-                instruments[_legacy_metric_worklist_total].value,
+                instruments[_legacy_metric_worklist_total].count,
             )
 
         for name, value in self.__counters.items():
