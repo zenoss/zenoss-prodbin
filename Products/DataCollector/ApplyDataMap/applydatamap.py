@@ -15,6 +15,7 @@ from zope.event import notify
 
 import Globals  # noqa. required to import zenoss Products
 from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.deprecated import deprecated
 from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
 from Products.ZenModel.ZenModelRM import ZenModelRM
 
@@ -229,26 +230,27 @@ class ApplyDataMap(object):
     def _report_objectmap_changes(self, objectmap, obj):
         self._reporter.report_directive(obj, objectmap)
 
+    @deprecated
     def _updateRelationship(self, device, relmap):
         '''This stub is left to satisfy backwards compatability requirements
         for the monkeypatch in ZenPacks.zenoss.PythonCollector
         ZenPacks/zenoss/PythonCollector/patches/platform.py
         '''
-        log.warning('_updateRelationship is Deprecated')
         self.applyDataMap(device=device, datamap=relmap)
 
+    @deprecated
     def _removeRelObject(self, device, objmap, relname):
         '''This stub is left to satisfy backwards compatability requirements
         for the monkeypatch in ZenPacks.zenoss.PythonCollector
         ZenPacks/zenoss/PythonCollector/patches/platform.py
         '''
-        log.warning('_removeRelObject is Deprecated')
+        pass
 
+    @deprecated
     def _createRelObject(self, device, objmap, relname):
         '''This stub is left to satisfy backwards compatability
         some zenpacks call this method directly
         '''
-        log.warning('_createRelObject is Deprecated')
         objmap.relname = relname
         idm = IncrementalDataMap(device, objmap)
         changed = self.applyDataMap(device=device, datamap=idm)
@@ -259,7 +261,9 @@ class ApplyDataMap(object):
 # Preproce, diff and set directives
 ##############################################################################
 
-def _validate_datamap(device, datamap, relname, compname, modname, parentId):
+def _validate_datamap(
+    device, datamap, relname=None, compname=None, modname=None, parentId=None
+):
     if isinstance(datamap, RelationshipMap):
         log.debug('_validate_datamap: got valid RelationshipMap')
     elif relname:
@@ -392,7 +396,7 @@ def _process_relationshipmap(relmap, base_device):
     relmap._diff = _get_relationshipmap_diff(relmap._parent, relmap)
 
     new_maps = [
-        IncrementalDataMap(parent, object_map)
+        _validate_datamap(parent, object_map)
         for object_map in relmap.maps
     ]
     relmap.maps = new_maps

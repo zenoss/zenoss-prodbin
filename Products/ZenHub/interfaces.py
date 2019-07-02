@@ -216,18 +216,3 @@ class ICollectorEventTransformer(Interface):
             TRANSFORM_DROP if the event should be dropped.
         @rtype: int
         """
-
-
-class IServiceReferenceFactory(Interface):
-    """The IServiceReferenceFactory interface describes objects used to
-    build twisted.spread.pb.Referenceable objects.
-    """
-
-    def build(service, name, monitor):
-        """Build and return a ServiceReference object.
-
-        @param service {HubService} Service object
-        @param name {string} Name of the service
-        @param monitor {string} Name of the performance monitor (collector)
-        @returns {twisted.spread.pb.Referenceable}
-        """

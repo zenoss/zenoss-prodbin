@@ -71,7 +71,7 @@ class PingCollectionPreferences(object):
         
     def buildOptions(self, parser):
         parser.add_option('--disable-correlator',
-            dest='correlator',
+            dest='disableCorrelator',
             default=True,
             action="store_false",
             help="Disable the correlator.")
