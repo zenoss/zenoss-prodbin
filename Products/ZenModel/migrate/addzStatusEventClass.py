@@ -23,7 +23,9 @@ class AddzStatusEventClass(Migrate.Step):
 
     def cutover(self, dmd):
         if not hasattr(dmd.Devices, 'zStatusEventClass'):
-            dmd.Devices._setProperty('zStatusEventClass', '/Status/*',
+            dmd.Devices._setProperty('zStatusEventClass', '/Status/',
                                      type='string')
+        else:
+            dmd.Devices._updateProperty('zStatusEventClass', '/Status/')
 
 AddzStatusEventClass()
