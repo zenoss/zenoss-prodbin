@@ -17,12 +17,15 @@ from types import ClassType
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Acquisition import aq_base, aq_chain
-from BTrees.OOBTree import OOBTree
 from BTrees.IOBTree import IOBTree
+from BTrees.OOBTree import OOBTree
 from OFS.PropertyManager import PropertyManager
 from zope.component import getUtility
-from zope.interface import Interface
 from zope.i18nmessageid import MessageFactory
+from zope.interface import Interface
+from ZPublisher.BaseRequest import RequestContainer
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
 
 from Products.ZCatalog.interfaces import ICatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
@@ -124,18 +127,26 @@ def severityString(severityId):
     if severityId in range(0,6):
         return _sevs[severityId]
 
+
 def get_dmd():
-    """
-    Retrieve the DMD object.
-    """
+    """Retrieve the DMD object."""
     connections = transaction.get()._synchronizers.data.values()[:]
     connections.reverse()
     # Make sure we don't get the temporary connection
     for cxn in connections:
         db = getattr(cxn, '_db', None)
         if db and db.database_name != 'temporary':
+            resp = HTTPResponse(stdout=None)
+            env = {
+                'SERVER_NAME': 'localhost',
+                'SERVER_PORT': '8080',
+                'REQUEST_METHOD': 'GET',
+            }
+            req = HTTPRequest(None, env, resp)
             app = cxn.root()['Application']
+            app = app.__of__(RequestContainer(REQUEST=req))
             return app.zport.dmd
+
 
 _MARKER = object()
 def safe_hasattr(object, name):

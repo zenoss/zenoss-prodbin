@@ -103,6 +103,8 @@ class IncrementalDataMap(object):
             'remove': self._remove,
             'nochange': self._nochange,
             'rebuild': self._rebuild,
+            'update_locked': self._nochange,
+            'delete_locked': self._nochange,
         }
 
     @property
