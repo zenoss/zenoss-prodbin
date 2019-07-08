@@ -86,7 +86,7 @@ Z_PROPERTIES = [
     ('zSnmpMonitorIgnore', False, 'boolean', 'Ignore SNMP Monitor?', 'Whether or not to ignore monitoring SNMP on a device.'),
     ('zPingMonitorIgnore', False, 'boolean', 'Ignore Ping Monitor?', 'Whether or not to ping the device.'),
     ('zStatusConnectTimeout', 15.0, 'float', 'Status Connection Timeout (seconds)', 'The amount of time that the zenstatus daemon should wait before marking an IP service down.'),
-    ('zStatusEventClass', '/Status/*', 'string', 'Event class that affect status', 'Event class that mark device Down if we got critical event'),
+    ('zStatusEventClass', '/Status/', 'string', 'Event class that affect status', 'Event class that mark device Down if we got critical event'),
 
     # DataCollector properties
     ('zCollectorPlugins', [], 'lines', 'Collector Plugins', ''),
