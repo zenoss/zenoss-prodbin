@@ -11,9 +11,10 @@ from __future__ import absolute_import
 
 import time
 
-from collections import defaultdict, Counter
+from collections import defaultdict
 from datetime import datetime, timedelta
 from metrology import Metrology
+from metrology.instruments import Gauge
 from metrology.registry import registry
 from zope.component import adapter, getUtility, provideHandler
 
@@ -29,59 +30,89 @@ from .utils import getLogger
 
 log = getLogger("metrics")
 
-_legacy_metric_worklist_total = "zenhub.workList"
+_legacy_metric_worklist_total = type(
+    "WorkListTotalNames", (object,),
+    {"metric": "zenhub.workList", "name": "total"},
+)()
 
-# Dict[Union[str, ServiceCallPriority], Metrology.counter]
-_legacy_worklist_counters = {}
+# Dict[Union[str, ServiceCallPriority], int]
+_legacy_worklist_counters = defaultdict(lambda: 0)
+
+_legacy_events_meter = None
+
+
+class WorkListGauge(Gauge):
+    """Wraps a Metrology Gauge to sample the size of zenhub worklists."""
+
+    def __init__(self, counters, key):
+        self.__counters = counters
+        self.__key = key
+
+    @property
+    def value(self):
+        return self.__counters[self.__key]
 
 
 def register_legacy_worklist_metrics():
     """Create the Metrology counters for tracking worklist statistics."""
     config = getUtility(IHubServerConfig)
+    global _legacy_worklist_counters
 
     for metricName, priorityName in config.legacy_metric_priority_map.items():
-        counter = registry.metrics.get(metricName)
-        if not counter:
-            counter = Metrology.counter(metricName)
+        gauge = registry.metrics.get(metricName)
         priority = ServiceCallPriority[priorityName]
-        _legacy_worklist_counters[priority] = counter
+        if not gauge:
+            gauge = WorkListGauge(_legacy_worklist_counters, priority)
+            Metrology.gauge(metricName, gauge)
+        _legacy_worklist_counters[priority] = 0
 
-    counter = registry.metrics.get(_legacy_metric_worklist_total)
-    if not counter:
-        counter = Metrology.counter(_legacy_metric_worklist_total)
-    _legacy_worklist_counters["total"] = counter
+    gauge = registry.metrics.get(_legacy_metric_worklist_total.metric)
+    if not gauge:
+        gauge = WorkListGauge(
+            _legacy_worklist_counters, _legacy_metric_worklist_total.name,
+        )
+        Metrology.gauge(_legacy_metric_worklist_total.metric, gauge)
+    _legacy_worklist_counters["total"] = 0
+
+    global _legacy_events_meter
+    _legacy_events_meter = Metrology.meter("zenhub.eventsSent")
 
 
 @adapter(ServiceCallReceived)
 def incrementLegacyMetricCounters(event):
     """Update the legacy metric counters."""
-    _legacy_worklist_counters[event.priority].increment()
-    _legacy_worklist_counters["total"].increment()
+    global _legacy_worklist_counters
+    _legacy_worklist_counters[event.priority] += 1
+    _legacy_worklist_counters["total"] += 1
 
 
 @adapter(ServiceCallCompleted)
 def decrementLegacyMetricCounters(event):
-    """Update the legacy metric counters."""
+    """Update the legacy worklist counters."""
     # When 'retry' is not None, the service call has not left the worklist.
     if event.retry is not None:
         return
+    global _legacy_worklist_counters
     for key in (event.priority, "total"):
-        instrument = _legacy_worklist_counters[key]
-        instrument.decrement()
+        _legacy_worklist_counters[key] -= 1
         # If the count falls below zero, there's a bug and should be logged.
-        if instrument.count < 0:
-            # The name of the metric must be looked up since the
-            # Metrology instrument doesn't know its own name.
-            metric = next((
-                _name
-                for _name, _i in dict(registry).items()
-                if _i is instrument
-            ), None)
-            if metric:
-                log.warn(
-                    "Metric is negative metric=%s value=%s",
-                    metric, instrument.count,
-                )
+        if _legacy_worklist_counters[key] < 0:
+            log.warn(
+                "Counter is negative worklist=%s value=%s",
+                key, _legacy_worklist_counters[key],
+            )
+
+
+@adapter(ServiceCallCompleted)
+def markEventsSent(event):
+    """Update the legacy eventsSent metric."""
+    if event.retry is not None:
+        return
+    global _legacy_events_meter
+    if event.method == "sendEvent":
+        _legacy_events_meter.mark()
+    elif event.method == "sendEvents":
+        _legacy_events_meter.mark(len(event.args))
 
 
 # Metrics
@@ -382,7 +413,7 @@ class StatsMonitor(object):
     """Records statistics on zenhubworker activity."""
 
     def __init__(self):
-        self.__counters = Counter()
+        self.__counters = defaultdict(lambda: 0)
         self.__worker_stats = defaultdict(_WorkerStats)
         self.__task_stats = defaultdict(_TaskStats)
         provideHandler(self._updateWorkerItems)
@@ -411,11 +442,9 @@ class StatsMonitor(object):
         rrdstats.counter('totalCallTime', totalTime)
 
         instruments = dict(registry)
-        if _legacy_metric_worklist_total in instruments:
-            rrdstats.gauge(
-                'workListLength',
-                instruments[_legacy_metric_worklist_total].count,
-            )
+        workListGauge = instruments.get(_legacy_metric_worklist_total.metric)
+        if workListGauge is not None:
+            rrdstats.gauge('workListLength', workListGauge.value)
 
         for name, value in self.__counters.items():
             rrdstats.counter(name, value)
