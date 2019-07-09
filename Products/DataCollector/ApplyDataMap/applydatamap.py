@@ -28,7 +28,7 @@ from .datamaputils import (
 )
 
 from .reporter import ADMReporter
-from .events import DatamapAddEvent
+from .events import DatamapAddEvent, DatamapProcessedEvent
 
 
 log = logging.getLogger("zen.ApplyDataMap")
@@ -160,7 +160,7 @@ class ApplyDataMap(object):
         # update relationships for each object in the relationship map
         for object_map in relmap:
             if isinstance(object_map, IncrementalDataMap):
-                object_map.apply()
+                self._apply_incrementalmap(object_map, device)
 
             elif isinstance(object_map, ZenModelRM):
                 # add the relationship to the device
@@ -172,7 +172,11 @@ class ApplyDataMap(object):
 
     def _apply_incrementalmap(self, incremental_map, device):
         log.debug('_apply_incrementalmap: incremental_map=%s', incremental_map)
-        return incremental_map.apply()
+        ret = incremental_map.apply()
+        notify(DatamapProcessedEvent(
+            self._dmd, incremental_map, incremental_map.target
+        ))
+        return ret
 
     def stop(self):
         pass
@@ -399,6 +403,9 @@ def _process_relationshipmap(relmap, base_device):
         _validate_datamap(parent, object_map)
         for object_map in relmap.maps
     ]
+    for map in new_maps:
+        map.plugin_name = relmap.plugin_name
+
     relmap.maps = new_maps
 
     return relmap

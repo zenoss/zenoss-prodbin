@@ -18,8 +18,8 @@ from Products.DataCollector.plugins.DataMaps import (
     RelationshipMap, ObjectMap, MultiArgs, PLUGIN_NAME_ATTR
 )
 from Products.DataCollector.ApplyDataMap import (
-    IDatamapUpdateEvent,
-    IDatamapAddEvent,
+    IDatamapProcessedEvent,
+    IncrementalDataMap,
 )
 
 from Products.Zing import fact as ZFact
@@ -36,17 +36,11 @@ logging.basicConfig()
 log = logging.getLogger("zen.zing.datamaps")
 
 
-@adapter(IDatamapUpdateEvent)
-def zing_add_datamap_context(event):
-    log.debug('zing_add_datamap_context handeling event=%s', event)
-    zing_datamap_handler = ZingDatamapHandler(event.dmd)
-    zing_datamap_handler.add_context(event.objectmap, event.target)
-
-
-@adapter(IDatamapAddEvent)
+@adapter(IDatamapProcessedEvent)
 def zing_add_datamap(event):
     log.debug('zing_add_datamap_context handeling event=%s', event)
     zing_datamap_handler = ZingDatamapHandler(event.dmd)
+    zing_datamap_handler.add_context(event.objectmap, event.target)
     zing_datamap_handler.add_datamap(event.target, event.objectmap)
 
 
@@ -243,6 +237,42 @@ class ZingDatamapHandler(object):
                 f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
         return f
 
+    def fact_from_incremental_map(self, idm, context=None):
+        f = ZFact.Fact()
+        valid_types = (
+            str, int, long, float, bool, list, tuple, MultiArgs, set
+        )
+
+        objectmap = {k: v for k, v in idm.iteritems()}
+        for k, v in objectmap.items():
+            # These types are currently all that the model ingest service can handle.
+            if not isinstance(v, valid_types):
+                del objectmap[k]
+            elif isinstance(v, MultiArgs):
+                objectmap[k] = v.args
+
+        objectmap['id'] = idm.id
+        f.update(objectmap)
+
+        f.metadata["relationship"] = idm.relname
+        f.metadata[ZFact.FactKeys.PLUGIN_KEY] = idm.plugin_name
+        try:
+            f.metadata["parent"] = idm.parent.getUUID()
+        except Exception:
+            log.debug('parent UUID not found')
+
+        # Hack in whatever extra stuff we need.
+        om_context = (context or {}).get(idm)
+        if om_context is not None:
+            self.apply_extra_fields(om_context, f)
+
+        # FIXME temp solution until we are sure all zenpacks send the plugin
+        if not f.metadata.get(ZFact.FactKeys.PLUGIN_KEY):
+            log.warn("Found fact without plugin information: {}".format(f.metadata))
+            if f.metadata.get(ZFact.FactKeys.META_TYPE_KEY):
+                f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
+        return f
+
     def facts_from_datamap(self, device, dm, context):
         facts = []
         dm_plugin = getattr(dm, PLUGIN_NAME_ATTR, None)
@@ -255,6 +285,12 @@ class ZingDatamapHandler(object):
             f = self.fact_from_object_map(dm, context=context, dm_plugin=dm_plugin)
             if f.is_valid():
                 facts.append(f)
+        elif isinstance(dm, IncrementalDataMap):
+            f = self.fact_from_incremental_map(dm, context=context)
+            if f.is_valid():
+                facts.append(f)
+        else:
+            log.error('datamap type not found. type=%s', type(dm))
         return facts
 
     def apply_extra_fields(self, om_context, f):

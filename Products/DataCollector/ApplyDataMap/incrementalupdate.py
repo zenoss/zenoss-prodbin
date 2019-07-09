@@ -75,6 +75,7 @@ class IncrementalDataMap(object):
         self.relname = getattr(object_map, 'relname', None)
         self.modname = getattr(object_map, 'modname', None)
         self.classname = getattr(object_map, 'classname', None)
+        self.plugin_name = getattr(object_map, 'plugin_name', None)
 
         self._object_map = {
             k: v for k, v in object_map.iteritems()
