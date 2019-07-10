@@ -286,7 +286,7 @@ class ZingDatamapHandler(object):
             if f.is_valid():
                 facts.append(f)
         elif isinstance(dm, IncrementalDataMap):
-            f = self.fact_from_incremental_map(dm, context=context)
+            f = self.fact_from_object_map(dm, device, dm.relname, context=context, dm_plugin=dm_plugin)
             if f.is_valid():
                 facts.append(f)
         else:
