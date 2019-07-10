@@ -111,6 +111,7 @@ class ProcessRunner(ProcessProtocol):
         d = self.command_defer = defer.Deferred()
         reactor.spawnProcess(self, shell, cmdline, env=command.env)
         self._timer = reactor.callLater(commandTimeout, self.timeout)
+        self.isTimeout = False
 
         return d
 
@@ -121,6 +122,7 @@ class ProcessRunner(ProcessProtocol):
         """
         Kill a process gracefully if it takes too long
         """
+        self.isTimeout = True
         if not self.command_defer.called:
             if timedOut:
                 self.command_defer.errback(TimeoutError(self.command))
@@ -157,7 +159,8 @@ class ProcessRunner(ProcessProtocol):
         """
         self.exitCode = reason.value.exitCode
         if self.exitCode is not None:
-            self._timer.cancel()
+            if not self.isTimeout:
+                self._timer.cancel()
             self.output = ''.join(self.output)
             self.stderr = ''.join(self.stderr)
 
