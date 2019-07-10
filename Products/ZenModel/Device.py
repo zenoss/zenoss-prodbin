@@ -19,6 +19,7 @@ import shutil
 import time
 import socket
 import logging
+import itertools
 log = logging.getLogger("zen.Device")
 
 from urllib import quote as urlquote
@@ -43,8 +44,6 @@ from DateTime import DateTime
 from ZODB.POSException import POSError
 from BTrees.OOBTree import OOSet
 
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
-
 from Products.ZenRelations.RelSchema import ToManyCont, ToMany, ToOne
 from Commandable import Commandable
 from Lockable import Lockable
@@ -68,10 +67,16 @@ from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
 from zope.component import subscribers
+from zenoss.protocols.protobufs.zep_pb2 import (
+    STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED, SEVERITY_CRITICAL,
+    SEVERITY_ERROR, SEVERITY_WARNING
+)
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
+from Products.ZenEvents.events2.proxy import EventProxy
+from Products.ZenEvents.ZenEventClasses import Status_Ping
 from OFS.CopySupport import CopyError # Yuck, a string exception
 from Products.Zuul import getFacade
 from Products.Zuul.catalog.indexable import DeviceIndexable
@@ -467,6 +472,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Apply a datamap passed as a list of dicts through XML-RPC.
         """
+        from Products.DataCollector.ApplyDataMap import ApplyDataMap
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
                          compname=compname, modname=modname, parentId="")
@@ -613,7 +619,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             query['meta_type'] = type
 
         return list(getObjectsFromCatalog(self.componentSearch, query, log))
-
 
     def getDeviceComponentsNoIndexGen(self):
         """
@@ -1551,17 +1556,24 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             oldPerformanceMonitor = self.getPerformanceServer().getId()
             self.getDmdRoot("Monitors").setPreviousCollectorForDevice(self.getId(), oldPerformanceMonitor)
 
+        collectorNotFound = False
+        warning = None
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
+        if obj.viewName() != performanceMonitor:
+            collectorNotFound = True
+            warning = ('Collector {} is not found. Performance monitor has been set to {}.'.format(
+                performanceMonitor, obj.viewName()))
+            log.warn(warning)
         self.addRelation("perfServer", obj)
         self.setLastChange()
         notify(IndexingEvent(self))
 
         if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Monitor Changed',
-                'Performance monitor has been set to %s.' % performanceMonitor
-            )
+            message = 'Performance monitor has been set to {}.'.format(performanceMonitor)
+            if collectorNotFound:
+                message = warning
+            messaging.IMessageSender(self).sendToBrowser('Monitor Changed', message)
             audit('UI.Device.SetPerformanceMonitor', self,
                   performancemonitor=performanceMonitor)
             return self.callZenScreen(REQUEST)
@@ -1828,6 +1840,91 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         if REQUEST:
             audit('UI.Device.Remodel', self)
+        if xmlrpc: return 0
+
+
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    def runDeviceMonitor(self, REQUEST=None, write=None, debug=False):
+        """
+        Run monitoring daemon agains the device ones
+        """
+        # Datasource source type and  collection daemon to run
+        data_collector = {
+            'Python': 'zenpython',
+            'SNMP': 'zenperfsnmp',
+            'COMMAND': 'zencommand'
+        }
+        # Daemons to run against the device
+        collection_daemons = []
+        xmlrpc = isXmlRpc(REQUEST)
+        perfConf = self.getPerformanceServer()
+        if perfConf is None:
+            msg = "Device %s in unknown state -- remove and remodel" % self.titleOrId()
+            if write is not None:
+                write(msg)
+            log.error("Unable to get collector info: %s", msg)
+            if xmlrpc: return 1
+            return
+
+        # Getting all the datasources from template signed to that
+        # device for determining which daemon to run
+        templates = self.getRRDTemplates()
+        datasources = itertools.chain.from_iterable([
+                          template.getRRDDataSources() for
+                          template in templates
+        ])
+        ds_src_types = set()
+        for datasource in datasources:
+            # BasicDataSource contain the info about the source type
+            if datasource.__class__.__name__ == 'BasicDataSource':
+                ds_src_types.add(datasource.sourcetype)
+            else:
+            # We need parent class sourcetype since datasources inherited
+            # from PythonDatasource do not have "Python" as a sourcetype
+                ds_src_types.add(datasource.__class__.__base__.sourcetype)
+        for source in data_collector:
+            if source in ds_src_types:
+                collection_daemons.append(data_collector[source])
+        # We support only core collection daemons
+        # zenpython; zenperfsnmp; zencommand
+        if not collection_daemons and write:
+            write('Monitoring through UI only support COMMAND, '
+                  'SNMP and ZenPython type of datasources')
+            if xmlrpc: return 1
+            return
+        perfConf.runDeviceMonitor(self, REQUEST, write, collection_daemons, debug=debug)
+        if REQUEST:
+            audit('UI.Device.Monitor', self)
+        if xmlrpc: return 0
+
+
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'collectDevice')
+    def monitorPerDatasource(self, dsObj, REQUEST=None, write=None):
+        """
+        Run monitoring daemon against one device and one datasource ones
+        """
+        parameter = '--datasource'
+        value = '%s/%s' % (dsObj.rrdTemplate.obj.id, dsObj.id)
+        if dsObj.sourcetype == 'COMMAND':
+            collection_daemon = 'zencommand'
+        elif dsObj.__class__.__base__.sourcetype == 'Python':
+            collection_daemon = 'zenpython'
+        elif dsObj.sourcetype == 'SNMP':
+            collection_daemon = 'zenperfsnmp'
+            parameter = '--oid'
+            value = dsObj.oid
+
+        xmlrpc = isXmlRpc(REQUEST)
+        perfConf = self.getPerformanceServer()
+        if not collection_daemon and write:
+            write('Modeling through UI only support COMMAND, '
+                  'SNMP and ZenPython type of datasources')
+            if xmlrpc: return 1
+            return
+
+        perfConf.runDeviceMonitorPerDatasource(self, REQUEST, write,
+                                               collection_daemon, parameter,
+                                               value)
         if xmlrpc: return 0
 
 
@@ -2246,11 +2343,27 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def getStatus(self, statusclass=None, **kwargs):
         """
         Return the status number for this device of class statClass.
+        If statusclass not set, search by zStatusEventClass.
         """
         if not self.monitorDevice():
             return None
 
-        from Products.ZenEvents.ZenEventClasses import Status_Ping
+        if statusclass is None:
+            statusclass = self.zStatusEventClass
+            zep = getFacade('zep', self)
+            try:
+                event_filter = zep.createEventFilter(
+                    tags=[self.getUUID()],
+                    element_sub_identifier=[""],
+                    severity=[SEVERITY_CRITICAL],
+                    status=[STATUS_NEW, STATUS_ACKNOWLEDGED, STATUS_SUPPRESSED],
+                    event_class=filter(None, [self.zStatusEventClass]))
+
+                result = zep.getEventSummaries(0, filter=event_filter, limit=0)
+                return int(result['total'])
+            except Exception:
+                return None
+
         if statusclass == Status_Ping:
             return self._getPingStatus(statusclass)
 
@@ -2258,10 +2371,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def _getPingStatus(self, statusclass):
         if not self.zPingMonitorIgnore and self.getManageIp():
-            from Products.Zuul import getFacade
-            from Products.ZenEvents.events2.proxy import EventProxy
-            from zenoss.protocols.protobufs.zep_pb2 import STATUS_NEW, STATUS_ACKNOWLEDGED, \
-                STATUS_SUPPRESSED, SEVERITY_CRITICAL, SEVERITY_ERROR, SEVERITY_WARNING
             # Override normal behavior - we only care if the manage IP is down
 
             # need to add the ipinterface component id to search since we may be

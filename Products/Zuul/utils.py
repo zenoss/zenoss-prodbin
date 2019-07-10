@@ -8,6 +8,8 @@
 ##############################################################################
 
 import transaction
+import redis
+import time
 from copy import deepcopy
 from types import ClassType
 from Acquisition import aq_base, aq_chain
@@ -19,7 +21,12 @@ from zope.i18nmessageid import MessageFactory
 from Products.ZCatalog.interfaces import ICatalogBrain
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager, iszprop
+from Products.ZenUtils.GlobalConfig import getGlobalConfiguration
+from Products.ZenUtils.RedisUtils import parseRedisUrl
 from OFS.PropertyManager import PropertyManager
+from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.HTTPResponse import HTTPResponse
+from ZPublisher.BaseRequest import RequestContainer
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -112,18 +119,26 @@ def severityString(severityId):
     if severityId in range(0,6):
         return _sevs[severityId]
 
+
 def get_dmd():
-    """
-    Retrieve the DMD object.
-    """
+    """Retrieve the DMD object."""
     connections = transaction.get()._synchronizers.data.values()[:]
     connections.reverse()
     # Make sure we don't get the temporary connection
     for cxn in connections:
         db = getattr(cxn, '_db', None)
         if db and db.database_name != 'temporary':
+            resp = HTTPResponse(stdout=None)
+            env = {
+                'SERVER_NAME': 'localhost',
+                'SERVER_PORT': '8080',
+                'REQUEST_METHOD': 'GET',
+            }
+            req = HTTPRequest(None, env, resp)
             app = cxn.root()['Application']
+            app = app.__of__(RequestContainer(REQUEST=req))
             return app.zport.dmd
+
 
 _MARKER = object()
 def safe_hasattr(object, name):
@@ -374,4 +389,78 @@ class PathIndexCache(object):
         tree = PathIndexCache(results, instances, 'devices')
         print tree
 
-        
+
+class RedisGraphLinksTool(object):
+    """
+    Connect to Redis, put graph config and get it by hash
+    """
+
+    def __init__(self):
+        global_conf = getGlobalConfiguration()
+        self.redis_url = global_conf.get(
+            'redis-url', 'redis://localhost:6379/0'
+        )
+        self.redis_reconnection_interval = int(global_conf.get(
+            'redis-reconnection-interval', 3
+        ))
+        # we store time in hours in the configuration file
+        self.expiration_time = 3600 * int(global_conf.get(
+            'redis-graph-link-expiration', 2160
+        ))
+        self._redis_client = None
+        self._redis_last_connection_attemp = 0
+
+    @staticmethod
+    def create_redis_client(redis_url):
+        client = None
+        try:
+            client = redis.StrictRedis(**parseRedisUrl(redis_url))
+            client.config_get()  # test the connection
+        except Exception as e:
+            log.warning("Exception trying to connect to redis: {0}".format(e))
+            client = None
+        return client
+
+    def _connected_to_redis(self):
+        """ Ensures we have a connection to redis """
+        if self._redis_client is None:
+            now = time.time()
+            if (now - self._redis_last_connection_attemp >
+                    self.redis_reconnection_interval):
+                log.debug("Trying to reconnect to redis")
+                self._redis_last_connection_attemp = now
+                self._redis_client = self.create_redis_client(self.redis_url)
+                if self._redis_client:
+                    log.debug("Connected to redis")
+        return self._redis_client is not None
+
+    def push_to_redis(self, string, data):
+        key = "graphLink:" + string
+        if not self._connected_to_redis():
+            return False
+        try:
+            self._redis_client.set(key, data)
+            self._redis_client.expire(key, self.expiration_time)
+            log.debug("Success pushed to Redis")
+            return True
+        except Exception as e:
+            log.warning(
+                "Exception trying to push data to redis: {0}".format(e)
+            )
+            self._redis_client = None
+            return False
+
+    def load_from_redis(self, string):
+        key = "graphLink:" + string
+        if not self._connected_to_redis():
+            return None
+        try:
+            self._redis_client.expire("graphLink:" + key, self.expiration_time)
+            data = self._redis_client.get(key)
+            log.debug("Success received data for key %s from Redis", key)
+            return data
+        except Exception as e:
+            log.warning(
+                "Exception trying to receive data from redis: {0}".format(e))
+            self._redis_client = None
+            return None

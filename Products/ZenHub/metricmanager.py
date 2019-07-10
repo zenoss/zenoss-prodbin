@@ -1,17 +1,21 @@
 ##############################################################################
 #
-# Copyright (C) Zenoss, Inc. 2018, all rights reserved.
+# Copyright (C) Zenoss, Inc. 2019, all rights reserved.
 #
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
 #
 ##############################################################################
 
+from __future__ import absolute_import
+
 import os
 
-import Globals  # required to import zenoss Products
+import Globals  # noqa: required to import zenoss Products
 
-from Products.ZenUtils.Utils import unused
+from zope.interface import implementer
+from zope.component.interfaces import Interface, Attribute
+
 from Products.ZenUtils.MetricReporter import TwistedMetricReporter
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.metricwriter import (
@@ -29,9 +33,12 @@ from Products.ZenHub.metricpublisher.publisher import (
     HttpPostPublisher
 )
 
-unused(Globals)
+
+class IMetricManager(Interface):
+    metric_writer = Attribute('metric writer instance')
 
 
+@implementer(IMetricManager)
 class MetricManager(object):
     '''General interface for storing and reporting metrics
     metric publisher: publishes metrics to an external system (redis, http)

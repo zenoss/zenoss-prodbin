@@ -703,6 +703,8 @@ class DeviceFacade(TreeFacade):
         zProps.update(zProperties)
         model = model and "Auto" or "none"
         perfConf = self._dmd.Monitors.getPerformanceMonitor(collector)
+        if perfConf.viewName() != collector:
+            raise Exception("Collector `{}` does not exist".format(collector))
         jobrecords = perfConf.addCreateDeviceJob(deviceName=deviceName,
                                                devicePath=deviceClass,
                                                performanceMonitor=collector,
@@ -1125,8 +1127,8 @@ class DeviceFacade(TreeFacade):
             props[prop] = prop
         for org in self.context.dmd.Devices.getSubOrganizers():
             for prop in org.zCredentialsZProperties:
-                props[prop] = prop
-        return props.keys()
+                props[prop] = (prop, org.exportZProperty(prop)['type'])
+        return props.values()
 
     def maskPropertyPassword(self, inst, propname):
         prop = getattr(inst, propname)

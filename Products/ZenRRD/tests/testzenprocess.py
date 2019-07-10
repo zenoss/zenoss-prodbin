@@ -140,9 +140,7 @@ class TestZenprocess(BaseTestCase):
         The results are passed back from the method
         """
         procs = task._parseProcessNames(data)
-        #print "procs  : ", procs
         results = task._determineProcessStatus(procs)
-        #print "results: ", results
 
         actual = dict(zip(ProcessResults.resultKeys, results))
         actual[ProcessResults.PROCESSES] = procs
@@ -273,11 +271,7 @@ class TestZenprocess(BaseTestCase):
         
         return task
 
-    def printTestTitle(self, title):
-        print "..Running %s..." % title
-
     def testProcessCount(self):
-        self.printTestTitle("testProcessCount")
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess',
@@ -296,8 +290,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=1))
 
     def testMissingNoMatch(self):
-        self.printTestTitle("testMissingNoMatch")
-        
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.9': 'otherProcess'},
@@ -306,8 +298,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=1))
 
     def testMissingMismatchName(self):
-        self.printTestTitle("testMissingMismatchName")
-        
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'WRONGNAME'},
@@ -316,8 +306,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=0))
 
     def testMissingMismatchNameNoArgs(self):
-        self.printTestTitle("testMissingMismatchNameNoArgs")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_testProcess1', 'testProc', 'nothing')
         self.updateProcDefs(procDefs, 'url_testProcess2', 'testProc', 'nothing')
@@ -332,8 +320,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=1))
 
     def testMissingMismatchPath(self):
-        self.printTestTitle("testMissingMismatchPath")
-        
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
@@ -342,8 +328,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=1))
 
     def testMissingMismatchArgs(self):
-        self.printTestTitle("testMissingMismatchArgs")
-        
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.1': 'testProcess'},
@@ -352,8 +336,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=0))
 
     def testMissingMismatchPid(self):
-        self.printTestTitle("testMissingMismatchPid")
-        
         task = self.getSingleProcessTask()
 
         data = {'.1.3.6.1.2.1.25.4.2.1.2': {'.1.3.6.1.2.1.25.4.2.1.2.999': 'testProcess'},
@@ -362,8 +344,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=0, RESTARTED=1))
 
     def testMultipleMissing(self):
-        self.printTestTitle("testMultipleMissing")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_testFirst_some', '/fake/path/testFirst', 'nothing')
         self.updateProcDefs(procDefs, 'url_testSecond_args', '/fake/path/testSecond', 'nothing')
@@ -405,8 +385,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(MISSING=2, RESTARTED=1))
 
     def testDoubleSendmail(self):
-        self.printTestTitle("testDoubleSendmail")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'sendmail_ accepting connections', 'sendmail', 'nothing')
         self.updateProcDefs(procDefs, 'sendmail_ something else', 'sendmail', 'nothing')
@@ -424,8 +402,6 @@ class TestZenprocess(BaseTestCase):
         """
         Sanity check for simplified example
         """
-        self.printTestTitle("testMingetty")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_mingetty', '/sbin/mingetty', 'nothing')
         mingetty = procDefs['url_mingetty']
@@ -487,8 +463,6 @@ class TestZenprocess(BaseTestCase):
         >                              '.1.3.6.1.2.1.25.4.2.1.2.8478': 'vim',
         >                              '.1.3.6.1.2.1.25.4.2.1.2.8501': 'pyraw',
         """
-        self.printTestTitle("testRemodels")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_python', 'python', 'nothing')
         self.updateProcDefs(procDefs, 'url_pyraw', '.*zenping.py.*', 'nothing')
@@ -564,8 +538,6 @@ class TestZenprocess(BaseTestCase):
         actual = self.compareTestFile('remodel_bug-1', task, expectedStats)
 
     def testSubsetCorrectMatch(self):
-        self.printTestTitle("testSubsetCorrectMatch")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_rpciod_3', 'rpc', 'nothing')
         self.updateProcDefs(procDefs, 'url_rpciod_32', 'rpc', 'nothing')
@@ -581,8 +553,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=1, MISSING=1))
 
     def testSuffixCorrectMatch(self):
-        self.printTestTitle("testSuffixCorrectMatch")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_iod_3', 'iod', 'nothing')
         self.updateProcDefs(procDefs, 'url_ciod_3', 'iod', 'nothing')
@@ -606,16 +576,12 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=4, AFTERBYCONFIG=1, MISSING=3))
 
     def testRpciods(self):
-        self.printTestTitle("testRpciods")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_rpciod_0', 'rpc', 'nothing')
         task = self.makeTask(procDefs)
         self.compareTestFile('rpciod_test', task, self.expected(PROCESSES=33, AFTERBYCONFIG=1, NEW=0, MISSING=0))
 
     def testSpecialCharacterSuffix(self):
-        self.printTestTitle("testSpecialCharacterSuffix")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_sendmail_accepting_connections', 'sendmail', 'nothing')
         task = self.makeTask(procDefs)
@@ -627,8 +593,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
     
     def testCase3776(self):
-        self.printTestTitle("testCase3776")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, "pyres_manager", r"pyres_manager: running \['pmta'\]", 'nothing')
         task = self.makeTask(procDefs)
@@ -641,8 +605,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0, AFTERPIDTOPS=1))
 
     def testSingleExcludeRegex(self):
-        self.printTestTitle("testSingleExcludeRegex")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_process1', 'proc', '.*process.*')
         self.updateProcDefs(procDefs, 'url_proc2', 'doesntMatter', 'doesntMatter')
@@ -658,8 +620,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=0, MISSING=2))
     
     def testMultipleExcludeRegex(self):
-        self.printTestTitle("testMultipleExcludeRegex")
-        
         procDefs = {}
         self.updateProcDefs(procDefs, 'url_myapp1', '.*myapp.*', '.*(vim|tail|grep|tar|cat|bash).*')
         self.updateProcDefs(procDefs, 'url_myapp2', 'doesntMatter', 'doesntMatter')
@@ -742,7 +702,6 @@ class TestZenprocess(BaseTestCase):
     
     # TODO: get timeouts working, to protect against catastrophic backtracking.
     # def testEvilRegex(self):
-    #     self.printTestTitle("testEvilRegex")
     #     n = 30
     #     procDefs = {}
     #     self.updateProcDefs(procDefs, "evil", "a?"*n + "a"*n, 'nothing', '.*', "evil")
@@ -754,8 +713,6 @@ class TestZenprocess(BaseTestCase):
     #     self.compareTestData(data, task, self.expected(PROCESSES=0, AFTERBYCONFIG=1, MISSING=1))
 
     def testSingleNameCaptureGroupSingleProcesses(self):
-        self.printTestTitle("testSingleNameCaptureGroupSingleProcesses")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'myapp', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
         task = self.makeTask(procDefs)
@@ -767,8 +724,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=1, AFTERBYCONFIG=1, MISSING=0))
     
     def testSingleNameCaptureGroupMultipleProcesses(self):
-        self.printTestTitle("testSingleNameCaptureGroupMultipleProcesses")
-
         procDefs = {}
         self.updateProcDefs(procDefs, 'myapp', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
         self.updateProcDefs(procDefs, 'myappiscool', 'myapp[^\/]*\/', 'nothing', '.*(myapp[^\/]*)\/.*', "\\1")
@@ -784,8 +739,6 @@ class TestZenprocess(BaseTestCase):
         self.compareTestData(data, task, self.expected(PROCESSES=2, AFTERBYCONFIG=2, MISSING=0))
     
     def testMultipleNameCaptureGroupsMultipleProcesses(self):
-        self.printTestTitle("testMultipleNameCaptureGroupsMultipleProcesses")
-        
         procDefs = {}
         
         self.updateProcDefs(procDefs, 'television_celtic',          'tele[^\/]*\/.*cel[^\/]*\/', 'nothing', '.*(tele[^\/]*)\/.*(cel[^\/]*)\/.*', "\\1_\\2")
@@ -880,7 +833,6 @@ class TestZenprocess(BaseTestCase):
 
 
 def test_suite():
-    print "..Starting the test suite........."
     from unittest import TestSuite, makeSuite
     
     # TestSuite - aggregate of individual test cases/suites

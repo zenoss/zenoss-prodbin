@@ -186,6 +186,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 
         if ip:
             mon = self.getDmdRoot('Monitors').getPerformanceMonitor(performanceMonitor)
+            if mon.viewName() != performanceMonitor:
+                raise Exception("Collector `{}` does not exist".format(performanceMonitor))
             dev = mon.findDevice(ip)
             if dev:
                 raise DeviceExistsError("Manage IP %s already exists" % ip, dev)

@@ -1,3 +1,5 @@
+import logging
+
 from unittest import TestCase, TestSuite, makeSuite
 from mock import Mock, MagicMock, create_autospec, patch, call
 
@@ -13,6 +15,8 @@ from Products.ZenHub.metricpublisher.utils import (
 
 class UtilsTest(TestCase):
 
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
 
     def test_exponential_backoff(self):
         exception_instace = Exception('Boom')

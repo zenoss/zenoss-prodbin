@@ -98,7 +98,9 @@ class IInvalidationFilter(Interface):
     """
     Filters invalidations before they're pushed to workers.
     """
-    weight = Attribute("Where this filter should be in the process. Lower is earlier.")
+    weight = Attribute(
+        "Where this filter should be in the process. Lower is earlier.",
+    )
 
     def initialize(context):
         """
@@ -111,13 +113,15 @@ class IInvalidationFilter(Interface):
         L{FILTER_CONTINUE}).
         """
 
+
 class IInvalidationOid(Interface):
     """
     Allows an invalidation OID to be changed to a different OID or dropped
     """
     def transformOid(oid):
         """
-        Given an OID, return the same oid, a different one, a list of other oids or None.
+        Given an OID, return the same oid, a different one,
+        a list of other oids or None.
         """
 
 
@@ -129,6 +133,7 @@ class IHubConfProvider(Interface):
         """
         """
 
+
 class IHubHeartBeatCheck(Interface):
     """
     """
@@ -137,57 +142,44 @@ class IHubHeartBeatCheck(Interface):
         """
         """
 
-class IWorkerSelectionAlgorithm(Interface):
-    """
-    Strategy class for selecting eligible zenhub workers for a given function. A default
-    strategy will be created with simple selection algorithm, additional named strategies
-    (named by zenhub service method) can be defined using more elaborate algorithms.
-    """
-    def getCandidateWorkerIds(workerlist, options):
-        """
-        For a given list of workers/worker state and configured options, return a
-        generator of valid worker id's. This will factor in concepts of priority and
-        allocation, to accommodate methods that are short duration and high-frequency,
-        and those of long duration and low-frequency (but may also potentially come in
-        bursts).
-        """
-
 
 class ICollectorEventFingerprintGenerator(Interface):
     """
-    Interface used to generate a fingerprint for an event on the collector. Event
-    fingerprints are used on the collector to perform de-duplication of events. Events
-    are de-duplicated to prevent event floods of similar/identical events from
-    overwhelming the system.
+    Interface used to generate a fingerprint for an event on the collector.
+    Event fingerprints are used on the collector to perform de-duplication
+    of events. Events are de-duplicated to prevent event floods of
+    similar/identical events from overwhelming the system.
 
-    The default fingerprint generator (if no additional ones are implemented) is a
-    pipe-delimited string consisting of the following:
+    The default fingerprint generator (if no additional ones are implemented)
+    is a pipe-delimited string consisting of the following:
 
      - eventKey specified: device, component, eventClass, eventKey, severity
      - no eventKey: device, component, eventClass, severity, summary
 
-    This matches the default algorithm used in zeneventd to de-duplicate events.
+    This matches the default algorithm used in zeneventd to
+    de-duplicate events.
 
-    NOTE: This fingerprint is not persisted in any way on the event - it is only used
-    to perform de-duplication at the collector before events are flushed to ZenHub.
+    NOTE: This fingerprint is not persisted in any way on the event - it is
+    only used to perform de-duplication at the collector before events are
+    flushed to ZenHub.
     """
 
     weight = Attribute(
-        """The priority of the fingerprint generator. Generators are executed
-        in ascending order until the first non-None fingerprint is returned."""
+        "The priority of the fingerprint generator. Generators are executed "
+        "in ascending order until the first non-None fingerprint is returned",
     )
 
     def generate(event):
         """
-        Generates a fingerprint for the event, or returns None if this generator should
-        not be used to generate a fingerprint for this event (the next generator, if
-        found, will be run).
+        Generates a fingerprint for the event, or returns None if this
+        generator should not be used to generate a fingerprint for this event
+        (the next generator, if found, will be run).
 
         @param event: The event to generate a fingerprint for.
         @type event: dict
-        @return: A fingerprint for the event (string) used for de-duplication of events
-                 at the collector. If this generator cannot generate a fingerprint for
-                 the event, then it should return None.
+        @return: A fingerprint for the event (string) used for de-duplication
+            of events at the collector. If this generator cannot generate a
+            fingerprint for the event, then it should return None.
         @rtype: str
         """
 
@@ -199,16 +191,17 @@ TRANSFORM_DROP = 2
 
 class ICollectorEventTransformer(Interface):
     """
-    Interface used to perform filtering of events at the collector. This could be
-    used to drop events, transform event content, etc.
+    Interface used to perform filtering of events at the collector.
+    This could be used to drop events, transform event content, etc.
 
-    These transformers are run sequentially before a fingerprint is generated for
-    the event, so they can set fields which are used by an ICollectorEventFingerprintGenerator.
+    These transformers are run sequentially before a fingerprint is generated
+    for the event, so they can set fields which are used by an
+    ICollectorEventFingerprintGenerator.
     """
 
     weight = Attribute(
-        """The priority of the event transformer (the transformers are executed in
-        ascending order using the weight of each filter)."""
+        "The priority of the event transformer (the transformers are "
+        "executed in ascending order using the weight of each filter)",
     )
 
     def transform(event):
@@ -217,9 +210,9 @@ class ICollectorEventTransformer(Interface):
 
         @param event: The event to transform.
         @type event: dict
-        @return: Returns TRANSFORM_CONTINUE if this event should be forwarded on
-                 to the next transformer in the sequence, TRANSFORM_STOP if no
-                 further transformers should be performed on this event, and
-                 TRANSFORM_DROP if the event should be dropped.
+        @return: Returns TRANSFORM_CONTINUE if this event should be forwarded
+            on to the next transformer in the sequence, TRANSFORM_STOP if no
+            further transformers should be performed on this event, and
+            TRANSFORM_DROP if the event should be dropped.
         @rtype: int
         """

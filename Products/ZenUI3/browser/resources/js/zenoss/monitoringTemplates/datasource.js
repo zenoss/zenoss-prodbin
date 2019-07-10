@@ -411,7 +411,7 @@ function closeEditDialog(response) {
  * Event handler for when a user wants to test a datasource
  * against a specific device.
  **/
-function testDataSource() {
+function monitorDataSource() {
     var cmp = Ext.getCmp(editDataSourcesId),
         values = cmp.editForm.form.getValues(),
         win, testDevice;
@@ -420,9 +420,9 @@ function testDataSource() {
 
     win = new Zenoss.CommandWindow({
         uids: testDevice,
-        title: _t('Test Data Source'),
+        title: _t('Monitor Data Source'),
         data: values,
-        target: values.uid + '/test_datasource'
+        target: values.uid + '/monitor_datasource'
     });
 
     win.show();
@@ -526,15 +526,14 @@ function editDataSourceOrPoint() {
             config.title = _t('Edit Data Point');
             config.directFn = submitDataPointForm;
             config.singleColumn = true;
-        } else if (config.record.testable &&
-                   Zenoss.Security.hasPermission('Change Device')){
+        } else if (Zenoss.Security.hasPermission('Change Device')){
             // add the test against device panel
             config.items.items.push({
                 xtype:'panel',
                 columnWidth: 0.5,
                 baseCls: 'test-against-device',
                 hidden: Zenoss.Security.doesNotHavePermission('Run Commands'),
-                title: _t('Test Against a Device'),
+                title: _t('Monitor Against a Device'),
                 items:[{
                     xtype: 'textfield',
                     fieldLabel: _t('Device Name'),
@@ -547,9 +546,9 @@ function editDataSourceOrPoint() {
                     value: response.record.id
                 },{
                     xtype: 'button',
-                    text: _t('Test'),
+                    text: _t('Monitor'),
                     id: 'testDeviceButton',
-                    handler: testDataSource
+                    handler: monitorDataSource
                 }]});
 
         }

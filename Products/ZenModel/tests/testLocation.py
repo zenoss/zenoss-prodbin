@@ -1,22 +1,24 @@
 ##############################################################################
-# 
+#
 # Copyright (C) Zenoss, Inc. 2007, all rights reserved.
-# 
+#
 # This content is made available according to terms specified in
 # License.zenoss under the directory where your Zenoss product is installed.
-# 
+#
 ##############################################################################
 
+from mock import patch
 
 import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
-  
+
 from Products.ZenModel.Exceptions import *
 
 from Products.ZenModel.Location import Location
 from ZenModelBaseTest import ZenModelBaseTest
-  
+
+
 class TestLocation(ZenModelBaseTest):
 
     def afterSetUp(self):
@@ -30,7 +32,8 @@ class TestLocation(ZenModelBaseTest):
         del Location.mapTooltip
         super(TestLocation, self).beforeTearDown()
 
-    def testGoogleMapsData(self):
+    @patch.object(Location, "getWorstEventSeverity", create=True)
+    def testGoogleMapsData(self, getWorstEventSeverity):
         a = self.dmd.Locations.createOrganizer('A')
         a.address = 'rome, italy'
         data = a.getGeomapData()
@@ -50,6 +53,7 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(TestLocation))
     return suite
+
 
 if __name__=="__main__":
     framework()

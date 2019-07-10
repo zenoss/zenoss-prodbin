@@ -67,14 +67,16 @@ class TestModelCatalogTransactions(BaseTestCase):
     def _validate_temp_indexed_results(self, results, expected_object_uids):
         found_object_uids = set()
         for result in results:
-            found_object_uids.add(getattr(result, UID))
-            self.assertNotEquals(getattr(result, UID), getattr(result, SOLR_UID))
-            self.assertTrue(getattr(result, UID) in getattr(result, SOLR_UID))
-            self.assertTrue( TX_SEPARATOR in getattr(result, SOLR_UID) )
+            solr_uid = getattr(result, SOLR_UID)
+            uid = getattr(result, UID)
+            found_object_uids.add(uid)
+            self.assertNotEquals(uid, solr_uid)
+            self.assertTrue(uid in solr_uid)
+            self.assertTrue(TX_SEPARATOR in solr_uid)
             self.assertIsNotNone(getattr(result, TX_STATE_FIELD))
             self.assertTrue(getattr(result, TX_STATE_FIELD) != 0)
         self.assertEquals(set(found_object_uids), set(expected_object_uids))
-    
+
     def _simulate_tx_commit(self):
         tx = transaction.get()
         self.data_manager.tpc_begin(tx)
@@ -191,7 +193,7 @@ class TestModelCatalogTransactions(BaseTestCase):
         self._validate_temp_indexed_results(search_results, expected_object_uids=[])
 
         # set production state
-        prod_state = 1000
+        prod_state = 1100
         device.setProdState(prod_state)
         search_results = self.model_catalog.search(query=Eq("productionState", prod_state), commit_dirty=True)
         self._validate_temp_indexed_results(search_results, expected_object_uids=[device_uid])

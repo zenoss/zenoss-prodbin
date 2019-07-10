@@ -1064,8 +1064,15 @@
                             if (grid.isVisible(true)) {
                                 // Indicating grid updating progress
                                 var box = Ext.getCmp('lastupdated');
+                                var boxText = box.text;
                                 box.setText(_t('<span>Updating... </span><img src="/++resource++zenui/img/ext4/icon/circle_arrows_ani.gif" width=12 height=12>'));
-                                grid.refresh();
+                                grid.refresh(function(records, operation, success) {
+                                    if (success === false) {
+                                        grid.refresh_in_progress -= 1;
+                                        grid.isSuccessResponse = false;
+                                        box.setText(boxText);
+                                    }
+                                });
                             }
                         },
                         pollHandler: function(btn) {
@@ -1560,14 +1567,16 @@
             if (decoded.state) {
                 try {
                     state = Ext.decode(Zenoss.util.base64.decode(decodeURIComponent(decoded.state)));
+                    Ext.state.Manager.set(this.stateId, state);
+                    this.fireEvent('recreateGrid', this);
                 } catch(e) { }
             //in case parameters are not encoded
             } else {
-                state = {"filters": decoded};
+                var filters = { filters: decoded };
+                this.clearFilters();
+                this.applyState(filters);
+                this.filterRow.storeSearch();
             }
-
-            Ext.state.Manager.set(this.stateId, state);
-            this.fireEvent('recreateGrid', this);
         },
         clearURLState: function() {
             var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
