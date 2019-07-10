@@ -12,7 +12,6 @@ import Migrate
 import servicemigration as sm
 
 from pkg_resources import parse_version
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from Products.ZenUtils.controlplane.client import getCCVersion
 
 log = logging.getLogger("zen.migrate")
@@ -22,7 +21,7 @@ sm.require("1.1.13")
 class AddOOMParams(Migrate.Step):
     "Add OOMKillDisable and OOMScoreAdj parameters to db services"
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 4, 0)
 
     def cutover(self, dmd):
         cc_version = parse_version(getCCVersion())

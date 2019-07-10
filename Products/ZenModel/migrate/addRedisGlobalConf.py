@@ -11,8 +11,7 @@ import logging
 import Migrate
 import servicemigration as sm
 
-from Products.ZenModel.ZMigrateVersion import (
-    SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+    200, 4, 0
 )
 
 log = logging.getLogger("zen.migrate")
@@ -20,7 +19,7 @@ sm.require("1.0.0")
 
 
 class AddRedisGlobalConf(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 4, 0)
 
     def cutover(self, dmd):
         try:
