@@ -237,7 +237,7 @@ class ZingDatamapHandler(object):
                 f.metadata[ZFact.FactKeys.PLUGIN_KEY] = f.metadata[ZFact.FactKeys.META_TYPE_KEY]
         return f
 
-    def fact_from_incremental_map(self, idm, context=None):
+    def fact_from_incremental_map(self, idm, parent_device=None, relationship=None, context=None, dm_plugin=None):
         f = ZFact.Fact()
         valid_types = (
             str, int, long, float, bool, list, tuple, MultiArgs, set
@@ -251,15 +251,20 @@ class ZingDatamapHandler(object):
             elif isinstance(v, MultiArgs):
                 objectmap[k] = v.args
 
-        objectmap['id'] = idm.id
+        if idm.id:
+            objectmap['id'] = idm.id
         f.update(objectmap)
 
-        f.metadata["relationship"] = idm.relname
-        f.metadata[ZFact.FactKeys.PLUGIN_KEY] = idm.plugin_name
         try:
-            f.metadata["parent"] = idm.parent.getUUID()
+            if parent_device is not None:
+                f.metadata["parent"] = parent_device.getUUID()
         except Exception:
             log.debug('parent UUID not found')
+        if relationship is not None:
+            f.metadata["relationship"] = relationship
+        plugin_name = getattr(idm, PLUGIN_NAME_ATTR, None) or dm_plugin
+        if plugin_name:
+            f.metadata[ZFact.FactKeys.PLUGIN_KEY] = plugin_name
 
         # Hack in whatever extra stuff we need.
         om_context = (context or {}).get(idm)
@@ -286,7 +291,7 @@ class ZingDatamapHandler(object):
             if f.is_valid():
                 facts.append(f)
         elif isinstance(dm, IncrementalDataMap):
-            f = self.fact_from_incremental_map(dm, context=context)
+            f = self.fact_from_incremental_map(dm, device, dm.relname, context=context, dm_plugin=dm_plugin)
             if f.is_valid():
                 facts.append(f)
         else:
