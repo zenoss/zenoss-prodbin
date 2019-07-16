@@ -143,6 +143,8 @@ class ZenModeler(PBDaemon):
         self.collectorLoopIteration = 0
         self.mainLoopGotDeviceList = False
 
+        self.isMainScheduled = False
+
         self._modeledDevicesMetric = Metrology.meter("zenmodeler.modeledDevices")
         self._failuresMetric = Metrology.counter("zenmodeler.failures")
 
@@ -819,6 +821,9 @@ class ZenModeler(PBDaemon):
                     self.started = True
                     self.log.info("Starting modeling...")
                     reactor.callLater(1, self.main)
+                elif not self.isMainScheduled:
+                    self.isMainScheduled = True
+                    driveLater(self.cycleTime(), self.mainLoop)
             else:
                 self.started = True
                 self.log.info("Starting modeling in %s seconds.", self.startDelay)
@@ -1143,6 +1148,7 @@ class ZenModeler(PBDaemon):
         @rtype: Twisted deferred object
         """
         if self.options.cycle:
+            self.isMainScheduled = True
             driveLater(self.cycleTime(), self.mainLoop)
 
         if self.clients:
