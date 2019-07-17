@@ -40,7 +40,36 @@ class Test_incrementalupdate(TestCase):
         t.assertEqual(log.name, 'zen.IncrementalDataMap')
 
 
-class TestIncrementalDataMap(TestCase):
+class TestIncrementalDataMapAPI(TestCase):
+
+    def test_legacy_objectmap(t):
+        t.base = Mock(Device, dmd=Mock())
+        t.object_map = ObjectMap({
+            'compname': 'datacenters/Datacenter_datacenter-26'
+                        '/hosts/HostSystem_host-153622',
+            'modname': 'ZenPacks.zenoss.vSphere.HostSystem',
+            'setDatastores': [
+                'Datastore_datastore-153623',
+                'Datastore_datastore-153624',
+                'Datastore_datastore-153625',
+                'Datastore_datastore-153626',
+                'Datastore_datastore-153627',
+                'Datastore_datastore-153628',
+                'Datastore_datastore-153629'
+            ]
+        })
+
+        idm = IncrementalDataMap(t.base, t.object_map)
+
+        t.assertEqual(
+            idm.path,
+            'datacenters/Datacenter_datacenter-26/hosts/HostSystem_host-153622'
+        )
+        t.assertEqual(idm._target_id, 'HostSystem_host-153622')
+        t.assertEqual(idm.relname, 'hosts')
+
+
+class TestIncrementalDataMapImpl(TestCase):
 
     def setUp(t):
         t.target = Mock(
@@ -67,7 +96,7 @@ class TestIncrementalDataMap(TestCase):
             name='parent', spec_set=['id', t.relname, 'removeRelation']
         )
         setattr(t.parent, t.relname, t.relationship)
-        t.compname = 'parent.path.may.be.long'
+        t.compname = 'parent/{}/target'.format(t.relname)
         # find the parent by its path from the base device
         t.base = Mock(Device, dmd=Mock())
         t.base.getObjByPath.return_value = t.parent
@@ -115,7 +144,7 @@ class TestIncrementalDataMap(TestCase):
             'a1': 'attribute_1', 'a2': 'attribute_2',
             'parentId': 'parent id',
             'relname': 'relationship_name',
-            'compname': 'component.path',
+            'compname': 'component/path',
             'modname': 'module.name', 'classname': 'ClassName',
             '_flag': 'not part of the model',
         })
@@ -204,6 +233,16 @@ class TestIncrementalDataMap(TestCase):
 
         t.assertEqual(idm.target, parent.os)
 
+    def test_target_is_component_without_id(t):
+        '''the target may be a component on the parent
+        '''
+        parent = Device(id='parent_id')
+        object_map = ObjectMap({'compname': 'os'})
+
+        idm = IncrementalDataMap(parent, object_map)
+
+        t.assertEqual(idm.target, parent.os)
+
     def test_target_is_relation(t):
         '''the target may be in a relationship on the parent
         '''
@@ -236,11 +275,22 @@ class TestIncrementalDataMap(TestCase):
     def test__relname(t):
         t.assertEqual(t.idm._relname, t.relname)
 
+    def test__relname_from_path(t):
+        '''when relname is not given, infer it from the path
+        '''
+        delattr(t.object_map, 'relname')
+        idm = IncrementalDataMap(t.base, t.object_map)
+        t.assertEqual(idm._relname, t.relname)
+
     def test_relationship(t):
         t.assertEqual(t.idm.relationship, t.relationship)
 
     def test_relationship_requires_relname(t):
+        '''relname is required
+        it may be given, or derived from compnane
+        '''
         delattr(t.object_map, 'relname')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         with t.assertRaises(InvalidIncrementalDataMapError):
             t.assertEqual(idm.relationship, t.relationship)
@@ -264,6 +314,7 @@ class TestIncrementalDataMap(TestCase):
     def test_directive_add_requires_relname(t):
         t.object_map.modname = 'module_name'
         delattr(t.object_map, 'relname')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         with t.assertRaises(InvalidIncrementalDataMapError):
             idm.directive = 'add'
@@ -337,6 +388,7 @@ class TestIncrementalDataMap(TestCase):
 
     def test__valid_id_not_specified_in_objectmap(t):
         delattr(t.object_map, 'id')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         t.assertEqual(idm._valid_id(), True)
 
