@@ -10,21 +10,20 @@
 
 import Migrate
 
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 """
-Add zStatusEventClass z property. That allows you to choose what event class
-will affect on device status(change Up/Down status).
+Update zStatusEventClass zProperty from /Status/* to /Status/,
+because Impact doesn't consider that * is a wildcard
 """
 
 
-class AddzStatusEventClass(Migrate.Step):
-    version = Migrate.Version(300, 0, 9)
+class UpdatezStatusEventClassProp(Migrate.Step):
+    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
-        if not hasattr(dmd.Devices, 'zStatusEventClass'):
-            dmd.Devices._setProperty('zStatusEventClass', '/Status/',
-                                     type='string')
-        elif dmd.Devices.zStatusEventClass == '/Status/*':
+        if (hasattr(dmd.Devices, 'zStatusEventClass') and
+                dmd.Devices.zStatusEventClass == '/Status/*'):
             dmd.Devices._updateProperty('zStatusEventClass', '/Status/')
 
-AddzStatusEventClass()
+UpdatezStatusEventClassProp()
