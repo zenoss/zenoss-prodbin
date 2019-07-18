@@ -18,5 +18,6 @@
 
    <subscriber handler=".metrics.incrementLegacyMetricCounters"/>
    <subscriber handler=".metrics.decrementLegacyMetricCounters"/>
+   <subscriber handler=".metrics.markEventsSent"/>
 
 </configure>
