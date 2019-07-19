@@ -36,8 +36,8 @@ class AddOOMParams(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        service_names = ['mariadb-model', 'redis', 'RegionServer', 'ZooKeeper',
-                         'HMaster', 'Impact', 'Solr', 'mariadb-events']
+        service_names = ['mariadb-model', 'redis', 'Impact', 'Solr',
+                         'mariadb-events']
         services = filter(lambda s: s.name in service_names, ctx.services)
         log.info("Found %i services", len(services))
 
