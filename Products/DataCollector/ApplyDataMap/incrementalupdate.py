@@ -34,11 +34,7 @@ from .events import DatamapUpdateEvent, DatamapAppliedEvent
 log = logging.getLogger('zen.IncrementalDataMap')  # pragma: no mutate
 
 
-class NotSet(object):
-    pass
-
-
-NOTSET = NotSet()
+_NOTSET = type('NotSet', (object,), {})()
 
 
 class InvalidIncrementalDataMapError(Exception):
@@ -47,9 +43,9 @@ class InvalidIncrementalDataMapError(Exception):
 
 class IncrementalDataMap(object):
 
-    _target = NOTSET
+    _target = _NOTSET
     _parent = None
-    _relationship = NOTSET
+    _relationship = _NOTSET
     __diff = None
     __directive = None
     changed = False
@@ -75,9 +71,9 @@ class IncrementalDataMap(object):
 
     def _process_objectmap(self, object_map):
         self._parent_id = getattr(object_map, 'parentId', None)
-        self.__target_id = getattr(object_map, 'id', NOTSET)
+        self.__target_id = getattr(object_map, 'id', _NOTSET)
         self.path = getattr(object_map, 'compname', None)
-        self.__relname = getattr(object_map, 'relname', NOTSET)
+        self.__relname = getattr(object_map, 'relname', _NOTSET)
         self.modname = getattr(object_map, 'modname', None)
         self.classname = getattr(object_map, 'classname', None)
         self.plugin_name = getattr(object_map, 'plugin_name', None)
@@ -131,7 +127,7 @@ class IncrementalDataMap(object):
     @property
     def relname(self):
         try:
-            if self.__relname is NOTSET:
+            if self.__relname is _NOTSET:
                 self.__relname = self.path.split('/')[-2]
         except Exception:
             self.__relname = None
@@ -150,7 +146,7 @@ class IncrementalDataMap(object):
 
     @property
     def relationship(self):
-        if self._relationship is NOTSET:
+        if self._relationship is _NOTSET:
             try:
                 self._relationship = getattr(self.parent, self.relname)
             except TypeError:
@@ -161,7 +157,7 @@ class IncrementalDataMap(object):
 
     @property
     def _target_id(self):
-        if self.__target_id is NOTSET:
+        if self.__target_id is _NOTSET:
             try:
                 self.__target_id = self.path.split('/')[-1]
             except Exception:
@@ -171,7 +167,7 @@ class IncrementalDataMap(object):
 
     @property
     def target(self):
-        if self._target is NOTSET:
+        if self._target is _NOTSET:
             target = self.parent
 
             if self.relname:
