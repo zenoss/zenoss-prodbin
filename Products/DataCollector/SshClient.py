@@ -531,13 +531,6 @@ class SshConnection(connection.SSHConnection):
         self.factory.serviceStarted(self)
 
 
-    def serviceStopped(self):
-        message= "SSH Connection stopped unexpectedly"
-        log.error(message)
-        sendEvent(self, message=message)
-        connection.SSHConnection.serviceStopped(self)
-
-
     def addCommand(self, cmd):
         """
         Open a new channel for each command in queue
