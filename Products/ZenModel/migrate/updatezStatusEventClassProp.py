@@ -10,8 +10,6 @@
 
 import Migrate
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-
 """
 Update zStatusEventClass zProperty from /Status/* to /Status/,
 because Impact doesn't consider that * is a wildcard
@@ -19,7 +17,7 @@ because Impact doesn't consider that * is a wildcard
 
 
 class UpdatezStatusEventClassProp(Migrate.Step):
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
         if (hasattr(dmd.Devices, 'zStatusEventClass') and

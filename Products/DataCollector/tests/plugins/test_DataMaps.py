@@ -12,7 +12,7 @@ from __future__ import absolute_import
 
 from unittest import TestCase
 
-from ..DataMaps import RelationshipMap, ObjectMap
+from ...plugins.DataMaps import RelationshipMap, ObjectMap
 
 
 class TestRelationshipMap(TestCase):

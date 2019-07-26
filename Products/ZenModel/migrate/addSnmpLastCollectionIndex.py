@@ -20,13 +20,11 @@ from Products.Zuul.catalog.model_catalog_init import reindex_model_catalog
 from Products.Zuul.catalog.indexable import DeviceIndexable
 from Products.Zuul.catalog.interfaces import IModelCatalogTool
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-
 log = logging.getLogger("zen.migrate")
 
 class AddSnmpLastCollectionIndex(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
 

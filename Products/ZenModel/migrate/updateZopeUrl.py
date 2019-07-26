@@ -12,14 +12,13 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.1.12")
 
 class UpdateZopeUrl(Migrate.Step):
     """Set zopeurl based on cse.tenant and cse.source"""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
         try:
