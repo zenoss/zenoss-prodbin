@@ -8,42 +8,41 @@
 ##############################################################################
 
 import logging
+log = logging.getLogger("zen.migrate")
+
 import Migrate
 import servicemigration as sm
-
-from pkg_resources import parse_version
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-from Products.ZenUtils.controlplane.client import getCCVersion
 
-log = logging.getLogger("zen.migrate")
-sm.require("1.1.13")
+sm.require("1.0.0")
 
 
-class AddOOMParams(Migrate.Step):
-    "Add OOMKillDisable and OOMScoreAdj parameters to db services"
+class UpdateZopeDeadlockIntervalKillCount(Migrate.Step):
+    """
+    Update the deadlock healthcheck to all of the zopes.
+    """
 
     version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
 
     def cutover(self, dmd):
-        cc_version = parse_version(getCCVersion())
-        if cc_version < parse_version("1.6.5"):
-            log.info("Require CC version >= 1.6.5, skipping")
-            return
-
         try:
             ctx = sm.ServiceContext()
         except sm.ServiceMigrationError:
             log.info("Couldn't generate service context, skipping.")
             return
 
-        service_names = ['mariadb-model', 'redis', 'Impact', 'Solr',
-                         'mariadb-events']
-        services = filter(lambda s: s.name in service_names, ctx.services)
-        log.info("Found %i services", len(services))
-
-        for service in services:
-            service.oomKillDisable = True
-            service.oomScoreAdj = 0
+        zopes = filter(lambda s: s.name.lower() in ["zope", "zauth", "zenapi", "zendebug", "zenreports"], ctx.services)
+        log.info("Found %i Zope services." % len(zopes))
+        for z in zopes:
+            deadlockChecks = filter(lambda healthCheck: healthCheck.name == "deadlock_check", z.healthChecks)
+            if not deadlockChecks:
+                log.warn("Unable to find the zope deadlock healthcheck")
+                continue
+            else:
+                for check in deadlockChecks:
+                    check.interval = 60
+                    check.kill_count_limit = 5
         ctx.commit()
 
-AddOOMParams()
+
+UpdateZopeDeadlockIntervalKillCount()

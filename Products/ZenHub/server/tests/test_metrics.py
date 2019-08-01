@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 from collections import defaultdict
 from unittest import TestCase
-from mock import call, Mock, patch, sentinel
+from mock import call, Mock, patch
 
 from ..config import legacy_metric_priority_map
 from ..metrics import (
@@ -25,14 +25,42 @@ from ..metrics import (
     IHubServerConfig,
     IMetricManager,
     incrementLegacyMetricCounters,
+    markEventsSent,
     register_legacy_worklist_metrics,
     ServiceCallPriority,
     ServiceCallCompleted,
     ServiceCallReceived,
     ServiceCallStarted,
+    WorkListGauge,
 )
 
 PATH = {"src": "Products.ZenHub.server.metrics"}
+
+
+class WorkListGaugeTest(TestCase):
+    """Test for the WorkListGauge class."""
+
+    def setUp(t):
+        t.counters = defaultdict(lambda: 0)
+        t.key = "key"
+        t.gauge = WorkListGauge(t.counters, t.key)
+
+    def test_initial_value(t):
+        t.assertEqual(0, t.gauge.value)
+
+    def test_modified_value(t):
+        t.counters[t.key] = 5
+        t.assertEqual(5, t.gauge.value)
+
+    def test_multiple_gauges(t):
+        key2 = "key2"
+        gauge2 = WorkListGauge(t.counters, key2)
+
+        t.counters[t.key] = 5
+        t.counters[key2] = 3
+
+        t.assertEqual(5, t.gauge.value)
+        t.assertEqual(3, gauge2.value)
 
 
 class LegacyMetricsTest(TestCase):
@@ -42,70 +70,80 @@ class LegacyMetricsTest(TestCase):
     @patch("{src}.Metrology".format(**PATH), autospec=True)
     @patch("{src}.getUtility".format(**PATH), autospec=True)
     @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    @patch("{src}.WorkListGauge".format(**PATH))
     def test_metrology_registration(
-        self, _counters, _getUtility, _Metrology, _registry,
+        self, _WorkListGauge, _counters, _getUtility, _Metrology, _registry,
     ):
         config = Mock()
         config.legacy_metric_priority_map = legacy_metric_priority_map
         _getUtility.return_value = config
-        counter = _Metrology.counter
+
         metrics = {}
         _registry.metrics = metrics
 
-        eventCounter = sentinel.eventCounter
-        admCounter = sentinel.admCounter
-        singleAdmCounter = sentinel.singleAdmCounter
-        otherCounter = sentinel.otherCounter
-        totalCounter = sentinel.totalCounter
-
-        def map_gauge_to_inputs(key):
-            return {
-                "zenhub.eventWorkList": eventCounter,
-                "zenhub.admWorkList": admCounter,
-                "zenhub.otherWorkList": otherCounter,
-                "zenhub.singleADMWorkList": singleAdmCounter,
-                _legacy_metric_worklist_total: totalCounter,
-            }[key]
-
-        counter.side_effect = map_gauge_to_inputs
-
-        expected_counter_calls = [
-            call("zenhub.eventWorkList"),
-            call("zenhub.admWorkList"),
-            call("zenhub.otherWorkList"),
-            call("zenhub.singleADMWorkList"),
-            call(_legacy_metric_worklist_total),
+        expected_worklist_gauge_calls = [
+            call(_counters, ServiceCallPriority.EVENTS),
+            call(_counters, ServiceCallPriority.MODELING),
+            call(_counters, ServiceCallPriority.SINGLE_MODELING),
+            call(_counters, ServiceCallPriority.OTHER),
+            call(_counters, _legacy_metric_worklist_total.name),
         ]
+        expected_worklist_gauge_call_count = len(expected_worklist_gauge_calls)
+
+        wgauge = _WorkListGauge.return_value
+        expected_metrology_gauge_calls = [
+            call("zenhub.eventWorkList", wgauge),
+            call("zenhub.admWorkList", wgauge),
+            call("zenhub.otherWorkList", wgauge),
+            call("zenhub.singleADMWorkList", wgauge),
+            call(_legacy_metric_worklist_total.metric, wgauge),
+        ]
+        expected_metrology_gauge_call_count = len(
+            expected_metrology_gauge_calls,
+        )
 
         expected_counter_contents = {
-            ServiceCallPriority.EVENTS: eventCounter,
-            ServiceCallPriority.MODELING: admCounter,
-            ServiceCallPriority.OTHER: otherCounter,
-            ServiceCallPriority.SINGLE_MODELING: singleAdmCounter,
-            "total": totalCounter,
+            ServiceCallPriority.EVENTS: 0,
+            ServiceCallPriority.MODELING: 0,
+            ServiceCallPriority.OTHER: 0,
+            ServiceCallPriority.SINGLE_MODELING: 0,
+            _legacy_metric_worklist_total.name: 0,
         }
 
         register_legacy_worklist_metrics()
 
         _getUtility.assert_called_once_with(IHubServerConfig)
-        self.assertEqual(len(expected_counter_calls), len(counter.mock_calls))
-        counter.assert_has_calls(expected_counter_calls, any_order=True)
 
-        self.assertEqual(len(expected_counter_calls), len(_counters))
+        self.assertEqual(
+            expected_worklist_gauge_call_count,
+            _WorkListGauge.call_count,
+        )
+        _WorkListGauge.assert_has_calls(
+            expected_worklist_gauge_calls, any_order=True,
+        )
+
+        self.assertEqual(
+            expected_metrology_gauge_call_count,
+            _Metrology.gauge.call_count,
+        )
+        _Metrology.gauge.assert_has_calls(
+            expected_metrology_gauge_calls, any_order=True,
+        )
+
         self.assertDictEqual(expected_counter_contents, _counters)
+
+        _Metrology.meter.assert_called_once_with("zenhub.eventsSent")
 
     @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
     def test_incrementCounters(self, _counters):
         event = Mock(spec=["priority"])
-        pcounter = Mock(spec=["increment"])
-        tcounter = Mock(spec=["increment"])
-        _counters[event.priority] = pcounter
-        _counters["total"] = tcounter
+        _counters[event.priority] = 0
+        _counters["total"] = 0
 
         incrementLegacyMetricCounters(event)
 
-        pcounter.increment.assert_called_once_with()
-        tcounter.increment.assert_called_once_with()
+        self.assertEqual(1, _counters[event.priority])
+        self.assertEqual(1, _counters["total"])
         self.assertListEqual(
             sorted([event.priority, "total"]),
             sorted(_counters.keys()),
@@ -124,21 +162,65 @@ class LegacyMetricsTest(TestCase):
     def test_decrementCounters(self, _counters):
         event = Mock(spec=["priority", "retry"])
         event.retry = None
-        pcounter = Mock(spec=["decrement", "count"])
-        tcounter = Mock(spec=["decrement", "count"])
-        pcounter.count = 0
-        tcounter.count = 0
-        _counters[event.priority] = pcounter
-        _counters["total"] = tcounter
+        _counters[event.priority] = 1
+        _counters["total"] = 1
 
         decrementLegacyMetricCounters(event)
 
-        pcounter.decrement.assert_called_once_with()
-        tcounter.decrement.assert_called_once_with()
+        self.assertEqual(0, _counters[event.priority])
+        self.assertEqual(0, _counters["total"])
         self.assertListEqual(
             sorted([event.priority, "total"]),
             sorted(_counters.keys()),
         )
+
+    @patch("{src}.log".format(**PATH), autospec=True)
+    @patch("{src}._legacy_worklist_counters".format(**PATH), new_callable=dict)
+    def test_decrementCounters_to_negative(self, _counters, _log):
+        event = Mock(spec=["priority", "retry"])
+        event.retry = None
+        _counters[event.priority] = 0
+        _counters["total"] = 0
+
+        decrementLegacyMetricCounters(event)
+
+        self.assertEqual(2, _log.warn.call_count)
+        self.assertEqual(-1, _counters[event.priority])
+        self.assertEqual(-1, _counters["total"])
+        self.assertListEqual(
+            sorted([event.priority, "total"]),
+            sorted(_counters.keys()),
+        )
+
+    @patch("{src}._legacy_events_meter".format(**PATH), spec=["mark"])
+    def test_skip_markEventsSent(self, _meter):
+        event = Mock(spec=["retry"])
+        event.retry = object()
+
+        markEventsSent(event)
+
+        self.assertEqual(0, _meter.mark.call_count)
+
+    @patch("{src}._legacy_events_meter".format(**PATH), spec=["mark"])
+    def test_sendEvent(self, _meter):
+        event = Mock(spec=["method", "retry"])
+        event.retry = None
+        event.method = "sendEvent"
+
+        markEventsSent(event)
+
+        _meter.mark.assert_called_once_with()
+
+    @patch("{src}._legacy_events_meter".format(**PATH), spec=["mark"])
+    def test_sendEvents(self, _meter):
+        event = Mock(spec=["method", "retry", "args"])
+        event.retry = None
+        event.method = "sendEvents"
+        event.args = [0, 1]
+
+        markEventsSent(event)
+
+        _meter.mark.assert_called_once_with(len(event.args))
 
 
 class ServiceCallMetricsTest(TestCase):

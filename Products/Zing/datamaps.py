@@ -251,11 +251,14 @@ class ZingDatamapHandler(object):
             elif isinstance(v, MultiArgs):
                 objectmap[k] = v.args
 
-        objectmap['id'] = idm.id
+        if idm.id:
+            objectmap['id'] = idm.id
         f.update(objectmap)
 
-        f.metadata["relationship"] = idm.relname
-        f.metadata[ZFact.FactKeys.PLUGIN_KEY] = idm.plugin_name
+        if idm.relname:
+            f.metadata["relationship"] = idm.relname
+        if getattr(idm, PLUGIN_NAME_ATTR, None):
+            f.metadata[ZFact.FactKeys.PLUGIN_KEY] = idm.plugin_name
         try:
             f.metadata["parent"] = idm.parent.getUUID()
         except Exception:
