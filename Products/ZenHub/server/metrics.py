@@ -348,13 +348,13 @@ class ZenHubStatusReporter(object):
         lines = ["Worklist Stats:"]
         lines.extend(
             "   {:<22}: {}".format(
-                priority, _legacy_worklist_counters[key].count,
+                priority, _legacy_worklist_counters[key],
             )
             for priority, key in self.__heading_priority_seq
         )
         lines.extend([
             "   {:<22}: {}".format(
-                "Total", _legacy_worklist_counters["total"].count,
+                "Total", _legacy_worklist_counters["total"],
             ),
             "",
             "Service Call Statistics:",
