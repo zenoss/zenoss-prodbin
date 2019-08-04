@@ -20,6 +20,7 @@ import pwd
 import socket
 import logging
 
+from twisted.internet import defer
 from twisted.python import log as twisted_log
 from twisted.logger import globalLogBeginner
 
@@ -234,6 +235,7 @@ class ZenDaemon(CmdBase):
                 logging.getLevelName(self.options.logseverity) or "unknown",
                 self.options.logseverity)
             try:
+                defer.setDebugging(False)
                 getTwistedLogger().stop()
             except ValueError:  # Twisted logging is somewhat broken
                 log.info("Unable to remove Twisted logger -- "
@@ -241,6 +243,7 @@ class ZenDaemon(CmdBase):
         else:
             setLogLevel(logging.DEBUG, "zen")
             log.info("Setting logging level to DEBUG")
+            defer.setDebugging(True)
             getTwistedLogger().start()
         dump_threads(signum, frame)
         self._sigUSR1_called(signum, frame)

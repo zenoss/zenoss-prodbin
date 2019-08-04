@@ -617,7 +617,7 @@ class CommandChannel(channel.SSHChannel):
         """
         message= 'The command %s returned stderr data (%d) from the device: %s' \
                  % (self.command, dataType, data)
-        log.warn("%s channel %s %s", self.targetIp, self.conn.localChannelID,
+        log.warn("%s channel %s %s", self.targetIp, self.id,
                  message)
         sendEvent(self, message=message)
         self.stderr += data
@@ -635,7 +635,7 @@ class CommandChannel(channel.SSHChannel):
         """
 
         log.debug('%s channel %s Opening command channel for %s',
-                  self.targetIp, self.conn.localChannelID, self.command)
+                  self.targetIp, self.id, self.command)
         self.data = ''
         self.stderr = ''
 
@@ -643,8 +643,14 @@ class CommandChannel(channel.SSHChannel):
         # 'exec'      - execute the following command and exit
         # common.NS() - encodes the command as a length-prefixed string
         # wantReply   - reply to let us know the process has been started
-        result = yield self.conn.sendRequest(self, 'exec', common.NS(self.command),
-                                             wantReply=1)
+        try:
+            result = yield self.conn.sendRequest(self, 'exec',
+                                                 common.NS(self.command),
+                                                 wantReply=1)
+        except Exception as e:
+            log.warn('%s channel %s failed during command execution with error: %s',
+                      self.targetIp, self.id, str(e))
+            defer.returnValue([])
         defer.returnValue(result)
 
 
@@ -658,8 +664,8 @@ class CommandChannel(channel.SSHChannel):
         import struct
         self.exitCode = struct.unpack('>L', data)[0]
         log.debug("%s channel %s CommandChannel exit code for %s is %d: %s",
-                  self.targetIp, getattr(self.conn, 'localChannelID', None),
-                  self.command, self.exitCode, getExitMessage(self.exitCode))
+                  self.targetIp, self.id, self.command, self.exitCode,
+                  getExitMessage(self.exitCode))
 
 
     def dataReceived(self, data):
@@ -677,8 +683,7 @@ class CommandChannel(channel.SSHChannel):
         Cleanup for the channel, as both ends have closed the channel.
         """
         log.debug('%s channel %s CommandChannel closing command channel for command %s with data: %s',
-                  self.targetIp, getattr(self.conn, 'localChannelID', None),
-                  self.command, repr(self.data))
+                  self.targetIp, self.id, self.command, repr(self.data))
         self.conn.factory.addResult(self.command, self.data, self.exitCode, self.stderr)
         self.loseConnection()
 
