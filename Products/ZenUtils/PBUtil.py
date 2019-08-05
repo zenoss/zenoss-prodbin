@@ -43,15 +43,8 @@ class ReconnectingPBClientFactory(PBClientFactory,
     def connectTCP(self, host, port):
         factory = self
         self.connector = reactor.connectTCP(host, port, factory)
-        self._setKeepAlive(self.connector)
+        setKeepAlive(self.connector.transport.socket)
         return self.connector
-
-    def _setKeepAlive(self, connector):
-        connector.transport.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
-        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
-        interval = max(CONNECT_TIMEOUT / 4, 10)
-        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
-        connector.transport.socket.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)
 
     def setCredentials(self, credentials):
         self._creds = credentials
@@ -190,3 +183,12 @@ class ReconnectingPBClientFactory(PBClientFactory,
         except Exception:
             log.exception("ping perspective exception")
 
+
+def setKeepAlive(sock):
+    """Configure a socket for a longer keep-alive interval."""
+    import socket
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, OPTION_STATE)
+    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, CONNECT_TIMEOUT)
+    interval = max(CONNECT_TIMEOUT / 4, 10)
+    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, interval)
+    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 2)

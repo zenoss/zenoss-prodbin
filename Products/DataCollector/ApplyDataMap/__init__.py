@@ -10,6 +10,8 @@
 import Globals
 
 from .applydatamap import (
-    ApplyDataMap, notify, isSameData
+    ApplyDataMap, notify, isSameData, IncrementalDataMap,
 )
-from .events import IDatamapUpdateEvent, IDatamapAddEvent
+from .events import (
+    IDatamapUpdateEvent, IDatamapAddEvent, IDatamapProcessedEvent,
+)

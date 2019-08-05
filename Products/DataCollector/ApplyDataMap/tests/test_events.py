@@ -17,6 +17,7 @@ from ..events import (
     IDatamapEvent,
     IDatamapAddEvent, DatamapAddEvent,
     IDatamapUpdateEvent, DatamapUpdateEvent,
+    IDatamapProcessedEvent, DatamapProcessedEvent,
     IDatamapAppliedEvent, DatamapAppliedEvent,
 )
 
@@ -53,6 +54,29 @@ class TestDatamapUpdateEvent(TestCase):
         t.assertEqual(datamap_update_event.dmd, 'dmd')
         t.assertEqual(datamap_update_event.objectmap, 'objectmap')
         t.assertEqual(datamap_update_event.target, 'target')
+
+
+class TestDatamapProcessedEvent(TestCase):
+
+    def test_implements_IDatamapProcessedEvent(t):
+        datamap_processed_event = DatamapProcessedEvent(
+            'dmd', 'objectmap', 'target'
+        )
+
+        verifyObject(IDatamapEvent, datamap_processed_event)
+        verifyObject(IDatamapProcessedEvent, datamap_processed_event)
+
+        # the class implements the interface
+        t.assertTrue(
+            IDatamapProcessedEvent.implementedBy(DatamapProcessedEvent)
+        )
+        # the object provides the interface
+        t.assertTrue(
+            IDatamapProcessedEvent.providedBy(datamap_processed_event)
+        )
+        t.assertEqual(datamap_processed_event.dmd, 'dmd')
+        t.assertEqual(datamap_processed_event.objectmap, 'objectmap')
+        t.assertEqual(datamap_processed_event.target, 'target')
 
 
 class TestDatamapAppliedEvent(TestCase):

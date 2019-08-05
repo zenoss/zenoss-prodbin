@@ -347,8 +347,8 @@
     />
 
 <browser:page
-    class=".command.TestDataSourceView"
-    name="test_datasource"
+    class=".command.MonitorDatasource"
+    name="monitor_datasource"
     for="Products.ZenModel.RRDDataSource.RRDDataSource"
     permission="zenoss.RunCommands"
     />

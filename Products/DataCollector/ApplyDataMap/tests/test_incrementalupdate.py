@@ -40,44 +40,147 @@ class Test_incrementalupdate(TestCase):
         t.assertEqual(log.name, 'zen.IncrementalDataMap')
 
 
-class TestIncrementalDataMap(TestCase):
+def setup_mock_environment(t):
+    '''Create mocks and test attributes
+    that describe the ZODB object relationships
+    '''
+    t.target_id = 'target_id'
+    t.target = Mock(
+        name='target',
+        spec_set=[
+            'id', 'a1', 'isLockedFromUpdates', 'isLockedFromDeletion',
+            'setLastChange',
+        ],
+        id=t.target_id,
+        a1='attribute 1',
+        isLockedFromUpdates=Mock(return_value=False),
+        isLockedFromDeletion=Mock(return_value=False),
+    )
+    # get the target from the relationship
+    t.relationship = Mock(
+        name='relationship',
+        spec_set=[t.target.id, '_getOb', 'hasobject', '_setObject']
+    )
+    setattr(t.relationship, t.target.id, t.target)
+    t.relationship._getOb.return_value = t.target
+    t.relname = 'relationship_name'
+    # get the relationship on the parent
+    t.parent = Mock(
+        name='parent', spec_set=['id', t.relname, 'removeRelation']
+    )
+    setattr(t.parent, t.relname, t.relationship)
+    t.compname = 'parent/{}/{}'.format(t.relname, t.target_id)
+    # find the parent by its path from the base device
+    t.base = Mock(Device, dmd=Mock())
+    t.base.getObjByPath.return_value = t.parent
+    # using special attributes specified on the ObjectMap
+    t.object_map = ObjectMap({
+        'id': t.target.id, 'relname': t.relname, 'compname': t.compname,
+        'a1': 'attribute 1',
+    })
+
+    t.idm = IncrementalDataMap(t.base, t.object_map)
+
+
+class TestIncrementalDataMapAPI(TestCase):
 
     def setUp(t):
-        t.target = Mock(
-            name='target',
+        setup_mock_environment(t)
+
+        patches = ['_class_changed', ]
+
+        for target in patches:
+            patcher = patch('{src}.{}'.format(target, **PATH), autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
+
+        t._class_changed.return_value = False
+
+    def test_update(t):
+        '''Update attributes on the target device
+        '''
+        object_map = ObjectMap({
+            'id': t.target_id,
+            'a1': 'attribute_1_updated',
+            'parentId': 'parent id',
+            'relname': t.relname,
+            'compname': t.compname,
+            'modname': 'module.ClassName',
+            'classname': 'ClassName',
+            '_flag': 'not part of the model',
+        })
+
+        # Create a new incremental data map
+        idm = IncrementalDataMap(t.base, object_map)
+
+        # Attributes available on the IncrementalDataMap
+        t.assertEqual(idm.id, object_map.id)
+        t.assertEqual(idm.path, object_map.compname)
+        t.assertEqual(idm.relname, object_map.relname)
+        t.assertEqual(idm.directive, 'update')
+
+        # Apply the map to the target
+        idm.apply()
+        # valid attributes are set
+        t.assertEqual(t.target.a1, 'attribute_1_updated')
+        # underscore attributes are not set
+        t.assertFalse(hasattr(t.target, '_flag'))
+
+    def test_update_with_only_compname(t):
+        '''Update attributes on the target device
+        given only the compname (path) from the base device to the target
+        '''
+        object_map = ObjectMap({
+            'compname': t.compname,
+            'modname': 'module.ClassName',
+            'a1': 'attribute_1_updated',
+        })
+
+        idm = IncrementalDataMap(t.base, object_map)
+
+        t.assertEqual(idm.path, t.compname)
+        t.assertEqual(idm.relname, t.relname)
+        t.assertEqual(idm.target, t.target)
+
+        idm.apply()
+        # valid attributes are set
+        t.assertEqual(t.target.a1, 'attribute_1_updated')
+
+    def test_update_base_device(t):
+        '''update the target device directly
+        '''
+        base = Mock(
+            name='base target',
             spec_set=[
                 'id', 'a1', 'isLockedFromUpdates', 'isLockedFromDeletion',
-                'setLastChange',
+                'setLastChange', 'dmd',
             ],
-            id='target_id',
+            id=t.target_id,
             a1='attribute 1',
             isLockedFromUpdates=Mock(return_value=False),
             isLockedFromDeletion=Mock(return_value=False),
+            dmd=Mock(name='dmd'),
         )
-        # get the target from the relationship
-        t.relationship = Mock(
-            name='relationship',
-            spec_set=[t.target.id, '_getOb', 'hasobject', '_setObject']
-        )
-        setattr(t.relationship, t.target.id, t.target)
-        t.relationship._getOb.return_value = t.target
-        t.relname = 'relationship_name'
-        # get the relationship on the parent
-        t.parent = Mock(
-            name='parent', spec_set=['id', t.relname, 'removeRelation']
-        )
-        setattr(t.parent, t.relname, t.relationship)
-        t.compname = 'parent.path.may.be.long'
-        # find the parent by its path from the base device
-        t.base = Mock(Device, dmd=Mock())
-        t.base.getObjByPath.return_value = t.parent
-        # using special attributes specified on the ObjectMap
-        t.object_map = ObjectMap({
-            'id': t.target.id, 'relname': t.relname, 'compname': t.compname,
-            'a1': 'attribute 1',
+
+        object_map = ObjectMap({
+            'a1': 'attribute_1_updated',
         })
 
-        t.idm = IncrementalDataMap(t.base, t.object_map)
+        idm = IncrementalDataMap(base, object_map)
+
+        t.assertEqual(idm.path, '')
+        t.assertEqual(idm.relname, None)
+        t.assertEqual(idm.target, base)
+
+        idm.apply()
+
+        t.assertEqual(base.a1, 'attribute_1_updated')
+
+
+class TestIncrementalDataMapImpl(TestCase):
+
+    def setUp(t):
+        setup_mock_environment(t)
 
     def test___repr__(t):
         ret = str(t.idm)
@@ -115,7 +218,7 @@ class TestIncrementalDataMap(TestCase):
             'a1': 'attribute_1', 'a2': 'attribute_2',
             'parentId': 'parent id',
             'relname': 'relationship_name',
-            'compname': 'component.path',
+            'compname': 'component/path',
             'modname': 'module.name', 'classname': 'ClassName',
             '_flag': 'not part of the model',
         })
@@ -204,6 +307,16 @@ class TestIncrementalDataMap(TestCase):
 
         t.assertEqual(idm.target, parent.os)
 
+    def test_target_is_component_without_id(t):
+        '''the target may be a component on the parent
+        '''
+        parent = Device(id='parent_id')
+        object_map = ObjectMap({'compname': 'os'})
+
+        idm = IncrementalDataMap(parent, object_map)
+
+        t.assertEqual(idm.target, parent.os)
+
     def test_target_is_relation(t):
         '''the target may be in a relationship on the parent
         '''
@@ -236,11 +349,22 @@ class TestIncrementalDataMap(TestCase):
     def test__relname(t):
         t.assertEqual(t.idm._relname, t.relname)
 
+    def test__relname_from_path(t):
+        '''when relname is not given, infer it from the path
+        '''
+        delattr(t.object_map, 'relname')
+        idm = IncrementalDataMap(t.base, t.object_map)
+        t.assertEqual(idm._relname, t.relname)
+
     def test_relationship(t):
         t.assertEqual(t.idm.relationship, t.relationship)
 
     def test_relationship_requires_relname(t):
+        '''relname is required
+        it may be given, or derived from compnane
+        '''
         delattr(t.object_map, 'relname')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         with t.assertRaises(InvalidIncrementalDataMapError):
             t.assertEqual(idm.relationship, t.relationship)
@@ -264,6 +388,7 @@ class TestIncrementalDataMap(TestCase):
     def test_directive_add_requires_relname(t):
         t.object_map.modname = 'module_name'
         delattr(t.object_map, 'relname')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         with t.assertRaises(InvalidIncrementalDataMapError):
             idm.directive = 'add'
@@ -337,6 +462,7 @@ class TestIncrementalDataMap(TestCase):
 
     def test__valid_id_not_specified_in_objectmap(t):
         delattr(t.object_map, 'id')
+        delattr(t.object_map, 'compname')
         idm = IncrementalDataMap(t.base, t.object_map)
         t.assertEqual(idm._valid_id(), True)
 
@@ -403,6 +529,18 @@ class TestIncrementalDataMap(TestCase):
         t.idm.apply()
         t.idm._rebuild.assert_called_with()
 
+    def test_apply_update_locked(t):
+        t.idm._nochange = create_autospec(t.idm._nochange)
+        t.idm.directive = 'update_locked'
+        t.idm.apply()
+        t.idm._nochange.assert_called_with()
+
+    def test_apply_delete_locked(t):
+        t.idm._nochange = create_autospec(t.idm._nochange)
+        t.idm.directive = 'delete_locked'
+        t.idm.apply()
+        t.idm._nochange.assert_called_with()
+
     def test__add(t):
         '''creates, updates, and adds the new object to the relationship
         Requires modname
@@ -459,6 +597,13 @@ class TestIncrementalDataMap(TestCase):
         '''changed is false, if remove is called without a target
         '''
         t.idm.target = None
+        t.idm._remove()
+        t.assertIs(False, t.idm.changed)
+
+    def test__remove_without_relname(t):
+        '''changed is false, if remove is called without relname
+        '''
+        t.idm.relname = None
         t.idm._remove()
         t.assertIs(False, t.idm.changed)
 

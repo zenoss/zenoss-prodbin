@@ -4,7 +4,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:meta="http://namespaces.zope.org/meta">
 
-    <subscriber handler=".datamaps.zing_add_datamap_context" />
+    <subscriber handler=".datamaps.zing_add_datamap" />
 
     <adapter provides=".interfaces.IZingConnectorProxy"
             for="*"

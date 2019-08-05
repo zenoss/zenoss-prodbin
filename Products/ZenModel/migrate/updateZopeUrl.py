@@ -16,9 +16,9 @@ import servicemigration as sm
 sm.require("1.1.12")
 
 class UpdateZopeUrl(Migrate.Step):
-    """Set zopeurl based on cse.tenant"""
+    """Set zopeurl based on cse.tenant and cse.source"""
 
-    version = Migrate.Version(300, 0, 11)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
         try:
@@ -27,20 +27,19 @@ class UpdateZopeUrl(Migrate.Step):
             log.info("Couldn't generate service context, skipping.")
             return
 
-        targets = ['zenactiond']
-        # if IncMan ZP is installed also set zopeurl in zope zenactiond.conf
-        try:
-            pack = dmd.ZenPackManager.packs._getOb('ZenPacks.zenoss.IncidentManagement')
-            targets.append('Zope')
-        except:
-            log.info("Skipping setting zopeurl in zenactiond.conf in zope since IncidentManagement ZP is not installed")
+        # The three known places the zopeurl is defined are:
+        # - zenactiond in zenactiond.conf
+        # - Zope in zenactiond.conf if IncidentManagement ZP is installed
+        # - zenNotify in zennotify.conf if QFramework ZP is installed
+        targets = ['zenactiond','Zope','zenNotify']
+        targetConfigFiles = ['/opt/zenoss/etc/zenactiond.conf','/opt/zenoss/etc/zennotify.conf']
 
-	# Set zopeurl in zenactiond.conf of target services
+	# Get list of services
         services = filter(lambda s: s.name in targets, ctx.services)
 
         for service in services:
-            for config in filter(lambda f: f.name == '/opt/zenoss/etc/zenactiond.conf',service.configFiles):
-               log.info("Updating zopeurl in zenactiond.conf for %s",service.name)
+            for config in filter(lambda f: f.name in targetConfigFiles,service.configFiles):
+               log.info("Updating zopeurl in %s for %s", config.name, service.name)
                lines = config.content.split('\n')
                newLines = []
                for line in lines:
@@ -49,7 +48,7 @@ class UpdateZopeUrl(Migrate.Step):
                       continue
                    elif (line.startswith('#zopeurl') or line.startswith('# zopeurl')):
                       newLines.append(line)
-                      newLines.append('zopeurl https://{{ getContext . "cse.tenant" }}.zenoss.io')
+                      newLines.append('zopeurl https://{{ getContext . "cse.tenant" }}.zenoss.io/{{ getContext . "cse.source" }}')
                    else:
                       newLines.append(line)
 
