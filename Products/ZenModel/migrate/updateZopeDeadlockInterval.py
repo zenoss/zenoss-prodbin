@@ -12,7 +12,6 @@ log = logging.getLogger("zen.migrate")
 
 import Migrate
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 sm.require("1.0.0")
 
@@ -22,7 +21,7 @@ class UpdateZopeDeadlockInterval(Migrate.Step):
     Update the deadlock healthcheck to all of the zopes.
     """
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 4, 0)
 
     def cutover(self, dmd):
         try:
