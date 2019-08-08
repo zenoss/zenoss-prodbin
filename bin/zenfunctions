@@ -29,9 +29,6 @@ if [ -z "$ZENOSS_BITROCK_STACK" ];then
 fi
 PYTHON=$ZENHOME/bin/python
 
-# zensocket alternative program
-PYRAW=$ZENHOME/bin/pyraw
-
 SYBASE=$ZENHOME/sybase
 export SYBASE
 
@@ -79,10 +76,6 @@ running() {
 }
 
 pyexec() {
-    WRAPPER=$PYTHON
-    if [ "$PRGNAME" = "zendisc.py" ] ; then
-        WRAPPER=$PYRAW
-    fi
     if [ -z "$PRGMODULE" ]; then
         PRG="$PRGHOME/$PRGNAME"
     else
@@ -92,8 +85,7 @@ pyexec() {
     if [ -n "$CFGFILE" ]; then
         set -- --configfile $CFGFILE "$@"
     fi
-    exec $WRAPPER $MODULE_OPT $PRG "$@"
-
+    exec $PYTHON $MODULE_OPT $PRG "$@"
 }
 
 start() {
