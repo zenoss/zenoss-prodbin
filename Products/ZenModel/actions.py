@@ -18,8 +18,6 @@ import logging
 from socket import getaddrinfo
 from traceback import format_exc
 from zope.interface import implements
-from zope.component import getUtility
-from Products.ZenUtils.virtual_root import IVirtualRoot
 from zope.component import getUtilitiesFor
 
 from pynetsnmp import netsnmp
@@ -171,8 +169,7 @@ def _signalToContextDict(signal, zopeurl, notification=None, guidManager=None):
 def _getBaseUrl(zopeurl):
     if not zopeurl:
         zopeurl = Utils.getDefaultZopeUrl()
-    return zopeurl + getUtility(IVirtualRoot).ensure_virtual_root('/zport/dmd')
-
+    return '%s/zport/dmd' % zopeurl
 
 def _getBaseEventUrl(zopeurl):
     return '%s/Events' % _getBaseUrl(zopeurl)

@@ -54,7 +54,7 @@ class ZenossAppData(object):
         brains = self._catalog.search(types=(DeviceComponent,), facets_for_field=["meta_type"])
         if brains.facets and brains.facets.get("meta_type"):
             facets = brains.facets["meta_type"]
-            comps = facets.get_values()      
+            comps = facets.get_values()
             for comp, count in comps.iteritems():
                 if count > 0:
                     yield ("Components",
@@ -241,6 +241,8 @@ class ZenossResourceData(object):
         if LINKED_DEVICES not in stats:
             stats[LINKED_DEVICES] = 0
         for device in self._dmd.Devices.getSubDevicesGen_recursive():
+            if device.getDeviceClassPath() == "/SRE":
+                continue
             stats['Device Count'] += 1
             if device.getProductionState() < 0:
                 stats["Decommissioned Devices"] += 1

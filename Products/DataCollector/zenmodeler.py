@@ -823,7 +823,7 @@ class ZenModeler(PBDaemon):
                     reactor.callLater(1, self.main)
                 elif not self.isMainScheduled:
                     self.isMainScheduled = True
-                    driveLater(self.cycleTime(), self.mainLoop)
+                    reator.callLater(self.cycleTime(), self.main)
             else:
                 self.started = True
                 self.log.info("Starting modeling in %s seconds.", self.startDelay)

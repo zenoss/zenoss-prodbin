@@ -15,8 +15,8 @@ import servicemigration as sm
 
 sm.require("1.1.12")
 
-class UpdateZopeUrl(Migrate.Step):
-    """Set zopeurl based on cse.tenant and cse.source"""
+class FixUpdateZopeUrl(Migrate.Step):
+    """Set zopeurl based on cse.tenant, rid off hardcoded domain"""
 
     version = Migrate.Version(300, 0, 10)
 
@@ -26,35 +26,44 @@ class UpdateZopeUrl(Migrate.Step):
         except sm.ServiceMigrationError:
             log.info("Couldn't generate service context, skipping.")
             return
-
+        
+        updated = False
+        zopeUrl = 'zopeurl https://{{ getContext . "cse.tenant" }}.{{ getContext . "cse.domain" }}/{{ getContext . "cse.source" }}'
+       
         # The three known places the zopeurl is defined are:
         # - zenactiond in zenactiond.conf
         # - Zope in zenactiond.conf if IncidentManagement ZP is installed
         # - zenNotify in zennotify.conf if QFramework ZP is installed
         targets = ['zenactiond','Zope','zenNotify']
         targetConfigFiles = ['/opt/zenoss/etc/zenactiond.conf','/opt/zenoss/etc/zennotify.conf']
-
-	# Get list of services
+       
+        # Get list of services
         services = filter(lambda s: s.name in targets, ctx.services)
 
         for service in services:
-            for config in filter(lambda f: f.name in targetConfigFiles,service.configFiles):
+           for config in filter(lambda f: f.name in targetConfigFiles,service.configFiles):
                log.info("Updating zopeurl in %s for %s", config.name, service.name)
                lines = config.content.split('\n')
                newLines = []
                for line in lines:
                    # Discard uncommented lines matching the variables we are changing
+                   # Update previous migration
                    if line.startswith('zopeurl'):
+                      if 'zenoss.io' in line:
+                          newLines.append(zopeUrl)
+                          updated = True
                       continue
                    elif (line.startswith('#zopeurl') or line.startswith('# zopeurl')):
                       newLines.append(line)
-                      newLines.append('zopeurl https://{{ getContext . "cse.tenant" }}.zenoss.io/{{ getContext . "cse.source" }}')
+                      newLines.append(zopeUrl)
+                      updated = True
                    else:
                       newLines.append(line)
 
                config.content = '\n'.join(newLines)
 
         # Commit our changes.
-        ctx.commit()
+        if updated:
+            ctx.commit()
 
-UpdateZopeUrl()
+FixUpdateZopeUrl()

@@ -16,7 +16,6 @@ import sys
 import Migrate
 
 import servicemigration as sm
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION  # noqa: E501
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -47,7 +46,7 @@ def _append_queue(cmd, queue):
 class AddADMZenHubWorkerService(Migrate.Step):
     """Update the Zenoss CC app with a second zenhubworker service."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 10)
 
     def cutover(self, dmd):
         try:
