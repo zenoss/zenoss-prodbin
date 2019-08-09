@@ -45,7 +45,7 @@ startup_command = '/bin/supervisord -n -c /etc/memcached/memcached_supervisor.co
 
 class addMemcachedMetrics(Migrate.Step):
     """Add Memcached Metrics """
-    version = Migrate.Version(300, 0, 12)
+    version = Migrate.Version(300, 0, 9)
 
 
     def cutover(self, dmd):
