@@ -33,7 +33,8 @@ from .events import DatamapUpdateEvent, DatamapAppliedEvent
 
 log = logging.getLogger('zen.IncrementalDataMap')  # pragma: no mutate
 
-NOTSET = object()
+
+_NOTSET = type('NotSet', (object,), {})()
 
 
 class InvalidIncrementalDataMapError(Exception):
@@ -42,9 +43,9 @@ class InvalidIncrementalDataMapError(Exception):
 
 class IncrementalDataMap(object):
 
-    _target = NOTSET
+    _target = _NOTSET
     _parent = None
-    _relationship = NOTSET
+    _relationship = _NOTSET
     __diff = None
     __directive = None
     changed = False
@@ -70,9 +71,9 @@ class IncrementalDataMap(object):
 
     def _process_objectmap(self, object_map):
         self._parent_id = getattr(object_map, 'parentId', None)
-        self._target_id = getattr(object_map, 'id', None)
+        self.__target_id = getattr(object_map, 'id', _NOTSET)
         self.path = getattr(object_map, 'compname', None)
-        self.relname = getattr(object_map, 'relname', None)
+        self.__relname = getattr(object_map, 'relname', _NOTSET)
         self.modname = getattr(object_map, 'modname', None)
         self.classname = getattr(object_map, 'classname', None)
 
@@ -123,6 +124,20 @@ class IncrementalDataMap(object):
         return self._parent
 
     @property
+    def relname(self):
+        try:
+            if self.__relname is _NOTSET:
+                self.__relname = self.path.split('/')[-2]
+        except Exception:
+            self.__relname = None
+
+        return self.__relname
+
+    @relname.setter
+    def relname(self, value):
+        self.__relname = value
+
+    @property
     def _relname(self):
         '''expose _relname for ADMReporter
         '''
@@ -130,25 +145,31 @@ class IncrementalDataMap(object):
 
     @property
     def relationship(self):
-        if self._relationship is NOTSET:
+        if self._relationship is _NOTSET:
             try:
                 self._relationship = getattr(self.parent, self.relname)
-            except TypeError as err:
-                msg = (
-                    'Directive={} requires relationship, no relname given'
-                    ''.format(self.directive)
-                )
+            except TypeError:
+                msg = ('requires relationship, no relname given or found')
                 raise InvalidIncrementalDataMapError, msg, sys.exc_info()[2]
 
         return self._relationship
 
     @property
+    def _target_id(self):
+        if self.__target_id is _NOTSET:
+            try:
+                self.__target_id = self.path.split('/')[-1]
+            except Exception:
+                self.__target_id = None
+
+        return self.__target_id
+
+    @property
     def target(self):
-        if self._target is NOTSET:
+        if self._target is _NOTSET:
             target = self.parent
 
             if self.relname:
-                log.debug('%s target: relationship=%s', self.logstr, self.relationship)  # pragma: no mutate
                 try:
                     target = self.relationship._getOb(self._target_id)
                 except Exception:
@@ -265,7 +286,7 @@ class IncrementalDataMap(object):
     def _remove(self):
         '''Remove the target object from the relationship
         '''
-        if not self.target:
+        if not self.target or not self.relname:
             self.changed = False
             return
 
