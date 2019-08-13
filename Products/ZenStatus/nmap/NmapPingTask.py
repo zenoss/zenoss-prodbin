@@ -419,7 +419,7 @@ class NmapPingTask(BaseTask):
                     self._correlationExecution()  # send clear
             else:
                 downTasks = (
-                    ipTask for ipTask in ipTasks
+                    ipTask for ipTask in ipTasks.values()
                     if not (ipTask.isUp or ipTask.delayedIsUp)
                 )
                 for ipTask in downTasks:
