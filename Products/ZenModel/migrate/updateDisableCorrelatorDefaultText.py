@@ -38,9 +38,9 @@ def replaceConfig(matcher, replacement, content):
     """
     result = matcher.search(content)
     if not result:
-        return content
+        return (False, content)
     start, end = result.span()
-    return content[:start] + replacement + content[end:]
+    return (True, content[:start] + replacement + content[end:])
 
 
 class UpdateDisableCorrelatorDefaultText(Migrate.Step):
@@ -67,11 +67,22 @@ class UpdateDisableCorrelatorDefaultText(Migrate.Step):
             if configFile is None:
                 log.warn("No entry in 'ConfigFiles' for zenping.conf")
             else:
-                configFile.content = replaceConfig(
+                updated, result = replaceConfig(
                     disableCorrelator_matcher,
                     disableCorrelator_update,
                     configFile.content,
                 )
+                if updated:
+                    log.info(
+                        "Updated disable-correlator text in "
+                        "'ConfigFiles' for zenping.conf"
+                    )
+                    configFile.content = result
+                else:
+                    log.info(
+                        "Did not update disable-correlator text in "
+                        "'ConfigFiles' for zenping.conf"
+                    )
 
             configFile = next((
                 cf for cf in service.originalConfigs
@@ -80,11 +91,24 @@ class UpdateDisableCorrelatorDefaultText(Migrate.Step):
             if configFile is None:
                 log.warn("No entry in 'OriginalConfigs' for zenping.conf")
             else:
-                configFile.content = replaceConfig(
+                updated, result = replaceConfig(
                     disableCorrelator_matcher,
                     disableCorrelator_update,
                     configFile.content,
                 )
+                if updated:
+                    log.info(
+                        "Updated disable-correlator text in "
+                        "'OriginalConfigs' for zenping.conf"
+                    )
+                    configFile.content = result
+                else:
+                    log.info(
+                        "Did not update disable-correlator text in "
+                        "'OriginalConfigs' for zenping.conf"
+                    )
+
+        ctx.commit()
 
 
 UpdateDisableCorrelatorDefaultText()
