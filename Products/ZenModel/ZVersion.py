@@ -8,5 +8,5 @@
 ##############################################################################
 
 # this is now generated during the build step; see make generate-zversion
-VERSION="6.4.1"
+VERSION="6.4.2"
 BUILD_NUMBER="DEV"
