@@ -11,7 +11,6 @@ import logging
 import re
 
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 import servicemigration as sm
 
@@ -45,7 +44,7 @@ def replaceConfig(matcher, replacement, content):
 
 class UpdateDisableCorrelatorDefaultText(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(200, 4, 1)
 
     def cutover(self, dmd):
         try:
