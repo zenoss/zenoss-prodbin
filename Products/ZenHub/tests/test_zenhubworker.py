@@ -252,6 +252,7 @@ class ZenHubWorkerTest(TestCase):
         t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
         time.time.return_value = 7
+        monitor = "localhost"
         name = 'module.module_name'
         service = sentinel.service
         method = 'method_name'
@@ -260,7 +261,7 @@ class ZenHubWorkerTest(TestCase):
         stats.totaltime = 54
         stats.lasttime = 555
         service.callStats = {method: stats}
-        t.zhw._ZenHubWorker__registry = {name: service}
+        t.zhw._ZenHubWorker__registry = {(monitor, name): service}
         isodate = isoDateTime.return_value
 
         t.zhw.reportStats()
