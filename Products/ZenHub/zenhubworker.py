@@ -216,12 +216,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
             loglines = ["Running statistics:"]
             sorted_data = sorted(
                 self.__registry.iteritems(),
-                key=lambda kv: kv[0].rpartition('.')[-1],
+                key=lambda kv: kv[0][1].rpartition('.')[-1],
             )
             loglines.append(" %-50s %-32s %8s %12s %8s %s" % (
                 "Service", "Method", "Count", "Total", "Average", "Last Run",
             ))
-            for svc, svcob in sorted_data:
+            for (_, svc), svcob in sorted_data:
                 svc = "%s" % svc.rpartition('.')[-1]
                 for method, stats in sorted(svcob.callStats.items()):
                     loglines.append(
