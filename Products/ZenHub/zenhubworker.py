@@ -92,7 +92,8 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         )
         endpoint = clientFromString(reactor, endpointDescriptor)
         self.__client = ZenHubClient(
-            reactor, endpoint, creds, self, 10.0, self.worklistId,
+            reactor, endpoint, creds, self,
+            self.options.hub_response_timeout, self.worklistId,
         )
 
         # Setup Metric Reporting
@@ -298,6 +299,12 @@ class ZenHubWorker(ZCmdBase, pb.Referenceable):
         self.parser.add_option(
             '--hubpassword', dest='hubpassword', default='zenoss',
             help="password to use when connecting to ZenHub",
+        )
+        self.parser.add_option(
+            '--hub-response-timeout', dest='hub_response_timeout',
+            default=30, type='int',
+            help="ZenHub response timeout interval (in seconds) "
+            "default: %default",
         )
         self.parser.add_option(
             '--call-limit', dest='call_limit', type='int', default=200,

@@ -137,8 +137,8 @@ class ZenHubWorkerTest(TestCase):
         )
         t.ZenHubClient.assert_called_once_with(
             t.reactor, t.clientFromString.return_value,
-            t.UsernamePassword.return_value, t.zhw, 10.0,
-            t.zhw.worklistId,
+            t.UsernamePassword.return_value, t.zhw,
+            t.zhw.options.hub_response_timeout, t.zhw.worklistId,
         )
         t.assertEqual(t.ZenHubClient.return_value, t.zhw._ZenHubWorker__client)
 
