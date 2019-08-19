@@ -12,12 +12,7 @@
         <tal:block tal:content="structure provider:all-js"/>
         <tal:block tal:content="structure provider:head-extra"/>
         <tal:block tal:content="structure provider:jssnippets"/>
-        <script>
-        // get user theme
-        if (window.localStorage.getItem("z-theme") === "light") {
-            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark")
-        }
-        </script>
+        <script src="/++resource++zenui/js/zenoss/theme.js"></script>
     </head>
     <body class="zenui3">
 
