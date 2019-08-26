@@ -14,12 +14,11 @@ This updates Auth0 plugin
 
 import logging
 
-import Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
-
 log = logging.getLogger("zen.migrate")
 
 import Migrate
 from Products.ZenUtils.Auth0.Auth0 import setup, PLUGIN_VERSION
+from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 class UpdateAuth0toV4(Migrate.Step):
 
