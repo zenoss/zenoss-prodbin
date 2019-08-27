@@ -17,8 +17,11 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 import Migrate
-from Products.ZenUtils.Auth0.Auth0 import setup, PLUGIN_VERSION
+import re
+from Products.ZenUtils.Auth0.Auth0 import setup, PLUGIN_VERSION, email_pattern
 from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
+
+
 
 class UpdateAuth0toV4(Migrate.Step):
 
@@ -27,5 +30,9 @@ class UpdateAuth0toV4(Migrate.Step):
     def cutover(self, dmd):
         setup(dmd)
         log.info("Auth0 version=%s is installed.", PLUGIN_VERSION)
+        
+        for us in dmd.ZenUsers.getAllUserSettings():
+            if getattr(us, 'email', '') and email_pattern.match(us.id):
+                setattr(us, 'email', us.id)
 
 UpdateAuth0toV4()
