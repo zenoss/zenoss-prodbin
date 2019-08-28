@@ -27,7 +27,7 @@ sm.require("1.1.12")
 class AddZingConfigToZep(Migrate.Step):
     "Add reasonable defaults to zeneventserver to enable sending events to Zenoss cloud"
 
-    version = Migrate.Version(300, 0, 6)
+    version = Migrate.Version(300, 0, 12)
 
     CLOUD_CONFIG_BLOCK = """
 
