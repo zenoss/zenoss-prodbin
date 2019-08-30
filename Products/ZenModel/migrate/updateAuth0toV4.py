@@ -32,7 +32,7 @@ class UpdateAuth0toV4(Migrate.Step):
         log.info("Auth0 version=%s is installed.", PLUGIN_VERSION)
         
         for us in dmd.ZenUsers.getAllUserSettings():
-            if getattr(us, 'email', '') and email_pattern.match(us.id):
+            if not getattr(us, 'email', '') and email_pattern.match(us.id):
                 setattr(us, 'email', us.id)
 
 UpdateAuth0toV4()
