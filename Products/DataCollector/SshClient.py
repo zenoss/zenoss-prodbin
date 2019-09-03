@@ -584,6 +584,7 @@ class CommandChannel(channel.SSHChannel):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
+        self.stderr = None
 
     @property
     def targetIp(self):
