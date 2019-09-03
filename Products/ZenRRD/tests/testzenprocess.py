@@ -10,7 +10,7 @@
 import logging
 import pprint
 import sys
-from md5 import md5i
+from md5 import md5
 from unittest import TestCase
 
 log = logging.getLogger('zen.testzenprocess')
