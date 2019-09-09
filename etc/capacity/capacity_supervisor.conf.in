@@ -1,0 +1,12 @@
+[program:capacity]
+user=zenoss
+command=/opt/zenoss/bin/zencapacity run -c --logfileonly --workers %INSTANCES% --workerid $CONTROLPLANE_INSTANCE_ID
+autorestart=true
+autostart=true
+startsecs=5
+
+; logging
+redirect_stderr=true
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=10
+stdout_logfile=/opt/zenoss/log/%(program_name)s.log
