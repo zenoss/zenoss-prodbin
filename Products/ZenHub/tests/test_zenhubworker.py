@@ -137,8 +137,8 @@ class ZenHubWorkerTest(TestCase):
         )
         t.ZenHubClient.assert_called_once_with(
             t.reactor, t.clientFromString.return_value,
-            t.UsernamePassword.return_value, t.zhw, 10.0,
-            t.zhw.worklistId,
+            t.UsernamePassword.return_value, t.zhw,
+            t.zhw.options.hub_response_timeout, t.zhw.worklistId,
         )
         t.assertEqual(t.ZenHubClient.return_value, t.zhw._ZenHubWorker__client)
 
@@ -252,6 +252,7 @@ class ZenHubWorkerTest(TestCase):
         t.zhw.options.workerid = 1
         t.zhw.currentStart = 0
         time.time.return_value = 7
+        monitor = "localhost"
         name = 'module.module_name'
         service = sentinel.service
         method = 'method_name'
@@ -260,7 +261,7 @@ class ZenHubWorkerTest(TestCase):
         stats.totaltime = 54
         stats.lasttime = 555
         service.callStats = {method: stats}
-        t.zhw._ZenHubWorker__registry = {name: service}
+        t.zhw._ZenHubWorker__registry = {(monitor, name): service}
         isodate = isoDateTime.return_value
 
         t.zhw.reportStats()

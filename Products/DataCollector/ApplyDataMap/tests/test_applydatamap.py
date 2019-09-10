@@ -17,6 +17,7 @@ from ..applydatamap import (
     ObjectMap,
     IncrementalDataMap,
     ZenModelRM,
+    NotFound,
 
     CLASSIFIER_CLASS,
     isSameData,
@@ -560,6 +561,19 @@ class Test_get_relmap_target(TestCase):
 
         ret = _get_relmap_target(device, datamap)
         t.assertEqual(ret, sentinel.obj)
+
+    def test__get_relmap_target_not_found(t):
+        '''return None if the specified component is not found
+        '''
+        device = Mock(name='device', id=sentinel.id)
+        device.getObjByPath.side_effect = NotFound(sentinel.compname)
+        datamap = Mock(
+            name='datamap', parentId=None, compname=sentinel.compname
+        )
+        device.componentSearch.return_value = []
+
+        ret = _get_relmap_target(device, datamap)
+        t.assertEqual(ret, None)
 
     @patch('{src}._validate_device_class'.format(**PATH), autospec=True)
     def test__get_relmap_target_invalid_device(t, _validate_device_class):

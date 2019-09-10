@@ -578,6 +578,11 @@ class SshPerformanceCollectionTask(BaseTask):
         @parameter results: empty results object
         @type results: ParsedResults object
         """
+        if datasource.result.output is None :
+            datasource.result.output = ''
+        if datasource.result.stderr is None:
+            datasource.result.stderr = ''
+
         exitCode = datasource.result.exitCode
         output = datasource.result.output.strip()
         stderr = datasource.result.stderr.strip()

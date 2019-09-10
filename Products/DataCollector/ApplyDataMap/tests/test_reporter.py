@@ -17,6 +17,7 @@ from ..reporter import (
     Change_Add, Change_Add_Blocked,
     Change_Set, Change_Set_Blocked,
     Change_Remove, Change_Remove_Blocked,
+    Change_Rebuild,
     AGENT, EXPLANATION,
 )
 
@@ -258,6 +259,29 @@ class TestADMReporter(TestCase):
         t.objmap._directive = 'delete_locked'
         t.reporter.report_directive(t.device, t.objmap)
         report_delete_locked.assert_called_with(t.device, t.objmap)
+
+    def test_report_rebuild(t):
+        t.reporter.report_rebuild(t.device, t.objmap)
+
+        msg = "rebuilt object {} to relationship {}".format(
+            t.objmap.id, t.objmap._relname
+        )
+        t.reporter._send_event.assert_called_with({
+            'eventClass': Change_Rebuild,
+            'device': t.device.id,
+            'component': t.objmap.id,
+            'summary': msg,
+            'severity': Event.Info,
+            'agent': AGENT,
+            'explanation': EXPLANATION,
+        })
+
+    def test_report_rebuild_directive(t):
+        report_rebuild = create_autospec(t.reporter.report_delete_locked)
+        t.reporter.report_rebuild = report_rebuild
+        t.objmap._directive = 'rebuild'
+        t.reporter.report_directive(t.device, t.objmap)
+        report_rebuild.assert_called_with(t.device, t.objmap)
 
     def test_report_nochange(t):
         '''NOOP unless reporting unchanged objects is needed
