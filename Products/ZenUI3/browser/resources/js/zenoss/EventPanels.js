@@ -1533,6 +1533,15 @@
                 };
                 Ext.apply(params, this.getUpdateParameters());
             }
+            var timeParams = ["firstTime", "lastTime"];
+            timeParams.forEach(function (paramKey) {
+                var timeParam = params.params[paramKey];
+                if (timeParam && timeParam.dateFrom) {
+                    params.params[paramKey] = moment(timeParam.dateFrom).format("x") + " TO " + moment(timeParam.dateTo).format("x");
+                } else {
+                    delete params.params[paramKey];
+                }
+            });
             return params;
         },
         /*
