@@ -13,32 +13,26 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Collection</td>
         <td class="tablevalues">
-            <select name="collectionId" tal:condition="here/isManager">
+            <select name="collectionId">
                 <option tal:repeat="collection here/getCollections"
                     tal:attributes="value collection/id;
                             selected python:here.collectionId==collection.id;"
                     tal:content="collection/id" />
             </select>
-            <span tal:condition="not:here/isManager"
-                tal:content="here/collectionId" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Graph Definition</td>
         <td class="tablevalues">
-            <tal:block tal:condition="here/isManager">
+            <tal:block>
             <select name="graphDefId">
                 <option tal:repeat="graphDef here/getGraphDefs"
                     tal:attributes="value graphDef/id;
@@ -46,16 +40,11 @@
                     tal:content="graphDef/id" />
             </select>
             </tal:block>
-            
-            <span tal:condition="not:here/isManager"
-                tal:content="here/graphDefId" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Method</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <select class="tablevalues" name="combineDevices:boolean">
                 <option tal:attributes="value python:False;
                     selected python:not here.combineDevices">Separate graph
@@ -65,8 +54,6 @@
                     single graph</option>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">
