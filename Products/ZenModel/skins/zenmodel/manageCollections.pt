@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane"
-    tal:define="editable here/isManager">
+    tal:define="editable true">
 
 
 <form method="POST" tal:attributes="
