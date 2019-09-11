@@ -30,6 +30,7 @@ def fakeContextFromFile(jsonfile):
             # which we don't need during unit-tests. So set it to None
             self._client = None
             self.__logFilters = dict()
+            self.committed = False
 
         def commit(self, filename=None):
             addedServices = []
@@ -44,6 +45,8 @@ def fakeContextFromFile(jsonfile):
                     addedServices.append(serial)
                 else:
                     modifiedServices.append(serial)
+
+            self.committed = True
 
         def deployService(self, servicedef, parent):
             if parent._Service__data['ID'] == 'new-service':
@@ -231,6 +234,8 @@ class ServiceMigrationTestCase(object):
                             "Migration failed: for log filter '%s', Expected:\n%s\n\nGot:\n%s\n\n"
                             % (name, value, actual)
                         )
+
+        self.assertEqual(self._fakeContext.committed, True)
 
     def test_cutover_idempotence(self):
         self._test_cutover(self.expected_servicedef, self.expected_servicedef)
