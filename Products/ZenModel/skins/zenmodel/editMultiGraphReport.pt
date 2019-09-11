@@ -17,33 +17,27 @@
 
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/title"/>
     </tr>
     <tr>
         <td class="tableheader">Number of Columns</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <select class="tablevalues" name="numColumns">
                 <option tal:repeat="a here/numColumnsOptions" tal:content="a"
                         tal:attributes="value a;
                         selected python:a==here.numColumns"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/numColumns"/>
     </tr>
     <tr>
         <td class="tableheader">
@@ -85,14 +79,10 @@
         </tr>
         <tr class="tablevalues" tal:repeat="collection batch">
             <td>
-                <input tal:condition="here/isManager"
-                    type="checkbox" name="ids:list"
+                <input type="checkbox" name="ids:list"
                     tal:attributes="value collection/getId"/>
-                <a tal:condition="here/isManager"
-                    tal:attributes="href collection/getPrimaryUrlPath"
+                <a tal:attributes="href collection/getPrimaryUrlPath"
                     tal:content="collection/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
-                     tal:content="collection/getId"/>
             </td>
             <td tal:content="collection/getNumItems" />
         </tr>
@@ -152,14 +142,10 @@
         </tr>
         <tr class="tablevalues" tal:repeat="graph batch">
             <td valign="top">
-                <input tal:condition="here/isManager"
-                    type="checkbox" name="ids:list"
+                <input type="checkbox" name="ids:list"
                     tal:attributes="value graph/getId"/>
-                <a tal:condition="here/isManager"
-                    tal:attributes="href graph/getPrimaryUrlPath"
+                <a tal:attributes="href graph/getPrimaryUrlPath"
                     tal:content="graph/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
-                     tal:content="graph/getId"/>
             </td>
             <td valign="top" width="60%"
                 tal:content="python: ', '.join(graph.getGraphPointsNames())">
@@ -210,26 +196,16 @@
         </tr>
         <tr class="tablevalues" tal:repeat="graphGroup batch">
             <td>
-                <input tal:condition="here/isManager"
-                    type="text" name="seqmap:list" size="2"
-                    tal:attributes="value graphGroup/sequence"
-                    />
-                <input tal:condition="here/isManager"
-                    type="hidden" name="origseq:list"
-                    tal:attributes="value graphGroup/sequence"
-                    />
-                <span tal:condition="not:here/isManager" />
+                <input type="text" name="seqmap:list" size="2"
+                    tal:attributes="value graphGroup/sequence"/>
+                <input type="hidden" name="origseq:list"
+                    tal:attributes="value graphGroup/sequence"/>
             </td>
             <td>
-                <input tal:condition="here/isManager"
-                    type="checkbox" name="ids:list"
+                <input type="checkbox" name="ids:list"
                     tal:attributes="value graphGroup/getId"/>
-                <a tal:condition="here/isManager"
-                    tal:attributes="href graphGroup/getPrimaryUrlPath"
+                <a tal:attributes="href graphGroup/getPrimaryUrlPath"
                     tal:content="graphGroup/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
-                     tal:content="graphGroup/getId"/>
-
             </td>
             <td>
                 <a  tal:condition="graphGroup/getCollectionUrl"
