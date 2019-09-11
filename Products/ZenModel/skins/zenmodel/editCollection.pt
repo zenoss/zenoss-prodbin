@@ -129,12 +129,10 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">
@@ -154,7 +152,6 @@
 
 
 <form method="POST" id="addToCollectionForm"
-    tal:condition="here/isManager"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -319,25 +316,18 @@
         <tal:block tal:repeat="item batch">
         <tr class="tablevalues">
             <td>
-                <input tal:condition="here/isManager"
-                    type="text" name="seqmap:list" size="2"
+                <input type="text" name="seqmap:list" size="2"
                     tal:attributes="value item/sequence"
                     />
-                <input tal:condition="here/isManager"
-                    type="hidden" name="origseq:list"
+                <input type="hidden" name="origseq:list"
                     tal:attributes="value item/sequence"
                     />
-                <span tal:condition="not:here/isManager" />
             </td>
             <td>
-                <input tal:condition="here/isManager"
-                    type="checkbox" name="ids:list"
+                <input type="checkbox" name="ids:list"
                     tal:attributes="value item/getId"/>
-                <a tal:condition="here/isManager"
-                    tal:attributes="href item/getPrimaryUrlPath"
+                <a tal:attributes="href item/getPrimaryUrlPath"
                     tal:content="item/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
-                     tal:content="item/getId"/>
             </td>
             <td tal:content="structure item/getDesc"></td>
             <td tal:content="item/getNumDevicesAndComponents"></td>
