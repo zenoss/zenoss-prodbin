@@ -38,12 +38,10 @@ addLoadEvent(connectZenWebTextareas);
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Device</td>
@@ -60,12 +58,10 @@ addLoadEvent(connectZenWebTextareas);
     </tr>
     <tr>
         <td class="tableheader">Summary<br /> (for normal view)</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <textarea class="tablevalues" name="summary" rows="4" cols="60"
                 tal:content="here/summary"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/comments"/>
     </tr>
     <tr>
         <td class="tableheader">Evaluated Summary</td>
@@ -75,12 +71,10 @@ addLoadEvent(connectZenWebTextareas);
     </tr>
     <tr>
         <td class="tableheader">Comments<br />(for printable view)</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues">
             <textarea class="tablevalues" name="comments" rows="12" cols="60"
                 tal:content="here/comments"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/comments"/>
     </tr>
     <tr>
         <td class="tableheader">Evaluated Comments</td>
