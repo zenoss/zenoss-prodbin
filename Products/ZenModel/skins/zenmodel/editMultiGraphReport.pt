@@ -17,32 +17,32 @@
 
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/title"/>
     </tr>
     <tr>
         <td class="tableheader">Number of Columns</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <select class="tablevalues" name="numColumns">
                 <option tal:repeat="a here/numColumnsOptions" tal:content="a"
                         tal:attributes="value a;
                         selected python:a==here.numColumns"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/numColumns"/>
     </tr>
     <tr>
@@ -85,13 +85,13 @@
         </tr>
         <tr class="tablevalues" tal:repeat="collection batch">
             <td>
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="checkbox" name="ids:list"
                     tal:attributes="value collection/getId"/>
-                <a tal:condition="here/isManager"
+                <a tal:condition="here/isCustomerAdmin"
                     tal:attributes="href collection/getPrimaryUrlPath"
                     tal:content="collection/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
+                <tal:block tal:condition="not:here/isCustomerAdmin"
                      tal:content="collection/getId"/>
             </td>
             <td tal:content="collection/getNumItems" />
@@ -152,13 +152,13 @@
         </tr>
         <tr class="tablevalues" tal:repeat="graph batch">
             <td valign="top">
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="checkbox" name="ids:list"
                     tal:attributes="value graph/getId"/>
-                <a tal:condition="here/isManager"
+                <a tal:condition="here/isCustomerAdmin"
                     tal:attributes="href graph/getPrimaryUrlPath"
                     tal:content="graph/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
+                <tal:block tal:condition="not:here/isCustomerAdmin"
                      tal:content="graph/getId"/>
             </td>
             <td valign="top" width="60%"
@@ -210,24 +210,24 @@
         </tr>
         <tr class="tablevalues" tal:repeat="graphGroup batch">
             <td>
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="text" name="seqmap:list" size="2"
                     tal:attributes="value graphGroup/sequence"
                     />
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="hidden" name="origseq:list"
                     tal:attributes="value graphGroup/sequence"
                     />
-                <span tal:condition="not:here/isManager" />
+                <span tal:condition="not:here/isCustomerAdmin" />
             </td>
             <td>
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="checkbox" name="ids:list"
                     tal:attributes="value graphGroup/getId"/>
-                <a tal:condition="here/isManager"
+                <a tal:condition="here/isCustomerAdmin"
                     tal:attributes="href graphGroup/getPrimaryUrlPath"
                     tal:content="graphGroup/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
+                <tal:block tal:condition="not:here/isCustomerAdmin"
                      tal:content="graphGroup/getId"/>
 
             </td>

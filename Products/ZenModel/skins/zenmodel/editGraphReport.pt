@@ -104,41 +104,41 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues odd" tal:condition="here/isManager">
+        <td class="tablevalues odd" tal:condition="here/isCustomerAdmin">
             <input type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues odd" tal:condition="not:here/isManager"
+        <td class="tablevalues odd" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/title"/>
     </tr>
     <tr>
         <td class="tableheader">Number of Columns</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <select name="numColumns">
                 <option tal:repeat="a here/numColumnsOptions" tal:content="a"
                         tal:attributes="value a; 
                         selected python:a==here.numColumns"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/numColumns"/>
     </tr>
     <tr>
         <td class="tableheader">Comments</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <textarea name="comments" rows="4" cols="60"
                 tal:content="here/comments"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/comments"/>
     </tr>
     <tr>
@@ -161,7 +161,7 @@
 <br />
 
 <form method="POST" id="addGraphForm"
-    tal:condition="here/isManager"
+    tal:condition="here/isCustomerAdmin"
     tal:attributes="action string:${here/absolute_url_path}"
     >
     <input type="hidden" name="zenScreenName" 
@@ -266,7 +266,7 @@
         <input type='hidden' name='tableName' tal:attributes="value tableName" />
 
         <tr>
-            <th tal:condition="here/isManager"
+            <th tal:condition="here/isCustomerAdmin"
         	    tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'sequence','Seq')"/>
             <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -279,7 +279,7 @@
                         tableName,'graphId','Graph')"/>
         </tr>
         <tr class="tablevalues" tal:repeat="element batch">
-            <td valign="top" tal:condition="here/isManager">
+            <td valign="top" tal:condition="here/isCustomerAdmin">
                 <input type="text" name="seqmap:list" size="2" 
         		tal:attributes="value element/sequence"/>
                 <input
@@ -287,7 +287,7 @@
                     tal:attributes="value element/sequence" />
             </td>
             <td valign="top">
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="checkbox" name="ids:list" 
                     tal:attributes="value element/getId"/>
                 <a tal:attributes="href element/getPrimaryUrlPath" 
