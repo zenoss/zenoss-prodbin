@@ -30,8 +30,7 @@ class EditServiceCommand(Migrate.Step):
             return
 
         commands = {
-            "Capacity": "/bin/bash -c \"cp /opt/zenoss/etc/capacity/capacity_supervisor.conf.in /opt/zenoss/etc/capacity/capacity_supervisor.conf; sed -i 's@%INSTANCES%@{{.Instances}}@g;' /opt/zenoss/etc/capacity/capacity_supervisor.conf; /opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/capacity/supervisord.conf\"",
-            "zeneventserver": "/bin/bash -c \"cp /opt/zenoss/etc/zeneventserver/zeneventserver_supervisor.conf.in /opt/zenoss/etc/zeneventserver/zeneventserver_supervisor.conf; sed -i 's@%RAM_COMMITMENT%@{{.RAMCommitment}}@g;' /opt/zenoss/etc/zeneventserver/zeneventserver_supervisor.conf; /opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/zeneventserver/supervisord.conf\"",
+            "Capacity": "/opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/supervisord.conf",
             "CentralQuery": "/opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/central-query/supervisord.conf",
             "MetricConsumer": "/opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/metric-consumer-app/supervisord.conf",
             "zenhubworker (default)": "/opt/zenoss/bin/zenhubworker run -c --logfileonly --monitor {{(parent .).Name}} --workerid $CONTROLPLANE_INSTANCE_ID default",
@@ -44,7 +43,7 @@ class EditServiceCommand(Migrate.Step):
             service.startup = commands[service.name]
 
         service_names = ["MetricShipper", "zminion", "zenactiond", "zeneventd", "zenimpactstate",
-                    "Zauth", "Zope", "zenapi", "zenjobs", "zenjserver", "zenreports"]
+                    "Zauth", "Zope", "zenapi", "zenjobs", "zenjserver", "zeneventserver", "zenreports"]
         command = "/opt/zenoss/bin/supervisord -n -c /opt/zenoss/etc/{}/supervisord.conf",
         services = filter(lambda s: s.name in service_names, ctx.services)
         for service in services:
