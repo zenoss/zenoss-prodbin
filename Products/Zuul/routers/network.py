@@ -41,7 +41,7 @@ class NetworkRouter(TreeRouter):
         return Zuul.getFacade('network', self.context)
 
     @require('Manage DMD')
-    def discoverDevices(self, uid):
+    def discoverDevices(self, uid, collector=None):
         """
         Discover devices on a network.
 
@@ -51,7 +51,7 @@ class NetworkRouter(TreeRouter):
         @return:  B{Properties}:
            - jobId: (integer) The id of the discovery job
         """
-        jobStatus = self.api.discoverDevices(uid)
+        jobStatus = self.api.discoverDevices(uid, collector)
         if jobStatus:
             audit('UI.Network.DiscoverDevices', uid)
             return DirectResponse.succeed(new_jobs=Zuul.marshal([jobStatus],
