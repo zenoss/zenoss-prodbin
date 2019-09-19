@@ -545,14 +545,44 @@ class TrapTask(BaseTask, CaptureReplay):
             netsnmp.lib.snmp_free_pdu(reply)
         sess.close()
 
-    def _add_varbind_detail(self, result, oid, value):
-        detail_name = self.oid2name(oid, exactMatch=False, strip=False)
-        result[detail_name].append(str(value))
+    def _process_varbinds(self, varbinds):
+        # varbinds: Sequence[Tuple(str, Any)]
 
-        detail_name_stripped = self.oid2name(oid, exactMatch=False, strip=True)
-        if detail_name_stripped != detail_name:
-            remainder = detail_name[len(detail_name_stripped)+1:]
-            result[detail_name_stripped + ".sequence"].append(remainder)
+        result = defaultdict(list)
+        groups = defaultdict(list)
+        original_ids = set()
+
+        # Group varbinds having the same MIB Object name together
+        for key, value in varbinds:
+            original_ids.add(key)
+            base_name = self.oid2name(key, exactMatch=False, strip=True)
+            full_name = self.oid2name(key, exactMatch=False, strip=False)
+            groups[base_name].append((full_name, str(value)))
+
+        # Process each MIB object by name
+        for base_name, data in groups.items():
+            offset = len(base_name) + 1
+
+            # One instance of the object is normal data
+            if len(data) == 1:
+                full_name, value = data[0]
+                result[base_name].append(value)
+
+                # if the base name ('var') and full_name ('var.0') do
+                # not match, add an extra ".ifIndex" detail to record the
+                # "0" value.
+                if full_name not in original_ids and base_name != full_name:
+                    result[base_name + ".ifIndex"].append(full_name[offset:])
+                continue
+
+            for full_name, value in data:
+                result[full_name].append(value)
+                # For multiple instances of the same base name,
+                # record their suffixes into a ".sequence" detail.
+                if full_name not in original_ids:
+                    result[base_name + ".sequence"].append(full_name[offset:])
+
+        return {name: ','.join(vals) for name, vals in result.iteritems()}
 
     def decodeSnmpv1(self, addr, pdu):
 
@@ -602,7 +632,7 @@ class TrapTask(BaseTask, CaptureReplay):
 
         # Decode all variable bindings. Allow partial matches and strip
         # off any index values.
-        vb_result = defaultdict(list)
+        varbinds = []
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
@@ -611,11 +641,9 @@ class TrapTask(BaseTask, CaptureReplay):
                     "[decodeSnmpv1] enterprise %s, varbind-oid %s, "
                     "varbind-value %s", enterprise, vb_oid, vb_value
                 )
-            self._add_varbind_detail(vb_result, vb_oid, vb_value)
+            varbinds.append((vb_oid, vb_value))
 
-        result.update(
-            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
-        )
+        result.update(self._process_varbinds(varbinds))
 
         return eventType, result
 
@@ -624,7 +652,7 @@ class TrapTask(BaseTask, CaptureReplay):
         result = {"snmpVersion": "2", "oid": "", "device": addr[0]}
         variables = self.getResult(pdu)
 
-        vb_result = defaultdict(list)
+        varbinds = []
         for vb_oid, vb_value in variables:
             vb_value = decode_snmp_value(vb_value)
             vb_oid = '.'.join(map(str, vb_oid))
@@ -646,11 +674,9 @@ class TrapTask(BaseTask, CaptureReplay):
                 result['snmpTrapAddress'] = vb_value
                 result['device'] = vb_value
             else:
-                self._add_varbind_detail(vb_result, vb_oid, vb_value)
+                varbinds.append((vb_oid, vb_value))
 
-        result.update(
-            {name: ','.join(vals) for name, vals in vb_result.iteritems()}
-        )
+        result.update(self._process_varbinds(varbinds))
 
         if eventType in ["linkUp", "linkDown"]:
             eventType = "snmp_" + eventType
