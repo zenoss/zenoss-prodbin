@@ -563,24 +563,22 @@ class TrapTask(BaseTask, CaptureReplay):
         for base_name, data in groups.items():
             offset = len(base_name) + 1
 
-            # One instance of the object is normal data
+            # If there's only one instance for a given object, then add
+            # the varbind to the event details using pre Zenoss 6.2.0 rules.
             if len(data) == 1:
                 full_name, value = data[0]
-                result[base_name].append(value)
+                suffix = full_name[offset:]
+                if base_name != full_name:
+                    result[base_name].append(value)
+                if suffix:
+                    result[base_name + ".ifIndex"].append(suffix)
 
-                # if the base name ('var') and full_name ('var.0') do
-                # not match, add an extra ".ifIndex" detail to record the
-                # "0" value.
-                if full_name not in original_ids and base_name != full_name:
-                    result[base_name + ".ifIndex"].append(full_name[offset:])
-                continue
-
+            # Record the varbind instance(s) in their 'raw' form.
             for full_name, value in data:
+                suffix = full_name[offset:]
                 result[full_name].append(value)
-                # For multiple instances of the same base name,
-                # record their suffixes into a ".sequence" detail.
-                if full_name not in original_ids:
-                    result[base_name + ".sequence"].append(full_name[offset:])
+                if suffix:
+                    result[base_name + ".sequence"].append(suffix)
 
         return {name: ','.join(vals) for name, vals in result.iteritems()}
 
