@@ -27,75 +27,75 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/title"/>
     </tr>
     <tr>
         <td class="tableheader">Path</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="path:string" size="30"
             tal:attributes="value here/path" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin" 
             tal:content="here/path"/>
     </tr>
     <tr>
         <td class="tableheader">Query</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <textarea class="tablevalues" rows="4" cols="40"
             name="deviceQuery" tal:content="here/deviceQuery"
             tal:attributes="style here/testQueryStyle">
         </textarea>
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin" 
             tal:content="here/deviceQuery"/>
     </tr>
     <tr>
         <td class="tableheader">Sort Column</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="sortedHeader" size="30"
             tal:attributes="value here/sortedHeader" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin" 
             tal:content="here/sortedHeader"/>
     </tr>
     <tr>
         <td class="tableheader">Sort Sense</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="sortedSence" size="30"
             tal:attributes="value here/sortedSence" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager" 
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin" 
             tal:content="here/sortedSence"/>
     </tr>
     <tr>
         <td class="tableheader">Columns</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <textarea class="tablevalues" rows="8" cols="25"
             name="columns:lines" 
             tal:content="python:'\n'.join(here.columns)">
         </textarea>
         </td>
       <td class="tablevalues" colspan="3" 
-        tal:condition="not:here/isManager" 
+        tal:condition="not:here/isCustomerAdmin" 
         tal:content="python:' '.join(here.columns)"/>
     </tr>
     <tr>
         <td class="tableheader">Column Names</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <textarea class="tablevalues" rows="8" cols="25"
             name="colnames:lines" 
             tal:content="python:'\n'.join(here.colnames)"
@@ -103,7 +103,7 @@
         </textarea>
         </td>
       <td class="tablevalues" colspan="3" 
-        tal:condition="not:here/isManager" 
+        tal:condition="not:here/isCustomerAdmin" 
         tal:content="python:' '.join(here.colnames)"/>
     </tr>
     <tr>

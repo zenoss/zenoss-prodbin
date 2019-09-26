@@ -70,66 +70,66 @@
 
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Height</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="number" min="250"  name="height" size="30"
             onchange="backCompatWidthAdjust(this.value)"
             tal:attributes="value here/height" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/height"/>
     </tr>
     <tr style="display:none">
         <td class="tableheader">Width</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="width" size="30"
             tal:attributes="value here/width" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/width"/>
     </tr>
     <tr>
         <td class="tableheader">Y Axis Units Label</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="units" size="30"
             tal:attributes="value here/units" />
         </td>
     </tr>
     <tr>
         <td class="tableheader">Base 1024</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <select class="tablevalues" name="base:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
             tal:attributes="value e; selected python:e==here.base"/>
         </select>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/base"/>
     </tr>
     <tr>
         <td class="tableheader">Min Y</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="miny" size="30"
             tal:attributes="value here/miny" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/miny"/>
     </tr>
     <tr>
         <td class="tableheader">Max Y</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
         <input class="tablevalues" type="text" name="maxy" size="30"
             tal:attributes="value here/maxy" />
         </td>
-      <td class="tablevalues" tal:condition="not:here/isManager"
+      <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/maxy"/>
     </tr>
     <tr>
@@ -191,24 +191,24 @@
     </tr>
     <tr class="tablevalues" tal:repeat="graphPoint batch">
         <td>
-            <input tal:condition="here/isManager"
+            <input tal:condition="here/isCustomerAdmin"
                 type="text" name="seqmap:list" size="2"
                 tal:attributes="value graphPoint/sequence"
                 />
-            <input tal:condition="here/isManager"
+            <input tal:condition="here/isCustomerAdmin"
                 type="hidden" name="origseq:list"
                 tal:attributes="value graphPoint/sequence"
                 />
-            <span tal:condition="not:here/isManager" />
+            <span tal:condition="not:here/isCustomerAdmin" />
         </td>
         <td>
-            <input tal:condition="here/isManager"
+            <input tal:condition="here/isCustomerAdmin"
                 type="checkbox" name="ids:list"
                 tal:attributes="value graphPoint/getId"/>
-            <a tal:condition="here/isManager"
+            <a tal:condition="here/isCustomerAdmin"
                 tal:attributes="href graphPoint/getPrimaryUrlPath"
                 tal:content="graphPoint/getId">name</a>
-            <tal:block tal:condition="not:here/isManager"
+            <tal:block tal:condition="not:here/isCustomerAdmin"
 			tal:content="graphPoint/getId"/>
         </td>
         <td tal:content="graphPoint/getType" />
