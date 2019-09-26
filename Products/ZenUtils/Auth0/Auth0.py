@@ -12,7 +12,8 @@ from Products.PluggableAuthService.interfaces.plugins import (IExtractionPlugin,
                                                               IAuthenticationPlugin,
                                                               IChallengePlugin,
                                                               ICredentialsResetPlugin,
-                                                              IRolesPlugin)
+                                                              IRolesPlugin,
+                                                              IPropertiesPlugin)
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.ZenUtils.AuthUtils import getJWKS, publicKeysFromJWKS
@@ -33,10 +34,11 @@ log = logging.getLogger('Auth0')
 TOOL = 'Auth0'
 PLUGIN_ID = 'auth0_plugin'
 PLUGIN_TITLE = 'Provide auth via Auth0 service'
-PLUGIN_VERSION = 3
+PLUGIN_VERSION = 4
 MEMCACHED_IMPORT = ('localhost', '11211')
 
 rbac_pattern = re.compile("^(internal:)?(CZ[0-9]+):(.+)")
+email_pattern = re.compile("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 _AUTH0_CONFIG = {
     'audience': None,
@@ -388,12 +390,26 @@ class Auth0(BasePlugin):
             return ()
         return set(sessionInfo.roles)
 
+    def getPropertiesForUser(self, user, request=None):
+        """ ImplementesPluggableAuthService  IPropertiesPlugin interface.
+            o Return properties for auth0 user
+        """
+        if not request:
+            return {}
+        sessionInfo = request.SESSION.get(Auth0.session_key)
+        if getattr(sessionInfo, 'userid'):
+            # userid is not always an email; see method storeToken
+            if email_pattern.match(sessionInfo.userid):
+                return {'email': sessionInfo.userid}
+        return {}
+
 classImplements(Auth0,
                 IAuthenticationPlugin,
                 IExtractionPlugin,
                 IChallengePlugin,
                 ICredentialsResetPlugin,
-                IRolesPlugin)
+                IRolesPlugin,
+                IPropertiesPlugin)
 
 InitializeClass(Auth0)
 
@@ -418,7 +434,8 @@ def setup(context):
                   'IExtractionPlugin',
                   'IChallengePlugin',
                   'ICredentialsResetPlugin',
-                  'IRolesPlugin')
+                  'IRolesPlugin',
+                  'IPropertiesPlugin')
     activatePluginForInterfaces(zport_acl, PLUGIN_ID, interfaces)
 
     movePluginToTop(zport_acl, PLUGIN_ID, 'IAuthenticationPlugin')

@@ -129,11 +129,11 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
+        <td class="tablevalues" tal:condition="here/isCustomerAdmin">
             <input class="tablevalues" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isCustomerAdmin"
             tal:content="here/id"/>
     </tr>
     <tr>
@@ -154,7 +154,7 @@
 
 
 <form method="POST" id="addToCollectionForm"
-    tal:condition="here/isManager"
+    tal:condition="here/isCustomerAdmin"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -319,24 +319,24 @@
         <tal:block tal:repeat="item batch">
         <tr class="tablevalues">
             <td>
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="text" name="seqmap:list" size="2"
                     tal:attributes="value item/sequence"
                     />
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="hidden" name="origseq:list"
                     tal:attributes="value item/sequence"
                     />
-                <span tal:condition="not:here/isManager" />
+                <span tal:condition="not:here/isCustomerAdmin" />
             </td>
             <td>
-                <input tal:condition="here/isManager"
+                <input tal:condition="here/isCustomerAdmin"
                     type="checkbox" name="ids:list"
                     tal:attributes="value item/getId"/>
-                <a tal:condition="here/isManager"
+                <a tal:condition="here/isCustomerAdmin"
                     tal:attributes="href item/getPrimaryUrlPath"
                     tal:content="item/getId">name</a>
-                <tal:block tal:condition="not:here/isManager"
+                <tal:block tal:condition="not:here/isCustomerAdmin"
                      tal:content="item/getId"/>
             </td>
             <td tal:content="structure item/getDesc"></td>
