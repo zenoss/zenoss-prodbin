@@ -1,4 +1,0 @@
-#!/bin/bash
-export CONFIG_FILE=/opt/zenoss/etc/zenapi.conf
-/opt/zenoss/bin/runzope "$@"
-
