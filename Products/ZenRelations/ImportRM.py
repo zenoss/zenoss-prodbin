@@ -265,8 +265,14 @@ for a ZenPack.
                            % self.objectnumber)
 
         elif name == 'property':
-            self.setProperty(self.context(), self.curattrs,
-                             self.charvalue)
+            if self.curattrs['id'] == 'prodstate':
+                prodState = int(self.charvalue)
+                self.context().setProdState(prodState)
+            else:
+                self.setProperty(
+                    self.context(), self.curattrs, self.charvalue
+                )
+
             # We've closed off a tag, so now we need to re-initialize
             # the area that stores the contents of elements
             self.charvalue = ''
