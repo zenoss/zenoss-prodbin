@@ -725,7 +725,7 @@ class DeviceFacade(TreeFacade):
         return jobrecords
 
     def remodel(self, deviceUid, collectPlugins='', background=True):
-        #fake_request will break not a background command 
+        #fake_request will break not a background command
         fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
@@ -753,11 +753,11 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        
+
         if isinstance(object, Device):
             rrdTemplates = object.getAvailableTemplates()
         else:
-            rrdTemplates = object.getRRDTemplates()        
+            rrdTemplates = object.getRRDTemplates()
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -1014,7 +1014,7 @@ class DeviceFacade(TreeFacade):
             current_def = [graphDef.id for graphDef, _ in component.getGraphObjects()]
             if component.meta_type in graphDefs:
                 prev_def = graphDefs[component.meta_type]
-                graphDefs[component.meta_type] = prev_def + list(set(current_def) - set(prev_def))
+                graphDefs[component.meta_type] = set(prev_def) | set(current_def)
             else:
                 graphDefs[component.meta_type] = current_def
         return graphDefs
