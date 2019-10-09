@@ -469,7 +469,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         for zp in self.dmd.ZenPackManager.packs():
             try:
                 thresholdClasses += zp.getThresholdClasses()
-            except Exception, e:
+            except Exception as e:
                 log.exception("Unable to fetch thresholds from zenpack %s, please try reinstalling the zenpack. Error %s", zp, e)
         return map(lambda x: (x, x.__name__), thresholdClasses)
 

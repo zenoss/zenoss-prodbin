@@ -386,7 +386,7 @@ class ZPLAbout(ZenPackLoader):
             for key, value in parser.items(CONFIG_SECTION_ABOUT):
                 try:
                     value = eval(value)
-                except:
+                except Exception:
                     # Blanket exception catchers like this are evil.
                     pass
                 result.append((key, value))

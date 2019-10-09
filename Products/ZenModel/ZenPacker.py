@@ -29,7 +29,7 @@ class ZenPacker(object):
                 for id in ids:
                     try:
                         obj = self.findObject(id)
-                    except AttributeError, ex:
+                    except AttributeError as ex:
                         message = str(ex)
                         break
                     obj.buildRelations()

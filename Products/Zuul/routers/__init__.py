@@ -69,7 +69,7 @@ class TreeRouter(DirectRouter):
             treeNode = facade.getTree(uid)
             result['nodeConfig'] = Zuul.marshal(treeNode)
             result['success'] = True
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             result['msg'] = str(e)
             result['success'] = False

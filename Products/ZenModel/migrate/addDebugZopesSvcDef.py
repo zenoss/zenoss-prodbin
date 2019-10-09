@@ -96,7 +96,7 @@ class AddDebugZopesSvcDef(Migrate.Step):
             try:
                 user_interface_svc = filter(lambda x: x.name == "User Interface", ctx.services)[0]
                 ctx.deployService(zendebug_jsonfile.read(), user_interface_svc)
-            except:
+            except Exception:
                 log.error("Error deploying zendebug service definition")
                 return False
 

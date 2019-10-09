@@ -48,10 +48,10 @@ class Driver:
             self.iter.next().addBoth(self._finish)
         except StopIteration:
             self.defer.callback(self.result)
-        except ShortCircuit, ex:
+        except ShortCircuit as ex:
             self.result = ex.value
             self.defer.callback(self.result)
-        except Exception, ex:
+        except Exception as ex:
             self.defer.errback(failure.Failure(ex))
 
     def result(self):

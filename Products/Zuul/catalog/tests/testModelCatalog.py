@@ -50,7 +50,7 @@ class ModelCatalogTestsDrawer(BaseTestCase):
         exception_raised = False
         try:
             obj = brain.getObject()
-        except:
+        except Exception:
             exception_raised = True
         self.assertTrue(exception_raised)
 

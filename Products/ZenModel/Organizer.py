@@ -195,7 +195,7 @@ class Organizer(ZenModelRM, EventView):
                 # Set the display name to the original string
                 org = self._getOb(newPath)
                 org.setTitle(name)
-        except ZentinelException, e:
+        except ZentinelException as e:
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error', e, priority=messaging.WARNING)

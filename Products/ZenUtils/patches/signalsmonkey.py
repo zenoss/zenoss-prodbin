@@ -39,7 +39,7 @@ def improvedSignalHandler(signum, frame):
         except SystemExit:
             # if we trap SystemExit, we can't restart
             raise
-        except:
+        except Exception:
             LOG.warn('A handler for %s failed!' % signame,
                      exc_info=sys.exc_info())
 

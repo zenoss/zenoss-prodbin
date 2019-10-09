@@ -44,7 +44,7 @@ class ConfDaemon(CmdBase):
             pid = os.fork()
             if pid > 0:
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             print >>sys.stderr, ("fork #1 failed: %d (%s)" % 
                     (e.errno, e.strerror))
         os.chdir("/")
@@ -54,7 +54,7 @@ class ConfDaemon(CmdBase):
             pid = os.fork()
             if pid > 0:
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             print >>sys.stderr, ("fork #2 failed: %d (%s)" % 
                     (e.errno, e.strerror))
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
@@ -132,7 +132,7 @@ class ConfDaemon(CmdBase):
                 self.loadConfig()
                 return
             except SystemExit: raise
-            except:
+            except Exception:
                 if self.validConfig():
                     self.log.exception(
                     "configuration load exception using previous configuration")

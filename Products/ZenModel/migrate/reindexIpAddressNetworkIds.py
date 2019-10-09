@@ -19,7 +19,7 @@ class ReindexIpAddressNetworkIds(Migrate.Step):
             try:
                 ob = brain.getObject()
                 ob.index_object()
-            except:
+            except Exception:
                 pass
 
 ReindexIpAddressNetworkIds()

@@ -93,7 +93,7 @@ class TwoPointOhObjects(Migrate.Step):
                         cls.zEventAction = 'status'
                     elif val == "/Change":
                         cls.zEventAction = 'history'
-                except Exception, ex:
+                except Exception as ex:
                     pass
                 root = root._getOb(elt)
         

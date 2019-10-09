@@ -44,7 +44,7 @@ class NJobs:
             self.running += 1
             try:
                 d = self.callable(self.workQueue.pop())
-            except Exception, ex:
+            except Exception as ex:
                 self._finished(ex)
             else:
                 d.addBoth(self._finished)
