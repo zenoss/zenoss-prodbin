@@ -435,7 +435,7 @@ class SshPerformanceCollectionTask(BaseTask):
                                              component=COLLECTOR_NAME,
                                              severity=Clear)
             yield self._fetchPerf()
-        except Exception, e:
+        except Exception as e:
             self.state = TaskStates.STATE_PAUSED
             log.error("Pausing task %s as %s [%s] connection failure: %s",
                       self.name, self._devId, self._manageIp, e.message)
@@ -663,7 +663,7 @@ class SshPerformanceCollectionTask(BaseTask):
                         threshEventData=threshData,
                         metadata=dp.metadata,
                         extraTags=getattr(dp, "tags", {}))
-                except Exception, e:
+                except Exception as e:
                     log.exception("Failed to write to metric service: "
                                   "{0} {1.__class__.__name__} {1}"
                                   .format(dp.metadata, e))

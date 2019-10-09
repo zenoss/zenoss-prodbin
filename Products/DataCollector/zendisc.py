@@ -521,7 +521,7 @@ class ZenDisc(ZenModeler):
                 ips = yield self.discoverIps(nets)
                 devices += ips
                 count += len(ips)
-            except Exception, ex:
+            except Exception as ex:
                 self.log.exception(
                     "Error performing net discovery on %s: %s", net, ex
                 )

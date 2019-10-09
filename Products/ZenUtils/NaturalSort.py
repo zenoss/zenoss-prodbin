@@ -47,12 +47,12 @@ def _chunk(x):
 def _hexValue(x):
     if _HRE.match( x):
         try: return int( x, 16)
-        except: pass
+        except Exception: pass
     return None 
 
 def _floatValue(x):
     try: return float( x)
-    except: return None
+    except Exception: return None
 
 def natural_compare( lhs, rhs):
     #convert all to strings strip whitespace

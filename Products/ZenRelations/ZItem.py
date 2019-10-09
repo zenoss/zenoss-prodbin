@@ -167,7 +167,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
             if not error_message:
                 try:
                     s = ustr(error_value)
-                except:
+                except Exception:
                     s = error_value
                 try:
                     match = tagSearch(s)
@@ -199,14 +199,14 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
                 else:
                     __pychecker__='self="s"'
                     v = HTML.__call__(s, client, REQUEST, **kwargs)
-            except:
+            except Exception:
                 logger.error(
                     'Exception while rendering an error message',
                     exc_info=True
                     )
                 try:
                     strv = str(error_value)
-                except:
+                except Exception:
                     strv = ('<unprintable %s object>' % 
                             str(type(error_value).__name__))
                 v = strv + (
@@ -317,7 +317,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         """
         try:
             path = '/'.join(self.getPhysicalPath())
-        except:
+        except Exception:
             return Base.__repr__(self)
         context_path = None
         context = aq_parent(self)
@@ -325,7 +325,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         if aq_base(context) is not aq_base(container):
             try:
                 context_path = '/'.join(context.getPhysicalPath())
-            except:
+            except Exception:
                 context_path = None
         res = '<%s' % self.__class__.__name__
         res += ' at %s' % path

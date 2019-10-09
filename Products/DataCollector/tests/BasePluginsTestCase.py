@@ -29,7 +29,7 @@ class BasePluginsTestCase(BaseTestCase):
         for filename in filenames(datadir):
             try:
                 counter += self._testDataFile(filename, Plugins, device)
-            except Exception, e:
+            except Exception as e:
                 format = '%s/%s caught %s: %s'
                 host, parser = filename.split(os.path.sep)[-2:]
                 args = (host, parser, e.__class__.__name__, str(e))

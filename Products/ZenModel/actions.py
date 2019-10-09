@@ -320,7 +320,7 @@ class TargetableAction(object):
                 try:
                     log.debug("Executing batch action for targets.")
                     self.executeBatch(notification, signal, targets)
-                except Exception, e:
+                except Exception as e:
                     self.handleExecuteError(e, notification, targets)
                     exceptionTargets.extend(targets)
             else:
@@ -329,7 +329,7 @@ class TargetableAction(object):
                     try:
                         self.executeOnTarget(notification, signal, target)
                         log.debug('Done executing action for target: %s' % target)
-                    except Exception, e:
+                    except Exception as e:
                         self.handleExecuteError(e, notification, target)
                         exceptionTargets.append(target)
 

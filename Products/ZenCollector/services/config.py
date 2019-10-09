@@ -124,7 +124,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         try:
             return functor(*args, **kwargs)
         except (SystemExit, KeyboardInterrupt): raise
-        except Exception, ex:
+        except Exception as ex:
             msg = 'Unhandled exception in zenhub service %s: %s' % (
                       self.__class__, str(ex))
             self.log.exception(msg)
@@ -157,7 +157,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
                 try:
                     listener.callRemote('updateThresholdClasses',
                                         self.remote_getThresholdClasses())
-                except Exception, ex:
+                except Exception as ex:
                     self.log.warning("Error notifying a listener of new classes")
 
     @onUpdate(Device)

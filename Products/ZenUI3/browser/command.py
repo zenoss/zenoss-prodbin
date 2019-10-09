@@ -103,7 +103,7 @@ class CommandView(StreamingView):
                 self.write('Command timed out for %s (timeout is %s seconds)'%(
                                 target.titleOrId(), timeout)
                           )
-        except:
+        except Exception:
             self.write('Exception while performing command for %s' %
                        target.id)
             self.write('Type: %s   Value: %s' % tuple(sys.exc_info()[:2]))

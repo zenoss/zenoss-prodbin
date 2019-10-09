@@ -41,7 +41,7 @@ def trim_db(conn, cursor):
     try:
         conn.autocommit(True)
         cursor.execute(_trim_sql)
-    except:
+    except Exception:
         LOG.error("Unable to trim data in the connection_info table",
                 exc_info=True)
     finally:
@@ -56,7 +56,7 @@ def record_pid(conn, cursor):
         stacktrace = ''.join(traceback.format_stack())
         info = "pid=%d tid=%d\n%s\n%s" % (pid, tid, cmd, stacktrace)
         cursor.execute(_record_pid_sql, (pid, info, pid, info))
-    except:
+    except Exception:
         LOG.debug("Unable to record pid and thread_id to connection_info",
                  exc_info=True)
     finally:
@@ -81,7 +81,7 @@ try:
                 sql = "DELETE FROM connection_info WHERE connection_id = connection_id();"
                 cursor.execute(sql)
                 conn.commit()
-        except:
+        except Exception:
             pass
         original(self, conn, cursor)
 

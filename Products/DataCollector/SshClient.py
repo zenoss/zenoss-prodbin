@@ -115,7 +115,7 @@ def sendEvent( self, message="", device='', severity=Event.Error, event_key=None
         else:
             log.debug( "Unable to send event for %s" % error_event )
 
-    except:
+    except Exception:
         pass # Don't cause other issues
 
 
@@ -254,7 +254,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             import pwd
             try:
                 user = os.environ.get( 'LOGNAME', pwd.getpwuid(os.getuid())[0] )
-            except:
+            except Exception:
                 pass
 
             if user == '':
@@ -293,7 +293,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
             password = self._getPassword()
             d = defer.succeed(password)
             self._sent_password = True
-        except NoPasswordException, e:
+        except NoPasswordException as e:
             # NOTE: Return None here - not a defer.fail(). If a failure deferred
             # is returned, then the SSH client will retry until MaxAuthTries is
             # met - which in some SSH server implementations means an infinite
@@ -372,14 +372,14 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                 data = ''.join(open(keyPath).readlines()).strip()
                 key = Key.fromString(data,
                                passphrase=self.factory.password)
-            except IOError, ex:
+            except IOError as ex:
                 message = "Unable to read the SSH key file because %s" % (
                              str(ex))
                 log.warn(message)
                 device = 'localhost' # Fallback
                 try:
                     device = socket.getfqdn()
-                except:
+                except Exception:
                     pass
                 sendEvent(self, device=device, message=message,
                           severity=Event.Warning)

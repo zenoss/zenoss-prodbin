@@ -49,6 +49,6 @@ class SendEvent(object):
         try:
             self.server.sendEvent(event)
         except SystemExit: raise
-        except:
+        except Exception:
             raise
             logging.exception("Event notification failed url %s", self.url)

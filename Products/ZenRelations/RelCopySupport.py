@@ -55,7 +55,7 @@ class RelCopyContainer(CopyContainer):
             oblist = self._getSourceObjects(cb_copy_data, REQUEST)
             for obj in oblist:
                 self.manage_addRelation(relName, obj)
-        except ZenRelationsError, e:
+        except ZenRelationsError as e:
             if REQUEST: return MessageDialog(title = "Relationship Link Error",
                                 message = str(e), action = "manage_main")     
             else: raise
@@ -70,7 +70,7 @@ class RelCopyContainer(CopyContainer):
         try:
             relName = self._getRelName(ids)
             self.manage_removeRelation(relName)
-        except ZenRelationsError, e:
+        except ZenRelationsError as e:
             if REQUEST:return MessageDialog(title = "Relationship Unlink Error",
                                 message = str(e), action = "manage_main")     
             else: raise
@@ -142,7 +142,7 @@ class RelCopyContainer(CopyContainer):
             raise CopyError, eNoData
         
         try:    cp=_cb_decode(cp)
-        except: raise CopyError, eInvalid
+        except Exception: raise CopyError, eInvalid
 
         oblist=[]
         app = self.getPhysicalRoot()
@@ -150,7 +150,7 @@ class RelCopyContainer(CopyContainer):
         for mdata in cp[1]:
             m = Moniker.loadMoniker(mdata)
             try: ob = m.bind(app)
-            except: raise CopyError, eNotFound
+            except Exception: raise CopyError, eNotFound
             self._verifyObjectLink() 
             oblist.append(ob)
         return oblist

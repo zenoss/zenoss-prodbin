@@ -108,7 +108,7 @@ class Nagios(CommandParser):
                 label = quote_label
             try:
                 value = float(value.strip())
-            except:
+            except Exception:
                 value = 'U'
             perfData[label] = value
 

@@ -396,7 +396,7 @@ try:
         try:
             try:
                 self._pre_pack_main(conn, cursor, pack_tid, get_references)
-            except:
+            except Exception:
                 log.exception("pre_pack: failed")
                 conn.rollback()
                 raise
@@ -440,7 +440,7 @@ try:
         ### BEGIN ZENOSS CUSTOM CODE ###
         ################################
 
-        except:
+        except Exception:
             log.exception("pre_pack: failed")
             conn.rollback()
             raise
@@ -677,7 +677,7 @@ try:
                         except Exception as e:
                             MONKEY_HELPER.log_exception(e, "Execption while running tests.")
 
-            except:
+            except Exception:
                 log.exception("pack: failed")
                 conn.rollback()
                 raise

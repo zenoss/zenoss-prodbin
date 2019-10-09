@@ -168,7 +168,7 @@ class PropertyDescriptor(object):
                 value = instance._propertyValues[self.id]
                 retval = self._transform(instance, value, 'transformForGet')
             return retval
-        except:
+        except Exception:
             raise AttributeError
 
     def __set__(self, instance, value):

@@ -60,6 +60,6 @@ def registerDescriptors(event):
     if zport:
         try:
             setDescriptors(zport.dmd)
-        except Exception, e:
+        except Exception as e:
             args = (e.__class__.__name__, e)
             log.info("Unable to set property descriptors: %s: %s", *args)

@@ -22,7 +22,7 @@ class AddressEncoding(Migrate.Step):
             except UnicodeDecodeError:
                 try:
                     loc.address = loc.address.decode('latin-1').encode('utf-8')
-                except:
+                except Exception:
                     log.error("Unable to decode address '%s'" % loc.address + \
                               " on location %s" % loc.id)
         dmd.geocache = ''

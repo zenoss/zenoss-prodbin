@@ -114,10 +114,10 @@ class AddTriggerNotificationsForCommands(Migrate.Step):
                 trigger = self._createTrigger(command)
                 self._createNotification(command, trigger)
                 log.info('Done processing event command: %s.' % command.id)
-            except TriggerRuleSourceError, e:
+            except TriggerRuleSourceError as e:
                 failed = True
                 log.warn('Unable to parse existing event command: %s' % command.id)
-            except PythonConversionException, e:
+            except PythonConversionException as e:
                 log.debug("Failed conversion: %s", e)
                 log.warn("Unable to convert existing event command: %s" % command.id)
                 failed = True

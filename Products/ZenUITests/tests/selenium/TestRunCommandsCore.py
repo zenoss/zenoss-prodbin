@@ -72,7 +72,7 @@ class TestRunCommands(SelTestBase):
         for i in range(60):
             try:
                 if sel.is_text_present("DONE"): break
-            except: pass
+            except Exception: pass
             time.sleep(1)
         else: self.fail("time out")
         self.failUnless(sel.is_text_present("Command Output"))
