@@ -42,7 +42,7 @@ class ModelerService(PerformanceConfig):
                     plugin = loader.create()
                     plugin.loader = loader
                     self.plugins[plugin.name()] = plugin
-                except Exception, ex:
+                except Exception as ex:
                     log.exception(ex)
 
         result = DeviceProxy()

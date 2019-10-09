@@ -35,7 +35,7 @@ class Cacti(CommandParser):
                 number = float(output)
                 result.values.append( (cmd.points[0], number) )
                 msg, values = '', output
-            except:
+            except Exception:
                 msg, values = output, ''
 
         else:

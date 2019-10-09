@@ -188,7 +188,7 @@ class Location(DeviceOrganizer, ZenPackable):
         """
         cache = extractPostContent(REQUEST)
         try: cache = cache.decode('utf-8')
-        except: pass
+        except Exception: pass
         from json import loads
         geocode = loads(cache)
         for uid, geo in geocode.iteritems():

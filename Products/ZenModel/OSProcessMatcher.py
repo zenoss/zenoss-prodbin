@@ -105,7 +105,7 @@ class OSProcessClassMatcher(object):
             try:
                 groups, literals = self._compiledReplacement('replaceRegex',
                                                              'replacement')
-            except:
+            except Exception:
                 log.warn("Invalid replacement rule on %s", self)
                 return processText
             parts = []
@@ -163,7 +163,7 @@ class OSProcessClassMatcher(object):
                 compiled = parse_template(repl, self._compiledRegex(regexField))
                 cache[replField] = {(regex,repl) : compiled}
                 return compiled
-            except:
+            except Exception:
                 log.warn("Invalid %s on %s", replField, self)
                 cache[replField] = {(regex,repl) : None}
                 return None

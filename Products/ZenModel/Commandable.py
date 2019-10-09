@@ -139,7 +139,7 @@ class Commandable:
                 self.doCommandForTarget(command, target, out)
                 #untested, method call cannot be found
                 audit('UI.Command.Invoke', commandId, target=target)
-            except:
+            except Exception:
                 self.write(out,
                     'exception while performing command for %s' % target.id)
                 self.write(

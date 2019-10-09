@@ -38,24 +38,24 @@ def checkRelationshipSchema(cls, baseModule):
     for relname, rel in cls._relations:
         try:
             remoteClass = importClass(rel.remoteClass, None)    
-        except AttributeError, e:
+        except AttributeError as e:
             logging.critical("RemoteClass '%s' from '%s.%s' not found",
                         rel.remoteClass, cls.__name__, relname)
             continue                        
         try:
             rschema = lookupSchema(remoteClass, rel.remoteName)
-        except ZenSchemaError, e:
+        except ZenSchemaError as e:
             logging.critical("Inverse def '%s' for '%s.%s' not found on '%s'",
                 rel.remoteName, cls.__name__, relname,rel.remoteClass)
             continue
-        except Exception, e:
+        except Exception as e:
             logging.critical("RemoteClass '%s' for '%s.%s' problem.",
                 rel.remoteName, cls.__name__, relname)
             logging.critical(e)
             continue
         try:
             localClass = importClass(rschema.remoteClass, None)
-        except AttributeError, e:
+        except AttributeError as e:
             logging.critical(e)
         if not issubclass(cls, localClass):
             logging.critical("Inverse def '%s' from '%s.%s' wrong "

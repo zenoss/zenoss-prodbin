@@ -229,7 +229,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 except ConfigurationError:
                     dp = None
                     numDataPointsMissing += 1
-                except AttributeError, e:
+                except AttributeError as e:
                     msg = ('There was a problem converting the graph %s.'
                             % rrdGraph.id +
                             ' This might be caused by a misinstalled zenpack,'

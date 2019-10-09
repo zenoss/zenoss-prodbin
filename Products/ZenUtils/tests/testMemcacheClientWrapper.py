@@ -47,7 +47,7 @@ class TestMemcacheClientWrapper(unittest.TestCase):
         createModule(moduleName, **kwargs)
         try:
             import foo
-        except:
+        except Exception:
             self.fail("Could not import module")
         self.assertTrue(type(foo) is types.ModuleType)
 

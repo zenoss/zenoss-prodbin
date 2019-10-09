@@ -56,7 +56,7 @@ class BasicLoader(ZCmdBase):
             try:
                 quit = self.loaderBody(line)
                 if quit == True: break # return True to stop
-            except:
+            except Exception:
                 self.log.exception("Line Number %i" % (self.lineNumber))
             if (not self.options.noCommit 
                 and not self.lineNumber % self.options.commitCount):

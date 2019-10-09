@@ -59,11 +59,11 @@ class ObjectMapContext(object):
         """Extract fields that will be used to construct a fact."""
         try:
             self.uuid = obj.getUUID()
-        except:
+        except Exception:
             pass
         try:
             self.meta_type = obj.meta_type
-        except:
+        except Exception:
             pass
         try:
             self.name = obj.titleOrId()

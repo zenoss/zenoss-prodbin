@@ -1708,7 +1708,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if otherLinks:
                 linksHtml += '<br/>'.join(otherLinks)
             return linksHtml
-        except Exception, ex:
+        except Exception as ex:
             import cgi
             return "<i class='errortitle'>%s</i>" % cgi.escape(str(ex))
 

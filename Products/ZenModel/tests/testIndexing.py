@@ -139,7 +139,7 @@ class TestPathIndexing(ZenModelBaseTest):
         try:
             self.assertEqual(len(self.dmd.Devices.getSubDevices()),
                 device_count - 1)
-        except (NotFound, KeyError, AttributeError), ex:
+        except (NotFound, KeyError, AttributeError) as ex:
             self.assertEqual(ex, None)
 
 
@@ -345,7 +345,7 @@ class TestComponentIndexing(ZenModelBaseTest):
         d.os.interfaces._objects.pop('catTestComponent')
         try:
             self.assertEqual(len(d.getDeviceComponents()), component_count - 1)
-        except (NotFound, KeyError, AttributeError), ex:
+        except (NotFound, KeyError, AttributeError) as ex:
             self.assertEqual(ex, None)
 
 

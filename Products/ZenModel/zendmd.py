@@ -216,7 +216,7 @@ def _customStuff():
     for idx, line in enumerate(dmd.getZenDMDStartupCommands()):
         try:
             exec line in globals(), locals()
-        except Exception, e:
+        except Exception as e:
             print "Error evaluating zendmd startup command #%s  %s, %s" %(idx, line, str(e))
     def reindex():
         sync()
@@ -598,7 +598,7 @@ if __name__=="__main__":
             else:
                 try:
                     transaction.abort()
-                except:
+                except Exception:
                     pass
             sys.exit(0)
 
@@ -624,5 +624,5 @@ if __name__=="__main__":
         # try to abort any open transactions for our two phase commit listeners
         try:
             transaction.abort()
-        except:
+        except Exception:
             pass

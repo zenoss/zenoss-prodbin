@@ -490,7 +490,7 @@ def importClass(modulePath, classname=""):
         try:
             __import__(modulePath, globals(), locals(), classname)
             mod = sys.modules[modulePath]
-        except (ValueError, ImportError, KeyError), ex:
+        except (ValueError, ImportError, KeyError) as ex:
             raise ex
 
         return getattr(mod, classname)
@@ -1236,7 +1236,7 @@ def executeCommand(cmd, REQUEST, write=None):
     except (SystemExit, KeyboardInterrupt):
         if xmlrpc: return 1
         raise
-    except ZentinelException, e:
+    except ZentinelException as e:
         if xmlrpc: return 1
         log.critical(e)
     except Exception:
@@ -1811,7 +1811,7 @@ def swallowExceptions(log, msg=None, showTraceback=True, returnValue=None):
             return func(*args, **kwargs)
         except ConflictError:
             raise
-        except Exception, e:
+        except Exception as e:
             if log is not None:
                 if showTraceback:
                     log.exception(msg if msg else str(e))

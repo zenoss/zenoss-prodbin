@@ -264,7 +264,7 @@ class EventCompatInfo(object):
         url, path = url_and_path
         try:
             self._dmd.findChild(path)
-        except:
+        except Exception:
             return None
         return url
 

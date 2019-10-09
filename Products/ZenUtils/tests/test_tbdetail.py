@@ -30,7 +30,7 @@ class TestTbdetail(TestCase):
             try:
                 self._raise()
                 self.fail("raise method didn't raise")
-            except:
+            except Exception:
                 message = log_tb(exc_info())
                 path = message.split()[0]
                 self.assert_(0 < stat(path).st_size, 'log file is empty')

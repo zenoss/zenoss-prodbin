@@ -1428,7 +1428,7 @@ class GroupSettings(UserSettings):
     def printUsers(self):
         try:
             userIds = self.getMemberUserIds()
-        except LocalAndLDAPUserEntries, ex:
+        except LocalAndLDAPUserEntries as ex:
             return str(ex)
 
         return ", ".join(userIds)

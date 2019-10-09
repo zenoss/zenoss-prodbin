@@ -589,11 +589,11 @@ class TemplateFacade(ZuulFacade):
             #if we can't use rpn to the entered values, return raw values back
             try:
                 dpParams.update({'maxrpn': rpneval(maxval, dpParams.get('rpnvalue', ''))})
-            except:
+            except Exception:
                 dpParams.update({'maxrpn': maxval})
             try:
                 dpParams.update({'minrpn': rpneval(minval, dpParams.get('rpnvalue', ''))})
-            except:
+            except Exception:
                 dpParams.update({'minrpn': minval})
             dpsrpn.append(dpParams)
         return dpsrpn

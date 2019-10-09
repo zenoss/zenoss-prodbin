@@ -134,7 +134,7 @@ class ZenModelBase(object):
         try:
             globalCheckValidId(self, new_id)
             return True
-        except:
+        except Exception:
             return str(sys.exc_info()[1])
 
 
@@ -300,7 +300,7 @@ class ZenModelBase(object):
             from Products.ZenModel.Organizer import Organizer
             try:
                 return isinstance(curDir, Organizer)
-            except:
+            except Exception:
                 return False
 
         return ZenModelBase.breadCrumbs(self, terminator, isOrganizer)
