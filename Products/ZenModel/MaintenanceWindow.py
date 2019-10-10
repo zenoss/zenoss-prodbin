@@ -34,6 +34,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
 from Products.ZenMessaging.audit import audit
+from Products.ZenUtils.guid.interfaces import IGlobalIdentifier
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
@@ -507,9 +508,10 @@ class MaintenanceWindow(ZenModelRM):
                 mwDevices = mw.fetchDevices()
 
             for device in mwDevices:
-                state = minDevProdStates.get(device.id, None)
+                guid = IGlobalIdentifier(device).getGUID()
+                state = minDevProdStates.get(guid, None)
                 if state is None or state > mw.startProductionState:
-                    minDevProdStates[device.id] = mw.startProductionState
+                    minDevProdStates[guid] = mw.startProductionState
                     log.debug("MW %s has lowered %s's min MW prod state to %s",
                         mw.displayName(), device.id, mw.startProductionState)
 
@@ -565,6 +567,7 @@ class MaintenanceWindow(ZenModelRM):
 
         def _setProdState(devices_batch):
             for device in devices_batch:
+                guid = IGlobalIdentifier(device).getGUID()
                 # In case we try to move Component Group into MW
                 # some of objects in CG may not have production state
                 # we skip them.
@@ -573,11 +576,11 @@ class MaintenanceWindow(ZenModelRM):
                     #       device won't exist in minDevProdStates
                     # This takes care of the case where there are still active
                     # maintenance windows.
-                    minProdState = minDevProdStates.get(device.id,
+                    minProdState = minDevProdStates.get(guid,
                                                 device.getPreMWProductionState())
 
-                elif device.id in minDevProdStates:
-                    minProdState = minDevProdStates[device.id]
+                elif guid in minDevProdStates:
+                    minProdState = minDevProdStates[guid]
 
                 else: # This is impossible for us to ever get here as minDevProdStates
                       # has been added by self.fetchDeviceMinProdStates()
