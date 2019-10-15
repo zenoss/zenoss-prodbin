@@ -82,6 +82,7 @@ class TestIncrementalDataMapHandler(TestCase):
             ObjectMapContextProvider1(''), ObjectMapContextProvider2('')
         ]
         t.target.getDeviceClassName.return_value = 'getDeviceClassName'
+        t.target.getDeviceClassPath.return_value = 'getDeviceClassPath'
         t.target.getDeviceGroupNames.return_value = 'getDeviceGroupNames'
         t.target.getLocationName.return_value = 'getLocationName'
         t.target.getSystemNames.return_value = 'getSystemNames'
