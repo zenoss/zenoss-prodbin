@@ -1,13 +1,6 @@
 #!/bin/bash
 
-if [ $1 = "mariadb-model" ]
-  then
-     DB="zodb"
-  else
-    DB="zep"
-fi
-
-/opt/zenoss/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb $DB --execsql=<<SQL
+mysql -s --skip-column-names -B <<SQL
 USE information_schema;
 
 SELECT
