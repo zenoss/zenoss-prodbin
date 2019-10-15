@@ -75,8 +75,9 @@ class TestIncrementalDataMapHandler(TestCase):
 
         t.idm = IncrementalDataMap(t.base, t.object_map)
 
+    @patch('{src}.ZFact'.format(**PATH), autospec=True)
     @patch('{src}.subscribers'.format(**PATH), autospec=True)
-    def test_generate_facts(t, subscribers):
+    def test_generate_facts(t, subscribers, ZFact):
         # registered event handlers
         subscribers.return_value = [
             ObjectMapContextProvider1(''), ObjectMapContextProvider2('')
