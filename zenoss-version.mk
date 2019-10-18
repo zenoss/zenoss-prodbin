@@ -1,30 +1,24 @@
 #
 # Makefile for zenoss-version
 #
-.PHONY: clean-zenoss-version build-zenoss-version pkg-zenoss-version generate-zversion
 
-ZENOSS_VERSION_BASE := legacy/zenoss-version
-WHEEL_ARTIFACT := $(ZENOSS_VERSION_BASE)/dist/Zenoss-$(VERSION)-py2-none-any.whl
+# The SCHEMA_* values define the DB schema version used for upgrades.
+# See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
+# for more information about setting these values.
+subver = $(word $2,$(subst ., ,$1))
+SCHEMA_VERSION := $(shell cat SCHEMA_VERSION)
+SCHEMA_MAJOR ?= $(call subver,$(SCHEMA_VERSION),1)
+SCHEMA_MINOR ?= $(call subver,$(SCHEMA_VERSION),2)
+SCHEMA_REVISION ?= $(call subver,$(SCHEMA_VERSION),3)
 
-clean-zenoss-version:
-	rm -f $(ZENOSS_VERSION_BASE)/setup.py
-	rm -rf $(ZENOSS_VERSION_BASE)/src/Zenoss.egg-info
-	rm -rf $(ZENOSS_VERSION_BASE)/build $(ZENOSS_VERSION_BASE)/dist
-	rm -f Products/ZenModel/ZMigrateVersion.py
+VERSION_TARGET = Products/ZenModel/ZVersion.py
+VERSION_SCHEMA_TARGET = Products/ZenModel/ZMigrateVersion.py
 
-build-zenoss-version: mk-dist $(WHEEL_ARTIFACT)
-	cp $(WHEEL_ARTIFACT) $(DIST_ROOT)
+.PHONY: clean-zenoss-version generate-zversion generate-zmigrateversion replace-zmigrateversion verify-explicit-zmigrateversion
 
-$(WHEEL_ARTIFACT): build-version-wheel
-
-build-version-wheel: generate-zversion
-	@echo "Building a binary distribution of zenoss-version"
-	sed -e 's/%VERSION%/$(VERSION)/g' $(ZENOSS_VERSION_BASE)/setup.py.in > $(ZENOSS_VERSION_BASE)/setup.py
-	$(DOCKER_RUN) "cd /mnt/$(ZENOSS_VERSION_BASE) && python setup.py bdist_wheel"
-
-generate-zversion: generate-zmigrateversion
+$(VERSION_TARGET): $(VERSION_TARGET).in VERSION
 	@echo "generating ZVersion.py"
-	sed -e 's/%VERSION_STRING%/$(VERSION)/g; s/%BUILD_NUMBER%/$(BUILD_NUMBER)/g' Products/ZenModel/ZVersion.py.in > Products/ZenModel/ZVersion.py
+	sed -e 's/%VERSION_STRING%/$(VERSION)/g; s/%BUILD_NUMBER%/$(BUILD_NUMBER)/g' $< > $@
 
 SED_SCHEMA_REGEX := "\
     s/%SCHEMA_MAJOR%/$(SCHEMA_MAJOR)/g; \
@@ -33,9 +27,13 @@ SED_SCHEMA_REGEX := "\
 
 # See the topic "Managing Migrate.Version" in Products/ZenModel/migrate/README.md
 # for more information about setting these SCHEMA_* values.
-generate-zmigrateversion:
+$(VERSION_SCHEMA_TARGET): $(VERSION_SCHEMA_TARGET).in SCHEMA_VERSION
 	@echo "generating ZMigrateVersion.py"
-	sed -e $(SED_SCHEMA_REGEX) Products/ZenModel/ZMigrateVersion.py.in > Products/ZenModel/ZMigrateVersion.py
+	sed -e $(SED_SCHEMA_REGEX) $< > $@
+
+# Build targets for generating the versioned Python modules
+generate-zversion: generate-zmigrateversion $(VERSION_TARGET)
+generate-zmigrateversion: $(VERSION_SCHEMA_TARGET)
 
 # The target replace-zmigrationversion should be used just prior to release to lock
 # down the schema versions for a particular release
@@ -55,3 +53,5 @@ else
 	$(error At least one of the SCHEMA_* variables found)
 endif
 
+clean-zenoss-version:
+	rm -f $(VERSION_SCHEMA_TARGET) $(VERSION_TARGET)

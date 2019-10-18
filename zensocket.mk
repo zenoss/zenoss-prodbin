@@ -16,5 +16,8 @@ clean-zensocket:
 build-zensocket: $(ZENSOCKET_BINARY)
 
 $(ZENSOCKET_BINARY): $(ZENSOCKET_SRC)
-	cd legacy/zensocket && \
-	$(DOCKER_RUN) "cd /mnt && $(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(ZENSOCKET_SRC)"
+ifeq ($(DOCKER),)
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(ZENSOCKET_SRC)
+else
+	$(DOCKER_RUN) "$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(ZENSOCKET_SRC)"
+endif
