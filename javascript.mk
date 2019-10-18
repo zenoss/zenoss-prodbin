@@ -59,5 +59,5 @@ $(JSB_TARGETS): $(JSB_SOURCES)
 ifeq ($(DOCKER),)
 	$(JSBUILD_COMMAND)
 else
-	$(DOCKER_RUN) "cd /mnt && $(JSBUILD_COMMAND)"
+	$(DOCKER_USER) $(JSBUILD_COMMAND)
 endif
