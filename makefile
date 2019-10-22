@@ -40,9 +40,10 @@ build: $(ARTIFACT)
 	@echo $< built.
 
 ARTIFACT_INCLUSIONS = Products bin etc share legacy/sitecustomize.py setup.py
+ARTIFACT_EXCLUSIONS = --exclude=*.pyc --exclude=*migrate/tests* --exclude=*ZenUITests*
 
 $(ARTIFACT): setup.py build-javascript build-zensocket generate-zversion
-	@tar cvzf $(ARTIFACT) $(ARTIFACT_INCLUSIONS)
+	@tar cvzf $(ARTIFACT) $(ARTIFACT_EXCLUSIONS) $(ARTIFACT_INCLUSIONS)
 
 setup.py: setup.py.in VERSION
 	@sed -e "s/%VERSION%/$(VERSION)/g" $< > $@
