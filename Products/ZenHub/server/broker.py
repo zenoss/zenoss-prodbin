@@ -30,7 +30,7 @@ class ZenSecurityOptions(object):
         return IUnjellyable.implementedBy(klass)
 
     def isTypeAllowed(self, typeName):
-        """Return True always because all all typenames are allowed."""
+        """Return True always because all typenames are allowed."""
         return True
 
 
