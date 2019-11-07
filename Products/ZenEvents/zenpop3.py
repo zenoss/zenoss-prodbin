@@ -292,8 +292,7 @@ class MailCollectingTask(BaseTask):
                 message=message,
             ))
             
-            # Force the task to quit
-            self.state = TaskStates.STATE_COMPLETED
+            self.state = TaskStates.STATE_IDLE
 
         log.error(message)
         return defer.succeed(message)
