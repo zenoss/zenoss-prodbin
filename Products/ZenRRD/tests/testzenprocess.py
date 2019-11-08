@@ -140,9 +140,7 @@ class TestZenprocess(TestCase):
         The results are passed back from the method
         """
         procs = task._parseProcessNames(data)
-        #print "procs  : ", procs
         results = task._determineProcessStatus(procs)
-        #print "results: ", results
 
         actual = dict(zip(ProcessResults.resultKeys, results))
         actual[ProcessResults.PROCESSES] = procs
@@ -815,7 +813,6 @@ class TestZenprocess(TestCase):
 
 
 def test_suite():
-    print "..Starting the test suite........."
     from unittest import TestSuite, makeSuite
     
     # TestSuite - aggregate of individual test cases/suites
