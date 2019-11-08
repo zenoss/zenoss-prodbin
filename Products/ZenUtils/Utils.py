@@ -1741,6 +1741,13 @@ def load_config_override(file, package=None, execute=True):
             _context.execute_actions()
         _LOADED_CONFIGS.add(key)
 
+
+def has_feature(name):
+    """Return True if named feature is provided, otherwise return False."""
+    from Zope2.App.zcml import _context
+    return _context.hasFeature(name)
+
+
 def rrd_daemon_running():
     """
     The RRD methods in this module are deprecated.
