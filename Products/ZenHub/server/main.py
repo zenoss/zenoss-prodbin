@@ -19,7 +19,6 @@ from .auth import HubRealm
 from .avatar import HubAvatar
 from .broker import ZenPBServerFactory
 from .interface import IHubServerConfig
-from .priority import ModelingPaused, PrioritySelection, ServiceCallPriority
 from .router import ServiceCallRouter
 from .service import (
     ServiceLoader,
@@ -30,7 +29,6 @@ from .service import (
 )
 from .utils import import_name, TCPDescriptor
 from .workerpool import WorkerPool
-from .worklist import ZenHubWorklist
 
 
 # Global reference to _executor instances
@@ -89,14 +87,9 @@ def make_service_manager(pools):
     registry = ServiceRegistry()
     routes = ServiceCallRouter.from_config(config.routes)
 
-    # Build the executors
-    # <executor-name>: <executor-instance>
-    executors = make_executors(
-        config.executors,
-        pools,
-        config.priorities["modeling"],
-        config.modeling_pause_timeout,
-    )
+    # Build the executors;
+    # returns a dict having <executor-name>: <executor-instance>
+    executors = make_executors(config, pools)
 
     # Build the ZenHub service manager
     loader = ServiceLoader()
@@ -112,36 +105,11 @@ def make_pools():
     return {name: WorkerPool(name) for name in config.pools.keys()}
 
 
-def make_executors(executors, pools, modeling_priority, timeout):
+def make_executors(config, pools):
     global _executors
-    _executors.update({
-        "event": make_executor(executors.get("event"), "event"),
-        "adm": make_workerpool_executor(
-            "adm",
-            executors.get("adm"),
-            pools["adm"],
-            modeling_priority,
-            timeout,
-        ),
-        "default": make_workerpool_executor(
-            "default",
-            executors.get("default"),
-            pools["default"],
-            modeling_priority,
-            timeout,
-        ),
-    })
+    for name, spec in config.executors.items():
+        modpath, clsname = spec.split(":")
+        cls = import_name(modpath, clsname)
+        executor = cls.create(name, config=config, pool=pools.get(name))
+        _executors[name] = executor
     return _executors
-
-
-def make_workerpool_executor(name, spec, pool, modeling_priority, timeout):
-    modeling_paused = ModelingPaused(modeling_priority, timeout)
-    selection = PrioritySelection(ServiceCallPriority, exclude=modeling_paused)
-    worklist = ZenHubWorklist(selection)
-    return make_executor(spec, name, worklist, pool)
-
-
-def make_executor(spec, *args, **kw):
-    modpath, clsname = spec.split(":")
-    cls = import_name(modpath, clsname)
-    return cls(*args, **kw)

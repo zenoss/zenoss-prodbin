@@ -24,7 +24,13 @@ from ..events import (
     ServiceCallCompleted,
 )
 from ..interface import IHubServerConfig
-from ..priority import servicecall_priority_map
+from ..priority import (
+    ModelingPaused,
+    PrioritySelection,
+    ServiceCallPriority,
+    servicecall_priority_map,
+)
+from ..worklist import ZenHubWorklist
 from ..utils import UNSPECIFIED as _UNSPECIFIED, getLogger
 
 _InternalErrors = (
@@ -35,6 +41,27 @@ _RemoteErrors = (RemoteException, pb.RemoteError)
 
 class WorkerPoolExecutor(object):
     """An executor that executes service calls using remote workers."""
+
+    @classmethod
+    def create(cls, name, config=None, pool=None):
+        """Return a new executor instance.
+
+        :param str name: The executor's name
+        :param IHubServerConfig config: Configuration data
+        :param WorkerPool pool: Where the zenhubworker references live
+        :return: A new WorkerPoolExecutor instance.
+        """
+        if pool is None:
+            raise ValueError("Invalid value for 'pool': None")
+        modeling_paused = ModelingPaused(
+            config.priorities["modeling"],
+            config.modeling_pause_timeout,
+        )
+        selection = PrioritySelection(
+            ServiceCallPriority, exclude=modeling_paused,
+        )
+        worklist = ZenHubWorklist(selection)
+        return cls(name, worklist, pool)
 
     def __init__(self, name, worklist, pool):
         """Initialize a WorkerPoolExecutor instance."""
