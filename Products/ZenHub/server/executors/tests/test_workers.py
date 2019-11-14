@@ -11,22 +11,24 @@ from __future__ import absolute_import
 
 from unittest import TestCase
 from mock import (
-    NonCallableMagicMock, Mock, patch,
+    NonCallableMagicMock, MagicMock, Mock, patch,
 )
 from twisted.internet import defer, reactor
 from twisted.python.failure import Failure
 from twisted.spread import pb
 
+from Products.ZenHub.server.config import ModuleObjectConfig
 from Products.ZenHub.server.service import ServiceCall
 from Products.ZenHub.server.worklist import ZenHubWorklist
 from Products.ZenHub.server.workerpool import WorkerPool
 from Products.ZenHub.server.utils import subTest
 
 from ..workers import (
-    WorkerPoolExecutor,
-    ServiceCallTask,
-    _Running,
     RemoteException, banana, jelly,
+    ServiceCallPriority,
+    ServiceCallTask,
+    WorkerPoolExecutor,
+    _Running,
 )
 
 PATH = {'src': 'Products.ZenHub.server.executors.workers'}
@@ -56,6 +58,26 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
             self.name, self.worklist, self.workers,
         )
         self.logger = self.getLogger(self.executor)
+
+    @patch("{src}.ModelingPaused".format(**PATH), autospec=True)
+    @patch("{src}.PrioritySelection".format(**PATH), autospec=True)
+    @patch("{src}.ZenHubWorklist".format(**PATH), autospec=True)
+    def test_create(t, _zhwlist, _ps, _mp):
+        config = MagicMock(spec=ModuleObjectConfig)
+        pool = Mock()
+        result = WorkerPoolExecutor.create(t.name, config, pool)
+
+        _mp.assert_called_once_with(
+            config.priorities["modeling"], config.modeling_pause_timeout,
+        )
+        _ps.assert_called_once_with(
+            ServiceCallPriority, exclude=_mp.return_value,
+        )
+        _zhwlist.assert_called_once_with(_ps.return_value)
+        t.assertIsInstance(result, WorkerPoolExecutor)
+        t.assertEqual(result.name, t.name)
+        t.assertIs(result._WorkerPoolExecutor__worklist, _zhwlist.return_value)
+        t.assertIs(result._WorkerPoolExecutor__workers, pool)
 
     def test_initial_state(self):
         self.assertEqual(self.name, self.executor.name)
