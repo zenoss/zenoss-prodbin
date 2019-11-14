@@ -13,6 +13,7 @@ IApplication* control-plane implementations.
 
 import logging
 import os
+import re
 import time
 from fnmatch import fnmatch
 from functools import wraps
@@ -30,6 +31,13 @@ from .runstates import RunStates
 
 LOG = logging.getLogger("zen.controlplane")
 _TENANT_ID_ENV = "CONTROLPLANE_TENANT_ID"
+
+MEM_MULTIPLIER = {
+    'k':1024,
+    'm':1024*1024,
+    'g':1024*1024*1024,
+    't':1024*1024*1024*1024
+}
 
 
 def getTenantId():
@@ -407,6 +415,17 @@ class DeployedApp(object):
         """
         """
         self._client.updateService(self._service)
+
+    @property
+    def RAMCommitment(self):
+        """
+        Get the RAM Commitment of the service and trasform it in the byte value.
+        RAMCommitment: string in form <number{0-9}><unit{K,M,G,T}>
+        """
+        match = re.search("(?P<value>[0-9]*\.?[0-9]*)(?P<unit>[k,m,g,t]+)", self._service.RAMCommitment, re.IGNORECASE)
+        if not match : return
+        RAMCommitment_bytes = int(match.group('value')) * MEM_MULTIPLIER.get(match.group('unit').lower())
+        return RAMCommitment_bytes
 
 
 class _DeployedAppConfigList(Sequence):
