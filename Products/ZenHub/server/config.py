@@ -72,6 +72,7 @@ class ModuleObjectConfig(object):
 executors = {
     "event": "Products.ZenHub.server.executors:SendEventExecutor",
     "adm": "Products.ZenHub.server.executors:WorkerPoolExecutor",
+    "config": "Products.ZenHub.server.executors:WorkerPoolExecutor",
     "default": "Products.ZenHub.server.executors:WorkerPoolExecutor",
 }
 
@@ -80,6 +81,8 @@ routes = {
     "EventService:sendEvent": "event",
     "EventService:sendEvents": "event",
     "*:applyDataMaps": "adm",
+    "*:getDeviceConfigs": "config",
+    "*:getDeviceConfig": "config",
     "*:*": "default",
 }
 
@@ -88,6 +91,7 @@ routes = {
 pools = {
     "default": "default",
     "adm": "adm",
+    "config": "config",
 }
 
 priorities = {

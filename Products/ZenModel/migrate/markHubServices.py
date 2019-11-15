@@ -47,4 +47,4 @@ class MarkHubServices(Migrate.Step):
             ctx.commit()
 
 
-MarkHubServices()
+instance = MarkHubServices()
