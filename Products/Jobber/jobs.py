@@ -383,9 +383,8 @@ class SubprocessJob(Job):
         lineFormatter = logging.Formatter('%(message)s')
         try:
             self.log.info("Spawning subprocess: %s", SubprocessJob.getJobDescription(cmd))
-            process = subprocess.Popen(cmd, bufsize=1, env=environ,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
+            process = subprocess.Popen(cmd, bufsize=1, env=environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       shell=True)
 
             # Since process.stdout.readline() is a blocking call, it stops
             # the injected exception from being raised until it unblocks.
