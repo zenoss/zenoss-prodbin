@@ -13,7 +13,6 @@ import Migrate
 import servicemigration as sm
 
 from servicemigration.endpoint import Endpoint
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.11")
@@ -41,7 +40,7 @@ ZING_ENDPOINTS = (
 class AddZingEndpointsToZenhubWorkerADM(Migrate.Step):
     """Add Zing endpoints to the "zenhubworker (adm)" service."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
 

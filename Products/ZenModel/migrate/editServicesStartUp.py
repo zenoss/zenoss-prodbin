@@ -15,7 +15,6 @@ import servicemigration as sm
 
 from collections import OrderedDict
 from itertools import chain
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.14")
@@ -24,7 +23,7 @@ sm.require("1.1.14")
 class EditServicesStartUp(Migrate.Step):
     "Edit service command"
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
         try:
