@@ -291,7 +291,11 @@ Ext.define("Zenoss.DataSourceTreeGrid", {
                     callback = function() {
                         me.refreshDataSourceGrid(selectedId);
                     };
-                    router.deleteDataSource(params, me.refreshDataSourceGrid.bind(me, selectedId));
+                    if (node.data.leaf) {
+                        router.deleteDataPoint(params, callback);
+                    } else {
+                        router.deleteDataSource(params, me.refreshDataSourceGrid.bind(me, selectedId));
+                    }
                 }
             });
             dialog.setText(html);

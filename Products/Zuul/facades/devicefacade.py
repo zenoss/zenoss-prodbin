@@ -725,7 +725,7 @@ class DeviceFacade(TreeFacade):
         return jobrecords
 
     def remodel(self, deviceUid, collectPlugins='', background=True):
-        #fake_request will break not a background command 
+        #fake_request will break not a background command
         fake_request = {'CONTENT_TYPE': 'xml'} if background else None
         device = self._getObject(deviceUid)
         return device.getPerformanceServer().collectDevice(
@@ -753,11 +753,11 @@ class DeviceFacade(TreeFacade):
 
     def getTemplates(self, id):
         object = self._getObject(id)
-        
+
         if isinstance(object, Device):
             rrdTemplates = object.getAvailableTemplates()
         else:
-            rrdTemplates = object.getRRDTemplates()        
+            rrdTemplates = object.getRRDTemplates()
 
         # used to sort the templates
         def byTitleOrId(left, right):
@@ -1011,9 +1011,12 @@ class DeviceFacade(TreeFacade):
             components = list(getObjectsFromCatalog(obj.componentSearch, None, log))
 
         for component in components:
-            if graphDefs.get(component.meta_type):
-                continue
-            graphDefs[component.meta_type] = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            current_def = [graphDef.id for graphDef, _ in component.getGraphObjects()]
+            if component.meta_type in graphDefs:
+                prev_def = graphDefs[component.meta_type]
+                graphDefs[component.meta_type] = set(prev_def) | set(current_def)
+            else:
+                graphDefs[component.meta_type] = current_def
         return graphDefs
 
     def getComponentGraphs(self, uid, meta_type, graphId, allOnSame=False):
@@ -1045,9 +1048,10 @@ class DeviceFacade(TreeFacade):
 
         graphs = []
         for comp in components:
-            graph = graphDict.get(comp.id, graphDefault)
-            info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
-            graphs.append(info)
+            graph = graphDict.get(comp.id)
+            if graph:
+                info = getMultiAdapter((graph, comp), IMetricServiceGraphDefinition)
+                graphs.append(info)
         return graphs
 
     def getDevTypes(self, uid):

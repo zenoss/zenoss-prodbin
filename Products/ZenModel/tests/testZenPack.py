@@ -7,6 +7,7 @@
 #
 ##############################################################################
 
+import logging
 import unittest
 
 from Products.ZenModel.ZenPack import ZenPack
@@ -14,12 +15,16 @@ from Products.ZenModel.ZenPack import ZenPack
 
 class TestZenPack(unittest.TestCase):
 
-    def test_getZProperties(self):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def test_getZProperties_empty(self):
         class ZenPack1(ZenPack):
             pass
 
         self.assertEquals(ZenPack1.getZProperties(), {})
 
+    def test_getZProperties_tuple_of_strings(self):
         class ZenPack2(ZenPack):
             packZProperties = [
                 ('zMyString', 'default', 'string'),
@@ -32,6 +37,7 @@ class TestZenPack(unittest.TestCase):
                 },
             })
 
+    def test_getZProperties_data_attr(self):
         class ZenPack3(ZenPack):
             packZProperties_data = {
                 'zMyString': {
@@ -61,6 +67,7 @@ class TestZenPack(unittest.TestCase):
                 },
             })
 
+    def test_getZProperties_both_kinds(self):
         class ZenPack4(ZenPack):
             packZProperties = [
                 ('zMyString', 'default', 'string'),

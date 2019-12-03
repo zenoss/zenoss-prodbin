@@ -17,7 +17,8 @@ from Products.ZenMessaging.queuemessaging.interfaces import IEventPublisher
 from Products.ZenEvents.ZenEventClasses import (
     Change_Add,
     Change_Remove, Change_Set, Change_Add_Blocked,
-    Change_Remove_Blocked, Change_Set_Blocked
+    Change_Remove_Blocked, Change_Set_Blocked,
+    Change_Rebuild,
 )
 
 log = logging.getLogger("zen.ApplyDataMap.reporter")
@@ -43,6 +44,7 @@ class ADMReporter(object):
                 'update_locked': self.report_update_locked,
                 'remove': self.report_removed,
                 'delete_locked': self.report_delete_locked,
+                'rebuild': self.report_rebuild,
                 'nochange': self.report_nochange,
             }
         return self._report_map
@@ -160,6 +162,22 @@ class ADMReporter(object):
             'component': target,
             'summary': msg,
             'severity': Event.Warning,
+            'agent': AGENT,
+            'explanation': EXPLANATION,
+        }
+        self._send_event(event)
+
+    def report_rebuild(self, device, objmap):
+        msg = 'rebuilt object {} to relationship {}'.format(
+            objmap.id, objmap._relname
+        )
+        log.debug(msg)
+        event = {
+            'eventClass': Change_Rebuild,
+            'device': device.id,
+            'component': objmap.id,
+            'summary': msg,
+            'severity': Event.Info,
             'agent': AGENT,
             'explanation': EXPLANATION,
         }

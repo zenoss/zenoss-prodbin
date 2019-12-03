@@ -35,13 +35,7 @@
         <tal:block tal:content="structure provider:all-css"/>
 
         <!-- Static javascript -->
-        <script>
-        // get user theme
-        // window.localStorage.setItem("z-theme","dark");
-        if (window.localStorage.getItem("z-theme") === "light") {
-            document.getElementsByTagName('html')[0].classList.remove("z-cse-dark");
-        }
-        </script>
+        <script src="/++resource++zenui/js/zenoss/theme.js"></script>
         <script type="text/javascript" src="https://cdn.auth0.com/js/auth0/9.10.0/auth0.min.js"></script>
         <script src="/++resource++zenui/js/silent-auth/cookies.js"></script>
         <script src="/++resource++zenui/js/silent-auth/silentAuth.js"></script>
