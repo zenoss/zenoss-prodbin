@@ -12,7 +12,6 @@ from __future__ import absolute_import
 import logging
 import servicemigration as sm
 
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 from . import Migrate
 
 log = logging.getLogger("zen.migrate")
@@ -22,7 +21,7 @@ sm.require("1.1.14")
 class AllowGracefulShutdownForZEP(Migrate.Step):
     """Modify zeneventserver's service def for graceful shutdown."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
         try:

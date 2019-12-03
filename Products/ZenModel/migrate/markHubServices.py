@@ -10,7 +10,6 @@
 import logging
 import servicemigration as sm
 import Migrate
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 log = logging.getLogger("zen.migrate")
 sm.require("1.1.14")
@@ -19,7 +18,7 @@ sm.require("1.1.14")
 class MarkHubServices(Migrate.Step):
     """Update hub services' tags with "hub" marker."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
         try:
