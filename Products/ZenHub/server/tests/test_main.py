@@ -9,7 +9,7 @@
 
 from __future__ import absolute_import
 
-from mock import call, MagicMock, Mock, NonCallableMock, patch
+from mock import call, Mock, NonCallableMock, patch
 from twisted.internet import defer
 from unittest import TestCase
 
@@ -117,11 +117,7 @@ class MakeServiceManagerTest(TestCase):
         _getUtility.assert_called_once_with(IHubServerConfig)
         _ServiceRegistry.assert_called_once_with()
         _ServiceCallRouter.from_config.assert_called_once_with(config.routes)
-        _make_executors.assert_called_once_with(
-            config.executors, pools,
-            config.priorities["modeling"],
-            config.modeling_pause_timeout,
-        )
+        _make_executors.assert_called_once_with(config, pools)
         _ServiceLoader.assert_called_once_with()
         _ServiceReferenceFactory.assert_called_once_with(
             WorkerInterceptor,

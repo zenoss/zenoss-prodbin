@@ -13,7 +13,6 @@ import logging
 import servicemigration as sm
 
 from itertools import chain
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 from . import Migrate
 
@@ -24,7 +23,7 @@ sm.require("1.1.11")
 class UseRabbitmqScriptLauncher(Migrate.Step):
     """Modify rabbit_supervisor.conf to use new launcher script."""
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
         try:
