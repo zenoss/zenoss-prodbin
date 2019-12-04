@@ -9,7 +9,6 @@ Products/ZenUI3/node_modules
 bin/powerline
 bin/powerline-lint
 bin/zensocket
-setup.py
 
 dist
 

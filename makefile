@@ -45,16 +45,13 @@ ARTIFACT_EXCLUSIONS = --exclude=*.pyc --exclude=*migrate/tests* --exclude=*ZenUI
 $(ARTIFACT): setup.py build-javascript build-zensocket generate-zversion
 	@tar cvzf $(ARTIFACT) $(ARTIFACT_EXCLUSIONS) $(ARTIFACT_INCLUSIONS)
 
-setup.py: setup.py.in VERSION
-	@sed -e "s/%VERSION%/$(VERSION)/g" $< > $@
-
 # equivalent to python setup.py develop
 install: setup.py build-javascript build-zensocket generate-zversion
 	@pip install -e ./
 
 clean: clean-javascript clean-zensocket clean-zenoss-version
-	@rm -f $(ARTIFACT) setup.py
-	@rm -rf Zenoss.egg-info
+	rm -f $(ARTIFACT)
+	rm -rf Zenoss.egg-info dist build
 
 include javascript.mk
 include zensocket.mk
