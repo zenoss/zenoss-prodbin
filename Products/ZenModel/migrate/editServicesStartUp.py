@@ -233,6 +233,9 @@ def _tostring(parser):
 
 
 def _add_supervisord_options(parser, section):
+    if not parser.has_section(section):
+        log.info("Skipping section %s: not found", section)
+        return
     options = OrderedDict(parser.items(section))
     for k, v in _new_supervisord_options:
         if k not in options:
@@ -300,9 +303,10 @@ def _update_metric_consumer_conf(svc):
         _add_supervisord_options(parser, "program:metric-consumer-app")
         _fix_paths(parser, ("metric-consumer-app", "metric-consumer_metrics"))
 
-        section = "program:metric-consumer_metrics"
-        if not parser.has_option(section, "stopwaitsecs"):
-            parser.set(section, "stopwaitsecs", "30")
+        section = "program:metric-consumer-app"
+        if parser.has_section(section):
+            if not parser.has_option(section, "stopwaitsecs"):
+                parser.set(section, "stopwaitsecs", "30")
 
         updated = _tostring(parser).replace(" = ", "=")
 
