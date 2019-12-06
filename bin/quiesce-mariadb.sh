@@ -196,6 +196,7 @@ function do_resume()
 
 function main()
 {
+    [[ -n "$MARIADB_DB" ]] || die "MARIADB_DB env var is not set"
     [[ -n "$VARDIR" ]] || die "VARDIR env var is not set"
     [[ -d "$VARDIR" ]] || die "VARDIR=$VARDIR is not a directory"
     [[ -n "$CFGDIR" ]] || die "CFGDIR env var is not set"
