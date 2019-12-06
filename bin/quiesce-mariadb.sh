@@ -202,7 +202,7 @@ function main()
     [[ -d "$CFGDIR" ]] || die "CFGDIR=$CFGDIR is not a directory"
     export GLOBAL_CONF="$CFGDIR/global.conf"
 
-    declare dbnames=('zodb' 'zep')
+    dbnames=($MARIADB_DB)
 
     case "$CMD" in
         status)
@@ -221,13 +221,13 @@ function main()
         hold-lock-zodb)
             # do not advertise via help that private method 'hold-lock-*' is a valid run command
             local hold_time=${LOCK_HOLD_DURATION:-600}
-            do_hold_lock "$hold_time" "${dbnames[0]}"
+            do_hold_lock "$hold_time" "zodb"
         ;;
 
         hold-lock-zep)
             # do not advertise via help that private method 'hold-lock-*' is a valid run command
             local hold_time=${LOCK_HOLD_DURATION:-600}
-            do_hold_lock "$hold_time" "${dbnames[1]}"
+            do_hold_lock "$hold_time" "zep"
         ;;
 
         help)
