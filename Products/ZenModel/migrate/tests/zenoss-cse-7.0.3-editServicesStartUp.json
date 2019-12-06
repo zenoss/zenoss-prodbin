@@ -22054,7 +22054,7 @@
         "Filename": "/opt/zenoss/etc/metric-consumer-app/metric-consumer-app_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0644",
-        "Content": "[program:metric-consumer-app]\ncommand=/opt/zenoss/bin/metric-consumer-app.sh\nautorestart=true\nautostart=true\nstartsecs=5\nenvironment=JVM_ARGS=\"-Xmx{{bytesToMB .RAMCommitment}}m\"\ndirectory=/opt/zenoss\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n\n[program:metric-consumer_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/jvmstats.py\nautorestart=true\nautostart=true\nstartsecs=5\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\nstopwaitsecs=30\n\n"
+        "Content": "[program:metric-consumer-app]\ncommand=/opt/zenoss/bin/metric-consumer-app.sh\nautorestart=true\nautostart=true\nstartsecs=5\nenvironment=JVM_ARGS=\"-Xmx{{bytesToMB .RAMCommitment}}m\"\ndirectory=/opt/zenoss\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\nstopwaitsecs=30\n\n[program:metric-consumer_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/jvmstats.py\nautorestart=true\nautostart=true\nstartsecs=5\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n\n"
       }
     },
     "ConfigFiles": {
@@ -22068,7 +22068,7 @@
         "Filename": "/opt/zenoss/etc/metric-consumer-app/metric-consumer-app_supervisor.conf",
         "Owner": "zenoss:zenoss",
         "Permissions": "0644",
-        "Content": "[program:metric-consumer-app]\ncommand=/opt/zenoss/bin/metric-consumer-app.sh\nautorestart=true\nautostart=true\nstartsecs=5\nenvironment=JVM_ARGS=\"-Xmx{{bytesToMB .RAMCommitment}}m\"\ndirectory=/opt/zenoss\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n\n[program:metric-consumer_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/jvmstats.py\nautorestart=true\nautostart=true\nstartsecs=5\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\nstopwaitsecs=30\n\n"
+        "Content": "[program:metric-consumer-app]\ncommand=/opt/zenoss/bin/metric-consumer-app.sh\nautorestart=true\nautostart=true\nstartsecs=5\nenvironment=JVM_ARGS=\"-Xmx{{bytesToMB .RAMCommitment}}m\"\ndirectory=/opt/zenoss\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\nstopwaitsecs=30\n\n[program:metric-consumer_metrics]\ncommand=/usr/bin/python /opt/zenoss/bin/metrics/jvmstats.py\nautorestart=true\nautostart=true\nstartsecs=5\nredirect_stderr=true\nstdout_logfile_maxbytes=10MB\nstdout_logfile_backups=2\nstdout_logfile=/opt/zenoss/log/%(program_name)s.log\n\n"
       }
     },
     "Instances": 1,
