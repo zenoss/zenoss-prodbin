@@ -1,6 +1,17 @@
 #!/bin/bash
 
-mysql -s --skip-column-names -B <<SQL
+if [ $1 = "mariadb-model" ]
+  then
+     DB="zodb"
+  else
+    DB="zep"
+fi
+
+# Use "/usr/bin/python" rather than "/opt/zenoss/bin/python" because the latter is
+# not available in mariadb image.
+# The file "/opt/zenoss/Products/ZenUtils/ZenDB.py" will have to be copied into the
+# mariadb image via product-assembly repo's "mariadb/Dockerfile.in"
+/usr/bin/python /opt/zenoss/Products/ZenUtils/ZenDB.py --usedb $DB --execsql=<<SQL
 USE information_schema;
 
 SELECT
