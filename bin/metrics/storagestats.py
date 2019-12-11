@@ -43,7 +43,7 @@ class StorageMetricGatherer(MetricGatherer):
         ts = time.time()
         tags = {'zenoss_storage': self.name}
         try:
-            response = subprocess.check_output([self.METRICS_QUERY])
+            response = subprocess.check_output([self.METRICS_QUERY, self.name])
         except Exception as e:
             log.error("Error gathering mysql storage info: %s" % e)
             return []
