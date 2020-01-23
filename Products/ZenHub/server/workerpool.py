@@ -34,7 +34,8 @@ class WorkerPool(
 
         :param str name: Name of the "queue" associated with this pool.
         """
-        self.__available = []  # Workers (by ID) available for work
+        # __available contains workers (by ID) available for work
+        self.__available = WorkerAvailabilityQueue()
         self.__workers = {}  # Worker refs by worker ID
         self.__services = {}  # Service refs by worker
         self.__name = name
@@ -60,8 +61,7 @@ class WorkerPool(
             return
         self.__workers[wId] = worker
         self.__services[wId] = RemoteServiceRegistry(worker)
-        if wId not in self.__available:
-            self.__available.append(wId)
+        self.__available.add(wId)
         self.__log.debug(
             "Worker registered worker=%s total-workers=%s",
             wId, len(self.__workers),
@@ -85,8 +85,7 @@ class WorkerPool(
             return  # Stale worker, already removed
         del self.__workers[wId]
         del self.__services[wId]
-        if wId in self.__available:
-            self.__available.remove(wId)
+        self.__available.discard(wId)
         self.__log.debug(
             "Worker unregistered worker=%s total-workers=%s",
             wId, len(self.__workers),
@@ -139,10 +138,10 @@ class WorkerPool(
     def hire(self):
         """Return a valid worker.
 
-        If no worker is available for hire, None is returned.
+        This method blocks until a worker is available.
         """
-        while len(self.__available):
-            wId = self.__available.pop(0)
+        while True:
+            wId = yield self.__available.get()
             try:
                 worker = self.__workers[wId]
                 yield worker.callRemote("ping")
@@ -158,10 +157,7 @@ class WorkerPool(
                         "Worker retired (session ID mismatch) worker=%s", wId,
                     )
             except pb.PBConnectionLost:
-                self.__log.debug("Worker failed ping test worker=%s", wId)
-                pass
-        else:
-            defer.returnValue(None)
+                self.__log.error("Worker failed ping test worker=%s", wId)
 
     def layoff(self, workerref):
         """Make the worker available for hire."""
@@ -171,7 +167,7 @@ class WorkerPool(
         worker_p = self.__workers.get(worker.workerId)
         if worker_p and worker_p.sessionId == worker.sessionId:
             self.__log.debug("Worker layed off worker=%s", worker.workerId)
-            self.__available.append(worker.workerId)
+            self.__available.add(worker.workerId)
         else:
             self.__log.debug(
                 "Worker retired (session ID mismatch) worker=%s",
@@ -289,3 +285,18 @@ class WorkerRef(object):
                     self.__worker.workerId, ex.__class__.__name__, ex,
                 )
             raise
+
+
+class WorkerAvailabilityQueue(defer.DeferredQueue):
+    """Extends defer.DeferredQueue with more set-like behavior."""
+
+    def __len__(self):
+        return len(self.pending)
+
+    def add(self, item):
+        if item not in self.pending:
+            self.put(item)
+
+    def discard(self, item):
+        if item in self.pending:
+            self.pending.remove(item)
