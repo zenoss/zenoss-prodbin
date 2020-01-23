@@ -65,6 +65,13 @@ def start_server(reactor, server_factory):
     dfr.addCallback(lambda listener: setKeepAlive(listener.socket))
 
 
+def stop_server():
+    # Stop the executors:
+    global _executors
+    for executor in _executors.values():
+        executor.stop()
+
+
 def make_server_factory(pools, manager, authenticators):
     """Return a ZenPBServerFactory instance.
 

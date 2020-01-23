@@ -55,6 +55,7 @@ from Products.ZenHub.server import (
     make_server_factory,
     make_service_manager,
     start_server,
+    stop_server,
     register_legacy_worklist_metrics,
     ReportWorkerStatus,
     StatsMonitor,
@@ -119,6 +120,7 @@ class ZenHub(ZCmdBase):
         self.shutdown = False
 
         super(ZenHub, self).__init__()
+        logging.getLogger("zen.zenhub.server").setLevel(logging.DEBUG)
 
         load_config("hub.zcml", ZENHUB_MODULE)
         notify(HubWillBeCreatedEvent(self))
@@ -198,6 +200,9 @@ class ZenHub(ZCmdBase):
 
         # Start ZenHub services server
         start_server(reactor, self._server_factory)
+        reactor.addSystemEventTrigger(
+            "before", "shutdown", stop_server,
+        )
 
         # Start XMLRPC server
         self._xmlrpc_manager.start(reactor)

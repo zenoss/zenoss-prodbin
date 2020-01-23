@@ -15,10 +15,16 @@ from .events import ReportWorkerStatus
 from .exceptions import UnknownServiceError
 from .interface import IHubServerConfig
 from .main import (
-    make_server_factory, start_server, make_pools, make_service_manager,
+    make_pools,
+    make_server_factory,
+    make_service_manager,
+    start_server,
+    stop_server,
 )
 from .metrics import (
-    StatsMonitor, ZenHubStatusReporter, register_legacy_worklist_metrics,
+    register_legacy_worklist_metrics,
+    StatsMonitor,
+    ZenHubStatusReporter,
 )
 from .service import ServiceRegistry, ServiceManager, ServiceLoader
 from .xmlrpc import XmlRpcManager
@@ -39,6 +45,7 @@ __all__ = (
     "ServiceRegistry",
     "start_server",
     "StatsMonitor",
+    "stop_server",
     "UnknownServiceError",
     "XmlRpcManager",
     "ZenHubStatusReporter",
