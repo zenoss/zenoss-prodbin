@@ -99,10 +99,10 @@ class _Running(object):
         self.log = log
         config = getUtility(IHubServerConfig)
         self.task_max_retries = config.task_max_retries
+        self.loop = LoopingCall(self.dispatch)
 
     def start(self, reactor):
         self.reactor = reactor
-        self.loop = LoopingCall(self.dispatch)
         self.loopd = self.loop.start(0)
 
     def stop(self):
