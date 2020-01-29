@@ -37,7 +37,6 @@ def initialize(registrar):
     registrar.registerClass(
         RelationshipManager,
         constructors = (addRelationshipManager, manage_addRelationshipManager))
-    registrar.registerBaseClass(RelationshipManager)
     registrar.registerClass(
         ToOneRelationship,
         constructors = (addToOneRelationship, manage_addToOneRelationship),
