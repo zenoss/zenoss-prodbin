@@ -85,6 +85,11 @@ class TestIncrementalDataMapHandler(TestCase):
         t.target.getDeviceGroupNames.return_value = 'getDeviceGroupNames'
         t.target.getLocationName.return_value = 'getLocationName'
         t.target.getSystemNames.return_value = 'getSystemNames'
+        uuid = t.target.getUUID.return_value
+        components = []
+        for i in range(5):
+            components.append(Mock(getUUID=Mock(return_value=uuid), getComponentGroupNames=Mock(return_value='getComponentGroupNames')))
+        t.target.getDeviceComponents.return_value = components
 
         # ApplyDataMap side-effects, current implementation expects this
         for attr, value in t.idm.iteritems():
@@ -138,6 +143,7 @@ class TestIncrementalDataMapHandler(TestCase):
                 'groups': t.target.getDeviceGroupNames.return_value,
                 'location': [t.target.getLocationName.return_value],
                 'systems': t.target.getSystemNames.return_value,
+                'component_groups': 'getComponentGroupNames',
             },
             facts[1].data,
         )
@@ -175,7 +181,12 @@ class TestIncrementalDataMapHandler(TestCase):
         t.target.getDeviceGroupNames.return_value = 'getDeviceGroupNames'
         t.target.getLocationName.return_value = 'getLocationName'
         t.target.getSystemNames.return_value = 'getSystemNames'
-
+        uuid = t.target.getUUID.return_value
+        components = []
+        for i in range(5):
+            components.append(
+                Mock(getUUID=Mock(return_value=uuid), getComponentGroupNames=Mock(return_value='getComponentGroupNames')))
+        t.target.getDeviceComponents.return_value = components
         # ApplyDataMap side-effects, current implementation expects this
         for attr, value in t.idm.iteritems():
             setattr(t.target, attr, value)
@@ -320,6 +331,7 @@ class TestZingDatamapHandler(TestCase):
                 'groups': [],
                 'location': [],
                 'systems': [],
+                'component_groups': [],
             },
             facts[1].data,
         )

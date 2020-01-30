@@ -39,7 +39,7 @@ class FactKeys(object):
     SYSTEMS_KEY = "systems"
     PROD_STATE_KEY = "prod_state"
     DELETED_KEY = "_zen_deleted_entity"
-
+    COMPONENT_GROUPS_KEY = "component_groups"
 
 class Fact(object):
     def __init__(self, f_id=None):
@@ -108,7 +108,7 @@ def organizer_fact_from_device(device):
     return device_fact
 
 
-def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type):
+def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type, comp_groups):
     """
     Given a device component, generates its organizers fact
     @param device_fact: organizers fact for device
@@ -116,6 +116,7 @@ def organizer_fact_from_device_component(device_fact, comp_uuid, comp_meta_type)
     comp_fact = copy.deepcopy(device_fact)
     comp_fact.metadata[FactKeys.CONTEXT_UUID_KEY] = comp_uuid
     comp_fact.metadata[FactKeys.META_TYPE_KEY] = comp_meta_type
+    comp_fact.data[FactKeys.COMPONENT_GROUPS_KEY] = comp_groups
     comp_fact.id = shortid()
     return comp_fact
 
