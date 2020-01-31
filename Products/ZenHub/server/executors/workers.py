@@ -52,6 +52,8 @@ class WorkerPoolExecutor(object):
         :param WorkerPool pool: Where the zenhubworker references live
         :return: A new WorkerPoolExecutor instance.
         """
+        if config is None:
+            raise ValueError("Invalid value for 'config': None")
         if pool is None:
             raise ValueError("Invalid value for 'pool': None")
         modeling_paused = ModelingPaused(
@@ -130,7 +132,6 @@ class _Running(object):
 
     def start(self, reactor):
         self.reactor = reactor
-        self.loop = LoopingCall(self.dispatch)
         self.loopd = self.loop.start(0)
 
     def stop(self):

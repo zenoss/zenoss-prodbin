@@ -39,28 +39,28 @@ PATH = {'src': 'Products.ZenHub.server.executors.workers'}
 
 class WorkerPoolExecutorTest(TestCase):  # noqa: D101
 
-    def setUp(self):
-        self.getLogger_patcher = patch(
+    def setUp(t):
+        t.getLogger_patcher = patch(
             "{src}.getLogger".format(**PATH), autospec=True,
         )
-        self.getLogger = self.getLogger_patcher.start()
-        self.addCleanup(self.getLogger_patcher.stop)
+        t.getLogger = t.getLogger_patcher.start()
+        t.addCleanup(t.getLogger_patcher.stop)
 
-        self._Running_patcher = patch(
+        t._Running_patcher = patch(
             "{src}._Running".format(**PATH), autospec=True,
         )
-        self._Running = self._Running_patcher.start()
-        self.addCleanup(self._Running_patcher.stop)
+        t._Running = t._Running_patcher.start()
+        t.addCleanup(t._Running_patcher.stop)
 
-        self.reactor = Mock(spec=reactor)
-        self.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
-        self.workers = NonCallableMagicMock(spec=WorkerPool)
+        t.reactor = Mock(spec=reactor)
+        t.worklist = NonCallableMagicMock(spec=ZenHubWorklist)
+        t.workers = NonCallableMagicMock(spec=WorkerPool)
 
-        self.name = "default"
-        self.executor = WorkerPoolExecutor(
-            self.name, self.worklist, self.workers,
+        t.name = "default"
+        t.executor = WorkerPoolExecutor(
+            t.name, t.worklist, t.workers,
         )
-        self.logger = self.getLogger(self.executor)
+        t.logger = t.getLogger(t.executor)
 
     @patch("{src}.ModelingPaused".format(**PATH), autospec=True)
     @patch("{src}.PrioritySelection".format(**PATH), autospec=True)
@@ -88,6 +88,7 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
 
         call = Mock(spec=ServiceCall)
         handler = Mock()
+
         dfr = self.executor.submit(call)
         dfr.addErrback(handler)
 
@@ -99,6 +100,17 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
             self.name, self.worklist, self.workers, self.logger,
         )
 
+    def test_create_fails_on_missing_args(t):
+        cases = {
+            "no args": {},
+            "missing 'config'": {"pool": Mock()},
+            "missing 'pool'": {"config": Mock()},
+        }
+        for name, params in cases.items():
+            with subTest(case=name):
+                with t.assertRaises(ValueError):
+                    WorkerPoolExecutor.create(t.name, **params)
+
     def test_start(self):
         call = Mock(spec=ServiceCall)
         running_state = self._Running.return_value
@@ -107,6 +119,21 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         dfr = self.executor.submit(call)
 
         self.assertEqual(dfr, running_state.submit.return_value)
+
+    def test_stop(t):
+        '''submit returns a deferred.failure object if the executor is stopped
+        '''
+        call = Mock(spec=ServiceCall)
+
+        t.executor.stop()
+        dfr = t.executor.submit(call)
+        handler = Mock(name='errback handler')
+        dfr.addErrback(handler)  # silence 'unhandled error in deffered'
+
+        f = handler.call_args[0][0]
+        t.assertIsInstance(f, Failure)
+        t.assertIsInstance(f.value, pb.Error)
+        t.assertEqual("ZenHub not ready.", str(f.value))
 
 
 class BaseRunning(object):
@@ -191,6 +218,9 @@ class RunningTest(BaseRunning, TestCase):
         self.worklist.pop.return_value = task_dfr
 
         dfr = self.running.dispatch()
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
         self.worklist.pop.assert_called_once_with()
@@ -204,6 +234,9 @@ class RunningTest(BaseRunning, TestCase):
         self.workers.hire.return_value = worker_dfr
 
         dfr = self.running.dispatch()
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertFalse(worker_dfr.called)
         self.assertIsInstance(dfr, defer.Deferred)
@@ -220,6 +253,9 @@ class RunningTest(BaseRunning, TestCase):
         handler = Mock()
         dfr = self.running.dispatch()
         dfr.addErrback(handler)
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
         self.worklist.pop.assert_called_once_with()
@@ -245,6 +281,9 @@ class RunningTest(BaseRunning, TestCase):
         handler = Mock()
         dfr = self.running.dispatch()
         dfr.addErrback(handler)
+        # Cancel the defer after the test completes to avoid leaving
+        # uncollected garbage.
+        self.addCleanup(dfr.cancel)
 
         self.assertIsInstance(dfr, defer.Deferred)
         self.worklist.pop.assert_called_once_with()
