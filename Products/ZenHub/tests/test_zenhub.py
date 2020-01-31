@@ -23,6 +23,7 @@ from Products.ZenHub.zenhub import (
     DefaultConfProvider, IHubConfProvider,
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
+    stop_server,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -271,9 +272,10 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.metricreporter, t.zh._metric_manager.metricreporter)
         t.zh._metric_manager.start.assert_called_with()
         # trigger to shut down metric reporter before zenhub exits
-        t.reactor.addSystemEventTrigger.assert_called_with(
-            'before', 'shutdown', t.zh._metric_manager.stop,
-        )
+        t.reactor.addSystemEventTrigger.assert_has_calls([
+            call('before', 'shutdown', t.zh._metric_manager.stop),
+            call('before', 'shutdown', stop_server),
+        ])
         # After the reactor stops:
         t.zh.profiler.stop.assert_called_with()
         # Closes IEventPublisher, which breaks old integration tests
