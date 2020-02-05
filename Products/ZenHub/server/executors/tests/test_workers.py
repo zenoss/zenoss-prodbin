@@ -25,7 +25,6 @@ from Products.ZenHub.server.utils import subTest
 
 from ..workers import (
     RemoteException, banana, jelly,
-    LoopingCall,
     ServiceCallPriority,
     ServiceCallTask,
     WorkerPoolExecutor,
@@ -98,7 +97,7 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
             self.name, self.worklist, self.workers, self.logger,
         )
 
-    def test_create_fails_on_missing_args(t):
+    def test_create_requires_pool_and_config_args(t):
         cases = {
             "no args": {},
             "missing 'config'": {"pool": Mock()},
@@ -515,10 +514,7 @@ class RunningExecuteTest(BaseRunning, TestCase):
     def test_nominal_execute(self):
         task = Mock(spec=["call", "retryable"])
         task.retryable = False
-        # self.worklist.__len__.return_value = 1
-        # self.worklist.pop.return_value = task
         worker = Mock(spec=["workerId", "run"])
-        # self.workers.hire.return_value = worker
         expected_result = worker.run.return_value
 
         handler = Mock()
@@ -530,9 +526,7 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.worklist.pop.assert_not_called()
         worker.run.assert_called_once_with(task.call)
         self.reactor.callLater.assert_not_called()
-        # self.reactor.callLater.assert_called_once_with(
-        #     0.1, self.running.execute,
-        # )
+
         self.patches["_handle_start"].assert_called_once_with(
             task, worker.workerId,
         )

@@ -227,6 +227,17 @@ class WorkerPoolTest(TestCase):  # noqa: D101
         self.assertEqual(self.pool.available, 1)
         self.assertEqual(len(self.pool), 1)
 
+    def test_handleReportStatus(self):
+        worker_1 = Mock(name='worker_1')
+        worker_2 = Mock(name='worker_2')
+        self.pool.add(worker_1)
+        self.pool.add(worker_2)
+
+        ret = self.pool.handleReportStatus(event=None)
+
+        worker_1.callRemote.assert_called_with("reportStatus")
+        worker_2.callRemote.assert_called_with("reportStatus")
+
 
 class RemoteServiceRegistryTest(TestCase):  # noqa: D101
 

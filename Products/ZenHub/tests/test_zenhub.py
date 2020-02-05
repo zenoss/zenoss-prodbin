@@ -9,6 +9,7 @@
 
 from unittest import TestCase
 from mock import Mock, patch, create_autospec, call, sentinel
+import sys
 
 from zope.interface.verify import verifyObject
 from zope.component import adaptedBy
@@ -24,6 +25,8 @@ from Products.ZenHub.zenhub import (
     DefaultHubHeartBeatCheck, IHubHeartBeatCheck,
     IEventPublisher,
     stop_server,
+    server_config,
+    IHubServerConfig,
 )
 
 PATH = {'src': 'Products.ZenHub.zenhub'}
@@ -420,6 +423,8 @@ class ZenHubTest(TestCase):
         # parser expected to be added by CmdBase.buildParser
         from optparse import OptionParser
         t.zh.parser = OptionParser()
+        # Given no commandline options
+        sys.argv = []
 
         t.zh.buildOptions()
         t.zh.options, args = t.zh.parser.parse_args()
@@ -436,6 +441,27 @@ class ZenHubTest(TestCase):
         t.assertEqual(t.zh.options.modeling_pause_timeout, 3600)
         # delay before actually parsing the options
         notify.assert_called_with(ParserReadyForOptionsEvent(t.zh.parser))
+
+    @patch('{src}.server_config.ModuleObjectConfig'.format(**PATH))
+    @patch('{src}.provideUtility'.format(**PATH))
+    @patch('{src}.super'.format(**PATH))
+    def test_parseOptions(t, super, provideUtility, ModuleObjectConfig):
+        t.zh.parseOptions()
+
+        super.assert_called_with(ZenHub, t.zh)
+        super.return_value.parseOptions.assert_called_with()
+
+        t.assertEqual(
+            server_config.modeling_pause_timeout,
+            int(t.zh.options.modeling_pause_timeout)
+        )
+        t.assertEqual(server_config.xmlrpcport, int(t.zh.options.xmlrpcport))
+        t.assertEqual(server_config.pbport, int(t.zh.options.pbport))
+
+        ModuleObjectConfig.assert_called_with(server_config)
+        provideUtility.assert_called_with(
+            ModuleObjectConfig.return_value, IHubServerConfig
+        )
 
 
 class DefaultConfProviderTest(TestCase):
