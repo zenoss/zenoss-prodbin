@@ -25,7 +25,6 @@ from Products.ZenHub.server.utils import subTest
 
 from ..workers import (
     RemoteException, banana, jelly,
-    LoopingCall,
     ServiceCallPriority,
     ServiceCallTask,
     WorkerPoolExecutor,
@@ -80,6 +79,10 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         t.assertIs(result._WorkerPoolExecutor__worklist, _zhwlist.return_value)
         t.assertIs(result._WorkerPoolExecutor__workers, pool)
 
+    def test_create_requires_pool(t):
+        with t.assertRaises(ValueError):
+            WorkerPoolExecutor.create(t.name)
+
     def test_initial_state(self):
         self.assertEqual(self.name, self.executor.name)
         self.assertEqual(self.workers, self.executor.pool)
@@ -105,6 +108,16 @@ class WorkerPoolExecutorTest(TestCase):  # noqa: D101
         dfr = self.executor.submit(call)
 
         self.assertEqual(dfr, running_state.submit.return_value)
+
+    def test_stop(t):
+        '''submit returns a deferred.failure object if the executor is stopped
+        '''
+        call = Mock(spec=ServiceCall)
+
+        t.executor.stop()
+        ret = t.executor.submit(call)
+
+        t.assertIsInstance(ret.result, Failure)
 
 
 class BaseRunning(object):
@@ -476,10 +489,7 @@ class RunningExecuteTest(BaseRunning, TestCase):
     def test_nominal_execute(self):
         task = Mock(spec=["call", "retryable"])
         task.retryable = False
-        # self.worklist.__len__.return_value = 1
-        # self.worklist.pop.return_value = task
         worker = Mock(spec=["workerId", "run"])
-        # self.workers.hire.return_value = worker
         expected_result = worker.run.return_value
 
         handler = Mock()
@@ -491,9 +501,7 @@ class RunningExecuteTest(BaseRunning, TestCase):
         self.worklist.pop.assert_not_called()
         worker.run.assert_called_once_with(task.call)
         self.reactor.callLater.assert_not_called()
-        # self.reactor.callLater.assert_called_once_with(
-        #     0.1, self.running.execute,
-        # )
+
         self.patches["_handle_start"].assert_called_once_with(
             task, worker.workerId,
         )
