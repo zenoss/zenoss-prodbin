@@ -879,6 +879,9 @@ class PBDaemonTest(TestCase):
         # Required commandline options
         sys.argv = ['Start', ]
 
+        # Required commandline options
+        sys.argv = ['Start', ]
+
         t.name = 'pb_daemon_name'
         t.pbd = PBDaemon(name=t.name)
 
