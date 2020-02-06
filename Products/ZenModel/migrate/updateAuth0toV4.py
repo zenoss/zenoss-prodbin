@@ -19,13 +19,12 @@ log = logging.getLogger("zen.migrate")
 import Migrate
 import re
 from Products.ZenUtils.Auth0.Auth0 import setup, PLUGIN_VERSION, email_pattern
-from Products.ZenModel.ZMigrateVersion import SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION
 
 
 
 class UpdateAuth0toV4(Migrate.Step):
 
-    version = Migrate.Version(SCHEMA_MAJOR, SCHEMA_MINOR, SCHEMA_REVISION)
+    version = Migrate.Version(300, 0, 11)
 
     def cutover(self, dmd):
         setup(dmd)

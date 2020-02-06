@@ -17,6 +17,7 @@ import errno
 import signal
 import subprocess
 import socket
+import traceback
 from datetime import datetime
 import transaction
 from AccessControl.SecurityManagement import (
@@ -297,7 +298,7 @@ class Job(Task):
                 cls, instance, tb = result.exc_info[0:3]
                 if not isinstance(result, JobAborted):
                     self.log.error("Job %s failed with an exception" % job_id)
-                    self.log.error(tb)
+                    self.log.error(''.join(traceback.format_exception(cls, instance, tb)))
                 links = []
                 if self.request.callbacks:
                     for callback in self.request.callbacks:

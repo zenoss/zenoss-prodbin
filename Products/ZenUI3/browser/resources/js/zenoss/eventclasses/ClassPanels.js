@@ -767,6 +767,7 @@ Ext.onReady(function(){
     Ext.define('Zenoss.eventclass.XformMasterPanel', {
         extend: 'Ext.panel.Panel',
         alias: 'widget.xformmasterpanel',
+        autoScroll: true,
         initComponent: function() {
             this.callParent(arguments);
         },

@@ -7,7 +7,7 @@ import unittest
 from . import common
 
 
-class TestUseRabbitmqScriptLauncher(
+class Test_editServicesStartup(
     unittest.TestCase, common.ServiceMigrationTestCase,
 ):
     """Test whether services' start up commands are modified"""

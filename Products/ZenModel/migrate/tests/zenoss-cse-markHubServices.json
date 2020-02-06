@@ -19394,7 +19394,8 @@
         "StartLevel": 2,
         "Startup": "su - zenoss -c \"/opt/zenoss/bin/zenhubworker run -c --logfileonly --monitor {{(parent .).Name}} --workerid $CONTROLPLANE_INSTANCE_ID adm\"",
         "Tags": [
-            "daemon"
+            "daemon",
+            "hub"
         ],
         "Title": "",
         "Version": "",
@@ -19871,7 +19872,8 @@
         "StartLevel": 2,
         "Startup": "su - zenoss -c \"/opt/zenoss/bin/zenhubiworker run -c --duallog --hub {{(parent .).Name}} --workerid $CONTROLPLANE_INSTANCE_ID\"",
         "Tags": [
-            "daemon"
+            "daemon",
+            "hub"
         ],
         "Title": "",
         "Version": "",
@@ -20356,7 +20358,8 @@
         "StartLevel": 2,
         "Startup": "su - zenoss -c \"/opt/zenoss/bin/zenhubworker run -c --logfileonly --monitor {{(parent .).Name}} --workerid $CONTROLPLANE_INSTANCE_ID default\"",
         "Tags": [
-            "daemon"
+            "daemon",
+            "hub"
         ],
         "Title": "",
         "Version": "",
